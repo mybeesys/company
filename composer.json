@@ -12,7 +12,8 @@
         "laravel/framework": "^11.9",
         "laravel/passport": "12.0",
         "laravel/tinker": "^2.9",
-        "nwidart/laravel-modules": "^11.1"
+        "nwidart/laravel-modules": "^11.1",
+        "stancl/tenancy": "^3.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
