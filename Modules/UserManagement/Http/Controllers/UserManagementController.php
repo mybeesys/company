@@ -5,6 +5,8 @@ namespace Modules\UserManagement\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class UserManagementController extends Controller
 {
@@ -14,15 +16,19 @@ class UserManagementController extends Controller
 
     public function login(Request $request)
      {
-
+/*        Redis::set('name', 'John Doe'); 
+            $name = Redis::get('name');
+        dd($name);
+*/
         // dd($request->email." ". $request->password." ".Auth::attempt(['email' => $request->email, 'password' => $request->password]));
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $token = auth()->user()->createToken('API Token')->accessToken;
 
-           return response()->json(['token' => $token]);
+            return redirect()->route('dashboard');
+          // return response()->json(['token' => $token]);
         }
-
-      return response()->json(['error' => 'Unauthenticated'], 401);
+        return redirect()->route('dashboard');
+     // return response()->json(['error' => 'Unauthenticated'], 401);
      }
 
     public function index()
