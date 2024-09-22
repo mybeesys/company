@@ -8,7 +8,7 @@ return [
         'subMenu' =>[]
     ],
     [
-        'name' => 'User Management',
+        'name' => 'User_module',
         'url' => '/',
         'icon' => 'fas fa-user',
         'permission' => '' ,
@@ -26,7 +26,7 @@ return [
         ]
     ],
     [
-        'name' => 'Product',
+        'name' => 'Product_module',
         'url' => '/',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '' ,
