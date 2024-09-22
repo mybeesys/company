@@ -17,6 +17,10 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
+Route::get('/', function () {
+    return view('usermanagement::index');
+})->name('dashboard');
+
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,

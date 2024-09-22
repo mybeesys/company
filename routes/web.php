@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/set-locale/{locale}', function ($locale) {
     session()->put('locale', $locale);
