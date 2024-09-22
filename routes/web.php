@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Validator;
 
 Route::get('/set-locale/{locale}', function ($locale) {
     session()->put('locale', $locale);
-    return session()->get('locale');
+    return redirect()->back();
+    
 })->name('set_locale');
 
 

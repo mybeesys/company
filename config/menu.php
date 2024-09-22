@@ -8,12 +8,12 @@ return [
         'subMenu' =>[]
     ],
     [
-        'name' => 'User Management',
+        'name' => 'User_module',
         'url' => '/',
         'icon' => 'fas fa-user',
         'permission' => '' ,
         'subMenu' => [
-            [ 
+            [
                 'name' => 'Users',
                 'url' => '/',
                 'permission' => '' ,
@@ -26,12 +26,12 @@ return [
         ]
     ],
     [
-        'name' => 'Product',
+        'name' => 'Product_module',
         'url' => '/',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '' ,
         'subMenu' => [
-            [ 
+            [
                 'name' => 'Products',
                 'url' => '/',
                 'permission' => '' ,
@@ -44,11 +44,17 @@ return [
             ]
     ],
     [
-        'name' => 'Finance',
+        'name' => 'accounting_module',
         'url' => '/',
         'icon' => 'fas fa-calculator',
         'permission' => '' ,
-        'subMenu' =>[]
+        'subMenu' =>[
+            [
+                'name' => 'chart_of_accounts',
+                'url' => '/',
+                'permission' => '' ,
+            ],
+        ]
     ],
     [
         'name' => 'Establishment',
@@ -79,4 +85,3 @@ return [
         'subMenu' =>[]
     ],
 ];
-
