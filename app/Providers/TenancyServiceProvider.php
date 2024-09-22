@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
+use Stancl\Tenancy\Events\TenancyBootstrapped;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
@@ -105,6 +106,11 @@ class TenancyServiceProvider extends ServiceProvider
 
         $this->makeTenancyMiddlewareHighestPriority();
         Passport::loadKeysFrom(storage_path('/'));
+
+        \Event::listen(TenancyBootstrapped::class, function () {
+            $tenant = tenancy()->tenant;
+            config(['database.redis.default.database' => $tenant->redis_db]);
+        });
     }
 
     protected function bootEvents()
