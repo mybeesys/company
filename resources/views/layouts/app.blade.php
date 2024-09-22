@@ -697,7 +697,7 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Heading-->
 									<div class="d-flex flex-column bgi-no-repeat rounded-top" style="background-image:url('assets/media/misc/menu-header-bg.jpg')">
 										<!--begin::Title-->
-										<h3 class="text-white fw-semibold px-9 mt-10 mb-6">Notifications 
+										<h3 class="text-white fw-semibold px-9 mt-10 mb-6">Notifications
 										<span class="fs-8 opacity-75 ps-3">24 reports</span></h3>
 										<!--end::Title-->
 										<!--begin::Tabs-->
@@ -893,7 +893,7 @@ License: For each use you must have a valid license purchased only from above li
 											<!--end::Items-->
 											<!--begin::View more-->
 											<div class="py-3 text-center border-top">
-												<a href="pages/user-profile/activity.html" class="btn btn-color-gray-600 btn-active-color-primary">View All 
+												<a href="pages/user-profile/activity.html" class="btn btn-color-gray-600 btn-active-color-primary">View All
 												<i class="ki-outline ki-arrow-right fs-5"></i></a>
 											</div>
 											<!--end::View more-->
@@ -1139,7 +1139,7 @@ License: For each use you must have a valid license purchased only from above li
 											<!--end::Items-->
 											<!--begin::View more-->
 											<div class="py-3 text-center border-top">
-												<a href="pages/user-profile/activity.html" class="btn btn-color-gray-600 btn-active-color-primary">View All 
+												<a href="pages/user-profile/activity.html" class="btn btn-color-gray-600 btn-active-color-primary">View All
 												<i class="ki-outline ki-arrow-right fs-5"></i></a>
 											</div>
 											<!--end::View more-->
@@ -1152,7 +1152,7 @@ License: For each use you must have a valid license purchased only from above li
 								<!--end::Menu wrapper-->
 							</div>
 							<!--end::Notifications-->
-		
+
 							<!--begin::User menu-->
 							<div class="app-navbar-item ms-2 ms-lg-6" id="kt_header_user_menu_toggle">
 								<!--begin::Menu wrapper-->
@@ -1171,7 +1171,7 @@ License: For each use you must have a valid license purchased only from above li
 											<!--end::Avatar-->
 											<!--begin::Username-->
 											<div class="d-flex flex-column">
-												<div class="fw-bold d-flex align-items-center fs-5">Max Smith 
+												<div class="fw-bold d-flex align-items-center fs-5">Max Smith
 												<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span></div>
 												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">max@kt.com</a>
 											</div>
@@ -1222,7 +1222,7 @@ License: For each use you must have a valid license purchased only from above li
 											<!--end::Menu item-->
 											<!--begin::Menu item-->
 											<div class="menu-item px-3">
-												<a href="account/statements.html" class="menu-link d-flex flex-stack px-5">Statements 
+												<a href="account/statements.html" class="menu-link d-flex flex-stack px-5">Statements
 												<span class="ms-2 lh-0" data-bs-toggle="tooltip" title="View your statements">
 													<i class="ki-outline ki-information-5 fs-5"></i>
 												</span></a>
@@ -1256,7 +1256,7 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Menu item-->
 									<div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
 										<a href="#" class="menu-link px-5">
-											<span class="menu-title position-relative">Mode 
+											<span class="menu-title position-relative">Mode
 											<span class="ms-5 position-absolute translate-middle-y top-50 end-0">
 												<i class="ki-outline ki-night-day theme-light-show fs-2"></i>
 												<i class="ki-outline ki-moon theme-dark-show fs-2"></i>
@@ -1301,15 +1301,25 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Menu item-->
 									<div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
 										<a href="#" class="menu-link px-5">
-											<span class="menu-title position-relative">Language 
-											<span class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0">English 
-											<img class="w-15px h-15px rounded-1 ms-2" src="assets/media/flags/united-states.svg" alt="" /></span></span>
+											<span class="menu-title position-relative">@lang('lang.Language')
+                                                @if (session()->get('locale')=='ar')
+											<span class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0">العربية
+
+                                                <img class="w-15px h-15px rounded-1 ms-2" src="assets/media/flags/saudi-arabia.svg" alt="" /></span></span>
+@else
+<span class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0">English
+
+<img class="w-15px h-15px rounded-1 ms-2" src="assets/media/flags/united-states.svg" alt="" /></span></span>
+
+                                                @endif
 										</a>
 										<!--begin::Menu sub-->
 										<div class="menu-sub menu-sub-dropdown w-175px py-4">
 											<!--begin::Menu item-->
 											<div class="menu-item px-3">
-												<a href="account/settings.html" class="menu-link d-flex px-5 active">
+
+
+<a href="{{ route('set_locale', ['locale' => 'en']) }}" class="menu-link d-flex px-5 {{ session()->get('locale') == 'en' ? 'active' : '' }}">
 												<span class="symbol symbol-20px me-4">
 													<img class="rounded-1" src="assets/media/flags/united-states.svg" alt="" />
 												</span>English</a>
@@ -1317,36 +1327,13 @@ License: For each use you must have a valid license purchased only from above li
 											<!--end::Menu item-->
 											<!--begin::Menu item-->
 											<div class="menu-item px-3">
-												<a href="account/settings.html" class="menu-link d-flex px-5">
+												<a href="{{ route('set_locale', ['locale' => 'ar']) }}" class="menu-link d-flex px-5 {{ session()->get('locale') == 'ar' ? 'active' : '' }}">
 												<span class="symbol symbol-20px me-4">
-													<img class="rounded-1" src="assets/media/flags/spain.svg" alt="" />
-												</span>Spanish</a>
+													<img class="rounded-1" src="assets/media/flags/saudi-arabia.svg" alt="" />
+												</span>العربية</a>
 											</div>
 											<!--end::Menu item-->
-											<!--begin::Menu item-->
-											<div class="menu-item px-3">
-												<a href="account/settings.html" class="menu-link d-flex px-5">
-												<span class="symbol symbol-20px me-4">
-													<img class="rounded-1" src="assets/media/flags/germany.svg" alt="" />
-												</span>German</a>
-											</div>
-											<!--end::Menu item-->
-											<!--begin::Menu item-->
-											<div class="menu-item px-3">
-												<a href="account/settings.html" class="menu-link d-flex px-5">
-												<span class="symbol symbol-20px me-4">
-													<img class="rounded-1" src="assets/media/flags/japan.svg" alt="" />
-												</span>Japanese</a>
-											</div>
-											<!--end::Menu item-->
-											<!--begin::Menu item-->
-											<div class="menu-item px-3">
-												<a href="account/settings.html" class="menu-link d-flex px-5">
-												<span class="symbol symbol-20px me-4">
-													<img class="rounded-1" src="assets/media/flags/france.svg" alt="" />
-												</span>French</a>
-											</div>
-											<!--end::Menu item-->
+
 										</div>
 										<!--end::Menu sub-->
 									</div>
@@ -1408,7 +1395,7 @@ License: For each use you must have a valid license purchased only from above li
 											<span class="menu-icon">
 												<i class='{{$menuItem["icon"]}}'></i>
 											</span>
-											<span class="menu-title">{{$menuItem["name"]}}</span>
+											<span class="menu-title">{{__('menuItemLang.'.$menuItem["name"])}}</span>
 											@if(count($menuItem["subMenu"]) > 0)
 											 <span class="menu-arrow"></span>
 											@endif
@@ -1787,8 +1774,8 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Timeline heading-->
 									<div class="pe-3 mb-5">
 										<!--begin::Title-->
-										<div class="fs-5 fw-semibold mb-2">Task 
-										<a href="#" class="text-primary fw-bold me-1">#45890</a>merged with 
+										<div class="fs-5 fw-semibold mb-2">Task
+										<a href="#" class="text-primary fw-bold me-1">#45890</a>merged with
 										<a href="#" class="text-primary fw-bold me-1">#45890</a>in �Ads Pro Admin Dashboard project:</div>
 										<!--end::Title-->
 										<!--begin::Description-->
@@ -1907,7 +1894,7 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Timeline heading-->
 									<div class="pe-3 mb-5">
 										<!--begin::Title-->
-										<div class="fs-5 fw-semibold mb-2">New case 
+										<div class="fs-5 fw-semibold mb-2">New case
 										<a href="#" class="text-primary fw-bold me-1">#67890</a>is assigned to you in Multi-platform Database Design project</div>
 										<!--end::Title-->
 										<!--begin::Description-->
@@ -2004,7 +1991,7 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Timeline heading-->
 									<div class="pe-3 mb-5">
 										<!--begin::Title-->
-										<div class="fs-5 fw-semibold mb-2">New order 
+										<div class="fs-5 fw-semibold mb-2">New order
 										<a href="#" class="text-primary fw-bold me-1">#67890</a>is placed for Workshow Planning & Budget Estimation</div>
 										<!--end::Title-->
 										<!--begin::Description-->
@@ -2031,7 +2018,7 @@ License: For each use you must have a valid license purchased only from above li
 				<!--end::Body-->
 				<!--begin::Footer-->
 				<div class="card-footer py-5 text-center" id="kt_activities_footer">
-					<a href="pages/user-profile/activity.html" class="btn btn-bg-body text-primary">View All Activities 
+					<a href="pages/user-profile/activity.html" class="btn btn-bg-body text-primary">View All Activities
 					<i class="ki-outline ki-arrow-right fs-3 text-primary"></i></a>
 				</div>
 				<!--end::Footer-->
@@ -2080,7 +2067,7 @@ License: For each use you must have a valid license purchased only from above li
 								<!--end::Menu item-->
 								<!--begin::Menu item-->
 								<div class="menu-item px-3">
-									<a href="#" class="menu-link flex-stack px-3" data-bs-toggle="modal" data-bs-target="#kt_modal_invite_friends">Invite Contacts 
+									<a href="#" class="menu-link flex-stack px-3" data-bs-toggle="modal" data-bs-target="#kt_modal_invite_friends">Invite Contacts
 									<span class="ms-2" data-bs-toggle="tooltip" title="Specify a contact email to send an invitation">
 										<i class="ki-outline ki-information fs-7"></i>
 									</span></a>
@@ -2259,7 +2246,7 @@ License: For each use you must have a valid license purchased only from above li
 								</div>
 								<!--end::User-->
 								<!--begin::Text-->
-								<div class="p-5 rounded bg-light-info text-gray-900 fw-semibold mw-lg-400px text-start" data-kt-element="message-text">You can unwatch this repository immediately by clicking here: 
+								<div class="p-5 rounded bg-light-info text-gray-900 fw-semibold mw-lg-400px text-start" data-kt-element="message-text">You can unwatch this repository immediately by clicking here:
 								<a href="https://keenthemes.com">Keenthemes.com</a></div>
 								<!--end::Text-->
 							</div>
@@ -2720,7 +2707,7 @@ License: For each use you must have a valid license purchased only from above li
 						<!--begin::Heading-->
 						<div class="mb-13 text-center">
 							<h1 class="mb-3">Upgrade a Plan</h1>
-							<div class="text-muted fw-semibold fs-5">If you need more info, please check 
+							<div class="text-muted fw-semibold fs-5">If you need more info, please check
 							<a href="#" class="link-primary fw-bold">Pricing Guidelines</a>.</div>
 						</div>
 						<!--end::Heading-->
@@ -2759,7 +2746,7 @@ License: For each use you must have a valid license purchased only from above li
 											<div class="ms-5">
 												<span class="mb-2">$</span>
 												<span class="fs-3x fw-bold" data-kt-plan-price-month="39" data-kt-plan-price-annual="399">39</span>
-												<span class="fs-7 opacity-50">/ 
+												<span class="fs-7 opacity-50">/
 												<span data-kt-element="period">Mon</span></span>
 											</div>
 											<!--end::Price-->
@@ -2786,7 +2773,7 @@ License: For each use you must have a valid license purchased only from above li
 											<div class="ms-5">
 												<span class="mb-2">$</span>
 												<span class="fs-3x fw-bold" data-kt-plan-price-month="339" data-kt-plan-price-annual="3399">339</span>
-												<span class="fs-7 opacity-50">/ 
+												<span class="fs-7 opacity-50">/
 												<span data-kt-element="period">Mon</span></span>
 											</div>
 											<!--end::Price-->
@@ -2803,7 +2790,7 @@ License: For each use you must have a valid license purchased only from above li
 												<!--end::Radio-->
 												<!--begin::Info-->
 												<div class="flex-grow-1">
-													<div class="d-flex align-items-center fs-2 fw-bold flex-wrap">Enterprise 
+													<div class="d-flex align-items-center fs-2 fw-bold flex-wrap">Enterprise
 													<span class="badge badge-light-success ms-2 py-2 px-3 fs-7">Popular</span></div>
 													<div class="fw-semibold opacity-75">Best value for 1000+ team</div>
 												</div>
@@ -2814,7 +2801,7 @@ License: For each use you must have a valid license purchased only from above li
 											<div class="ms-5">
 												<span class="mb-2">$</span>
 												<span class="fs-3x fw-bold" data-kt-plan-price-month="999" data-kt-plan-price-annual="9999">999</span>
-												<span class="fs-7 opacity-50">/ 
+												<span class="fs-7 opacity-50">/
 												<span data-kt-element="period">Mon</span></span>
 											</div>
 											<!--end::Price-->
@@ -3092,7 +3079,7 @@ License: For each use you must have a valid license purchased only from above li
 								<span class="indicator-label">Upgrade Plan</span>
 								<!--end::Indicator label-->
 								<!--begin::Indicator progress-->
-								<span class="indicator-progress">Please wait... 
+								<span class="indicator-progress">Please wait...
 								<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
 								<!--end::Indicator progress-->
 							</button>
@@ -3129,7 +3116,7 @@ License: For each use you must have a valid license purchased only from above li
 							<h1 class="mb-3">Browse Users</h1>
 							<!--end::Title-->
 							<!--begin::Description-->
-							<div class="text-muted fw-semibold fs-5">If you need more info, please check out our 
+							<div class="text-muted fw-semibold fs-5">If you need more info, please check out our
 							<a href="#" class="link-primary fw-bold">Users Directory</a>.</div>
 							<!--end::Description-->
 						</div>
@@ -3150,7 +3137,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Emma Smith 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Emma Smith
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Art Director</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3184,7 +3171,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Melody Macy 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Melody Macy
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Marketing Analytic</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3218,7 +3205,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Max Smith 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Max Smith
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Software Enginer</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3252,7 +3239,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Sean Bean 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Sean Bean
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Web Developer</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3286,7 +3273,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Brian Cox 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Brian Cox
 											<span class="badge badge-light fs-8 fw-semibold ms-2">UI/UX Designer</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3320,7 +3307,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Mikaela Collins 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Mikaela Collins
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Head Of Marketing</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3354,7 +3341,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Francis Mitcham 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Francis Mitcham
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Software Arcitect</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3388,7 +3375,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Olivia Wild 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Olivia Wild
 											<span class="badge badge-light fs-8 fw-semibold ms-2">System Admin</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3422,7 +3409,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Neil Owen 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Neil Owen
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Account Manager</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3456,7 +3443,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Dan Wilson 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Dan Wilson
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Web Desinger</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3490,7 +3477,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Emma Bold 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Emma Bold
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Corporate Finance</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3524,7 +3511,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Ana Crown 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Ana Crown
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Customer Relationship</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -3558,7 +3545,7 @@ License: For each use you must have a valid license purchased only from above li
 										<!--begin::Details-->
 										<div class="ms-6">
 											<!--begin::Name-->
-											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Robert Doe 
+											<a href="#" class="d-flex align-items-center fs-5 fw-bold text-gray-900 text-hover-primary">Robert Doe
 											<span class="badge badge-light fs-8 fw-semibold ms-2">Marketing Executive</span></a>
 											<!--end::Name-->
 											<!--begin::Email-->
@@ -4417,7 +4404,7 @@ License: For each use you must have a valid license purchased only from above li
 							<h1 class="mb-3">Invite a Friend</h1>
 							<!--end::Title-->
 							<!--begin::Description-->
-							<div class="text-muted fw-semibold fs-5">If you need more info, please check out 
+							<div class="text-muted fw-semibold fs-5">If you need more info, please check out
 							<a href="#" class="link-primary fw-bold">FAQ Page</a>.</div>
 							<!--end::Description-->
 						</div>

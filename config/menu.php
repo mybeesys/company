@@ -13,7 +13,7 @@ return [
         'icon' => 'fas fa-user',
         'permission' => '' ,
         'subMenu' => [
-            [ 
+            [
                 'name' => 'Users',
                 'url' => '/',
                 'permission' => '' ,
@@ -31,7 +31,7 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'permission' => '' ,
         'subMenu' => [
-            [ 
+            [
                 'name' => 'Products',
                 'url' => '/',
                 'permission' => '' ,
@@ -44,11 +44,17 @@ return [
             ]
     ],
     [
-        'name' => 'Finance',
+        'name' => 'accounting_module',
         'url' => '/',
         'icon' => 'fas fa-calculator',
         'permission' => '' ,
-        'subMenu' =>[]
+        'subMenu' =>[
+            [
+                'name' => 'chart_of_accounts',
+                'url' => '/',
+                'permission' => '' ,
+            ],
+        ]
     ],
     [
         'name' => 'Establishment',
@@ -79,4 +85,3 @@ return [
         'subMenu' =>[]
     ],
 ];
-

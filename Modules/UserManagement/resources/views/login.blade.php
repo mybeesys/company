@@ -137,14 +137,14 @@ License: For each use you must have a valid license purchased only from above li
 										<span class="indicator-label">Sign In</span>
 										<!--end::Indicator label-->
 										<!--begin::Indicator progress-->
-										<span class="indicator-progress">Please wait... 
+										<span class="indicator-progress">Please wait...
 										<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
 										<!--end::Indicator progress-->
 									</button>
 								</div>
 								<!--end::Submit button-->
 								<!--begin::Sign up-->
-								<div class="text-gray-500 text-center fw-semibold fs-6">Not a Member yet? 
+								<div class="text-gray-500 text-center fw-semibold fs-6">Not a Member yet?
 								<a href="authentication/layouts/creative/sign-up.html" class="link-primary">Sign up</a></div>
 								<!--end::Sign up-->
 							</form>
@@ -176,41 +176,11 @@ License: For each use you must have a valid license purchased only from above li
 									<!--end::Menu item-->
 									<!--begin::Menu item-->
 									<div class="menu-item px-3">
-										<a href="#" class="menu-link d-flex px-5" data-kt-lang="Spanish">
+										<a href="#" class="menu-link d-flex px-5" data-kt-lang="arabic">
 											<span class="symbol symbol-20px me-4">
-												<img data-kt-element="lang-flag" class="rounded-1" src="assets/media/flags/spain.svg" alt="" />
+												<img data-kt-element="lang-flag" class="rounded-1" src="assets/media/flags/saudi-arabia.svg" alt="" />
 											</span>
-											<span data-kt-element="lang-name">Spanish</span>
-										</a>
-									</div>
-									<!--end::Menu item-->
-									<!--begin::Menu item-->
-									<div class="menu-item px-3">
-										<a href="#" class="menu-link d-flex px-5" data-kt-lang="German">
-											<span class="symbol symbol-20px me-4">
-												<img data-kt-element="lang-flag" class="rounded-1" src="assets/media/flags/germany.svg" alt="" />
-											</span>
-											<span data-kt-element="lang-name">German</span>
-										</a>
-									</div>
-									<!--end::Menu item-->
-									<!--begin::Menu item-->
-									<div class="menu-item px-3">
-										<a href="#" class="menu-link d-flex px-5" data-kt-lang="Japanese">
-											<span class="symbol symbol-20px me-4">
-												<img data-kt-element="lang-flag" class="rounded-1" src="assets/media/flags/japan.svg" alt="" />
-											</span>
-											<span data-kt-element="lang-name">Japanese</span>
-										</a>
-									</div>
-									<!--end::Menu item-->
-									<!--begin::Menu item-->
-									<div class="menu-item px-3">
-										<a href="#" class="menu-link d-flex px-5" data-kt-lang="French">
-											<span class="symbol symbol-20px me-4">
-												<img data-kt-element="lang-flag" class="rounded-1" src="assets/media/flags/france.svg" alt="" />
-											</span>
-											<span data-kt-element="lang-name">French</span>
+											<span data-kt-element="lang-name">العربية</span>
 										</a>
 									</div>
 									<!--end::Menu item-->
