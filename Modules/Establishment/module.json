@@ -1,0 +1,11 @@
+{
+    "name": "Establishment",
+    "alias": "establishment",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Establishment\\Providers\\EstablishmentServiceProvider"
+    ],
+    "files": []
+}
