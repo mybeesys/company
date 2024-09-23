@@ -2,5 +2,6 @@
     "Accounting": true,
     "Product": true,
     "UserManagement": true,
-    "Employee": true
+    "Employee": true,
+    "Establishment": true
 }

@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\EmployeeController;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Modules\Establishment\Http\Controllers\EstablishmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,10 +14,6 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
-Route::middleware([
-    'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
-    Route::resource('employee', EmployeeController::class)->names('employee');
+Route::group([], function () {
+    Route::resource('establishment', EstablishmentController::class)->names('establishment');
 });

@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Employee\Http\Controllers;
+namespace Modules\Establishment\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class EmployeeController extends Controller
+class BrandController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('employee::index');
+        return view('establishment::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return view('employee::create');
+        return view('establishment::create');
     }
 
     /**
@@ -36,7 +36,7 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        return view('employee::show');
+        return view('establishment::show');
     }
 
     /**
@@ -44,7 +44,7 @@ class EmployeeController extends Controller
      */
     public function edit($id)
     {
-        return view('employee::edit');
+        return view('establishment::edit');
     }
 
     /**
