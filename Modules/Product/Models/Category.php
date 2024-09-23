@@ -15,8 +15,8 @@ class Category extends Model
      */
     protected $fillable = [];
 
-    // protected static function newFactory(): CategoryFactory
-    // {
-    //     // return CategoryFactory::new();
-    // }
+    public function items()
+    {
+        return $this->hasMany('Modules\Product\Entities\Item', 'category_id', 'id');
+    }
 }
