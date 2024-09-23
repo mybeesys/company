@@ -4,6 +4,7 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Product\Models\Product;
 
 class ProductController extends Controller
 {
@@ -12,7 +13,11 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return view('product::index');
+          // Access all records from the product_items table
+          $Product = Product::all();
+
+          // Return the items as a JSON response (or to a view)
+          return response()->json($Product);
     }
 
     /**
@@ -28,7 +33,15 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'description' => 'nullable|string',
+        ]);
+
+        $item = Product::create($validatedData);
+
+        return response()->json($item, 201);
     }
 
     /**
@@ -36,7 +49,13 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        return view('product::show');
+        $item = Product::find($id);
+
+        if ($item) {
+            return response()->json($item);
+        }
+
+        return response()->json(['error' => 'Item not found'], 404);
     }
 
     /**
