@@ -4,24 +4,24 @@ return [
         'name' => 'Dashboard',
         'url' => '/',
         'icon' => 'fas fa-home',
-        'permission' => '' ,
-        'subMenu' =>[]
+        'permission' => '',
+        'subMenu' => []
     ],
     [
         'name' => 'User_module',
         'url' => '/',
         'icon' => 'fas fa-user',
-        'permission' => '' ,
+        'permission' => '',
         'subMenu' => [
             [
-                'name' => 'Users',
+                'name' => 'users',
                 'url' => '/',
-                'permission' => '' ,
+                'permission' => '',
             ],
             [
-                'name' => 'Roles',
+                'name' => 'roles',
                 'url' => '/',
-                'permission' => '' ,
+                'permission' => '',
             ]
         ]
     ],
@@ -29,59 +29,65 @@ return [
         'name' => 'Product_module',
         'url' => '/',
         'icon' => 'fas fa-shopping-cart',
-        'permission' => '' ,
+        'permission' => '',
         'subMenu' => [
             [
-                'name' => 'Products',
+                'name' => 'products',
                 'url' => '/',
-                'permission' => '' ,
+                'permission' => '',
             ],
             [
-                'name' => 'Inventory',
+                'name' => 'inventory',
                 'url' => '/',
-                'permission' => '' ,
+                'permission' => '',
             ]
-            ]
+        ]
     ],
     [
         'name' => 'accounting_module',
         'url' => '/',
         'icon' => 'fas fa-calculator',
-        'permission' => '' ,
-        'subMenu' =>[
+        'permission' => '',
+        'subMenu' => [
             [
                 'name' => 'chart_of_accounts',
                 'url' => '/',
-                'permission' => '' ,
+                'permission' => '',
             ],
         ]
     ],
     [
-        'name' => 'Establishment',
+        'name' => 'establishments_module',
         'url' => '/',
         'icon' => 'fas fa-building',
-        'permission' => '' ,
-        'subMenu' =>[]
+        'permission' => '',
+        'subMenu' => []
     ],
     [
-        'name' => 'CRM',
+        'name' => 'crm',
         'url' => '/',
         'icon' => 'fas fa-cogs',
-        'permission' => '' ,
-        'subMenu' =>[]
+        'permission' => '',
+        'subMenu' => []
     ],
     [
-        'name' => 'Employees',
+        'name' => 'employees_module',
         'url' => '/',
         'icon' => 'fas fa-id-card',
-        'permission' => '' ,
-        'subMenu' =>[]
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'chart_of_accounts',
+                'url' => '/',
+                'permission' => '',
+            ]
+        ]
     ],
     [
-        'name' => 'Reports',
+        'name' => 'reports_module',
         'url' => '/',
         'icon' => 'fas fa-bar-chart',
-        'permission' => '' ,
-        'subMenu' =>[]
+        'permission' => '',
+        'subMenu' => []
     ],
 ];
