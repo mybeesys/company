@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_serial_numbers', function (Blueprint $table) {
+        Schema::create('product_subcategories', function (Blueprint $table) {
             $table->id();
-            $table->string('serial_number');
-            $table->unsignedBigInteger('product_id'); 
-            $table->foreign('product_id')              // Foreign key constraint
+            $table->string('name_ar');
+            $table->string('name_en');
+            $table->unsignedBigInteger('category_id'); 
+            $table->foreign('category_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('product_serial_numbers'); 
-            $table->string('status');   
+            ->on('product_categories');    
+            $table->integer('order');          
             $table->timestamps();
             $table->softDeletes(); // Adds a deleted_at column
         });
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('serial_numbers');
+        Schema::dropIfExists('subcategories');
     }
 };

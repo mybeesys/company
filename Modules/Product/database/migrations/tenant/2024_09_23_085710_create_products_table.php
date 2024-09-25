@@ -15,12 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('name_ar');
             $table->string('name_en');
+            $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('categories');               // Table to reference
+            ->on('product_categories');    
+            $table->unsignedBigInteger('subcategory_id');           // Table to reference
             $table->foreign('subcategory_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('subcategories');
+            ->on('product_subcategories');
             $table->text('description_ar')->nullable();
             $table->text('description_en')->nullable();
             $table->decimal('price');

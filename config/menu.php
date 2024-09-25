@@ -27,13 +27,13 @@ return [
     ],
     [
         'name' => 'Product_module',
-        'url' => '/',
+        'url' => 'category.index',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '' ,
         'subMenu' => [
             [
                 'name' => 'Products',
-                'url' => '/',
+                'url' => 'category.index',
                 'permission' => '' ,
             ],
             [

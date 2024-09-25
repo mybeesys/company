@@ -8,12 +8,39 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductModifier extends Model
 {
+
+    protected $table = 'product_product_modifiers';
+
+    use HasFactory;
+    
+    public $timestamps = true;
+
     use HasFactory;
 
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'product_id',
+        'modifier_id',
+        'active',
+        'default',
+        'free_quantity',
+        'free_type',
+        'max_modifiers',
+        'min_modifiers',
+        'button_display',
+        'modifier_display'
+    ];
+
+    public function modifiers()
+    {
+        return $this->belongsTo(modifiers::class, 'modifier_id', 'id');
+    }
+    public function products()
+    {
+        return $this->belongsTo(products::class, 'product_id', 'id');
+    }
 
     // protected static function newFactory(): ProductModifierFactory
     // {

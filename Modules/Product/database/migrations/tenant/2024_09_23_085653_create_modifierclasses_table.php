@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('modifierclasses', function (Blueprint $table) {
+        Schema::create('product_modifierclasses', function (Blueprint $table) {
+ 
             $table->id();
-            
+            $table->string('name_ar');
+            $table->string('name_en');
             $table->timestamps();
+            $table->softDeletes(); // Adds a deleted_at column
         });
     }
 

@@ -13,10 +13,15 @@ class SerialNumber extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = 
+    [
+        'serial_number',
+        'product_id',
+        'status'
+    ];
 
-    // protected static function newFactory(): SerialNumberFactory
-    // {
-    //     // return SerialNumberFactory::new();
-    // }
+    public function product()
+    {
+        return $this->belongsTo(product::class, 'product_id', 'id');
+    }
 }

@@ -10,10 +10,33 @@ class Modifier extends Model
 {
     use HasFactory;
 
+    
+    protected $table = 'product_modifiers';
+        
+    public $timestamps = true;
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'class_id',
+        'price',
+        'PLU',
+        'color',
+        'image'
+    ];
+
+    public function modifierclass()
+    {
+        return $this->belongsTo(modifiersclass::class, 'class_id', 'id');
+    }
+
+    
+    public function products()
+    {
+        return $this->hasMany(ProductModifier::class, 'modifier_id', 'id');
+    }
 
     // protected static function newFactory(): ModifierFactory
     // {

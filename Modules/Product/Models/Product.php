@@ -23,9 +23,30 @@ class Product extends Model
         'class',
         'cost',
         'price',
-        'category',
-        'subcategory',
+        'category_id',
+        'subcategory_id',
         'description_ar',
         'description_en'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+    
+    public function subcategory()
+    {
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
+    }
+
+    public function serial_numbers()
+    {
+        return $this->hasMany(serial_number::class, 'product_id', 'id');
+    }
+
+    public function modifiers()
+    {
+        return $this->hasMany(ProductModifier::class, 'product_id', 'id');
+    }
 }

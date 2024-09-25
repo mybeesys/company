@@ -11,10 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
-            
+            $table->string('name_ar');
+            $table->string('name_en');
+            $table->unsignedBigInteger('parent_id')->nullable(); 
+            $table->foreign('parent_id')              // Foreign key constraint
+            ->references('id')                    // References the id on the categories table
+            ->on('product_categories');    
+            $table->integer('order');          
             $table->timestamps();
+            $table->softDeletes(); // Adds a deleted_at column
         });
     }
 

@@ -11,10 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('modifiers', function (Blueprint $table) {
+        Schema::create('product_modifiers', function (Blueprint $table) {
+           
             $table->id();
-            
+            $table->string('name_ar');
+            $table->string('name_en');
+            $table->unsignedBigInteger('class_id');
+            $table->foreign('class_id')              // Foreign key constraint
+            ->references('id')                    // References the id on the categories table
+            ->on('product_modifierclasses'); 
+            $table->decimal('price');
+            $table->string('PLU');
+            $table->string('color');
+            $table->string('image');
             $table->timestamps();
+            $table->softDeletes(); // Adds a deleted_at column
         });
     }
 

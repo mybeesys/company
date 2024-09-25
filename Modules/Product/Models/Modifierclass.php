@@ -9,11 +9,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Modifierclass extends Model
 {
     use HasFactory;
-
+    protected $table = 'product_modifierclasses';
+        
+    public $timestamps = true;
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+
+    ];
+
+    public function modifiers()
+    {
+        return $this->hasMany(modifiers::class, 'class_id', 'id');
+    }
 
     // protected static function newFactory(): ModifierclassFactory
     // {

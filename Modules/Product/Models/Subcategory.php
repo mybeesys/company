@@ -10,13 +10,28 @@ class Subcategory extends Model
 {
     use HasFactory;
 
+    
+    protected $table = 'product_subcategories';
+        
+    public $timestamps = true;
+    
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [   
+    'name_ar',
+    'name_en',
+    'category_id',
+    'order'
+];
 
-    // protected static function newFactory(): SubcategoryFactory
-    // {
-    //     // return SubcategoryFactory::new();
-    // }
+public function products()
+{
+    return $this->hasMany(products::class, 'subcategory_id', 'id');
+}
+
+public function category()
+{
+    return $this->belongsTo(Category::class, 'category_id' , 'id');
+}
 }
