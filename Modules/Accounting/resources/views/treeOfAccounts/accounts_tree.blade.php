@@ -52,8 +52,8 @@
                                                     @endif
 
 
-                                                    {{-- - @format_currency($account->balance) --}}
-                                                    ( 1313 ريال )
+                                                    - @format_currency($account->balance)
+
                                                 </span>
 
                                                 @if ($account->status == 'active')
@@ -73,10 +73,11 @@
                                                             aria-expanded="false">
                                                             <i class="fas fa-cog"></i>
                                                         </button>
-                                                        <ul class="dropdown-menu dropdown-menu-left" role="menu" style="padding: 8px 15px;">
+                                                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
+                                                            style="padding: 8px 15px;">
                                                             <li><a class="ledger-link"
-                                                                 onclick="setAccountId({{ $account->id }})"
-                                                                href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger',['account_id'=>$account->id]) }}"
+                                                                    onclick="setAccountId({{ $account->id }})"
+                                                                    href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $account->id]) }}"
                                                                     style="margin: 2px;">
                                                                     <i class="fas fa-file-alt"></i><span
                                                                         style="margin-left: 5px;">@lang('accounting::lang.ledger')</a>
@@ -100,16 +101,27 @@
                                                                         style="margin-left: 5px;">@lang('accounting::lang.add_account')
                                                                 </a></li>
 
-                                                            <li><a class="activate-deactivate-btn text-warning  btn-xs btn-default"
-                                                                    style="margin: 2px;" href="#">
-                                                                    <i class="fas fa-power-off"></i><span
-                                                                        style="margin-left: 5px;">
-                                                                        @if ($account->status == 'active')
+                                                            <li>
+                                                                @if ($account->status == 'active')
+                                                                    <a class="btn-xs btn-default text-danger"
+                                                                        style="margin: 2px;" data-bs-toggle="modal"
+                                                                        onclick="setAccount({{ $account }})"
+                                                                        data-bs-target="#kt_modal_deactive">
+                                                                        <i class="fas fa-power-off"></i><span
+                                                                            style="margin-left: 5px;">
                                                                             @lang('messages.deactivate')
-                                                                        @else
+                                                                    </a>
+                                                                @else
+                                                                    <a class="btn-xs btn-default text-success"
+                                                                        style="margin: 2px;" data-bs-toggle="modal"
+                                                                        onclick="setAccount({{ $account }})"
+                                                                        data-bs-target="#kt_modal_active">
+                                                                        <i class="fas fa-power-off"></i><span
+                                                                            style="margin-left: 5px;">
                                                                             @lang('messages.activate')
-                                                                        @endif
-                                                                </a></li>
+                                                                    </a>
+                                                                @endif
+                                                            </li>
                                                         </ul>
                                                     </div>
 
@@ -182,17 +194,31 @@
                                                                                         style="margin-left: 5px;">@lang('accounting::lang.add_account')
                                                                                 </a></li>
 
-                                                                            <li><a class="activate-deactivate-btn text-warning  btn-xs btn-default"
-                                                                                    style="margin: 2px;" href="#">
-                                                                                    <i
-                                                                                        class="fas fa-power-off"></i><span
-                                                                                        style="margin-left: 5px;">
-                                                                                        @if ($account->status == 'active')
+                                                                            <li>
+                                                                                @if ($child_account->status == 'active')
+                                                                                    <a class="btn-xs btn-default text-danger"
+                                                                                        style="margin: 2px;"
+                                                                                        data-bs-toggle="modal"
+                                                                                        onclick="setAccount({{ $child_account }})"
+                                                                                        data-bs-target="#kt_modal_deactive">
+                                                                                        <i
+                                                                                            class="fas fa-power-off"></i><span
+                                                                                            style="margin-left: 5px;">
                                                                                             @lang('messages.deactivate')
-                                                                                        @else
+                                                                                    </a>
+                                                                                @else
+                                                                                    <a class="btn-xs btn-default text-success"
+                                                                                        style="margin: 2px;"
+                                                                                        data-bs-toggle="modal"
+                                                                                        onclick="setAccount({{ $child_account }})"
+                                                                                        data-bs-target="#kt_modal_active">
+                                                                                        <i
+                                                                                            class="fas fa-power-off"></i><span
+                                                                                            style="margin-left: 5px;">
                                                                                             @lang('messages.activate')
-                                                                                        @endif
-                                                                                </a></li>
+                                                                                    </a>
+                                                                                @endif
+                                                                            </li>
                                                                         </ul>
                                                                     </div>
 

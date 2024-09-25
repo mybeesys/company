@@ -25,7 +25,7 @@ class TreeAccountsController extends Controller
         $account_types = AccountingAccountTypes::accounting_primary_type();
         $balance_formula = AccountingUtil::balanceFormula('AA');
 
-        $accounts = AccountingAccount::whereNull('parent_account_id')
+           $accounts = AccountingAccount::whereNull('parent_account_id')
             ->with([
                 'child_accounts' => function ($query) use ($balance_formula) {
                     $query->select([DB::raw("(SELECT $balance_formula from accounting_accounts_transactions AS AAT
@@ -74,7 +74,6 @@ class TreeAccountsController extends Controller
         $account_exist = AccountingAccount::exists();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
-
         return view('accounting::treeOfAccounts.index', compact('accounts', 'account_category', 'account_main_types', 'account_exist', 'account_types', 'account_GLC', 'account_sub_types'));
     }
 
@@ -305,6 +304,19 @@ class TreeAccountsController extends Controller
         $current_bal = $current_bal->first()->balance;
         return view('accounting::treeOfAccounts.ledger', compact('account', 'current_bal', 'account_transactions'));
     }
+
+    public function activateDeactivate(Request $request)
+    {
+        $account = AccountingAccount::find($request->account_id);
+
+        $account->status = $account->status == 'active' ? 'inactive' : 'active';
+        $account->save();
+
+        return redirect()->back();
+    }
+
+
+
     /**
      * Remove the specified resource from storage.
      */
