@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="{{ session()->get('locale', 'en') }}">
 <!--begin::Head-->
 <head>
-    <title>{{ config('app.name') }}</title>
+
+    <title>@yield('title') - MyBee</title>
+
+
     <meta charset="utf-8" />
     <meta name="description"
         content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -15,7 +19,9 @@
     <meta property="og:url" content="https://keenthemes.com/metronic" />
     <meta property="og:site_name" content="Metronic by Keenthemes" />
     <link rel="canonical" href="http://preview.keenthemes.comindex.html" />
-    <link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
+    <link rel="shortcut icon" href="assets/media/logos/1-14.png" />
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <!--end::Fonts-->
@@ -26,6 +32,9 @@
     <!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
     <link href="assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    @yield('css')
     <!--end::Global Stylesheets Bundle-->
     <script>
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
@@ -38,21 +47,27 @@
     <style>
         body {
             /* direction: {{ session()->get('locale') == 'ar' ? 'rtl' : 'ltr' }}; */
-            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
-
+            text-align: session()->get('locale')=='ar' ? 'right': 'left';
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
-            /* font-weight: '<weight>; */
             font-style: normal;
-            /* font-variation-settings:
-    "slnt" 0; */
+        }
 
+
+
+        .app-sidebar-wrapper {
+            direction: session()->get('locale')=='ar' ? 'rtl': 'ltr';
+            text-align: session()->get('locale')=='ar' ? 'right': 'left';
 
         }
-        .app-sidebar-wrapper {
-            direction: {{ session()->get('locale') == 'ar' ? 'rtl' : 'ltr' }};
-            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
 
+
+        .select2-container .select2-selection--single {
+            height: auto;
+        }
+
+        .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
+            padding-right: 18px;
         }
     </style>
 </head>
@@ -110,9 +125,8 @@
                         <!--end::Sidebar mobile toggle-->
                         <!--begin::Logo-->
                         <a href="index.html" class="app-sidebar-logo">
-                            <img alt="Logo" src="assets/media/logos/demo39.svg" class="h-25px theme-light-show" />
-                            <img alt="Logo" src="assets/media/logos/demo39-dark.svg"
-                                class="h-25px theme-dark-show" />
+                            <img alt="Logo" src="assets/media/logos/1-01.png" class="h-90px theme-light-show" />
+                            <img alt="Logo" src="assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
                         <!--end::Logo-->
                     </div>
@@ -140,7 +154,9 @@
                             data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_header"
                             data-kt-scroll-wrappers="#kt_app_sidebar_wrapper" data-kt-scroll-offset="5px">
                             <!--begin::Sidebar menu-->
+
                                 @include('components.sideBar')
+
                             <!--end::Sidebar menu-->
                         </div>
                     </div>
@@ -4047,12 +4063,22 @@
     <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
     <script src="assets/plugins/custom/datatables/datatables.bundle.js"></script>
     <!--end::Vendors Javascript-->
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
     <!--begin::Custom Javascript(used for this page only)-->
     <script src="assets/js/widgets.bundle.js"></script>
     <script src="assets/js/custom/widgets.js"></script>
     <script src="assets/js/custom/apps/chat/chat.js"></script>
     <script src="assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="assets/js/custom/utilities/modals/users-search.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
+    <!-- jQuery CDN -->
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
+
+
+    <!-- Add any other dependent libraries (e.g., jstree) -->
+    @yield('script')
     <!--end::Custom Javascript-->
     <!--end::Javascript-->
 </body>

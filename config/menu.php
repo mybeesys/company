@@ -2,18 +2,19 @@
 return [
     [
         'name' => 'Dashboard',
-        'url' => '/',
+        'url' => 'dashboard',
         'icon' => 'fas fa-home',
         'permission' => '',
         'subMenu' => []
     ],
     [
         'name' => 'User_module',
-        'url' => '/',
+        'url' => 'dashboard',
         'icon' => 'fas fa-user',
         'permission' => '',
         'subMenu' => [
             [
+
                 'name' => 'users',
                 'url' => '/',
                 'permission' => '',
@@ -22,16 +23,18 @@ return [
                 'name' => 'roles',
                 'url' => '/',
                 'permission' => '',
+
             ]
         ]
     ],
     [
         'name' => 'Product_module',
-        'url' => '/',
+        'url' => 'dashboard',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
+
                 'name' => 'products',
                 'url' => '/',
                 'permission' => '',
@@ -40,30 +43,36 @@ return [
                 'name' => 'inventory',
                 'url' => '/',
                 'permission' => '',
+
             ]
         ]
     ],
     [
         'name' => 'accounting_module',
-        'url' => '/',
+        'url' => 'dashboard',
         'icon' => 'fas fa-calculator',
         'permission' => '',
         'subMenu' => [
             [
                 'name' => 'chart_of_accounts',
-                'url' => '/',
+                'url' => 'tree-of-accounts',
                 'permission' => '',
             ],
         ]
     ],
     [
         'name' => 'establishments_module',
-        'url' => '/',
+        'url' => 'dashboard',
+
+        'permission' => '',
         'icon' => 'fas fa-building',
         'permission' => '',
         'subMenu' => []
     ],
+
+
     [
+
         'name' => 'crm',
         'url' => '/',
         'icon' => 'fas fa-cogs',
@@ -71,6 +80,7 @@ return [
         'subMenu' => []
     ],
     [
+
         'name' => 'employees_module',
         'url' => '/',
         'icon' => 'fas fa-id-card',
