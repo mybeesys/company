@@ -9,6 +9,11 @@ return [
     'update'=>'تعديل',
     'transactions'=>'معاملة',
     'no_account_transactions'=>'لا توجد معاملات مطبقة على الحساب',
+    'total'=>'المجموع',
+    'Yes, deactive it!'=>'نعم، إلغاء تنشيط!',
+    'Yes, active it!'=>'نعم، تنشيط!',
+    'No,return'=>'لا، عودة',
+
 
 
 
