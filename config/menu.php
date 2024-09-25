@@ -56,22 +56,21 @@ return [
             [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
-                'permission' => '' ,
+                'permission' => '',
             ],
         ]
     ],
     [
-        'name' => 'Establishment',
+        'name' => 'establishments_module',
         'url' => 'dashboard',
 
-                'url' => '/',
-                'permission' => '',
-      'icon' => 'fas fa-building',
+        'permission' => '',
+        'icon' => 'fas fa-building',
         'permission' => '',
         'subMenu' => []
-            ],
-        ]
     ],
+
+
     [
 
         'name' => 'crm',
