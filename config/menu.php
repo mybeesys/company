@@ -29,15 +29,16 @@ return [
     ],
     [
         'name' => 'Product_module',
-        'url' => 'dashboard',
+        'url' => 'category.index',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
 
-                'name' => 'products',
-                'url' => '/',
-                'permission' => '',
+                'name' => 'Products',
+                'url' => 'category.index',
+                'permission' => '' ,
+
             ],
             [
                 'name' => 'inventory',
@@ -75,10 +76,8 @@ return [
     [
         'name' => 'establishments_module',
         'url' => 'dashboard',
-
         'permission' => '',
         'icon' => 'fas fa-building',
-        'permission' => '',
         'subMenu' => []
     ],
 
@@ -93,14 +92,14 @@ return [
     ],
     [
 
-        'name' => 'employees_module',
+        'name' => 'employees_management_module',
         'url' => '/',
         'icon' => 'fas fa-id-card',
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'chart_of_accounts',
-                'url' => '/',
+                'name' => 'employees',
+                'url' => '/employee',
                 'permission' => '',
             ]
         ]

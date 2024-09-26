@@ -4,20 +4,39 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Product\Models\Product;
+use Modules\Product\Models\Category;
+use Modules\Product\Models\Subcategory;
 
-class ProductController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-          // Access all records from the product_items table
-          $Product = Product::all();
+      return view('product::category.index' ); 
+    }
 
-          // Return the items as a JSON response (or to a view)
-          return response()->json($Product);
+    public function getCategories()
+    {
+       $categories = Category::all(); // or use query with pagination if needed
+       return response()->json([
+        'data' => $categories
+    ]);
+    }
+
+    
+    public function getsubCategories($id)
+    {
+        // Find the category by its ID
+        $category = Category::findOrFail($id);
+
+        // Get all subcategories for this category
+        $subcategories = $category->subcategories;
+
+        return response()->json([
+            'data' => $subcategories
+        ]);
     }
 
     /**
@@ -33,15 +52,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'description' => 'nullable|string',
-        ]);
-
-        $item = Product::create($validatedData);
-
-        return response()->json($item, 201);
+        //
     }
 
     /**
@@ -49,13 +60,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $item = Product::find($id);
-
-        if ($item) {
-            return response()->json($item);
-        }
-
-        return response()->json(['error' => 'Item not found'], 404);
+        return view('product::show');
     }
 
     /**

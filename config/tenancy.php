@@ -185,11 +185,11 @@ return [
      */
     'migration_parameters' => [
         '--force' => true, // This needs to be true to run migrations in production.
-
         '--path' => [
             'Modules/UserManagement/database/migrations/tenant',
             'Modules/Employee/database/migrations/tenant',
             'Modules/Establishment/database/migrations/tenant',
+            'Modules/Product/database/migrations/tenant',
             'Modules/Accounting/database/migrations/tenant',
         ],
 
@@ -203,9 +203,7 @@ return [
         '--class' => 'DatabaseSeeder', // root seeder class
         'class' => \Database\Seeders\TenantDatabaseSeeder::class,
 
-        // '--force' => true,
     ],
-
 
 
 ];

@@ -123,8 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-
-
+  
     // 'providers' => [
     //     Illuminate\Filesystem\FilesystemServiceProvider::class,
     //     Illuminate\Translation\TranslationServiceProvider::class,

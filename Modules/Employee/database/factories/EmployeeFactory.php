@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Employee\Database\Factories;
+namespace Modules\Employee\database\factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Employee\Models\Employee;

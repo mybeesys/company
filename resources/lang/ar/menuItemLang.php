@@ -6,7 +6,8 @@ return [
     'User_module' => 'إدارة المسنخدمين',
     'Product_module' => 'إدارة الأصناف',
     'chart_of_accounts'=>'شجرة الحسابات',
-    'employees_module' => 'الموظفون',
+
+    'employees_management_module' => 'إدارة الموظفين',
     'establishments_module' => 'المنشآت',
     'users' => 'المستخدمون',
     'roles' => 'الأدوار',
@@ -16,6 +17,8 @@ return [
     'inventory' => 'المخزن',
     'accounting_dashboard'=>'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',
+    'employees' => 'الموظفون',
+
 
 
 

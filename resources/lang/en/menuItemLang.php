@@ -6,7 +6,8 @@ return [
     'User_module' => 'User Mangment',
     'Product_module' => 'Product Mangment',
     'chart_of_accounts'=>'Tree of accounts',
-    'employees_module' => 'Employee',
+
+    'employees_management_module' => 'Employee managment',
     'establishments_module' => 'Establishments',
     'users' => 'Users',
     'roles' => 'Roles',
@@ -16,7 +17,7 @@ return [
     'inventory' => 'Inventory',
     'accounting_dashboard'=>'Accounting Dashboard',
     'journalEntry' => 'Journal Entry',
-
+    'employees' => 'Employees',
 
 
 

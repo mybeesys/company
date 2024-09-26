@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Product\Http\Controllers\ProductController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Modules\Product\Http\Controllers\CategoryController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -12,8 +16,14 @@ use Modules\Product\Http\Controllers\ProductController;
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
-*/
-
-Route::group([], function () {
+*/    
+Route::middleware([
+    'web',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class
+])->group( function () {
     Route::resource('product', ProductController::class)->names('product');
+    Route::resource('category', CategoryController::class)->names('category');
+    Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
+    Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
 });
