@@ -20,7 +20,6 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-])->name('employee.')->prefix('employee')->group(function () {
-    Route::get('/', [EmployeeController::class, 'index'])->name('index');
-    // Route::resource('/', EmployeeController::class)->names('employee');
+])->name('employee.')->group(function () {
+    Route::get('employees-dashboard', [EmployeeController::class, 'index'])->name('index');
 });
