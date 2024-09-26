@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateJWT;
 use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\UserManagement\Http\Controllers\UserManagementController;
@@ -25,10 +26,11 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 
 ])->group(function () {
-    Route::get('/', function () {
-        return view('usermanagement::index');
-    })->name('dashboard');
-
+    Route::middleware(AuthenticateJWT::class)->group(function () {
+        Route::get('/', function () {
+            return view('usermanagement::index');
+        })->name('dashboard');
+    });
     Route::get('/login', function () {
         return view('usermanagement::login');
     });
