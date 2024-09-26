@@ -14,7 +14,9 @@ return [
     'reports_module' => 'التقارير',
     'products' => 'المنتجات',
     'inventory' => 'المخزن',
-    'accounting_dashboard'=>'لوحة التحكم المحاسبية'
+    'accounting_dashboard'=>'لوحة التحكم المحاسبية',
+    'journalEntry' => 'القيود اليومية',
+
 
 
 ];

@@ -87,10 +87,20 @@ return [
     'accounting_dashboard' => 'Accounting Dashboard',
     'Overview_tree_Accounts' => 'Tree of Accounts Summary',
     'Overview_tree_Accounts_descrption' => 'The Tree of Accounts overview provides a simplified summary of the main accounts along with their balances, offering a quick and accurate snapshot of the financial status.',
-    'chart_nots'=>'Balances include all transactions, providing a complete overview of account performance',
+    'chart_nots' => 'Balances include all transactions, providing a complete overview of account performance',
     'chart_of_accounts' => 'Chart Of Accounts',
-    'note_deactive'=>'You are about to deactivate the financial account. This action may disable financial transactions associated with this account. Please ensure you want to proceed before continuing.',
-    'note_active'=>'You are about to activate the financial account. This action will enable financial transactions associated with this account. Please ensure you want to proceed before continuing',
+    'note_deactive' => 'You are about to deactivate the financial account. This action may disable financial transactions associated with this account. Please ensure you want to proceed before continuing.',
+    'note_active' => 'You are about to activate the financial account. This action will enable financial transactions associated with this account. Please ensure you want to proceed before continuing',
+    'journalEntry' => 'Journal Entry',
+    'add_journalEntry' => 'Add Journal Entry',
+    'journalEntry_date' => 'Journal Entry Date',
+    "Pick_journalEntry_date" => 'Pick Journal Entry Date',
+    'ref_number'=>'Reference Number',
+    'ref_number_note'=>'Leave blank for automatic creation',
+
+
+
+
 
 
 
