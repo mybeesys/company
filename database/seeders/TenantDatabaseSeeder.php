@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Laravel\Passport\ClientRepository;
-
+use App\Models\Tenant;
+use Modules\UserManagement\database\seeders\UserManagementDatabaseSeeder;
+use Modules\Employee\database\seeders\EmployeeDatabaseSeeder;
 
 class TenantDatabaseSeeder extends Seeder
 {
@@ -14,11 +16,13 @@ class TenantDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-//        $client = new ClientRepository();
 
-      //  $client->createPasswordGrantClient(null, 'Default password grant client', 'http://localhost:8000/');
+            $this->call([
+                UserManagementDatabaseSeeder::class,
+                EmployeeDatabaseSeeder::class,
+        
+            ]);
 
-     //   $client->createPersonalAccessClient(null, 'Default personal access client', 'http://localhost:8000/');
 
     }
 }
