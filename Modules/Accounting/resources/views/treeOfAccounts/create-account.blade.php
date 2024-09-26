@@ -63,7 +63,7 @@
                         </select>
                     </div>
 
-                    <input type="text" id="account_id" hidden class="form-control form-control-solid" required
+                    <input type="text" id="account_id" hidden class="form-control form-control-solid" 
                         name="account_id" value="">
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">

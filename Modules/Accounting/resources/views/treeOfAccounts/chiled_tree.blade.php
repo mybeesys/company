@@ -14,8 +14,8 @@
                  @endif
                  - {{ $child_account->name_en }}
              @endif
-             {{-- - @format_currency($child_account->balance) --}}
-             - 100 ريال
+             - @format_currency($child_account->balance)
+
              @if ($child_account->status == 'active')
                  <span><i class="fas fa-check text-success" title="@lang('accounting::lang.active')"></i></span>
              @elseif($child_account->status == 'inactive')
@@ -48,15 +48,21 @@
                                  <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_account')
                              </a></li>
 
-                         <li><a class="activate-deactivate-btn text-warning  btn-xs btn-default" style="margin: 2px;"
-                                 href="#">
-                                 <i class="fas fa-power-off"></i><span style="margin-left: 5px;">
-                                     @if ($account->status == 'active')
+                         <li>
+                             @if ($child_account->status == 'active')
+                                 <a class="btn-xs btn-default text-danger" style="margin: 2px;" data-bs-toggle="modal"
+                                     onclick="setAccount({{ $child_account }})" data-bs-target="#kt_modal_deactive">
+                                     <i class="fas fa-power-off"></i><span style="margin-left: 5px;">
                                          @lang('messages.deactivate')
-                                     @else
+                                 </a>
+                             @else
+                                 <a class="btn-xs btn-default text-success" style="margin: 2px;" data-bs-toggle="modal"
+                                     onclick="setAccount({{ $child_account }})" data-bs-target="#kt_modal_active">
+                                     <i class="fas fa-power-off"></i><span style="margin-left: 5px;">
                                          @lang('messages.activate')
-                                     @endif
-                             </a></li>
+                                 </a>
+                             @endif
+                         </li>
                      </ul>
                  </div>
 

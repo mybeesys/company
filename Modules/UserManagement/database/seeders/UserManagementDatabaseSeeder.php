@@ -11,6 +11,9 @@ class UserManagementDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call([]);
+        $client = new ClientRepository();
+
+        $client->createPasswordGrantClient(null, 'Default password grant client', 'http://'+tenant('id')+'.mybee.live');
+        $client->createPersonalAccessClient(null, 'Default personal access client', 'http://'+tenant('id')+'.mybee.live');
     }
 }

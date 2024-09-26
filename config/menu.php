@@ -29,15 +29,16 @@ return [
     ],
     [
         'name' => 'Product_module',
-        'url' => 'dashboard',
+        'url' => 'category.index',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
 
-                'name' => 'products',
-                'url' => '/',
-                'permission' => '',
+                'name' => 'Products',
+                'url' => 'category.index',
+                'permission' => '' ,
+
             ],
             [
                 'name' => 'inventory',
@@ -54,10 +55,16 @@ return [
         'permission' => '',
         'subMenu' => [
             [
+                'name' => 'accounting_dashboard',
+                'url' => 'accounting-dashboard',
+                'permission' => '',
+            ],
+            [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
                 'permission' => '',
             ],
+
         ]
     ],
     [
