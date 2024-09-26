@@ -70,10 +70,8 @@ return [
     [
         'name' => 'establishments_module',
         'url' => 'dashboard',
-
         'permission' => '',
         'icon' => 'fas fa-building',
-        'permission' => '',
         'subMenu' => []
     ],
 
@@ -88,14 +86,14 @@ return [
     ],
     [
 
-        'name' => 'employees_module',
+        'name' => 'employees_management_module',
         'url' => '/',
         'icon' => 'fas fa-id-card',
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'chart_of_accounts',
-                'url' => '/',
+                'name' => 'employees',
+                'url' => '/employee',
                 'permission' => '',
             ]
         ]
