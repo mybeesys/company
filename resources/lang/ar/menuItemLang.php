@@ -18,7 +18,7 @@ return [
     'accounting_dashboard'=>'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',
     'employees' => 'الموظفون',
-
+    'employees-dashboard' => 'لوحة تحكم الموظفين',
 
 
 
