@@ -7,7 +7,7 @@ return [
     'Product_module' => 'إدارة الأصناف',
     'chart_of_accounts'=>'شجرة الحسابات',
 
-    'employees_module' => 'الموظفون',
+    'employees_management_module' => 'إدارة الموظفين',
     'establishments_module' => 'المنشآت',
     'users' => 'المستخدمون',
     'roles' => 'الأدوار',
@@ -15,7 +15,9 @@ return [
     'reports_module' => 'التقارير',
     'products' => 'المنتجات',
     'inventory' => 'المخزن',
-    'accounting_dashboard'=>'لوحة التحكم المحاسبية'
+    'accounting_dashboard'=>'لوحة التحكم المحاسبية',
+    'employees' => 'الموظفون',
+
 
 
 ];
