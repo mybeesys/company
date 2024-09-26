@@ -55,10 +55,16 @@ return [
         'permission' => '',
         'subMenu' => [
             [
+                'name' => 'accounting_dashboard',
+                'url' => 'accounting-dashboard',
+                'permission' => '',
+            ],
+            [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
                 'permission' => '',
             ],
+
         ]
     ],
     [

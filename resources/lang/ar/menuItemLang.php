@@ -15,5 +15,7 @@ return [
     'reports_module' => 'التقارير',
     'Products' => 'المنتجات',
     'inventory' => 'المخزن',
+    'accounting_dashboard'=>'لوحة التحكم المحاسبية'
+
 
 ];

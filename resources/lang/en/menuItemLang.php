@@ -15,5 +15,7 @@ return [
     'reports_module' => 'Reports',
     'Products' => 'Product',
     'inventory' => 'Inventory',
+    'accounting_dashboard'=>'Accounting Dashboard'
+
 
 ];
