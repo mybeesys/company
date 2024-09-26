@@ -14,6 +14,7 @@ return [
     'Yes, deactive it!'=>'Yes, deactive it!',
     'Yes, active it!'=>'Yes, active it!',
     'No,return'=>'No, return',
+    'add'=>'إضافة',
 
 
 

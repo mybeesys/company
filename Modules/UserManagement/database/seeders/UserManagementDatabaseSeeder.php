@@ -1,6 +1,8 @@
 <?php
 
-namespace Modules\UserManagement\Database\Seeders;
+namespace Modules\UserManagement\database\seeders;
+use App\Models\Tenant;
+use Laravel\Passport\ClientRepository;
 
 use Illuminate\Database\Seeder;
 
@@ -11,9 +13,11 @@ class UserManagementDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $client = new ClientRepository();
+          echo "Seeding complete for tenant: " . tenant('id'). "\n";
+          
+          $client = new ClientRepository();
 
-        $client->createPasswordGrantClient(null, 'Default password grant client', 'http://'+tenant('id')+'.mybee.live');
-        $client->createPersonalAccessClient(null, 'Default personal access client', 'http://'+tenant('id')+'.mybee.live');
+        $client->createPasswordGrantClient(null, 'Default password grant client',tenant('id') . "." . env("APP_DOMAIN") );
+        $client->createPersonalAccessClient(null, 'Default personal access client', tenant('id') . "." . env("APP_DOMAIN"));
     }
 }
