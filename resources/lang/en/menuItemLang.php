@@ -13,7 +13,7 @@ return [
     'roles' => 'Roles',
     'crm' => 'CRM',
     'reports_module' => 'Reports',
-    'Products' => 'Product',
+    'products' => 'Product',
     'inventory' => 'Inventory',
     'accounting_dashboard'=>'Accounting Dashboard'
 
