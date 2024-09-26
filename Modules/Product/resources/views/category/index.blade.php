@@ -127,7 +127,6 @@ function createChild(row) {
 
 	// Child row DataTable configuration, always passes the parent row's id to server
 	var usersTable = table.DataTable({
-		pageLength: 5,
 		ajax: {
 			url: newUrl,
 			data: function(d) {
@@ -139,7 +138,11 @@ function createChild(row) {
 			{  data: "name_en" },
 			{  data: "order" }
 		],
-		select: true,
+		select: false,
+        "paging": false,   // Enable or disable pagination
+        "ordering": false, // Enable or disable column ordering
+        "info": false,    // Hide or show table information
+        "searching": false // Hide search functionality
 	});
 
 }

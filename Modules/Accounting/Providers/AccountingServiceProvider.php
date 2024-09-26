@@ -22,9 +22,11 @@ class AccountingServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerCommandSchedules();
         $this->registerTranslations();
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'accounting');
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        $this->app['router']->pushMiddlewareToGroup('web', \App\Http\Middleware\LocalizationMiddleware::class);
     }
 
     /**

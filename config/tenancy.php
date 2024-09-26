@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Tenant;
 use Stancl\Tenancy\Database\Models\Domain;
+
 return [
     'tenant_model' => Tenant::class,
     'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
@@ -62,15 +63,15 @@ return [
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
             /**
-             * Use this database manager for MySQL to have a DB user created for each tenant database.
-             * You can customize the grants given to these users by changing the $grants property.
-             */
+         * Use this database manager for MySQL to have a DB user created for each tenant database.
+         * You can customize the grants given to these users by changing the $grants property.
+         */
             // 'mysql' => Stancl\Tenancy\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class,
 
             /**
-             * Disable the pgsql manager above, and enable the one below if you
-             * want to separate tenant DBs by schemas rather than databases.
-             */
+         * Disable the pgsql manager above, and enable the one below if you
+         * want to separate tenant DBs by schemas rather than databases.
+         */
             // 'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLSchemaManager::class, // Separate by schema instead of database
         ],
     ],
@@ -183,13 +184,15 @@ return [
      * Parameters used by the tenants:migrate command.
      */
     'migration_parameters' => [
-        '--force' => true, // This needs to be true to run migrations in production
+        '--force' => true, // This needs to be true to run migrations in production.
         '--path' => [
             'Modules/UserManagement/database/migrations/tenant',
             'Modules/Employee/database/migrations/tenant',
             'Modules/Establishment/database/migrations/tenant',
-            'Modules/Product/database/migrations/tenant'
+            'Modules/Product/database/migrations/tenant',
+            'Modules/Accounting/database/migrations/tenant',
         ],
+
         '--realpath' => true,
     ],
 
@@ -200,7 +203,6 @@ return [
         '--class' => 'DatabaseSeeder', // root seeder class
         'class' => \Database\Seeders\TenantDatabaseSeeder::class,
 
-        // '--force' => true,
     ],
 
 

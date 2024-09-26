@@ -6,12 +6,14 @@ return [
     'User_module' => 'إدارة المسنخدمين',
     'Product_module' => 'إدارة الأصناف',
     'chart_of_accounts'=>'شجرة الحسابات',
-'Products' => 'المنتجات',
-'Inventory' => 'المستودعات' ,
-'Users' => 'المستخدمين' ,
-'Roles' => 'الأدوار',
-'Establishment' => 'المنشأت',
-'CRM' => 'CRM',
-'Reports' => 'التقارير',
-'Employees' => 'الموظفين'
+
+    'employees_module' => 'الموظفون',
+    'establishments_module' => 'المنشآت',
+    'users' => 'المستخدمون',
+    'roles' => 'الأدوار',
+    'crm' => 'إدارة علاقات العملاء',
+    'reports_module' => 'التقارير',
+    'Products' => 'المنتجات',
+    'inventory' => 'المخزن',
+
 ];
