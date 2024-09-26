@@ -16,7 +16,9 @@ return [
     'products' => 'Product',
     'inventory' => 'Inventory',
     'accounting_dashboard'=>'Accounting Dashboard',
+    'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
+
 
 
 

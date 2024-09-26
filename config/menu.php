@@ -64,9 +64,15 @@ return [
                 'url' => 'tree-of-accounts',
                 'permission' => '',
             ],
+            [
+                'name' => 'journalEntry',
+                'url' => 'journal-entry-index',
+                'permission' => '',
+            ],
 
         ]
     ],
+
     [
         'name' => 'establishments_module',
         'url' => 'dashboard',

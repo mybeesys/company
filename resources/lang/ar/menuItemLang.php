@@ -16,7 +16,9 @@ return [
     'products' => 'المنتجات',
     'inventory' => 'المخزن',
     'accounting_dashboard'=>'لوحة التحكم المحاسبية',
+    'journalEntry' => 'القيود اليومية',
     'employees' => 'الموظفون',
+
 
 
 

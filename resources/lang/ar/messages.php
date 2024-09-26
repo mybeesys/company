@@ -13,6 +13,7 @@ return [
     'Yes, deactive it!'=>'نعم، إلغاء تنشيط!',
     'Yes, active it!'=>'نعم، تنشيط!',
     'No,return'=>'لا، عودة',
+    'add'=>'Add',
 
 
 
