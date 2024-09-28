@@ -3,7 +3,6 @@
 @section('title', __('menuItemLang.employees'))
 
 @section('content')
-    <!--begin::Products-->
     <div class="card card-flush">
         <div class="card-header align-items-center py-5 gap-2 gap-md-5">
             <div class="card-title">
@@ -14,7 +13,6 @@
                 </div>
                 <div id="kt_employee_table_export" class="d-none"></div>
             </div>
-
             <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
                 <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
                     <!--begin::Export dropdown-->
@@ -52,7 +50,7 @@
                     <!--end::Hide default export buttons-->
                 </div>
 
-                <a href="apps/ecommerce/catalog/add-product.html" class="btn btn-primary">@lang('employee::general.add_employee')
+                <a href={{ url('/employee/create') }} class="btn btn-primary">@lang('employee::general.add_employee')
                 </a>
             </div>
         </div>

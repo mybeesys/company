@@ -24,6 +24,10 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
     AuthenticateJWT::class
 ])->name('employees.')->group(function () {
-    Route::get('employees-dashboard', [MainController::class, 'index'])->name('dashboard');
+    Route::get('employees/dashboard', [MainController::class, 'index'])->name('dashboard');
     Route::get('employees', [EmployeeController::class,'index'])->name('index');
+    Route::get('employee/create', [EmployeeController::class,'create'])->name('create');
+    Route::post('employee/store', [EmployeeController::class,'store'])->name('store');
+    Route::get('employee/{employee}/edit', [EmployeeController::class,'edit'])->name('edit');
+    Route::put('employee/{employee}', [EmployeeController::class,'update'])->name('update');
 });
