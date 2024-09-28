@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\EmployeeController;
+use Modules\Employee\Http\Controllers\MainController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -20,7 +22,8 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-])->name('employee.')->prefix('employee')->group(function () {
-    Route::get('/', [EmployeeController::class, 'index'])->name('index');
-    // Route::resource('/', EmployeeController::class)->names('employee');
+    AuthenticateJWT::class
+])->name('employee.')->group(function () {
+    Route::get('employees-dashboard', [MainController::class, 'index'])->name('index');
+    Route::get('employees', [EmployeeController::class,'index']);
 });
