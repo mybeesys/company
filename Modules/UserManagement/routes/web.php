@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AuthenticateJWT;
+use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\UserManagement\Http\Controllers\UserManagementController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -19,22 +21,22 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
+    LocalizationMiddleware::class,
     InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class
+    PreventAccessFromCentralDomains::class,
+
 ])->group(function () {
-Route::get('/default', function () {
-    dd(\App\Models\User::all());
-    return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+    Route::middleware(AuthenticateJWT::class)->group(function () {
+        Route::get('/', function () {
+            return view('usermanagement::index');
+        })->name('dashboard');
+    });
+    Route::get('/login', function () {
+        return view('usermanagement::login');
+    });
+
+    Route::post('/postlogin', [UserManagementController::class, 'login'])->name('login.postLogin');
+
+
+    Route::resource('usermanagement', UserManagementController::class)->names('usermanagement');
 });
-
-Route::get('/login', function () {
-    return view('usermanagement::login');
-});
-
-Route::post('/postlogin', [UserManagementController::class ,'login'])->name('login.postLogin');
-
-
-Route::resource('usermanagement', UserManagementController::class)->names('usermanagement');
-
-});
-

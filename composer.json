@@ -13,7 +13,11 @@
         "laravel/passport": "12.0",
         "laravel/tinker": "^2.9",
         "nwidart/laravel-modules": "^11.1",
-        "stancl/tenancy": "^3.8"
+        "predis/predis": "^2.2",
+        "spatie/laravel-permission": "^6.9",
+        "spatie/laravel-translation-loader": "^2.8",
+        "stancl/tenancy": "^3.8",
+        "yajra/laravel-datatables": "^11.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -28,7 +32,7 @@
             "App\\": "app/",
             "Modules\\": "Modules/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/" 
         }
     },
     "autoload-dev": {

@@ -10,9 +10,9 @@ class AccountingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function ledger($id)
     {
-        return view('accounting::index');
+        return view('accounting::treeOfAccounts.ledger');
     }
 
     /**
