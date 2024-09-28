@@ -20,7 +20,6 @@ class CategoryController extends Controller
     public function getCategories()
     {
        $categories = Category::all(); // or use query with pagination if needed
-       dd("test");
        return response()->json([
         'data' => $categories
     ]);
