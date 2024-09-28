@@ -156,7 +156,7 @@
     <script>
         "use strict";
 
-        KTUtil.onDOMContentLoaded(function() {
+        $(document).ready(function() {
             KTEmployeeTable.init();
         });
 
@@ -168,25 +168,21 @@
                 bolditalics: 'ARIALBI.TTF'
             }
         };
-        var KTEmployeeTable = function() {
-            // Shared variables
+
+        var KTEmployeeTable = (function() {
             var table;
             var datatable;
 
-            // Private functions
             var initDatatable = function() {
-                // Set date data order
-                const tableRows = table.querySelectorAll('tbody tr');
+                const tableRows = $('#kt_employee_table tbody tr');
 
-                tableRows.forEach(row => {
-                    const dateRow = row.querySelectorAll('td');
-                    const employmentStartDate = moment(dateRow[2].innerHTML, "YYYY MMM DD")
-                        .format('yy-MM-DD');
-                    dateRow[2].setAttribute('data-order', employmentStartDate);
+                tableRows.each(function() {
+                    const dateRow = $(this).find('td');
+                    const employmentStartDate = moment(dateRow.eq(2).html(), "YYYY MMM DD").format('yy-MM-DD');
+                    dateRow.eq(2).attr('data-order', employmentStartDate);
 
-                    const employmentEndDate = moment(dateRow[3].innerHTML, "YYYY MMM DD")
-                        .format('yy-MM-DD');
-                    dateRow[3].setAttribute('data-order', employmentEndDate);
+                    const employmentEndDate = moment(dateRow.eq(3).html(), "YYYY MMM DD").format('yy-MM-DD');
+                    dateRow.eq(3).attr('data-order', employmentEndDate);
                 });
 
                 datatable = $(table).DataTable({
@@ -199,10 +195,10 @@
                     order: [],
                     pageLength: 10,
                 });
-            }
+            };
 
-            var exportButtons = () => {
-                var buttons = new $.fn.dataTable.Buttons(table, {
+            var exportButtons = function() {
+                new $.fn.dataTable.Buttons(table, {
                     buttons: [{
                             extend: 'excelHtml5',
                             exportOptions: {
@@ -227,45 +223,33 @@
                     ]
                 }).container().appendTo($('#kt_employee_table_buttons'));
 
-                const exportButtons = document.querySelectorAll(
-                    '#kt_employee_table_export_menu [data-kt-export]');
-                exportButtons.forEach(exportButton => {
-                    exportButton.addEventListener('click', e => {
-                        e.preventDefault();
-
-                        // Get clicked export value
-                        const exportValue = e.target.getAttribute('data-kt-export');
-                        const target = document.querySelector('.dt-buttons .buttons-' +
-                            exportValue);
-
-                        // Trigger click event on hidden datatable export buttons
-                        target.click();
-                    });
+                const exportButtons = $('#kt_employee_table_export_menu [data-kt-export]');
+                exportButtons.on('click', function(e) {
+                    e.preventDefault();
+                    const exportValue = $(this).attr('data-kt-export');
+                    $('.dt-buttons .buttons-' + exportValue).click();
                 });
-            }
+            };
 
-            var handleSearchDatatable = () => {
-                const filterSearch = document.querySelector('[data-kt-filter="search"]');
-                filterSearch.addEventListener('keyup', function(e) {
+            var handleSearchDatatable = function() {
+                const filterSearch = $('[data-kt-filter="search"]');
+                filterSearch.on('keyup', function(e) {
                     datatable.search(e.target.value).draw();
                 });
-            }
+            };
 
-            // Public methods
             return {
                 init: function() {
-                    table = document.querySelector('#kt_employee_table');
-
-                    if (!table) {
+                    table = $('#kt_employee_table');
+                    if (!table.length) {
                         return;
                     }
-
                     initDatatable();
                     exportButtons();
                     handleSearchDatatable();
                 }
             };
-        }();
+        })();
     </script>
-
 @endsection
+
