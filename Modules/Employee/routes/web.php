@@ -23,7 +23,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
     AuthenticateJWT::class
-])->name('employee.')->group(function () {
-    Route::get('employees-dashboard', [MainController::class, 'index'])->name('index');
-    Route::get('employees', [EmployeeController::class,'index']);
+])->name('employees.')->group(function () {
+    Route::get('employees-dashboard', [MainController::class, 'index'])->name('dashboard');
+    Route::get('employees', [EmployeeController::class,'index'])->name('index');
 });
