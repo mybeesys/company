@@ -14,7 +14,6 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        dd("hiiii");
       return view('product::category.index' ); 
     }
 
