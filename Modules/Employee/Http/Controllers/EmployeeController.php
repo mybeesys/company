@@ -4,6 +4,7 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Classes\Tables;
 use Modules\Employee\Models\Employee;
 use Yajra\DataTables\DataTables;
 
@@ -14,36 +15,17 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-
         if ($request->ajax()) {
-            $employees = Employee::select('id', 'firstName', 'lastName', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive');
+            $employees = Employee::
+                select('id', 'firstName', 'lastName', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
 
-            return DataTables::of($employees)
-                ->editColumn('id', function ($row) {
-                    return "<div class='badge badge-light-info'>
-                                     {$row->id} 
-                            </div>";
-                })
-                ->addColumn(
-                    'actions',
-                    fn() =>
-                    '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">' . __('employee::fields.actions') . '<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
-                    <div class="menu-item px-3">
-                        <a href="#" class="menu-link px-3">' . __('employee::fields.edit') . '</a>
-                    </div>
-                    <div class="menu-item px-3">
-                        <a href="#" class="menu-link px-3">' . __('employee::fields.delete') . '</a>
-                    </div>
-                </div>'
-                )
-                ->editColumn('isActive', function ($employee) {
-                    return $employee->isActive
-                        ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
-                        : '<div class="badge badge-light-danger">' . __("employee::fields.active") . '</div>';
-                })
-                ->rawColumns(['actions', 'isActive', 'id'])
-                ->make(true);
+            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+                $request->deleted_records == 'only_deleted_records'
+                    ? $employees->onlyTrashed()
+                    : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
+            }
+
+            return Tables::getEmployeeTable($employees);
         }
 
         return view('employee::employee.index');
@@ -89,11 +71,35 @@ class EmployeeController extends Controller
         //
     }
 
+    public function restore($id)
+    {
+        $restore = Employee::where('id', $id)->restore();
+        if ($restore) {
+            return response()->json(['message' => __('employee::responses.employee_restored_successfully')]);
+        } else {
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
+    }
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function softDelete(Employee $employee)
     {
-        //
+        $delete = $employee->delete();
+        if ($delete) {
+            return response()->json(['message' => __('employee::responses.employee_deleted_successfully')]);
+        } else {
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
+    }
+
+    public function forceDelete($id)
+    {
+        $delete = Employee::where('id', $id)->forceDelete();
+        if ($delete) {
+            return response()->json(['message' => __('employee::responses.employee_deleted_successfully')]);
+        } else {
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
     }
 }

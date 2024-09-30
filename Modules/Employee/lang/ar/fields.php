@@ -75,4 +75,6 @@ return [
     'employment_start_date' => ' بداية  التوظيف',
     'employment_end_date' => ' نهاية  التوظيف',
     'number' => 'الرقم',
+    'force_delete'=> 'حذف نهائي',
+    'restore' => 'استعادة',
 ];

@@ -24,6 +24,20 @@ return [
     'export_as_pdf' => 'PDf تصدير كـ',
     'export_as_excel' => 'Excel تصدير كـ',
     'print' => 'طباعة',
-    'report_export'=> 'Report export',
-    'add_employee'=> 'Add employee',
+    'report_export' => 'Report export',
+    'add_employee' => 'Add employee',
+    'delete' => 'Yes, delete!',
+    'cancel' => 'Cancel',
+    'delete_confirm' => 'Are you sure you want to delete :name',
+    'close' => 'Close',
+    'try_again' => 'please try again!',
+    'deleted_records'=> 'Deleted records',
+    'filters'=> 'Filters',
+    'without_deleted_records' => 'Without deleted records',
+    'with_deleted_records' => 'With deleted records',
+    'only_deleted_records' => 'Only deleted records',
+    'select_option'=> 'Select option',
+    'reset' => 'Reset',
+    'apply' => 'Apply'
+
 ];

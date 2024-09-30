@@ -26,4 +26,17 @@ return [
     'print' => 'طباعة',
     'report_export'=> 'استخراج تقرير',
     'add_employee'=> 'إضافة موظف',
+    'delete' => 'احذف',
+    'cancel'=> 'إلغاء',
+    'delete_confirm' => ':name هل انت متأكد من حذف',
+    'close'=> 'إغلاق',
+    'try_again' => 'الرجاء إعادة المحاولة',
+    'deleted_records'=> 'السجلات المحذوفة',
+    'filters'=> 'التصفيات',
+    'without_deleted_records' => 'بدون السجلات المحذوفة',
+    'with_deleted_records' => 'مع السجلات المحذوفة',
+    'only_deleted_records' => 'السجلات المحذوفة فقط',
+    'select_option'=> 'اختر',
+    'reset' => 'إعادة تعيين',
+    'apply' => 'تطبيق'
 ];
