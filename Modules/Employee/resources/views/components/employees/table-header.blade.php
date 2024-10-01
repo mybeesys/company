@@ -8,7 +8,8 @@
 </div>
 <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
     <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
-        @include('employee::components.employees.filters-dropdown')
+
+        <x-employee::employees.filters-dropdown />
 
         <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click"
             data-kt-menu-placement="bottom-end">
@@ -16,7 +17,7 @@
             @lang('employee::general.report_export')
         </button>
 
-        @include('employee::components.employees.export-menu')
+        <x-employee::employees.export-menu />
 
         <!--begin::Hide default export buttons-->
         <div id="kt_employee_table_buttons" class="d-none"></div>

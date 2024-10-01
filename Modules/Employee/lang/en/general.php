@@ -31,13 +31,19 @@ return [
     'delete_confirm' => 'Are you sure you want to delete :name',
     'close' => 'Close',
     'try_again' => 'please try again!',
-    'deleted_records'=> 'Deleted records',
-    'filters'=> 'Filters',
+    'deleted_records' => 'Deleted records',
+    'filters' => 'Filters',
     'without_deleted_records' => 'Without deleted records',
     'with_deleted_records' => 'With deleted records',
     'only_deleted_records' => 'Only deleted records',
-    'select_option'=> 'Select option',
+    'select_option' => 'Select option',
     'reset' => 'Reset',
-    'apply' => 'Apply'
+    'apply' => 'Apply',
+    'image_hint' => 'Only *.png, *.jpg and *.jpeg image files are accepted',
+    'employee_status_hint'=> 'Activate or deactivate this employee',
+    'choose_image'=> 'Choose image',
+    'employee_details'=> 'Employee details',
+    'generate_pin' => 'Generate PIN',
+    'please_wait' => 'Please wait',
 
 ];

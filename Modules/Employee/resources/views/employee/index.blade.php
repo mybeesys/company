@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="card card-flush">
-        <div class="card-header align-items-center py-5 gap-2 gap-md-5">
-            @include('employee::components.employees.table-header')
-        </div>
-        <div class="card-body pt-0 table-responsive">
-            @include('employee::components.employees.table')
-        </div>
+        <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
+            <x-employee::employees.table-header />
+        </x-employee::card-header>
+        <x-employee::card-body class="table-responsive">
+            <x-employee::employees.table />
+        </x-employee::card-body>
     </div>
 @endsection
 
@@ -213,9 +213,9 @@
         function handleAjaxResponse(response) {
             if (response.error) {
                 Swal.fire({
-                    text: response.error,
+                    text: "{{ __('employee::responses.something_wrong_happened') }}",
                     icon: "error",
-                    confirmButtonText: "{{ __('employee::responses.try_again') }}",
+                    confirmButtonText: "{{ __('employee::general.try_again') }}",
                     customClass: {
                         confirmButton: "btn btn-danger"
                     }

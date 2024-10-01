@@ -77,4 +77,10 @@ return [
     'number' => 'الرقم',
     'force_delete'=> 'حذف نهائي',
     'restore' => 'استعادة',
+    'employee_image' => 'صورة الموظف',
+    'role'=> 'الدور',
+    'roles'=> 'الأدوار',
+    'required' => 'مطلوب',
+    'wage' => 'الأجر',
+    'employee_access_pin'=> 'رمز الوصول الخاص بالموظف',
 ];

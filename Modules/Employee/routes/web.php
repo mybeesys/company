@@ -33,5 +33,7 @@ Route::middleware([
     Route::delete('employee/{employee}', [EmployeeController::class,'softDelete'])->name('delete');
     Route::delete('employee/force-delete/{employee}', [EmployeeController::class,'forceDelete'])->name('forceDelete');
     Route::post('employee/restore/{employee}', [EmployeeController::class,'restore'])->name('restore');
+    Route::post('employee/create/validate', [EmployeeController::class,'createLiveValidation'])->name('create.validation');
+    Route::get('employee/generate-pin', [EmployeeController::class,'generatePin'])->name('generate.pin');
 });
 
