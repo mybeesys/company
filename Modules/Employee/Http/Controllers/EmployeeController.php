@@ -3,10 +3,12 @@
 namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
 use Modules\Employee\Http\Requests\CreateEmployeeRequest;
 use Modules\Employee\Models\Employee;
+use Storage;
 
 class EmployeeController extends Controller
 {
@@ -64,8 +66,18 @@ class EmployeeController extends Controller
      */
     public function store(CreateEmployeeRequest $request)
     {
-        
-        dd($request->validated());
+        DB::beginTransaction();
+        $imageName = time() . '.' . $request->image->extension();
+
+        $request->image->store("profile_pictures/{$imageName}");
+        $employee = Employee::create($request->safe()->merge(['image' => $imageName])->all());
+
+        DB::commit();
+        if ($employee) {
+            return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
+        } else {
+            return redirect()->route('employees.index')->with('error', __('employee::responses.something_wrong_happened'));
+        }
     }
 
     /**

@@ -11,8 +11,8 @@
             </span>
         </x-slot>
         <div class="form-check form-switch form-check-success form-check-solid">
-            <input class="form-check-input " type="checkbox" value="" id="kt_status" />
-            <label class="form-check-label" for="kt_status">
+            <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked value="1"/>
+            <label class="form-check-label" for="isActive">
                 تفعيل/تعطيل
             </label>
         </div>
@@ -35,12 +35,12 @@
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
                             placeholder="{{ __('employee::fields.first_name') }} ({{ __('employee::fields.required') }})"
-                            name="first_name" :label="__('employee::fields.first_name')" />
+                            name="firstName" :label="__('employee::fields.first_name')" />
                     </x-employee::form.input-div>
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
                             placeholder="{{ __('employee::fields.last_name') }} ({{ __('employee::fields.required') }})"
-                            name="last_name" :label="__('employee::fields.last_name')" />
+                            name="lastName" :label="__('employee::fields.last_name')" />
                     </x-employee::form.input-div>
                 </div>
 
@@ -54,13 +54,13 @@
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
                             placeholder="{{ __('employee::fields.phone_number') }} ({{ __('employee::fields.required') }})"
-                            name="phone_number" :label="__('employee::fields.phone_number')" />
+                            name="phoneNumber" :label="__('employee::fields.phone_number')" />
                     </x-employee::form.input-div>
                 </div>
 
                 <div class="d-flex flex-wrap">
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.date-picker name="employment_start_date" :errors=$errors required
+                        <x-employee::form.date-picker name="employmentStartDate" :errors=$errors required
                             :label="__('employee::fields.employment_start_date')" />
                     </x-employee::form.input-div>
 
@@ -73,7 +73,7 @@
                     <x-employee::form.input-div class="px-2">
                         <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                         <div class="input-group">
-                            <x-employee::form.input :errors=$errors type="number" placeholder="PIN" name="pin"
+                            <x-employee::form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
                                 required>
                                 <a href="#" id="generate_pin" class="btn btn-light-primary">@lang('employee::general.generate_pin')</a>
                             </x-employee::form.input>

@@ -12,13 +12,14 @@ class CreateEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string', 'max:50'],
-            'last_name' => ['required', 'string', 'max:50'],
+            'firstName' => ['required', 'string', 'max:50'],
+            'lastName' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'unique:employee_employees,email'],
-            'phone_number' => ['required', 'digits_between:10,15'],
-            'employment_start_date' => ['required', 'date'],
-            'pin' => ['required', 'digits_between:6,10', 'numeric', 'unique:employee_employees,pin'],
-            'image' => ['required', 'image', 'max:3072'],
+            'phoneNumber' => ['required', 'digits_between:10,15'],
+            'employmentStartDate' => ['required', 'date'],
+            'PIN' => ['required', 'digits_between:6,10', 'numeric', 'unique:employee_employees,pin'],
+            'image' => ['image', 'max:3072'],
+            'isActive' => ['boolean'],
             // 'wage' => ['nullable', ''],
         ];
     }
