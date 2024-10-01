@@ -21,7 +21,7 @@
                         ['value' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
                     ];
                 @endphp
-                <x-employee::forms.select :options=$options name="deleted_records" />
+                <x-employee::form.select :options=$options name="deleted_records" />
             </div>
 
             <div class="mb-10">

@@ -11,7 +11,7 @@
 
 @section('script')
     <script>
-        new tempusDominus.TempusDominus($("#employment_start_date")[0], {
+        new tempusDominus.TempusDominus($("#employmentStartDate")[0], {
             localization: {
                 format: "yyyy/MM/dd",
             },
@@ -36,6 +36,15 @@
             let typingTimer; // Timer identifier
             let doneTypingInterval = 1000; // Time in ms (1 second)
 
+
+            $('#isActive').change(function() {
+                if ($(this).is(':checked')) {
+                    $(this).val(1);
+                } else {
+                    $(this).val(0);
+                }
+            });
+
             // On keyup, start the countdown
             $('#add_employee_form input, #add_employee_form input[type="file"]').on('change', function() {
                 let input = $(this);
@@ -48,7 +57,7 @@
                     url: "{{ route('employees.generate.pin') }}",
                     type: 'GET',
                     success: function(response) {
-                        $('#pin').val(response.data);
+                        $('#PIN').val(response.data);
                     },
                     error: function(response) {
                         Swal.fire({
@@ -69,7 +78,6 @@
                 let formData = new FormData();
                 formData.append(field, input[0].files ? input[0].files[0] : input.val());
                 formData.append("_token", "{{ csrf_token() }}");
-                console.log(input.siblings);
 
                 $.ajax({
                     url: "{{ route('employees.create.validation') }}",
