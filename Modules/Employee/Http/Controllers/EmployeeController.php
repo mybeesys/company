@@ -5,8 +5,8 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
+use Modules\Employee\Http\Requests\CreateEmployeeRequest;
 use Modules\Employee\Models\Employee;
-use Yajra\DataTables\DataTables;
 
 class EmployeeController extends Controller
 {
@@ -31,6 +31,26 @@ class EmployeeController extends Controller
         return view('employee::employee.index');
     }
 
+    function generatePin()
+    {
+        $number = mt_rand(100000, 9999999999);
+
+        if ($this->barcodeNumberExists($number)) {
+            return $this->generatePin();
+        }
+
+        return response()->json(['data' => $number]);
+    }
+
+    function barcodeNumberExists($number)
+    {
+        return Employee::where('pin', $number)->exists();
+    }
+
+    public function createLiveValidation(CreateEmployeeRequest $request)
+    {
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -42,9 +62,10 @@ class EmployeeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateEmployeeRequest $request)
     {
-        //
+        
+        dd($request->validated());
     }
 
     /**
