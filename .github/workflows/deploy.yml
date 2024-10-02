@@ -25,7 +25,7 @@ jobs:
          #   sudo git fetch origin
          #   sudo git rebase origin/master
           sudo git add .
-          sudo git add git stash
+          sudo git stash
           sudo git pull origin master
           sudo composer update
           sudo composer install --no-dev --prefer-dist --optimize-autoloader
