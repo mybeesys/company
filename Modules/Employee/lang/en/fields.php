@@ -75,6 +75,14 @@ return [
     'employment_start_date' => 'Employment start date',
     'employment_end_date' => 'Employment end date',
     'number' => 'Number',
+    'force_delete' => 'Permanent delete',
+    'restore' => 'Restore',
+    'employee_image' => 'Employee image',
+    'role' => 'ٌRole',
+    'roles' => 'Roles',
+    'required' => 'Required',
+    'wage' => 'Wage',
+    'employee_access_pin'=> 'Employee access pin',
 
 
 

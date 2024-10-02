@@ -21,7 +21,11 @@ class BaseModel extends Model
 
     public function getTable()
     {
-        // Automatically apply prefix if it's not manually set
-        return static::$prefix . parent::getTable();
+        $table = parent::getTable();
+
+        if (strpos($table, static::$prefix) === 0) {
+            return $table;  // Return table as it already has the prefix
+        }
+        return static::$prefix . $table;
     }
 }
