@@ -5,6 +5,7 @@ import './style.scss';
         
 
 const AddModal = () => {
+    const [nodes, setNodes] = useState([]);
 
     return (
     
