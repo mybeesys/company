@@ -33,8 +33,11 @@
         });
 
         $(document).ready(function() {
-            let typingTimer; // Timer identifier
-            let doneTypingInterval = 1000; // Time in ms (1 second)
+            let typingTimer;
+            let doneTypingInterval = 1000;
+            let hasError = false;
+            let saveButton = $('#add_employee_form_button');
+            saveButton.prop('disabled', true);
 
 
             $('#isActive').change(function() {
@@ -89,6 +92,7 @@
                         input.siblings('.invalid-feedback ').remove();
                         input.removeClass('is-invalid');
                         $('#image_error').removeClass('d-block');
+                        checkErrors();
                     },
                     error: function(response) {
                         input.siblings('.invalid-feedback').remove();
@@ -106,8 +110,17 @@
                                 input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
                             }
                         }
+                        checkErrors();
                     }
                 });
+            }
+
+            function checkErrors() {
+                if ($('.is-invalid').length > 0) {
+                    saveButton.prop('disabled', true);
+                } else {
+                    saveButton.prop('disabled', false);
+                }
             }
         });
     </script>

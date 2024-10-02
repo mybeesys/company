@@ -86,7 +86,7 @@
     <div class="d-flex justify-content-end">
         <a href="apps/ecommerce/catalog/products.html" id="kt_ecommerce_add_product_cancel"
             class="btn btn-light me-5">@lang('employee::general.cancel')</a>
-        <button type="submit" id="add_employee_form" class="btn btn-primary">
+        <button type="submit" id="add_employee_form_button" class="btn btn-primary">
             <span class="indicator-label">@lang('employee::general.save')</span>
             <span class="indicator-progress">@lang('employee::general.please_wait')
                 <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
