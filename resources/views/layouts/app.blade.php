@@ -4078,7 +4078,31 @@
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
     <!-- jQuery CDN -->
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
-
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": false,
+            "positionClass": "toastr-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+        if("{{ session('success') }}"){
+            toastr.success("{{ session('success') }}");
+        }
+        if("{{ session('error') }}"){
+            toastr.error("{{ session('error') }}");
+        }
+    </script>
 
     <!-- Add any other dependent libraries (e.g., jstree) -->
     @yield('script')
