@@ -26,7 +26,8 @@ class Product extends Model
         'category_id',
         'subcategory_id',
         'description_ar',
-        'description_en'
+        'description_en',  
+        'active'
     ];
 
     public function category()

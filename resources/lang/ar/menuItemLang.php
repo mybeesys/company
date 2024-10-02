@@ -13,7 +13,7 @@ return [
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
     'reports_module' => 'التقارير',
-    'products' => 'المنتجات',
+    'Products' => 'المنتجات',
     'inventory' => 'المخزن',
     'accounting_dashboard'=>'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',

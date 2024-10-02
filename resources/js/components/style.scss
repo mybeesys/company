@@ -1,0 +1,60 @@
+
+@use "@/assets/css/style.bundle.css";
+
+@font-face {
+  font-family: "Cairo";
+  src: url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap") format("stylesheet");
+}
+
+body {
+  font-family: "Cairo";
+}
+
+.custom-tree-table  {
+  border: none !important;
+  .p-treetable-wrapper{
+  .p-treetable-table{
+    @extend .table ; 
+    @extend .table-row-bordered ; 
+    @extend .table-row-gray-100 ; 
+    @extend .align-middle ; 
+    @extend .gs-0 ; 
+    @extend .gy-3 ; 
+  }
+}
+}
+
+.p-treetable-thead
+{
+ tr
+ {
+  @extend .fw-bold ; 
+  @extend .text-muted ; 
+  @extend .bg-light ; 
+
+  th
+  {
+      padding-left: 5px !important;
+  }
+ }
+}
+  
+.p-treetable-tbody
+{
+  tr
+  {
+    td
+    {
+      @extend .text-gray-900 ; 
+      @extend .fw-bold ; 
+      @extend .mb-1 ; 
+      @extend .fs-6 ; 
+    }
+  }
+}
+
+.form-check-input
+{
+  height: 1.50rem !important;
+  width: 1.50rem !important;
+}

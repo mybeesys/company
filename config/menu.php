@@ -8,35 +8,15 @@ return [
         'subMenu' => []
     ],
     [
-        'name' => 'User_module',
-        'url' => 'dashboard',
-        'icon' => 'fas fa-user',
-        'permission' => '',
-        'subMenu' => [
-            [
-
-                'name' => 'users',
-                'url' => '/',
-                'permission' => '',
-            ],
-            [
-                'name' => 'roles',
-                'url' => '/',
-                'permission' => '',
-
-            ]
-        ]
-    ],
-    [
         'name' => 'Product_module',
-        'url' => 'category.index',
+        'url' => 'category',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
 
                 'name' => 'Products',
-                'url' => 'category.index',
+                'url' => 'category',
                 'permission' => '' ,
 
             ],

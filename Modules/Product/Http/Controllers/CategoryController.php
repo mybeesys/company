@@ -4,8 +4,7 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Product\Models\Category;
-use Modules\Product\Models\Subcategory;
+use Modules\Product\Models\TreeCategoryBuilder;
 
 class CategoryController extends Controller
 {
@@ -14,31 +13,11 @@ class CategoryController extends Controller
      */
     public function index()
     {
-      return view('product::category.index' ); 
+        $TreeCategoryBuilder = new TreeCategoryBuilder();
+        $tree = $TreeCategoryBuilder->buildCategoryTree();
+        return view('product::category.index' , compact('tree')); 
     }
-
-    public function getCategories()
-    {
-       $categories = Category::all(); // or use query with pagination if needed
-       return response()->json([
-        'data' => $categories
-    ]);
-    }
-
     
-    public function getsubCategories($id)
-    {
-        // Find the category by its ID
-        $category = Category::findOrFail($id);
-
-        // Get all subcategories for this category
-        $subcategories = $category->subcategories;
-
-        return response()->json([
-            'data' => $subcategories
-        ]);
-    }
-
     /**
      * Show the form for creating a new resource.
      */
