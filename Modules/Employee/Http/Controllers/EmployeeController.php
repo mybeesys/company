@@ -67,10 +67,14 @@ class EmployeeController extends Controller
     public function store(CreateEmployeeRequest $request)
     {
         DB::beginTransaction();
-        $imageName = time() . '.' . $request->image->extension();
+        if ($request->has('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->storeAs('profile_pictures', $imageName, 'public');
+        } else {
+            $imageName = null;
+        }
 
-        $request->image->store("profile_pictures/{$imageName}");
-        $employee = Employee::create($request->safe()->merge(['image' => $imageName])->all());
+        $employee = Employee::create($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
 
         DB::commit();
         if ($employee) {
