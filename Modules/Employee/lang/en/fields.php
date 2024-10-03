@@ -83,7 +83,5 @@ return [
     'required' => 'Required',
     'wage' => 'Wage',
     'employee_access_pin'=> 'Employee access pin',
-
-
-
+    'show' => 'Show'
 ];

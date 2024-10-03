@@ -45,5 +45,8 @@ return [
     'employee_details'=> 'Employee details',
     'generate_pin' => 'Generate PIN',
     'please_wait' => 'Please wait',
+    'edit_employee' => 'Edit employee',
+    'activate' => 'Activate',
+    'diactivate' => 'Diactivate',
 
 ];
