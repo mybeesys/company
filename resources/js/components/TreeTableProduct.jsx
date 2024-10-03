@@ -124,7 +124,7 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl })
             </h3>
             <div class="card-toolbar">
             <div class="d-flex align-items-center gap-2 gap-lg-3">
-        <a href="#" class="btn btn-flex btn-outline btn-color-gray-700 btn-active-color-primary bg-body h-40px fs-7 fw-bold" 
+        <a href="#" class="btn btn-primary" 
          onClick={() => openAddCategory()}>Add</a>
         <AddModal
                 visible={isModalVisible}
