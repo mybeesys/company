@@ -4,9 +4,11 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use DB;
+use File;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
 use Modules\Employee\Http\Requests\CreateEmployeeRequest;
+use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
 use Storage;
 
@@ -35,7 +37,7 @@ class EmployeeController extends Controller
 
     function generatePin()
     {
-        $number = mt_rand(100000, 9999999999);
+        $number = mt_rand(10000, 99999);
 
         if ($this->barcodeNumberExists($number)) {
             return $this->generatePin();
@@ -50,6 +52,10 @@ class EmployeeController extends Controller
     }
 
     public function createLiveValidation(CreateEmployeeRequest $request)
+    {
+    }
+
+    public function updateLiveValidation(UpdateEmployeeRequest $request)
     {
     }
 
@@ -95,17 +101,33 @@ class EmployeeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Employee $employee)
     {
-        return view('employee::edit');
+        return view('employee::employee.edit', compact('employee'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
-        //
+        DB::beginTransaction();
+        if ($request->has('image')) {
+            $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $employee->image);
+            File::exists($oldPath) ?? File::delete($oldPath);
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->storeAs('profile_pictures', $imageName, 'public');
+
+            $updated = $employee->update($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
+        } else {
+            $updated = $employee->update($request->safe()->all());
+        }
+        DB::commit();
+        if ($updated) {
+            return redirect()->route('employees.index')->with('success', __('employee::responses.employee_updated_successfully'));
+        } else {
+            return redirect()->route('employees.index')->with('error', __('employee::responses.something_wrong_happened'));
+        }
     }
 
     public function restore($id)

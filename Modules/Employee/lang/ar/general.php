@@ -45,5 +45,5 @@ return [
     'employee_details'=> 'بيانات الموظف',
     'generate_pin' => 'توليد رمز',
     'please_wait' => '...الرجاء الانتظار',
-    
+    'edit_employee' => 'تعديل موظف'
 ];

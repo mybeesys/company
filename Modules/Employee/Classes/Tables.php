@@ -38,7 +38,7 @@ class Tables
             ->editColumn('isActive', function ($employee) {
                 return $employee->isActive
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
-                    : '<div class="badge badge-light-danger">' . __("employee::fields.active") . '</div>';
+                    : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
             ->rawColumns(['actions', 'isActive', 'id'])
             ->make(true);
