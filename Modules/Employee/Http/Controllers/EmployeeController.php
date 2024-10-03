@@ -10,7 +10,6 @@ use Modules\Employee\Classes\Tables;
 use Modules\Employee\Http\Requests\CreateEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
-use Storage;
 
 class EmployeeController extends Controller
 {
@@ -93,9 +92,9 @@ class EmployeeController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(Employee $employee)
     {
-        return view('employee::show');
+        return view('employee::employee.show', compact('employee'));
     }
 
     /**

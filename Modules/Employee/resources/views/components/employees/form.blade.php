@@ -70,7 +70,7 @@
                 </div>
                 <div class=" gap-10 ">
                     <x-employee::form.input-div class="px-2">
-                        <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
+                        <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                         <div class="input-group">
                             <x-employee::form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
                                 value="{{ $employee?->PIN }}" required>
