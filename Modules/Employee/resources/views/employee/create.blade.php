@@ -10,6 +10,7 @@
 @endsection
 
 @section('script')
+    @parent
     <script>
         new tempusDominus.TempusDominus($("#employmentStartDate")[0], {
             localization: {
@@ -63,14 +64,10 @@
                         $('#PIN').val(response.data);
                     },
                     error: function(response) {
-                        Swal.fire({
-                            text: "{{ __('employee::responses.something_wrong_happened') }}",
-                            icon: "error",
-                            confirmButtonText: "{{ __('employee::general.try_again') }}",
-                            customClass: {
-                                confirmButton: "btn btn-danger"
-                            }
-                        });
+                        showAlert("{{ __('employee::responses.something_wrong_happened') }}",
+                            "{{ __('employee::general.try_again') }}",
+                            undefined, undefined,
+                            false, "error");
                     }
                 });
             });

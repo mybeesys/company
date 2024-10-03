@@ -14,6 +14,7 @@
 @endsection
 
 @section('script')
+    @parent
     <script type="text/javascript" src="vfs_fonts.js"></script>
     <script>
         "use strict";
@@ -30,9 +31,17 @@
             }
         };
 
+        const errorAlert = function() {
+            return showAlert(
+                "{{ __('employee::responses.something_wrong_happened') }}",
+                "{{ __('employee::general.try_again') }}",
+                undefined, undefined,
+                false, "error"
+            );
+        };
+
         $(document).ready(function() {
             if (!table.length) return;
-
             initDatatable();
             exportButtons();
             handleSearchDatatable();
@@ -52,19 +61,11 @@
                 `{{ url('/employee/force-delete/${id}') }}` :
                 `{{ url('/employee/${id}') }}`;
 
-            Swal.fire({
-                text: `{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
+            showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     name),
-                icon: "warning",
-                showCancelButton: !0,
-                buttonsStyling: !1,
-                confirmButtonText: "{{ __('employee::general.delete') }}",
-                cancelButtonText: "{{ __('employee::general.cancel') }}",
-                customClass: {
-                    confirmButton: "btn fw-bold btn-danger",
-                    cancelButton: "btn fw-bold btn-active-light-primary"
-                }
-            }).then(function(t) {
+                "{{ __('employee::general.delete') }}",
+                "{{ __('employee::general.cancel') }}", undefined,
+                true, "warning").then(function(t) {
                 if (t.isConfirmed) {
                     ajaxRequest(deleteUrl, 'DELETE');
                 }
@@ -195,40 +196,20 @@
                 },
                 type: method,
                 success: handleAjaxResponse,
-                error: handleAjaxError
+                error: errorAlert
             });
         }
 
         function handleAjaxError(xhr, status, error) {
-            Swal.fire({
-                text: "{{ __('employee::responses.something_wrong_happened') }}",
-                icon: "error",
-                confirmButtonText: "{{ __('employee::general.try_again') }}",
-                customClass: {
-                    confirmButton: "btn btn-danger"
-                }
-            });
+            errorAlert;
         }
 
         function handleAjaxResponse(response) {
             if (response.error) {
-                Swal.fire({
-                    text: "{{ __('employee::responses.something_wrong_happened') }}",
-                    icon: "error",
-                    confirmButtonText: "{{ __('employee::general.try_again') }}",
-                    customClass: {
-                        confirmButton: "btn btn-danger"
-                    }
-                });
+                errorAlert;
             } else {
-                Swal.fire({
-                    text: response.message,
-                    icon: "success",
-                    confirmButtonText: "{{ __('employee::general.close') }}",
-                    customClass: {
-                        confirmButton: "btn btn-primary"
-                    }
-                });
+                showAlert(response.message, "{{ __('employee::general.close') }}", undefined, "btn-primary", false,
+                    "success")
                 dataTable.ajax.reload();
             }
         }

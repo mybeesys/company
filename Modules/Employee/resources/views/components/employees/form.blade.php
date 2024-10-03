@@ -68,7 +68,7 @@
                             :label="__('employee::fields.wage')" />
                     </x-employee::form.input-div>
                 </div>
-                <div class=" gap-10 ">
+                <div class="gap-10">
                     <x-employee::form.input-div class="px-2">
                         <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                         <div class="input-group">
@@ -83,7 +83,7 @@
         </div>
     </div>
     <div class="d-flex justify-content-end">
-        <a href="apps/ecommerce/catalog/products.html" id="kt_ecommerce_add_product_cancel"
+        <a href="{{ url('/employees') }}" id="kt_ecommerce_add_product_cancel"
             class="btn btn-light me-5">@lang('employee::general.cancel')</a>
         <button type="submit" id="add_employee_form_button" class="btn btn-primary">
             <span class="indicator-label">@lang('employee::general.save')</span>

@@ -32,7 +32,7 @@ class Tables
                         '<div class="menu-item px-3">
                                 <a class="menu-link px-3 restore-btn" data-id="' . $row->id . '">' . __('employee::fields.restore') . '</a>
                             </div></div>' : $actions .= '<div class="menu-item px-3">
-                                <a href="' . url("/employee/{$row->id}") . '" class="menu-link px-3 show-btn" data-id="' . $row->id . '">' . __('employee::fields.show') . '</a>
+                                <a href="' . url("/employee/show/{$row->id}") . '" class="menu-link px-3 show-btn" data-id="' . $row->id . '">' . __('employee::fields.show') . '</a>
                             </div></div>';
                     return $actions;
                 }

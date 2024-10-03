@@ -31,7 +31,7 @@ Route::middleware([
     Route::post('employee/store', [EmployeeController::class,'store'])->name('store');
     Route::get('employee/{employee}/edit', [EmployeeController::class,'edit'])->name('edit');
     Route::put('employee/{employee}', [EmployeeController::class,'update'])->name('update');
-    // Route::get('employee/{employee}', [EmployeeController::class,'show'])->name('show');
+    Route::get('employee/show/{employee}', [EmployeeController::class,'show'])->name('show');
     Route::delete('employee/{employee}', [EmployeeController::class,'softDelete'])->name('delete');
     Route::delete('employee/force-delete/{employee}', [EmployeeController::class,'forceDelete'])->name('forceDelete');
     Route::post('employee/restore/{employee}', [EmployeeController::class,'restore'])->name('restore');

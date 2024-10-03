@@ -6,4 +6,5 @@ return [
     'something_wrong_happened' => '!حدث خطأ ما',
     'employee_created_successfully' => 'تمت إضافة الموظف بنجاح',
     'employee_updated_successfully' => 'تم تعديل الموظف بنجاح',
+    'change_status_warning' => 'عند تعطيل الموظف سيتم تعطيله في كافة الفروع'
 ];
