@@ -5,25 +5,18 @@ namespace Modules\Product\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\TreeCategoryBuilder;
-use Modules\Product\Models\Category;
+use Modules\Product\Models\Subcategory;
 
-class CategoryController extends Controller
+class SubCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('product::category.index' ); 
+    
     }
     
-
-    public function getCategories()
-    {
-        $TreeCategoryBuilder = new TreeCategoryBuilder();
-        $tree = $TreeCategoryBuilder->buildCategoryTree();
-        return response()->json($tree);
-    }
     /**
      * Show the form for creating a new resource.
      */
@@ -41,13 +34,16 @@ class CategoryController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'order' => 'required|numeric',
+            'category_id' => 'required|numeric',
+            'parent_id' => 'nullable|numeric',
             'active' => 'nullable|boolean'
         ]);
-  
-        $category = Category::create($validated);
 
-        return response()->json($validated);
+        $subcategory = SubCategory::create($validated);
+
+        return response()->json($subcategory);
     }
+
     /**
      * Show the specified resource.
      */

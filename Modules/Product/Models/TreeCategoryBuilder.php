@@ -6,11 +6,11 @@ use Modules\Product\Models\Category;
 use Modules\Product\Models\Subcategory;
 use Modules\Product\Models\Product;
 
-
-
 class TreeCategoryBuilder 
 {
   public $Tree = [];
+  private $subcategoriesIds =[];
+  
 
   public function buildCategoryTree()
   {
@@ -43,21 +43,27 @@ class TreeCategoryBuilder
       if($subcategories)
       {
        foreach ($subcategories as $subcategory) {
-        $CategoryTree = new CategoryTreeObject();
-        $CategoryTree->key = $parentTreeId ."-". $treeId;
-        $CategoryTree->data = new TreeData();
-        $CategoryTree->data->name_ar = $subcategory->name_ar;
-        $CategoryTree->data->name_en = $subcategory->name_en;
-        $CategoryTree->data->cost = null;
-        $CategoryTree->data->price = null;
-        $CategoryTree->data->order = $subcategory->order;
-        $CategoryTree->data->id = $subcategory->id;
-        $CategoryTree->data->type = "SubCategory";
-        $CategoryTree->data->active = $subcategory->active;
-        $CategoryTree->children = array_merge($this->buildProductTree( $subcategory , $CategoryTree->key) ,$this->buildSubCategoryTree( $subcategory->child , $CategoryTree->key)) ;
-        $childArray[] = $CategoryTree;
-        $treeId = $treeId+1;
-       }
+         if(!array_search($subcategory->id,$this->subcategoriesIds))
+            {
+              $CategoryTree = new CategoryTreeObject();
+              $CategoryTree->key = $parentTreeId ."-". $treeId;
+              $CategoryTree->data = new TreeData();
+              $CategoryTree->data->name_ar = $subcategory->name_ar;
+              $CategoryTree->data->name_en = $subcategory->name_en;
+              $CategoryTree->data->cost = null;
+              $CategoryTree->data->price = null;
+              $CategoryTree->data->order = $subcategory->order;
+              $CategoryTree->data->id = $subcategory->id;
+              $CategoryTree->data->parent_id = $subcategory->parent_id;
+              $CategoryTree->data->category_id = $subcategory->category_id;
+              $CategoryTree->data->type = "SubCategory";
+              $CategoryTree->data->active = $subcategory->active;
+              $this->subcategoriesIds[] = $subcategory->id;
+              $CategoryTree->children = array_merge($this->buildProductTree( $subcategory , $CategoryTree->key) ,$this->buildSubCategoryTree( $subcategory->children , $CategoryTree->key)) ;
+              $childArray[] = $CategoryTree;
+              $treeId = $treeId+1;
+            }
+         }
        }
        return $childArray;
   }
@@ -77,6 +83,8 @@ class TreeCategoryBuilder
         $CategoryTree->data->price = $product->price;
         $CategoryTree->data->order = null;
         $CategoryTree->data->id = $product->id;
+        $CategoryTree->data->parent_id = $product->subcategory_id;
+        $CategoryTree->data->category_id = $product->category_id;
         $CategoryTree->data->type = "Product";
         $CategoryTree->data->active = $product->active;
         $childArray[] = $CategoryTree;

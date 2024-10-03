@@ -39,6 +39,12 @@ class ProductController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        
+        if($request->boolactive)
+        {
+            $request->active = 1;
+        }
+        
         $item = Product::create($validatedData);
 
         return response()->json($item, 201);

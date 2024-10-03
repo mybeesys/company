@@ -5,11 +5,18 @@ import TreeTableProduct from "./components/TreeTableProduct";
 
 const App = () => {
     const rootElement = document.getElementById('react-root');
-    const userData = JSON.parse(rootElement.getAttribute('data-user'));
-  
+    const urlList = JSON.parse(rootElement.getAttribute('list-url'));
+    const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
+    const subcategoryurl = JSON.parse(rootElement.getAttribute('subcategory-url'));
+    const producturl = JSON.parse(rootElement.getAttribute('product-url'));
+
     return (
       <div>
-        <TreeTableProduct initialData = {userData} />
+        <TreeTableProduct urlList = {urlList} 
+         categoryurl = {categoryurl}
+         subcategoryurl = {subcategoryurl}
+         producturl = {producturl}
+          />
       </div>
     );
   };

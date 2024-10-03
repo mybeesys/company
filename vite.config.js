@@ -11,6 +11,9 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        outDir: path.resolve(__dirname, 'public/tenancy/assets/build'), // Output to a folder named after the tenant
+      },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'public'), // Alias '@' to the 'resources' directory
