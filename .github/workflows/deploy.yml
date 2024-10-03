@@ -22,13 +22,9 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} << 'EOF'
           cd /var/www/mybeeCompany  # Adjust this path
-         #   sudo git fetch origin
-         #   sudo git rebase origin/master
-          sudo git add .
-          sudo git stash
           sudo git pull origin master
           sudo composer update
-          sudo composer install --no-dev --prefer-dist --optimize-autoloader
+          sudo composer install
           sudo php artisan migrate --force
           sudo php artisan tenants:migrate
           sudo php artisan config:cache
