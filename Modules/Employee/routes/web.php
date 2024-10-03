@@ -25,15 +25,20 @@ Route::middleware([
     AuthenticateJWT::class
 ])->name('employees.')->group(function () {
     Route::get('employees/dashboard', [MainController::class, 'index'])->name('dashboard');
+
     Route::get('employees', [EmployeeController::class,'index'])->name('index');
     Route::get('employee/create', [EmployeeController::class,'create'])->name('create');
     Route::post('employee/store', [EmployeeController::class,'store'])->name('store');
     Route::get('employee/{employee}/edit', [EmployeeController::class,'edit'])->name('edit');
     Route::put('employee/{employee}', [EmployeeController::class,'update'])->name('update');
+    Route::get('employee/show/{employee}', [EmployeeController::class,'show'])->name('show');
     Route::delete('employee/{employee}', [EmployeeController::class,'softDelete'])->name('delete');
     Route::delete('employee/force-delete/{employee}', [EmployeeController::class,'forceDelete'])->name('forceDelete');
     Route::post('employee/restore/{employee}', [EmployeeController::class,'restore'])->name('restore');
+
     Route::post('employee/create/validate', [EmployeeController::class,'createLiveValidation'])->name('create.validation');
+    Route::post('employee/update/validate', [EmployeeController::class,'updateLiveValidation'])->name('update.validation');
+
     Route::get('employee/generate-pin', [EmployeeController::class,'generatePin'])->name('generate.pin');
 });
 

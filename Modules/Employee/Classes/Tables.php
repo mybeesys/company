@@ -30,15 +30,17 @@ class Tables
 
                     $row->deleted_at ? $actions .=
                         '<div class="menu-item px-3">
-                                <a class="menu-link px-3 restore-btn" data-id="' . $row->id . '" data-name="' . $row->firstName . '">' . __('employee::fields.restore') . '</a>
-                            </div></div>' : $actions .= '</div>';
+                                <a class="menu-link px-3 restore-btn" data-id="' . $row->id . '">' . __('employee::fields.restore') . '</a>
+                            </div></div>' : $actions .= '<div class="menu-item px-3">
+                                <a href="' . url("/employee/show/{$row->id}") . '" class="menu-link px-3 show-btn" data-id="' . $row->id . '">' . __('employee::fields.show') . '</a>
+                            </div></div>';
                     return $actions;
                 }
             )
             ->editColumn('isActive', function ($employee) {
                 return $employee->isActive
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
-                    : '<div class="badge badge-light-danger">' . __("employee::fields.active") . '</div>';
+                    : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
             ->rawColumns(['actions', 'isActive', 'id'])
             ->make(true);

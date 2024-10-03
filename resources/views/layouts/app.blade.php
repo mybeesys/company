@@ -4074,7 +4074,6 @@
     <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
     <!-- jQuery CDN -->
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}

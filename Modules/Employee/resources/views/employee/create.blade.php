@@ -10,6 +10,7 @@
 @endsection
 
 @section('script')
+    @parent
     <script>
         new tempusDominus.TempusDominus($("#employmentStartDate")[0], {
             localization: {
@@ -44,10 +45,20 @@
                 if ($(this).is(':checked')) {
                     $(this).val(1);
                 } else {
-                    $(this).val(0);
+                    showAlert("{{ __('employee::responses.change_status_warning') }}",
+                        "{{ __('employee::general.diactivate') }}",
+                        "{{ __('employee::general.cancel') }}", undefined,
+                        true, "warning").then(function(t) {
+                        if (t.isConfirmed) {
+                            $(this).val(1);
+                        } else {
+                            $(this).val(0);
+                            $('#isActive').prop('checked', true);
+                        }
+                    });
                 }
             });
-
+            
             // On keyup, start the countdown
             $('#add_employee_form input, #add_employee_form input[type="file"]').on('change', function() {
                 let input = $(this);
@@ -63,14 +74,10 @@
                         $('#PIN').val(response.data);
                     },
                     error: function(response) {
-                        Swal.fire({
-                            text: "{{ __('employee::responses.something_wrong_happened') }}",
-                            icon: "error",
-                            confirmButtonText: "{{ __('employee::general.try_again') }}",
-                            customClass: {
-                                confirmButton: "btn btn-danger"
-                            }
-                        });
+                        showAlert("{{ __('employee::responses.something_wrong_happened') }}",
+                            "{{ __('employee::general.try_again') }}",
+                            undefined, undefined,
+                            false, "error");
                     }
                 });
             });
