@@ -85,6 +85,11 @@ class TreeCategoryBuilder
         $CategoryTree->data->id = $product->id;
         $CategoryTree->data->parent_id = $product->subcategory_id;
         $CategoryTree->data->category_id = $product->category_id;
+        $CategoryTree->data->SKU = $product->SKU;
+        $CategoryTree->data->barcode = $product->barcode; 
+        $CategoryTree->data->class = $product->class;
+        $CategoryTree->data->cost = $product->cost;
+        $CategoryTree->data->price = $product->price;
         $CategoryTree->data->type = "Product";
         $CategoryTree->data->active = $product->active;
         $childArray[] = $CategoryTree;

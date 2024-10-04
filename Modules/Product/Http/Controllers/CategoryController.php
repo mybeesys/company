@@ -41,12 +41,53 @@ class CategoryController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'order' => 'required|numeric',
-            'active' => 'nullable|boolean'
+            'active' => 'nullable|boolean',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string'
         ]);
   
-        $category = Category::create($validated);
+        if(isset($validated['method']) && ($validated['method'] =="delete"))
+        {
+            $category = Category::find($validated['id']); 
+            if(count($category->subcategories)==0)
+            {
+               $category->delete();
+               return response()->json(["message"=>"Done"]);
+            }
+            else
+            {
+                return response()->json(["message"=>"Please first delete subcategories of this category"]);
+            }
 
-        return response()->json($validated);
+        }
+
+        if(!isset($validated['id']))
+        {
+            $categories = Category::where('order', $validated['order'])->first();
+
+            if($categories == null)
+               $category = Category::create($validated);
+            else
+               return response()->json(["message"=>"The order is already exist!"]);
+            
+        }
+         else
+         {
+            $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
+            if($categories == null)
+            {
+                $category = Category::find($validated['id']);
+                $category->name_ar = $validated['name_ar'];
+                $category->name_en = $validated['name_en'];
+                $category->order = $validated['order'];
+                $category->active = $validated['active'];
+                $category->save();
+            }
+            else
+              return response()->json(["message"=>"The order is already exist!"]);
+         }
+
+        return response()->json(["message"=>"Done"]);
     }
     /**
      * Show the specified resource.

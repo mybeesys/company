@@ -19,7 +19,7 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
                     {
                         r["boolactive"]? r["active"] = 1 : r["active"] = 0;
                         const response = await axios.post(url, r);
-                        onProductAdded(response.data);
+                        onProductAdded(response.data.message);
                     }
             }
             else if(type == "SubCategory")
@@ -30,7 +30,7 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
                     r["category_id"] = category_id;
                     r["parent_id"] = parent_id;
                     const response = await axios.post(url, r);
-                    onProductAdded(response.data);
+                    onProductAdded(response.data.message);
                 }
             }         
             else
@@ -41,7 +41,7 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
                     r["category_id"] = category_id;
                     r["subcategory_id"] = parent_id;
                     const response = await axios.post(url, r);
-                    onProductAdded(response.data);
+                    onProductAdded(response.data.message);
                 }
             }
             
@@ -53,7 +53,6 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
     };
 
     const handleChange = (key, value) => {
-       console.log(key);
         let r = {...currentRow};
         r[key] = value;
         setCurrentRow({...r});
@@ -127,12 +126,12 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
                   <div class="row">
                     <div class="col-6">
                     <label for="price" class="col-form-label">Price:</label>
-                    <input type="number" class="form-control" id="price" value={!!currentRow.price ? currentRow.price : ''} 
+                    <input type="number"  min="0" class="form-control" id="price" value={!!currentRow.price ? currentRow.price : ''} 
                                 onChange={(e) => handleChange('price', e.target.value)} required></input>
                    </div>
                    <div class="col-6">
                     <label for="cost" class="col-form-label">Cost:</label>
-                    <input type="number" class="form-control" id="cost" value={!!currentRow.cost ? currentRow.cost : ''} 
+                    <input type="number"  min="0" class="form-control" id="cost" value={!!currentRow.cost ? currentRow.cost : ''} 
                                 onChange={(e) => handleChange('cost', e.target.value)} required></input>
                    </div>
                 </div>
@@ -170,7 +169,7 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
                     <div class="row">
                       <div class="col">
                       <label for="order" class="col-form-label">Order:</label>
-                      <input type="number" class="form-control" id="order" value={!!currentRow.order ? currentRow.order : ''} 
+                      <input type="number"  min="0" class="form-control" id="order" value={!!currentRow.order ? currentRow.order : ''} 
                                 onChange={(e) => handleChange('order', e.target.value)} required></input>
                       </div>   
                       {type == "Product"? 

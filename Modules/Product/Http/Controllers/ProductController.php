@@ -33,10 +33,9 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
             'category_id' => 'required|numeric',
             'subcategory_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
@@ -46,13 +45,23 @@ class ProductController extends Controller
             'price'=> 'required|numeric',
             'description_ar'=> 'nullable|string',
             'description_en'=> 'nullable|string',
-            'class'=> 'required|string'
+            'class'=> 'required|string',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string'
         ]);
 
-        
+        if(isset($validated['method']) && ($validated['method'] =="delete"))
+        {
+            $product = Product::find($validated['id']); 
+            $product->delete();
+            return response()->json(["message"=>"Done"]);
+        }
+       else
+       { 
         $item = Product::create($validatedData);
+        return response()->json(["message"=>"Done"]);
+       }
 
-        return response()->json($item, 201);
     }
 
     /**

@@ -27,6 +27,7 @@
     "react-bootstrap": "^2.10.5",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.1",
+    "react-sweetalert2": "^0.6.0",
     "webpack": "^5.95.0"
   },
   "name": "mybeeCompany",

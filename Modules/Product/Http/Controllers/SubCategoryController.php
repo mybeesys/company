@@ -36,12 +36,60 @@ class SubCategoryController extends Controller
             'order' => 'required|numeric',
             'category_id' => 'required|numeric',
             'parent_id' => 'nullable|numeric',
-            'active' => 'nullable|boolean'
+            'active' => 'nullable|boolean',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string'
         ]);
 
-        $subcategory = SubCategory::create($validated);
 
-        return response()->json($subcategory);
+        if(isset($validated['method']) && ($validated['method'] =="delete"))
+        {
+            $subcategory = SubCategory::find($validated['id']); 
+            if(count($subcategory->children)==0 && count($subcategory->products)==0)
+            {
+               $subcategory->delete();
+               return response()->json(["message"=>"Done"]);
+            }
+            else
+            {
+                return response()->json(["message"=>"Please first delete subcategories of this category"]);
+            }
+
+        }
+
+
+        if(!isset($validated['id']))
+        {
+          $subcategories = SubCategory::where([['category_id', '=', $validated['category_id']],
+          ['parent_id', '=', $validated['parent_id']] ,
+          ['order', '=', $validated['order']]])->first();
+
+          if($subcategories == null)
+             $subcategory = SubCategory::create($validated);
+          else
+             return response()->json(["message"=>"The order is already exist!"]);
+        }
+        else
+        {
+            $subcategories = SubCategory::where([['category_id', '=', $validated['category_id']],
+            ['parent_id', '=', $validated['parent_id']] ,
+            ['order', '=', $validated['order']],
+            ['id', '!=', $validated['id']]])->first();
+
+           if($subcategories == null)
+           {
+                $subcategory = SubCategory::find($validated['id']);
+                $subcategory->name_ar = $validated['name_ar'];
+                $subcategory->name_en = $validated['name_en'];
+                $subcategory->order = $validated['order'];
+                $subcategory->active = $validated['active'];
+                $subcategory->save();
+           }
+           else
+             return response()->json(["message"=>"The order is already exist!"]);
+        }
+
+        return response()->json(["message"=>"Done"]);
     }
 
     /**
