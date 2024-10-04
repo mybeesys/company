@@ -27,6 +27,7 @@ class Employee extends BaseModel
     {
         return [
             'isActive' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 

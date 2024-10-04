@@ -4,7 +4,7 @@
 @section('content')
     <form id="edit_employee_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
         action="{{ route('employees.update', ['employee' => $employee]) }}">
-        @method('put')
+        @method('patch')
         @csrf
         <x-employee::employees.form :employee=$employee />
     </form>

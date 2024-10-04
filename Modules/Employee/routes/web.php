@@ -30,7 +30,7 @@ Route::middleware([
     Route::get('employee/create', [EmployeeController::class,'create'])->name('create');
     Route::post('employee/store', [EmployeeController::class,'store'])->name('store');
     Route::get('employee/{employee}/edit', [EmployeeController::class,'edit'])->name('edit');
-    Route::put('employee/{employee}', [EmployeeController::class,'update'])->name('update');
+    Route::patch('employee/{employee}', [EmployeeController::class,'update'])->name('update');
     Route::get('employee/show/{employee}', [EmployeeController::class,'show'])->name('show');
     Route::delete('employee/{employee}', [EmployeeController::class,'softDelete'])->name('delete');
     Route::delete('employee/force-delete/{employee}', [EmployeeController::class,'forceDelete'])->name('forceDelete');
