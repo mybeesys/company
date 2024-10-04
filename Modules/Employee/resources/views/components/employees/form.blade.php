@@ -51,9 +51,9 @@
                     </x-employee::form.input-div>
 
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.phone_number') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
+                        <x-employee::form.input type="password" :required=!$employee :errors=$errors
+                            placeholder="{{ __('employee::fields.password') }}"
+                            name="password" :label="__('employee::fields.password')" />
                     </x-employee::form.input-div>
                 </div>
 
@@ -64,12 +64,13 @@
                     </x-employee::form.input-div>
 
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.input :errors=$errors type="number" placeholder="00.0" name="wage"
-                            :label="__('employee::fields.wage')" />
+                        <x-employee::form.input required :errors=$errors
+                            placeholder="{{ __('employee::fields.phone_number') }} ({{ __('employee::fields.required') }})"
+                            value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
                     </x-employee::form.input-div>
                 </div>
-                <div class="gap-10">
-                    <x-employee::form.input-div class="px-2">
+                <div class="d-flex flex-wrap">
+                    <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                         <div class="input-group">
                             <x-employee::form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
@@ -77,6 +78,10 @@
                                 <a href="#" id="generate_pin" class="btn btn-light-primary">@lang('employee::general.generate_pin')</a>
                             </x-employee::form.input>
                         </div>
+                    </x-employee::form.input-div>
+                    <x-employee::form.input-div class="mb-10 w-100 px-2">
+                        <x-employee::form.input :errors=$errors type="number" placeholder="00.0" name="wage"
+                            :label="__('employee::fields.wage')" />
                     </x-employee::form.input-div>
                 </div>
             </x-employee::card>

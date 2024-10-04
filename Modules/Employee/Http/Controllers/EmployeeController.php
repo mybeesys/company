@@ -111,15 +111,19 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         DB::beginTransaction();
+        $filteredRequest = array_filter($request->safe()->all(), function ($value) {
+            return !is_null($value);
+        });
+
         if ($request->has('image')) {
             $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $employee->image);
             File::exists($oldPath) ?? File::delete($oldPath);
             $imageName = time() . '.' . $request->image->extension();
             $request->image->storeAs('profile_pictures', $imageName, 'public');
 
-            $updated = $employee->update($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
+            $updated = $employee->update(array_merge($filteredRequest, ['image' => "profile_pictures/{$imageName}"]));
         } else {
-            $updated = $employee->update($request->safe()->all());
+            $updated = $employee->update($filteredRequest);
         }
         DB::commit();
         if ($updated) {

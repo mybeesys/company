@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class CreateEmployeeRequest extends FormRequest
 {
@@ -15,7 +16,7 @@ class CreateEmployeeRequest extends FormRequest
             'firstName' => ['required', 'string', 'max:50'],
             'lastName' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'unique:employee_employees,email'],
-            'password' => ['required', 'password'],
+            'password' => ['required', Password::default()],
             'phoneNumber' => ['required', 'digits_between:10,15'],
             'employmentStartDate' => ['required', 'date'],
             'PIN' => ['required', 'digits_between:4,5', 'numeric', 'unique:employee_employees,pin'],
