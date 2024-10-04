@@ -58,7 +58,7 @@ class ProductController extends Controller
         }
        else
        { 
-        $item = Product::create($validatedData);
+        $item = Product::create($validated);
         return response()->json(["message"=>"Done"]);
        }
 
