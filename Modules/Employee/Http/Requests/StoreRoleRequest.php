@@ -16,7 +16,6 @@ class StoreRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:50'],
             'department' => ['nullable', 'string', 'max:50'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
-            // 'wage' => ['nullable', ''],
         ];
     }
 

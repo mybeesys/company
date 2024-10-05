@@ -18,9 +18,9 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $employees = Role::
+            $roles = Role::
                 select('id', 'name', 'guard_name', 'department', 'rank');
-            return Tables::getEmployeeTable($employees);
+            return Tables::getRoleTable($roles);
         }
         $columns = Tables::getRoleColumns();
         return view('employee::roles.index', compact('columns'));
@@ -69,15 +69,15 @@ class RoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Role $role)
     {
-        return view('employee::edit');
+        return view('employee::roles.edit', compact('role'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Role $role)
     {
         //
     }
