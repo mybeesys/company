@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Database\Factories\EmployeeFactory;
+use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasRoles;
 
 
@@ -42,5 +43,10 @@ class Employee extends BaseModel
     protected static function newFactory(): EmployeeFactory
     {
         return EmployeeFactory::new();
+    }
+
+    public function establishments()
+    {
+        return $this->belongsToMany(Establishment::class)->withTimestamps()->withPivot('role_id', 'wage');
     }
 }

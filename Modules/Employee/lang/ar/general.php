@@ -48,4 +48,5 @@ return [
     'edit_employee' => 'تعديل موظف',
     'activate' => 'تفعيل',
     'diactivate' => 'إلغاء تفعيل',
+    'deactivate/activate' => 'تفعيل/تعطيل'
 ];
