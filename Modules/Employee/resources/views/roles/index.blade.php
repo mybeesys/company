@@ -5,18 +5,14 @@
 @section('content')
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="employee">
-                <x-slot:filters>
-                    <x-employee::tables.filters-dropdown />
-                </x-slot:filters>
+            <x-employee::tables.table-header model="role">
                 <x-slot:export>
                     <x-employee::tables.export-menu />
                 </x-slot:export>
             </x-employee::tables.table-header>
         </x-employee::card-header>
-
         <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="employee" />
+            <x-employee::tables.table :columns=$columns model="role" />
         </x-employee::card-body>
     </div>
 @endsection
@@ -27,8 +23,8 @@
     <script>
         "use strict";
         let dataTable;
-        const table = $('#kt_employee_table');
-        const dataUrl = '{{ route('employees.index') }}';
+        const table = $('#kt_role_table');
+        const dataUrl = '{{ route('roles.index') }}';
 
         pdfMake.fonts = {
             Arial: {
@@ -65,9 +61,8 @@
             e.preventDefault();
             var id = $(this).data('id');
             var name = $(this).data('name');
-            let deleteUrl = $(this).data('deleted') ?
-                `{{ url('/employee/force-delete/${id}') }}` :
-                `{{ url('/employee/${id}') }}`;
+            let deleteUrl =
+                `{{ url('/role/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     name),
@@ -91,28 +86,16 @@
                         className: 'text-start'
                     },
                     {
-                        data: 'firstName',
-                        name: 'firstName'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
-                        data: 'lastName',
-                        name: 'lastName'
+                        data: 'department',
+                        name: 'department'
                     },
                     {
-                        data: 'phoneNumber',
-                        name: 'phoneNumber'
-                    },
-                    {
-                        data: 'employmentStartDate',
-                        name: 'employmentStartDate'
-                    },
-                    {
-                        data: 'employmentEndDate',
-                        name: 'employmentEndDate'
-                    },
-                    {
-                        data: 'isActive',
-                        name: 'isActive'
+                        data: 'rank',
+                        name: 'rank'
                     },
                     {
                         data: 'actions',
@@ -135,13 +118,13 @@
                 buttons: [{
                         extend: 'excelHtml5',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                     },
                     {
                         extend: 'pdf',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                         customize: function(doc) {
                             doc.defaultStyle.font = 'Arial';
@@ -150,7 +133,7 @@
                     {
                         extend: 'print',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                     },
                 ]
@@ -180,7 +163,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('employees.index') }}?' + $.param({
+                dataTable.ajax.url('{{ route('roles.index') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

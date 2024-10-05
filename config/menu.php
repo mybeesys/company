@@ -84,17 +84,17 @@ return [
             ],
             [
                 'name' => 'employees',
-                'url' => '/employees',
+                'url' => '/employee',
                 'permission' => '',
             ],
             [
                 'name' => 'roles',
-                'url' => '/roles',
+                'url' => '/role',
                 'permission' => '',
             ],
             [
                 'name' => 'permissions',
-                'url' => '/permissions',
+                'url' => '/permission',
                 'permission' => '',
             ],
         ]

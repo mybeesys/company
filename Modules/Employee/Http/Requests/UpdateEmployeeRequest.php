@@ -23,6 +23,7 @@ class UpdateEmployeeRequest extends FormRequest
             'PIN' => ['required', 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
             'image' => ['image', 'max:3072'],
             'isActive' => ['required', 'boolean'],
+            'role' => ['nullable', 'exists:roles,id']
             // 'wage' => ['nullable', ''],
         ];
     }
