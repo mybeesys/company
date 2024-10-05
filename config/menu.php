@@ -107,6 +107,16 @@ return [
                 'url' => '/employees',
                 'permission' => '',
             ],
+            [
+                'name' => 'roles',
+                'url' => '/roles',
+                'permission' => '',
+            ],
+            [
+                'name' => 'permissions',
+                'url' => '/permissions',
+                'permission' => '',
+            ],
         ]
     ],
     [

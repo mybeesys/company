@@ -17,7 +17,7 @@ class CreateEmployeeRequest extends FormRequest
             'lastName' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'unique:employee_employees,email'],
             'password' => ['required', Password::default()],
-            'phoneNumber' => ['required', 'digits_between:10,15'],
+            'phoneNumber' => ['digits_between:10,15'],
             'employmentStartDate' => ['required', 'date'],
             'PIN' => ['required', 'digits_between:4,5', 'numeric', 'unique:employee_employees,pin'],
             'image' => ['image', 'max:3072'],

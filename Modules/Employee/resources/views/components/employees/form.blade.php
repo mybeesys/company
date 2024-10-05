@@ -13,7 +13,7 @@
         <div class="form-check form-switch form-check-success form-check-solid">
             <input type="hidden" name="isActive" value="0">
             <x-employee::form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
-                labelClass="form-check-label" name="isActive" label="تفعيل/تعطيل"
+                labelClass="form-check-label" name="isActive" label="{{ __('employee::general.deactivate/activate') }}"
                 checked="{{ $employee?->isActive }}" />
         </div>
     </x-employee::card>
@@ -64,8 +64,8 @@
                     </x-employee::form.input-div>
 
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.phone_number') }} ({{ __('employee::fields.required') }})"
+                        <x-employee::form.input :errors=$errors
+                            placeholder="{{ __('employee::fields.phone_number') }}"
                             value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
                     </x-employee::form.input-div>
                 </div>

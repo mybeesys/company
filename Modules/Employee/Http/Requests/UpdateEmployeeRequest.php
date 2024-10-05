@@ -18,7 +18,7 @@ class UpdateEmployeeRequest extends FormRequest
             'lastName' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', Rule::unique('employee_employees', 'email')->ignore($this->email, 'email')],
             'password' => ['nullable', Password::default()],
-            'phoneNumber' => ['required', 'digits_between:10,15'],
+            'phoneNumber' => ['digits_between:10,15'],
             'employmentStartDate' => ['required', 'date'],
             'PIN' => ['required', 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
             'image' => ['image', 'max:3072'],
