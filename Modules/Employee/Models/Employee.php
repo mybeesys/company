@@ -14,6 +14,8 @@ class Employee extends BaseModel
 {
     use HasFactory, HasRoles, SoftDeletes;
 
+    protected $guard_name = "web";
+    
     /**
      * The attributes that are mass assignable.
      */

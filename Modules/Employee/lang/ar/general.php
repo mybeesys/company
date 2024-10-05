@@ -48,5 +48,9 @@ return [
     'edit_employee' => 'تعديل موظف',
     'activate' => 'تفعيل',
     'diactivate' => 'إلغاء تفعيل',
-    'deactivate/activate' => 'تفعيل/تعطيل'
+    'deactivate/activate' => 'تفعيل/تعطيل',
+    'add_role' => 'إضافة دور',
+    'edit_role' => 'تعديل دور',
+    'role_search' => 'ابحث عن دور',
+    'role_details' => 'بيانات الدور',
 ];

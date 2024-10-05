@@ -17,8 +17,8 @@
                 <label class="form-label fs-6 fw-semibold">@lang('employee::general.deleted_records')</label>
                 @php
                     $options = [
-                        ['value' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')],
-                        ['value' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
+                        ['id' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')],
+                        ['id' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
                     ];
                 @endphp
                 <x-employee::form.select :options=$options name="deleted_records" />

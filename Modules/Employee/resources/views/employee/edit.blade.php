@@ -6,15 +6,17 @@
         action="{{ route('employees.update', ['employee' => $employee]) }}">
         @method('patch')
         @csrf
-        <x-employee::employees.form :employee=$employee />
+        <x-employee::employees.form :roles=$roles :employee=$employee />
     </form>
 @endsection
 
 @section('script')
     @parent
     <script>
-        datePicker();
-        form('edit_employee_form', "{{ route('employees.update.validation') }}",
-        "{{ route('employees.generate.pin') }}")
+        $(document).ready(function() {
+            datePicker();
+            form('edit_employee_form', "{{ route('employees.update.validation') }}",
+                "{{ route('employees.generate.pin') }}")
+        });
     </script>
 @endsection
