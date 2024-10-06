@@ -48,5 +48,9 @@ return [
     'edit_employee' => 'Edit employee',
     'activate' => 'Activate',
     'diactivate' => 'Diactivate',
-
+    'deactivate/activate' => 'Activate/Deactivate',
+    'add_role' => 'Add role',
+    'edit_role' => 'Edit role',
+    'role_search' => 'Role search',
+    'role_details' => 'Role details',
 ];

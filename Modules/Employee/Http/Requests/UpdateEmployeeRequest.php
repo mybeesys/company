@@ -4,6 +4,7 @@ namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateEmployeeRequest extends FormRequest
 {
@@ -16,11 +17,13 @@ class UpdateEmployeeRequest extends FormRequest
             'firstName' => ['required', 'string', 'max:50'],
             'lastName' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', Rule::unique('employee_employees', 'email')->ignore($this->email, 'email')],
-            'phoneNumber' => ['required', 'digits_between:10,15'],
+            'password' => ['nullable', Password::default()],
+            'phoneNumber' => ['digits_between:10,15'],
             'employmentStartDate' => ['required', 'date'],
             'PIN' => ['required', 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
             'image' => ['image', 'max:3072'],
             'isActive' => ['required', 'boolean'],
+            'role' => ['nullable', 'exists:roles,id']
             // 'wage' => ['nullable', ''],
         ];
     }

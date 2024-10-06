@@ -7,9 +7,10 @@ use DB;
 use File;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
-use Modules\Employee\Http\Requests\CreateEmployeeRequest;
+use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\Role;
 
 class EmployeeController extends Controller
 {
@@ -27,11 +28,10 @@ class EmployeeController extends Controller
                     ? $employees->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
             }
-
             return Tables::getEmployeeTable($employees);
         }
-
-        return view('employee::employee.index');
+        $columns = Tables::getEmployeeColumns();
+        return view('employee::employee.index', compact('columns'));
     }
 
     function generatePin()
@@ -50,7 +50,7 @@ class EmployeeController extends Controller
         return Employee::where('pin', $number)->exists();
     }
 
-    public function createLiveValidation(CreateEmployeeRequest $request)
+    public function createLiveValidation(StoreEmployeeRequest $request)
     {
     }
 
@@ -63,13 +63,14 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return view('employee::employee.create');
+        $roles = Role::all()->select('id', 'name');
+        return view('employee::employee.create', compact('roles'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateEmployeeRequest $request)
+    public function store(StoreEmployeeRequest $request)
     {
         DB::beginTransaction();
         if ($request->has('image')) {
@@ -79,8 +80,15 @@ class EmployeeController extends Controller
             $imageName = null;
         }
 
+        
+        
         $employee = Employee::create($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
-
+        
+        if ($request->has('role')) {
+            $role = Role::findById($request->role);
+            $employee->assignRole($role);
+        }
+        
         DB::commit();
         if ($employee) {
             return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
@@ -102,7 +110,8 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        return view('employee::employee.edit', compact('employee'));
+        $roles = Role::all()->select('id', 'name');
+        return view('employee::employee.edit', compact('employee', 'roles'));
     }
 
     /**
@@ -111,15 +120,27 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         DB::beginTransaction();
+        $filteredRequest = array_filter($request->safe()->all(), function ($value) {
+            return !is_null($value);
+        });
+
+        if ($request->has('role')) {
+            $role = Role::findById($request->role);
+            if ($employee->roles()->first() && $employee->roles()->first()->id != $request->role) {
+                $employee->removeRole($employee->roles()->first());
+            }
+            $employee->assignRole($role);
+        }
+
         if ($request->has('image')) {
             $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $employee->image);
             File::exists($oldPath) ?? File::delete($oldPath);
             $imageName = time() . '.' . $request->image->extension();
             $request->image->storeAs('profile_pictures', $imageName, 'public');
 
-            $updated = $employee->update($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
+            $updated = $employee->update(array_merge($filteredRequest, ['image' => "profile_pictures/{$imageName}"]));
         } else {
-            $updated = $employee->update($request->safe()->all());
+            $updated = $employee->update($filteredRequest);
         }
         DB::commit();
         if ($updated) {
