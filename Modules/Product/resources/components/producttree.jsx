@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import TreeTableProduct from "./components/TreeTableProduct";
+import TreeTableProduct from "./TreeTableProduct";
 
 
 const App = () => {

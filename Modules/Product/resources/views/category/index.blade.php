@@ -2,7 +2,7 @@
 
 @section('content')
     @viteReactRefresh
-    @vite('resources/js/app.jsx')
+    @vite('Modules/Product/resources/components/producttree.jsx')
    						
       <div id="react-root" 
 	  list-url="{{json_encode(route('categoryList'))}}"

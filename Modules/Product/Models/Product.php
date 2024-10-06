@@ -27,7 +27,12 @@ class Product extends Model
         'subcategory_id',
         'description_ar',
         'description_en',  
-        'active'
+        'active',
+        'sold_by_weight',
+        'track_serial_number',
+        'image',
+        'color',
+        'commissions'
     ];
 
     public function category()

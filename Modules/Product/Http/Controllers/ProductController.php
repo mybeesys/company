@@ -13,11 +13,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-          // Access all records from the product_items table
-          $Product = Product::all();
-
-          // Return the items as a JSON response (or to a view)
-          return response()->json($Product);
+        return view('product::product.index' ); 
     }
 
     /**
@@ -47,7 +43,12 @@ class ProductController extends Controller
             'description_en'=> 'nullable|string',
             'class'=> 'required|string',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
+            'sold_by_weight' => 'nullable|boolean',
+            'track_serial_number' => 'nullable|boolean',
+            'image' =>'nullable|string',
+            'color' => 'nullable|string',
+            'commissions' => 'nullable|boolean'
         ]);
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
@@ -83,7 +84,8 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        return view('product::edit');
+         $product  = Product::find($id);
+         return view('product::product.edit', compact('product'));
     }
 
     /**

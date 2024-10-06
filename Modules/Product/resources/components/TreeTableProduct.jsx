@@ -341,12 +341,12 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl })
         </div>
         <div class="card-body">
             <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
-                <Column header="En Name" body={(node) => (renderTextCell(node, 'name_en', true))} expander></Column>
-                <Column header="Ar Name" body={(node) => (renderTextCell(node, 'name_ar'))}></Column>
-                <Column field="price" header="Price"></Column>
-                <Column field="cost" header="Cost"></Column>
-                <Column header="Order" body={(node) => (renderNumberCell(node, 'order'))} ></Column>
-                <Column header="Active" body={(node) => (renderCheckCell(node, 'active'))}> </Column>
+                <Column header="En Name" body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
+                <Column header="Ar Name" body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
+                <Column field="price" header="Price" sortable></Column>
+                <Column field="cost" header="Cost" sortable></Column>
+                <Column header="Order" body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
+                <Column header="Active" body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
                 <Column body={(node) => (actionTemplate(node))} />
             </TreeTable>
         </div>
