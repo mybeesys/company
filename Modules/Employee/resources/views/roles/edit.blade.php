@@ -1,4 +1,3 @@
-@props(['role' => null])
 @extends('employee::layouts.master')
 
 @section('title', __('menuItemLang.employees'))
@@ -8,7 +7,7 @@
         action="{{ route('roles.update', ['role' => $role]) }}">
         @method('patch')
         @csrf
-        <x-employee::roles.form :role=$role />
+        <x-employee::roles.form :role=$role :departments=$departments/>
     </form>
 @endsection
 

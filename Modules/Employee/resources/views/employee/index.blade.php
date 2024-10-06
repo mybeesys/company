@@ -10,7 +10,7 @@
                     <x-employee::tables.filters-dropdown />
                 </x-slot:filters>
                 <x-slot:export>
-                    <x-employee::tables.export-menu />
+                    <x-employee::tables.export-menu id="employee" />
                 </x-slot:export>
             </x-employee::tables.table-header>
         </x-employee::card-header>

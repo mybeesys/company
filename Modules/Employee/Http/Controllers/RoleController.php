@@ -23,7 +23,8 @@ class RoleController extends Controller
             return Tables::getRoleTable($roles);
         }
         $columns = Tables::getRoleColumns();
-        return view('employee::roles.index', compact('columns'));
+        $departments = Role::departments();
+        return view('employee::roles.index', compact('columns', 'departments'));
     }
 
     public function createLiveValidation(StoreRoleRequest $request)
@@ -40,7 +41,8 @@ class RoleController extends Controller
      */
     public function create()
     {
-        return view('employee::roles.create');
+        $departments = Role::departments();
+        return view('employee::roles.create', compact('departments'));
     }
 
     /**
@@ -52,9 +54,9 @@ class RoleController extends Controller
         $employee = Role::create($request->safe()->all());
         DB::commit();
         if ($employee) {
-            return redirect()->route('roles.index')->with('success', __('employee::responses.role_created_successfully'));
+            return response()->json(['message' => __('employee::responses.role_created_successfully')]);
         } else {
-            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
 
@@ -71,15 +73,23 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
-        return view('employee::roles.edit', compact('role'));
+        $departments = Role::departments();
+        return view('employee::roles.edit', compact('role', 'departments'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Role $role)
+    public function update(StoreRoleRequest $request, Role $role)
     {
-        //
+        DB::beginTransaction();
+        $updated = $role->update($request->safe()->all());
+        DB::commit();
+        if ($updated) {
+            return response()->json(['message' => __('employee::responses.role_updated_successfully')]);
+        } else {
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
     }
 
     /**
