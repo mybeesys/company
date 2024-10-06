@@ -7,14 +7,19 @@
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-employee::tables.table-header model="role">
                 <x-slot:export>
-                    <x-employee::tables.export-menu />
+                    <x-employee::tables.export-menu id="role" />
                 </x-slot:export>
+                <a href='#' data-bs-toggle="modal" data-bs-target="#kt_modal_add_role"
+                    class="btn btn-primary">@lang('employee::general.add_role')
+                </a>
             </x-employee::tables.table-header>
         </x-employee::card-header>
         <x-employee::card-body class="table-responsive">
             <x-employee::tables.table :columns=$columns model="role" />
         </x-employee::card-body>
     </div>
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="add" />
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="edit" />
 @endsection
 
 @section('script')
@@ -46,10 +51,10 @@
 
         $(document).ready(function() {
             if (!table.length) return;
+            form('add_role_form', "{{ route('roles.create.validation') }}");
             initDatatable();
             exportButtons();
             handleSearchDatatable();
-            handleFormFiltersDatatable();
         });
 
         $(document).on('click', '.restore-btn', function(e) {
@@ -137,9 +142,9 @@
                         },
                     },
                 ]
-            }).container().appendTo($('#kt_employee_table_buttons'));
+            }).container().appendTo($('#kt_role_table_buttons'));
 
-            const exportButtons = $('#kt_employee_table_export_menu [data-kt-export]');
+            const exportButtons = $('#kt_role_table_export_menu [data-kt-export]');
             exportButtons.on('click', function(e) {
                 e.preventDefault();
                 const exportValue = $(this).attr('data-kt-export');
@@ -154,37 +159,12 @@
             });
         };
 
-        function handleFormFiltersDatatable() {
-            const filters = $('[data-kt-filter="filter"]');
-            const resetButton = $('[data-kt-filter="reset"]');
-            const status = $('[data-kt-filter="status"]');
-            const deleted = $('[data-kt-filter="deleted_records"]');
-
-            filters.on('click', function(e) {
-                const deletedValue = deleted.val();
-
-                dataTable.ajax.url('{{ route('roles.index') }}?' + $.param({
-                    deleted_records: deletedValue
-                })).load();
-
-                const statusValue = status.val();
-                dataTable.column(6).search(statusValue).draw();
-            });
-
-            resetButton.on('click', function(e) {
-                status.val(null).trigger('change');
-                deleted.val(null).trigger('change');
-                dataTable.search('').columns().search('').ajax.url(dataUrl)
-                    .load();
-            });
-        };
-
-        function ajaxRequest(url, method) {
+        function ajaxRequest(url, method, data = {}) {
+            data._token = "{{ csrf_token() }}";
             $.ajax({
                 url: url,
-                data: {
-                    "_token": "{{ csrf_token() }}"
-                },
+                data: data,
+                dataType: "json",
                 type: method,
                 success: handleAjaxResponse,
                 error: errorAlert
@@ -201,8 +181,39 @@
             } else {
                 showAlert(response.message, "{{ __('employee::general.close') }}", undefined, "btn-primary", false,
                     "success")
+                $('#kt_modal_add_role').modal('hide');
+                $('#kt_modal_edit_role').modal('hide');
                 dataTable.ajax.reload();
             }
         }
+
+        $('#add_role_form').submit(function(e) {
+            e.preventDefault();
+            const addUrl = "{{ route('roles.store') }}";
+            ajaxRequest(addUrl, 'POST', {
+                name: $('#name').val(),
+                rank: $('#rank').val(),
+                department: $('#department').val()
+            });
+        });
+
+        $('#edit_role_form').submit(function(e) {
+            e.preventDefault();
+            const id = $('#kt_modal_edit_role #role_id').val();
+            const updateUrl = "{{ route('roles.update', ':id') }}".replace(':id', id);
+            ajaxRequest(updateUrl, 'PATCH', {
+                name: $("#kt_modal_edit_role #name").val(),
+                rank: $("#kt_modal_edit_role #rank").val(),
+                department: $("#kt_modal_edit_role #department").val()
+            });
+        });
+
+        $(document).on('click', '.edit-btn', function(e) {
+            e.preventDefault();
+            $("#kt_modal_edit_role #role_id").val($(this).data('id'));
+            $("#kt_modal_edit_role #name").val($(this).data('name'));
+            $("#kt_modal_edit_role #rank").val($(this).data('rank'));
+            $("#kt_modal_edit_role #department").val($(this).data('department'));
+        });
     </script>
 @endsection
