@@ -79,7 +79,7 @@ return [
         'subMenu' => [
             [
                 'name' => 'employees-dashboard',
-                'url' => '/employees-dashboard',
+                'url' => '/employee/dashboard',
                 'permission' => '',
             ],
             [
