@@ -91,12 +91,12 @@
                         className: 'text-start'
                     },
                     {
-                        data: 'firstName',
-                        name: 'firstName'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
-                        data: 'lastName',
-                        name: 'lastName'
+                        data: 'name_en',
+                        name: 'name_en'
                     },
                     {
                         data: 'phoneNumber',

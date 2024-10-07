@@ -15,7 +15,7 @@
     @parent
     <script>
         $(document).ready(function() {
-            form('edit_role_form', "{{ route('roles.update.validation') }}");
+            roleForm('edit_role_form', "{{ route('roles.update.validation') }}");
         });
     </script>
 @endsection

@@ -18,8 +18,8 @@ class Tables
     public static function getEmployeeColumns()
     {
         return [
-            ['class' => 'min-w-150px', 'name' => 'first_name'],
-            ['class' => 'min-w-150px', 'name' => 'last_name'],
+            ['class' => 'min-w-200px', 'name' => 'name'],
+            ['class' => 'min-w-200px', 'name' => 'name_en'],
             ['class' => 'text-start min-w-150px', 'name' => 'phone'],
             ['class' => 'text-start min-w-150px text-nowrap', 'name' => 'employment_start_date'],
             ['class' => 'text-start min-w-150px text-nowrap', 'name' => 'employment_end_date'],

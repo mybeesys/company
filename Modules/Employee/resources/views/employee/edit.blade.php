@@ -15,7 +15,7 @@
     <script>
         $(document).ready(function() {
             datePicker();
-            form('edit_employee_form', "{{ route('employees.update.validation') }}",
+            employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
                 "{{ route('employees.generate.pin') }}")
         });
     </script>

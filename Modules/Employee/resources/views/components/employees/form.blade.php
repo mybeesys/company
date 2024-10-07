@@ -31,13 +31,13 @@
                 <div class="d-flex flex-wrap">
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.first_name') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->firstName }}" name="firstName" :label="__('employee::fields.first_name')" />
+                            placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
+                            value="{{ $employee?->name }}" name="name" :label="__('employee::fields.name')" />
                     </x-employee::form.input-div>
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.last_name') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->lastName }}" name="lastName" :label="__('employee::fields.last_name')" />
+                            placeholder="{{ __('employee::fields.name_en') }} ({{ __('employee::fields.required') }})"
+                            value="{{ $employee?->name_en }}" name="name_en" :label="__('employee::fields.name_en')" />
                     </x-employee::form.input-div>
                 </div>
 

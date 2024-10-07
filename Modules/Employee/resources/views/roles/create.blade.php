@@ -13,7 +13,7 @@
     @parent
     <script>
         $(document).ready(function() {
-            form('add_role_form', "{{ route('roles.create.validation') }}");
+            roleForm('add_role_form', "{{ route('roles.create.validation') }}");
         });
     </script>
 @endsection

@@ -13,8 +13,8 @@ class StoreEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'firstName' => ['required', 'string', 'max:50'],
-            'lastName' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:50'],
+            'name_en' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'unique:employee_employees,email'],
             'password' => ['required', Password::default()],
             'phoneNumber' => ['digits_between:10,15'],

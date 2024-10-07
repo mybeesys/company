@@ -1,4 +1,4 @@
-function form(id, validationUrl, generatePinUrl) {
+function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
 
@@ -26,6 +26,8 @@ function form(id, validationUrl, generatePinUrl) {
     });
 
     $('#generate_pin').on('click', function (e) {
+        console.log(123);
+        
         e.preventDefault();
         $.ajax({
             url: generatePinUrl,
