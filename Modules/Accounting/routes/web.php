@@ -35,5 +35,6 @@ Route::middleware([
         //
         Route::get('journal-entry-index', [JournalEntryController::class, 'index'])->name('journal-entry-index');
         Route::get('journal-entry-create', [JournalEntryController::class, 'create'])->name('journal-entry-create');
+        Route::post('journal-entry-store', [JournalEntryController::class, 'store'])->name('journal-entry-store');
     });
 });

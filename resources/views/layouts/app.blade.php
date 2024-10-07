@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
-<html lang="{{ session()->get('locale', 'en') }}">
-<!--begin::Head-->
+<html lang="{{ session()->get('locale', 'en') }}" >
+
 <head>
 
     <title>@yield('title') - MyBee</title>
@@ -35,6 +35,9 @@
 
     <link href="assets/css/dataTables.bootstrap4.css" rel="stylesheet" type="text/css" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
 
     @yield('css')
 
