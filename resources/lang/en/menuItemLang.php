@@ -19,6 +19,7 @@ return [
     'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
     'employees-dashboard' => 'Employees dashboard',
+    'permissions' => 'Permissions',
 
 
 
