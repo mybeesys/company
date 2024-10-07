@@ -1,10 +1,10 @@
-@props(['employee' => null])
+@props(['employee' => null, 'roles'])
 <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
-    <x-employee::card :title="__('employee::fields.employee_image')" bodyClass="text-center">
+    <x-employee::form.form-card :title="__('employee::fields.employee_image')" bodyClass="text-center">
         <x-employee::form.image-input :errors=$errors name="image" image="{{ $employee?->image }}" />
         <div class="text-muted fs-7">@lang('employee::general.image_hint')</div>
-    </x-employee::card>
-    <x-employee::card :title="__('employee::fields.status')">
+    </x-employee::form.form-card>
+    <x-employee::form.form-card :title="__('employee::fields.status')">
         <x-slot:header>
             <span class="ms-1" data-bs-toggle="tooltip" title="@lang('employee::general.employee_status_hint')">
                 <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
@@ -13,33 +13,31 @@
         <div class="form-check form-switch form-check-success form-check-solid">
             <input type="hidden" name="isActive" value="0">
             <x-employee::form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
-                labelClass="form-check-label" name="isActive" label="تفعيل/تعطيل"
+                labelClass="form-check-label" name="isActive" label="{{ __('employee::general.deactivate/activate') }}"
                 checked="{{ $employee?->isActive }}" />
         </div>
-    </x-employee::card>
-    <x-employee::card :title="__('employee::fields.role')">
-        @php
-            $options = [['value' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')]];
-        @endphp
-        <x-employee::form.select name="deleted_records" :options=$options :errors=$errors />
-    </x-employee::card>
+        </x-employee::card>
+        <x-employee::form.form-card :title="__('employee::fields.role')">
+            <x-employee::form.select name="role" :options=$roles :errors=$errors
+                value="{{ $employee?->roles?->first()?->id }}" />
+        </x-employee::form.form-card>
 
 </div>
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <div>
         <div class="d-flex flex-column gap-7 gap-lg-10">
-            <x-employee::card :title="__('employee::general.employee_details')">
+            <x-employee::form.form-card :title="__('employee::general.employee_details')">
 
-                <div class="d-flex flex-wrap ">
+                <div class="d-flex flex-wrap">
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.first_name') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->firstName }}" name="firstName" :label="__('employee::fields.first_name')" />
+                            placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
+                            value="{{ $employee?->name }}" name="name" :label="__('employee::fields.name')" />
                     </x-employee::form.input-div>
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.last_name') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->lastName }}" name="lastName" :label="__('employee::fields.last_name')" />
+                            placeholder="{{ __('employee::fields.name_en') }} ({{ __('employee::fields.required') }})"
+                            value="{{ $employee?->name_en }}" name="name_en" :label="__('employee::fields.name_en')" />
                     </x-employee::form.input-div>
                 </div>
 
@@ -51,9 +49,8 @@
                     </x-employee::form.input-div>
 
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.input required :errors=$errors
-                            placeholder="{{ __('employee::fields.phone_number') }} ({{ __('employee::fields.required') }})"
-                            value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
+                        <x-employee::form.input type="password" :required=!$employee :errors=$errors
+                            placeholder="{{ __('employee::fields.password') }}" name="password" :label="__('employee::fields.password')" />
                     </x-employee::form.input-div>
                 </div>
 
@@ -64,12 +61,12 @@
                     </x-employee::form.input-div>
 
                     <x-employee::form.input-div class="mb-10 w-100 px-2">
-                        <x-employee::form.input :errors=$errors type="number" placeholder="00.0" name="wage"
-                            :label="__('employee::fields.wage')" />
+                        <x-employee::form.input :errors=$errors placeholder="{{ __('employee::fields.phone_number') }}"
+                            value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
                     </x-employee::form.input-div>
                 </div>
-                <div class="gap-10">
-                    <x-employee::form.input-div class="px-2">
+                <div class="d-flex flex-wrap">
+                    <x-employee::form.input-div class="mb-10 w-100 px-2">
                         <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                         <div class="input-group">
                             <x-employee::form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
@@ -78,17 +75,13 @@
                             </x-employee::form.input>
                         </div>
                     </x-employee::form.input-div>
+                    <x-employee::form.input-div class="mb-10 w-100 px-2">
+                        <x-employee::form.input :errors=$errors type="number" placeholder="00.0" name="wage"
+                            :label="__('employee::fields.wage')" />
+                    </x-employee::form.input-div>
                 </div>
-            </x-employee::card>
+            </x-employee::form.form-card>
         </div>
     </div>
-    <div class="d-flex justify-content-end">
-        <a href="{{ url('/employees') }}" id="kt_ecommerce_add_product_cancel"
-            class="btn btn-light me-5">@lang('employee::general.cancel')</a>
-        <button type="submit" id="add_employee_form_button" class="btn btn-primary">
-            <span class="indicator-label">@lang('employee::general.save')</span>
-            <span class="indicator-progress">@lang('employee::general.please_wait')
-                <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-        </button>
-    </div>
+    <x-employee::form.form-buttons cancelUrl="{{ url('/employee') }}" />
 </div>

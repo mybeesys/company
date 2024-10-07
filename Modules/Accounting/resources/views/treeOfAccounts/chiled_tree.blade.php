@@ -27,7 +27,7 @@
                          class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                          <i class="fas fa-cog"></i>
                      </button>
-                     <ul class="dropdown-menu" style="padding: 8px 15px;">
+                     <ul class="dropdown-menu"  @if (app()->getLocale() == 'ar') dir="rtl" @endif style="padding: 8px 15px;">
                          <li><a class="btn-xs  btn-default  ledger-link"
                                  href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"
                                  data-href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"

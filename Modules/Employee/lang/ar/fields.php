@@ -83,5 +83,8 @@ return [
     'required' => 'مطلوب',
     'wage' => 'الأجر',
     'employee_access_pin'=> 'رمز الوصول الخاص بالموظف',
-    'show' => 'عرض'
+    'show' => 'عرض',
+    'department' => 'القسم',
+    'rank' => 'الرتبة',
+    'name_en' => 'الاسم بالإنجليزي'
 ];

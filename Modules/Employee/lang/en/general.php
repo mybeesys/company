@@ -21,9 +21,9 @@ return [
     'to' => 'to',
     'register' => 'Register',
     'employee_search' => 'Employee search',
-    'export_as_pdf' => 'PDf تصدير كـ',
-    'export_as_excel' => 'Excel تصدير كـ',
-    'print' => 'طباعة',
+    'export_as_pdf' => 'Export as PDf',
+    'export_as_excel' => 'Export as Excel',
+    'print' => 'Print',
     'report_export' => 'Report export',
     'add_employee' => 'Add employee',
     'delete' => 'Yes, delete!',
@@ -48,5 +48,9 @@ return [
     'edit_employee' => 'Edit employee',
     'activate' => 'Activate',
     'diactivate' => 'Diactivate',
-
+    'deactivate/activate' => 'Activate/Deactivate',
+    'add_role' => 'Add role',
+    'edit_role' => 'Edit role',
+    'role_search' => 'Role search',
+    'role_details' => 'Role details',
 ];

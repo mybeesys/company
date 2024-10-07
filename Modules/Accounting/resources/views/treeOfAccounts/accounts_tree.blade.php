@@ -73,8 +73,9 @@
                                                             aria-expanded="false">
                                                             <i class="fas fa-cog"></i>
                                                         </button>
-                                                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
-                                                            style="padding: 8px 15px;">
+                                                        <ul class="dropdown-menu dropdown-menu-left"
+                                                            @if (app()->getLocale() == 'ar') dir="rtl" @endif
+                                                            role="menu" style="padding: 8px 15px;">
                                                             <li><a class="ledger-link"
                                                                     onclick="setAccountId({{ $account->id }})"
                                                                     href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $account->id]) }}"
@@ -167,6 +168,7 @@
                                                                             <i class="fas fa-cog"></i>
                                                                         </button>
                                                                         <ul class="dropdown-menu"
+                                                                        @if (app()->getLocale() == 'ar') dir="rtl" @endif
                                                                             style="padding: 8px 15px;">
                                                                             <li><a class="btn-xs btn-default  ledger-link"
                                                                                     href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"

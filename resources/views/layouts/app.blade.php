@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 
+@php
+    $local = session()->get('locale');
+    $dir = $local == 'ar' ? 'rtl' : 'ltr';
+    $rtl_files = $local == 'ar' ? '.rtl' : '';
+    $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
+    $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
+@endphp
+<html lang="{{ $local }}" direction="{{ $dir }}" dir="{{ $dir }}"
+    style="direction: {{ $dir }}">
 
-<html lang="{{ session()->get('locale', 'en') }}">
 <!--begin::Head-->
 
 
@@ -29,15 +37,17 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <!--end::Fonts-->
     <!--begin::Vendor Stylesheets(used for this page only)-->
-    <link href="/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/plugins/custom/fullcalendar/fullcalendar.bundle{{ $rtl_files }}.css" rel="stylesheet"
+        type="text/css" />
+    <link href="/assets/plugins/custom/datatables/datatables.bundle{{ $rtl_files }}.css" rel="stylesheet"
+        type="text/css" />
     <!--end::Vendor Stylesheets-->
     <!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
-    <link href="/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
 
-    <link href="/assets/css/dataTables.bootstrap4.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    {{-- <link href="/assets/css/dataTables.bootstrap4.css" rel="stylesheet" type="text/css" /> --}}
+    {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> --}}
 
 
 
@@ -56,7 +66,7 @@
     <style>
         body {
             /* direction: {{ session()->get('locale') == 'ar' ? 'rtl' : 'ltr' }}; */
-            text-align: session()->get('locale')=='ar' ? 'right': 'left';
+            /* text-align: session()->get('locale')=='ar' ? 'right': 'left'; */
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
             font-style: normal;
@@ -64,20 +74,20 @@
 
 
 
-        .app-sidebar-wrapper {
+        /* .app-sidebar-wrapper {
             direction: session()->get('locale')=='ar' ? 'rtl': 'ltr';
             text-align: session()->get('locale')=='ar' ? 'right': 'left';
 
-        }
+        } */
 
 
         .select2-container .select2-selection--single {
             height: auto;
         }
 
-        .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
+        /* .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
             padding-right: 18px;
-        }
+        } */
     </style>
 </head>
 <!--end::Head-->
@@ -838,7 +848,7 @@
                     <!--begin::Menu-->
                     <div class="me-0">
                         <button class="btn btn-sm btn-icon btn-active-color-primary" data-kt-menu-trigger="click"
-                            data-kt-menu-placement="bottom-end">
+                            data-kt-menu-placement="{{ $menu_placement_y }}">
                             <i class="ki-outline ki-dots-square fs-2"></i>
                         </button>
                         <!--begin::Menu 3-->
@@ -867,7 +877,7 @@
                             <!--end::Menu item-->
                             <!--begin::Menu item-->
                             <div class="menu-item px-3" data-kt-menu-trigger="hover"
-                                data-kt-menu-placement="right-start">
+                                data-kt-menu-placement="{{ $menu_placement_x }}">
                                 <a href="#" class="menu-link px-3">
                                     <span class="menu-title">Groups</span>
                                     <span class="menu-arrow"></span>
@@ -4100,10 +4110,10 @@
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
         };
-        if("{{ session('success') }}"){
+        if ("{{ session('success') }}") {
             toastr.success("{{ session('success') }}");
         }
-        if("{{ session('error') }}"){
+        if ("{{ session('error') }}") {
             toastr.error("{{ session('error') }}");
         }
     </script>

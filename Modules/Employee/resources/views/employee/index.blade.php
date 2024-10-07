@@ -1,14 +1,28 @@
 @extends('employee::layouts.master')
 
 @section('title', __('menuItemLang.employees'))
-
 @section('content')
+    @php
+        $local = session()->get('locale');
+        $dir = $local == 'ar' ? 'rtl' : 'ltr';
+        $rtl_files = $local == 'ar' ? '.rtl' : '';
+        $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
+        $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
+    @endphp
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::employees.table-header />
+            <x-employee::tables.table-header model="employee" :menu_placement_y=$menu_placement_y>
+                <x-slot:filters>
+                    <x-employee::tables.filters-dropdown :menu_placement_y=$menu_placement_y />
+                </x-slot:filters>
+                <x-slot:export>
+                    <x-employee::tables.export-menu id="employee" />
+                </x-slot:export>
+            </x-employee::tables.table-header>
         </x-employee::card-header>
+
         <x-employee::card-body class="table-responsive">
-            <x-employee::employees.table />
+            <x-employee::tables.table :columns=$columns model="employee" />
         </x-employee::card-body>
     </div>
 @endsection
@@ -21,7 +35,6 @@
         let dataTable;
         const table = $('#kt_employee_table');
         const dataUrl = '{{ route('employees.index') }}';
-
         pdfMake.fonts = {
             Arial: {
                 normal: 'ARIAL.TTF',
@@ -80,15 +93,14 @@
                 columns: [{
                         data: 'id',
                         name: 'id',
-                        className: 'text-start'
                     },
                     {
-                        data: 'firstName',
-                        name: 'firstName'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
-                        data: 'lastName',
-                        name: 'lastName'
+                        data: 'name_en',
+                        name: 'name_en'
                     },
                     {
                         data: 'phoneNumber',

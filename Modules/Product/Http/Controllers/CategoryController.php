@@ -4,8 +4,8 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Product\Models\TreeCategoryBuilder;
 use Modules\Product\Models\Category;
-use Modules\Product\Models\Subcategory;
 
 class CategoryController extends Controller
 {
@@ -14,31 +14,16 @@ class CategoryController extends Controller
      */
     public function index()
     {
-      return view('product::category.index' ); 
+        return view('product::category.index' ); 
     }
+    
 
     public function getCategories()
     {
-       $categories = Category::all(); // or use query with pagination if needed
-       return response()->json([
-        'data' => $categories
-    ]);
+        $TreeCategoryBuilder = new TreeCategoryBuilder();
+        $tree = $TreeCategoryBuilder->buildCategoryTree();
+        return response()->json($tree);
     }
-
-    
-    public function getsubCategories($id)
-    {
-        // Find the category by its ID
-        $category = Category::findOrFail($id);
-
-        // Get all subcategories for this category
-        $subcategories = $category->subcategories;
-
-        return response()->json([
-            'data' => $subcategories
-        ]);
-    }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -52,9 +37,58 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $validated = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string',
+            'order' => 'required|numeric',
+            'active' => 'nullable|boolean',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string'
+        ]);
+  
+        if(isset($validated['method']) && ($validated['method'] =="delete"))
+        {
+            $category = Category::find($validated['id']); 
+            if(count($category->subcategories)==0)
+            {
+               $category->delete();
+               return response()->json(["message"=>"Done"]);
+            }
+            else
+            {
+                return response()->json(["message"=>"Please first delete subcategories of this category"]);
+            }
 
+        }
+
+        if(!isset($validated['id']))
+        {
+            $categories = Category::where('order', $validated['order'])->first();
+
+            if($categories == null)
+               $category = Category::create($validated);
+            else
+               return response()->json(["message"=>"The order is already exist!"]);
+            
+        }
+         else
+         {
+            $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
+            if($categories == null)
+            {
+                $category = Category::find($validated['id']);
+                $category->name_ar = $validated['name_ar'];
+                $category->name_en = $validated['name_en'];
+                $category->order = $validated['order'];
+                $category->active = $validated['active'];
+                $category->save();
+            }
+            else
+              return response()->json(["message"=>"The order is already exist!"]);
+         }
+
+        return response()->json(["message"=>"Done"]);
+    }
     /**
      * Show the specified resource.
      */

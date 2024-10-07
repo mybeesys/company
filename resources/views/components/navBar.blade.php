@@ -5,7 +5,7 @@
         <div id="kt_header_search" class="header-search d-flex align-items-center w-lg-350px"
             data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter"
             data-kt-search-layout="menu" data-kt-search-responsive="true" data-kt-menu-trigger="auto"
-            data-kt-menu-permanent="true" data-kt-menu-placement="bottom-start">
+            data-kt-menu-permanent="true" data-kt-menu-placement="{{ $menu_placement_y }}">
             <!--begin::Tablet and mobile search toggle-->
             <div data-kt-search-element="toggle" class="search-toggle-mobile d-flex d-lg-none align-items-center">
                 <div class="d-flex">
@@ -687,7 +687,7 @@
         <!--begin::Menu- wrapper-->
         <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
-            data-kt-menu-placement="bottom-end">
+            data-kt-menu-placement="{{ $menu_placement_y }}">
             <i class="ki-outline ki-calendar fs-1"></i>
         </div>
         <!--begin::Menu-->
@@ -1189,7 +1189,7 @@
         <!--begin::Menu wrapper-->
         <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
-            data-kt-menu-placement="bottom-end">
+            data-kt-menu-placement="{{ $menu_placement_y }}">
             <img src="/assets/media/avatars/blank.png" alt="user" />
         </div>
         <!--begin::User account menu-->
@@ -1234,7 +1234,7 @@
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
+                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
                 <a href="#" class="menu-link px-5">
                     <span class="menu-title">My Subscription</span>
                     <span class="menu-arrow"></span>
@@ -1292,7 +1292,7 @@
             <!--end::Menu separator-->
             <!--begin::Menu item-->
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
+                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
                 <a href="#" class="menu-link px-5">
                     <span class="menu-title position-relative">Mode
                         <span class="ms-5 position-absolute translate-middle-y top-50 end-0">
@@ -1339,7 +1339,7 @@
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
+                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
                 <a href="#" class="menu-link px-5">
                     <span class="menu-title position-relative">@lang('lang.Language')
                         <span

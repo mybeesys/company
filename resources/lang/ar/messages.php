@@ -17,6 +17,7 @@ return [
     'no_cost_centers' => 'لا يوجد مراكز تكلفة مضافة!',
     'settings' => 'إعدادات',
     'save'=>'حفظ',
+    'deactivate'=>'إلغاء تنشيط',
 
 
 
