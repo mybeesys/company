@@ -10,20 +10,20 @@ class Tables
     public static function getRoleColumns()
     {
         return [
-            ['class' => '', 'name' => 'name'],
-            ['class' => 'min-w-100px', 'name' => 'department'],
-            ['class' => 'min-w-250px', 'name' => 'rank'],
+            ["class" => "", "name" => "name"],
+            ["class" => "min-w-100px", "name" => "department"],
+            ["class" => "min-w-250px", "name" => "rank"],
         ];
     }
     public static function getEmployeeColumns()
     {
         return [
-            ['class' => 'min-w-200px', 'name' => 'name'],
-            ['class' => 'min-w-200px', 'name' => 'name_en'],
-            ['class' => 'text-start min-w-150px', 'name' => 'phone'],
-            ['class' => 'text-start min-w-150px text-nowrap', 'name' => 'employment_start_date'],
-            ['class' => 'text-start min-w-150px text-nowrap', 'name' => 'employment_end_date'],
-            ['class' => 'text-start min-w-100px', 'name' => 'status'],
+            ["class" => "text-start min-w-200px", "name" => "name"],
+            ["class" => "text-start min-w-200px", "name" => "name_en"],
+            ["class" => "text-start min-w-150px", "name" => "phone"],
+            ["class" => "text-start min-w-150px text-nowrap", "name" => "employment_start_date"],
+            ["class" => "text-start min-w-150px text-nowrap", "name" => "employment_end_date"],
+            ["class" => "text-start min-w-100px", "name" => "status"],
         ];
     }
 

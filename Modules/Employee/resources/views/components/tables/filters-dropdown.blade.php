@@ -1,6 +1,7 @@
+@props(['menu_placement_y'])
 <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
 
-    <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+    <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="{{ $menu_placement_y }}">
         <i class="ki-outline ki-filter fs-2"></i>@lang('employee::general.filters')
     </button>
 

@@ -19,6 +19,7 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
+        $local = session()->get('locale');
         if ($request->ajax()) {
             $employees = Employee::
                 select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
@@ -31,7 +32,7 @@ class EmployeeController extends Controller
             return Tables::getEmployeeTable($employees);
         }
         $columns = Tables::getEmployeeColumns();
-        return view('employee::employee.index', compact('columns'));
+        return view('employee::employee.index', compact('columns', 'local'));
     }
 
     function generatePin()

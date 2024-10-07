@@ -1,4 +1,4 @@
-@props(['model', 'filters' => null, 'export' => null, 'atag' => null])
+@props(['model', 'filters' => null, 'export' => null, 'atag' => null, 'local' => 'en'])
 <div class="card-title">
     <div class="d-flex align-items-center position-relative my-1">
         <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
