@@ -8,35 +8,15 @@ return [
         'subMenu' => []
     ],
     [
-        'name' => 'User_module',
-        'url' => 'dashboard',
-        'icon' => 'fas fa-user',
-        'permission' => '',
-        'subMenu' => [
-            [
-
-                'name' => 'users',
-                'url' => '/',
-                'permission' => '',
-            ],
-            [
-                'name' => 'roles',
-                'url' => '/',
-                'permission' => '',
-
-            ]
-        ]
-    ],
-    [
         'name' => 'Product_module',
-        'url' => 'category.index',
+        'url' => 'category',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
 
                 'name' => 'Products',
-                'url' => 'category.index',
+                'url' => 'category',
                 'permission' => '' ,
 
             ],
@@ -98,10 +78,25 @@ return [
         'permission' => '',
         'subMenu' => [
             [
+                'name' => 'employees-dashboard',
+                'url' => '/employees-dashboard',
+                'permission' => '',
+            ],
+            [
                 'name' => 'employees',
                 'url' => '/employee',
                 'permission' => '',
-            ]
+            ],
+            [
+                'name' => 'roles',
+                'url' => '/role',
+                'permission' => '',
+            ],
+            [
+                'name' => 'permissions',
+                'url' => '/permission',
+                'permission' => '',
+            ],
         ]
     ],
     [
