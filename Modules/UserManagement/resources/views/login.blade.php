@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<!--
-Author: Keenthemes
-Product Name: MetronicProduct Version: 8.2.7
-Purchase: https://1.envato.market/EA4JP
-Website: http://www.keenthemes.com
-Contact: support@keenthemes.com
-Follow: www.twitter.com/keenthemes
-Dribbble: www.dribbble.com/keenthemes
-Like: www.facebook.com/keenthemes
-License: For each use you must have a valid license purchased only from above link in order to legally use the theme for your project.
--->
-<html lang="en">
+@php
+    $local = session()->get('locale');
+    $dir = $local == 'ar' ? 'rtl' : 'ltr';
+    $rtl_files = $local == 'ar' ? '.rtl' : '';
+    $menu_placement_x = $local == 'ar' ? 'left-start' : 'right-start';
+    $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
+@endphp
+<html lang="{{ $local }}" direction="{{ $dir }}" dir="{{ $dir }}"
+    style="direction: {{ $dir }}">
 	<!--begin::Head-->
 	<head>
 <base href="../../../" />
@@ -30,8 +27,8 @@ License: For each use you must have a valid license purchased only from above li
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 		<!--end::Fonts-->
 		<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
-		<link href="assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-		<link href="assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+		<link href="assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
 		<script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
 	</head>

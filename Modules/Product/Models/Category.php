@@ -21,6 +21,7 @@ class Category extends Model
         'name_ar',
         'name_en',
         'parent_id',
+        'active',
         'order'
     ];
 

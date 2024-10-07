@@ -1,13 +1,14 @@
-@props(['class' => '', 'options', 'name', 'errors'])
+@props(['class' => '', 'options', 'name', 'errors', 'value' => null])
 
 <select {{ $attributes->merge(['class' => 'form-select form-select-solid fw-bold ' . $class]) }} data-kt-select2="true"
     data-placeholder="@lang('employee::general.select_option')" data-allow-clear="true" data-kt-filter="{{ $name }}"
-    data-hide-search="true">
-
+    name= "{{ $name }}" data-hide-search="true">
     <option></option>
-    @foreach ($options as $option)
-        <option value="{{ $option['value'] }}">{{ $option['name'] }}</option>
-    @endforeach
+    @if ($options)
+        @foreach ($options as $option)
+            <option value="{{ $option['id'] }}" @selected($option['id'] == $value)>{{ $option['name'] }}</option>
+        @endforeach
+    @endif
 </select>
 @if ($errors->first($name))
     <div class="invalid-feedback">{{ $errors->first($name) }}</div>

@@ -1,6 +1,7 @@
+@props(['menu_placement_y'])
 <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
 
-    <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+    <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="{{ $menu_placement_y }}">
         <i class="ki-outline ki-filter fs-2"></i>@lang('employee::general.filters')
     </button>
 
@@ -17,8 +18,8 @@
                 <label class="form-label fs-6 fw-semibold">@lang('employee::general.deleted_records')</label>
                 @php
                     $options = [
-                        ['value' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')],
-                        ['value' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
+                        ['id' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')],
+                        ['id' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
                     ];
                 @endphp
                 <x-employee::form.select :options=$options name="deleted_records" />

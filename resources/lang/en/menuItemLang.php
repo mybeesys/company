@@ -13,12 +13,13 @@ return [
     'roles' => 'Roles',
     'crm' => 'CRM',
     'reports_module' => 'Reports',
-    'products' => 'Product',
+    'Products' => 'Product',
     'inventory' => 'Inventory',
     'accounting_dashboard'=>'Accounting Dashboard',
     'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
     'employees-dashboard' => 'Employees dashboard',
+    'permissions' => 'Permissions',
 
 
 

@@ -13,11 +13,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-          // Access all records from the product_items table
-          $Product = Product::all();
-
-          // Return the items as a JSON response (or to a view)
-          return response()->json($Product);
+        return view('product::product.index' ); 
     }
 
     /**
@@ -33,15 +29,40 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'description' => 'nullable|string',
+        $validated = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string',
+            'category_id' => 'required|numeric',
+            'subcategory_id' => 'nullable|numeric',
+            'active' => 'nullable|boolean',
+            'SKU'=> 'required|string',
+            'barcode'=> 'required|string',
+            'cost'=> 'required|numeric',
+            'price'=> 'required|numeric',
+            'description_ar'=> 'nullable|string',
+            'description_en'=> 'nullable|string',
+            'class'=> 'required|string',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string',
+            'sold_by_weight' => 'nullable|boolean',
+            'track_serial_number' => 'nullable|boolean',
+            'image' =>'nullable|string',
+            'color' => 'nullable|string',
+            'commissions' => 'nullable|boolean'
         ]);
 
-        $item = Product::create($validatedData);
+        if(isset($validated['method']) && ($validated['method'] =="delete"))
+        {
+            $product = Product::find($validated['id']); 
+            $product->delete();
+            return response()->json(["message"=>"Done"]);
+        }
+       else
+       { 
+        $item = Product::create($validated);
+        return response()->json(["message"=>"Done"]);
+       }
 
-        return response()->json($item, 201);
     }
 
     /**
@@ -63,7 +84,8 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        return view('product::edit');
+         $product  = Product::find($id);
+         return view('product::product.edit', compact('product'));
     }
 
     /**
