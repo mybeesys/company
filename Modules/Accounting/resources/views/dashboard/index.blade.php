@@ -158,18 +158,17 @@
 
                     <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed  p-6">
 
-                        <!--begin::Wrapper-->
+                       
                         <div class="d-flex flex-stack flex-grow-1 ">
-                            <!--begin::Content-->
+
                             <div class=" fw-semibold">
 
                                 <div class="fs-6 text-gray-700 "><a class="fw-bold me-1">
                                         @ </a>@lang('accounting::lang.chart_nots')</div>
                             </div>
-                            <!--end::Content-->
 
                         </div>
-                        <!--end::Wrapper-->
+
                     </div>
 
                 </div>

@@ -78,6 +78,8 @@ return [
     'added_by' => 'تمت الإضافة بواسطة',
     'debit' => 'مدين',
     'credit' => 'دائن',
+    'debit_' => 'مدين ب',
+    'credit_' => 'دائن ب',
     'journal_entry' => 'قيد يومي',
     'transaction' => 'الحركة',
     'accounting_dashboard' => 'لوحة التحكم المحاسبية',
@@ -89,10 +91,30 @@ return [
     'note_active' => 'أنت على وشك تفعيل الحساب المالي. سيؤدي هذا الإجراء إلى تمكين المعاملات المالية المرتبطة بهذا الحساب. يرجى التأكد من أنك تريد المتابعة قبل الاستمرار',
     'journalEntry' => 'القيود اليومية',
     'add_journalEntry' => 'إضافة قيد يومي',
-    'journalEntry_date'=>'تاريخ القيد',
-    "Pick_journalEntry_date"=>'إختر تاريخ القيد',
-    'ref_number'=>'الرقم المرجعي',
-    'ref_number_note'=>' اتركه فارغًا للإنشاء تلقائيًا',
+    'journalEntry_date' => 'تاريخ القيد',
+    "Pick_journalEntry_date" => 'إختر تاريخ القيد',
+    'ref_number' => 'الرقم المرجعي',
+    'ref_number_note' => ' اتركه فارغًا للإنشاء تلقائيًا',
+    'additionalNotes' => 'ملاحظات إضافية',
+    'Adding Journal Entry Party' => 'إضافة طرف قيد',
+    'Journal Entry Party' => 'أطراف القيد',
+    'account' => 'الحساب',
+    'cost_center' => 'مركز التكلفة',
+    'Expected future receivables' => 'الأموال التي يتوقع استلامها في المستقبل',
+    'Liabilities that must be paid' => 'الديون التي يتوجب عليها دفعها',
+    'upload_attachment' => 'أنقر هنا لرفع مرفق',
+    'upload_file' => 'تحميل مرفق',
+    'Enable Cost Center' => 'تفعيل مراكز التكلفة',
+
+    'new_row' => 'إضافة سطر جديد',
+    'The journal entry is unbalanced with a difference of' => 'القيد غير متوازن بفارق قدره',
+    'The journal entry is unbalanced with a difference between debit and credit.' => 'القيد غير متوازن بفارق بين المدين والدائن',
+    'Error in the process' => 'خطأ في العملية',
+
+
+
+
+
 
 
 

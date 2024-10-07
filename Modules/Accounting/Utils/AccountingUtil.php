@@ -5,6 +5,7 @@ namespace Modules\Accounting\Utils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 
 class AccountingUtil
@@ -373,5 +374,29 @@ class AccountingUtil
             'Prepaid expenses' => __('accounting::lang.Prepaid expenses'),
 
         ];
+    }
+
+
+    public static function generateReferenceNumber($type)
+    {
+
+        $AAT = AccountingAccountsTransaction::where('sub_type', $type)->latest()->first()->accTransMapping;
+        if ($AAT) {
+            $last_ref_no = $AAT->ref_no;
+
+            $currentYear = date('Y');
+
+            list($year, $number) = explode('/', $last_ref_no);
+
+            if ($year == $currentYear) {
+                $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+                $new_ref_no = $currentYear . '/' . $newNumber;
+            } else {
+                $new_ref_no = $currentYear . '/0001';
+            }
+
+            return $new_ref_no;
+        }
+        return false;
     }
 }

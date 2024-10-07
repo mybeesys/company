@@ -29,10 +29,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                background: #beebff2e !important;
-                                                                                                                                                                                border-radius: 13px !important;
-                                                                                                                                                                                box-shadow: none !important;
-                                                                                                                                                                            } */
+                                                                                                                                                                                        background: #beebff2e !important;
+                                                                                                                                                                                        border-radius: 13px !important;
+                                                                                                                                                                                        box-shadow: none !important;
+                                                                                                                                                                                    } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -120,8 +120,8 @@
                 'account_category' => $account_category,
             ])
 
-@include('accounting::treeOfAccounts.deactive')
-@include('accounting::treeOfAccounts.active')
+            @include('accounting::treeOfAccounts.deactive')
+            @include('accounting::treeOfAccounts.active')
 
 
         </div>

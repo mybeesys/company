@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Accounting\Database\Factories\AccountingAccountFactory;
 
-class AccountingAccount extends Model 
+class AccountingAccount extends Model
 {
     use HasFactory;
 
@@ -39,5 +39,15 @@ class AccountingAccount extends Model
     public function detail_type()
     {
         return $this->belongsTo(AccountingAccountTypes::class, 'detail_type_id');
+    }
+
+
+    public static function forDropdown()
+    {
+        $parent_account_ids = AccountingAccount::where('parent_account_id', '<>', null)->get()->pluck('parent_account_id');
+        $query = AccountingAccount::
+        // where('accounting_accounts.parent_account_id', '<>', null)
+        where('status','active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
+        return $query->get();
     }
 }
