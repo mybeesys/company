@@ -9,6 +9,7 @@
 @endphp
 <html lang="{{ $local }}" direction="{{ $dir }}" dir="{{ $dir }}"
     style="direction: {{ $dir }}">
+
 <!--begin::Head-->
 
 
