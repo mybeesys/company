@@ -19,9 +19,10 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
+        $local = session()->get('locale');
         if ($request->ajax()) {
             $employees = Employee::
-                select('id', 'firstName', 'lastName', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
+                select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
@@ -31,7 +32,7 @@ class EmployeeController extends Controller
             return Tables::getEmployeeTable($employees);
         }
         $columns = Tables::getEmployeeColumns();
-        return view('employee::employee.index', compact('columns'));
+        return view('employee::employee.index', compact('columns', 'local'));
     }
 
     function generatePin()
@@ -88,7 +89,7 @@ class EmployeeController extends Controller
             $role = Role::findById($request->role);
             $employee->assignRole($role);
         }
-        
+
         DB::commit();
         if ($employee) {
             return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));

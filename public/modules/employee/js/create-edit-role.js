@@ -1,4 +1,4 @@
-function form(id, validationUrl) {
+function roleForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
 

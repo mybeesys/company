@@ -51,7 +51,7 @@
 
         $(document).ready(function() {
             if (!table.length) return;
-            form('add_role_form', "{{ route('roles.create.validation') }}");
+            roleForm('add_role_form', "{{ route('roles.create.validation') }}");
             initDatatable();
             exportButtons();
             handleSearchDatatable();

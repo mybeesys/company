@@ -86,4 +86,5 @@ return [
     'show' => 'Show',
     'department' => 'Department',
     'rank' => 'Rank',
+    'name_en' => 'Name in english'
 ];
