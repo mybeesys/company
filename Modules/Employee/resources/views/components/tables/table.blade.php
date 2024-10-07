@@ -6,7 +6,7 @@
             @foreach ($columns as $column)
                 <th class="{{ $column['class'] }}">@lang("employee::fields.{$column['name']}")</th>
             @endforeach
-            <th>@lang('employee::fields.actions')</th>
+            <th class="text-center">@lang('employee::fields.actions')</th>
         </tr>
     </thead>
     <tbody class="fw-semibold text-gray-600">

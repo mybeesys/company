@@ -2,18 +2,12 @@
 
 @section('title', __('menuItemLang.employees'))
 @section('content')
-    @php
-        $local = session()->get('locale');
-        $dir = $local == 'ar' ? 'rtl' : 'ltr';
-        $rtl_files = $local == 'ar' ? '.rtl' : '';
-        $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
-        $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
-    @endphp
+
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="employee" :menu_placement_y=$menu_placement_y>
+            <x-employee::tables.table-header model="employee">
                 <x-slot:filters>
-                    <x-employee::tables.filters-dropdown :menu_placement_y=$menu_placement_y />
+                    <x-employee::tables.filters-dropdown />
                 </x-slot:filters>
                 <x-slot:export>
                     <x-employee::tables.export-menu id="employee" />
@@ -90,6 +84,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: dataUrl,
+                info: false,
                 columns: [{
                         data: 'id',
                         name: 'id',

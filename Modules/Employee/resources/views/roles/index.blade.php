@@ -85,6 +85,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: dataUrl,
+                info: false,
                 columns: [{
                         data: 'id',
                         name: 'id',
