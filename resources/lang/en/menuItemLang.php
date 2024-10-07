@@ -18,6 +18,7 @@ return [
     'accounting_dashboard'=>'Accounting Dashboard',
     'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
+    'employees-dashboard' => 'Employees dashboard',
 
 
 

@@ -16,13 +16,9 @@ class TenantDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
             $this->call([
                 UserManagementDatabaseSeeder::class,
                 EmployeeDatabaseSeeder::class,
-        
             ]);
-
-
     }
 }

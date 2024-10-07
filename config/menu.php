@@ -98,10 +98,15 @@ return [
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'employees',
-                'url' => '/employee',
+                'name' => 'employees-dashboard',
+                'url' => '/employees-dashboard',
                 'permission' => '',
-            ]
+            ],
+            [
+                'name' => 'employees',
+                'url' => '/employees',
+                'permission' => '',
+            ],
         ]
     ],
     [

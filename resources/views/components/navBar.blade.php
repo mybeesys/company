@@ -58,7 +58,7 @@
                             <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
-                                    <img src="assets/media/avatars/300-6.jpg" alt="" />
+                                    <img src="/assets/media/avatars/300-6.jpg" alt="" />
                                 </div>
                                 <!--end::Symbol-->
                                 <!--begin::Title-->
@@ -74,7 +74,7 @@
                             <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
-                                    <img src="assets/media/avatars/300-2.jpg" alt="" />
+                                    <img src="/assets/media/avatars/300-2.jpg" alt="" />
                                 </div>
                                 <!--end::Symbol-->
                                 <!--begin::Title-->
@@ -90,7 +90,7 @@
                             <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
-                                    <img src="assets/media/avatars/300-9.jpg" alt="" />
+                                    <img src="/assets/media/avatars/300-9.jpg" alt="" />
                                 </div>
                                 <!--end::Symbol-->
                                 <!--begin::Title-->
@@ -105,7 +105,7 @@
                             <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
-                                    <img src="assets/media/avatars/300-14.jpg" alt="" />
+                                    <img src="/assets/media/avatars/300-14.jpg" alt="" />
                                 </div>
                                 <!--end::Symbol-->
                                 <!--begin::Title-->
@@ -120,7 +120,7 @@
                             <a href="#" class="d-flex text-gray-900 text-hover-primary align-items-center mb-5">
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
-                                    <img src="assets/media/avatars/300-11.jpg" alt="" />
+                                    <img src="/assets/media/avatars/300-11.jpg" alt="" />
                                 </div>
                                 <!--end::Symbol-->
                                 <!--begin::Title-->
@@ -141,7 +141,7 @@
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
                                     <span class="symbol-label bg-light">
-                                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/volicity-9.svg"
+                                        <img class="w-20px h-20px" src="/assets/media/svg/brand-logos/volicity-9.svg"
                                             alt="" />
                                     </span>
                                 </div>
@@ -159,7 +159,7 @@
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
                                     <span class="symbol-label bg-light">
-                                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/tvit.svg"
+                                        <img class="w-20px h-20px" src="/assets/media/svg/brand-logos/tvit.svg"
                                             alt="" />
                                     </span>
                                 </div>
@@ -178,7 +178,7 @@
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
                                     <span class="symbol-label bg-light">
-                                        <img class="w-20px h-20px" src="assets/media/svg/misc/infography.svg"
+                                        <img class="w-20px h-20px" src="/assets/media/svg/misc/infography.svg"
                                             alt="" />
                                     </span>
                                 </div>
@@ -196,7 +196,7 @@
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
                                     <span class="symbol-label bg-light">
-                                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/leaf.svg"
+                                        <img class="w-20px h-20px" src="/assets/media/svg/brand-logos/leaf.svg"
                                             alt="" />
                                     </span>
                                 </div>
@@ -214,7 +214,7 @@
                                 <!--begin::Symbol-->
                                 <div class="symbol symbol-40px me-4">
                                     <span class="symbol-label bg-light">
-                                        <img class="w-20px h-20px" src="assets/media/svg/brand-logos/tower.svg"
+                                        <img class="w-20px h-20px" src="/assets/media/svg/brand-logos/tower.svg"
                                             alt="" />
                                     </span>
                                 </div>
@@ -610,7 +610,7 @@
                     <div class="d-flex justify-content-end">
                         <button type="reset" class="btn btn-sm btn-light fw-bold btn-active-light-primary me-2"
                             data-kt-search-element="advanced-options-form-cancel">Cancel</button>
-                        <a href="utilities/search/horizontal.html" class="btn btn-sm fw-bold btn-primary"
+                        <a href="/utilities/search/horizontal.html" class="btn btn-sm fw-bold btn-primary"
                             data-kt-search-element="advanced-options-form-search">Search</a>
                     </div>
                     <!--end::Actions-->
@@ -695,7 +695,7 @@
             id="kt_menu_notifications">
             <!--begin::Heading-->
             <div class="d-flex flex-column bgi-no-repeat rounded-top"
-                style="background-image:url('assets/media/misc/menu-header-bg.jpg')">
+                style="background-image:url('/assets/media/misc/menu-header-bg.jpg')">
                 <!--begin::Title-->
                 <h3 class="text-white fw-semibold px-9 mt-10 mb-6">Notifications
                     <span class="fs-8 opacity-75 ps-3">24 reports</span>
@@ -907,7 +907,7 @@
                     <!--end::Items-->
                     <!--begin::View more-->
                     <div class="py-3 text-center border-top">
-                        <a href="pages/user-profile/activity.html"
+                        <a href="/pages/user-profile/activity.html"
                             class="btn btn-color-gray-600 btn-active-color-primary">View All
                             <i class="ki-outline ki-arrow-right fs-5"></i></a>
                     </div>
@@ -938,7 +938,7 @@
                         <!--begin::Illustration-->
                         <div class="text-center px-4">
                             <img class="mw-100 mh-200px" alt="image"
-                                src="assets/media/illustrations/sketchy-1/1.png" />
+                                src="/assets/media/illustrations/sketchy-1/1.png" />
                         </div>
                         <!--end::Illustration-->
                     </div>
@@ -1169,7 +1169,7 @@
                     <!--end::Items-->
                     <!--begin::View more-->
                     <div class="py-3 text-center border-top">
-                        <a href="pages/user-profile/activity.html"
+                        <a href="/pages/user-profile/activity.html"
                             class="btn btn-color-gray-600 btn-active-color-primary">View All
                             <i class="ki-outline ki-arrow-right fs-5"></i></a>
                     </div>
@@ -1190,7 +1190,7 @@
         <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="bottom-end">
-            <img src="assets/media/avatars/blank.png" alt="user" />
+            <img src="/assets/media/avatars/blank.png" alt="user" />
         </div>
         <!--begin::User account menu-->
         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px"
@@ -1200,7 +1200,7 @@
                 <div class="menu-content d-flex align-items-center px-3">
                     <!--begin::Avatar-->
                     <div class="symbol symbol-50px me-5">
-                        <img alt="Logo" src="assets/media/avatars/300-2.jpg" />
+                        <img alt="Logo" src="/assets/media/avatars/300-2.jpg" />
                     </div>
                     <!--end::Avatar-->
                     <!--begin::Username-->
@@ -1219,12 +1219,12 @@
             <!--end::Menu separator-->
             <!--begin::Menu item-->
             <div class="menu-item px-5">
-                <a href="account/overview.html" class="menu-link px-5">My Profile</a>
+                <a href="/account/overview.html" class="menu-link px-5">My Profile</a>
             </div>
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5">
-                <a href="apps/projects/list.html" class="menu-link px-5">
+                <a href="/apps/projects/list.html" class="menu-link px-5">
                     <span class="menu-text">My Projects</span>
                     <span class="menu-badge">
                         <span class="badge badge-light-danger badge-circle fw-bold fs-7">3</span>
@@ -1243,22 +1243,22 @@
                 <div class="menu-sub menu-sub-dropdown w-175px py-4">
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
-                        <a href="account/referrals.html" class="menu-link px-5">Referrals</a>
+                        <a href="/account/referrals.html" class="menu-link px-5">Referrals</a>
                     </div>
                     <!--end::Menu item-->
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
-                        <a href="account/billing.html" class="menu-link px-5">Billing</a>
+                        <a href="/account/billing.html" class="menu-link px-5">Billing</a>
                     </div>
                     <!--end::Menu item-->
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
-                        <a href="account/statements.html" class="menu-link px-5">Payments</a>
+                        <a href="/account/statements.html" class="menu-link px-5">Payments</a>
                     </div>
                     <!--end::Menu item-->
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
-                        <a href="account/statements.html" class="menu-link d-flex flex-stack px-5">Statements
+                        <a href="/account/statements.html" class="menu-link d-flex flex-stack px-5">Statements
                             <span class="ms-2 lh-0" data-bs-toggle="tooltip" title="View your statements">
                                 <i class="ki-outline ki-information-5 fs-5"></i>
                             </span></a>
@@ -1284,7 +1284,7 @@
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5">
-                <a href="account/statements.html" class="menu-link px-5">My Statements</a>
+                <a href="/account/statements.html" class="menu-link px-5">My Statements</a>
             </div>
             <!--end::Menu item-->
             <!--begin::Menu separator-->
@@ -1347,7 +1347,7 @@
                             {{ session()->get('locale') == 'ar' ? 'العربية' : 'English' }}
 
                             <img class="w-15px h-15px rounded-1 ms-2"
-                                src="assets/media/flags/{{ session()->get('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
+                                src="/assets/media/flags/{{ session()->get('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
                                 alt="" />
                         </span>
                     </span>
@@ -1359,7 +1359,7 @@
                         <a href="{{ route('set_locale', ['locale' => 'en']) }}"
                             class="menu-link d-flex px-5 {{ session()->get('locale') == 'en' ? 'active' : '' }}">
                             <span class="symbol symbol-20px me-4">
-                                <img class="rounded-1" src="assets/media/flags/united-states.svg" alt="" />
+                                <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
                             </span>English</a>
                     </div>
                     <!--end::Menu item-->
@@ -1368,7 +1368,7 @@
                         <a href="{{ route('set_locale', ['locale' => 'ar']) }}"
                             class="menu-link d-flex px-5 {{ session()->get('locale') == 'ar' ? 'active' : '' }}">
                             <span class="symbol symbol-20px me-4">
-                                <img class="rounded-1" src="assets/media/flags/saudi-arabia.svg" alt="" />
+                                <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
                             </span>العربية</a>
                     </div>
                     <!--end::Menu item-->
@@ -1379,12 +1379,12 @@
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5 my-1">
-                <a href="account/settings.html" class="menu-link px-5">Account Settings</a>
+                <a href="/account/settings.html" class="menu-link px-5">Account Settings</a>
             </div>
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5">
-                <a href="authentication/layouts/corporate/sign-in.html" class="menu-link px-5">Sign Out</a>
+                <a href="/authentication/layouts/corporate/sign-in.html" class="menu-link px-5">Sign Out</a>
             </div>
             <!--end::Menu item-->
         </div>
@@ -1395,7 +1395,7 @@
     <!--begin::Action-->
     <div class="app-navbar-item ms-2 ms-lg-6 me-lg-6">
         <!--begin::Link-->
-        <a href="authentication/layouts/corporate/sign-in.html"
+        <a href="/authentication/layouts/corporate/sign-in.html"
             class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px">
             <i class="ki-outline ki-exit-right fs-1"></i>
         </a>
