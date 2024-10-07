@@ -13,7 +13,9 @@
 <div class="image-input image-input-empty image-input-outline mb-3 mx-auto text-center" data-kt-image-input="true"
     style="max-width: 180px; position: relative;">
     <div class="image-input-wrapper w-150px h-150px mx-auto"
-        style="background-image: url('{{ $image ? url(Storage::url('tenant' . tenancy()->tenant->id . '/' . $image)) : '/assets/media/svg/files/blank-image.svg' }}');">
+        style="background-image: url('{{ $image
+            ? asset('storage/tenant' . tenancy()->tenant->id . '/' . $image)
+            : '/assets/media/svg/files/blank-image.svg' }}');">
     </div>
 
     <!-- File Input -->
