@@ -22,17 +22,17 @@
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     <h1>
-                        @if (app()->getLocale() == 'en')
+                        {{-- @if (app()->getLocale() == 'en') --}}
                             @lang('accounting::lang.ledger') - {{ $account->name_en }}
-                        @endif
+                        {{-- @endif --}}
                     </h1>
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
                 <h1>
-                    @if (app()->getLocale() == 'ar')
-                        @lang('accounting::lang.ledger') - {{ $account->name_ar }}
-                    @endif
+                    {{-- @if (app()->getLocale() == 'ar') --}}
+                        {{-- @lang('accounting::lang.ledger') - {{ $account->name_ar }} --}}
+                    {{-- @endif --}}
                 </h1>
             </div>
         </div>

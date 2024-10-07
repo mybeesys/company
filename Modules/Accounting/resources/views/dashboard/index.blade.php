@@ -15,18 +15,19 @@
 @section('content')
 
     <div class="container">
-        <div class="row" @if (app()->getLocale() == 'en') dir="rtl" @endif>
+        <div class="row" >
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     {{-- <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
                         data-bs-target="#kt_modal_create_campaign">
                         @lang('accounting::lang.import_tree_of_accounts')
                     </a> --}}
+                <h1> @lang('accounting::lang.accounting_dashboard')</h1>
+
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
 
-                <h1> @lang('accounting::lang.accounting_dashboard')</h1>
 
             </div>
         </div>
@@ -114,7 +115,7 @@
 
                     <div class="d-flex flex-wrap">
 
-                        <div class="position-relative d-flex flex-center h-175px w-175px me-15 mb-7">
+                        <div class="position-relative d-flex flex-center h-175px w-175px me-15 mb-7" style="margin-left: 0.7rem !important;">
                             <div class="position-absolute translate-middle start-50 top-50 d-flex flex-column flex-center">
                                 <span class="fs-2qx fw-bold">{{ $total_blance }}</span>
                                 <span class="fs-6 fw-semibold text-gray-500">@lang('messages.total')</span>
@@ -126,7 +127,7 @@
                         <!--end::Chart-->
 
                         <!--begin::Labels-->
-                        <div class="d-flex flex-column justify-content-center flex-row-fluid pe-11 mb-5" dir="ltr">
+                        <div class="d-flex flex-column justify-content-center flex-row-fluid pe-11 mb-5" >
 
                             @foreach ($account_types as $k => $v)
                                 @php
@@ -158,18 +159,17 @@
 
                     <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed  p-6">
 
-                        <!--begin::Wrapper-->
+
                         <div class="d-flex flex-stack flex-grow-1 ">
-                            <!--begin::Content-->
+
                             <div class=" fw-semibold">
 
                                 <div class="fs-6 text-gray-700 "><a class="fw-bold me-1">
                                         @ </a>@lang('accounting::lang.chart_nots')</div>
                             </div>
-                            <!--end::Content-->
 
                         </div>
-                        <!--end::Wrapper-->
+
                     </div>
 
                 </div>

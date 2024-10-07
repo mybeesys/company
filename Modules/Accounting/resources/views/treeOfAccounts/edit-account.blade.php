@@ -41,8 +41,8 @@
                         <label class="fs-6 fw-semibold form-label mt-3">
                             <span class="required">@lang('accounting::lang.account_type')</span>
                         </label>
-                        <select id="kt_ecommerce_select2_account_type" required
-                            class="form-select select-2 form-select-solid " name="account_type">
+                        <select id="kt_ecommerce_select2_account_type data-kt-menu-placement" required
+                            class="form-select select-2 form-select-solid select-2" name="account_type">
                             <option value="" >@lang('messages.select') </option>
                             @foreach ($account_main_types as $key => $vale)
                                 <option @if ('normal' === $key) selected @endif value="{{ $key }}">
@@ -55,8 +55,8 @@
                         <label class="fs-6 fw-semibold form-label mt-3">
                             <span class="required">@lang('accounting::lang.account_category')</span>
                         </label>
-                        <select id="kt_ecommerce_select2_account_category" required
-                            class="form-select select-2 form-select-solid " name="account_category">
+                        <select id="kt_ecommerce_select2_account_category data-kt-menu-placement" required
+                            class="form-select select-2 form-select-solid select-2" name="account_category">
                             <option value="" >@lang('messages.select')</option>
                             @foreach ($account_category as $key => $vale)
                                 <option @if (Session::get('account_category') == $key) selected @endif value="{{ $key }}">
