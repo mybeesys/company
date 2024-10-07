@@ -5,6 +5,7 @@
     <style>
         .dropend .dropdown-toggle::after {
             border-left: 0;
+            border-right: 0;
         }
     </style>
 
@@ -13,14 +14,14 @@
 @section('content')
 
     <div class="container">
-        <div class="row" @if (app()->getLocale() == 'en') dir="rtl" @endif>
+        <div class="row">
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
+                    <h1> @lang('accounting::lang.add_journalEntry')</h1>
 
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-                <h1> @lang('accounting::lang.add_journalEntry')</h1>
             </div>
         </div>
     </div>
@@ -38,8 +39,8 @@
                     <label class="fs-6 fw-semibold mb-2 required">@lang('accounting::lang.journalEntry_date')</label>
 
                     <input class="form-control form-control-solid required flatpickr-input" name="journalEntry_date"
-                        required value="{{now()}}" placeholder="@lang('accounting::lang.Pick_journalEntry_date')" id="kt_calendar_datepicker_start_date" type="text"
-                        data-gtm-form-interact-field-id="1">
+                        required value="{{ now() }}" placeholder="@lang('accounting::lang.Pick_journalEntry_date')"
+                        id="kt_calendar_datepicker_start_date" type="text" data-gtm-form-interact-field-id="1">
 
                     <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                 </div>
@@ -87,7 +88,7 @@
                                 <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
                             </li>
                             <li>
-                                <div class="form-check form-switch my-3" dir="ltr"
+                                <div class="form-check form-switch my-3"
                                     style="    display: flex; justify-content: space-between; gap: 37px;">
                                     <input class="form-check-input" type="checkbox" id="toggleCostCenter">
                                     <label class="form-check-label ml-4" for="toggleCostCenter">@lang('accounting::lang.Enable Cost Center')</label>

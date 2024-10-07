@@ -29,10 +29,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                        background: #beebff2e !important;
-                                                                                                                                                                                        border-radius: 13px !important;
-                                                                                                                                                                                        box-shadow: none !important;
-                                                                                                                                                                                    } */
+                                                                                                                                                                                            background: #beebff2e !important;
+                                                                                                                                                                                            border-radius: 13px !important;
+                                                                                                                                                                                            box-shadow: none !important;
+                                                                                                                                                                                        } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -70,14 +70,15 @@
         <div class="row">
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
-                    <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
-                        data-bs-target="#kt_modal_create_campaign">
-                        @lang('accounting::lang.import_tree_of_accounts')
-                    </a>
+                    <h1> @lang('accounting::lang.tree_of_accounts')</h1>
+
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-                <h1> @lang('accounting::lang.tree_of_accounts')</h1>
+                <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
+                    data-bs-target="#kt_modal_create_campaign">
+                    @lang('accounting::lang.import_tree_of_accounts')
+                </a>
             </div>
         </div>
     </div>
