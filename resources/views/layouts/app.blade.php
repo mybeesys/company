@@ -5,7 +5,7 @@
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
     $rtl_files = $local == 'ar' ? '.rtl' : '';
     $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
-    $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
+    $menu_placement_y = $local == 'ar' ? 'bottom-start' : 'bottom-end';
 @endphp
 <html lang="{{ $local }}" direction="{{ $dir }}" dir="{{ $dir }}"
     style="direction: {{ $dir }}">

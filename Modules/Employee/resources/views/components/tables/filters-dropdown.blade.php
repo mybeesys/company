@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
     <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click"
-        data-kt-menu-placement="{{ session()->get('locale') == 'ar' ? 'bottom-end' : 'bottom-start' }}">
+        data-kt-menu-placement="{{ session()->get('locale') == 'ar' ? 'bottom-start' : 'bottom-end' }}">
         <i class="ki-outline ki-filter fs-2"></i>@lang('employee::general.filters')
     </button>
 
