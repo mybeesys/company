@@ -7,7 +7,7 @@
         $dir = $local == 'ar' ? 'rtl' : 'ltr';
         $rtl_files = $local == 'ar' ? '.rtl' : '';
         $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
-        $menu_placement_y = $local == 'ar' ? 'bottom-start' : 'bottom-end';
+        $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
     @endphp
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
