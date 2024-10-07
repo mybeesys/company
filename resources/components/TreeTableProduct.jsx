@@ -6,11 +6,10 @@ import AddModal from './AddModal';
 import DeleteModal from './DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
-import '@/assets/css/style.bundle.css';
-import './style.scss'; 
+
         
 
-const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl }) => {
+const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , translations }) => {
     const [nodes, setNodes] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -309,13 +308,13 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl })
 
         <div class="card-header border-0 pt-5">
             <h3 class="card-title align-items-start flex-column">
-                <span class="card-label fw-bold fs-3 mb-1">Category List</span>
-                <span class="text-muted mt-1 fw-semibold fs-7">Product List</span>
+                <span class="card-label fw-bold fs-3 mb-1">{translations.CategoryList}</span>
+                <span class="text-muted mt-1 fw-semibold fs-7">{translations.ProductList}</span>
             </h3>
             <div class="card-toolbar">
             <div class="d-flex align-items-center gap-2 gap-lg-3">
         <a href="#" class="btn btn-primary" 
-         onClick={() => openAddCategory()}>Add</a>
+         onClick={() => openAddCategory()}>{translations.Add}</a>
         <AddModal
                 visible={isModalVisible}
                 onHide={() => setIsModalVisible(false)}
@@ -334,19 +333,17 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl })
                 url={url}
                 row={currentNode}
             />
-
-
         </div>
         </div>
         </div>
         <div class="card-body">
             <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
-                <Column header="En Name" body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
-                <Column header="Ar Name" body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
-                <Column field="price" header="Price" sortable></Column>
-                <Column field="cost" header="Cost" sortable></Column>
-                <Column header="Order" body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
-                <Column header="Active" body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
+                <Column header={translations.name_en} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
+                <Column header={translations.name_ar} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
+                <Column field={translations.price} header="Price" sortable></Column>
+                <Column field={translations.cost}  header="Cost" sortable></Column>
+                <Column header={translations.order}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
+                <Column header={translations.active}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
                 <Column body={(node) => (actionTemplate(node))} />
             </TreeTable>
         </div>

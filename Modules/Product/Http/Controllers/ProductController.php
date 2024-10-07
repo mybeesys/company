@@ -11,6 +11,12 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+     public function localization()
+     {
+         return response()->json(__('product::messages'));
+     }
+
     public function index()
     {
         return view('product::product.index' ); 
@@ -46,9 +52,9 @@ class ProductController extends Controller
             'method' => 'nullable|string',
             'sold_by_weight' => 'nullable|boolean',
             'track_serial_number' => 'nullable|boolean',
-            'image' =>'nullable|string',
+            'image' =>'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'color' => 'nullable|string',
-            'commissions' => 'nullable|boolean'
+            'commissions' => 'nullable|boolean',
         ]);
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
@@ -59,7 +65,27 @@ class ProductController extends Controller
         }
        else
        { 
+
         $item = Product::create($validated);
+
+        $tenant = auth()->user()->tenant; 
+        $tenantId = $tenant->id;
+        if ($request->hasFile('image')) {
+            // Get the uploaded file
+            $file = $request->file('image');
+    
+            // Define the path based on the tenant's ID
+            $filePath = 'tenants/' . $tenantId . '/product/images';
+    
+            // Store the file
+            $fileExtension = $file->getClientOriginalExtension();
+            $file->storeAs($filePath, $item->id . '.' . $fileExtension , 'public'); // Store in public disk
+    
+            // Optionally save the file path to the database
+            $item->image_path = $filePath . '/' . $item->id . '.' . $fileExtension ;
+            $item->save();
+        }    
+      
         return response()->json(["message"=>"Done"]);
        }
 

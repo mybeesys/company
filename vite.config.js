@@ -7,13 +7,14 @@ export default defineConfig({
     plugins: [
         react(),
         laravel({
-            input: "resources/js/app.jsx",
-            buildDirectory:'public/tenancy/assets/build',
+            input: ["resources/components/App.jsx"] ,
+            buildDirectory:'tenancy/assets/build',
             refresh: true,
         }),
     ],
     build: {
         outDir: path.resolve(__dirname, 'public/tenancy/assets/build'), // Output to a folder named after the tenant
+        target: 'esnext' //browsers can handle the latest ES features
       },
     resolve: {
         alias: {

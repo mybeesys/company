@@ -27,5 +27,6 @@ Route::middleware([
     Route::resource('category', CategoryController::class)->names('category');
     Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
     Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
+    Route::get('localization', [ProductController::class, 'localization'])->name('localization');
     Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
 });
