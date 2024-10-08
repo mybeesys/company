@@ -10,6 +10,15 @@ body {
   font-family: "Cairo";
 }
 
+.product-side-menu
+{
+  label{
+    padding: 5px;
+    font-size: medium;
+    color: #1B84FF;
+   }
+}
+
 .custom-tree-table  {
   border: none !important;
   .p-treetable-wrapper{

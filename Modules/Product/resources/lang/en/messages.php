@@ -22,6 +22,11 @@ return [
     'Add' =>'Add',
     'Delete' => 'Delete' ,
     'Close' => 'Close' ,
-    'Do you want to delete?' =>  'Do you want to delete '
-
+    'Doyouwanttodelete' =>  'Do you want to delete ',
+    'basicInfo' => 'Basic Information',
+    'advancedSettings' => 'Advanced Settings',
+    'inventory' => 'Inventory',
+    'recipe' => 'Recipe',
+    'modifiers' => 'Modifiers',
+    'displayprintOptions' => 'Display/Print Options',
 ];

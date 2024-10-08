@@ -43,7 +43,7 @@ class Tables
                 <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '" data-name="' . $row->firstName . '">
 					<i class="ki-outline ki-trash fs-3"></i>
 				</a>      
-                <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" href="#" data-bs-toggle="modal" data-id="' . $row->id . '" data-name="' . $row->name . '" data-rank="' . $row->rank . '" data-department="' . $row->department . '" data-bs-target="#kt_modal_edit_role">
+                <a href="' . url("/role/{$row->id}/edit") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
 					<i class="ki-outline ki-pencil fs-2"></i>
 				</a>                
                 <a href="' . url("/role/show/{$row->id}") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px" data-id="' . $row->id . '">

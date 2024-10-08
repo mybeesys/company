@@ -23,8 +23,7 @@ class RoleController extends Controller
             return Tables::getRoleTable($roles);
         }
         $columns = Tables::getRoleColumns();
-        $departments = Role::departments();
-        return view('employee::roles.index', compact('columns', 'departments'));
+        return view('employee::roles.index', compact('columns'));
     }
 
     public function createLiveValidation(StoreRoleRequest $request)

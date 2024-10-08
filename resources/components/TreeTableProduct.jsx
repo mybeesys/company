@@ -332,6 +332,7 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , 
                 onDelete={handleDelete}
                 url={url}
                 row={currentNode}
+                translations ={translations}
             />
         </div>
         </div>

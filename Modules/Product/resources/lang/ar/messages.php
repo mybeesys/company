@@ -22,5 +22,11 @@ return [
     'Add' =>'إضافة' ,
     'Delete' => 'حذف' ,
     'Close' => 'إغلاق' ,
-    'Do you want to delete' =>  ' هل أنت متأكد من حذف'
+    'Doyouwanttodelete' =>  ' هل أنت متأكد من حذف' , 
+    'basicInfo' => 'المعلومات الأساسية',
+    'advancedSettings' => 'الإعدادات المتقدمة',
+    'inventory' => 'المستودع',
+    'recipe' => 'الوصفة',
+    'modifiers' => 'المتغيرات',
+    'displayprintOptions' => 'الإظهار والطباعة',
 ];

@@ -17,6 +17,17 @@ class CategoryController extends Controller
         return view('product::category.index' ); 
     }
     
+    public function getminicategorylist()
+    {
+       $categories = Category::all();
+       return response()->json($categories);
+    }
+
+    public function getminisubcategorylist($id)
+    {
+       $subcategories = Category::find($id);
+       return response()->json($subcategories->subcategories);
+    }
 
     public function getCategories()
     {

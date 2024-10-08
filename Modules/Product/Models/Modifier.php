@@ -24,12 +24,21 @@ class Modifier extends Model
         'price',
         'PLU',
         'color',
-        'image'
+        'image',
+        'order',
+        'active'
     ];
 
-    public function modifierclass()
+    public function getFillable(){
+        return $this->fillable;
+    }
+
+    public $type = 'modifier';
+    public $parentKey = 'class_id';
+
+    public function modifierClass()
     {
-        return $this->belongsTo(modifiersclass::class, 'class_id', 'id');
+        return $this->belongsTo(ModifierClass::class, 'class_id', 'id');
     }
 
     
