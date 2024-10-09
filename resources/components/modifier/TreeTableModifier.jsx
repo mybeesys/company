@@ -263,15 +263,7 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
 
     const openDeleteModel = (data) => {
         setCurrentNode(data);
-        if (data.type == "Category") {
-            setUrl(categoryurl);
-        }
-        else if (data.type == "SubCategory") {
-            setUrl(subcategoryurl);
-        }
-        else {
-            setUrl(producturl);
-        }
+      //  setUrl(categoryurl);
 
         setIsDeleteModalVisible(true);
     }
