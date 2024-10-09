@@ -17,13 +17,13 @@
 @endif
 @includeWhen($hint, 'employee::components.forms.field-hint', ['hint' => $hint])
 {{ $slot }}
-<input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}" placeholder="{{ $placeholder }}" id="{{ $name }}"
-     value="{{ old($name, $value) }}" @class([
+<input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}"
+    placeholder="{{ $placeholder }}" id="{{ $name }}" autocomplete="new-password" value="{{ old($name, $value) }}"
+    @class([
         'form-control',
         'is-invalid' => $errors->first($name),
         $class,
-    ]) @required($required)
-    @checked($checked) />
+    ]) @required($required) @checked($checked) />
 {{ $datalist }}
 @if ($errors->first($name))
     <div class="invalid-feedback">{{ $errors->first($name) }}</div>

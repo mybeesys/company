@@ -50,12 +50,12 @@ class RoleController extends Controller
     public function store(StoreRoleRequest $request)
     {
         DB::beginTransaction();
-        $employee = Role::create($request->safe()->all());
+        $role = Role::create($request->safe()->all());
         DB::commit();
-        if ($employee) {
-            return response()->json(['message' => __('employee::responses.role_created_successfully')]);
+        if ($role) {
+            return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
         } else {
-            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
         }
     }
 
@@ -85,9 +85,9 @@ class RoleController extends Controller
         $updated = $role->update($request->safe()->all());
         DB::commit();
         if ($updated) {
-            return response()->json(['message' => __('employee::responses.role_updated_successfully')]);
+            return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
         } else {
-            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
         }
     }
 

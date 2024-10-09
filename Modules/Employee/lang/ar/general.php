@@ -53,4 +53,8 @@ return [
     'edit_role' => 'تعديل دور',
     'role_search' => 'ابحث عن دور',
     'role_details' => 'بيانات الدور',
+    'pos' => 'نقطة البيع',
+    'dashboard_managment_access' => 'إدارة الوصول للوحة التحكم',
+    'dashboard_access' => 'الوصول للوحة التحكم',
+    'add_more_roles' => 'أضف المزيد من الأدوار',
 ];
