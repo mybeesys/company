@@ -29,6 +29,4 @@ return [
     'recipe' => 'Recipe',
     'modifiers' => 'Modifiers',
     'displayprintOptions' => 'Display/Print Options',
-    'savechanges' => 'Save Changes',
-    'cancel' => 'Cancel'
 ];

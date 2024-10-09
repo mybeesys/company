@@ -242,7 +242,6 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
                     onChange={(e) => handleEditorChange(e.target.value, key)}
                     autoFocus={!!autoFocus}
                     onKeyDown={(e) => e.stopPropagation()} 
-                    style={{ width: '100%' }}
                     required/>
                 :
                 <span>{node.data[key]}</span>);
@@ -257,7 +256,6 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
                     onChange={(e) => handleEditorChange(e.target.value, key)}
                     autoFocus={!!autoFocus}
                     onKeyDown={(e) => e.stopPropagation()} 
-                    style={{ width: '100%' }}
                     required/>
                 :
                 <span>{node.data[key]}</span>);
@@ -321,13 +319,13 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
             <div class="card-body">
             <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
                 <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
-                    <Column header="En Name" style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
-                    <Column header="Ar Name" style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
-                    <Column header="Price" style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
-                    <Column header="Cost" style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
-                    <Column header="Order" style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
-                    <Column header="Active" style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
-                    <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
+                    <Column header="En Name" body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
+                    <Column header="Ar Name" body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
+                    <Column header="Price" body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
+                    <Column header="Cost" body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
+                    <Column header="Order" body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
+                    <Column header="Active" body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
+                    <Column body={(node) => (actionTemplate(node))} />
                 </TreeTable>
             </form>
             </div>

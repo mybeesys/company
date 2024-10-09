@@ -5,10 +5,12 @@ import axios from 'axios';
 import { SketchPicker, BlockPicker } from "react-color";
 
 
-const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
+const ProductBasicInfo = ({translations}) => {
     const rootElement = document.getElementById('product-root');
+    const producturl = JSON.parse(rootElement.getAttribute('product-url'));
     const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
     const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
+    let product = JSON.parse(rootElement.getAttribute('product'));
     let  imageurl = rootElement.getAttribute('image-url');
     let dir = rootElement.getAttribute('dir');
     const [currentObject, setcurrentObject] = useState(product); 
@@ -27,7 +29,7 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
   const { r, g, b, a } = sketchPickerColor;
 
   //creating state to store our color and also set color using onChange event for block picker
-  const [blockPickerColor, setBlockPickerColor] = useState(currentObject.color?currentObject.color : "#37d67a");
+  const [blockPickerColor, setBlockPickerColor] = useState("#37d67a");
 
 
 
@@ -38,7 +40,6 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
           })
         );
         setFiles((prevFiles) => [...prevFiles, ...mappedFiles]);
-        handleChange('image' , mappedFiles[0]);
         setimageSrc(mappedFiles[0].preview);
       }, []);
     
@@ -53,7 +54,18 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
         setFiles([]);
         setimageSrc(imageurl);
       }
- 
+       // Handle color change from the picker
+  const handleColorChange = (newColor) => {
+    setColor(newColor);
+  };
+
+  // Handle color change from the text input
+  const handleInputChange = (e) => {
+    const newColor = e.target.value;
+    if (/^#[0-9A-F]{6}$/i.test(newColor)) { // Simple hex code validation
+      setColor(newColor);
+    }
+  };
 
   const fetchCategoryOptions = async () => {
     try {
@@ -85,8 +97,7 @@ const handleChange = (key , value) =>
        fetchSubCategoryOptions(value);   
        r["subcategory_id"] = subcategoryOption[0].id;
     }
-    setcurrentObject(r);
-    parentHandlechanges(r);
+    setcurrentObject({...r});
 }
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
@@ -144,7 +155,7 @@ const handleChange = (key , value) =>
                         <div class="col-6">
                             <label for="name_ar" class="col-form-label">{translations.deacription_ar}</label>
                             <textarea type="text" class="form-control" id="description_ar" value={!!currentObject.description_ar ? currentObject.description_ar : ''} 
-                            onChange={(e) => handleChange('description_ar', e.target.value)}
+                            onChange={(e) => handleChange('deacription_ar', e.target.value)}
                                     required></textarea>
                         </div>
                         <div class="col-6">
@@ -275,7 +286,6 @@ const handleChange = (key , value) =>
                       <BlockPicker
                         color={blockPickerColor}
                         onChange={(color) => {
-                          handleChange('color', color.hex)
                           setBlockPickerColor(color.hex);
                         }}
                       />

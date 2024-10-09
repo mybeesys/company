@@ -3,12 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { useDropzone } from 'react-dropzone';
 import ProductBasicInfo from "./ProductBasicInfo";
 import axios from 'axios';
-import { Button } from 'primereact/button';
 
 
 const ProductComponent = () => {
     const rootElement = document.getElementById('product-root');
-    const producturl = JSON.parse(rootElement.getAttribute('product-url'));
     let  localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
     let dir = rootElement.getAttribute('dir');
     const [translations, setTranslations] = useState({});
@@ -18,32 +16,6 @@ const ProductComponent = () => {
     const [modifiers, setModifiers] = useState(false);
     const [recipe, setRecipe] = useState(false);
     const [inventory, setInventory] = useState(false);
-    let product = JSON.parse(rootElement.getAttribute('product'));
-    const [currentObject, setcurrentObject] = useState(product); 
-
-
-  const parentHandlechanges=(childproduct) =>
-  {
-    setcurrentObject({...childproduct});
-  }
-
-  const saveChanges = async() =>
-  {
-    try{
-    let r = {...currentObject};
-    r["active"]? r["active"] = 1 : r["active"] = 0;
-    r["track_serial_number"]? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
-    r["sold_by_weight"]? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
-    const response = await axios.post(producturl, r, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    }catch (error) {
-      console.error('There was an error adding the product!', error);
-  }
-  }
 
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
@@ -63,19 +35,8 @@ const ProductComponent = () => {
      setBasicInfo(!basicInfo)
   }
 
-  return (
+    return (
       <div>
-        <div class="row" style={{padding:"5px"}}>
-        <div class="col-9"></div>
-        <div class="col-2">
-            <Button type="submit" variant="primary" className="btn btn-primary"
-            onClick={saveChanges}
-            >{translations.savechanges}</Button>
-          </div>
-        <div class="col-1">
-           <Button variant="secondary" className="btn btn-flex">{translations.cancel}</Button>
-          </div>
-        </div>
          <div class="row">
             <div class="col-3">
             <div class="card mb-5 mb-xl-8" style={{minHeight: "100vh" , display : "flex" , flexDirection : "column" , padding:"12px"}}>
@@ -163,7 +124,7 @@ const ProductComponent = () => {
             <div className="card mb-5 mb-xl-8">
               {
                 basicInfo?
-                   <ProductBasicInfo translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject}></ProductBasicInfo>
+                   <ProductBasicInfo translations={translations} ></ProductBasicInfo>
                  :<></>
               }
             </div>

@@ -29,6 +29,4 @@ return [
     'recipe' => 'الوصفة',
     'modifiers' => 'المتغيرات',
     'displayprintOptions' => 'الإظهار والطباعة',
-    'savechanges' => 'حفظ التعديلات',
-    'cancel' => 'إلغاء'
 ];
