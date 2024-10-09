@@ -53,4 +53,8 @@ return [
     'edit_role' => 'Edit role',
     'role_search' => 'Role search',
     'role_details' => 'Role details',
+    'pos' => 'Point of sale',
+    'dashboard_managment_access' => 'Dashboard managment access',
+    'dashboard_access' => 'Dashboard access',
+    'add_more_roles' => 'Add more roles',
 ];

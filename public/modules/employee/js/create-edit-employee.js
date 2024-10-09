@@ -1,3 +1,25 @@
+function roleRepeater() {
+    $('#role-wage-repeater').repeater({
+        initEmpty: false,
+        show: function () {
+            $(this).slideDown();
+
+            $(this).find('select[data-kt-repeater="roles"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        ready: function () {
+            $('select[data-kt-repeater="roles"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    });
+}
+
+
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
@@ -20,14 +42,12 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         }
     });
 
-    $(`#${id} input, #${id} input[type="file"]`).on('change', function () {
+    $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
         let input = $(this);
         validateField(input);
     });
 
     $('#generate_pin').on('click', function (e) {
-        console.log(123);
-        
         e.preventDefault();
         $.ajax({
             url: generatePinUrl,
@@ -66,23 +86,24 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 input.siblings('.invalid-feedback').remove();
                 input.removeClass('is-invalid');
                 $('#image_error').removeClass('d-block');
-
-                let errorMsg = response.responseJSON.errors[field];
-                if (errorMsg) {
-                    input.addClass('is-invalid');
-                    if (input.attr('type') === 'file') {
-                        input.closest('div').after(
-                            '<div class="invalid-feedback d-block" id="image_error">' +
-                            errorMsg[0] + '</div>');
-                    } else {
-                        input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
+                if (response.responseJSON) {
+                    let errorMsg = response.responseJSON.errors[field];
+                    if (errorMsg) {
+                        input.addClass('is-invalid');
+                        if (input.attr('type') === 'file') {
+                            input.closest('div').after(
+                                '<div class="invalid-feedback d-block" id="image_error">' +
+                                errorMsg[0] + '</div>');
+                        } else {
+                            input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
+                        }
                     }
                 }
                 checkErrors();
             }
         });
     }
-
+    
     function checkErrors() {
         if ($('.is-invalid').length > 0) {
             saveButton.prop('disabled', true);
@@ -90,4 +111,19 @@ function employeeForm(id, validationUrl, generatePinUrl) {
             saveButton.prop('disabled', false);
         }
     }
+
+    $('.active-managment-fields').on('click', function (e) {
+        if ($(this).attr("aria-expanded") == 'true') {
+            $('#active-managment-fields-btn').prop('checked', true);
+            $('#active-managment-fields-btn').val(1);
+            $('[name="password"], [name="password_confirmation"], [name="userEmail"], [name="username"]')
+                .prop('required', true);
+
+        } else {
+            $('#active-managment-fields-btn').prop('checked', false);
+            $('#active-managment-fields-btn').val(0);
+            $('[name="password"], [name="password_confirmation"], [name="userEmail"], [name="username"]')
+                .prop('required', false);
+        }
+    });
 }

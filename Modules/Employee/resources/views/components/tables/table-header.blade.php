@@ -1,4 +1,4 @@
-@props(['model', 'filters' => null, 'export' => null, 'atag' => null, 'local' => 'en'])
+@props(['model', 'filters' => null, 'export' => null, 'local' => 'en'])
 <div class="card-title">
     <div class="d-flex align-items-center position-relative my-1">
         <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4"></i>
@@ -25,7 +25,7 @@
     </div>
     {{ $slot }}
     @if ($slot->isEmpty())
-        <a href={{ url("/{$model}/create") }} class="btn btn-primary">@lang("employee::general.add_{$model}")
+        <a href="{{ url("/{$model}/create") }}" class="btn btn-primary">@lang("employee::general.add_{$model}")
         </a>
     @endif
 </div>

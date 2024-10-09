@@ -26,13 +26,13 @@
 
             <div class="mb-10">
                 <label class="form-label fs-6 fw-semibold">@lang('employee::fields.status')</label>
-                <select class="form-select form-select-solid fw-bold" data-kt-select2="true"
-                    data-placeholder="@lang('employee::general.select_option')" data-allow-clear="true" data-kt-filter="status"
-                    data-hide-search="true">
-                    <option></option>
-                    <option value="1">@lang('employee::fields.active')</option>
-                    <option value="0">@lang('employee::fields.inActive')</option>
-                </select>
+                @php
+                    $options = [
+                        ['id' => '1', 'name' => __('employee::fields.active')],
+                        ['id' => '0', 'name' => __('employee::fields.inActive')],
+                    ];
+                @endphp
+                <x-employee::form.select :options=$options name="status" />
             </div>
 
             <div class="d-flex justify-content-end">
