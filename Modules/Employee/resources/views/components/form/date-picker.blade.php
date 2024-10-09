@@ -6,7 +6,8 @@
         <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
     </span>
     <input id="{{ $name }}_input" name="{{ $name }}" type="text" @class(['form-control', 'is-invalid' => $errors->first($name)])
-        @required($required) data-td-target="#{{ $name }}" value="{{ $value }}" />
+        @required($required) data-td-target="#{{ $name }}"
+        value="{{ $value ? $value : old($name, now()->format('Y/m/d')) }}" />
     @if ($errors->first($name))
         <div class="invalid-feedback">{{ $errors->first($name) }}</div>
     @endif

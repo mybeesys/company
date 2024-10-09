@@ -74,6 +74,7 @@ class EmployeeController extends Controller
     public function store(StoreEmployeeRequest $request)
     {
         DB::beginTransaction();
+        
         if ($request->has('image')) {
             $imageName = time() . '.' . $request->image->extension();
             $request->image->storeAs('profile_pictures', $imageName, 'public');
@@ -81,12 +82,10 @@ class EmployeeController extends Controller
             $imageName = null;
         }
 
-        
-        
         $employee = Employee::create($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
         
         if ($request->has('role')) {
-            $role = Role::findById($request->role);
+            $role = Role::findOrFail($request->role);
             $employee->assignRole($role);
         }
 

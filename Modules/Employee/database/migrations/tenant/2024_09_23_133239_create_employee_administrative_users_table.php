@@ -13,8 +13,8 @@ return new class extends Migration {
         Schema::create('employee_administrative_users', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('employee_id')->constrained('employee_employees')->cascadeOnDelete();
-            $table->string('userName', 50);
-            $table->string('password');
+            $table->string('userName', 50)->nullable();
+            $table->string('password')->nullable();
             $table->boolean('accountLocked')->default(false);
             $table->primary(['user_id', 'employee_id']);
             $table->timestamps();

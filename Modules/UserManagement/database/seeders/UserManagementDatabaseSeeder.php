@@ -14,17 +14,19 @@ class UserManagementDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-          echo "Seeding complete for tenant: " . tenant('id'). "\n";
-          
-          $client = new ClientRepository();
+        echo "Seeding complete for tenant: " . tenant('id') . "\n";
 
-        $client->createPasswordGrantClient(null, 'Default password grant client',tenant('id') . "." . env("APP_DOMAIN") );
+        $client = new ClientRepository();
+
+        $client->createPasswordGrantClient(null, 'Default password grant client', tenant('id') . "." . env("APP_DOMAIN"));
         $client->createPersonalAccessClient(null, 'Default personal access client', tenant('id') . "." . env("APP_DOMAIN"));
 
-        User::firstOrNew([
-            "name"=> "admin",
-            "email"=> "admin@admin.com",
-            "password"=> bcrypt("12345678"),
-        ]);
+        if (!User::where('email', 'admin@admin.com')->first()) {
+            User::create([
+                "name" => "admin",
+                "email" => "admin@admin.com",
+                "password" => bcrypt("12345678"),
+            ]);
+        }
     }
 }

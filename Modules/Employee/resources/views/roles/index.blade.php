@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
+@section('title', __('menuItemLang.roles'))
 
 @section('content')
     <div class="card card-flush">
@@ -51,7 +51,6 @@
 
         $(document).ready(function() {
             if (!table.length) return;
-            roleForm('add_role_form', "{{ route('roles.create.validation') }}");
             initDatatable();
             exportButtons();
             handleSearchDatatable();
@@ -182,8 +181,6 @@
             } else {
                 showAlert(response.message, "{{ __('employee::general.close') }}", undefined, "btn-primary", false,
                     "success")
-                $('#kt_modal_add_role').modal('hide');
-                $('#kt_modal_edit_role').modal('hide');
                 dataTable.ajax.reload();
             }
         }

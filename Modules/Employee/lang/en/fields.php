@@ -21,6 +21,7 @@ return [
     'start_date' => 'Start date',
     'end_date' => 'End date',
     'password' => 'Password',
+    'password_confirmation' => 'Password confirmation',
     'date' => 'Date',
     'description' => 'Description',
     'image' => 'Image',
@@ -86,5 +87,8 @@ return [
     'show' => 'Show',
     'department' => 'Department',
     'rank' => 'Rank',
-    'name_en' => 'Name in english'
+    'name_en' => 'Name in english',
+    'administrative_permission_set' => 'Administrative permission set',
+    'pos_roles_wages' => 'Point of sales roles and wages'
+
 ];

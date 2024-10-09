@@ -21,6 +21,7 @@ return [
     'start_date' => 'تاريخ البداية',
     'end_date' => 'تاريخ الانتهاء',
     'password' => 'كلمة المرور',
+    'password_confirmation' => 'تأكيد كلمة المرور',
     'date' => 'التاريخ',
     'description' => 'الوصف',
     'image' => 'صورة',
@@ -86,5 +87,7 @@ return [
     'show' => 'عرض',
     'department' => 'القسم',
     'rank' => 'الرتبة',
-    'name_en' => 'الاسم بالإنجليزي'
+    'name_en' => 'الاسم بالإنجليزي',
+    'administrative_permission_set' => 'مجموعة الأذونات الإدارية',
+    'pos_roles_wages' => 'أدوار وأجور نقاط البيع'
 ];
