@@ -3,6 +3,7 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Product;
 
@@ -65,12 +66,28 @@ class ProductController extends Controller
         }
        else
        { 
+        if(isset($validated['id']))
+        {
+          $product = Product::find($validated['id']); 
+          $product->name_ar = $validated['name_ar'];
+          $product->name_en = $validated['name_en'];
+          $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
+          $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
+          $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
+          $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
+          $product->category_id = $validated['category_id'];
+          $product->subcategory_id = $validated['subcategory_id'];
+          $product->active = $validated['active'];
+          $product->sold_by_weight = $validated['sold_by_weight'];
+          $product->track_serial_number = $validated['track_serial_number'];
+          $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
+          $product->price = $validated['price'];
+          $product->cost = $validated['cost'];
+          $product->color = isset($validated['color'])?$validated['color']: $product->color ;
 
-        $item = Product::create($validated);
-
-        $tenant = auth()->user()->tenant; 
-        $tenantId = $tenant->id;
-        if ($request->hasFile('image')) {
+          if ($request->hasFile('image')) {
+            $tenant = tenancy()->tenant;
+            $tenantId = $tenant->id;
             // Get the uploaded file
             $file = $request->file('image');
     
@@ -79,12 +96,37 @@ class ProductController extends Controller
     
             // Store the file
             $fileExtension = $file->getClientOriginalExtension();
-            $file->storeAs($filePath, $item->id . '.' . $fileExtension , 'public'); // Store in public disk
+            $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
     
             // Optionally save the file path to the database
-            $item->image_path = $filePath . '/' . $item->id . '.' . $fileExtension ;
-            $item->save();
-        }    
+            $product->image = $filePath . '/' . $product->id . '.' . $fileExtension ;
+        }  
+
+          $product->save();
+        }
+        else
+        {
+            $product= Product::create($validated);
+     
+        if ($request->hasFile('image')) {
+
+            $tenant = tenancy()->tenant;
+            $tenantId = $tenant->id;
+            // Get the uploaded file
+            $file = $request->file('image');
+    
+            // Define the path based on the tenant's ID
+            $filePath = 'tenants/' . $tenantId . '/product/images';
+    
+            // Store the file
+            $fileExtension = $file->getClientOriginalExtension();
+            $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
+    
+            // Optionally save the file path to the database
+            $product->image = $filePath . '/' . $product->id . '.' . $fileExtension ;
+            $product->save();
+        }   
+        } 
       
         return response()->json(["message"=>"Done"]);
        }
