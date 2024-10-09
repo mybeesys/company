@@ -1,5 +1,18 @@
 @extends('layouts.app')
+@section('css')
+    <style>
+        @if (session()->get('locale') == 'ar')
+            input[type="number"] {
+                text-align: right;
+            }
 
+            input[type="number"]::-webkit-input-placeholder,
+            input[type="email"]::-webkit-input-placeholder {
+                text-align: right;
+            }
+        @endif
+    </style>
+@endsection
 @section('content')
     @yield('content')
 @endsection

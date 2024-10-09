@@ -192,7 +192,7 @@ return [
         'remember'                 => 'تذكير',
         'restored_at'              => 'تاريخ الاستعادة',
         'result_text_under_image'  => 'نص النتيجة أسفل الصورة',
-        'role'                     => 'الصلاحية',
+        'role'                     => 'الدور',
         'second'                   => 'ثانية',
         'sex'                      => 'الجنس',
         'short_text'               => 'نص مختصر',

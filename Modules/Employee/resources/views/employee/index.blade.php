@@ -53,6 +53,9 @@
             exportButtons();
             handleSearchDatatable();
             handleFormFiltersDatatable();
+            $('[name="status"], [name="deleted_records"]').select2({
+                minimumResultsForSearch: -1
+            });
         });
 
         $(document).on('click', '.restore-btn', function(e) {
