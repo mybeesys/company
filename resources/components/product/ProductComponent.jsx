@@ -3,7 +3,14 @@ import ProductBasicInfo from "./ProductBasicInfo";
 import axios from 'axios';
 import { Button } from 'primereact/button';
 
-
+const defaultMenu= [
+  { key : 'basicInfo' , visible : true },
+  { key : 'advancedInfo' , visible : false },
+  { key : 'printInfo' , visible : false },
+  { key : 'modifiers' , visible : false },
+  { key : 'recipe' , visible : false },
+  { key : 'inventory' , visible : false }
+];
 const ProductComponent = () => {
     const rootElement = document.getElementById('product-root');
     const producturl = JSON.parse(rootElement.getAttribute('product-url'));
@@ -11,12 +18,7 @@ const ProductComponent = () => {
     let  localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
     let dir = rootElement.getAttribute('dir');
     const [translations, setTranslations] = useState({});
-    const [basicInfo, setBasicInfo] = useState(true);
-    const [advancedInfo, setAdvancedInfo] = useState(false);
-    const [printInfo, setPrintInfo] = useState(false);
-    const [modifiers, setModifiers] = useState(false);
-    const [recipe, setRecipe] = useState(false);
-    const [inventory, setInventory] = useState(false);
+    const [menu, setMenu] = useState(defaultMenu);
     let product = JSON.parse(rootElement.getAttribute('product'));
     const [currentObject, setcurrentObject] = useState(product); 
 
@@ -72,10 +74,11 @@ const ProductComponent = () => {
   }, []);
       
 
-  const handleChange =(key , value) =>
+  const handleChange =(index , value) =>
   {
-    console.log(basicInfo);
-     setBasicInfo(!basicInfo)
+    let currentMenu = [...menu];
+    currentMenu[index].visible = value;
+    setMenu([...currentMenu]);
   }
 
   return (
@@ -94,90 +97,27 @@ const ProductComponent = () => {
          <div class="row">
             <div class="col-3">
             <div class="card mb-5 mb-xl-8" style={{minHeight: "100vh" , display : "flex" , flexDirection : "column" , padding:"12px"}}>
+            {menu.map((m, index) => (
               <div className="row product-side-menu">
                 <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-2">
-                            <input type="checkbox" class="form-check-input"  checked={basicInfo}
-                                onChange={(e)=> handleChange('basicInfo', e.target.checked)} />
-                        </div>
-                        <div class="col-10">{translations.basicInfo}</div>
-                       </div>
-                 </label>
+                  <label class="col-form-label col-12">
+                    <div class="row">
+                      <div class="col-2">
+                        <input type="checkbox" class="form-check-input" checked={m.visible}
+                          onChange={(e) => handleChange(index, e.target.checked)} />
+                      </div>
+                      <div class="col-10">{translations[m.key]}</div>
+                    </div>
+                  </label>
                 </div>
               </div>
-              <div className="row product-side-menu">
-                <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-2">
-                            <input type="checkbox" class="form-check-input"  checked={advancedInfo}
-                                onChange={()=>function(){setAdvancedInfo(!advancedInfo)}} />
-                        </div>
-                        <div class="col-10">{translations.advancedSettings}</div>
-                       </div>
-                 </label>
-                </div>
-              </div>
-              <div className="row product-side-menu">
-                <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-2">
-                            <input type="checkbox" class="form-check-input"  checked={printInfo}
-                                onChange={()=>function(){setPrintInfo(!printInfo)}} />
-                        </div>
-                        <div class="col-10">{translations.displayprintOptions}</div>
-                       </div>
-                 </label>
-                </div>
-              </div>
-              <div className="row product-side-menu">
-                <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-3">
-                            <input type="checkbox" class="form-check-input"  checked={inventory}
-                                onChange={()=>function(){setInventory(!inventory)}} />
-                        </div>
-                        <div class="col-9">{translations.inventory}</div>
-                       </div>
-                 </label>
-                </div>
-              </div>
-              <div className="row product-side-menu">
-                <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-3">
-                            <input type="checkbox" class="form-check-input"  checked={recipe}
-                                onChange={()=>function(){setRecipe(!recipe)}} />
-                        </div>
-                        <div class="col-9">{translations.recipe}</div>
-                       </div>
-                 </label>
-                </div>
-              </div>
-              <div className="row product-side-menu">
-                <div class="col-12">
-                <label class="col-form-label">
-                      <div class="row">
-                        <div class="col-3">
-                            <input type="checkbox" class="form-check-input"  checked={modifiers}
-                                onChange={()=>function(){setModifiers(!modifiers)}} />
-                        </div>
-                        <div class="col-9">{translations.modifiers}</div>
-                       </div>
-                 </label>
-                </div>
-              </div>
+            ))}
             </div>
             </div>
             <div class="col-9">
             <div className="card mb-5 mb-xl-8">
               {
-                basicInfo?
+                menu[0].visible?
                    <ProductBasicInfo translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject} saveChanges={saveChanges}></ProductBasicInfo>
                  :<></>
               }

@@ -187,13 +187,13 @@ const clickSubmit =(event) =>
                   <div class="row">
                     <div class="col-6">
                     <label for="price" class="col-form-label">{translations.price}</label>
-                    <input type="number"  min="0" class="form-control" id="price" value={!!currentObject.price ? currentObject.price : ''} 
+                    <input type="number" min="0" step=".01"  class="form-control" id="price" value={!!currentObject.price ? currentObject.price : ''} 
                             onChange={(e) => handleChange('price', e.target.value)}
                             required></input>
                    </div>
                    <div class="col-6">
                     <label for="cost" class="col-form-label">{translations.cost}</label>
-                    <input type="number"  min="0" class="form-control" id="cost" value={!!currentObject.cost ? currentObject.cost : ''} 
+                    <input type="number" min="0" step=".01"  class="form-control" id="cost" value={!!currentObject.cost ? currentObject.cost : ''} 
                              onChange={(e) => handleChange('cost', e.target.value)}
                              required></input>
                    </div>
