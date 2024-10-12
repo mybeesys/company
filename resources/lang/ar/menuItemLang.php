@@ -20,6 +20,7 @@ return [
     'employees' => 'الموظفون',
     'employees-dashboard' => 'لوحة تحكم الموظفين',
     'permissions' => 'الأذونات',
+    'modifiers' => 'المتغيرات'
 
 
 

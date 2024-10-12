@@ -10,6 +10,9 @@ import SweetAlert2 from 'react-sweetalert2';
         
 
 const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , translations }) => {
+
+    const rootElement = document.getElementById('react-root');
+    const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -85,9 +88,7 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , 
 
     const openAddCategory = ()=>
     {
-        setUrl(categoryurl);
-        setType("Category");
-        setIsModalVisible(true);
+        window.location.href =  productCrudList+'/create'
     }
 
     const openAddModel = (data , type) => {
@@ -295,6 +296,13 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , 
 			    </a> :<></>}
                 </>) : <></>}
     
+            {(data.type == "Product")?             
+            <a href="#"  onClick={() => {
+                        window.location.href =  productCrudList+'/'+data.id+'/edit'
+                }}
+                title="Edit"  class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                    			        <i className={"ki-outline ki-pencil fs-2"}></i>
+                </a>:<></>}
 			<a href="#"  onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
 				<i class="ki-outline ki-trash fs-2"></i>
 			</a>

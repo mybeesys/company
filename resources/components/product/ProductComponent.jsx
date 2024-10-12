@@ -1,6 +1,4 @@
 import React , { useState, useCallback  } from 'react';
-import ReactDOM from 'react-dom/client';
-import { useDropzone } from 'react-dropzone';
 import ProductBasicInfo from "./ProductBasicInfo";
 import axios from 'axios';
 import { Button } from 'primereact/button';
@@ -9,6 +7,7 @@ import { Button } from 'primereact/button';
 const ProductComponent = () => {
     const rootElement = document.getElementById('product-root');
     const producturl = JSON.parse(rootElement.getAttribute('product-url'));
+    const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
     let  localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
     let dir = rootElement.getAttribute('dir');
     const [translations, setTranslations] = useState({});
@@ -27,6 +26,12 @@ const ProductComponent = () => {
     setcurrentObject({...childproduct});
   }
 
+  const clicksubmit=() =>
+  {
+    let btnSubmit = document.getElementById("btnSubmit");
+    btnSubmit.click();
+  }
+
   const saveChanges = async() =>
   {
     try{
@@ -39,10 +44,20 @@ const ProductComponent = () => {
         'Content-Type': 'multipart/form-data',
       },
     });
-
+    console.log(response.data.message);
+    console.log(categoryurl);
+    if(response.data.message == "Done")
+      {
+        window.location.href = categoryurl;
+      }
     }catch (error) {
       console.error('There was an error adding the product!', error);
   }
+  }
+
+  const cancel=() =>
+  {
+    window.location.href = categoryurl;
   }
 
   // Clean up object URLs to avoid memory leaks
@@ -69,11 +84,11 @@ const ProductComponent = () => {
         <div class="col-9"></div>
         <div class="col-2">
             <Button type="submit" variant="primary" className="btn btn-primary"
-            onClick={saveChanges}
+            onClick={clicksubmit}
             >{translations.savechanges}</Button>
           </div>
         <div class="col-1">
-           <Button variant="secondary" className="btn btn-flex">{translations.cancel}</Button>
+           <Button variant="secondary" onClick={cancel} className="btn btn-flex">{translations.cancel}</Button>
           </div>
         </div>
          <div class="row">
@@ -163,7 +178,7 @@ const ProductComponent = () => {
             <div className="card mb-5 mb-xl-8">
               {
                 basicInfo?
-                   <ProductBasicInfo translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject}></ProductBasicInfo>
+                   <ProductBasicInfo translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject} saveChanges={saveChanges}></ProductBasicInfo>
                  :<></>
               }
             </div>

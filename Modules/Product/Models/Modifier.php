@@ -22,6 +22,7 @@ class Modifier extends Model
         'name_en',
         'class_id',
         'price',
+        'cost',
         'PLU',
         'color',
         'image',

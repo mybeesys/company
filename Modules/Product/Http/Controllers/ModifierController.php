@@ -30,21 +30,54 @@ class ModifierController extends Controller
             'cost'=> 'required|numeric',
             'price'=> 'required|numeric',
             'active' => 'nullable|boolean',
-            'order' => 'nullable|numeric'
+            'order' => 'nullable|numeric',
+            'method' => 'nullable|string'
         ]);
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
-            $product = Modifier::find($validated['id']); 
-            $product->delete();
+            $modifier = Modifier::find($validated['id']); 
+            $modifier->delete();
             return response()->json(["message"=>"Done"]);
         }
         else if(!isset($validated['id']))
         {
+            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
+                                        ['order', '=', $validated['order']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"ORDER_EXIST"]);
+            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
+                                        ['name_ar', '=', $validated['name_ar']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
+                                        ['name_en', '=', $validated['name_en']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
             Modifier::create($validated);
         }
         else
         {
+            //dd($validated['id'].' '.$validated['class_id'].' '.$validated['name_ar']);
+            $modifier = Modifier::where([
+                ['id', '!=', $validated['id']],
+                ['class_id', '=', $validated['class_id']],
+                ['order', '=', $validated['order']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"ORDER_EXIST"]);
+            $modifier = Modifier::where([
+                ['id', '!=', $validated['id']],
+                ['class_id', '=', $validated['class_id']],
+                ['name_ar', '=', $validated['name_ar']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $modifier = Modifier::where([
+                ['id', '!=', $validated['id']],
+                ['class_id', '=', $validated['class_id']],
+                ['name_en', '=', $validated['name_en']]])->first();
+            if($modifier != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
+
             $modifier = Modifier::find($validated['id']);
             $modifier->name_ar  = $validated['name_ar'];
             $modifier->name_en  = $validated['name_en'];

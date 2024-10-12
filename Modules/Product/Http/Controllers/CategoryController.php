@@ -4,8 +4,9 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Product\Models\TreeCategoryBuilder;
+use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Category;
+use Modules\Product\Models\SubCategory;
 
 class CategoryController extends Controller
 {
@@ -31,8 +32,9 @@ class CategoryController extends Controller
 
     public function getCategories()
     {
-        $TreeCategoryBuilder = new TreeCategoryBuilder();
-        $tree = $TreeCategoryBuilder->buildCategoryTree();
+        $TreeBuilder = new TreeBuilder();
+        $categories = Category::all();
+        $tree = $TreeBuilder->buildTree($categories ,null, 'category', null, null, null);
         return response()->json($tree);
     }
     /**
@@ -59,43 +61,45 @@ class CategoryController extends Controller
   
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
-            $category = Category::find($validated['id']); 
-            if(count($category->subcategories)==0)
-            {
-               $category->delete();
-               return response()->json(["message"=>"Done"]);
-            }
-            else
-            {
-                return response()->json(["message"=>"Please first delete subcategories of this category"]);
-            }
+            $subCategory = SubCategory::where([['category_id', '=', $validated['id']]])->first();
+            if($subCategory != null)
+                return response()->json(["message"=>"CHILD_EXIST"]);
 
+            $category = Category::find($validated['id']);
+            $category->delete();
         }
 
         if(!isset($validated['id']))
         {
-            $categories = Category::where('order', $validated['order'])->first();
-
-            if($categories == null)
-               $category = Category::create($validated);
-            else
-               return response()->json(["message"=>"The order is already exist!"]);
-            
+            $category = Category::where('order', $validated['order'])->first();
+            if($category != null)
+                return response()->json(["message"=>"ORDER_EXIST"]);
+            $category = Category::where('name_ar', $validated['name_ar'])->first();
+            if($category != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $category = Category::where('name_en', $validated['name_en'])->first();
+            if($category != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            $category = Category::create($validated);
         }
          else
          {
             $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-            if($categories == null)
-            {
-                $category = Category::find($validated['id']);
-                $category->name_ar = $validated['name_ar'];
-                $category->name_en = $validated['name_en'];
-                $category->order = $validated['order'];
-                $category->active = $validated['active'];
-                $category->save();
-            }
-            else
-              return response()->json(["message"=>"The order is already exist!"]);
+            if($categories != null)
+                return response()->json(["message"=>"ORDER_EXIST"]);
+            $categories = Category::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
+            if($categories != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $categories = Category::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
+            if($categories != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
+
+            $category = Category::find($validated['id']);
+            $category->name_ar = $validated['name_ar'];
+            $category->name_en = $validated['name_en'];
+            $category->order = $validated['order'];
+            $category->active = $validated['active'];
+            $category->save();
          }
 
         return response()->json(["message"=>"Done"]);

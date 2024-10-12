@@ -5,7 +5,7 @@ import axios from 'axios';
 import { SketchPicker, BlockPicker } from "react-color";
 
 
-const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
+const ProductBasicInfo = ({translations ,parentHandlechanges ,product ,saveChanges}) => {
     const rootElement = document.getElementById('product-root');
     const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
     const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
@@ -38,9 +38,9 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
           })
         );
         setFiles((prevFiles) => [...prevFiles, ...mappedFiles]);
-        handleChange('image' , mappedFiles[0]);
+        handleChange('image_file' , mappedFiles[0], currentObject);
         setimageSrc(mappedFiles[0].preview);
-      }, []);
+      }, [currentObject]);
     
       const { getRootProps, getInputProps } = useDropzone({
         onDrop,
@@ -52,14 +52,25 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
       {
         setFiles([]);
         setimageSrc(imageurl);
+        handleChange('image_file' , null);
       }
  
 
   const fetchCategoryOptions = async () => {
     try {
-      const response = await axios.get(listCategoryurl)
-      const data = await response.data;
-      setCategoryOptions(data); // Update options state
+      let subCategories = [];
+      const response = await axios.get(listCategoryurl);
+      if (response.data.length > 0) {
+        if (!!!currentObject.category_id)
+          currentObject['category_id'] = response.data[0].id;
+        subCategories = await fetchSubCategoryOptions(currentObject.category_id);
+        if (subCategories.length > 0) 
+          currentObject['subcategory_id'] = subCategories[0].id;
+      }
+      setCategoryOptions(response.data);
+      setSubCategoryOptions(subCategories);
+      setcurrentObject({...currentObject});
+      parentHandlechanges({...currentObject});
     } catch (error) {
       console.error("Error fetching options:", error);
     }
@@ -67,40 +78,57 @@ const ProductBasicInfo = ({translations ,parentHandlechanges ,product}) => {
 
   const fetchSubCategoryOptions = async (categoryId) => {
     try {
-      const response = await axios.get(listSubCategoryurl+"/"+categoryId);
-      const data = await response.data;
-      setSubCategoryOptions(data); // Update options state
+       const response = await axios.get(listSubCategoryurl+"/"+categoryId);
+       return response.data;
     } catch (error) {
       console.error("Error fetching options:", error);
     }
   };
 
 
-const handleChange = (key , value) =>
+const handleChange = async (key , value) =>
 {
     let r = {...currentObject};
     r[key] = value;
+
     if(key == "category_id")
     {
-       fetchSubCategoryOptions(value);   
-       r["subcategory_id"] = subcategoryOption[0].id;
+       const subCategories = await fetchSubCategoryOptions(value);
+       r['subcategory_id'] = subCategories.length > 0 ? subCategories[0].id : null;
+
+       setSubCategoryOptions(subCategories); 
     }
-    setcurrentObject(r);
-    parentHandlechanges(r);
+    setcurrentObject({...r});
+    parentHandlechanges({...r});
+    console.log(r);
+}
+
+const clickSubmit =(event) =>
+{
+    event.preventDefault();
+		event.stopPropagation();
+		const form = event.currentTarget;
+		if (form.checkValidity() === false) {
+			setValidated(true);
+      form.classList.add('was-validated');
+			return;
+		}
+    else
+    {
+      saveChanges();
+    }
+
 }
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
-    fetchCategoryOptions(); // Trigger the fetch
+     fetchCategoryOptions(); // Trigger the fetch
 
-    if(!!currentObject.category_id)
-      fetchSubCategoryOptions(currentObject.category_id);   
-
-    return () => files.forEach(file => URL.revokeObjectURL(file.preview));
-  }, [files]);
+  }, []);
       
     return (
       <>
             <div class="card-body" dir={dir}>
+              <form onSubmit={(event)=>clickSubmit(event)}>
                 <div class="form-group">
                     <div class="row">
                         <div class="col-6">
@@ -145,13 +173,13 @@ const handleChange = (key , value) =>
                             <label for="name_ar" class="col-form-label">{translations.deacription_ar}</label>
                             <textarea type="text" class="form-control" id="description_ar" value={!!currentObject.description_ar ? currentObject.description_ar : ''} 
                             onChange={(e) => handleChange('description_ar', e.target.value)}
-                                    required></textarea>
+                                    ></textarea>
                         </div>
                         <div class="col-6">
                             <label for="name_en" class="col-form-label">{translations.deacription_en}</label>
                             <textarea type="text" class="form-control" id="description_en" value={!!currentObject.description_en ? currentObject.description_en : ''} 
                                     onChange={(e) => handleChange('description_en', e.target.value)}
-                                    required></textarea>
+                                    ></textarea>
                         </div>
                     </div>
                 </div>
@@ -199,7 +227,7 @@ const handleChange = (key , value) =>
                     <label for="barcode" class="col-form-label">{translations.commissions}</label>
                     <input  type="number"  min="0" class="form-control" id="commissions" value={!!currentObject.commissions ? product.commissions : ''} 
                           onChange={(e) => handleChange('commissions', e.target.value)}
-                          required></input>
+                          ></input>
                    </div>
                 </div>
                 </div>
@@ -284,6 +312,8 @@ const handleChange = (key , value) =>
                     </div>
               </div>
             </div>
+            <input type="submit" id="btnSubmit" hidden></input>
+            </form>
         </div>      
      </>
 

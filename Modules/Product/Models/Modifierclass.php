@@ -30,7 +30,7 @@ class ModifierClass extends Model
     public $childType = 'modifier';
     public $childKey = 'class_id';
 
-    public function childs()
+    public function children()
     {
         return $this->hasMany(Modifier::class, 'class_id', 'id');
     }

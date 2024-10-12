@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
-import DeleteModal from '../product/DeleteModal';
+import DeleteModal from './DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 
 
-const TreeTableModifier = ({ urlList, rootElement }) => {
+const TreeTableProduct = ({ urlList, rootElement }) => {
+    const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState('');
@@ -67,18 +68,25 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
   
 
     const editRow = (data, key) => {
+        if(data.type == "product")
+        {
+          window.location.href =  productCrudList+'/'+data.id+'/edit'
+        }
+        else{
         setCurrentKey(key);
         setEditingRow({ ...data });
+        }
     }
 
     const cancelEdit = (key) => {
-        if (!!!editingRow.id || editingRow.id == 0) {
+        if(!!!editingRow.id || editingRow.id == 0)
+        {
             let parentNode = getParentNode(key);
             let currentNodes = !!parentNode ? parentNode.children : nodes;
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
-                if (node.key == key) {
-                    if (!!parentNode)
+                if(node.key == key){
+                    if(!!parentNode)
                         parentNode.children.splice(index, 1);
                     else
                         nodes.splice(index, 1);
@@ -87,7 +95,8 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
             }
         }
         setCurrentKey('-1');
-        setEditingRow({});
+        setEditingRow({ });
+        setNodes([...nodes]);
     }
 
     
@@ -111,27 +120,41 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
         for (var key in editingRow) {
             editedNode.data[key] = editingRow[key];
         }
-
         let url = JSON.parse(rootElement.getAttribute(`${editedNode.data.type}-url`));
         let parentNode = getParentNode(editedNode.key)
-        if(!!parentNode)
+        if(editedNode.data.parentKey != 'parent_id')
+            editedNode.data['parent_id'] = null;
+        if(!!parentNode){
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
-        const response = await axios.post(url, editedNode.data);
-        if (response.data.message != "Done") {
-            setShowAlert(true);
-            Swal.fire({
-                show: showAlert,
-                title: 'Error',
-                text: translations[response.data.message],
-                icon: "error",
-                timer: 2000,
-                showCancelButton: false,
-                showConfirmButton: false,
-            }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
-            });
-            return;
+            let parent2 = getParentNode(parentNode.key);
+            while(!!parent2 && parent2.data.type != 'category'){
+                parent2 = getParentNode(parent2.key);
+            }
+            if(!!parent2){
+                editedNode.data['category_id']  = parent2.data.id;
+            }
         }
+        try{
+            const response = await axios.post(url, editedNode.data);
+            if (response.data.message != "Done") {
+                setShowAlert(true);
+                Swal.fire({
+                    show: showAlert,
+                    title: 'Error',
+                    text: translations[response.data.message],
+                    icon: "error",
+                    timer: 2000,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                }).then(() => {
+                    setShowAlert(false); // Reset the state after alert is dismissed
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('There was an error get the product!', error);
+        }
+        
         setCurrentKey('-1');
         refreshTree();
     }
@@ -168,7 +191,8 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
             return findNodeByKey(nodes, parentKey);
     }
 
-    const addInline = (key, type, parentKeyName) => {
+    const addInline = (key, type, parentKeyName, type1, parentKeyName1) => {
+        let parentNode = getParentNode(key);
         let node = findNodeByKey(nodes, key);
         key = (key).toString();
         let seg = key.split('-');
@@ -177,9 +201,13 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
             parentKey = parentKey + '-' + seg[index];
         }
         node.data.empty = null;
+        node.data.type1 = null;
+        node.data.parentKey1 = null;
+        node.data.type = type;
+        node.data.parentKey = !!parentNode && parentNode.data.type == 'category' ? 'category_id' : parentKeyName;
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
-            data: { type: type, parentKey: parentKeyName,  empty: 'Y' }
+            data: { type: type, parentKey: parentKeyName, type1: type1, parentKey1: parentKeyName1, empty: 'Y' }
         }
         if (!!!parentKey)
             nodes.push(newNode);
@@ -194,7 +222,10 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
     const renderTextCell = (node, key, autoFocus) => {
         const indent = (node.key).toString().split('-').length;
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type}`}</a>
+            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`Add New ${node.data.type}`}</a>
+        }
+        else if (key == 'name_ar' && !!node.data.empty && !!node.data.type1) {
+            return <a href='#' onClick={e => addInline(node.key, node.data.type1, node.data.parentKey1, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type1}`}</a>
         }
         else {
             return (
@@ -299,16 +330,24 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
         );
     };
 
+    const openAddCategory = ()=>
+        {
+            window.location.href =  productCrudList+'/create'
+        }
+
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
 
             <div class="card-header border-0 pt-5">
                 <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold fs-3 mb-1">{translations.ModifiersList}</span>
+                    <span class="card-label fw-bold fs-3 mb-1">{translations.CategoryList}</span>
+                    <span class="text-muted mt-1 fw-semibold fs-7">{translations.ProductList}</span>
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                    <a href="#" class="btn btn-primary" 
+                                  onClick={() => openAddCategory()}>{translations.Add}</a>
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -324,9 +363,9 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
             <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
                 <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                     <Column header={translations.name_en} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
-                    <Column header={translations.name_ar}  style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
-                    <Column header={translations.price}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
-                    <Column header={translations.cost}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
+                    <Column header={translations.name_ar} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
+                    <Column header={translations.price} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
+                    <Column header={translations.cost} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
                     <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
                     <Column header={translations.active} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
                     <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
@@ -338,4 +377,4 @@ const TreeTableModifier = ({ urlList, rootElement }) => {
     );
 };
 
-export default TreeTableModifier;
+export default TreeTableProduct;

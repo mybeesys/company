@@ -1,7 +1,7 @@
 import React , { useState, useCallback  } from 'react';
 import ReactDOM from 'react-dom/client';
-import ProductComponent from './ProductComponent';
-import ProductTree from './ProductTree2';
+import ProductComponent from './product/ProductComponent';
+import CategoryTree from './product/CategoryTree';
 import Modifiertree from './modifier/modifiertree';
 
 var htmlElement = document.querySelector("html");
@@ -12,11 +12,11 @@ if(dir == 'ltr')
 else
  await import('./style.rtl.scss');
 
-const Element1 = document.getElementById('react-root');
+const Element1 = document.getElementById('category-root');
 
 if (Element1) {
   const root = ReactDOM.createRoot(Element1);
-  root.render(<ProductTree />);
+  root.render(<CategoryTree />);
 }
 
 const Element2 = document.getElementById('product-root');

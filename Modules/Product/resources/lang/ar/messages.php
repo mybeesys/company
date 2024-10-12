@@ -30,5 +30,13 @@ return [
     'modifiers' => 'المتغيرات',
     'displayprintOptions' => 'الإظهار والطباعة',
     'savechanges' => 'حفظ التعديلات',
-    'cancel' => 'إلغاء'
+    'cancel' => 'إلغاء',
+    'modifiers' => 'المتغيرات',
+    'ModifiersList' => 'قائمة المتغيرات',
+    'AddNewmodifier' => 'إضافة متغير جديد',
+    'AddNewmodifierClass' => 'إضافة صف متغيرات جديد',
+    'ORDER_EXIST' => 'الترتيب مكرر',
+    'NAME_AR_EXIST' => 'الاسم العربي مكرر',
+    'NAME_EN_EXIST' => 'الاسم الانكليزي مكرر',
+    'CHILD_EXIST' => 'يوجد متغيرات مرتبطة بالتصنيف'
 ];

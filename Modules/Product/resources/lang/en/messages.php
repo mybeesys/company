@@ -30,5 +30,13 @@ return [
     'modifiers' => 'Modifiers',
     'displayprintOptions' => 'Display/Print Options',
     'savechanges' => 'Save Changes',
-    'cancel' => 'Cancel'
+    'cancel' => 'Cancel' ,
+    'modifiers' => 'Modifiers',
+    'ModifiersList' => 'Modifiers List',
+    'AddNewmodifier' => 'Add New Modifier ',
+    'AddNewmodifierClass' => 'Add New Modifier Class',
+    'ORDER_EXIST' => 'Order Already Exist',
+    'NAME_AR_EXIST' => 'Arabic Name Already Exist',
+    'NAME_EN_EXIST' => 'English Name Already Exist',
+    'CHILD_EXIST' => 'Related Modifier Already Exist'
 ];
