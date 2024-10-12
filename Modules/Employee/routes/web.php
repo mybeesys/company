@@ -32,7 +32,7 @@ Route::middleware([
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
-        Route::get('/{employee}/edit', 'edit')->name('edit');
+        Route::get('/{id}/edit', 'edit')->name('edit');
         Route::patch('/{employee}', 'update')->name('update');
         Route::get('/show/{employee}', 'show')->name('show');
         Route::delete('/{employee}', 'softDelete')->name('delete');

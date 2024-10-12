@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('employee_employees')->nullOnDelete();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->foreignId('establishment_id')->nullable()->constrained('establishment_establishments')->nullOnDelete();
             $table->string('wageType', 50)->nullable();
             $table->decimal('rate', 10, 2)->nullable();
             $table->date('effectiveDate')->nullable();

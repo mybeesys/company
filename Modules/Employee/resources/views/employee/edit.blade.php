@@ -6,7 +6,8 @@
         action="{{ route('employees.update', ['employee' => $employee]) }}">
         @method('patch')
         @csrf
-        <x-employee::employees.form :roles=$roles :employee=$employee />
+        <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets
+            :establishments=$establishments />
     </form>
 @endsection
 
@@ -16,8 +17,9 @@
         $(document).ready(function() {
             roleRepeater();
             datePicker();
+            administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
-                "{{ route('employees.generate.pin') }}")
+                "{{ route('employees.generate.pin') }}");
         });
     </script>
 @endsection

@@ -15,8 +15,8 @@ class PermissionSet extends BaseModel
      */
     protected $fillable = [];
 
-    // protected static function newFactory(): PermissionSetFactory
-    // {
-    //     // return PermissionSetFactory::new();
-    // }
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'employee_permission_set_permissions')->withPivot('accessLevel');
+    }
 }

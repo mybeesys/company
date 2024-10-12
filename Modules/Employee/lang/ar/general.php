@@ -57,4 +57,6 @@ return [
     'dashboard_managment_access' => 'إدارة الوصول للوحة التحكم',
     'dashboard_access' => 'الوصول للوحة التحكم',
     'add_more_roles' => 'أضف المزيد من الأدوار',
+    'all' => 'الكل',
+    'all_establishments' => 'كل الأفرع'
 ];

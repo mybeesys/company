@@ -1,4 +1,4 @@
-@props(['employee' => null, 'roles'])
+@props(['employee' => null, 'roles', 'permissionSets', 'establishments'])
 {{-- employee section --}}
 <div class="d-flex flex-column flex-lg-row">
     <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
@@ -61,7 +61,12 @@
                             <x-employee::form.date-picker name="employmentStartDate" :errors=$errors required
                                 value="{{ $employee?->employmentStartDate }}" :label="__('employee::fields.employment_start_date')" />
                         </x-employee::form.input-div>
-
+                        @if ($employee)
+                            <x-employee::form.input-div class="mb-10 w-100 px-2">
+                                <x-employee::form.date-picker name="employmentEndDate" :errors=$errors
+                                    value="{{ $employee?->employmentEndDate }}" :label="__('employee::fields.employment_end_date')" />
+                            </x-employee::form.input-div>
+                        @endif
 
                     </div>
                 </x-employee::form.form-card>
@@ -79,7 +84,8 @@
                             </div>
                         </x-employee::form.input-div>
                     </div>
-                    <x-employee::employees.role-wage-repeater :roles=$roles :employee=$employee/>
+                    <x-employee::employees.role-wage-repeater :roles=$roles :employee=$employee
+                        :establishments=$establishments />
                 </x-employee::form.form-card>
             </div>
         </div>
@@ -92,9 +98,9 @@
         <x-slot:header>
             <div class="card-toolbar justify-content-end">
                 <x-employee::form.switch-div class="form-check-custom">
-                    <input type="hidden" name="active-managment-fields-btn" value="0">
+                    <input type="hidden" name="active_managment_fields_btn" value="0">
                     <x-employee::form.input :errors=$errors class="form-check-input h-20px w-30px" value="1"
-                        type="checkbox" name="active-managment-fields-btn" />
+                        type="checkbox" name="active_managment_fields_btn" />
                 </x-employee::form.switch-div>
             </div>
         </x-slot:header>
@@ -102,25 +108,29 @@
             <x-employee::form.input-div class="mb-10 w-100 px-2">
                 <x-employee::form.input :errors=$errors
                     placeholder="{{ __('employee::fields.user_name') }} ({{ __('employee::fields.required') }})"
-                    value="{{ $employee?->username }}" name="username" :label="__('employee::fields.user_name')" />
+                    value="{{ $employee?->administrativeUser?->userName }}" name="username" :label="__('employee::fields.user_name')" />
             </x-employee::form.input-div>
-            <x-employee::form.input-div class="mb-10 w-100 px-2">
-                <x-employee::form.input :errors=$errors
-                    placeholder="{{ __('employee::fields.email') }} ({{ __('employee::fields.required') }})"
-                    value="{{ $employee?->email }}" name="userEmail" :label="__('employee::fields.email')" />
-            </x-employee::form.input-div>
-        </div>
-        <div class="d-flex flex-wrap">
-
             <x-employee::form.input-div class="mb-10 w-100 px-2">
                 <x-employee::form.input type="password" :errors=$errors
                     placeholder="{{ __('employee::fields.password') }}" name="password" :label="__('employee::fields.password')" />
             </x-employee::form.input-div>
-            <x-employee::form.input-div class="mb-10 w-100 px-2">
+
+        </div>
+        <div class="d-flex flex-wrap">
+
+            <x-employee::form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
                 <label @class(['form-label'])>@lang('employee::fields.administrative_permission_set')</label>
-                <x-employee::form.select name="permissionSet" :options=$roles :errors=$errors
+                <x-employee::form.select name="permissionSet" :options=$permissionSets :errors=$errors
                     value="{{ $employee?->roles?->first()?->id }}" />
             </x-employee::form.input-div>
+
+            <x-employee::form.switch-div class="my-auto mx-10">
+                <input type="hidden" name="accountLocked" value="1">
+                <x-employee::form.input :errors=$errors class="form-check-input" value="0" type="checkbox"
+                    labelClass="form-check-label" name="accountLocked"
+                    label="{{ __('employee::general.deactivate/activate') }}"
+                    checked="{{ $employee?->administrativeUser?->accountLocked }}" />
+            </x-employee::form.switch-div>
 
         </div>
     </x-employee::form.form-card>
