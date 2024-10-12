@@ -218,9 +218,9 @@ const clickSubmit =(event) =>
                 <div class="form-group">
                   <div class="row">
                     <div class="col-6">
-                    <label for="SKU" class="col-form-label">{translations.class}</label>
-                    <input type="text" class="form-control" id="class" value={!!currentObject.class ? currentObject.class : ''} 
-                            onChange={(e) => handleChange('class', e.target.value)}
+                    <label for="SKU" class="col-form-label">{translations.order}</label>
+                    <input type="number" class="form-control" id="class" value={!!currentObject.order ? currentObject.order : ''} 
+                            onChange={(e) => handleChange('order', e.target.value)}
                             required></input>
                    </div>
                    <div class="col-6">
