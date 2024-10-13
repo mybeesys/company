@@ -14,7 +14,6 @@
 
 
 <head>
-
     <title>@yield('title') - MyBee</title>
 
 
