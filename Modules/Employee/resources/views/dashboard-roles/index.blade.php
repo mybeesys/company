@@ -20,6 +20,7 @@
 
 @section('script')
     @parent
+    <script src="{{ url('modules/employee/js/table.js') }}"></script>
     <script type="text/javascript" src="vfs_fonts.js"></script>
     <script>
         "use strict";
@@ -27,27 +28,8 @@
         const table = $('#kt_dashboard_role_table');
         const dataUrl = '{{ route('dashboard-roles.index') }}';
 
-        pdfMake.fonts = {
-            Arial: {
-                normal: 'ARIAL.TTF',
-                bold: 'ARIALBD.TTF',
-                italics: 'ARIALI.TTF',
-                bolditalics: 'ARIALBI.TTF'
-            }
-        };
-
-        const errorAlert = function() {
-            return showAlert(
-                "{{ __('employee::responses.something_wrong_happened') }}",
-                "{{ __('employee::general.try_again') }}",
-                undefined, undefined,
-                false, "error"
-            );
-        };
-
         $(document).ready(function() {
             if (!table.length) return;
-            
             initDatatable();
             exportButtons();
             handleSearchDatatable();
@@ -110,71 +92,5 @@
             });
         };
 
-        function exportButtons() {
-            new $.fn.dataTable.Buttons(table, {
-                buttons: [{
-                        extend: 'excelHtml5',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3]
-                        },
-                    },
-                    {
-                        extend: 'pdf',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3]
-                        },
-                        customize: function(doc) {
-                            doc.defaultStyle.font = 'Arial';
-                        },
-                    },
-                    {
-                        extend: 'print',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3]
-                        },
-                    },
-                ]
-            }).container().appendTo($('#kt_dashboard_role_table_buttons'));
-
-            const exportButtons = $('#kt_dashboard_role_table_export_menu [data-kt-export]');
-            exportButtons.on('click', function(e) {
-                e.preventDefault();
-                const exportValue = $(this).attr('data-kt-export');
-                $('.dt-buttons .buttons-' + exportValue).click();
-            });
-        };
-
-        function handleSearchDatatable() {
-            const filterSearch = $('[data-kt-filter="search"]');
-            filterSearch.on('keyup', function(e) {
-                dataTable.search(e.target.value).draw();
-            });
-        };
-
-        function ajaxRequest(url, method, data = {}) {
-            data._token = "{{ csrf_token() }}";
-            $.ajax({
-                url: url,
-                data: data,
-                dataType: "json",
-                type: method,
-                success: handleAjaxResponse,
-                error: errorAlert
-            });
-        }
-
-        function handleAjaxError(xhr, status, error) {
-            errorAlert;
-        }
-
-        function handleAjaxResponse(response) {
-            if (response.error) {
-                errorAlert;
-            } else {
-                showAlert(response.message, "{{ __('employee::general.close') }}", undefined, "btn-primary", false,
-                    "success")
-                dataTable.ajax.reload();
-            }
-        }
     </script>
 @endsection

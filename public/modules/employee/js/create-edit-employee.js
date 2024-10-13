@@ -83,7 +83,6 @@ function administrativeUser(administrativeUser) {
     });
 }
 
-
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
