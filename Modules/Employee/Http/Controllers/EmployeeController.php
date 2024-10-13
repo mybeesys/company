@@ -17,10 +17,18 @@ use Modules\Establishment\Models\Establishment;
 
 class EmployeeController extends Controller
 {
+    protected $establishments;
+    protected $permissionSets;
+    protected $roles;
 
+    public function __construct()
+    {
+        $this->establishments = Establishment::all()->select('id', 'name');
+        $this->permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
+        $this->roles = Role::all()->select('id', 'name');
+    }
     public function index(Request $request)
     {
-        $local = session()->get('locale');
         if ($request->ajax()) {
             $employees = Employee::
                 select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
@@ -33,7 +41,7 @@ class EmployeeController extends Controller
             return Tables::getEmployeeTable($employees);
         }
         $columns = Tables::getEmployeeColumns();
-        return view('employee::employee.index', compact('columns', 'local'));
+        return view('employee::employee.index', compact('columns'));
     }
 
     function generatePin()
@@ -60,10 +68,10 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $roles = Role::all()->select('id', 'name');
-        $establishments = Establishment::all()->select('id', 'name');
-        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
-        return view('employee::employee.create', compact('roles', 'permissionSets', 'establishments'));
+        return view(
+            'employee::employee.create',
+            ['roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+        );
     }
 
     public function store(StoreEmployeeRequest $request)
@@ -99,10 +107,10 @@ class EmployeeController extends Controller
             },
             'administrativeUser.permissionSets'
         ])->findOrFail($id);
-        $establishments = Establishment::all()->select('id', 'name');
-        $roles = Role::all()->select('id', 'name');
-        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
-        return view('employee::employee.edit', compact('employee', 'roles', 'permissionSets', 'establishments'));
+        return view(
+            'employee::employee.edit',
+            ['employee' => $employee, 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+        );
     }
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)

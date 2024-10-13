@@ -14,7 +14,6 @@
 
 
 <head>
-
     <title>@yield('title') - MyBee</title>
 
 
@@ -46,15 +45,8 @@
     <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
     <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
 
-    {{-- <link href="/assets/css/dataTables.bootstrap4.css" rel="stylesheet" type="text/css" /> --}}
-    {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> --}}
-
-
-
-
     @yield('css')
 
-    <!--end::Global Stylesheets Bundle-->
     <script>
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
     </script>
@@ -65,29 +57,26 @@
         rel="stylesheet">
     <style>
         body {
-            /* direction: {{ session()->get('locale') == 'ar' ? 'rtl' : 'ltr' }}; */
-            /* text-align: session()->get('locale')=='ar' ? 'right': 'left'; */
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
             font-style: normal;
         }
 
+        @if ($local == 'ar')
+            .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
+                left: 1.25rem;
+                right: auto;
+            }
 
-
-        /* .app-sidebar-wrapper {
-            direction: session()->get('locale')=='ar' ? 'rtl': 'ltr';
-            text-align: session()->get('locale')=='ar' ? 'right': 'left';
-
-        } */
-
+            .select2-container .select2-selection--single .select2-selection__clear {
+                right: auto;
+                left: 3.5rem;
+            }
+        @endif
 
         .select2-container .select2-selection--single {
             height: auto;
         }
-
-        /* .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
-            padding-right: 18px;
-        } */
     </style>
 </head>
 <!--end::Head-->
@@ -2792,16 +2781,17 @@
     <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
     <script src="/assets/plugins/custom/datatables/datatables.bundle.js"></script>
     <!--end::Vendors Javascript-->
-    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+
     <!--begin::Custom Javascript(used for this page only)-->
     <script src="/assets/js/widgets.bundle.js"></script>
     <script src="/assets/js/custom/widgets.js"></script>
     <script src="/assets/js/custom/apps/chat/chat.js"></script>
     <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+    <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
+
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
-    <!-- jQuery CDN -->
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
     <script>
         toastr.options = {
