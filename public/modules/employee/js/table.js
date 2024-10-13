@@ -7,18 +7,18 @@ pdfMake.fonts = {
     }
 };
 
-function exportButtons() {
+function exportButtons(columns, id) {
     new $.fn.dataTable.Buttons(table, {
         buttons: [{
                 extend: 'excelHtml5',
                 exportOptions: {
-                    columns: [0, 1, 2, 3]
+                    columns: columns
                 },
             },
             {
                 extend: 'pdf',
                 exportOptions: {
-                    columns: [0, 1, 2, 3]
+                    columns: columns
                 },
                 customize: function(doc) {
                     doc.defaultStyle.font = 'Arial';
@@ -27,13 +27,13 @@ function exportButtons() {
             {
                 extend: 'print',
                 exportOptions: {
-                    columns: [0, 1, 2, 3]
+                    columns: columns
                 },
             },
         ]
-    }).container().appendTo($('#kt_role_table_buttons'));
+    }).container().appendTo($(`${id}_buttons`));
 
-    const exportButtons = $('#kt_role_table_export_menu [data-kt-export]');
+    const exportButtons = $(`${id}_export_menu [data-kt-export]`);
     exportButtons.on('click', function(e) {
         e.preventDefault();
         const exportValue = $(this).attr('data-kt-export');

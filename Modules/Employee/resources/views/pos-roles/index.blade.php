@@ -30,7 +30,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons();
+            exportButtons([0, 1, 2, 3], '#kt_role_table');
             handleSearchDatatable();
         });
 

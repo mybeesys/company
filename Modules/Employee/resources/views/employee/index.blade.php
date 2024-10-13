@@ -34,7 +34,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons();
+            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_employee_table');
             handleSearchDatatable();
             handleFormFiltersDatatable();
             $('[name="status"], [name="deleted_records"]').select2({
@@ -140,6 +140,5 @@
                     .load();
             });
         };
-
     </script>
 @endsection
