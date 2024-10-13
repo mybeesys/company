@@ -9,8 +9,10 @@ class AdministrativeUserEstablishment extends Pivot
 {
     use HasFactory;
 
+    public $incrementing = true;
+
     protected $table = 'employee_administrative_users_establishments';
 
-    protected $fillable = [];
+    protected $guarded = [];
 
 }

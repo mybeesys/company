@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
-use Modules\Employee\Http\Requests\StoreRoleRequest;
-use Modules\Employee\Http\Requests\UpdateRoleRequest;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
+use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
+use Modules\Employee\Models\PermissionSet;
 
-class RoleController extends Controller
+class DashboardRoleController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,19 +18,19 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $roles = Role::
-                select('id', 'name', 'guard_name', 'department', 'rank');
-            return Tables::getRoleTable($roles);
+            $dashboardRoles = PermissionSet::
+                select('id', 'permissionSetName', 'isActive', 'rank');
+            return Tables::getDashboardRoleTable($dashboardRoles);
         }
-        $columns = Tables::getRoleColumns();
-        return view('employee::roles.index', compact('columns'));
+        $columns = Tables::getDashboardRoleColumns();
+        return view('employee::dashboard-roles.index', compact('columns'));
     }
 
-    public function createLiveValidation(StoreRoleRequest $request)
+    public function createLiveValidation(StoreDashboardRoleRequest $request)
     {
     }
 
-    public function updateLiveValidation(UpdateRoleRequest $request)
+    public function updateLiveValidation(UpdateDashboardRoleRequest $request)
     {
     }
 
@@ -40,22 +40,21 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $departments = Role::departments();
-        return view('employee::roles.create', compact('departments'));
+        return view('employee::dashboard-roles.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRoleRequest $request)
+    public function store(StoreDashboardRoleRequest $request)
     {
         DB::beginTransaction();
-        $role = Role::create($request->safe()->all());
+        $dashboardRole = PermissionSet::create($request->safe()->all());
         DB::commit();
-        if ($role) {
-            return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
+        if ($dashboardRole) {
+            return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_created_successfully'));
         } else {
-            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
+            return redirect()->route('dashboard-roles.index')->with('error', __('employee::responses.something_wrong_happened'));
         }
     }
 
@@ -70,19 +69,18 @@ class RoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Role $role)
+    public function edit(PermissionSet $dashboardRole)
     {
-        $departments = Role::departments();
-        return view('employee::roles.edit', compact('role', 'departments'));
+        return view('employee::dashboard-roles.edit', compact('dashboardRole'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreRoleRequest $request, Role $role)
+    public function update(UpdateDashboardRoleRequest $request, PermissionSet $dashboardRole)
     {
         DB::beginTransaction();
-        $updated = $role->update($request->safe()->all());
+        $updated = $dashboardRole->update($request->safe()->all());
         DB::commit();
         if ($updated) {
             return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
@@ -94,9 +92,9 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $role)
+    public function destroy(PermissionSet $dashboardRole)
     {
-        $delete = $role->delete();
+        $delete = $dashboardRole->delete();
         if ($delete) {
             return response()->json(['message' => __('employee::responses.role_deleted_successfully')]);
         } else {

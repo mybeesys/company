@@ -15,8 +15,9 @@
     @parent
     <script>
         $(document).ready(function() {
-            roleRepeater();
             datePicker();
+            permissionSetRepeater();
+            roleRepeater();
             administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
                 "{{ route('employees.generate.pin') }}");

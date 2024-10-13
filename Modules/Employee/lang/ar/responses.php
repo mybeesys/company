@@ -11,4 +11,5 @@ return [
     'role_updated_successfully' => 'تم تعديل الدور بنجاح',
     'change_employee_status_warning' => 'عند تعطيل الموظف سيتم تعطيله في كافة الفروع',
     'employee_establishment_rule_fail' => 'يجب اختيار جميع الفروع أو فرع موجود',
+    'emptyRepeaterwarning' => 'عذرا, لايمكنك حذف كل العناصر'
 ];

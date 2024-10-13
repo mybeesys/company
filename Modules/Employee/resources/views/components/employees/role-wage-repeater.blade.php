@@ -3,23 +3,26 @@
 <div id="role_wage_repeater">
     <div class="form-group">
         <div data-repeater-list="role_wage_repeater" class="d-flex flex-column gap-3">
-            @foreach (old('role_wage_repeater', $employee?->roles ?? [null]) as $index => $roleWage)
+
+            {{-- Handling global roles and wages --}}
+            @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
                 <x-employee::employees.role-wage-repeater-inputs :index=$index
-                    role_select_value="{{ is_array($roleWage) ? $roleWage['role'] ?? '' : $roleWage?->id }}"
+                    role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"
                     establishment_select_value="all" default_selection_value="all"
                     default_selection="{{ __('employee::general.all_establishments') }}"
-                    wage_value="{{ is_array($roleWage) ? $roleWage['wage'] ?? '' : $roleWage?->wages?->first()?->rate }}"
+                    wage_value="{{ is_array($globalRole) ? $globalRole['wage'] ?? '' : $globalRole?->wage?->rate }}"
                     :roles=$roles :establishments=$establishments />
             @endforeach
 
+            {{-- Establishments roles and wages --}}
             @if ($employee?->establishmentsPivot()?->exists())
-                @foreach (old('role_wage_repeater', $employee?->establishmentsPivot ?? [null]) as $index => $roleWage)
+                @foreach (old('role_wage_repeater', $employee?->establishmentsPivot) as $index => $establishmentRole)
                     <x-employee::employees.role-wage-repeater-inputs :index=$index
-                        role_select_value="{{ is_array($roleWage) ? $roleWage['role'] ?? '' : $roleWage?->role_id }}"
+                        role_select_value="{{ is_array($establishmentRole) ? $establishmentRole['role'] ?? '' : $establishmentRole?->role_id }}"
                         default_selection="{{ __('employee::general.all_establishments') }}"
                         default_selection_value="all"
-                        establishment_select_value="{{ is_array($roleWage) ? $roleWage['establishment'] ?? '' : $roleWage?->establishment->id }}"
-                        wage_value="{{ is_array($roleWage) ? $roleWage['wage'] ?? '' : $roleWage?->wage?->rate }}"
+                        establishment_select_value="{{ is_array($establishmentRole) ? $establishmentRole['establishment'] ?? '' : $establishmentRole?->establishment_id }}"
+                        wage_value="{{ is_array($establishmentRole) ? $establishmentRole['wage'] ?? '' : $establishmentRole?->wage?->rate }}"
                         :roles=$roles :establishments=$establishments />
                 @endforeach
             @endif

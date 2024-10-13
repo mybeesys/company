@@ -2,7 +2,6 @@
 {{-- employee section --}}
 <div class="d-flex flex-column flex-lg-row">
     <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
-
         <x-employee::form.form-card :title="__('employee::fields.employee_image')" bodyClass="text-center">
             <x-employee::form.image-input :errors=$errors name="image" image="{{ $employee?->image }}" />
             <div class="text-muted fs-7">@lang('employee::general.image_hint')</div>
@@ -117,19 +116,18 @@
 
         </div>
         <div class="d-flex flex-wrap">
-
+            @php
+                $administrativeUser=$employee?->administrativeUser
+            @endphp
             <x-employee::form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <label @class(['form-label'])>@lang('employee::fields.administrative_permission_set')</label>
-                <x-employee::form.select name="permissionSet" :options=$permissionSets :errors=$errors
-                    value="{{ $employee?->roles?->first()?->id }}" />
+                <x-employee::employees.dashboard-role-repeater :permissionSets=$permissionSets :establishments=$establishments :administrativeUser=$administrativeUser />
             </x-employee::form.input-div>
-
-            <x-employee::form.switch-div class="my-auto mx-10">
+            <x-employee::form.switch-div class="my-md-10 mx-md-10">
                 <input type="hidden" name="accountLocked" value="1">
                 <x-employee::form.input :errors=$errors class="form-check-input" value="0" type="checkbox"
                     labelClass="form-check-label" name="accountLocked"
                     label="{{ __('employee::general.deactivate/activate') }}"
-                    checked="{{ $employee?->administrativeUser?->accountLocked }}" />
+                    checked="{{ !$employee?->administrativeUser?->accountLocked }}" />
             </x-employee::form.switch-div>
 
         </div>

@@ -3,19 +3,53 @@ function roleRepeater() {
         initEmpty: false,
         show: function () {
             $(this).slideDown();
-
             $(this).find('select[name^="role_wage_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
         ready: function () {
-
             $('select[name^="role_wage_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
         hide: function (deleteElement) {
-            $(this).slideUp(deleteElement);
+            if ($('#role_wage_repeater [data-repeater-item]').length > 1) {
+                $(this).slideUp(deleteElement);
+            } else {
+                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                    Lang.get('general.ok'),
+                    undefined, undefined,
+                    false, "error");
+            }
+        }
+    });
+}
+
+function permissionSetRepeater() {
+    $('#dashboard_role_repeater').repeater({
+        initEmpty: false,
+        show: function () {
+            $(this).slideDown();
+
+            $(this).find('select[name^="dashboard_role_repeater"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        ready: function () {
+
+            $('select[name^="dashboard_role_repeater"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        hide: function (deleteElement) {
+            if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
+                $(this).slideUp(deleteElement);
+            } else {
+                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                    Lang.get('general.ok'),
+                    undefined, undefined,
+                    false, "error");
+            }
         }
     });
 }

@@ -3,14 +3,13 @@
 namespace Modules\Employee\Services;
 
 use Carbon\Carbon;
-use DB;
 use File;
 use Modules\Employee\Models\AdministrativeUser;
+use Modules\Employee\Models\AdministrativeUserEstablishment;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\EmployeeEstablishment;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Wage;
-use Modules\Establishment\Models\Establishment;
 
 
 class EmployeeActions
@@ -20,8 +19,11 @@ class EmployeeActions
     {
     }
 
-    public function storeUpdateAdministrativeUser($employee_id)
+    public function storeUpdateAdministrativeUser($repeaterData, $employee_id)
     {
+
+        $repeaterData = $repeaterData ? collect($repeaterData) : null;
+
         $data = [
             'employee_id' => $employee_id,
             'userName' => $this->request->get('username'),
@@ -31,13 +33,30 @@ class EmployeeActions
         if ($this->request->get('password')) {
             $data['password'] = $this->request->get('password');
         }
-        return AdministrativeUser::updateOrCreate(['employee_id' => $employee_id], $data);
+
+        $user = AdministrativeUser::updateOrCreate(['employee_id' => $employee_id], $data);
+        $administrativeUserEstablishmen_ids = [];
+        if ($repeaterData) {
+            $repeaterData->each(function ($repData) use ($user, &$administrativeUserEstablishmen_ids) {
+                $administrativeUserEstablishment = AdministrativeUserEstablishment::updateOrCreate([
+                    'user_id' => $user->id,
+                    'establishment_id' => $repData['establishment']
+                ], [
+                    'permissionSet_id' => $repData['dashboardRole']
+                ]);
+                $administrativeUserEstablishmen_ids[] = $administrativeUserEstablishment->id;
+            });
+            AdministrativeUserEstablishment::whereNotIn('id', $administrativeUserEstablishmen_ids)->delete();
+        } else {
+            AdministrativeUserEstablishment::where('user_id', $user->id)->delete();
+        }
     }
 
     public function assignRolesWagesEstablishments(array $data, $employee)
     {
         $data = collect($data);
 
+        // Global roles
         $globalRoles_ids = $data->filter(fn($item) => $item['establishment'] === 'all')
             ->pluck('role')
             ->unique()
@@ -45,6 +64,7 @@ class EmployeeActions
 
         $employee->syncRoles(Role::whereIn('id', $globalRoles_ids)->get());
 
+        // Wages and establishments
         $wages_ids = [];
         $employeeEstablishment_ids = [];
         $data->each(function ($role_wage) use ($employee, &$wages_ids, &$employeeEstablishment_ids) {
@@ -88,39 +108,49 @@ class EmployeeActions
         return $imageName;
     }
 
-    public function store($request)
+    public function store()
     {
-        $imageName = $request->has('image') ? $this->storeImage($request->image) : null;
+        $imageName = $this->request->has('image') ? $this->storeImage($this->request->image) : null;
 
-        $employee = Employee::create($request->safe()->merge([
+        $employee = Employee::create($this->request->merge([
             'image' => $imageName,
-            'employmentStartDate' => Carbon::parse($request->employmentStartDate)->format('Y-m-d')
+            'employmentStartDate' => Carbon::parse($this->request->get('employmentStartDate'))->format('Y-m-d')
         ])->all());
 
-        !empty($request->role_wage_repeater) && $this->assignRolesWagesEstablishments($request->role_wage_repeater, $employee);
+        // Hanlding employee's POS roles and wages
+        !empty($this->request->get('role_wage_repeater')) && $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee);
 
-        $request->active_managment_fields_btn &&
-            $this->storeUpdateAdministrativeUser($employee->id);
+        // Handling administrative User and their roles and establishments
+        $this->request->get('active_managment_fields_btn') &&
+            $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id);
     }
 
-    public function update($request, $employee)
+    public function update($employee)
     {
-        $request->get('active_managment_fields_btn') ?
-            $this->storeUpdateAdministrativeUser($employee->id) : $employee->administrativeUser->delete();
+        // Handling administrative User and their roles and establishments
+        $this->request->get('active_managment_fields_btn') ?
+            $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id) : $employee->administrativeUser->delete();
 
-        !empty($request->get('role_wage_repeater')) && $this->assignRolesWagesEstablishments($request->get('role_wage_repeater'), $employee);
+        // Hanlding employee's POS roles and wages
+        !empty($this->request->get('role_wage_repeater')) ? $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee) : $this->unsyncAllRoles($employee);
 
-        $imageName = $request->has('image') ? $this->storeImage($request->image, $employee->image) : null;
+        $imageName = $this->request->has('image') ? $this->storeImage($this->request->image, $employee->image) : null;
 
-        $data = $request->merge([
-            'employmentStartDate' => Carbon::parse($request->get('employmentStartDate'))->format('Y-m-d'),
-            'employmentEndDate' => $request->has('employmentEndDate') ? Carbon::parse($request->get('employmentEndDate'))->format('Y-m-d') : null
+        $data = $this->request->merge([
+            'employmentStartDate' => Carbon::parse($this->request->get('employmentStartDate'))->format('Y-m-d'),
+            'employmentEndDate' => $this->request->has('employmentEndDate') ? Carbon::parse($this->request->get('employmentEndDate'))->format('Y-m-d') : null
         ]);
 
-        $data = $imageName ? array_merge($request, [
+        $data = $imageName ? array_merge($this->request, [
             'image' => $imageName,
-        ]) : $request;
+        ]) : $this->request;
 
         return $employee->update($data->toArray());
+    }
+
+    public function unsyncAllRoles($employee)
+    {
+        Wage::where('employee_id', $employee->id)->delete();
+        $employee->syncRoles(null);
     }
 }

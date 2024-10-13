@@ -153,5 +153,5 @@
         </table>
         <!--end::Table-->
     </div>
-    <x-employee::form.form-buttons cancelUrl="{{ url('/role') }}" />
+    <x-employee::form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
 </div>

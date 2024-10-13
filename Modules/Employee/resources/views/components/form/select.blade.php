@@ -10,7 +10,8 @@
     'placeholder' => __('employee::general.select_option'),
     'default_selection' => null,
     'default_selection_value' => null,
-    'data_allow_clear' => true
+    'data_allow_clear' => true,
+    'optionName' => 'name'
 ])
 @php
     // handling repeaters errors
@@ -30,7 +31,7 @@
     <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
     @if ($options)
         @foreach ($options as $option)
-            <option value="{{ $option['id'] }}" @selected($option['id'] == $value)>{{ $option['name'] }}</option>
+            <option value="{{ $option['id'] }}" @selected($option['id'] == $value)>{{ $option["{$optionName}"] }}</option>
         @endforeach
     @endif
 </select>

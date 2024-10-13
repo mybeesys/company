@@ -15,9 +15,9 @@ class Role extends SpatieRole
         return $query->whereNotNull('department')->pluck('department');
     }
 
-    public function wages()
+    public function wage()
     {
-        return $this->hasMany(Wage::class);
+        return $this->hasOne(Wage::class)->whereNull('establishment_id');
     }
 
     public function establishments()

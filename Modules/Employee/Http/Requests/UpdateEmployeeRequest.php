@@ -16,7 +16,6 @@ class UpdateEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        // dd(request());
         return [
             'name' => ['required', 'string', 'max:50'],
             'name_en' => ['required', 'string', 'max:50'],
@@ -27,11 +26,14 @@ class UpdateEmployeeRequest extends FormRequest
             'PIN' => ['required', 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
             'image' => ['image', 'max:3072'],
             'isActive' => ['required', 'boolean'],
-            'role_wage_repeater' => ['nullable', 'array'],
-            'role_wage_repeater.*.role' => ['required_with:role_wage_repeater.*.wage', 'nullable', 'exists:roles,id'],
+            'role_wage_repeater' => ['required', 'array'],
+            'role_wage_repeater.*.role' => ['required', 'exists:roles,id'],
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'numeric'],
             'role_wage_repeater.*.establishment' => ['required', new EmployeeEstablishmentRule],
             'active_managment_fields_btn' => ['boolean'],
+            'dashboard_role_repeater' => ['required', 'array'],
+            'dashboard_role_repeater.*.dashboardRole' => ['required', 'exists:roles,id'],
+            'dashboard_role_repeater.*.establishment' => ['required', 'exists:establishment_establishments,id'],
             'accountLocked' => ['required', 'boolean'],
             'password' => ['nullable', Password::default()],
             'username' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'string', Rule::unique('employee_administrative_users', 'userName')->ignore($this->username, 'userName'), 'max:50'],

@@ -15,6 +15,7 @@
     <script>
         $(document).ready(function() {
             datePicker();
+            permissionSetRepeater();
             roleRepeater();
             administrativeUser(false);
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",

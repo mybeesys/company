@@ -60,4 +60,6 @@ class Employee extends BaseModel
         return $this->hasMany(EmployeeEstablishment::class);
     }
 
+    
+
 }

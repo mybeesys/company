@@ -4,9 +4,9 @@
 
 @section('content')
     <form id="add_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        action="{{ route('roles.store') }}">
+        action="{{ route('dashboard-roles.store') }}">
         @csrf
-        <x-employee::roles.form :departments=$departments />
+        <x-employee::dashboard-roles.form />
     </form>
 @endsection
 
@@ -14,7 +14,7 @@
     @parent
     <script>
         $(document).ready(function() {
-            roleForm('add_role_form', "{{ route('roles.create.validation') }}");
+            roleForm('add_role_form', "{{ route('dashboard-roles.create.validation') }}");
         });
 
     </script>

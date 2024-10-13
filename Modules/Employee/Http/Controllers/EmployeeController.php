@@ -62,15 +62,16 @@ class EmployeeController extends Controller
     {
         $roles = Role::all()->select('id', 'name');
         $establishments = Establishment::all()->select('id', 'name');
-        $permissionSets = PermissionSet::all()->select('id', 'name');
+        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
         return view('employee::employee.create', compact('roles', 'permissionSets', 'establishments'));
     }
 
     public function store(StoreEmployeeRequest $request)
     {
         DB::transaction(function () use ($request) {
-            $storeEmployee = new EmployeeActions($request);
-            $storeEmployee->store($request);
+            $filteredRequest = $request->safe()->collect()->filter();
+            $storeEmployee = new EmployeeActions($filteredRequest);
+            $storeEmployee->store();
         });
         return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
     }
@@ -93,14 +94,14 @@ class EmployeeController extends Controller
             'roles' => function ($query) {
                 $query->select('roles.id', 'roles.name');
             },
-            'roles.wages' => function ($query) use ($id) {
+            'roles.wage' => function ($query) use ($id) {
                 $query->select('role_id', 'rate', 'establishment_id')->where('employee_id', $id);
             },
+            'administrativeUser.permissionSets'
         ])->findOrFail($id);
-        
         $establishments = Establishment::all()->select('id', 'name');
         $roles = Role::all()->select('id', 'name');
-        $permissionSets = PermissionSet::all()->select('id', 'name');
+        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
         return view('employee::employee.edit', compact('employee', 'roles', 'permissionSets', 'establishments'));
     }
 
@@ -109,7 +110,7 @@ class EmployeeController extends Controller
         DB::transaction(function () use ($request, $employee) {
             $filteredRequest = $request->safe()->collect()->filter();
             $updateEmployee = new EmployeeActions($filteredRequest);
-            $updateEmployee->update($filteredRequest, $employee);
+            $updateEmployee->update($employee);
         });
 
         return redirect()->route('employees.index')->with('success', __('employee::responses.employee_updated_successfully'));

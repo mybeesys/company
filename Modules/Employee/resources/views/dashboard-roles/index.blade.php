@@ -1,18 +1,18 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.roles'))
+@section('title', __('menuItemLang.dashboard_roles'))
 
 @section('content')
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="role">
+            <x-employee::tables.table-header model="dashboard_role" url="dashboard-role">
                 <x-slot:export>
-                    <x-employee::tables.export-menu id="role" />
+                    <x-employee::tables.export-menu id="dashboard_role" />
                 </x-slot:export>
             </x-employee::tables.table-header>
         </x-employee::card-header>
         <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="role" />
+            <x-employee::tables.table :columns=$columns model="dashboard_role" />
         </x-employee::card-body>
     </div>
 
@@ -24,8 +24,8 @@
     <script>
         "use strict";
         let dataTable;
-        const table = $('#kt_role_table');
-        const dataUrl = '{{ route('roles.index') }}';
+        const table = $('#kt_dashboard_role_table');
+        const dataUrl = '{{ route('dashboard-roles.index') }}';
 
         pdfMake.fonts = {
             Arial: {
@@ -47,22 +47,18 @@
 
         $(document).ready(function() {
             if (!table.length) return;
+            
             initDatatable();
             exportButtons();
             handleSearchDatatable();
         });
-
-        $(document).on('click', '.restore-btn', function(e) {
-            var id = $(this).data('id');
-            ajaxRequest(`{{ url('/employee/restore/${id}') }}`, 'POST');
-        })
 
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
             var name = $(this).data('name');
             let deleteUrl =
-                `{{ url('/role/${id}') }}`;
+                `{{ url('/dashboard-roles/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     name),
@@ -87,16 +83,16 @@
                         className: 'text-start'
                     },
                     {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'department',
-                        name: 'department'
+                        data: 'permissionSetName',
+                        name: 'permissionSetName'
                     },
                     {
                         data: 'rank',
                         name: 'rank'
+                    },
+                    {
+                        data: 'isActive',
+                        name: 'isActive'
                     },
                     {
                         data: 'actions',
@@ -138,9 +134,9 @@
                         },
                     },
                 ]
-            }).container().appendTo($('#kt_role_table_buttons'));
+            }).container().appendTo($('#kt_dashboard_role_table_buttons'));
 
-            const exportButtons = $('#kt_role_table_export_menu [data-kt-export]');
+            const exportButtons = $('#kt_dashboard_role_table_export_menu [data-kt-export]');
             exportButtons.on('click', function(e) {
                 e.preventDefault();
                 const exportValue = $(this).attr('data-kt-export');

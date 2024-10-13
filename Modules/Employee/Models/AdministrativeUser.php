@@ -4,16 +4,14 @@ namespace Modules\Employee\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasRoles;
 // use Modules\Employee\Database\Factories\AdministrativeUserFactory;
 
-class AdministrativeUser extends Pivot
+class AdministrativeUser extends BaseModel
 {
     use HasFactory, HasRoles;
 
-    protected $table = "employee_administrative_users";
     /**
      * The attributes that are mass assignable.
      */
@@ -39,11 +37,11 @@ class AdministrativeUser extends Pivot
 
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class)->using(AdministrativeUserEstablishment::class)->withPivot('permissionSet_id');
+        return $this->belongsToMany(Establishment::class, 'employee_administrative_users_establishments', 'establishment_id', 'user_id')->using(AdministrativeUserEstablishment::class)->withPivot('permissionSet_id');
     }
 
-    public function permissionSet()
+    public function permissionSets()
     {
-        return $this->hasManyThrough(PermissionSet::class, AdministrativeUserEstablishment::class);
+        return $this->belongsToMany(PermissionSet::class, 'employee_administrative_users_establishments', 'user_id', 'permissionSet_id')->using(AdministrativeUserEstablishment::class)->withPivot('establishment_id');
     }
 }

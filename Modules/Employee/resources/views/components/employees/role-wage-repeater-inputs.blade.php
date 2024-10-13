@@ -11,7 +11,7 @@
 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
     <x-employee::form.input-div class="w-100">
         <x-employee::form.select name="role_wage_repeater[{{ $index }}][role]" :options="$roles" :errors="$errors"
-            value="{{ $role_select_value }}" />
+            placeholder="{{ __('employee::fields.role') }}" value="{{ $role_select_value }}" />
     </x-employee::form.input-div>
     <x-employee::form.input-div class="w-100">
         <x-employee::form.select name="role_wage_repeater[{{ $index }}][establishment]" data_allow_clear="false"

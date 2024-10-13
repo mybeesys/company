@@ -58,5 +58,8 @@ return [
     'dashboard_access' => 'الوصول للوحة التحكم',
     'add_more_roles' => 'أضف المزيد من الأدوار',
     'all' => 'الكل',
-    'all_establishments' => 'كل الأفرع'
+    'all_establishments' => 'كل الأفرع',
+    'add_dashboard_role' => 'إضافة دور للوحة التحكم',
+    'dashboard_role_search' => 'ابحث عن دور',
+    'ok' => 'حسناً'
 ];
