@@ -2,11 +2,9 @@
 
 namespace Modules\Employee\Models;
 
-use Awobaz\Compoships\Compoships;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Employee\Database\Factories\EmployeeFactory;
+use Modules\Employee\database\factories\EmployeeFactory;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasRoles;
 
