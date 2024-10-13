@@ -3,6 +3,9 @@
 namespace Modules\Establishment\database\seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Establishment\Models\Brand;
+use Modules\Establishment\Models\Division;
+use Modules\Establishment\Models\Establishment;
 
 class EstablishmentDatabaseSeeder extends Seeder
 {
@@ -11,6 +14,11 @@ class EstablishmentDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call([]);
+        Brand::firstOrCreate([]);
+        Division::firstOrCreate([
+            'divisionName' => 'test'
+        ]);
+        Establishment::firstOrCreate(['name' => 'es1']);
+        Establishment::firstOrCreate(['name' => 'es2']);
     }
 }
