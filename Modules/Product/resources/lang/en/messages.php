@@ -22,6 +22,21 @@ return [
     'Add' =>'Add',
     'Delete' => 'Delete' ,
     'Close' => 'Close' ,
-    'Do you want to delete?' =>  'Do you want to delete '
-
+    'Doyouwanttodelete' =>  'Do you want to delete ',
+    'basicInfo' => 'Basic Information',
+    'advancedInfo' => 'Advanced Settings',
+    'inventory' => 'Inventory',
+    'recipe' => 'Recipe',
+    'modifiers' => 'Modifiers',
+    'printInfo' => 'Display/Print Options',
+    'savechanges' => 'Save Changes',
+    'cancel' => 'Cancel' ,
+    'modifiers' => 'Modifiers',
+    'ModifiersList' => 'Modifiers List',
+    'AddNewmodifier' => 'Add New Modifier ',
+    'AddNewmodifierClass' => 'Add New Modifier Class',
+    'ORDER_EXIST' => 'Order Already Exist',
+    'NAME_AR_EXIST' => 'Arabic Name Already Exist',
+    'NAME_EN_EXIST' => 'English Name Already Exist',
+    'CHILD_EXIST' => 'Related Modifier Already Exist'
 ];

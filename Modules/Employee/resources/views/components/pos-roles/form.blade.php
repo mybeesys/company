@@ -155,3 +155,4 @@
     </div>
     <x-employee::form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
 </div>
+<input type="hidden" id="role_id" name="role_id" value="">

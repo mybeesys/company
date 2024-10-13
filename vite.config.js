@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+    server: {
+        host: '127.0.0.1',  // Add this to force IPv4 only
+    },
     plugins: [
         react(),
         laravel({

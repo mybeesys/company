@@ -9,13 +9,17 @@
                 <x-slot:export>
                     <x-employee::tables.export-menu id="role" />
                 </x-slot:export>
+                <a href='#' data-bs-toggle="modal" data-bs-target="#kt_modal_add_role"
+                    class="btn btn-primary">@lang('employee::general.add_role')
+                </a>
             </x-employee::tables.table-header>
         </x-employee::card-header>
         <x-employee::card-body class="table-responsive">
             <x-employee::tables.table :columns=$columns model="role" />
         </x-employee::card-body>
     </div>
-
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="add" />
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="edit" />
 @endsection
 
 @section('script')
@@ -175,5 +179,34 @@
                 dataTable.ajax.reload();
             }
         }
+
+        $('#add_role_form').submit(function(e) {
+            e.preventDefault();
+            const addUrl = "{{ route('roles.store') }}";
+            ajaxRequest(addUrl, 'POST', {
+                name: $('#name').val(),
+                rank: $('#rank').val(),
+                department: $('#department').val()
+            });
+        });
+
+        $('#edit_role_form').submit(function(e) {
+            e.preventDefault();
+            const id = $('#kt_modal_edit_role #role_id').val();
+            const updateUrl = "{{ route('roles.update', ':id') }}".replace(':id', id);
+            ajaxRequest(updateUrl, 'PATCH', {
+                name: $("#kt_modal_edit_role #name").val(),
+                rank: $("#kt_modal_edit_role #rank").val(),
+                department: $("#kt_modal_edit_role #department").val()
+            });
+        });
+
+        $(document).on('click', '.edit-btn', function(e) {
+            e.preventDefault();
+            $("#kt_modal_edit_role #role_id").val($(this).data('id'));
+            $("#kt_modal_edit_role #name").val($(this).data('name'));
+            $("#kt_modal_edit_role #rank").val($(this).data('rank'));
+            $("#kt_modal_edit_role #department").val($(this).data('department'));
+        });
     </script>
 @endsection

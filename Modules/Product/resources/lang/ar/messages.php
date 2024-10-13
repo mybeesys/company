@@ -22,5 +22,21 @@ return [
     'Add' =>'إضافة' ,
     'Delete' => 'حذف' ,
     'Close' => 'إغلاق' ,
-    'Do you want to delete' =>  ' هل أنت متأكد من حذف'
+    'Doyouwanttodelete' =>  ' هل أنت متأكد من حذف' , 
+    'basicInfo' => 'المعلومات الأساسية',
+    'advancedInfo' => 'الإعدادات المتقدمة',
+    'inventory' => 'المستودع',
+    'recipe' => 'الوصفة',
+    'modifiers' => 'المتغيرات',
+    'printInfo' => 'الإظهار والطباعة',
+    'savechanges' => 'حفظ التعديلات',
+    'cancel' => 'إلغاء',
+    'modifiers' => 'المتغيرات',
+    'ModifiersList' => 'قائمة المتغيرات',
+    'AddNewmodifier' => 'إضافة متغير جديد',
+    'AddNewmodifierClass' => 'إضافة صف متغيرات جديد',
+    'ORDER_EXIST' => 'الترتيب مكرر',
+    'NAME_AR_EXIST' => 'الاسم العربي مكرر',
+    'NAME_EN_EXIST' => 'الاسم الانكليزي مكرر',
+    'CHILD_EXIST' => 'يوجد متغيرات مرتبطة بالتصنيف'
 ];

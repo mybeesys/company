@@ -25,6 +25,26 @@ class Category extends Model
         'order'
     ];
 
+    public function getFillable(){
+        return $this->fillable;
+    }
+
+    public $type = 'category';
+    //public $childType = 'category';
+    public $childType = 'subcategory';
+    //public $childKey = 'parent_id';
+    public $childKey = 'category_id';
+
+    // public function children()
+    // {
+    //     return $this->hasMany(Category::class, 'parent_id');
+    // }
+
+    public function children()
+    {
+        return $this->hasMany(Subcategory::class, 'category_id', 'id');
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class, 'category_id', 'id');
@@ -38,10 +58,5 @@ class Category extends Model
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
-    }
-
-    public function children()
-    {
-        return $this->hasMany(Category::class, 'parent_id');
     }
 }

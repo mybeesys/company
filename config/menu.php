@@ -25,6 +25,12 @@ return [
                 'url' => '/',
                 'permission' => '',
 
+            ],
+            [
+                'name' => 'modifiers',
+                'url' => 'modifier',
+                'permission' => '',
+
             ]
         ]
     ],

@@ -32,8 +32,18 @@ class Product extends Model
         'track_serial_number',
         'image',
         'color',
-        'commissions'
+        'commissions',
+        'order'
     ];
+
+    public function getFillable(){
+        return $this->fillable;
+    }
+
+    public $type = 'product';
+    public $parentKey = 'subcategory_id';
+
+
 
     public function category()
     {
