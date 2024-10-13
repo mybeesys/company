@@ -16,7 +16,7 @@ return [
             [
 
                 'name' => 'Products',
-                'url' => 'category',
+                'url' => '/category',
                 'permission' => '' ,
 
             ],
@@ -42,17 +42,17 @@ return [
         'subMenu' => [
             [
                 'name' => 'accounting_dashboard',
-                'url' => 'accounting-dashboard',
+                'url' => '/accounting-dashboard',
                 'permission' => '',
             ],
             [
                 'name' => 'chart_of_accounts',
-                'url' => 'tree-of-accounts',
+                'url' => '/tree-of-accounts',
                 'permission' => '',
             ],
             [
                 'name' => 'journalEntry',
-                'url' => 'journal-entry-index',
+                'url' => '/journal-entry-index',
                 'permission' => '',
             ],
 
@@ -79,7 +79,7 @@ return [
     [
 
         'name' => 'employees_management_module',
-        'url' => '/',
+        'url' => '',
         'icon' => 'fas fa-id-card',
         'permission' => '',
         'subMenu' => [
@@ -94,8 +94,13 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'roles',
-                'url' => '/role',
+                'name' => 'pos_roles',
+                'url' => '/pos-role',
+                'permission' => '',
+            ],
+            [
+                'name' => 'dashboard_roles',
+                'url' => '/dashboard-role',
                 'permission' => '',
             ],
             [

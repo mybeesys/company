@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employee_administrative_users_establishments', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('user_id')->constrained('employee_administrative_users')->cascadeOnDelete();
             $table->foreignId('establishment_id')->constrained('establishment_establishments')->cascadeOnDelete()->name('fk_establishment_id');
             $table->foreignId('permissionSet_id')->constrained('employee_permission_sets')->cascadeOnDelete()->name('fk_permission_set_id');
-            $table->primary(['user_id','establishment_id']);
+            $table->unique(['user_id','establishment_id'], 'est_user_unique');
             $table->timestamps();
         });
     }

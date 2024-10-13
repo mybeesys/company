@@ -1,20 +1,84 @@
 function roleRepeater() {
-    $('#role-wage-repeater').repeater({
+    $('#role_wage_repeater').repeater({
         initEmpty: false,
         show: function () {
             $(this).slideDown();
-
-            $(this).find('select[data-kt-repeater="roles"]').select2({
+            $(this).find('select[name^="role_wage_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
         ready: function () {
-            $('select[data-kt-repeater="roles"]').select2({
+            $('select[name^="role_wage_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
         hide: function (deleteElement) {
-            $(this).slideUp(deleteElement);
+            if ($('#role_wage_repeater [data-repeater-item]').length > 1) {
+                $(this).slideUp(deleteElement);
+            } else {
+                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                    Lang.get('general.ok'),
+                    undefined, undefined,
+                    false, "error");
+            }
+        }
+    });
+}
+
+function permissionSetRepeater() {
+    $('#dashboard_role_repeater').repeater({
+        initEmpty: false,
+        show: function () {
+            $(this).slideDown();
+
+            $(this).find('select[name^="dashboard_role_repeater"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        ready: function () {
+
+            $('select[name^="dashboard_role_repeater"]').select2({
+                minimumResultsForSearch: -1,
+            });
+        },
+        hide: function (deleteElement) {
+            if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
+                $(this).slideUp(deleteElement);
+            } else {
+                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                    Lang.get('general.ok'),
+                    undefined, undefined,
+                    false, "error");
+            }
+        }
+    });
+}
+
+
+function administrativeUser(administrativeUser) {
+
+    if (administrativeUser) {
+        $('#dashboard_managment_access').collapse('toggle');
+        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('[name="username"]').prop('required', true);
+    }
+
+    $('.active-managment-fields').on('click', function (e) {
+        if ($(this).attr("aria-expanded") == 'true') {
+            $('#active_managment_fields_btn').prop('checked', true);
+            $('#active_managment_fields_btn').val(1);
+
+            if (!administrativeUser) {
+                $('[name="password"]').prop('required', true);
+            }
+            $('[name="username"]')
+                .prop('required', true);
+
+        } else {
+            $('#active_managment_fields_btn').prop('checked', false);
+            $('#active_managment_fields_btn').val(0);
+            $('[name="password"], [name="username"]')
+                .prop('required', false);
         }
     });
 }
@@ -24,11 +88,15 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
 
+    $('[name="permissionSet"]').select2({
+        minimumResultsForSearch: -1
+    });
+
     $('#isActive').on("change", function () {
         if ($(this).is(':checked')) {
             $(this).val(1);
         } else {
-            showAlert(Lang.get('responses.change_status_warning'),
+            showAlert(Lang.get('responses.change_employee_status_warning'),
                 Lang.get('general.diactivate'),
                 Lang.get('general.cancel'), undefined,
                 true, "warning").then(function (t) {
@@ -49,6 +117,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
 
     $('#generate_pin').on('click', function (e) {
         e.preventDefault();
+        $('#PIN').removeClass('is-invalid');
         $.ajax({
             url: generatePinUrl,
             type: 'GET',
@@ -79,17 +148,20 @@ function employeeForm(id, validationUrl, generatePinUrl) {
             success: function () {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
+                input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 $('#image_error').removeClass('d-block');
                 checkErrors();
             },
             error: function (response) {
                 input.siblings('.invalid-feedback').remove();
                 input.removeClass('is-invalid');
+                input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 $('#image_error').removeClass('d-block');
                 if (response.responseJSON) {
                     let errorMsg = response.responseJSON.errors[field];
                     if (errorMsg) {
                         input.addClass('is-invalid');
+                        input.siblings('.select2-container').find('.select2-selection').addClass('is-invalid');
                         if (input.attr('type') === 'file') {
                             input.closest('div').after(
                                 '<div class="invalid-feedback d-block" id="image_error">' +
@@ -103,7 +175,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
             }
         });
     }
-    
+
     function checkErrors() {
         if ($('.is-invalid').length > 0) {
             saveButton.prop('disabled', true);
@@ -112,18 +184,29 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         }
     }
 
-    $('.active-managment-fields').on('click', function (e) {
-        if ($(this).attr("aria-expanded") == 'true') {
-            $('#active-managment-fields-btn').prop('checked', true);
-            $('#active-managment-fields-btn').val(1);
-            $('[name="password"], [name="password_confirmation"], [name="userEmail"], [name="username"]')
-                .prop('required', true);
+    function validateRoleRequirement() {
+        $('#role_wage_repeater [data-repeater-item]').each(function () {
+            const wageInput = $(this).find('input[name*="[wage]"]');
+            const roleSelect = $(this).find('select[name*="[role]"]');
 
-        } else {
-            $('#active-managment-fields-btn').prop('checked', false);
-            $('#active-managment-fields-btn').val(0);
-            $('[name="password"], [name="password_confirmation"], [name="userEmail"], [name="username"]')
-                .prop('required', false);
-        }
+            // Check if wage input has value
+            if (wageInput.val()) {
+                roleSelect.attr('required', true);
+                // Optionally add an invalid class if it doesn't have a selected value
+                if (!roleSelect.val()) {
+                    roleSelect.addClass('is-invalid');
+                } else {
+                    roleSelect.removeClass('is-invalid');
+                }
+            } else {
+                roleSelect.attr('required', false);
+                roleSelect.removeClass('is-invalid'); // Remove invalid class if wage is empty
+            }
+        });
+    }
+
+
+    $('#role_wage_repeater').on('input change', 'input[name*="[wage]"], select change', function () {
+        validateRoleRequirement();
     });
 }

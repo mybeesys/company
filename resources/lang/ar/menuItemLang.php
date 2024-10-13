@@ -20,8 +20,8 @@ return [
     'employees' => 'الموظفون',
     'employees-dashboard' => 'لوحة تحكم الموظفين',
     'permissions' => 'الأذونات',
-    'modifiers' => 'المتغيرات'
-
-
+    'modifiers' => 'المتغيرات',
+    'pos_roles' => 'أدوار نقاط البيع',
+    'dashboard_roles' => 'أدوار لوحة التحكم',
 
 ];

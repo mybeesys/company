@@ -1,24 +1,25 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
-@section('content')
+@section('title', __('menuItemLang.pos_roles'))
 
+@section('content')
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="employee" url="employee">
-                <x-slot:filters>
-                    <x-employee::tables.filters-dropdown />
-                </x-slot:filters>
+            <x-employee::tables.table-header model="role" url="pos-role">
                 <x-slot:export>
-                    <x-employee::tables.export-menu id="employee" />
+                    <x-employee::tables.export-menu id="role" />
                 </x-slot:export>
+                <a href='#' data-bs-toggle="modal" data-bs-target="#kt_modal_add_role"
+                    class="btn btn-primary">@lang('employee::general.add_role')
+                </a>
             </x-employee::tables.table-header>
         </x-employee::card-header>
-
         <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="employee" />
+            <x-employee::tables.table :columns=$columns model="role" />
         </x-employee::card-body>
     </div>
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="add" />
+    <x-employee::roles.add-edit-role-modal :departments=$departments action="edit" />
 @endsection
 
 @section('script')
@@ -27,8 +28,9 @@
     <script>
         "use strict";
         let dataTable;
-        const table = $('#kt_employee_table');
-        const dataUrl = '{{ route('employees.index') }}';
+        const table = $('#kt_role_table');
+        const dataUrl = '{{ route('roles.index') }}';
+
         pdfMake.fonts = {
             Arial: {
                 normal: 'ARIAL.TTF',
@@ -52,24 +54,14 @@
             initDatatable();
             exportButtons();
             handleSearchDatatable();
-            handleFormFiltersDatatable();
-            $('[name="status"], [name="deleted_records"]').select2({
-                minimumResultsForSearch: -1
-            });
         });
-
-        $(document).on('click', '.restore-btn', function(e) {
-            var id = $(this).data('id');
-            ajaxRequest(`{{ url('/employee/restore/${id}') }}`, 'POST');
-        })
 
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
             var name = $(this).data('name');
-            let deleteUrl = $(this).data('deleted') ?
-                `{{ url('/employee/force-delete/${id}') }}` :
-                `{{ url('/employee/${id}') }}`;
+            let deleteUrl =
+                `{{ url('/role/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     name),
@@ -91,30 +83,19 @@
                 columns: [{
                         data: 'id',
                         name: 'id',
+                        className: 'text-start'
                     },
                     {
                         data: 'name',
                         name: 'name'
                     },
                     {
-                        data: 'name_en',
-                        name: 'name_en'
+                        data: 'department',
+                        name: 'department'
                     },
                     {
-                        data: 'phoneNumber',
-                        name: 'phoneNumber'
-                    },
-                    {
-                        data: 'employmentStartDate',
-                        name: 'employmentStartDate'
-                    },
-                    {
-                        data: 'employmentEndDate',
-                        name: 'employmentEndDate'
-                    },
-                    {
-                        data: 'isActive',
-                        name: 'isActive'
+                        data: 'rank',
+                        name: 'rank'
                     },
                     {
                         data: 'actions',
@@ -137,13 +118,13 @@
                 buttons: [{
                         extend: 'excelHtml5',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                     },
                     {
                         extend: 'pdf',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                         customize: function(doc) {
                             doc.defaultStyle.font = 'Arial';
@@ -152,13 +133,13 @@
                     {
                         extend: 'print',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3]
                         },
                     },
                 ]
-            }).container().appendTo($('#kt_employee_table_buttons'));
+            }).container().appendTo($('#kt_role_table_buttons'));
 
-            const exportButtons = $('#kt_employee_table_export_menu [data-kt-export]');
+            const exportButtons = $('#kt_role_table_export_menu [data-kt-export]');
             exportButtons.on('click', function(e) {
                 e.preventDefault();
                 const exportValue = $(this).attr('data-kt-export');
@@ -173,37 +154,12 @@
             });
         };
 
-        function handleFormFiltersDatatable() {
-            const filters = $('[data-kt-filter="filter"]');
-            const resetButton = $('[data-kt-filter="reset"]');
-            const status = $('[data-kt-filter="status"]');
-            const deleted = $('[data-kt-filter="deleted_records"]');
-
-            filters.on('click', function(e) {
-                const deletedValue = deleted.val();
-
-                dataTable.ajax.url('{{ route('employees.index') }}?' + $.param({
-                    deleted_records: deletedValue
-                })).load();
-
-                const statusValue = status.val();
-                dataTable.column(6).search(statusValue).draw();
-            });
-
-            resetButton.on('click', function(e) {
-                status.val(null).trigger('change');
-                deleted.val(null).trigger('change');
-                dataTable.search('').columns().search('').ajax.url(dataUrl)
-                    .load();
-            });
-        };
-
-        function ajaxRequest(url, method) {
+        function ajaxRequest(url, method, data = {}) {
+            data._token = "{{ csrf_token() }}";
             $.ajax({
                 url: url,
-                data: {
-                    "_token": "{{ csrf_token() }}"
-                },
+                data: data,
+                dataType: "json",
                 type: method,
                 success: handleAjaxResponse,
                 error: errorAlert
@@ -223,5 +179,34 @@
                 dataTable.ajax.reload();
             }
         }
+
+        $('#add_role_form').submit(function(e) {
+            e.preventDefault();
+            const addUrl = "{{ route('roles.store') }}";
+            ajaxRequest(addUrl, 'POST', {
+                name: $('#name').val(),
+                rank: $('#rank').val(),
+                department: $('#department').val()
+            });
+        });
+
+        $('#edit_role_form').submit(function(e) {
+            e.preventDefault();
+            const id = $('#kt_modal_edit_role #role_id').val();
+            const updateUrl = "{{ route('roles.update', ':id') }}".replace(':id', id);
+            ajaxRequest(updateUrl, 'PATCH', {
+                name: $("#kt_modal_edit_role #name").val(),
+                rank: $("#kt_modal_edit_role #rank").val(),
+                department: $("#kt_modal_edit_role #department").val()
+            });
+        });
+
+        $(document).on('click', '.edit-btn', function(e) {
+            e.preventDefault();
+            $("#kt_modal_edit_role #role_id").val($(this).data('id'));
+            $("#kt_modal_edit_role #name").val($(this).data('name'));
+            $("#kt_modal_edit_role #rank").val($(this).data('rank'));
+            $("#kt_modal_edit_role #department").val($(this).data('department'));
+        });
     </script>
 @endsection

@@ -1,5 +1,5 @@
 @props(['label', 'name', 'hint' => null, 'errors', 'required' => false, 'value' => null])
-<label class="required form-label">{{ $label }}</label>
+<label @class(['required' => $required, 'form-label'])>{{ $label }}</label>
 @includeWhen($hint, 'employee::components.forms.field-hint', ['hint' => $hint])
 <div class="input-group" id="{{ $name }}" data-td-target-input="nearest" data-td-target-toggle="nearest">
     <span class="input-group-text" data-td-target="#{{ $name }}" data-td-toggle="datetimepicker">

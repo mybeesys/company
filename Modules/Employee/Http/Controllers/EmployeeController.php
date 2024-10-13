@@ -10,13 +10,14 @@ use Modules\Employee\Classes\Tables;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\PermissionSet;
 use Modules\Employee\Models\Role;
+use Modules\Employee\Services\EmployeeActions;
+use Modules\Establishment\Models\Establishment;
 
 class EmployeeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index(Request $request)
     {
         $local = session()->get('locale');
@@ -38,11 +39,9 @@ class EmployeeController extends Controller
     function generatePin()
     {
         $number = mt_rand(10000, 99999);
-
         if ($this->barcodeNumberExists($number)) {
             return $this->generatePin();
         }
-
         return response()->json(['data' => $number]);
     }
 
@@ -59,95 +58,62 @@ class EmployeeController extends Controller
     {
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $roles = Role::all()->select('id', 'name');
-        return view('employee::employee.create', compact('roles'));
+        $establishments = Establishment::all()->select('id', 'name');
+        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
+        return view('employee::employee.create', compact('roles', 'permissionSets', 'establishments'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreEmployeeRequest $request)
     {
-        DB::beginTransaction();
-        
-        if ($request->has('image')) {
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->storeAs('profile_pictures', $imageName, 'public');
-        } else {
-            $imageName = null;
-        }
-
-        $employee = Employee::create($request->safe()->merge(['image' => "profile_pictures/{$imageName}"])->all());
-        
-        if ($request->has('role')) {
-            $role = Role::findOrFail($request->role);
-            $employee->assignRole($role);
-        }
-
-        DB::commit();
-        if ($employee) {
-            return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
-        } else {
-            return redirect()->route('employees.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        DB::transaction(function () use ($request) {
+            $filteredRequest = $request->safe()->collect()->filter();
+            $storeEmployee = new EmployeeActions($filteredRequest);
+            $storeEmployee->store();
+        });
+        return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
     }
 
-    /**
-     * Show the specified resource.
-     */
     public function show(Employee $employee)
     {
         return view('employee::employee.show', compact('employee'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Employee $employee)
+    public function edit(int $id)
     {
+        $employee = Employee::with([
+            'establishmentsPivot',
+            'establishmentsPivot.wage' => function ($query) {
+                $query->select('id', 'rate');
+            },
+            'establishmentsPivot.establishment' => function ($query) {
+                $query->select('id', 'name');
+            },
+            'roles' => function ($query) {
+                $query->select('roles.id', 'roles.name');
+            },
+            'roles.wage' => function ($query) use ($id) {
+                $query->select('role_id', 'rate', 'establishment_id')->where('employee_id', $id);
+            },
+            'administrativeUser.permissionSets'
+        ])->findOrFail($id);
+        $establishments = Establishment::all()->select('id', 'name');
         $roles = Role::all()->select('id', 'name');
-        return view('employee::employee.edit', compact('employee', 'roles'));
+        $permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
+        return view('employee::employee.edit', compact('employee', 'roles', 'permissionSets', 'establishments'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
-        DB::beginTransaction();
-        $filteredRequest = array_filter($request->safe()->all(), function ($value) {
-            return !is_null($value);
+        DB::transaction(function () use ($request, $employee) {
+            $filteredRequest = $request->safe()->collect()->filter();
+            $updateEmployee = new EmployeeActions($filteredRequest);
+            $updateEmployee->update($employee);
         });
 
-        if ($request->has('role')) {
-            $role = Role::findById($request->role);
-            if ($employee->roles()->first() && $employee->roles()->first()->id != $request->role) {
-                $employee->removeRole($employee->roles()->first());
-            }
-            $employee->assignRole($role);
-        }
-
-        if ($request->has('image')) {
-            $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $employee->image);
-            File::exists($oldPath) ?? File::delete($oldPath);
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->storeAs('profile_pictures', $imageName, 'public');
-
-            $updated = $employee->update(array_merge($filteredRequest, ['image' => "profile_pictures/{$imageName}"]));
-        } else {
-            $updated = $employee->update($filteredRequest);
-        }
-        DB::commit();
-        if ($updated) {
-            return redirect()->route('employees.index')->with('success', __('employee::responses.employee_updated_successfully'));
-        } else {
-            return redirect()->route('employees.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        return redirect()->route('employees.index')->with('success', __('employee::responses.employee_updated_successfully'));
     }
 
     public function restore($id)
@@ -159,9 +125,7 @@ class EmployeeController extends Controller
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function softDelete(Employee $employee)
     {
         $delete = $employee->delete();

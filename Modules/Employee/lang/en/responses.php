@@ -9,5 +9,8 @@ return [
     'role_created_successfully' => 'The role has been created successfully',
     'employee_updated_successfully' => 'The employee has been updated successfully',
     'role_updated_successfully' => 'The role has been updated successfully',
-    'change_status_warning' => 'When the employee is deactivated, they will be deactivated in all establishments'
+    'change_employee_status_warning' => 'When the employee is deactivated, they will be deactivated in all establishments',
+    'employee_establishment_rule_fail' => 'An exsisting establishment must be selected or choose all establishments',
+    'emptyRepeaterwarning' => 'Sorry, you can\'t delete all elements'
+
 ];

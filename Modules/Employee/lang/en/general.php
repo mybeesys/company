@@ -57,4 +57,7 @@ return [
     'dashboard_managment_access' => 'Dashboard managment access',
     'dashboard_access' => 'Dashboard access',
     'add_more_roles' => 'Add more roles',
+    'all' => 'All',
+    'all_establishments' => 'All establishments',
+    'ok' => 'Ok'
 ];

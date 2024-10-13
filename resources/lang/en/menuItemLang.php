@@ -20,7 +20,9 @@ return [
     'employees' => 'Employees',
     'employees-dashboard' => 'Employees dashboard',
     'permissions' => 'Permissions',
-    'modifiers' => 'Modifiers'
+    'modifiers' => 'Modifiers',
+    'pos_roles' => 'POS roles',
+    'dashboard_roles' => 'Dashboard roles',
 
 
 

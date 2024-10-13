@@ -4,10 +4,10 @@
 
 @section('content')
     <form id="edit_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        action="{{ route('roles.update', ['role' => $role]) }}">
+        action="{{ route('dashboard-roles.update', ['dashboardRole' => $dashboardRole]) }}">
         @method('patch')
         @csrf
-        <x-employee::roles.form :role=$role :departments=$departments/>
+        <x-employee::dashboard-roles.form :dashboardRole=$dashboardRole/>
     </form>
 @endsection
 
@@ -15,7 +15,7 @@
     @parent
     <script>
         $(document).ready(function() {
-            roleForm('edit_role_form', "{{ route('roles.update.validation') }}");
+            roleForm('edit_role_form', "{{ route('dashboard-roles.update.validation') }}");
         });
     </script>
 @endsection
