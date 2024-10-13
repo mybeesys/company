@@ -9,17 +9,12 @@
                 <x-slot:export>
                     <x-employee::tables.export-menu id="role" />
                 </x-slot:export>
-                <a href='#' data-bs-toggle="modal" data-bs-target="#kt_modal_add_role"
-                    class="btn btn-primary">@lang('employee::general.add_role')
-                </a>
             </x-employee::tables.table-header>
         </x-employee::card-header>
         <x-employee::card-body class="table-responsive">
             <x-employee::tables.table :columns=$columns model="role" />
         </x-employee::card-body>
     </div>
-    <x-employee::roles.add-edit-role-modal :departments=$departments action="add" />
-    <x-employee::roles.add-edit-role-modal :departments=$departments action="edit" />
 @endsection
 
 @section('script')
