@@ -13,6 +13,7 @@
 
 @section('script')
     @parent
+    <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
     <script>
         $(document).ready(function() {
             roleForm('edit_role_form', "{{ route('roles.update.validation') }}");

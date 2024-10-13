@@ -17,8 +17,6 @@ function roleForm(id, validationUrl) {
             url: validationUrl,
             type: 'POST',
             data: formData,
-            processData: false,
-            contentType: false,
             success: function() {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
