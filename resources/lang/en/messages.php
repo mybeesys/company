@@ -18,6 +18,8 @@ return [
     'no_cost_centers' => 'No added cost centers!',
     'settings' => 'Settings',
     'save'=>'Save',
+    'actions' => 'Actions',
+
 
 
 
