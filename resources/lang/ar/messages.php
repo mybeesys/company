@@ -16,9 +16,9 @@ return [
     'add' => 'إضافة',
     'no_cost_centers' => 'لا يوجد مراكز تكلفة مضافة!',
     'settings' => 'إعدادات',
-    'save'=>'حفظ',
-    'deactivate'=>'إلغاء تنشيط',
-
+    'save' => 'حفظ',
+    'deactivate' => 'إلغاء تنشيط',
+    'actions' => 'العمليات',
 
 
 

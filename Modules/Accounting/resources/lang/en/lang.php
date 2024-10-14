@@ -114,6 +114,8 @@ return [
     'The journal entry is unbalanced with a difference of' => 'The journal entry is unbalanced with a difference of',
     'The journal entry is unbalanced with a difference between debit and credit.' => 'The journal entry is unbalanced with a difference between debit and credit.',
     'Error in the process' => 'Error in the process',
+    'type'=>'Type',
+
 
 
 

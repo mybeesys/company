@@ -20,7 +20,9 @@ class JournalEntryController extends Controller
      */
     public function index()
     {
-        return view('accounting::journalEntry.index');
+     $acc_trans_mapping =  AccountingAccTransMapping::all();
+
+        return view('accounting::journalEntry.index',compact('acc_trans_mapping'));
     }
 
     /**
@@ -50,11 +52,11 @@ class JournalEntryController extends Controller
         $user_id = Auth::user()->id;
 
         $ref_number = $request->get('ref_number');
+        return   $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
 
         if (empty($ref_number)) {
 
-            $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
-            
+
         }
         $acc_trans_mapping = new AccountingAccTransMapping();
         if ($request->hasFile('attachment')) {

@@ -381,10 +381,11 @@ class AccountingUtil
     {
 
         $AAT = AccountingAccountsTransaction::where('sub_type', $type)->latest()->first()->accTransMapping;
+          
+        $currentYear = date('Y');
         if ($AAT) {
             $last_ref_no = $AAT->ref_no;
 
-            $currentYear = date('Y');
 
             list($year, $number) = explode('/', $last_ref_no);
 
@@ -397,6 +398,6 @@ class AccountingUtil
 
             return $new_ref_no;
         }
-        return false;
+        return  $new_ref_no = $currentYear . '/0001';
     }
 }
