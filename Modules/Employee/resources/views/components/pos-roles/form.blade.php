@@ -8,8 +8,8 @@
                     value="{{ $role?->name }}" name="name" :label="__('employee::fields.name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}"
-                    name="department" :label="__('employee::fields.department')">
+                <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}" name="department"
+                    :label="__('employee::fields.department')">
                     <x-slot:datalist>
                         <datalist id="departmentlist">
                             @isset($departments)
@@ -28,10 +28,19 @@
         </div>
     </x-form.form-card>
     <x-form.form-card :title="__('employee::main.permissions')" bodyClass="d-flex flex-column flex-md-row justify-content-between">
-        <div class="table-responsive w-100">
-            <table class="table table-row-dashed border-gray-300 align-middle gy-6">
+        <div class="table-responsive ">
+            <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
+                <x-tables.table-header model="permission" module="employee" :export="false" :addButton="false" />
+            </x-cards.card-header>
+            <table class="table table-row-dashed border-gray-300 align-middle gy-6" id="role-permission-table">
                 <thead>
-                    <tr class="w-100">
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody class="fs-6 fw-semibold">
@@ -44,15 +53,20 @@
                                 </td>
                                 <td>
                                     <x-form.input-div class="form-check form-check-custom form-check-solid">
-                                        <x-form.input :errors=$errors class="form-check-input mx-5"
-                                            type="checkbox"
+                                        <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
                                             value="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'all' : $permission->id }}"
                                             name="permissions[{{ $permission->id }}]" :form_control="false"
                                             checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions->first()->name == 'Select all permissions' }}"
-                                            attribute='{{ $permission->getAttributes()["name"] === "select_all_permissions" ? "data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id={$permission->id}" : "data-select-all=permissions" }}' />
+                                            attribute="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=permissions' }}" />
                                     </x-form.input-div>
                                 </td>
                             @endforeach
+
+
+                            @for ($i = count($permissionChunk); $i < 3; $i++)
+                                <td></td>
+                                <td></td>
+                            @endfor
                         </tr>
                     @endforeach
                 </tbody>

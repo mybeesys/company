@@ -61,5 +61,6 @@ return [
     'all_establishments' => 'كل الأفرع',
     'add_dashboard_role' => 'إضافة دور للوحة التحكم',
     'dashboard_role_search' => 'ابحث عن دور',
-    'ok' => 'حسناً'
+    'ok' => 'حسناً',
+    'permission_search' => 'ابحث عن أذن'
 ];

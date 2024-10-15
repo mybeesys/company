@@ -59,5 +59,6 @@ return [
     'add_more_roles' => 'Add more roles',
     'all' => 'All',
     'all_establishments' => 'All establishments',
-    'ok' => 'Ok'
+    'ok' => 'Ok',
+    'permission_search' => 'Search for permission'
 ];

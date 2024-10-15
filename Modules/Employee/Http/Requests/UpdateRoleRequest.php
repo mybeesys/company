@@ -16,6 +16,8 @@ class UpdateRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:50', Rule::unique('roles', 'name')->ignore($this->name, 'name')],
             'department' => ['nullable', 'string', 'max:50'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
+            'permissions' => ['array', 'nullable'],
+            'permissions.*' => ['integer', 'exists:permissions,id']
         ];
     }
 

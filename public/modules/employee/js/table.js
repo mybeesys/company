@@ -43,7 +43,7 @@ function exportButtons(columns, id) {
 
 function handleSearchDatatable() {
     const filterSearch = $('[data-kt-filter="search"]');
-    filterSearch.on('keyup', function(e) {
+    filterSearch.on('keyup', function(e) {        
         dataTable.search(e.target.value).draw();
     });
 };

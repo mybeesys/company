@@ -93,10 +93,20 @@ class PosRoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreRoleRequest $request, Role $role)
+    public function update(UpdateRoleRequest $request, Role $role)
     {
         DB::beginTransaction();
-        $updated = $role->update($request->safe()->all());
+        $request = $request->safe();
+        $updated = $role->update($request->all());
+
+        if ($request->has('permissions')) {
+            $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
+            $permissions = collect($request->permissions)->map(function ($value) {
+                return (int) $value;
+            });
+            $permissions->contains($selectAllPermission->id) ? $role->syncPermissions([$selectAllPermission->id]) : $role->syncPermissions($permissions);
+        }
+
         DB::commit();
         if ($updated) {
             return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));

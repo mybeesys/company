@@ -21,19 +21,13 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
+    <script src="{{ url('modules/employee/js/table.js') }}"></script>
     <script>
+        let dataTable;
         $(document).ready(function() {
             roleForm('add_role_form', "{{ route('roles.create.validation') }}");
-            $('form').on('submit', function(event) {            
-                const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
-
-                if (selectAllCheckbox.is(':checked')) {
-                    const dataId = $('input[type="checkbox"][value="all"]').data('id');                         
-                    const selectAllPermissionId = dataId;
-                    $('input[type="checkbox"][value!="all"]').prop('disabled', true);
-                    selectAllCheckbox.val(selectAllPermissionId);
-                }
-            });
+            RolePermissionForm();
+            handleSearchDatatable();
         });
     </script>
 @endsection
