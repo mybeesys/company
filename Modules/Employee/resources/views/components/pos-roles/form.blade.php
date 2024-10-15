@@ -48,7 +48,7 @@
                                             type="checkbox"
                                             value="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'all' : $permission->id }}"
                                             name="permissions[{{ $permission->id }}]" :form_control="false"
-                                            checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions->contains(2) }}"
+                                            checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions->first()->name == 'Select all permissions' }}"
                                             attribute='{{ $permission->getAttributes()["name"] === "select_all_permissions" ? "data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id={$permission->id}" : "data-select-all=permissions" }}' />
                                     </x-form.input-div>
                                 </td>

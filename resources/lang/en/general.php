@@ -6,5 +6,9 @@ return [
     'print' => 'Print',
     'please_wait' => 'Please wait',
     'save' => 'Save',
-    'cancel' => 'Cancel'
+    'cancel' => 'Cancel',
+    'filters' => 'Filters',
+    'apply' => 'Apply',
+    'reset' => 'Reset',
+
 ];
