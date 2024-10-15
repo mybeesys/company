@@ -7,7 +7,9 @@
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="employee" url="employee/create" module="employee">
                 <x-slot:filters>
-                    <x-employee::filters-dropdown />
+                    <x-tables.filters-dropdown>
+                        <x-employee::employees.filters />
+                    </x-tables.filters-dropdown>
                 </x-slot:filters>
                 <x-slot:export>
                     <x-tables.export-menu id="employee" />
