@@ -25,7 +25,7 @@
     </div>
     {{ $slot }}
     @if ($slot->isEmpty())
-        <a href="{{ url("/{$url}/create") }}" class="btn btn-primary">@lang("{$module}::general.add_{$model}")
+        <a href="{{ url("/{$url}") }}" class="btn btn-primary">@lang("{$module}::general.add_{$model}")
         </a>
     @endif
 </div>
