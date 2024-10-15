@@ -4,10 +4,10 @@
 @section('content')
 
     <div class="card card-flush">
-        <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="employee" url="employee">
+        <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
+            <x-tables.table-header model="employee" url="employee" module="employee">
                 <x-slot:filters>
-                    <x-tables.filters-dropdown />
+                    <x-employee::filters-dropdown />
                 </x-slot:filters>
                 <x-slot:export>
                     <x-tables.export-menu id="employee" />
@@ -15,7 +15,7 @@
             </x-employee::tables.table-header>
         </x-employee::card-header>
 
-        <x-employee::card-body class="table-responsive">
+        <x-cards.card-body class="table-responsive">
             <x-tables.table :columns=$columns model="employee" />
         </x-employee::card-body>
     </div>

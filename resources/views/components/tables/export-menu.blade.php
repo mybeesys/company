@@ -5,17 +5,17 @@
     <!--begin::Menu item-->
     <div class="menu-item px-3">
         <a href="#" class="menu-link px-3" data-kt-export="excel">
-            @lang('employee::general.export_as_excel')
+            @lang('general.export_as_excel')
         </a>
     </div>
     <div class="menu-item px-3">
         <a href="#" class="menu-link px-3" data-kt-export="pdf">
-            @lang('employee::general.export_as_pdf')
+            @lang('general.export_as_pdf')
         </a>
     </div>
     <div class="menu-item px-3">
         <a href="#" class="menu-link px-3" data-kt-export="print">
-            @lang('employee::general.print')
+            @lang('general.print')
         </a>
     </div>
 </div>

@@ -5,7 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
-use Modules\Employee\Classes\Tables;
+use Modules\Employee\Classes\PosRoleTable;
 use Modules\Employee\Http\Requests\StoreRoleRequest;
 use Modules\Employee\Http\Requests\UpdateRoleRequest;
 use Modules\Employee\Models\Permission;
@@ -21,9 +21,9 @@ class PosRoleController extends Controller
         if ($request->ajax()) {
             $roles = Role::
                 select('id', 'name', 'guard_name', 'department', 'rank');
-            return Tables::getRoleTable($roles);
+            return PosRoleTable::getRoleTable($roles);
         }
-        $columns = Tables::getRoleColumns();
+        $columns = PosRoleTable::getRoleColumns();
         return view('employee::pos-roles.index', compact('columns'));
     }
 

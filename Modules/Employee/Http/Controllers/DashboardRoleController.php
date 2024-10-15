@@ -5,7 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
-use Modules\Employee\Classes\Tables;
+use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
 use Modules\Employee\Models\PermissionSet;
@@ -20,9 +20,9 @@ class DashboardRoleController extends Controller
         if ($request->ajax()) {
             $dashboardRoles = PermissionSet::
                 select('id', 'permissionSetName', 'isActive', 'rank');
-            return Tables::getDashboardRoleTable($dashboardRoles);
+            return DashboardRoleTable::getDashboardRoleTable($dashboardRoles);
         }
-        $columns = Tables::getDashboardRoleColumns();
+        $columns = DashboardRoleTable::getDashboardRoleColumns();
         return view('employee::dashboard-roles.index', compact('columns'));
     }
 
