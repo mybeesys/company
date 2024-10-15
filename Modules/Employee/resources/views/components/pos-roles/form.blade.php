@@ -6,7 +6,7 @@
                 <x-form.input required :errors=$errors
                     placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
                     value="{{ $role?->name }}" name="name" :label="__('employee::fields.name')" />
-            </x-employee::form.input-div>
+            </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}"
                     name="department" :label="__('employee::fields.department')">
@@ -19,14 +19,14 @@
                             @endisset
                         </datalist>
                     </x-slot:datalist>
-                </x-employee::form.input>
-            </x-employee::form.input-div>
+                </x-form.input>
+            </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
                     value="{{ $role?->rank }}" name="rank" :label="__('employee::fields.rank')" />
-            </x-employee::form.input-div>
+            </x-form.input-div>
         </div>
-    </x-employee::form.form-card>
+    </x-form.form-card>
     <x-form.form-card :title="__('employee::main.permissions')" bodyClass="d-flex flex-column flex-md-row justify-content-between">
         <div class="table-responsive w-100">
             <table class="table table-row-dashed border-gray-300 align-middle gy-6">
@@ -50,7 +50,7 @@
                                             name="permissions[{{ $permission->id }}]" :form_control="false"
                                             checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions->contains(2) }}"
                                             attribute='{{ $permission->getAttributes()["name"] === "select_all_permissions" ? "data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id={$permission->id}" : "data-select-all=permissions" }}' />
-                                    </x-employee::form.input-div>
+                                    </x-form.input-div>
                                 </td>
                             @endforeach
                         </tr>
@@ -58,7 +58,7 @@
                 </tbody>
             </table>
         </div>
-    </x-employee::form.form-card>
+    </x-form.form-card>
     <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
 </div>
 <input type="hidden" id="role_id" name="role_id" value="">
