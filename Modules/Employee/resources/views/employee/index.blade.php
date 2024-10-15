@@ -12,12 +12,12 @@
                 <x-slot:export>
                     <x-tables.export-menu id="employee" />
                 </x-slot:export>
-                </x-employee::tables.table-header>
-                </x-employee::card-header>
+            </x-tables.table-header>
+        </x-cards.card-header>
 
-                <x-cards.card-body class="table-responsive">
-                    <x-tables.table :columns=$columns model="employee" />
-                    </x-employee::card-body>
+        <x-cards.card-body class="table-responsive">
+            <x-tables.table :columns=$columns model="employee" />
+        </x-cards.card-body>
     </x-cards.card>
 @endsection
 

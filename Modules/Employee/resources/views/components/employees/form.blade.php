@@ -49,8 +49,7 @@
                         </x-form.input-div>
 
                         <x-form.input-div class="mb-10 w-100 px-2">
-                            <x-form.input :errors=$errors
-                                placeholder="{{ __('employee::fields.phone_number') }}"
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.phone_number') }}"
                                 value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
                         </x-form.input-div>
                     </div>
@@ -81,11 +80,11 @@
                                         class="btn btn-light-primary">@lang('employee::general.generate_pin')</a>
                                 </x-form.input>
                             </div>
-                        </x-employee::form.input-div>
+                        </x-form.input-div>
                     </div>
                     <x-employee::employees.role-wage-repeater :roles=$roles :employee=$employee
                         :establishments=$establishments />
-                </x-employee::form.form-card>
+                </x-form.form-card>
             </div>
         </div>
     </div>
@@ -98,8 +97,8 @@
             <div class="card-toolbar justify-content-end">
                 <x-form.switch-div class="form-check-custom">
                     <input type="hidden" name="active_managment_fields_btn" value="0">
-                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1"
-                        type="checkbox" name="active_managment_fields_btn" />
+                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1" type="checkbox"
+                        name="active_managment_fields_btn" />
                 </x-form.switch-div>
             </div>
         </x-slot:header>
@@ -110,17 +109,18 @@
                     value="{{ $employee?->administrativeUser?->userName }}" name="username" :label="__('employee::fields.user_name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input type="password" :errors=$errors
-                    placeholder="{{ __('employee::fields.password') }}" name="password" :label="__('employee::fields.password')" />
+                <x-form.input type="password" :errors=$errors placeholder="{{ __('employee::fields.password') }}"
+                    name="password" :label="__('employee::fields.password')" />
             </x-form.input-div>
 
         </div>
         <div class="d-flex flex-wrap">
             @php
-                $administrativeUser=$employee?->administrativeUser
+                $administrativeUser = $employee?->administrativeUser;
             @endphp
             <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.dashboard-role-repeater :permissionSets=$permissionSets :establishments=$establishments :administrativeUser=$administrativeUser />
+                <x-employee::employees.dashboard-role-repeater :permissionSets=$permissionSets
+                    :establishments=$establishments :administrativeUser=$administrativeUser />
             </x-form.input-div>
             <x-form.switch-div class="my-md-10 mx-md-10">
                 <input type="hidden" name="accountLocked" value="1">
@@ -131,7 +131,7 @@
             </x-form.switch-div>
 
         </div>
-    </x-employee::form.form-card>
+    </x-form.form-card>
 </div>
 
 <x-form.form-buttons cancelUrl="{{ url('/employee') }}" />
