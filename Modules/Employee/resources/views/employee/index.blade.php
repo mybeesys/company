@@ -5,18 +5,18 @@
 
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="employee" url="employee">
+            <x-tables.table-header model="employee" url="employee">
                 <x-slot:filters>
-                    <x-employee::tables.filters-dropdown />
+                    <x-tables.filters-dropdown />
                 </x-slot:filters>
                 <x-slot:export>
-                    <x-employee::tables.export-menu id="employee" />
+                    <x-tables.export-menu id="employee" />
                 </x-slot:export>
             </x-employee::tables.table-header>
         </x-employee::card-header>
 
         <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="employee" />
+            <x-tables.table :columns=$columns model="employee" />
         </x-employee::card-body>
     </div>
 @endsection

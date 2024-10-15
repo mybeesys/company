@@ -21,7 +21,7 @@
                         ['id' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
                     ];
                 @endphp
-                <x-employee::form.select :options=$options name="deleted_records" />
+                <x-form.select :options=$options name="deleted_records" />
             </div>
 
             <div class="mb-10">
@@ -32,7 +32,7 @@
                         ['id' => '0', 'name' => __('employee::fields.inActive')],
                     ];
                 @endphp
-                <x-employee::form.select :options=$options name="status" />
+                <x-form.select :options=$options name="status" />
             </div>
 
             <div class="d-flex justify-content-end">
