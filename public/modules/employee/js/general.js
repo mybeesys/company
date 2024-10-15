@@ -33,16 +33,16 @@ function handleAjaxResponse(response) {
     if (response.error) {
         errorAlert;
     } else {
-        showAlert(response.message, lang.get('general.close'), undefined, "btn-primary", false,
-            "success")
+        showAlert(response.message, Lang.get('general.close'), undefined, "btn-primary", false,
+            "success");
         dataTable.ajax.reload();
     }
 }
 
-const errorAlert = function() {
+const errorAlert = function () {
     return showAlert(
-        lang.get('responses.something_wrong_happened'),
-        lang.get('general.try_again'),
+        Lang.get('responses.something_wrong_happened'),
+        Lang.get('general.try_again'),
         undefined, undefined,
         false, "error"
     );

@@ -2,7 +2,7 @@ function roleForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
 
-    $(`#${id} input`).on('change', function() {
+    $(`#${id} input`).on('change', function () {
         let input = $(this);
         validateField(input);
     });
@@ -17,12 +17,14 @@ function roleForm(id, validationUrl) {
             url: validationUrl,
             type: 'POST',
             data: formData,
-            success: function() {
+            processData: false,
+            contentType: false,
+            success: function () {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
                 checkErrors();
             },
-            error: function(response) {
+            error: function (response) {
                 input.siblings('.invalid-feedback').remove();
                 input.removeClass('is-invalid');
 

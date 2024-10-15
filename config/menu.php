@@ -104,8 +104,8 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'permissions',
-                'url' => '/permission',
+                'name' => 'pos_permissions',
+                'url' => '/pos-permission',
                 'permission' => '',
             ],
         ]
