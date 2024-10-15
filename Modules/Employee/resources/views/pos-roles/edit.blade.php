@@ -14,9 +14,12 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
+    <script src="{{ url('modules/employee/js/table.js') }}"></script>
     <script>
+        let dataTable;
         $(document).ready(function() {
             roleForm('edit_role_form', "{{ route('roles.update.validation') }}");
+            RolePermissionForm();
         });
     </script>
 @endsection
