@@ -5,7 +5,7 @@
 
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="employee" url="employee" module="employee">
+            <x-tables.table-header model="employee" url="employee/create" module="employee">
                 <x-slot:filters>
                     <x-employee::filters-dropdown />
                 </x-slot:filters>
@@ -16,7 +16,7 @@
         </x-cards.card-header>
 
         <x-cards.card-body class="table-responsive">
-            <x-tables.table :columns=$columns model="employee" />
+            <x-tables.table :columns=$columns model="employee" module="employee" />
         </x-cards.card-body>
     </x-cards.card>
 @endsection
