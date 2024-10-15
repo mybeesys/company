@@ -50,7 +50,7 @@ Route::middleware([
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
-        Route::get('/{role}/edit', 'edit')->name('edit');
+        Route::get('/{id}/edit', 'edit')->name('edit');
         Route::patch('/{role}', 'update')->name('update');
         Route::delete('/{role}', 'destroy')->name('delete');
 

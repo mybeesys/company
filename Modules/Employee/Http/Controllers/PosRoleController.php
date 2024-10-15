@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\Tables;
 use Modules\Employee\Http\Requests\StoreRoleRequest;
 use Modules\Employee\Http\Requests\UpdateRoleRequest;
+use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
 
 class PosRoleController extends Controller
@@ -40,8 +41,9 @@ class PosRoleController extends Controller
      */
     public function create()
     {
+        $permissions = Permission::orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
         $departments = Role::departments();
-        return view('employee::pos-roles.create', compact('departments'));
+        return view('employee::pos-roles.create', compact('departments', 'permissions'));
     }
 
     /**
@@ -50,7 +52,17 @@ class PosRoleController extends Controller
     public function store(StoreRoleRequest $request)
     {
         DB::beginTransaction();
-        $role = Role::create($request->safe()->all());
+        $request = $request->safe();
+        $role = Role::create($request->except('permissions'));
+
+        if ($request->has('permissions')) {
+            $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
+            $permissions = collect($request->permissions)->map(function ($value) {
+                return (int) $value;
+            });
+            $permissions->contains($selectAllPermission->id) ? $role->givePermissionTo($selectAllPermission->id) : $role->syncPermissions($permissions);
+        }
+
         DB::commit();
         if ($role) {
             return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
@@ -70,10 +82,12 @@ class PosRoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Role $role)
+    public function edit(int $id)
     {
+        $role = Role::where('id', $id)->with('permissions:id,name')->first();
         $departments = Role::departments();
-        return view('employee::pos-roles.edit', compact('role', 'departments'));
+        $permissions = Permission::orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
+        return view('employee::pos-roles.edit', compact('role', 'departments', 'permissions'));
     }
 
     /**
