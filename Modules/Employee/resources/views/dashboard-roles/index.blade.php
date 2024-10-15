@@ -5,14 +5,14 @@
 @section('content')
     <div class="card card-flush">
         <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="dashboard_role" url="dashboard-role">
+            <x-tables.table-header model="dashboard_role" url="dashboard-role">
                 <x-slot:export>
-                    <x-employee::tables.export-menu id="dashboard_role" />
+                    <x-tables.export-menu id="dashboard_role" />
                 </x-slot:export>
             </x-employee::tables.table-header>
         </x-employee::card-header>
         <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="dashboard_role" />
+            <x-tables.table :columns=$columns model="dashboard_role" />
         </x-employee::card-body>
     </div>
 

@@ -1,14 +1,14 @@
 @props(['role' => null, 'departments' => null, 'permissions'])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
-    <x-employee::form.form-card :title="__('employee::general.role_details')">
+    <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap">
-            <x-employee::form.input-div class="mb-10 w-100 px-2">
-                <x-employee::form.input required :errors=$errors
+            <x-form.input-div class="mb-10 w-100 px-2">
+                <x-form.input required :errors=$errors
                     placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
                     value="{{ $role?->name }}" name="name" :label="__('employee::fields.name')" />
             </x-employee::form.input-div>
-            <x-employee::form.input-div class="mb-10 w-100 px-2">
-                <x-employee::form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}"
+            <x-form.input-div class="mb-10 w-100 px-2">
+                <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}"
                     name="department" :label="__('employee::fields.department')">
                     <x-slot:datalist>
                         <datalist id="departmentlist">
@@ -21,13 +21,13 @@
                     </x-slot:datalist>
                 </x-employee::form.input>
             </x-employee::form.input-div>
-            <x-employee::form.input-div class="mb-10 w-100 px-2">
-                <x-employee::form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
+            <x-form.input-div class="mb-10 w-100 px-2">
+                <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
                     value="{{ $role?->rank }}" name="rank" :label="__('employee::fields.rank')" />
             </x-employee::form.input-div>
         </div>
     </x-employee::form.form-card>
-    <x-employee::form.form-card :title="__('employee::main.permissions')" bodyClass="d-flex flex-column flex-md-row justify-content-between">
+    <x-form.form-card :title="__('employee::main.permissions')" bodyClass="d-flex flex-column flex-md-row justify-content-between">
         <div class="table-responsive w-100">
             <table class="table table-row-dashed border-gray-300 align-middle gy-6">
                 <thead>
@@ -39,12 +39,12 @@
                         <tr>
                             @foreach ($permissionChunk as $permission)
                                 <td>{{ session()->get('locale') == 'ar' ? $permission->name_ar : $permission->name }}
-                                    <x-employee::form.field-hint
+                                    <x-form.field-hint
                                         hint="{{ session()->get('locale') == 'ar' ? $permission->description_ar : $permission->description }}" />
                                 </td>
                                 <td>
-                                    <x-employee::form.input-div class="form-check form-check-custom form-check-solid">
-                                        <x-employee::form.input :errors=$errors class="form-check-input mx-5"
+                                    <x-form.input-div class="form-check form-check-custom form-check-solid">
+                                        <x-form.input :errors=$errors class="form-check-input mx-5"
                                             type="checkbox"
                                             value="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'all' : $permission->id }}"
                                             name="permissions[{{ $permission->id }}]" :form_control="false"
@@ -59,6 +59,6 @@
             </table>
         </div>
     </x-employee::form.form-card>
-    <x-employee::form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
+    <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
 </div>
 <input type="hidden" id="role_id" name="role_id" value="">
