@@ -2758,6 +2758,7 @@
     <!--end::Modals-->
     <!--begin::Javascript-->
     <script>
+        window.csrfToken = '{{ csrf_token() }}';
         var hostUrl = "/assets/";
     </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
