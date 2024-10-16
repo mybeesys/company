@@ -2,7 +2,7 @@
 
 return [
     [
-        'name' => '',
+        'name' => 'create.all',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
