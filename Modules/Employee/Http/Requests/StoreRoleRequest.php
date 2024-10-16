@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRoleRequest extends FormRequest
 {
@@ -16,7 +17,7 @@ class StoreRoleRequest extends FormRequest
             'department' => ['nullable', 'string', 'max:50'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
             'permissions' => ['array', 'nullable'],
-            'permissions.*' => ['integer', 'exists:permissions,id']
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
         ];
     }
 

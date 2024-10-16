@@ -10,7 +10,7 @@
             ],
         ],
         [
-            'label' => __('employee::general.deleted_records'),
+            'label' => __('employee::fields.status'),
             'name' => 'status',
             'options' => [
                 ['id' => '1', 'name' => __('employee::fields.active')],

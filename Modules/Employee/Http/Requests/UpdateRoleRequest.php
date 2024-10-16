@@ -17,7 +17,7 @@ class UpdateRoleRequest extends FormRequest
             'department' => ['nullable', 'string', 'max:50'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
             'permissions' => ['array', 'nullable'],
-            'permissions.*' => ['integer', 'exists:permissions,id']
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
         ];
     }
 

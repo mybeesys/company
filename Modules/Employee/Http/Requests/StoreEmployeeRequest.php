@@ -29,9 +29,9 @@ class StoreEmployeeRequest extends FormRequest
             'role_wage_repeater.*.establishment' => ['required', new EmployeeEstablishmentRule],
             'active_managment_fields_btn' => ['required', 'boolean'],
             'dashboard_role_repeater' => ['required', 'array'],
-            'dashboard_role_repeater.*.dashboardRole' => ['required', 'exists:roles,id'],
-            'dashboard_role_repeater.*.establishment' => ['required', 'exists:establishment_establishments,id'],
-            'accountLocked' => ['required', 'boolean'],
+            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_managment_fields_btn', 'exists:roles,id'],
+            'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_managment_fields_btn', 'exists:establishment_establishments,id'],
+            'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'boolean'],
             'password' => ['required_if_accepted:active_managment_fields_btn', 'nullable', Password::default()],
             'username' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
         ];
