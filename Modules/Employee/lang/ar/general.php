@@ -63,6 +63,9 @@ return [
     'dashboard_role_search' => 'ابحث عن دور',
     'ok' => 'حسناً',
     'permission_search' => 'ابحث عن أذن',
-    'edit_employee_permission' => 'تعديل صلاحيات الموظف'
-
+    'edit_employee_permission' => 'تعديل صلاحيات الموظف',
+    'show' => 'عرض',
+    'create' => 'إنشاء',
+    'edit' => 'تعديل',
+    'deletion' => 'حذف'
 ];
