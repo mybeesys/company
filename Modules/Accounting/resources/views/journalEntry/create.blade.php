@@ -290,7 +290,7 @@
             </td>
             <td class="cost-center-column" style="display:none">
 
-                    <select id="kt_ecommerce_select2_cost_center"
+                    <select id="kt_ecommerce_select2_cost_center" value="null"
                                     class="form-select form-select-solid select-2" name="cost_center">
                         <option selected value="">@lang('messages.select')</option>
 
