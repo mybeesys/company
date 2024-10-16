@@ -20,9 +20,9 @@
         </div>
     </x-form.form-card>
     <div class="table-responsive">
-        <!--begin::Table-->
+
         <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
-            <!--begin::Table head-->
+
             <thead>
                 <tr class="fw-bold fs-6 text-gray-800 text-center border-0 bg-light">
                     <th class="rounded-start"></th>
@@ -32,15 +32,17 @@
                     <th class=" rounded-end">@lang('employee::general.deletion')</th>
                 </tr>
             </thead>
-            <!--end::Table head-->
-            <!--begin::Table body-->
+
             <tbody class="border-bottom border-dashed">
                 <tr class="fw-semibold fs-6 text-gray-800 text-center">
                     <td class="text-start ps-6 fs-4">Number of end products or domains</td>
                     <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
+                        <x-form.input-div class="form-check form-check-custom form-check-solid justify-content-centerp">
+                            <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                value="1"
+                                name="permissions[]" :form_control="false"
+                                attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
+                        </x-form.input-div>
                     </td>
                     <td>
                         <div class="form-check form-check-custom justify-content-center">
