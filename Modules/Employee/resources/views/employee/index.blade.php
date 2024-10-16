@@ -25,7 +25,7 @@
 
 @section('script')
     @parent
-    <script src="{{ url('modules/employee/js/table.js') }}"></script>
+    <script src="{{ url('/js/table.js') }}"></script>
     <script type="text/javascript" src="vfs_fonts.js"></script>
     <script>
         "use strict";

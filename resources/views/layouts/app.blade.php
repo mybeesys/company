@@ -2758,11 +2758,12 @@
     <!--end::Modals-->
     <!--begin::Javascript-->
     <script>
+        window.csrfToken = '{{ csrf_token() }}';
         var hostUrl = "/assets/";
     </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-    <script src="{{ url('js/general.js') }}"></script>
-    <script src="{{ url('js/date-picker.js') }}"></script>
+    <script src="{{ url('/js/general.js') }}"></script>
+    <script src="{{ url('/js/date-picker.js') }}"></script>
     <script src="/assets/plugins/global/plugins.bundle.js"></script>
     <script src="/assets/js/scripts.bundle.js"></script>
     <script src="/assets/js/dataTables.js"></script>
