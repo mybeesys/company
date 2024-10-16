@@ -326,6 +326,7 @@
 
 
             $('table tbody').append(newRow);
+            $('table tbody').append(newRow);
             $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();
             updateTotals();

@@ -34,8 +34,8 @@
 
 @section('script')
     @parent
-    <script src="{{ url('modules/employee/js/table.js') }}"></script>
-    <script type="text/javascript" src="vfs_fonts.js"></script>
+    <script src="{{ url('js/table.js') }}"></script>
+    {{-- <script type="text/javascript" src="vfs_fonts.js"></script> --}}
     <script>
         "use strict";
         let dataTable;
@@ -65,7 +65,9 @@
                 "{{ __('employee::general.cancel') }}", undefined,
                 true, "warning").then(function(t) {
                 if (t.isConfirmed) {
-                    ajaxRequest(deleteUrl, 'DELETE');
+                    ajaxRequest(deleteUrl, 'get');
+                    dataTable.ajax.url('{{ route('journal-entry-index') }}').load();
+
                 }
             });
         });
