@@ -285,10 +285,10 @@ class JournalEntryController extends Controller
             }
             $acc_trans_mapping->delete();
             DB::commit();
-            return redirect()->back()->with('success', __('employee::responses.employee_updated_successfully'));
+            return redirect()->route('journal-entry-index')->with('success', __('employee::responses.employee_updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('success', __('employee::responses.employee_updated_successfully'));
+            return redirect()->route('journal-entry-index')->with('success', __('employee::responses.employee_updated_successfully'));
         }
     }
 }
