@@ -26,12 +26,10 @@
             <thead>
                 <tr class="fw-bold fs-6 text-gray-800 text-center border-0 bg-light">
                     <th class="rounded-start"></th>
-                    <th class="">Regular</th>
-                    <th class="">Multiple</th>
-                    <th class="">Extended</th>
-                    <th class="">Extended</th>
-                    <th class="">Extended</th>
-                    <th class=" rounded-end">Extended</th>
+                    <th class="">@lang('employee::general.show')</th>
+                    <th class="">@lang('employee::general.create')</th>
+                    <th class="">@lang('employee::general.edit')</th>
+                    <th class=" rounded-end">@lang('employee::general.deletion')</th>
                 </tr>
             </thead>
             <!--end::Table head-->
@@ -59,16 +57,6 @@
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                         </div>
                     </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
-                    </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
-                    </td>
                 </tr>
                 <tr class="text-center">
                     <td class="text-start ps-6">
@@ -94,30 +82,10 @@
                             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                         </div>
                     </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
-                    </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
-                    </td>
                 </tr>
                 <tr class="text-center">
                     <td class="text-start ps-6">
                         <div class="fw-semibold fs-4 text-gray-800">End product with paid services</div>
-                    </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
-                    </td>
-                    <td>
-                        <div class="form-check form-check-custom justify-content-center">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                        </div>
                     </td>
                     <td>
                         <div class="form-check form-check-custom justify-content-center">

@@ -13,10 +13,9 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
-    <script src="{{ url('modules/employee/js/date-picker.js') }}"></script>
     <script>
         $(document).ready(function() {
-            datePicker();
+            datePicker('#employmentStartDate');
             permissionSetRepeater();
             roleRepeater();
             administrativeUser(false);

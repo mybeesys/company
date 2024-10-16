@@ -19,7 +19,6 @@
 
 @section('script')
     <script src="{{ url('modules/employee/js/messages.js') }}"></script>
-    <script src="{{ url('modules/employee/js/general.js') }}"></script>
     <script>
         window.csrfToken = '{{ csrf_token() }}';
     </script>

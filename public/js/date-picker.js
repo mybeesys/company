@@ -1,5 +1,5 @@
-function datePicker() {
-    new tempusDominus.TempusDominus($("#employmentStartDate")[0], {
+function datePicker(id) {
+    new tempusDominus.TempusDominus($(id)[0], {
         localization: {
             format: "yyyy/MM/dd",
         },
