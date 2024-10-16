@@ -68,6 +68,10 @@ class JournalEntryController extends Controller
             $user_id = Auth::user()->id;
 
             $ref_number = $request->get('ref_number');
+
+            if (AccountingAccTransMapping::where('ref_no', $ref_number)->first()) {
+                return redirect()->back()->with('error', __('messages.ref_number already exists'));
+            }
             if (empty($ref_number)) {
 
                 $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
@@ -122,22 +126,13 @@ class JournalEntryController extends Controller
             }
 
             DB::commit();
-
-            $output = [
-                'success' => 1,
-                'msg' => __('lang_v1.added_success')
-            ];
+            return redirect()->route('journal-entry-index')->with('success', __('messages.add_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $output = [
-                'success' => 0,
-                'msg' => __('messages.something_went_wrong')
-            ];
+
+            return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
         }
-
-
-        return redirect()->route('journal-entry-index')->with('status', $output);
     }
 
     /**
@@ -255,21 +250,11 @@ class JournalEntryController extends Controller
 
             DB::commit();
 
-            $output = [
-                'success' => 1,
-                'msg' => __('lang_v1.added_success')
-            ];
+            return redirect()->route('journal-entry-index')->with('success', __('messages.updated_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
-
-            $output = [
-                'success' => 0,
-                'msg' => __('messages.something_went_wrong')
-            ];
+            return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
         }
-
-
-        return redirect()->route('journal-entry-index')->with('status', $output);
     }
 
     /**
@@ -285,10 +270,10 @@ class JournalEntryController extends Controller
             }
             $acc_trans_mapping->delete();
             DB::commit();
-            return redirect()->route('journal-entry-index')->with('success', __('employee::responses.employee_updated_successfully'));
+            return redirect()->back()->with('success', __('employee::responses.employee_updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->route('journal-entry-index')->with('success', __('employee::responses.employee_updated_successfully'));
+            return redirect()->back()->with('error', __('employee::responses.employee_updated_successfully'));
         }
     }
 }

@@ -19,6 +19,12 @@ return [
     'save' => 'حفظ',
     'deactivate' => 'إلغاء تنشيط',
     'actions' => 'العمليات',
+    'add_successfully'=>'تمت الإضافة بنجاح',
+    'updated_successfully'=>'تم التعديل بنجاح',
+    'something_went_wrong'=>'لقد حدث خطأ ما',
+    'ref_number already exists'=>'الرقم المرجعي موجود مسبفاً',
+
+
 
 
 

@@ -56,13 +56,13 @@
                         class="fw-semibold mx-2 text-muted fs-9">@lang('accounting::lang.ref_number_note')</span> </label>
 
                 @if ($duplication)
-                <input class="form-control form-control-solid flatpickr-input" name="ref_number"
-                id="kt_calendar_datepicker_start_time" value="" type="text"
-                data-gtm-form-interact-field-id="3">
-                    @else
                     <input class="form-control form-control-solid flatpickr-input" name="ref_number"
-                    id="kt_calendar_datepicker_start_time" value="{{ $acc_trans_mapping->ref_no }}" type="text"
-                    data-gtm-form-interact-field-id="3">
+                        id="kt_calendar_datepicker_start_time" value="" type="text"
+                        data-gtm-form-interact-field-id="3">
+                @else
+                    <input class="form-control form-control-solid flatpickr-input" name="ref_number"
+                        id="kt_calendar_datepicker_start_time" value="{{ $acc_trans_mapping->ref_no }}" type="text"
+                        data-gtm-form-interact-field-id="3">
                 @endif
 
 
@@ -364,6 +364,7 @@
 
 
 
+            $('table tbody').append(newRow);
             $('table tbody').append(newRow);
             $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();

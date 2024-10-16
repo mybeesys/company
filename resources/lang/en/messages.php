@@ -19,6 +19,11 @@ return [
     'settings' => 'Settings',
     'save'=>'Save',
     'actions' => 'Actions',
+    'add_successfully'=>'Added Successfully',
+    'updated_successfully'=>'Updated Successfully',
+    'something_went_wrong'=>'Something went wrong',
+    'ref_number already exists'=>'Reference number is already available.',
+
 
 
 
