@@ -60,5 +60,6 @@ return [
     'all' => 'All',
     'all_establishments' => 'All establishments',
     'ok' => 'Ok',
-    'permission_search' => 'Search for permission'
+    'permission_search' => 'Search for permission',
+    'edit_employee_permission' => 'Edit employee permissions'
 ];

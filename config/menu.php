@@ -103,11 +103,6 @@ return [
                 'url' => '/dashboard-role',
                 'permission' => '',
             ],
-            [
-                'name' => 'pos_permissions',
-                'url' => '/pos-permission',
-                'permission' => '',
-            ],
         ]
     ],
     [

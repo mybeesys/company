@@ -62,5 +62,7 @@ return [
     'add_dashboard_role' => 'إضافة دور للوحة التحكم',
     'dashboard_role_search' => 'ابحث عن دور',
     'ok' => 'حسناً',
-    'permission_search' => 'ابحث عن أذن'
+    'permission_search' => 'ابحث عن أذن',
+    'edit_employee_permission' => 'تعديل صلاحيات الموظف'
+
 ];

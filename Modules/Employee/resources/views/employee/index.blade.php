@@ -35,8 +35,9 @@
 
         $(document).ready(function() {
             if (!table.length) return;
+            
             initDatatable();
-            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_employee_table');
+            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_employee_table', "{{ session()->get('locale') }}", [1]);
             handleSearchDatatable();
             handleFormFiltersDatatable();
             $('[name="status"], [name="deleted_records"]').select2({
