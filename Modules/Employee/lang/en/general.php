@@ -59,7 +59,13 @@ return [
     'add_more_roles' => 'Add more roles',
     'all' => 'All',
     'all_establishments' => 'All establishments',
+    'add_dashboard_role' => 'Add dashboard role',
+    'dashboard_role_search' => 'ابحث عن دور',
     'ok' => 'Ok',
     'permission_search' => 'Search for permission',
-    'edit_employee_permission' => 'Edit employee permissions'
+    'edit_employee_permission' => 'Edit employee permissions',
+    'show' => 'Show',
+    'create' => 'Create',
+    'edit' => 'Edit',
+    'deletion' => 'Delete'
 ];
