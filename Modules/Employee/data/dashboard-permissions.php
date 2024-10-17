@@ -2,8 +2,8 @@
 
 return [
     [
-        'name' => 'employees.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'employees.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -16,8 +16,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'employees.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -38,8 +38,8 @@ return [
     ],
 
     [
-        'name' => 'products.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'products.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -52,8 +52,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'products.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'products.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -73,8 +73,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'inventory.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'inventory.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -87,8 +87,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'inventory.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'inventory.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -107,10 +107,9 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
     [
-        'name' => 'accounting.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'accounting.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -123,8 +122,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'accounting.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'accounting.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -144,8 +143,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'establishments.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -158,8 +157,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'establishments.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -179,8 +178,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'schedules.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'schedules.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -193,8 +192,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'schedules.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'schedules.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -213,10 +212,9 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
     [
-        'name' => 'reports.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'reports.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -229,8 +227,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'reports.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'reports.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -250,8 +248,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'crm.all.create',
-        'name_ar' => 'كل أذونات الإنشاء',
+        'name' => 'crm.all.show',
+        'name_ar' => 'كل أذونات العرض',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -264,8 +262,8 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'crm.all.show',
-        'name_ar' => 'كل أذونات العرض',
+        'name' => 'crm.all.create',
+        'name_ar' => 'كل أذونات الإنشاء',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
