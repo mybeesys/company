@@ -37,7 +37,7 @@
                 <tr class="fw-semibold fs-6 text-gray-800 text-center">
                     <td class="text-start ps-6 fs-4">Number of end products or domains</td>
                     <td>
-                        <x-form.input-div class="form-check form-check-custom form-check-solid justify-content-centerp">
+                        <x-form.input-div class="form-check form-check-custom form-check-solid justify-content-center">
                             <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
                                 value="1"
                                 name="permissions[]" :form_control="false"
