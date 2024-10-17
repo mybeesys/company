@@ -16,13 +16,13 @@ return [
             [
 
                 'name' => 'Products',
-                'url' => '/category',
+                'url' => 'category',
                 'permission' => '' ,
 
             ],
             [
                 'name' => 'inventory',
-                'url' => '/',
+                'url' => '',
                 'permission' => '',
 
             ],
@@ -42,17 +42,17 @@ return [
         'subMenu' => [
             [
                 'name' => 'accounting_dashboard',
-                'url' => '/accounting-dashboard',
+                'url' => 'accounting-dashboard',
                 'permission' => '',
             ],
             [
                 'name' => 'chart_of_accounts',
-                'url' => '/tree-of-accounts',
+                'url' => 'tree-of-accounts',
                 'permission' => '',
             ],
             [
                 'name' => 'journalEntry',
-                'url' => '/journal-entry-index',
+                'url' => 'journal-entry-index',
                 'permission' => '',
             ],
 
@@ -85,22 +85,22 @@ return [
         'subMenu' => [
             [
                 'name' => 'employees-dashboard',
-                'url' => '/employee/dashboard',
+                'url' => 'employee/dashboard',
                 'permission' => '',
             ],
             [
                 'name' => 'employees',
-                'url' => '/employee',
+                'url' => 'employee',
                 'permission' => '',
             ],
             [
                 'name' => 'pos_roles',
-                'url' => '/pos-role',
+                'url' => 'pos-role',
                 'permission' => '',
             ],
             [
                 'name' => 'dashboard_roles',
-                'url' => '/dashboard-role',
+                'url' => 'dashboard-role',
                 'permission' => '',
             ],
         ]

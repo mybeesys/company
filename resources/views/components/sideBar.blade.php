@@ -3,7 +3,12 @@
     class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-3 mb-5">
     <!--begin:Menu item-->
     @foreach (config('menu') as $menuItem)
-        <div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+        @php
+            $isSubmenuActive = collect($menuItem['subMenu'])->contains(function ($submenuItem) {
+                return (request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*'));
+            });
+        @endphp
+        <div data-kt-menu-trigger="click" @class(['menu-item here menu-accordion', 'show' => $isSubmenuActive])>
             <!--begin:Menu link-->
             <span class="menu-link">
                 <span class="menu-icon">
@@ -21,7 +26,7 @@
                     <!--begin:Menu item-->
                     <div class="menu-item">
                         <!--begin:Menu link-->
-                        <a class="menu-link active" href='{{ $submenuItem['url'] }}'>
+                        <a @class(['menu-link', 'active' => request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*')])  href='/{{ $submenuItem['url'] }}'>
                             <span class="menu-bullet">
                                 <span class="bullet bullet-dot"></span>
                             </span>
