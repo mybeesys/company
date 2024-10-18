@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Category;
-use Modules\Product\Models\SubCategory;
+use Modules\Product\Models\Subcategory;
 
 class CategoryController extends Controller
 {
@@ -61,7 +61,7 @@ class CategoryController extends Controller
   
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
-            $subCategory = SubCategory::where([['category_id', '=', $validated['id']]])->first();
+            $subCategory = Subcategory::where([['category_id', '=', $validated['id']]])->first();
             if($subCategory != null)
                 return response()->json(["message"=>"CHILD_EXIST"]);
 
