@@ -24,18 +24,22 @@
     <div class="table-responsive">
         <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
             <thead>
-                <tr class="fw-bold fs-6 text-gray-800 text-center border-0 bg-light">
-                    <th class="rounded-start rounded-end d-flex justify-content-between w-100">
-                        <div class="w-100 d-flex">
-                            <div class="px-10">
-                                @lang('employee::main.permissions')
+                <tr class="border-0">
+                    <th class="w-100 fs-6 fw-bold text-gray-800">
+                        <div
+                            class="d-flex justify-content-between rounded-start rounded-end bg-light p-5">
+                            <div class="w-100 d-flex">
+                                <div class="px-10">
+                                    @lang('employee::main.permissions')
+                                </div>
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-between w-100 px-5">
-                            <div class="px-4">@lang('employee::general.show')</div>
-                            <div class="px-4">@lang('employee::general.print')</div>
-                            <div class="px-4">@lang('employee::general.create')</div>
-                            <div class="px-4">@lang('employee::general.edit')</div>
+                            <div class="d-flex justify-content-between w-100">
+                                <div class="px-4">@lang('employee::general.show')</div>
+                                <div class="px-4">@lang('employee::general.print')</div>
+                                <div class="px-4">@lang('employee::general.create')</div>
+                                <div class="px-4">@lang('employee::general.edit')</div>
+                                <div class="px-4">@lang('employee::general.deletion')</div>
+                            </div>
                         </div>
                     </th>
                 </tr>
@@ -48,7 +52,7 @@
                         <div class="d-flex justify-content-between w-100 pt-2">
                             <div class="d-flex align-items-center collapsible py-3 toggle mb-0 active w-100"
                                 data-bs-toggle="collapse" data-bs-target="#kt_job_4_1" aria-expanded="true">
-                                <div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
+                                <div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5 ps-3">
                                     <i class="ki-outline ki-minus-square toggle-on text-primary fs-1"></i>
                                     <i class="ki-outline ki-plus-square toggle-off fs-1"></i>
                                 </div>
@@ -57,28 +61,34 @@
                                     </h4>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between w-100 px-5">
-                                <x-form.input-div class="form-check form-check-custom form-check-solid"
+                            <div class="d-flex justify-content-between w-100 pe-5 gap-11">
+                                <x-form.input-div class="form-check form-check-custom form-check-solid ps-6"
                                     :row="false">
-                                    <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                         value="1" name="permissions[]" :form_control="false"
                                         attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                 </x-form.input-div>
                                 <x-form.input-div class="form-check form-check-custom form-check-solid"
                                     :row="false">
-                                    <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                         value="1" name="permissions[]" :form_control="false"
                                         attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                 </x-form.input-div>
                                 <x-form.input-div class="form-check form-check-custom form-check-solid"
                                     :row="false">
-                                    <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                         value="1" name="permissions[]" :form_control="false"
                                         attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                 </x-form.input-div>
                                 <x-form.input-div class="form-check form-check-custom form-check-solid"
                                     :row="false">
-                                    <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                        value="1" name="permissions[]" :form_control="false"
+                                        attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
+                                </x-form.input-div>
+                                <x-form.input-div class="form-check form-check-custom form-check-solid pe-5"
+                                    :row="false">
+                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                         value="1" name="permissions[]" :form_control="false"
                                         attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                 </x-form.input-div>
@@ -88,32 +98,38 @@
                         <div id="kt_job_4_1" class="collapse show">
                             <div class="d-flex">
                                 <div class="w-100 text-gray-700 fw-bold fs-4 py-10 d-flex">
-                                    <div class="ps-11">
+                                    <div class="ps-11 w-100">
                                         How does it work
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between w-100 px-5">
-                                    <x-form.input-div class="fv-row form-check form-check-custom form-check-solid"
+                                <div class="d-flex justify-content-between w-100 gap-11">
+                                    <x-form.input-div class="fv-row form-check form-check-custom form-check-solid ps-6"
                                         :row="false">
-                                        <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                        <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                             value="1" name="permissions[]" :form_control="false"
                                             attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                     </x-form.input-div>
                                     <x-form.input-div class="fv-row form-check form-check-custom form-check-solid"
                                         :row="false">
-                                        <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                        <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                             value="1" name="permissions[]" :form_control="false"
                                             attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                     </x-form.input-div>
                                     <x-form.input-div class="fv-row form-check form-check-custom form-check-solid"
                                         :row="false">
-                                        <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                        <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                             value="1" name="permissions[]" :form_control="false"
                                             attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                     </x-form.input-div>
                                     <x-form.input-div class="fv-row form-check form-check-custom form-check-solid"
                                         :row="false">
-                                        <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
+                                        <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                            value="1" name="permissions[]" :form_control="false"
+                                            attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
+                                    </x-form.input-div>
+                                    <x-form.input-div class="fv-row form-check form-check-custom form-check-solid pe-5"
+                                        :row="false">
+                                        <x-form.input :errors=$errors class="form-check-input" type="checkbox"
                                             value="1" name="permissions[]" :form_control="false"
                                             attribute="data-kt-check-target=[data-select-all=permissions] data-kt-check=true" />
                                     </x-form.input-div>
