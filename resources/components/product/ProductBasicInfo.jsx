@@ -145,13 +145,13 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
               <label for="SKU" class="col-form-label">{translations.SKU}</label>
               <input type="text" class="form-control" id="SKU" value={!!currentObject.SKU ? currentObject.SKU : ''}
                 onChange={(e) => handleChange('SKU', e.target.value)}
-                required></input>
+                ></input>
             </div>
             <div class="col-6">
               <label for="barcode" class="col-form-label">{translations.barcode}</label>
               <input type="text" class="form-control" id="barcode" value={!!currentObject.barcode ? currentObject.barcode : ''}
                 onChange={(e) => handleChange('barcode', e.target.value)}
-                required></input>
+                ></input>
             </div>
           </div>
         </div>
