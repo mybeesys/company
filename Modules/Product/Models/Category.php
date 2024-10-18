@@ -42,7 +42,7 @@ class Category extends Model
 
     public function children()
     {
-        return $this->hasMany(Subcategory::class, 'category_id', 'id');
+        return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
     }
 
     public function products()
@@ -52,7 +52,7 @@ class Category extends Model
 
     public function subcategories()
     {
-        return $this->hasMany(Subcategory::class, 'category_id', 'id');
+        return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
     }
 
     public function parent()

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\TreeCategoryBuilder;
 use Modules\Product\Models\Subcategory;
+use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\Builder;;
 
 class SubCategoryController extends Controller
@@ -76,15 +77,14 @@ class SubCategoryController extends Controller
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
-            $subCategory = SubCategory::where([['parent_id', '=', $validated['id']]])->first();
-            if($subCategory != null)
-                return response()->json(["message"=>"CHILD_EXIST"]);
+            
             $product = Product::where([['subcategory_id', '=', $validated['id']]])->first();
-            if($subCategory != null)
+            if($product != null)
                 return response()->json(["message"=>"CHILD_EXIST"]);
-
-            $category->delete();
-            $subcategory->delete();
+            
+            $subCategory = SubCategory::where([['id', '=', $validated['id']]])->first();
+            $subCategory->delete();
+            return response()->json(["message"=>"Done"]);
         }
 
 

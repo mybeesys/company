@@ -67,6 +67,7 @@ class CategoryController extends Controller
 
             $category = Category::find($validated['id']);
             $category->delete();
+            return response()->json(["message"=>"Done"]);
         }
 
         if(!isset($validated['id']))
