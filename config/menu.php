@@ -16,14 +16,8 @@ return [
             [
 
                 'name' => 'Products',
-                'url' => '/category',
+                'url' => 'category',
                 'permission' => '' ,
-
-            ],
-            [
-                'name' => 'inventory',
-                'url' => '/',
-                'permission' => '',
 
             ],
             [
@@ -31,7 +25,13 @@ return [
                 'url' => 'modifier',
                 'permission' => '',
 
-            ]
+            ],
+            [
+                'name' => 'attribute',
+                'url' => 'attribute',
+                'permission' => '',
+
+            ],
         ]
     ],
     [

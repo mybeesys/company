@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\ProductModifier;
+use Modules\Product\Models\Product_Attribute;
 
 class ProductController extends Controller
 {
@@ -87,7 +89,8 @@ class ProductController extends Controller
           $product->cost = $validated['cost'];
           $product->color = isset($validated['color'])?$validated['color']: $product->color ;
 
-          if ($request->hasFile('image_file')) {
+        if ($request->hasFile('image_file')) 
+          {
             $tenant = tenancy()->tenant;
             $tenantId = $tenant->id;
             // Get the uploaded file
@@ -102,14 +105,88 @@ class ProductController extends Controller
     
             // Optionally save the file path to the database
             $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
-        }  
-
-          $product->save();
-        }
-        else
+          }
+        $product->save();
+        if(isset($request["modifiers"]))
         {
-        
+            foreach ($request["modifiers"] as $modifier) {
+                if(isset($modifier['id'])){
+                    $mod = ProductModifier::find($modifier['id']);
+                    $mod->active = $modifier['active'];
+                    $mod->default = $modifier['default'];
+                    $mod->required = $modifier['required'];
+                    $mod->min_modifiers = $modifier['min_modifiers'];
+                    $mod->max_modifiers = $modifier['max_modifiers'];
+                    $mod->display_order = $modifier['display_order'];
+                    $mod->button_display = $modifier['button_display'];
+                    $mod->modifier_display = $modifier['modifier_display'];
+                    $mod['free_quantity'] = 0;
+                    $mod['free_type'] = 0;
+                    $mod->save();
+                }
+                else {
+                    $modifier['free_quantity'] = 0;
+                    $modifier['free_type'] = 0;
+                    ProductModifier::create($modifier);
+                }
+            }
+        }   
+        if(isset($request["attributeMatrix"]))
+        {
+            $oldAttributes = Product_Attribute::where('product_id' , $validated['id'])->get();
+            foreach ( $oldAttributes as $oldAttribute)
+            {
+                $oldAttribute->delete();
+            }
+            foreach ($request["attributeMatrix"] as $attribute) 
+            {
+                $att = [];
+                $att['product_id'] =  $validated['id'];
+                $att['attribute_id1'] = $attribute['attribute1']['id'];
+                $att['attribute_id2'] = $attribute['attribute2']['id'];
+                $att['name_ar'] = $attribute['name_ar'];
+                $att['name_en'] = $attribute['name_en'];
+                $att['barcode'] = $attribute['barcode'];
+                $att['SKU'] = $attribute['SKU'];
+                $att['price'] = $attribute['price'];
+                $att['starting'] = $attribute['starting'];
+                Product_Attribute::create($att);
+            }
+        }   
+    }
+        else
+        {    
         $product= Product::create($validated);
+
+        if(isset($request["modifiers"]))
+        {
+            
+            foreach ($request["modifiers"] as $modifier) {
+                $modifier['product_id'] = $product->id;
+                $modifier['free_quantity'] = 0;
+                $modifier['free_type'] = 0;
+                ProductModifier::create($modifier);
+            }
+       
+        }
+
+        if(isset($request["attributeMatrix"]))
+        {
+            foreach ($request["attributeMatrix"] as $attribute) 
+            {
+                $att = [];
+                $att['product_id'] =  $product->id;
+                $att['attribute_id1'] = $attribute['attribute1']['id'];
+                $att['attribute_id2'] = $attribute['attribute2']['id'];
+                $att['name_ar'] = $attribute['name_ar'];
+                $att['name_en'] = $attribute['name_en'];
+                $att['barcode'] = $attribute['barcode'];
+                $att['SKU'] = $attribute['SKU'];
+                $att['price'] = $attribute['price'];
+                $att['starting'] = $attribute['starting'];
+                Product_Attribute::create($att);
+            }
+        }
      
         if ($request->hasFile('image_file')) {
 
@@ -133,11 +210,9 @@ class ProductController extends Controller
         {
           $product->image =  null;
         }  
-        } 
-      
+    }
+}
         return response()->json(["message"=>"Done"]);
-       }
-
     }
 
     /**
@@ -160,6 +235,7 @@ class ProductController extends Controller
     public function edit($id)
     {
          $product  = Product::find($id);
+         $product->modifiers = $product->modifiers;
          return view('product::product.edit', compact('product'));
     }
 

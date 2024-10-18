@@ -9,7 +9,8 @@ use Modules\Product\Http\Controllers\CategoryController;
 use Modules\Product\Http\Controllers\SubCategoryController;
 use Modules\Product\Http\Controllers\ModifierClassController;
 use Modules\Product\Http\Controllers\ModifierController;
-
+use Modules\Product\Http\Controllers\AttributesClassController;
+use Modules\Product\Http\Controllers\AttributeController;
 
 
 /*
@@ -40,5 +41,8 @@ Route::middleware([
     Route::resource('modifier', ModifierController::class)->names('modifier');
     Route::resource('modifierClass', ModifierClassController::class)->names('modifierClass');
     Route::get('modifierClassList', [ModifierClassController::class, 'getModifiers'])->name('modifierClassList');
-	
+    Route::resource('attribute', AttributeController::class)->names('attribute');
+    Route::resource('attributeClass', AttributesClassController::class)->names('attributeClass');
+    Route::get('attributeClassList', [AttributesClassController::class, 'getAttributes'])->name('attributeClassList');
+    Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');   
 });

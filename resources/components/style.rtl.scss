@@ -64,6 +64,38 @@ body {
   }
 }
 
+
+.p-datatable-thead
+{
+ tr
+ {
+  @extend .fw-bold ; 
+  @extend .text-muted ; 
+  @extend .bg-light ; 
+
+  th
+  {
+      font-size: small; 
+      padding-left: 5px !important;
+  }
+ }
+}
+  
+.p-datatable-tbody
+{
+  tr
+  {
+    td
+    {
+      @extend .text-gray-900 ; 
+      @extend .fw-bold ; 
+      @extend .mb-1 ; 
+      @extend .fs-6 ; 
+      font-size: small; 
+    }
+  }
+}
+
 .form-check-input
 {
   height: 1.50rem !important;
@@ -142,4 +174,17 @@ body {
 
 .number-indent-4{
   width: 10%;
+}
+
+
+.child {
+  display: inline-block;
+  vertical-align: middle;
+  padding:5px;
+  font-style: italic;
+}
+
+.GenaerateButton{
+ margin: 10px !important;
+ float: left !important;
 }

@@ -21,7 +21,7 @@ const DeleteModal = ({ visible, onClose , onDelete, name, url , row ,translation
       <div className="modal" style={{ display: `${visible? 'block' : 'none'}` }}>
         <Modal.Dialog>
             <Modal.Header>
-                <Modal.Title>Delete</Modal.Title>
+                <Modal.Title>{translations.Delete}</Modal.Title>
             </Modal.Header>
         <form class="needs-validation">
         <Modal.Body>

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import ProductComponent from './product/ProductComponent';
 import CategoryTree from './product/CategoryTree';
 import Modifiertree from './modifier/modifiertree';
+import Attributetree from './attributes/attributetree';
 
 var htmlElement = document.querySelector("html");
 const dir =   htmlElement.getAttribute('dir');
@@ -32,4 +33,9 @@ if (Element3) {
   const root = ReactDOM.createRoot(Element3);
   root.render(<Modifiertree />);
 }
-
+const Element4 = document.getElementById('attribute-root');
+ 
+if (Element4) {
+  const root = ReactDOM.createRoot(Element4);
+  root.render(<Attributetree />);
+}

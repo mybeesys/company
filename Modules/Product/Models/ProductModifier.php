@@ -25,17 +25,19 @@ class ProductModifier extends Model
         'modifier_id',
         'active',
         'default',
+        'required',
         'free_quantity',
         'free_type',
         'max_modifiers',
         'min_modifiers',
         'button_display',
-        'modifier_display'
+        'modifier_display',
+        'display_order'
     ];
 
     public function modifiers()
     {
-        return $this->belongsTo(modifiers::class, 'modifier_id', 'id');
+        return $this->belongsTo(modifierclass::class, 'modifier_id', 'id');
     }
     public function products()
     {
