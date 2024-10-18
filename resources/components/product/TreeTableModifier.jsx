@@ -154,7 +154,7 @@ const TreeTableProduct = ({ urlList, rootElement }) => {
         } catch (error) {
             console.error('There was an error get the product!', error);
         }
-        
+        setEditingRow({});
         setCurrentKey('-1');
         refreshTree();
     }
