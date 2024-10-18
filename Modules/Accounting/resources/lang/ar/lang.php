@@ -110,6 +110,7 @@ return [
     'The journal entry is unbalanced with a difference of' => 'القيد غير متوازن بفارق قدره',
     'The journal entry is unbalanced with a difference between debit and credit.' => 'القيد غير متوازن بفارق بين المدين والدائن',
     'Error in the process' => 'خطأ في العملية',
+    'type'=>'نوع',
 
 
 

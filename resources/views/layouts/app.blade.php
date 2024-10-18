@@ -83,10 +83,10 @@
 <!--begin::Body-->
 
 <body id="kt_app_body" data-kt-app-header-fixed="true" data-kt-app-header-fixed-mobile="true"
-    data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true" data-kt-app-sidebar-hoverable="true"
-    data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true" data-kt-app-aside-enabled="true"
-    data-kt-app-aside-fixed="true" data-kt-app-aside-push-toolbar="true" data-kt-app-aside-push-footer="true"
-    class="app-default">
+    data-kt-app-sidebar-minimize="on" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
+    data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
+    data-kt-app-aside-enabled="true" data-kt-app-aside-fixed="true" data-kt-app-aside-push-toolbar="true"
+    data-kt-app-aside-push-footer="true" class="app-default">
     <!--begin::Theme mode setup on page load-->
     <script>
         var defaultThemeMode = "light";
@@ -229,7 +229,7 @@
     <!--end::App-->
     <!--begin::Drawers-->
     <!--begin::Activities drawer-->
-  
+
     <!--end::Activities drawer-->
 
     <!--end::Chat drawer-->
@@ -1277,8 +1277,7 @@
                     <div id="kt_modal_users_search_handler" data-kt-search-keypress="true"
                         data-kt-search-min-length="2" data-kt-search-enter="enter" data-kt-search-layout="inline">
                         <!--begin::Form-->
-                        <form data-kt-search-element="form" class="w-100 position-relative mb-5"
-                            autocomplete="off">
+                        <form data-kt-search-element="form" class="w-100 position-relative mb-5" autocomplete="off">
                             <!--begin::Hidden input(Added to disable form autocomplete)-->
                             <input type="hidden" />
                             <!--end::Hidden input-->
@@ -1288,8 +1287,7 @@
                             <!--end::Icon-->
                             <!--begin::Input-->
                             <input type="text" class="form-control form-control-lg form-control-solid px-15"
-                                name="search" value=""
-                                placeholder="Search by username, full name or email..."
+                                name="search" value="" placeholder="Search by username, full name or email..."
                                 data-kt-search-element="input" />
                             <!--end::Input-->
                             <!--begin::Spinner-->
@@ -1337,8 +1335,7 @@
                                         class="d-flex align-items-center p-3 rounded bg-state-light bg-state-opacity-50 mb-1">
                                         <!--begin::Avatar-->
                                         <div class="symbol symbol-35px symbol-circle me-5">
-                                            <span
-                                                class="symbol-label bg-light-danger text-danger fw-semibold">M</span>
+                                            <span class="symbol-label bg-light-danger text-danger fw-semibold">M</span>
                                         </div>
                                         <!--end::Avatar-->
                                         <!--begin::Info-->
@@ -1915,8 +1912,7 @@
                                             <!--end::Checkbox-->
                                             <!--begin::Avatar-->
                                             <div class="symbol symbol-35px symbol-circle">
-                                                <span
-                                                    class="symbol-label bg-light-info text-info fw-semibold">A</span>
+                                                <span class="symbol-label bg-light-info text-info fw-semibold">A</span>
                                             </div>
                                             <!--end::Avatar-->
                                             <!--begin::Details-->
@@ -2758,9 +2754,12 @@
     <!--end::Modals-->
     <!--begin::Javascript-->
     <script>
+        window.csrfToken = '{{ csrf_token() }}';
         var hostUrl = "/assets/";
     </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
+    <script src="{{ url('/js/general.js') }}"></script>
+    <script src="{{ url('/js/date-picker.js') }}"></script>
     <script src="/assets/plugins/global/plugins.bundle.js"></script>
     <script src="/assets/js/scripts.bundle.js"></script>
     <script src="/assets/js/dataTables.js"></script>

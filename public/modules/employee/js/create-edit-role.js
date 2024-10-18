@@ -2,7 +2,7 @@ function roleForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
     saveButton.prop('disabled', true);
 
-    $(`#${id} input`).on('change', function() {
+    $(`#${id} input`).on('change', function () {
         let input = $(this);
         validateField(input);
     });
@@ -17,12 +17,14 @@ function roleForm(id, validationUrl) {
             url: validationUrl,
             type: 'POST',
             data: formData,
-            success: function() {
+            processData: false,
+            contentType: false,
+            success: function () {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
                 checkErrors();
             },
-            error: function(response) {
+            error: function (response) {
                 input.siblings('.invalid-feedback').remove();
                 input.removeClass('is-invalid');
 
@@ -42,4 +44,39 @@ function roleForm(id, validationUrl) {
             saveButton.prop('disabled', false);
         }
     }
+}
+
+function RolePermissionForm() {
+    $('input[type="checkbox"][value!="all"]').on('change', function (e) {
+        const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
+        if (!$(this).is(':checked')) {
+            selectAllCheckbox.prop('checked', false);
+        } else {
+            const allChecked = $('input[name^="permissions"][value!="all"]').length === $(
+                'input[name^="permissions"][value!="all"]:checked').length;
+            if (allChecked) {
+                selectAllCheckbox.prop('checked', true);
+            }
+        }
+    });
+
+    $('form').on('submit', function (event) {
+        const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
+
+        if (selectAllCheckbox.is(':checked')) {
+            const dataId = $('input[type="checkbox"][value="all"]').data('id');
+            const selectAllPermissionId = dataId;
+            $('input[type="checkbox"][value!="all"]').prop('disabled', true);
+            selectAllCheckbox.val(selectAllPermissionId);
+        }
+    });
+
+    dataTable = $('#role-permission-table').DataTable({
+        paging: false,
+        info: false,
+        ordering: false,
+        scrollX: false,
+        scrollY: false,
+    });    
+    handleSearchDatatable();
 }

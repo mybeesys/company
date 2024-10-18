@@ -3,7 +3,7 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class StoreRoleRequest extends FormRequest
 {
@@ -13,9 +13,11 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:50', 'unique:roles,name'],
             'department' => ['nullable', 'string', 'max:50'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
+            'permissions' => ['array', 'nullable'],
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
         ];
     }
 

@@ -3,24 +3,23 @@
 @section('title', __('menuItemLang.dashboard_roles'))
 
 @section('content')
-    <div class="card card-flush">
-        <x-employee::card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-employee::tables.table-header model="dashboard_role" url="dashboard-role">
+    <x-cards.card>
+        <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
+            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee">
                 <x-slot:export>
-                    <x-employee::tables.export-menu id="dashboard_role" />
+                    <x-tables.export-menu id="dashboard_role" />
                 </x-slot:export>
-            </x-employee::tables.table-header>
-        </x-employee::card-header>
-        <x-employee::card-body class="table-responsive">
-            <x-employee::tables.table :columns=$columns model="dashboard_role" />
-        </x-employee::card-body>
-    </div>
-
+            </x-tables.table-header>
+        </x-cards.card-header>
+        <x-cards.card-body class="table-responsive">
+            <x-tables.table :columns=$columns model="dashboard_role" module="employee" />
+        </x-cards.card-body>
+    </x-cards.card>
 @endsection
 
 @section('script')
     @parent
-    <script src="{{ url('modules/employee/js/table.js') }}"></script>
+    <script src="{{ url('/js/table.js') }}"></script>
     <script type="text/javascript" src="vfs_fonts.js"></script>
     <script>
         "use strict";
@@ -31,7 +30,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table');
+            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session()->get('locale') }}", []);
             handleSearchDatatable();
         });
 

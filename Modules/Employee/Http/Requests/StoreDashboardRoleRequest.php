@@ -3,7 +3,6 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class StoreDashboardRoleRequest extends FormRequest
 {

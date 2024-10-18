@@ -87,7 +87,7 @@ return [
     'show' => 'عرض',
     'department' => 'القسم',
     'rank' => 'الرتبة',
-    'name_en' => 'الاسم بالإنجليزي',
+    'name_en' => 'الاسم  بالإنجليزي',
     'administrative_permission_set' => 'مجموعة الأذونات الإدارية',
     'pos_roles_wages' => 'أدوار وأجور نقاط البيع'
 ];

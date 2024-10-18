@@ -11,7 +11,10 @@
     'labelClass' => '',
     'checked' => false,
     'datalist' => null,
+    'attribute' => null,
+    'form_control' => true
 ])
+
 @php
     // handling repeaters errors
     // Convert array-style name (e.g., 'role_wage_repeater[0][role]') to dot notation (e.g., 'role_wage_repeater.0.role')
@@ -20,12 +23,12 @@
 @if ($label)
     <label @class(['form-label', 'required' => $required, $labelClass])>{{ $label }}</label>
 @endif
-@includeWhen($hint, 'employee::components.forms.field-hint', ['hint' => $hint])
+@includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])
 {{ $slot }}
 <input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}"
     placeholder="{{ $placeholder }}" id="{{ $name }}" autocomplete="new-password" value="{{ old($name, $value) }}"
-    @class([
-        'form-control',
+    {{ $attribute }} @class([
+        'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),
         $class,
     ]) @required($required) @checked($checked) />

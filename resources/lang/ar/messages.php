@@ -16,8 +16,14 @@ return [
     'add' => 'إضافة',
     'no_cost_centers' => 'لا يوجد مراكز تكلفة مضافة!',
     'settings' => 'إعدادات',
-    'save'=>'حفظ',
-    'deactivate'=>'إلغاء تنشيط',
+    'save' => 'حفظ',
+    'deactivate' => 'إلغاء تنشيط',
+    'actions' => 'العمليات',
+    'add_successfully'=>'تمت الإضافة بنجاح',
+    'updated_successfully'=>'تم التعديل بنجاح',
+    'something_went_wrong'=>'لقد حدث خطأ ما',
+    'ref_number already exists'=>'الرقم المرجعي موجود مسبفاً',
+
 
 
 

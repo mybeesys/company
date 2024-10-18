@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
+use Modules\Accounting\Models\AccountingAccTransMapping;
 
 class AccountingUtil
 {
@@ -380,23 +381,28 @@ class AccountingUtil
     public static function generateReferenceNumber($type)
     {
 
-        $AAT = AccountingAccountsTransaction::where('sub_type', $type)->latest()->first()->accTransMapping;
-        if ($AAT) {
-            $last_ref_no = $AAT->ref_no;
+        $AAT = AccountingAccTransMapping::where('type', $type)->latest()->first();
+        $currentYear = date('Y');
 
-            $currentYear = date('Y');
 
-            list($year, $number) = explode('/', $last_ref_no);
+            if ($AAT) {
+                // $AAT =$AAT->accTransMapping;
+                $last_ref_no = $AAT->ref_no;
 
-            if ($year == $currentYear) {
-                $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = $currentYear . '/' . $newNumber;
-            } else {
-                $new_ref_no = $currentYear . '/0001';
+
+                list($year, $number) = explode('/', $last_ref_no);
+
+                if ($year == $currentYear) {
+                    $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+                    $new_ref_no = $currentYear . '/' . $newNumber;
+                } else {
+                    $new_ref_no = $currentYear . '/0001';
+                }
+
+                return $new_ref_no;
             }
 
-            return $new_ref_no;
-        }
-        return false;
+
+        return  $new_ref_no = $currentYear . '/0001';
     }
 }

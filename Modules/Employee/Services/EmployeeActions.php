@@ -129,7 +129,7 @@ class EmployeeActions
     {
         // Handling administrative User and their roles and establishments
         $this->request->get('active_managment_fields_btn') ?
-            $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id) : $employee->administrativeUser->delete();
+            $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id) : $employee?->administrativeUser?->delete();
 
         // Hanlding employee's POS roles and wages
         !empty($this->request->get('role_wage_repeater')) ? $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee) : $this->unsyncAllRoles($employee);

@@ -4,9 +4,8 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use DB;
-use File;
 use Illuminate\Http\Request;
-use Modules\Employee\Classes\Tables;
+use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
@@ -38,9 +37,9 @@ class EmployeeController extends Controller
                     ? $employees->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
             }
-            return Tables::getEmployeeTable($employees);
+            return EmployeeTable::getEmployeeTable($employees);
         }
-        $columns = Tables::getEmployeeColumns();
+        $columns = EmployeeTable::getEmployeeColumns();
         return view('employee::employee.index', compact('columns'));
     }
 
