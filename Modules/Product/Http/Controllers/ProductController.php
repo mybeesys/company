@@ -143,13 +143,13 @@ class ProductController extends Controller
                 $att = [];
                 $att['product_id'] =  $validated['id'];
                 $att['attribute_id1'] = $attribute['attribute1']['id'];
-                $att['attribute_id2'] = $attribute['attribute2']['id'];
+                $att['attribute_id2'] = isset($attribute['attribute2'])? $attribute['attribute2']['id']: null;
                 $att['name_ar'] = $attribute['name_ar'];
                 $att['name_en'] = $attribute['name_en'];
-                $att['barcode'] = $attribute['barcode'];
-                $att['SKU'] = $attribute['SKU'];
+                $att['barcode'] = isset($attribute['barcode'])? $attribute['barcode']: null;
+                $att['SKU'] = isset($attribute['SKU'])? $attribute['SKU']: null;
                 $att['price'] = $attribute['price'];
-                $att['starting'] = $attribute['starting'];
+                $att['starting'] = isset($attribute['starting'])? $attribute['starting']: null;
                 Product_Attribute::create($att);
             }
         }   
@@ -177,13 +177,13 @@ class ProductController extends Controller
                 $att = [];
                 $att['product_id'] =  $product->id;
                 $att['attribute_id1'] = $attribute['attribute1']['id'];
-                $att['attribute_id2'] = $attribute['attribute2']['id'];
+                $att['attribute_id2'] = isset($attribute['attribute2'])? $attribute['attribute2']['id']: null;
                 $att['name_ar'] = $attribute['name_ar'];
                 $att['name_en'] = $attribute['name_en'];
-                $att['barcode'] = $attribute['barcode'];
-                $att['SKU'] = $attribute['SKU'];
+                $att['barcode'] = isset($attribute['barcode'])? $attribute['barcode']: null;
+                $att['SKU'] = isset($attribute['SKU'])? $attribute['SKU']: null;
                 $att['price'] = $attribute['price'];
-                $att['starting'] = $attribute['starting'];
+                $att['starting'] = isset($attribute['starting'])? $attribute['starting']: null;
                 Product_Attribute::create($att);
             }
         }
