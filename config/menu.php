@@ -17,7 +17,6 @@ return [
 
                 'name' => 'Products',
                 'url' => 'category',
-                'url' => 'category',
                 'permission' => '' ,
 
             ],
