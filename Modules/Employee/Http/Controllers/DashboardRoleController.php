@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
+use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PermissionSet;
 
 class DashboardRoleController extends Controller
@@ -40,7 +41,29 @@ class DashboardRoleController extends Controller
      */
     public function create()
     {
-        return view('employee::dashboard-roles.create');
+        $modules = Permission::where('type', 'ems')
+            ->where('name', 'not like', '%.all.%')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+            ->groupBy(function ($item) {
+                return explode(".", $item->name)[0];
+            })
+            ->map(function ($permissions) {
+                return $permissions->map(function ($item) {
+                    $nameParts = explode(".", $item->name);
+                    return [
+                        'entity' => "$nameParts[1].$item->name_ar",
+                        'action' => $nameParts[2],
+                        'id' => $item->id,
+                    ];
+                })->groupBy('entity')->map(function ($groupedPermissions) {
+                    return $groupedPermissions->mapWithKeys(function ($item) {
+                        return [
+                            $item['action'] => $item['id'],
+                        ];
+                    });
+                });
+            });
+        return view('employee::dashboard-roles.create', ['modules' => $modules]);
     }
 
     /**
@@ -48,6 +71,7 @@ class DashboardRoleController extends Controller
      */
     public function store(StoreDashboardRoleRequest $request)
     {
+        dd($request->safe()->all());
         DB::beginTransaction();
         $dashboardRole = PermissionSet::create($request->safe()->all());
         DB::commit();

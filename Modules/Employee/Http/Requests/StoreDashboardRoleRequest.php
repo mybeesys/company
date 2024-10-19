@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreDashboardRoleRequest extends FormRequest
 {
@@ -15,6 +16,8 @@ class StoreDashboardRoleRequest extends FormRequest
             'permissionSetName' => ['required', 'string', 'max:50'],
             'isActive' => ['required', 'boolean'],
             'rank' => ['required', 'numeric', 'max_digits:3'],
+            'permissions' => ['array', 'nullable'],
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')]
         ];
     }
 

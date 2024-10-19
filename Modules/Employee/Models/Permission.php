@@ -14,10 +14,8 @@ class Permission extends SpatiePermission
         return $this->belongsToMany(PermissionSet::class, 'employee_permission_set_permissions')->withPivot('accessLevel');
     }
 
-    protected function name(): Attribute
+    public function getModifiedNameAttribute()
     {
-        return Attribute::make(
-            get: fn(string $value) => ucfirst(str_replace('_', ' ', $value)),
-        );
+        return ucfirst(str_replace('_', ' ', $this->name));
     }
 }

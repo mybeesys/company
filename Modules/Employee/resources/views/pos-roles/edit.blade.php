@@ -19,7 +19,7 @@
         let dataTable;
         $(document).ready(function() {
             roleForm('edit_role_form', "{{ route('roles.update.validation') }}");
-            RolePermissionForm();
+            rolePermissionsForm();
         });
     </script>
 @endsection

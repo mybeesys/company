@@ -47,17 +47,17 @@
                     @foreach ($permissions->chunk(3) as $permissionChunk)
                         <tr>
                             @foreach ($permissionChunk as $permission)
-                                <td>{{ session()->get('locale') == 'ar' ? $permission->name_ar : $permission->name }}
+                                <td>{{ session()->get('locale') == 'ar' ? $permission->name_ar : $permission->modifiedName }}
                                     <x-form.field-hint
                                         hint="{{ session()->get('locale') == 'ar' ? $permission->description_ar : $permission->description }}" />
                                 </td>
                                 <td>
                                     <x-form.input-div class="form-check form-check-custom form-check-solid">
                                         <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
-                                            value="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'all' : $permission->id }}"
+                                            value="{{ $permission->name === 'select_all_permissions' ? 'all' : $permission->id }}"
                                             name="permissions[{{ $permission->id }}]" :form_control="false"
-                                            checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions?->first()?->name == 'Select all permissions' }}"
-                                            attribute="{{ $permission->getAttributes()['name'] === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=permissions' }}" />
+                                            checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions?->first()?->name == 'select_all_permissions' }}"
+                                            attribute="{{ $permission->name === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=permissions' }}" />
                                     </x-form.input-div>
                                 </td>
                             @endforeach
