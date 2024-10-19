@@ -25,5 +25,13 @@ class AccountingAccTransMapping extends Model
         return $this->hasMany(AccountingAccountsTransaction::class,'acc_trans_mapping_id');
     }
 
+    public function account(){
+        return $this->belongsTo(AccountingAccount::class,'accounting_account_id');
+    }
+
+    public function cost_center(){
+        return $this->belongsTo(AccountingCostCenter::class,'cost_center_id');
+    }
+
 
 }

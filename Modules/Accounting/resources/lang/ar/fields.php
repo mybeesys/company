@@ -13,6 +13,7 @@ return [
     'actions'=>'الإجراءات',
     'add_journal-entry' => 'إضافة قيد يومي',
     'duplication'=>'تكرار',
+    'print'=>'طباعة',
 
 
 

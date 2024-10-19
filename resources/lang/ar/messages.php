@@ -23,6 +23,9 @@ return [
     'updated_successfully'=>'تم التعديل بنجاح',
     'something_went_wrong'=>'لقد حدث خطأ ما',
     'ref_number already exists'=>'الرقم المرجعي موجود مسبفاً',
+    'save&add'=>'حفظ وإضافة اخر',
+    'save&print'=>'حفظ وطباعة',
+
 
 
 

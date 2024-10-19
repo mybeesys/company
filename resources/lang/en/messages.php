@@ -23,6 +23,9 @@ return [
     'updated_successfully'=>'Updated Successfully',
     'something_went_wrong'=>'Something went wrong',
     'ref_number already exists'=>'Reference number is already available.',
+    'save&add'=>'Save and add another',
+    'save&print'=>'Save and print',
+
 
 
 
