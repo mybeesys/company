@@ -12,6 +12,8 @@ return [
     'actions'=>'Actions',
     'add_journal-entry' => 'Add Journal Entry',
     'duplication'=>'Duplication',
+    'print'=>'Print',
+
 
 
 

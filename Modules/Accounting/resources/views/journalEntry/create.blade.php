@@ -26,6 +26,7 @@
         </div>
     </div>
 
+
     <div class="separator d-flex flex-center my-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
@@ -191,7 +192,7 @@
                                 <td id="totalDebit">0.00</td>
                                 <td id="totalCredit">0.00</td>
                                 {{-- <td colspan="1"> </td> --}}
-                                <td colspan="2" id="Budget" style="text-align: center;color:red"> </td>
+                                 <td colspan="2" id="Budget" style="text-align: center;color:red"> </td>
                             </tr>
                         </tfoot>
 
@@ -232,10 +233,16 @@
         <input type="hidden" id="JournalEntries" name="JournalEntries" value="">
 
         <div class="my-7  flex-center" style="display: flex">
-            <button type="submit" class="btn btn-primary" style="width: 12rem;">@lang('messages.save')</button>
+            <button type="submit" data-submit ="save" class="btn btn-primary mx-2"
+                style="width: 12rem;">@lang('messages.save')</button>
+            <button type="submit" data-submit ="add" class="btn btn-primary mx-2"
+                style="">@lang('messages.save&add')</button>
+            <button type="submit" data-submit ="print" class="btn btn-primary mx-2"
+                style="width: 12rem;">@lang('messages.save&print')</button>
 
         </div>
     </form>
+
 
 @stop
 
@@ -339,7 +346,7 @@
 
 
         $(document).ready(function() {
-            for (i = 0; i < 4; i++) {
+            for (i = 0; i < 2; i++) {
                 $('table tbody').append(newRow);
             }
 
@@ -485,9 +492,17 @@
 
             return journalEntries;
         }
+        let submit_type = '';
+
+        $(document).on('click', 'button[type="submit"]', function() {
+            submit_type = $(this).data('submit');
+
+        });
 
         $('#journalEntryForm').on('submit', function(event) {
             event.preventDefault();
+
+
             if (totalDebit != totalCredit || (totalDebit == 0 && totalCredit == 0)) {
                 Swal.fire({
                     title: '@lang('accounting::lang.Error in the process')',
@@ -496,7 +511,13 @@
                 });
             } else {
                 let journalEntriesData = JSON.stringify(getJournalEntries());
+
                 $('#JournalEntries').val(journalEntriesData);
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'submit_type',
+                    value: submit_type
+                }).appendTo('#journalEntryForm');
                 this.submit();
             }
 

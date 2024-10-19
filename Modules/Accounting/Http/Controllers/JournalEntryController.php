@@ -57,7 +57,6 @@ class JournalEntryController extends Controller
     public function store(Request $request)
     {
 
-
         $journalEntriesJson = $request->input('JournalEntries');
 
 
@@ -126,11 +125,15 @@ class JournalEntryController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('journal-entry-index')->with('success', __('messages.add_successfully'));
+            if ($request->submit_type == 'add')
+                return redirect()->back()->with('success', __('messages.add_successfully'));
+            if ($request->submit_type == 'save')
+                return redirect()->route('journal-entry-index')->with('success', __('messages.add_successfully'));
+
+            if ($request->submit_type == 'print')
+                return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-
             return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -138,9 +141,11 @@ class JournalEntryController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function print($id)
     {
-        return view('accounting::show');
+        $journal = AccountingAccTransMapping::with('transactions')->find($id);
+
+        return view('accounting::journalEntry.print', compact('journal'));
     }
 
     /**
@@ -249,8 +254,11 @@ class JournalEntryController extends Controller
             }
 
             DB::commit();
+            if ($request->submit_type == 'save')
+                return redirect()->route('journal-entry-index')->with('success', __('messages.updated_successfully'));
 
-            return redirect()->route('journal-entry-index')->with('success', __('messages.updated_successfully'));
+            if ($request->submit_type == 'print')
+                return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));

@@ -52,6 +52,10 @@ class AccountingAccTransMappingTable
                     </div>';
 
                     $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/journal-entry-print/{$row->id}") . '" class="menu-link px-3">' . __('accounting::fields.print') . '</a>
+                </div>';
+
+                    $actions .= '<div class="menu-item px-3">
                                     <a class="menu-link px-3 delete-btn" href="' . url("/journal-entry-destroy/{$row->id}") . '" data-id="' . $row->id . '"  data-ref_no="' . $row->ref_no . '">'. __('employee::fields.delete') . '</a>
                                 </div>';
 
