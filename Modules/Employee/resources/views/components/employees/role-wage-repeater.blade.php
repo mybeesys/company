@@ -1,4 +1,4 @@
-@props(['employee' => null, 'roles', 'establishments'])
+@props(['employee' => null, 'roles', 'establishments', 'disabled' => false])
 <label @class(['form-label'])>@lang('employee::fields.pos_roles_wages')</label>
 <div id="role_wage_repeater">
     <div class="form-group">
@@ -6,7 +6,7 @@
 
             {{-- Handling global roles and wages --}}
             @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
-                <x-employee::employees.role-wage-repeater-inputs :index=$index
+                <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
                     role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"
                     establishment_select_value="all" default_selection_value="all"
                     default_selection="{{ __('employee::general.all_establishments') }}"
@@ -17,7 +17,7 @@
             {{-- Establishments roles and wages --}}
             @if ($employee?->establishmentsPivot()?->exists())
                 @foreach (old('role_wage_repeater', $employee?->establishmentsPivot) as $index => $establishmentRole)
-                    <x-employee::employees.role-wage-repeater-inputs :index=$index
+                    <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
                         role_select_value="{{ is_array($establishmentRole) ? $establishmentRole['role'] ?? '' : $establishmentRole?->role_id }}"
                         default_selection="{{ __('employee::general.all_establishments') }}"
                         default_selection_value="all"
@@ -29,7 +29,7 @@
         </div>
     </div>
     <div class="form-group mt-7">
-        <a href="javascript:;" data-repeater-create class="btn btn-sm btn-light-primary">
-            <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</a>
+        <button href="javascript:;" data-repeater-create class="btn btn-sm btn-light-primary" @disabled($disabled)>
+            <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</button>
     </div>
 </div>

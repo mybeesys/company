@@ -69,9 +69,9 @@
                                                 class="form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
                                                 :row="false">
                                                 <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $module['all.'][$action] }}"
+                                                    value="{{ $module->has('all') ? $module['all'][$action] : null }}"
                                                     name="permissions[{{ $moduleName }}.all.{{ $action }}]"
-                                                    checked="{{ $rolePermissions?->contains($module['all.'][$action]) }}"
+                                                    checked="{{ $module->has('all') ? $rolePermissions?->contains($module['all'][$action]) : false }}"
                                                     :form_control="false"
                                                     attribute="data-select-all={{ $moduleName }}-all-{{ $action }}" />
                                             </x-form.input-div>
@@ -82,7 +82,7 @@
                             {{-- child rows --}}
                             <div id="kt_{{ $loop->index }}" class="collapse">
                                 @foreach ($module as $key => $permission)
-                                    @if ($key == 'all.')
+                                    @if ($key == 'all')
                                         @continue
                                     @endif
                                     @php

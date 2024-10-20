@@ -35,7 +35,7 @@ Route::middleware([
         Route::post('/store', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::patch('/{employee}', 'update')->name('update');
-        Route::get('/show/{employee}', 'show')->name('show');
+        Route::get('/show/{id}', 'show')->name('show');
         Route::delete('/{employee}', 'softDelete')->name('delete');
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
