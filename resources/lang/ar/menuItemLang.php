@@ -2,9 +2,9 @@
 return [
 
     'accounting_module'=>'المحاسبة',
-    'Dashboard' => 'لوحة التحكم',
-    'User_module' => 'إدارة المسنخدمين',
-    'Product_module' => 'إدارة الأصناف',
+    'dashboard' => 'لوحة التحكم',
+    'user_module' => 'إدارة المسنخدمين',
+    'product_module' => 'إدارة الأصناف',
     'chart_of_accounts'=>'شجرة الحسابات',
 
     'employees_management_module' => 'إدارة الموظفين',
@@ -13,8 +13,12 @@ return [
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
     'reports_module' => 'التقارير',
-    'Products' => 'المنتجات',
+    'products' => 'المنتجات',
     'inventory' => 'المخزن',
+    'accounting' => 'المحاسبة',
+    'establishments' => 'المنشآت',
+    'reports' => 'التقارير',
+    'schedules' => 'الجدولة',
     'accounting_dashboard'=>'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',
     'employees' => 'الموظفون',

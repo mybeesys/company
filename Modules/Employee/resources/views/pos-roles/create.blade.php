@@ -26,7 +26,7 @@
         let dataTable;
         $(document).ready(function() {
             roleForm('add_role_form', "{{ route('roles.create.validation') }}");
-            RolePermissionForm();
+            rolePermissionsForm();
             handleSearchDatatable();
         });
     </script>

@@ -12,7 +12,8 @@
     'checked' => false,
     'datalist' => null,
     'attribute' => null,
-    'form_control' => true
+    'form_control' => true,
+    'disabled' => false
 ])
 
 @php
@@ -31,7 +32,7 @@
         'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),
         $class,
-    ]) @required($required) @checked($checked) />
+    ]) @required($required) @checked($checked) @disabled($disabled)/>
 {{ $datalist }}
 @if ($errors->first($dotNotationName))
     <div class="invalid-feedback">{{ $errors->first($dotNotationName) }}</div>

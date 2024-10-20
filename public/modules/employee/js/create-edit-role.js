@@ -46,7 +46,7 @@ function roleForm(id, validationUrl) {
     }
 }
 
-function RolePermissionForm() {
+function rolePermissionsForm() {
     $('input[type="checkbox"][value!="all"]').on('change', function (e) {
         const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
         if (!$(this).is(':checked')) {
@@ -77,6 +77,6 @@ function RolePermissionForm() {
         ordering: false,
         scrollX: false,
         scrollY: false,
-    });    
+    });
     handleSearchDatatable();
 }

@@ -2,9 +2,7 @@
 
 namespace Modules\Employee\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Employee\Database\Factories\PermissionSetFactory;
 
 class PermissionSet extends BaseModel
 {
@@ -17,7 +15,7 @@ class PermissionSet extends BaseModel
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'employee_permission_set_permissions')->withPivot('accessLevel');
+        return $this->belongsToMany(Permission::class, 'employee_permission_set_permissions', 'permissionSet_id', 'permission_id')->withPivot('accessLevel')->withTimestamps();
     }
 
     public function administrativeUsers()

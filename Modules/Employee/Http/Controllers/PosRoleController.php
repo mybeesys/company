@@ -10,9 +10,20 @@ use Modules\Employee\Http\Requests\StoreRoleRequest;
 use Modules\Employee\Http\Requests\UpdateRoleRequest;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
+use Modules\Employee\Services\PosRoleActions;
 
 class PosRoleController extends Controller
 {
+
+
+    protected $permissions;
+    protected $departments;
+
+    public function __construct()
+    {
+        $this->permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
+        $this->departments = Role::departments();
+    }
     /**
      * Display a listing of the resource.
      */
@@ -41,9 +52,7 @@ class PosRoleController extends Controller
      */
     public function create()
     {
-        $permissions = Permission::orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-        $departments = Role::departments();
-        return view('employee::pos-roles.create', compact('departments', 'permissions'));
+        return view('employee::pos-roles.create', ['departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
     /**
@@ -51,24 +60,12 @@ class PosRoleController extends Controller
      */
     public function store(StoreRoleRequest $request)
     {
-        DB::beginTransaction();
-        $request = $request->safe();
-        $role = Role::create($request->except('permissions'));
-
-        if ($request->has('permissions')) {
-            $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
-            $permissions = collect($request->permissions)->map(function ($value) {
-                return (int) $value;
-            });
-            $permissions->contains($selectAllPermission->id) ? $role->givePermissionTo($selectAllPermission->id) : $role->syncPermissions($permissions);
-        }
-
-        DB::commit();
-        if ($role) {
-            return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
-        } else {
-            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        DB::transaction(function () use ($request) {
+            $filteredRequest = $request->safe();
+            $storeRole = new PosRoleActions($filteredRequest);
+            $storeRole->store();
+        });
+        return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
     }
 
     /**
@@ -85,9 +82,7 @@ class PosRoleController extends Controller
     public function edit(int $id)
     {
         $role = Role::where('id', $id)->with('permissions:id,name')->first();
-        $departments = Role::departments();
-        $permissions = Permission::orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-        return view('employee::pos-roles.edit', compact('role', 'departments', 'permissions'));
+        return view('employee::pos-roles.edit', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
     /**
@@ -95,24 +90,13 @@ class PosRoleController extends Controller
      */
     public function update(UpdateRoleRequest $request, Role $role)
     {
-        DB::beginTransaction();
-        $request = $request->safe();
-        $updated = $role->update($request->all());
+        DB::transaction(function () use ($request, $role) {
+            $filteredRequest = $request->safe();
+            $storeRole = new PosRoleActions($filteredRequest);
+            $storeRole->update($role);
+        });
 
-        if ($request->has('permissions')) {
-            $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
-            $permissions = collect($request->permissions)->map(function ($value) {
-                return (int) $value;
-            });
-            $permissions->contains($selectAllPermission->id) ? $role->syncPermissions([$selectAllPermission->id]) : $role->syncPermissions($permissions);
-        }
-
-        DB::commit();
-        if ($updated) {
-            return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
-        } else {
-            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
     }
 
     /**

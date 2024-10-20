@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
+use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PermissionSet;
+use Modules\Employee\Services\DashboardRoleActions;
 
 class DashboardRoleController extends Controller
 {
@@ -40,7 +42,28 @@ class DashboardRoleController extends Controller
      */
     public function create()
     {
-        return view('employee::dashboard-roles.create');
+        $modules = Permission::where('type', 'ems')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+            ->groupBy(function ($item) {
+                return explode(".", $item->name)[0];
+            })
+            ->map(function ($permissions) {
+                return $permissions->map(function ($item) {
+                    $nameParts = explode(".", $item->name);
+                    return [
+                        'entity' => "$nameParts[1].$item->name_ar",
+                        'action' => $nameParts[2],
+                        'id' => $item->id,
+                    ];
+                })->groupBy('entity')->map(function ($groupedPermissions) {
+                    return $groupedPermissions->mapWithKeys(function ($item) {
+                        return [
+                            $item['action'] => $item['id'],
+                        ];
+                    });
+                });
+            });
+        return view('employee::dashboard-roles.create', ['modules' => $modules]);
     }
 
     /**
@@ -48,14 +71,12 @@ class DashboardRoleController extends Controller
      */
     public function store(StoreDashboardRoleRequest $request)
     {
-        DB::beginTransaction();
-        $dashboardRole = PermissionSet::create($request->safe()->all());
-        DB::commit();
-        if ($dashboardRole) {
-            return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_created_successfully'));
-        } else {
-            return redirect()->route('dashboard-roles.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        DB::transaction(function () use ($request) {
+            $filteredRequest = $request->safe();
+            $storeRole = new DashboardRoleActions($filteredRequest);
+            $storeRole->store();
+        });
+        return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_created_successfully'));
     }
 
     /**
@@ -71,7 +92,29 @@ class DashboardRoleController extends Controller
      */
     public function edit(PermissionSet $dashboardRole)
     {
-        return view('employee::dashboard-roles.edit', compact('dashboardRole'));
+        $modules = Permission::where('type', 'ems')
+        ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+        ->groupBy(function ($item) {
+            return explode(".", $item->name)[0];
+        })
+        ->map(function ($permissions) {
+            return $permissions->map(function ($item) {
+                $nameParts = explode(".", $item->name);
+                return [
+                    'entity' => "$nameParts[1].$item->name_ar",
+                    'action' => $nameParts[2],
+                    'id' => $item->id,
+                ];
+            })->groupBy('entity')->map(function ($groupedPermissions) {
+                return $groupedPermissions->mapWithKeys(function ($item) {
+                    return [
+                        $item['action'] => $item['id'],
+                    ];
+                });
+            });
+        });
+        $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
+        return view('employee::dashboard-roles.edit', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
 
     /**
@@ -79,14 +122,12 @@ class DashboardRoleController extends Controller
      */
     public function update(UpdateDashboardRoleRequest $request, PermissionSet $dashboardRole)
     {
-        DB::beginTransaction();
-        $updated = $dashboardRole->update($request->safe()->all());
-        DB::commit();
-        if ($updated) {
-            return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
-        } else {
-            return redirect()->route('roles.index')->with('error', __('employee::responses.something_wrong_happened'));
-        }
+        DB::transaction(function () use ($request, $dashboardRole) {
+            $filteredRequest = $request->safe();
+            $storeRole = new DashboardRoleActions($filteredRequest);
+            $storeRole->update($dashboardRole);
+        });
+        return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_updated_successfully'));
     }
 
     /**

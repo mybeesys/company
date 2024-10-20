@@ -1,21 +1,21 @@
 <?php
 return [
     [
-        'name' => 'Dashboard',
+        'name' => 'dashboard',
         'url' => 'dashboard',
         'icon' => 'fas fa-home',
         'permission' => '',
         'subMenu' => []
     ],
     [
-        'name' => 'Product_module',
+        'name' => 'product_module',
         'url' => 'category',
         'icon' => 'fas fa-shopping-cart',
         'permission' => '',
         'subMenu' => [
             [
 
-                'name' => 'Products',
+                'name' => 'products',
                 'url' => 'category',
                 'permission' => '' ,
 

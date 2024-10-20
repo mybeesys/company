@@ -60,7 +60,7 @@ return [
     'all' => 'All',
     'all_establishments' => 'All establishments',
     'add_dashboard_role' => 'Add dashboard role',
-    'dashboard_role_search' => 'ابحث عن دور',
+    'dashboard_role_search' => 'Search for a role',
     'ok' => 'Ok',
     'permission_search' => 'Search for permission',
     'edit_employee_permission' => 'Edit employee permissions',
