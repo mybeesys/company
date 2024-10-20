@@ -22,6 +22,27 @@
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
+                <div class="navigation-buttons">
+                    @if ($previous)
+                        @if ($duplication)
+                            <a href="{{ route('journal-entry-duplication', $previous->id) }}"
+                                class="btn btn-primary">@lang('messages.previous')</a>
+                        @else
+                            <a href="{{ route('journal-entry-edit', $previous->id) }}"
+                                class="btn btn-primary">@lang('messages.previous')</a>
+                        @endif
+                    @endif
+
+                    @if ($next)
+                        @if ($duplication)
+                            <a href="{{ route('journal-entry-duplication', $next->id) }}"
+                                class="btn btn-primary">@lang('messages.next')</a>
+                        @else
+                            <a href="{{ route('journal-entry-edit', $next->id) }}"
+                                class="btn btn-primary">@lang('messages.next')</a>
+                        @endif
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -275,6 +296,9 @@
             style="width: 12rem;">@lang('messages.save')</button>
         <button type="submit" data-submit ="print" class="btn btn-primary mx-2"
             style="width: 12rem;">@lang('messages.save&print')</button>
+        <a href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}" data-submit ="print"
+            class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a>
+    
 
     </div>
     </form>
@@ -287,6 +311,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
 
     <script>
+
         flatpickr("#kt_calendar_datepicker_start_date", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",

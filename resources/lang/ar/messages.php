@@ -25,6 +25,9 @@ return [
     'ref_number already exists'=>'الرقم المرجعي موجود مسبفاً',
     'save&add'=>'حفظ وإضافة اخر',
     'save&print'=>'حفظ وطباعة',
+    'previous'=>'السابق',
+    'next'=>'التالي',
+
 
 
 

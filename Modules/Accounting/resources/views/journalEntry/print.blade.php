@@ -14,6 +14,10 @@
     <title>Print: {{ $journal->ref_no }}</title>
     <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
     <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+    <!-- jsPDF (for PDF export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- SheetJS (for Excel export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <style>
         body {
@@ -56,6 +60,7 @@
         window.onafterprint = function() {
             window.location.href = "{{ route('journal-entry-index') }}";
         };
+
     </script>
 </head>
 

@@ -25,6 +25,8 @@ return [
     'ref_number already exists'=>'Reference number is already available.',
     'save&add'=>'Save and add another',
     'save&print'=>'Save and print',
+    'previous'=>'Previous',
+    'next'=>'next',
 
 
 
