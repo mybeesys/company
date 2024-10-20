@@ -83,9 +83,28 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
     }
 
-    public function show(Employee $employee)
+    public function show(int $id)
     {
-        return view('employee::employee.show', compact('employee'));
+        $employee = Employee::with([
+            'establishmentsPivot',
+            'establishmentsPivot.wage' => function ($query) {
+                $query->select('id', 'rate');
+            },
+            'establishmentsPivot.establishment' => function ($query) {
+                $query->select('id', 'name');
+            },
+            'roles' => function ($query) {
+                $query->select('roles.id', 'roles.name');
+            },
+            'roles.wage' => function ($query) use ($id) {
+                $query->select('role_id', 'rate', 'establishment_id')->where('employee_id', $id);
+            },
+            'administrativeUser.permissionSets'
+        ])->findOrFail($id);
+        return view(
+            'employee::employee.show',
+            ['employee' => $employee, 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+        );
     }
 
     public function edit(int $id)

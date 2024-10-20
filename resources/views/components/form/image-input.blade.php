@@ -1,4 +1,4 @@
-@props(['name', 'errors', 'image' => null])
+@props(['name', 'errors', 'image' => null, 'disabled' => false])
 
 <style>
     .image-input-placeholder {
@@ -22,7 +22,7 @@
     <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
         style="position: absolute; top: 10px; right: 10px;" data-kt-image-input-action="change" data-bs-toggle="tooltip"
         title="@lang('employee::general.choose_image')">
-        <input type="file" name="{{ $name }}" accept=".png, .jpg, .jpeg"
+        <input type="file" name="{{ $name }}" accept=".png, .jpg, .jpeg" @disabled($disabled)
             class="@error($name) is-invalid @enderror" />
         <i class="ki-outline ki-pencil fs-7"></i>
     </label>
