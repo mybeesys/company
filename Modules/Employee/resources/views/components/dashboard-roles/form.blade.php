@@ -1,4 +1,4 @@
-@props(['dashboardRole' => null, 'modules'])
+@props(['dashboardRole' => null, 'modules', 'rolePermissions' => null])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap gap-5">
@@ -64,50 +64,28 @@
                                 </div>
                                 <div class="w-100 pe-5 my-auto">
                                     <div class="d-flex justify-content-between w-100 gap-11">
-                                        <x-form.input-div class="form-check form-check-custom form-check-solid ps-6"
-                                            :row="false">
-                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                value="{{ $moduleName }}.all.show"
-                                                name="permissions[{{ $moduleName }}.all.show]" :form_control="false"
-                                                attribute="data-select-all={{ $moduleName }}-all-show" />
-                                        </x-form.input-div>
-                                        <x-form.input-div class="form-check form-check-custom form-check-solid"
-                                            :row="false">
-                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                value="{{ $moduleName }}.all.print"
-                                                name="permissions[{{ $moduleName }}.all.print]" :form_control="false" />
-                                        </x-form.input-div>
-                                        <x-form.input-div class="form-check form-check-custom form-check-solid"
-                                            :row="false">
-                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                value="{{ $moduleName }}.all.create"
-                                                name="permissions[{{ $moduleName }}.all.create]" :form_control="false" />
-                                        </x-form.input-div>
-                                        <x-form.input-div class="form-check form-check-custom form-check-solid"
-                                            :row="false">
-                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                value="{{ $moduleName }}.all.edit"
-                                                name="permissions[{{ $moduleName }}.all.edit]" :form_control="false" />
-                                        </x-form.input-div>
-                                        <x-form.input-div class="form-check form-check-custom form-check-solid pe-5"
-                                            :row="false">
-                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                value="{{ $moduleName }}.all.delete"
-                                                name="permissions[{{ $moduleName }}.all.delete]"
-                                                :form_control="false" />
-                                        </x-form.input-div>
+                                        @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                            <x-form.input-div
+                                                class="form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
+                                                :row="false">
+                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                                    value="{{ $module['all.'][$action] }}"
+                                                    name="permissions[{{ $moduleName }}.all.{{ $action }}]"
+                                                    checked="{{ $rolePermissions?->contains($module['all.'][$action]) }}"
+                                                    :form_control="false"
+                                                    attribute="data-select-all={{ $moduleName }}-all-{{ $action }}" />
+                                            </x-form.input-div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
                             {{-- child rows --}}
                             <div id="kt_{{ $loop->index }}" class="collapse">
                                 @foreach ($module as $key => $permission)
+                                    @if ($key == 'all.')
+                                        @continue
+                                    @endif
                                     @php
-                                        $show = $permission->has('show') ? $permission['show'] : null;
-                                        $print = $permission->has('print') ? $permission['print'] : null;
-                                        $create = $permission->has('create') ? $permission['create'] : null;
-                                        $edit = $permission->has('edit') ? $permission['edit'] : null;
-                                        $delete = $permission->has('delete') ? $permission['delete'] : null;
                                         $name_ar = explode('.', $key)[1];
                                         $name_en = explode('.', $key)[0];
                                     @endphp
@@ -118,54 +96,23 @@
                                             </div>
                                         </div>
                                         <div class="d-flex justify-content-between w-100 pe-5 gap-11">
-                                            <x-form.input-div
-                                                class="fv-row form-check form-check-custom form-check-solid ps-6"
-                                                :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $show }}"
-                                                    name="permissions[{{ $moduleName . '.' . $name_en . '.show' }}]"
-                                                    :form_control="false" disabled="{{ $show ? false : true }}" />
-                                            </x-form.input-div>
-
-                                            <x-form.input-div
-                                                class="fv-row form-check form-check-custom form-check-solid"
-                                                :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $permission->has('print') ? $permission['print'] : null }}"
-                                                    name="permissions[{{ $moduleName . '.' . $name_en . '.print' }}]"
-                                                    :form_control="false"
-                                                    disabled="{{ $permission->has('print') ? false : true }}" />
-                                            </x-form.input-div>
-
-                                            <x-form.input-div
-                                                class="fv-row form-check form-check-custom form-check-solid"
-                                                :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $permission->has('create') ? $permission['create'] : null }}"
-                                                    name="permissions[{{ $moduleName . '.' . $name_en . '.create' }}]"
-                                                    :form_control="false"
-                                                    disabled="{{ $permission->has('create') ? false : true }}" />
-                                            </x-form.input-div>
-
-                                            <x-form.input-div
-                                                class="fv-row form-check form-check-custom form-check-solid"
-                                                :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $permission->has('edit') ? $permission['edit'] : null }}"
-                                                    name="permissions[{{ $moduleName . '.' . $name_en . '.edit' }}]"
-                                                    :form_control="false"
-                                                    disabled="{{ $permission->has('edit') ? false : true }}" />
-                                            </x-form.input-div>
-
-                                            <x-form.input-div
-                                                class="fv-row form-check form-check-custom form-check-solid pe-5"
-                                                :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                    value="{{ $permission->has('delete') ? $permission['delete'] : null }}"
-                                                    name="permissions[{{ $moduleName . '.' . $name_en . '.delete' }}]"
-                                                    :form_control="false"
-                                                    disabled="{{ $permission->has('delete') ? false : true }}" />
-                                            </x-form.input-div>
+                                            @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                                @php
+                                                    $isAvailable = $permission->has($action)
+                                                        ? $permission[$action]
+                                                        : null;
+                                                @endphp
+                                                <x-form.input-div
+                                                    class="fv-row form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
+                                                    :row="false">
+                                                    <x-form.input :errors=$errors class="form-check-input"
+                                                        type="checkbox" value="{{ $isAvailable }}"
+                                                        name="permissions[{{ $moduleName . '.' . $name_en . '.' . $action }}]"
+                                                        :form_control="false"
+                                                        checked="{{ $rolePermissions?->contains($isAvailable) }}"
+                                                        disabled="{{ $isAvailable ? false : true }}" />
+                                                </x-form.input-div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 @endforeach
