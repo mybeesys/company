@@ -95,6 +95,7 @@ return [
     'note_active' => 'You are about to activate the financial account. This action will enable financial transactions associated with this account. Please ensure you want to proceed before continuing',
     'journalEntry' => 'Journal Entry',
     'add_journalEntry' => 'Add Journal Entry',
+    'edit_journalEntry' => 'Edit Journal Entry',
     'journalEntry_date' => 'Journal Entry Date',
     "Pick_journalEntry_date" => 'Pick Journal Entry Date',
     'ref_number' => 'Reference Number',

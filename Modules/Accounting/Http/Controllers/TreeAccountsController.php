@@ -277,21 +277,6 @@ class TreeAccountsController extends Controller
         $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
             ->where('accounting_account_id', $account->id)->get();
 
-        // if (!empty($start_date) && !empty($end_date)) {
-        //     $transactions->where(function ($query) use ($start_date, $end_date) {
-        //         $query->where(function ($query) use ($start_date, $end_date) {
-        //             $query->where('accounting_accounts_transactions.sub_type', '!=', 'opening_balance')
-        //                 ->whereDate('accounting_accounts_transactions.operation_date', '>=', $start_date)
-        //                 ->whereDate('accounting_accounts_transactions.operation_date', '<=', $end_date);
-        //         })
-        //             ->orWhere(function ($query) use ($start_date, $end_date) {
-        //                 $query->where('accounting_accounts_transactions.sub_type', 'opening_balance')
-        //                     ->whereYear('accounting_accounts_transactions.operation_date', '>=', date('Y', strtotime($start_date)))
-        //                     ->whereYear('accounting_accounts_transactions.operation_date', '<=', date('Y', strtotime($end_date)));
-        //             });
-        //     });
-        // }
-
         $current_bal = AccountingAccount::leftjoin(
             'accounting_accounts_transactions as AAT',
             'AAT.accounting_account_id',
@@ -302,7 +287,12 @@ class TreeAccountsController extends Controller
             ->where('accounting_accounts.id', $account->id)
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
-        return view('accounting::treeOfAccounts.ledger', compact('account', 'current_bal', 'account_transactions'));
+        $previous = AccountingAccount::where('id', '<', $account_id)->orderBy('id', 'desc')->first();
+
+        $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
+
+        $accountingAccount = AccountingAccount::forDropdown();
+        return view('accounting::treeOfAccounts.ledger', compact('account','previous','next','accountingAccount', 'current_bal', 'account_transactions'));
     }
 
     public function activateDeactivate(Request $request)
