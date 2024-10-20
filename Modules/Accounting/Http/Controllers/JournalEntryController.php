@@ -156,8 +156,12 @@ class JournalEntryController extends Controller
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::all();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
+        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
+
+        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+
         $duplication = 0;
-        return view('accounting::journalEntry.edit', compact('accounts', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+        return view('accounting::journalEntry.edit', compact('accounts','previous', 'next','cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 
@@ -166,9 +170,13 @@ class JournalEntryController extends Controller
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::all();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
+        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
+
+        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+
         $duplication = 1;
 
-        return view('accounting::journalEntry.edit', compact('accounts', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+        return view('accounting::journalEntry.edit', compact('accounts','previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 
