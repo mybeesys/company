@@ -23,17 +23,54 @@
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     <h1>
                         {{-- @if (app()->getLocale() == 'en') --}}
-                            @lang('accounting::lang.ledger') - {{ $account->name_en }}
+                        @lang('accounting::lang.ledger') - {{ $account->name_en }}
                         {{-- @endif --}}
                     </h1>
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-                <h1>
-                    {{-- @if (app()->getLocale() == 'ar') --}}
-                        {{-- @lang('accounting::lang.ledger') - {{ $account->name_ar }} --}}
-                    {{-- @endif --}}
-                </h1>
+                <div class="row">
+
+                    {{-- <div class="navigation-buttons"> --}}
+                    <div class="col-2">
+                        @if ($previous)
+                            <a href="{{ route('ledger', ['account_id' => $previous->id]) }}" class="btn btn-primary "
+                                style="padding: 5px;
+                                border-radius: 50%;"><i
+                                    @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-left fs-1 p-0" @endif
+                                    @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-right fs-1 p-0" @endif></i></a>
+                        @endif
+                    </div>
+                    <div class="col-8">
+
+                        <select id="accounts" class="form-select form-select-solid select-2" name="id">
+
+                            @foreach ($accountingAccount as $_account)
+                                <option value="{{ $_account->id }}" @if ($account->id == $_account->id) selected @endif>
+                                    @if (app()->getLocale() == 'ar')
+                                        {{ $_account->name_ar }}
+                                    @else
+                                        {{ $_account->name_en }}
+                                    @endif -
+
+                                    {{ $_account->gl_code }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
+                    <div class="col-2">
+
+                        @if ($next)
+                            <a href="{{ route('ledger', ['account_id' => $next->id]) }}" class="btn btn-primary"
+                                style="padding: 5px;
+                                border-radius: 50%;"><i
+                                    @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-right fs-1 p-0" @endif
+                                    @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-left fs-1 p-0" @endif></i></a>
+                        @endif
+                        {{-- </div> --}}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -144,7 +181,7 @@
                     <div class="text-gray-800 fw-semibold fs-5">
                         @lang('accounting::lang.balance'):
                         <span class=" fw-semibold fs-2" style="color: #0945e9">
-                            {{ $current_bal??'--' }} </span>
+                            {{ $current_bal ?? '--' }} </span>
                     </div>
 
 
@@ -378,3 +415,22 @@
         @endif
     </div>
 @endsection
+@section('script')
+
+    {{-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
+
+    <script>
+        $(document).ready(function() {
+            $('#accounts').on('change', function() {
+                var selectedValue = this.value;
+                url = '{{ url('ledger') }}?account_id=' + selectedValue;
+
+
+                window.location.href = url;
+            });
+
+            $('#accounts').select2();
+        });
+    </script>
+@stop

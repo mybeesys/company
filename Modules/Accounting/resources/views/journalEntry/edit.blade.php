@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
-@section('title', __('accounting::lang.add_journalEntry'))
+
+@php
+    if ($duplication) {
+        $title = __('accounting::fields.duplication') . '-' . $acc_trans_mapping->ref_no;
+    } else {
+        $title = __('accounting::lang.edit_journalEntry');
+    }
+
+@endphp
+@section('title', $title)
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -17,37 +26,76 @@
         <div class="row">
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
-                    <h1> @lang('accounting::lang.add_journalEntry')</h1>
+                    @if ($duplication)
+                        <h1> @lang('accounting::fields.duplication') - ( {{ $acc_trans_mapping->ref_no }} )</h1>
+                    @else
+                        <h1> @lang('accounting::lang.edit_journalEntry')</h1>
+                    @endif
 
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-                <div class="navigation-buttons">
-                    @if ($previous)
-                        @if ($duplication)
-                            <a href="{{ route('journal-entry-duplication', $previous->id) }}"
-                                class="btn btn-primary">@lang('messages.previous')</a>
-                        @else
-                            <a href="{{ route('journal-entry-edit', $previous->id) }}"
-                                class="btn btn-primary">@lang('messages.previous')</a>
-                        @endif
-                    @endif
+                <div class="row">
 
-                    @if ($next)
-                        @if ($duplication)
-                            <a href="{{ route('journal-entry-duplication', $next->id) }}"
-                                class="btn btn-primary">@lang('messages.next')</a>
-                        @else
-                            <a href="{{ route('journal-entry-edit', $next->id) }}"
-                                class="btn btn-primary">@lang('messages.next')</a>
+                    {{-- <div class="navigation-buttons"> --}}
+                    <div class="col-2">
+                        @if ($previous)
+                            @if ($duplication)
+                                <a href="{{ route('journal-entry-duplication', $previous->id) }}" class="btn btn-primary"
+                                    style="padding: 5px;
+                               border-radius: 50%;"><i
+                                        @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-left fs-1 p-0" @endif
+                                        @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-right fs-1 p-0" @endif></i></a>
+                            @else
+                                <a href="{{ route('journal-entry-edit', $previous->id) }}" class="btn btn-primary "
+                                    style="padding: 5px;
+                                border-radius: 50%;"><i
+                                        @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-left fs-1 p-0" @endif
+                                        @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-right fs-1 p-0" @endif></i></a>
+                            @endif
                         @endif
-                    @endif
+                    </div>
+                    <div class="col-8">
+
+                        <select id="acc_trans_mappings" class="form-select form-select-solid select-2" name="id">
+
+                            @foreach ($acc_trans_mappings as $acc_trans)
+                                <option value="{{ $acc_trans->id }}" @if ($acc_trans_mapping->id == $acc_trans->id) selected @endif>
+
+                                    {{ $acc_trans->ref_no }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
+                    <div class="col-2">
+
+                        @if ($next)
+                            @if ($duplication)
+                                <a href="{{ route('journal-entry-duplication', $next->id) }}" class="btn btn-primary"
+                                    style="padding: 5px;
+                                border-radius: 50%;"><i
+                                        @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-right fs-1 p-0" @endif
+                                        @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-left fs-1 p-0" @endif></i></a>
+                            @else
+                                <a href="{{ route('journal-entry-edit', $next->id) }}" class="btn btn-primary"
+                                    style="padding: 5px;
+                                border-radius: 50%;"><i
+                                        @if (app()->getLocale() == 'en') class="ki-outline ki-arrow-right fs-1 p-0" @endif
+                                        @if (app()->getLocale() == 'ar') class="ki-outline ki-arrow-left fs-1 p-0" @endif></i></a>
+                            @endif
+                        @endif
+                        {{-- </div> --}}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {{-- <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}"
+        class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a> --}}
 
     <div class="separator d-flex flex-center my-5">
+
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
     @if ($duplication)
@@ -298,7 +346,7 @@
             style="width: 12rem;">@lang('messages.save&print')</button>
         <a href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}" data-submit ="print"
             class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a>
-    
+
 
     </div>
     </form>
@@ -311,7 +359,6 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
 
     <script>
-
         flatpickr("#kt_calendar_datepicker_start_date", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
@@ -332,6 +379,7 @@
         });
 
 
+        $('#acc_trans_mappings').select2();
         $('#kt_ecommerce_select2_account').select2();
         $('#kt_ecommerce_select2_cost_center').select2();
         const newRow = `
@@ -409,6 +457,21 @@
             // for (i = 0; i < 4; i++) {
             //     $('table tbody').append(newRow);
             // }
+            $('#acc_trans_mappings').on('change', function() {
+                // document.getElementById('acc_trans_mappings').addEventListener('change', function() {
+                var selectedValue = this.value;
+                var duplication = {{ $duplication }};
+                let url = '';
+
+                if (duplication) {
+                    url = '{{ url('journal-entry-duplication') }}/' + selectedValue;
+                } else {
+                    url = '{{ url('journal-entry-edit') }}/' + selectedValue;
+                }
+                console.log(url, duplication, selectedValue);
+
+                window.location.href = url;
+            });
 
             $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();

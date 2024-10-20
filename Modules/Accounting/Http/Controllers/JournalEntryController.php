@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -148,6 +149,16 @@ class JournalEntryController extends Controller
         return view('accounting::journalEntry.print', compact('journal'));
     }
 
+
+    public function exportPDF($id)
+    {
+        $journal = AccountingAccTransMapping::with('transactions')->find($id);
+        $pdf = Pdf::loadView('accounting::journalEntry.print', compact('journal'));
+        $filename = 'journal' . str_replace(['/', '\\'], '-', $journal->ref_no) . '.pdf';
+        return $pdf->download($filename);
+        // return view('accounting::journalEntry.print', compact('journal'));
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -157,11 +168,12 @@ class JournalEntryController extends Controller
         $cost_centers = AccountingCostCenter::all();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
         $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        $acc_trans_mappings = AccountingAccTransMapping::all();
 
         $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
 
         $duplication = 0;
-        return view('accounting::journalEntry.edit', compact('accounts','previous', 'next','cost_centers', 'acc_trans_mapping', 'duplication'));
+        return view('accounting::journalEntry.edit', compact('accounts', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 
@@ -170,13 +182,14 @@ class JournalEntryController extends Controller
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::all();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
+        $acc_trans_mappings = AccountingAccTransMapping::all();
         $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
 
         $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
 
         $duplication = 1;
 
-        return view('accounting::journalEntry.edit', compact('accounts','previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+        return view('accounting::journalEntry.edit', compact('accounts', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 
