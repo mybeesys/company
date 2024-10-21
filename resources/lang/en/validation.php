@@ -144,6 +144,13 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name_en' => 'name',
+        'phoneNumber' => 'phone number',
+        'PIN' => 'pin',
+        'employmentStartDate' => 'Employment start date',
+        'employmentEndDate' => 'Employment end date',
+        'permissionSetName' => 'role name',
+    ],
 
 ];

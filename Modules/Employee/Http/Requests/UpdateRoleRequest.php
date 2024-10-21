@@ -12,10 +12,11 @@ class UpdateRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'name' => ['required', 'string', 'max:50', Rule::unique('roles', 'name')->ignore($this->name, 'name')],
+            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50', Rule::unique('roles', 'name')->ignore($this->name, 'name')],
             'department' => ['nullable', 'string', 'max:50'],
-            'rank' => ['required', 'numeric', 'max_digits:3'],
+            'rank' => [Rule::requiredIf($notAjaxValidate), 'numeric', 'max_digits:3'],
             'permissions' => ['array', 'nullable'],
             'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
         ];

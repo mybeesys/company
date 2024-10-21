@@ -12,10 +12,11 @@ class UpdateDashboardRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'permissionSetName' => ['required', 'string', 'max:50'],
-            'isActive' => ['required', 'boolean'],
-            'rank' => ['required', 'numeric', 'max_digits:3'],
+            'permissionSetName' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
+            'isActive' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'rank' => [Rule::requiredIf($notAjaxValidate), 'numeric', 'max_digits:3'],
             'permissions' => ['array', 'nullable'],
             'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')]
         ];

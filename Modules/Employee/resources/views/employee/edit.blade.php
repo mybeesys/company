@@ -17,6 +17,7 @@
     <script>
         $(document).ready(function() {
             datePicker('#employmentStartDate');
+            datePicker('#employmentEndDate');
             permissionSetRepeater();
             roleRepeater();
             administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});

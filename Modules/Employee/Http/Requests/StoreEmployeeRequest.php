@@ -4,6 +4,7 @@ namespace Modules\Employee\Http\Requests;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Modules\Employee\Rules\EmployeeEstablishmentRule;
 
@@ -14,21 +15,23 @@ class StoreEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'name' => ['required', 'string', 'max:50'],
-            'name_en' => ['required', 'string', 'max:50'],
-            'email' => ['required', 'email', 'unique:employee_employees,email'],
+            'validate' => ['boolean', 'nullable'],
+            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
+            'name_en' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
+            'email' => [Rule::requiredIf($notAjaxValidate), 'email', 'unique:employee_employees,email'],
             'phoneNumber' => ['nullable', 'digits_between:10,15'],
-            'employmentStartDate' => ['required', 'date'],
-            'PIN' => ['required', 'digits_between:4,5', 'numeric', 'unique:employee_employees,pin'],
+            'employmentStartDate' => [Rule::requiredIf($notAjaxValidate), 'date'],
+            'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', 'unique:employee_employees,pin'],
             'image' => ['image', 'max:3072'],
-            'isActive' => ['required', 'boolean'],
-            'role_wage_repeater' => ['required', 'array'],
-            'role_wage_repeater.*.role' => ['required', 'exists:roles,id'],
+            'isActive' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'role_wage_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
+            'role_wage_repeater.*.role' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'max_digits:12'],
-            'role_wage_repeater.*.establishment' => ['required', new EmployeeEstablishmentRule],
-            'active_managment_fields_btn' => ['required', 'boolean'],
-            'dashboard_role_repeater' => ['required', 'array'],
+            'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
+            'active_managment_fields_btn' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
             'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_managment_fields_btn', 'exists:roles,id'],
             'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_managment_fields_btn', 'exists:establishment_establishments,id'],
             'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'boolean'],
@@ -36,6 +39,8 @@ class StoreEmployeeRequest extends FormRequest
             'username' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
         ];
     }
+
+    
 
     /**
      * Determine if the user is authorized to make this request.

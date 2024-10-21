@@ -137,6 +137,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         let formData = new FormData();
         formData.append(field, input[0].files ? input[0].files[0] : input.val());
         formData.append("_token", window.csrfToken);
+        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,

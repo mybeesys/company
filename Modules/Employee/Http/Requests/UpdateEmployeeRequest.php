@@ -16,22 +16,23 @@ class UpdateEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'name' => ['required', 'string', 'max:50'],
-            'name_en' => ['required', 'string', 'max:50'],
-            'email' => ['required', 'email', Rule::unique('employee_employees', 'email')->ignore($this->email, 'email')],
+            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
+            'name_en' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
+            'email' => [Rule::requiredIf($notAjaxValidate), 'email', Rule::unique('employee_employees', 'email')->ignore($this->email, 'email')],
             'phoneNumber' => ['nullable', 'digits_between:10,15'],
-            'employmentStartDate' => ['required', 'date'],
+            'employmentStartDate' => [Rule::requiredIf($notAjaxValidate), 'date'],
             'employmentEndDate' => ['nullable', 'date'],
-            'PIN' => ['required', 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
+            'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('employee_employees', 'PIN')->ignore($this->PIN, 'PIN')],
             'image' => ['image', 'max:3072'],
-            'isActive' => ['required', 'boolean'],
-            'role_wage_repeater' => ['required', 'array'],
-            'role_wage_repeater.*.role' => ['required', 'exists:roles,id'],
+            'isActive' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'role_wage_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
+            'role_wage_repeater.*.role' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'numeric'],
-            'role_wage_repeater.*.establishment' => ['required', new EmployeeEstablishmentRule],
+            'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
             'active_managment_fields_btn' => ['boolean'],
-            'dashboard_role_repeater' => ['required', 'array'],
+            'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
             'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:roles,id'],
             'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:establishment_establishments,id'],
             'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'boolean'],
