@@ -81,6 +81,21 @@ function administrativeUser(administrativeUser) {
                 .prop('required', false);
         }
     });
+
+    $('#accountLocked').on("change", function () {
+        if ($(this).is(':checked')) {
+            $(this).val(0);
+        } else {
+            showAlert(Lang.get('responses.change_user_status_warning'),
+                Lang.get('general.diactivate'),
+                Lang.get('general.cancel'), undefined,
+                true, "warning").then(function (t) {
+                    if (!t.isConfirmed) {
+                        $('#isActive').prop('checked', true);
+                    }
+                });
+        }
+    });
 }
 
 function employeeForm(id, validationUrl, generatePinUrl) {
@@ -99,10 +114,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 Lang.get('general.diactivate'),
                 Lang.get('general.cancel'), undefined,
                 true, "warning").then(function (t) {
-                    if (t.isConfirmed) {
-                        $(this).val(1);
-                    } else {
-                        $(this).val(0);
+                    if (!t.isConfirmed) {
                         $('#isActive').prop('checked', true);
                     }
                 });

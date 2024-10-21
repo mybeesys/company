@@ -21,7 +21,6 @@ class EmployeeActions
 
     public function storeUpdateAdministrativeUser($repeaterData, $employee_id)
     {
-
         $repeaterData = $repeaterData ? collect($repeaterData) : null;
 
         $data = [
