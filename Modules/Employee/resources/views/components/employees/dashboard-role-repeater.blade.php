@@ -16,7 +16,7 @@
                             data_allow_clear="false" :options="$establishments" :errors="$errors" required
                             value="{{ is_array($permissionSet) ? $permissionSet['establishment'] ?? '' : $permissionSet?->pivot->establishment_id }}" />
                     </x-form.input-div>
-                    <button href="javascript:;" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger" @disabled($disabled)>
+                    <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger" @disabled($disabled)>
                         <i class="ki-outline ki-cross fs-1"></i>
                     </button>
                 </div>
@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="form-group mt-7">
-        <button href="javascript:;" data-repeater-create class="btn btn-sm btn-light-primary" @disabled($disabled)>
+        <button type="button" data-repeater-create class="btn btn-sm btn-light-primary" @disabled($disabled)>
             <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</button>
     </div>
 </div>

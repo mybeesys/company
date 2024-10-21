@@ -5,14 +5,16 @@
         <div data-repeater-list="role_wage_repeater" class="d-flex flex-column gap-3">
 
             {{-- Handling global roles and wages --}}
-            @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
-                <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
-                    role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"
-                    establishment_select_value="all" default_selection_value="all"
-                    default_selection="{{ __('employee::general.all_establishments') }}"
-                    wage_value="{{ is_array($globalRole) ? $globalRole['wage'] ?? '' : $globalRole?->wage?->rate }}"
-                    :roles=$roles :establishments=$establishments />
-            @endforeach
+            @if ($employee?->roles->isNotEmpty() || !$employee)
+                @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
+                    <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
+                        role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"
+                        establishment_select_value="all" default_selection_value="all"
+                        default_selection="{{ __('employee::general.all_establishments') }}"
+                        wage_value="{{ is_array($globalRole) ? $globalRole['wage'] ?? '' : $globalRole?->wage?->rate }}"
+                        :roles=$roles :establishments=$establishments />
+                @endforeach
+            @endif
 
             {{-- Establishments roles and wages --}}
             @if ($employee?->establishmentsPivot()?->exists())
@@ -29,7 +31,8 @@
         </div>
     </div>
     <div class="form-group mt-7">
-        <button href="javascript:;" data-repeater-create class="btn btn-sm btn-light-primary" @disabled($disabled)>
+        <button type="button" data-repeater-create class="btn btn-sm btn-light-primary"
+            @disabled($disabled)>
             <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</button>
     </div>
 </div>

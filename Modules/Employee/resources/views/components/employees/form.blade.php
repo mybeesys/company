@@ -76,7 +76,7 @@
                             <div class="input-group">
                                 <x-form.input :errors=$errors type="number" placeholder="PIN" name="PIN" :disabled=$disabled
                                     value="{{ $employee?->PIN }}" required>
-                                    <button href="#" id="generate_pin" @disabled($disabled)
+                                    <button type="button" id="generate_pin" @disabled($disabled)
                                         class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                 </x-form.input>
                             </div>

@@ -27,8 +27,8 @@ Route::middleware([
     AuthenticateJWT::class
 ])->group(function () {
 
+    Route::get('/employees-dashboard', [MainController::class, 'index'])->name('dashboard');
     Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
-        Route::get('/dashboard', [MainController::class, 'index'])->name('dashboard');
 
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');

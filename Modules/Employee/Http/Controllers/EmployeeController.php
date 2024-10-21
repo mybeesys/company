@@ -76,7 +76,9 @@ class EmployeeController extends Controller
     public function store(StoreEmployeeRequest $request)
     {
         DB::transaction(function () use ($request) {
-            $filteredRequest = $request->safe()->collect()->filter();
+            $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                return isset($item);
+            });
             $storeEmployee = new EmployeeActions($filteredRequest);
             $storeEmployee->store();
         });
@@ -134,7 +136,9 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         DB::transaction(function () use ($request, $employee) {
-            $filteredRequest = $request->safe()->collect()->filter();
+            $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                return isset($item);
+            });
             $updateEmployee = new EmployeeActions($filteredRequest);
             $updateEmployee->update($employee);
         });

@@ -12,6 +12,7 @@ function roleForm(id, validationUrl) {
         let formData = new FormData();
         formData.append(field, input.val());
         formData.append("_token", window.csrfToken);
+        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,
