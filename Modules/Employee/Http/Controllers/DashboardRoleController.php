@@ -82,9 +82,31 @@ class DashboardRoleController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(PermissionSet $dashboardRole)
     {
-        return view('employee::show');
+        $modules = Permission::where('type', 'ems')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+            ->groupBy(function ($item) {
+                return explode(".", $item->name)[0];
+            })
+            ->map(function ($permissions) {
+                return $permissions->map(function ($item) {
+                    $nameParts = explode(".", $item->name);
+                    return [
+                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
+                        'action' => $nameParts[2],
+                        'id' => $item->id,
+                    ];
+                })->groupBy('entity')->map(function ($groupedPermissions) {
+                    return $groupedPermissions->mapWithKeys(function ($item) {
+                        return [
+                            $item['action'] => $item['id'],
+                        ];
+                    });
+                });
+            });
+        $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
+        return view('employee::dashboard-roles.show', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
 
     /**

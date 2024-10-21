@@ -73,7 +73,8 @@ class PosRoleController extends Controller
      */
     public function show($id)
     {
-        return view('employee::show');
+        $role = Role::where('id', $id)->with('permissions:id,name')->first();
+        return view('employee::pos-roles.show', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
     /**

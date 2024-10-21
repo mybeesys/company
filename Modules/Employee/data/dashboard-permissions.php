@@ -65,6 +65,20 @@ return [
         'type' => 'ems',
     ],
     [
+        'name' => 'employees.employees.show',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.employees.print',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
         'name' => 'employees.role.create',
         'name_ar' => 'دور',
         'description' => '',

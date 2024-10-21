@@ -1,15 +1,15 @@
-@props(['role' => null, 'departments' => null, 'permissions'])
+@props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap">
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input required :errors=$errors
+                <x-form.input required :errors=$errors :disabled=$disabled
                     placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
                     value="{{ $role?->name }}" name="name" :label="__('employee::fields.name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}" name="department"
-                    :label="__('employee::fields.department')">
+                    :label="__('employee::fields.department')" :disabled=$disabled>
                     <x-slot:datalist>
                         <datalist id="departmentlist">
                             @isset($departments)
@@ -22,7 +22,7 @@
                 </x-form.input>
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
+                <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)" :disabled=$disabled
                     value="{{ $role?->rank }}" name="rank" :label="__('employee::fields.rank')" />
             </x-form.input-div>
         </div>
@@ -55,7 +55,7 @@
                                     <x-form.input-div class="form-check form-check-custom form-check-solid">
                                         <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
                                             value="{{ $permission->name === 'select_all_permissions' ? 'all' : $permission->id }}"
-                                            name="permissions[{{ $permission->id }}]" :form_control="false"
+                                            name="permissions[{{ $permission->id }}]" :form_control="false" :disabled=$disabled
                                             checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions?->first()?->name == 'select_all_permissions' }}"
                                             attribute="{{ $permission->name === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=permissions' }}" />
                                     </x-form.input-div>
@@ -73,6 +73,5 @@
             </table>
         </div>
     </x-form.form-card>
-    <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" />
+    <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" :disabled=$disabled/>
 </div>
-<input type="hidden" id="role_id" name="role_id" value="">
