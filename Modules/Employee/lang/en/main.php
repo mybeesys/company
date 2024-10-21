@@ -31,6 +31,15 @@ return [
     'countries' => 'Countries',
     'country' => 'Country',
     'account' => 'Acount',
+    'employees_management_module' => 'Employees management',
+    'establishments_module' => 'Establishments management',
+    'products_management_module' => 'Products management',
+    'inventory_management_module' => 'Inventory management',
+    'accounting_management_module' => 'Accounting',
+    'establishments_management_module' => 'Establishments management',
+    'reports_management_module' => 'Reports management',
+    'schedules_management_module' => 'Schedules management',    
+    'crm_management_module' => 'CRM management',
 
 
     'notifications_settings' => 'Notifications settings',

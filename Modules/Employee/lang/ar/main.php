@@ -31,6 +31,15 @@ return [
     'countries' => 'البلدان',
     'country' => 'بلد',
     'account' => 'حساب',
+    'employees_management_module' => 'إدارة الموظفين',
+    'establishments_module' => 'إدارة المنشآت',
+    'products_management_module' => 'إدارة المنتجات',
+    'inventory_management_module' => 'إدارة المخزن',
+    'accounting_management_module' => 'المحاسبة',
+    'establishments_management_module' => 'إدارة المنشآت',
+    'reports_management_module' => 'إدارة التقارير',
+    'schedules_management_module' => 'إدارة الجدولة',    
+    'crm_management_module' => 'إدارة علاقات العملاء',
 
 
     'notifications_settings' => 'إعدادات الإشعارات',

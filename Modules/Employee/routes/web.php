@@ -48,6 +48,7 @@ Route::middleware([
 
     Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {
         Route::get('', 'index')->name('index');
+        Route::get('/show/{id}', 'show')->name('show');
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
@@ -62,6 +63,7 @@ Route::middleware([
     Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/show/{dashboardRole}', 'show')->name('show');
         Route::post('/store', 'store')->name('store');
         Route::get('/{dashboardRole}/edit', 'edit')->name('edit');
         Route::patch('/{dashboardRole}', 'update')->name('update');
