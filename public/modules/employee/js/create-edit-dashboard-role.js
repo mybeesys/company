@@ -7,7 +7,7 @@ function dashboardRolePermissionsForm() {
         let isChecked = $(this).is(':checked');
 
         // Toggle checkboxes for the specific action
-        $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).prop('checked', isChecked);
+        $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).not(':disabled').prop('checked', isChecked);
 
         const dependenciesMap = {
             delete: { enable: ['edit', 'create', 'print', 'show', 'delete'], disable: [] },
@@ -43,7 +43,7 @@ function dashboardRolePermissionsForm() {
     });
 
     // Handle child permissions logic
-    $(`input[name^="permissions["][name$="]"]:not([name*=".all."])`).change(function () {
+    $(`input[name^="permissions["][name$="]"]:not([name*=".all."])`).on('change', function () {
         let name = $(this).attr('name');
         let moduleName = name.split('.')[0].replace('permissions[', '');
         let permissionName = name.split('.')[1];
@@ -67,10 +67,10 @@ function dashboardRolePermissionsForm() {
 
         // Toggle dependencies
         dependencies.forEach(function (dependency) {
-            let childCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`);
+            let childCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
 
             if (isChecked) {
-                $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${dependency}"]`).prop('checked', true);
+                $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${dependency}"]`).not(':disabled').prop('checked', true);
                 childCheckbox.prop('checked', true);
             } else {
                 uncheckDependencies.forEach(function (dep) {
@@ -92,21 +92,21 @@ function dashboardRolePermissionsForm() {
         const actions = ['show', 'print', 'create', 'edit', 'delete'];
 
         dependencies.forEach(function (dependency) {
-            let childCheckbox = $(`input[name="permissions[${moduleName}.${permissionName}.${dependency}]"]`);
-            let childAllCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`);
+            let childCheckbox = $(`input[name="permissions[${moduleName}.${permissionName}.${dependency}]"]`).not(':disabled');
+            let childAllCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
 
             actions.forEach(action => {
                 let allActionCheckbox = $(`input[name="permissions[${moduleName}.all.${action}]"]`);
-                const allActionChecked = $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:not([name*=".all."])`).length ===
-                    $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:checked:not([name*=".all."])`).length;
+                const allActionChecked = $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:not([name*=".all."])`).not(':disabled').length ===
+                    $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:checked:not([name*=".all."])`).not(':disabled').length;
 
                 if (allActionChecked) {
-                    allActionCheckbox.prop('checked', true);
+                    allActionCheckbox.not(':disabled').prop('checked', true);
                 }
             });
 
             if (isChecked) {
-                childCheckbox.prop('checked', true);
+                childCheckbox.not(':disabled').prop('checked', true);
             } else {
                 uncheckDependencies.forEach(function (dep) {
                     let uncheckAll = $(`input[name="permissions[${moduleName}.all.${dep}]"]`);
@@ -127,7 +127,7 @@ function dashboardRolePermissionsForm() {
                     allChecked = false;
                 }
             });
-            $(`input[name="permissions[${moduleName}.all.${action}"]`).prop('checked', allChecked);
+            $(`input[name="permissions[${moduleName}.all.${action}"]`).not(':disabled').prop('checked', allChecked);
         });
     }
 
