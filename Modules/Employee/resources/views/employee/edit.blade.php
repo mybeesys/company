@@ -6,7 +6,7 @@
         action="{{ route('employees.update', ['employee' => $employee]) }}">
         @method('patch')
         @csrf
-        <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets
+        <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets formId="edit_employee_form"
             :establishments=$establishments />
     </form>
 @endsection
@@ -16,7 +16,7 @@
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
     <script>
         $(document).ready(function() {
-            datePicker('#employmentStartDate');
+            datePicker('#employmentStartDate', new Date());
             datePicker('#employmentEndDate');
             permissionSetRepeater();
             roleRepeater();

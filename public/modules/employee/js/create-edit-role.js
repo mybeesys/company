@@ -1,6 +1,5 @@
 function roleForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
-    saveButton.prop('disabled', true);
 
     $(`#${id} input`).on('change', function () {
         let input = $(this);
@@ -12,7 +11,6 @@ function roleForm(id, validationUrl) {
         let formData = new FormData();
         formData.append(field, input.val());
         formData.append("_token", window.csrfToken);
-        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,
@@ -38,7 +36,9 @@ function roleForm(id, validationUrl) {
             }
         });
     }
+
     function checkErrors() {
+
         if ($('.is-invalid').length > 0) {
             saveButton.prop('disabled', true);
         } else {

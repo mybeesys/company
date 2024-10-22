@@ -40,7 +40,7 @@ return [
     'reports_management_module' => 'Reports management',
     'schedules_management_module' => 'Schedules management',    
     'crm_management_module' => 'CRM management',
-
+    'timecard' => 'Working hours',
 
     'notifications_settings' => 'Notifications settings',
     'system_settings' => 'System settings',

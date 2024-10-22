@@ -29,6 +29,7 @@ class StoreEmployeeRequest extends FormRequest
             'role_wage_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
             'role_wage_repeater.*.role' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'max_digits:12'],
+            'role_wage_repeater.*.wage_type' => [Rule::requiredIf($notAjaxValidate), 'nullable', 'in:hourly,weakly,monthly'],
             'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
             'active_managment_fields_btn' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
@@ -40,7 +41,7 @@ class StoreEmployeeRequest extends FormRequest
         ];
     }
 
-    
+
 
     /**
      * Determine if the user is authorized to make this request.

@@ -2,7 +2,6 @@
 
 @section('title', __('menuItemLang.employees'))
 @section('content')
-
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="employee" url="employee/create" module="employee">

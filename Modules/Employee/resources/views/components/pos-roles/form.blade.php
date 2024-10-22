@@ -1,4 +1,4 @@
-@props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false])
+@props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false, 'formId'])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap">
@@ -61,8 +61,6 @@
                                     </x-form.input-div>
                                 </td>
                             @endforeach
-
-
                             @for ($i = count($permissionChunk); $i < 3; $i++)
                                 <td></td>
                                 <td></td>
@@ -73,5 +71,5 @@
             </table>
         </div>
     </x-form.form-card>
-    <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" :disabled=$disabled/>
+    <x-form.form-buttons cancelUrl="{{ url('/pos-role') }}" :id=$formId :disabled=$disabled/>
 </div>

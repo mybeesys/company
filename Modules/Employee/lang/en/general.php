@@ -67,5 +67,12 @@ return [
     'show' => 'Show',
     'create' => 'Create',
     'edit' => 'Edit',
-    'deletion' => 'Delete'
+    'deletion' => 'Delete',
+    'hourly' => 'Hourly',
+    'weakly' => 'Weakly',
+    'monthly' => 'Monthly',
+    'add_timecard' => 'Add working hours',
+    'this_timecard' => 'this working hours',
+    'timecard_details' => 'Working hours details',
+
 ];

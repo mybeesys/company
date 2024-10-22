@@ -5,9 +5,11 @@
     <span class="input-group-text" data-td-target="#{{ $name }}" data-td-toggle="datetimepicker">
         <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
     </span>
-    <input id="{{ $name }}_input" name="{{ $name }}" type="text" @class(['form-control', 'is-invalid' => $errors->first($name)])
-        @required($required) data-td-target="#{{ $name }}" @disabled($disabled)
-        value="{{ $value ? $value : old($name) }}" />
+    <input @class([
+        'form-control',
+        'is-invalid' => $errors->first($name)
+    ]) value="{{ $value ? $value : old($name) }}" id="{{ $name }}_input"
+        name="{{ $name }}" type="text" data-td-target="#{{ $name }}" />
     @if ($errors->first($name))
         <div class="invalid-feedback">{{ $errors->first($name) }}</div>
     @endif

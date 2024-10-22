@@ -65,7 +65,7 @@ class PosRoleController extends Controller
             $storeRole = new PosRoleActions($filteredRequest);
             $storeRole->store();
         });
-        return redirect()->route('roles.index')->with('message', __('employee::responses.role_created_successfully'));
+        return redirect()->route('roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -97,7 +97,7 @@ class PosRoleController extends Controller
             $storeRole->update($role);
         });
 
-        return redirect()->route('roles.index')->with('message', __('employee::responses.role_updated_successfully'));
+        return redirect()->route('roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -107,7 +107,7 @@ class PosRoleController extends Controller
     {
         $delete = $role->delete();
         if ($delete) {
-            return response()->json(['message' => __('employee::responses.role_deleted_successfully')]);
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::fields.role')])]);
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }

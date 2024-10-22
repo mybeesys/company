@@ -100,8 +100,6 @@ function administrativeUser(administrativeUser) {
 
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
-    saveButton.prop('disabled', true);
-
     $('[name="permissionSet"]').select2({
         minimumResultsForSearch: -1
     });
@@ -129,6 +127,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $('#generate_pin').on('click', function (e) {
         e.preventDefault();
         $('#PIN').removeClass('is-invalid');
+        checkErrors();
         $.ajax({
             url: generatePinUrl,
             type: 'GET',
@@ -149,7 +148,6 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         let formData = new FormData();
         formData.append(field, input[0].files ? input[0].files[0] : input.val());
         formData.append("_token", window.csrfToken);
-        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,
@@ -189,6 +187,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     }
 
     function checkErrors() {
+        console.log($('.is-invalid').length);
         if ($('.is-invalid').length > 0) {
             saveButton.prop('disabled', true);
         } else {

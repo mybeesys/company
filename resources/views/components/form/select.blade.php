@@ -12,7 +12,7 @@
     'default_selection_value' => null,
     'data_allow_clear' => true,
     'optionName' => 'name',
-    'disabled' => false
+    'disabled' => false,
 ])
 @php
     // handling repeaters errors
@@ -27,12 +27,13 @@
     'form-select',
     $class,
     'is-invalid' => $errors->first($dotNotationName),
-]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}" @disabled($disabled)
-    data-allow-clear="{{ $data_allow_clear }}" data-kt-filter="{{ $name }}" name="{{ $name }}">
+]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}"
+    @disabled($disabled) data-allow-clear="{{ $data_allow_clear }}" data-kt-filter="{{ $name }}"
+    name="{{ $name }}">
     <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
     @if ($options)
         @foreach ($options as $option)
-            <option value="{{ $option['id'] }}" @selected($option['id'] == $value)>{{ $option["{$optionName}"] }}</option>
+            <option value="{{ $option['id'] }}" @selected($option['id'] == old($name, $value))>{{ $option["{$optionName}"] }}</option>
         @endforeach
     @endif
 </select>

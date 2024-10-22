@@ -1,4 +1,4 @@
-@props(['dashboardRole' => null, 'modules', 'rolePermissions' => null, 'disabled' => false])
+@props(['dashboardRole' => null, 'modules', 'rolePermissions' => null, 'disabled' => false, 'formId'])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap gap-5">
@@ -123,5 +123,5 @@
             </tbody>
         </table>
     </div>
-    <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" :disabled=$disabled/>
+    <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" :disabled=$disabled :id=$formId/>
 </div>
