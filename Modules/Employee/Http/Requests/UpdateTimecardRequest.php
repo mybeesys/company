@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTimecardRequest extends FormRequest
 {
@@ -11,13 +12,14 @@ class UpdateTimecardRequest extends FormRequest
      */
     public function rules(): array
     {
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'employee_id' => ['required', 'exists:employee_employees,id'],
-            'hoursWorked' => ['required', 'numeric', 'between:0,100', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'employee_id' => [Rule::requiredIf($notAjaxValidate), 'exists:employee_employees,id'],
+            'hoursWorked' => [Rule::requiredIf($notAjaxValidate), 'numeric', 'between:0,100', 'regex:/^\d+(\.\d{1,2})?$/'],
             'overtimeHours' => ['nullable', 'numeric', 'between:0,100', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'clockInTime' => ['required', 'date_format:Y/m/d h:i A'],
-            'clockOutTime' => ['required', 'date_format:Y/m/d h:i A'],
-            'date' => ['required', 'date']
+            'clockInTime' => [Rule::requiredIf($notAjaxValidate), 'date_format:Y/m/d h:i A'],
+            'clockOutTime' => [Rule::requiredIf($notAjaxValidate), 'date_format:Y/m/d h:i A'],
+            'date' => [Rule::requiredIf($notAjaxValidate), 'date']
         ];
     }
 

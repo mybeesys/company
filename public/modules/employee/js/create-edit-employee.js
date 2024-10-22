@@ -127,7 +127,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $('#generate_pin').on('click', function (e) {
         e.preventDefault();
         $('#PIN').removeClass('is-invalid');
-        checkErrors();
+        checkErrors(saveButton);
         $.ajax({
             url: generatePinUrl,
             type: 'GET',
@@ -160,7 +160,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 input.removeClass('is-invalid');
                 input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 $('#image_error').removeClass('d-block');
-                checkErrors();
+                checkErrors(saveButton);
             },
             error: function (response) {
                 input.siblings('.invalid-feedback').remove();
@@ -181,18 +181,9 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                         }
                     }
                 }
-                checkErrors();
+                checkErrors(saveButton);
             }
         });
-    }
-
-    function checkErrors() {
-        console.log($('.is-invalid').length);
-        if ($('.is-invalid').length > 0) {
-            saveButton.prop('disabled', true);
-        } else {
-            saveButton.prop('disabled', false);
-        }
     }
 
     function validateRoleRequirement() {

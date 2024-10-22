@@ -34,8 +34,9 @@ Route::middleware([
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
-        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::get('/{timecard}/edit', 'edit')->name('edit');
         Route::patch('/{timecard}', 'update')->name('update');
+        Route::delete('/{timecard}', 'destroy')->name('delete');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
     });
 

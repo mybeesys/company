@@ -21,7 +21,7 @@ function roleForm(id, validationUrl) {
             success: function () {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
-                checkErrors();
+                checkErrors(saveButton);
             },
             error: function (response) {
                 input.siblings('.invalid-feedback').remove();
@@ -32,18 +32,9 @@ function roleForm(id, validationUrl) {
                     input.addClass('is-invalid');
                     input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
                 }
-                checkErrors();
+                checkErrors(saveButton);
             }
         });
-    }
-
-    function checkErrors() {
-
-        if ($('.is-invalid').length > 0) {
-            saveButton.prop('disabled', true);
-        } else {
-            saveButton.prop('disabled', false);
-        }
     }
 }
 

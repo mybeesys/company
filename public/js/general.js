@@ -47,3 +47,11 @@ const errorAlert = function () {
         false, "error"
     );
 };
+
+function checkErrors(saveButton) {
+    if ($('.is-invalid').length > 0) {
+        saveButton.prop('disabled', true);
+    } else {
+        saveButton.prop('disabled', false);
+    }
+}

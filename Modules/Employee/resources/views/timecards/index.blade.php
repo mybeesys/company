@@ -43,7 +43,7 @@
             var id = $(this).data('id');
             var name = $(this).data('name');
             let deleteUrl =
-                `{{ url('/timcard/${id}') }}`;
+                `{{ url('/timecard/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     '{{ __('employee::general.this_timecard') }}'),

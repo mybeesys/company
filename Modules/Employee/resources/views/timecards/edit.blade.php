@@ -3,10 +3,11 @@
 @section('title', __('menuItemLang.employees_working_hours'))
 
 @section('content')
-    <form id="add_timecard_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        formId="add_timecard_form" action="{{ route('timecards.store') }}">
+    <form id="edit_timecard_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
+        formId="edit_timecard_form" action="{{ route('timecards.update', ['timecard' => $timecard]) }}">
         @csrf
-        <x-employee::timecards.form :employees=$employees formId="add_timecard_form" />
+        @method('patch')
+        <x-employee::timecards.form :employees=$employees :timecard=$timecard formId="edit_timecard_form" />
     </form>
 @endsection
 @section('script')
@@ -17,7 +18,7 @@
         $(document).ready(function() {
             $('[name="employee_id"]').select2();
             datePicker('#date');
-            timecardForm("add_timecard_form", "{{ route('timecards.create.validation') }}");
+            timecardForm("edit_timecard_form", "{{ route('timecards.create.validation') }}");
         });
     </script>
 @endsection
