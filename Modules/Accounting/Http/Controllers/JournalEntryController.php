@@ -6,16 +6,24 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
+use I18N_Arabic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\AccountingAccTransMappingTable;
+use Modules\Accounting\classes\JournalExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
-use Modules\Employee\Classes\Tables;
+use Mpdf\Mpdf;
+use Yajra\DataTables\Facades\DataTables;
+
+// use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+// use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+// use OpenSpout\Writer\XLSX\Writer;
 
 class JournalEntryController extends Controller
 {
@@ -153,12 +161,35 @@ class JournalEntryController extends Controller
     public function exportPDF($id)
     {
         $journal = AccountingAccTransMapping::with('transactions')->find($id);
-        $pdf = Pdf::loadView('accounting::journalEntry.print', compact('journal'));
+
+        $html = view('accounting::journalEntry.print', compact('journal'))->render();
+
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
         $filename = 'journal' . str_replace(['/', '\\'], '-', $journal->ref_no) . '.pdf';
-        return $pdf->download($filename);
-        // return view('accounting::journalEntry.print', compact('journal'));
+
+        return $mpdf->Output($filename, 'D');
     }
 
+    public function exportExcel($id)
+    {
+        // جلب البيانات التي سيتم تصديرها
+        $journal = AccountingAccTransMapping::with('transactions')->find($id);
+
+        $filename = 'journal' . str_replace(['/', '\\'], '-', $journal->ref_no) . '.xlsx';
+
+        // تصدير البيانات باستخدام Maatwebsite Excel
+        return Excel::download(new JournalExport($journal), $filename);
+    }
     /**
      * Show the form for editing the specified resource.
      */
