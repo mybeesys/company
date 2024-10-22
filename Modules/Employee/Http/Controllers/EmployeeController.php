@@ -26,6 +26,7 @@ class EmployeeController extends Controller
         $this->permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
         $this->roles = Role::all()->select('id', 'name');
     }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -82,15 +83,15 @@ class EmployeeController extends Controller
             $storeEmployee = new EmployeeActions($filteredRequest);
             $storeEmployee->store();
         });
-        return redirect()->route('employees.index')->with('success', __('employee::responses.employee_created_successfully'));
+        return redirect()->route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
     }
 
-    public function show(int $id)
+    public function getShowEditEmployee($id)
     {
-        $employee = Employee::with([
+        return Employee::with([
             'establishmentsPivot',
             'establishmentsPivot.wage' => function ($query) {
-                $query->select('id', 'rate');
+                $query->select('id', 'rate', 'wageType');
             },
             'establishmentsPivot.establishment' => function ($query) {
                 $query->select('id', 'name');
@@ -99,37 +100,30 @@ class EmployeeController extends Controller
                 $query->select('roles.id', 'roles.name');
             },
             'roles.wage' => function ($query) use ($id) {
-                $query->select('role_id', 'rate', 'establishment_id')->where('employee_id', $id);
+                $query->select('role_id', 'rate', 'wageType', 'establishment_id')->where('employee_id', $id);
             },
             'administrativeUser.permissionSets'
         ])->findOrFail($id);
+    }
+
+    public function getShowEditVariables($id)
+    {
+        return ['employee' => $this->getShowEditEmployee($id), 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments];
+    }
+
+    public function show(int $id)
+    {
         return view(
             'employee::employee.show',
-            ['employee' => $employee, 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+            $this->getShowEditVariables($id)
         );
     }
 
     public function edit(int $id)
     {
-        $employee = Employee::with([
-            'establishmentsPivot',
-            'establishmentsPivot.wage' => function ($query) {
-                $query->select('id', 'rate');
-            },
-            'establishmentsPivot.establishment' => function ($query) {
-                $query->select('id', 'name');
-            },
-            'roles' => function ($query) {
-                $query->select('roles.id', 'roles.name');
-            },
-            'roles.wage' => function ($query) use ($id) {
-                $query->select('role_id', 'rate', 'establishment_id')->where('employee_id', $id);
-            },
-            'administrativeUser.permissionSets'
-        ])->findOrFail($id);
         return view(
             'employee::employee.edit',
-            ['employee' => $employee, 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+            $this->getShowEditVariables($id)
         );
     }
 
@@ -143,7 +137,7 @@ class EmployeeController extends Controller
             $updateEmployee->update($employee);
         });
 
-        return redirect()->route('employees.index')->with('success', __('employee::responses.employee_updated_successfully'));
+        return redirect()->route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
     }
 
     public function restore($id)
@@ -160,7 +154,7 @@ class EmployeeController extends Controller
     {
         $delete = $employee->delete();
         if ($delete) {
-            return response()->json(['message' => __('employee::responses.employee_deleted_successfully')]);
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::fields.employee')])]);
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
@@ -170,7 +164,7 @@ class EmployeeController extends Controller
     {
         $delete = Employee::where('id', $id)->forceDelete();
         if ($delete) {
-            return response()->json(['message' => __('employee::responses.employee_deleted_successfully')]);
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::fields.employee')])]);
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }

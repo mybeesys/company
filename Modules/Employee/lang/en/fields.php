@@ -89,6 +89,11 @@ return [
     'rank' => 'Rank',
     'name_en' => 'Name in english',
     'administrative_permission_set' => 'Administrative permission set',
-    'pos_roles_wages' => 'Point of sales roles and wages'
-
+    'pos_roles_wages' => 'Point of sales roles and wages',
+    'wageType' => 'Wage type',
+    'inTime' => 'In time',    
+    'outTime' => 'Out time',
+    'hours' => 'Hours count',
+    'total_hours' => 'Total hours count',
+    'overtime_hours' => 'Overtime hours count'
 ];

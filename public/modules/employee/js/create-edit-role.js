@@ -1,6 +1,5 @@
 function roleForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
-    saveButton.prop('disabled', true);
 
     $(`#${id} input`).on('change', function () {
         let input = $(this);
@@ -12,7 +11,6 @@ function roleForm(id, validationUrl) {
         let formData = new FormData();
         formData.append(field, input.val());
         formData.append("_token", window.csrfToken);
-        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,
@@ -23,7 +21,7 @@ function roleForm(id, validationUrl) {
             success: function () {
                 input.siblings('.invalid-feedback ').remove();
                 input.removeClass('is-invalid');
-                checkErrors();
+                checkErrors(saveButton);
             },
             error: function (response) {
                 input.siblings('.invalid-feedback').remove();
@@ -34,16 +32,9 @@ function roleForm(id, validationUrl) {
                     input.addClass('is-invalid');
                     input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
                 }
-                checkErrors();
+                checkErrors(saveButton);
             }
         });
-    }
-    function checkErrors() {
-        if ($('.is-invalid').length > 0) {
-            saveButton.prop('disabled', true);
-        } else {
-            saveButton.prop('disabled', false);
-        }
     }
 }
 

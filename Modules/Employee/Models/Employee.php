@@ -58,6 +58,8 @@ class Employee extends BaseModel
         return $this->hasMany(EmployeeEstablishment::class);
     }
 
-    
-
+    public function timecards()
+    {
+        return $this->hasMany(TimeCard::class);
+    }
 }

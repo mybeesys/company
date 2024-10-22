@@ -76,7 +76,7 @@ class DashboardRoleController extends Controller
             $storeRole = new DashboardRoleActions($filteredRequest);
             $storeRole->store();
         });
-        return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_created_successfully'));
+        return redirect()->route('dashboard-roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -149,7 +149,7 @@ class DashboardRoleController extends Controller
             $storeRole = new DashboardRoleActions($filteredRequest);
             $storeRole->update($dashboardRole);
         });
-        return redirect()->route('dashboard-roles.index')->with('message', __('employee::responses.role_updated_successfully'));
+        return redirect()->route('dashboard-roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -159,7 +159,7 @@ class DashboardRoleController extends Controller
     {
         $delete = $dashboardRole->delete();
         if ($delete) {
-            return response()->json(['message' => __('employee::responses.role_deleted_successfully')]);
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::fields.role')])]);
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }

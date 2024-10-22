@@ -28,6 +28,7 @@ return [
     'modifiers' => 'المتغيرات',
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
-    'attribute' => 'المعاملات'
+    'attribute' => 'المعاملات',
+    'employees_working_hours' => 'دوام الموظفين' 
 
 ];

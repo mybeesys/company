@@ -12,7 +12,6 @@
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
     <script>
         $(document).ready(function() {
-            datePicker('#employmentStartDate');
             permissionSetRepeater();
             roleRepeater();
             administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});

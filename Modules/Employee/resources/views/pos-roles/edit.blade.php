@@ -7,7 +7,7 @@
         action="{{ route('roles.update', ['role' => $role]) }}">
         @method('patch')
         @csrf
-        <x-employee::pos-roles.form :role=$role :departments=$departments :permissions=$permissions />
+        <x-employee::pos-roles.form :role=$role :departments=$departments :permissions=$permissions formId="edit_role_form" />
     </form>
 @endsection
 

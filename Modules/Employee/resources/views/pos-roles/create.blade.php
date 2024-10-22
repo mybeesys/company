@@ -15,7 +15,7 @@
     <form id="add_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
         action="{{ route('roles.store') }}">
         @csrf
-        <x-employee::pos-roles.form :departments=$departments :permissions=$permissions />
+        <x-employee::pos-roles.form :departments=$departments :permissions=$permissions formId="edit_role_form" />
     </form>
 @endsection
 @section('script')

@@ -1,4 +1,4 @@
-@props(['employee' => null, 'roles', 'permissionSets', 'establishments', 'disabled' => false])
+@props(['employee' => null, 'roles', 'permissionSets', 'establishments', 'disabled' => false, 'formId'])
 {{-- employee section --}}
 <div class="d-flex flex-column flex-lg-row">
     <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
@@ -134,4 +134,4 @@
     </x-form.form-card>
 </div>
 
-<x-form.form-buttons :disabled=$disabled cancelUrl="{{ url('/employee') }}" />
+<x-form.form-buttons :disabled=$disabled cancelUrl="{{ url('/employee') }}" :id=$formId />

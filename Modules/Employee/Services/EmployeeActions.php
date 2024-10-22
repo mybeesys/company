@@ -70,11 +70,12 @@ class EmployeeActions
 
             $role_id = $role_wage['role'];
             $wage_rate = array_key_exists('wage', $role_wage) ? ($role_wage['wage'] ?? 0) : 0;
+            $wage_type = array_key_exists('wage_type', $role_wage) ? $role_wage['wage_type'] : null;
             $establishment_id = $role_wage['establishment'] === 'all' ? null : $role_wage['establishment'];
 
             $wage = Wage::updateOrCreate(
                 ['employee_id' => $employee->id, 'role_id' => $role_id, 'establishment_id' => $establishment_id],
-                ['rate' => $wage_rate]
+                ['rate' => $wage_rate, 'wageType' => $wage_type]
             );
 
             $wages_ids[] = $wage->id;

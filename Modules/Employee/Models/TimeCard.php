@@ -13,10 +13,10 @@ class TimeCard extends BaseModel
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    // protected static function newFactory(): TimeCardFactory
-    // {
-    //     // return TimeCardFactory::new();
-    // }
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

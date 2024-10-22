@@ -40,6 +40,7 @@ return [
     'reports_management_module' => 'إدارة التقارير',
     'schedules_management_module' => 'إدارة الجدولة',    
     'crm_management_module' => 'إدارة علاقات العملاء',
+    'timecard' => 'وقت الدوام',
 
 
     'notifications_settings' => 'إعدادات الإشعارات',

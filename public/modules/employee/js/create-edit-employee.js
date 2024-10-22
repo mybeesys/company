@@ -100,8 +100,6 @@ function administrativeUser(administrativeUser) {
 
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
-    saveButton.prop('disabled', true);
-
     $('[name="permissionSet"]').select2({
         minimumResultsForSearch: -1
     });
@@ -129,6 +127,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $('#generate_pin').on('click', function (e) {
         e.preventDefault();
         $('#PIN').removeClass('is-invalid');
+        checkErrors(saveButton);
         $.ajax({
             url: generatePinUrl,
             type: 'GET',
@@ -149,7 +148,6 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         let formData = new FormData();
         formData.append(field, input[0].files ? input[0].files[0] : input.val());
         formData.append("_token", window.csrfToken);
-        formData.append("validate", 1);
 
         $.ajax({
             url: validationUrl,
@@ -162,7 +160,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 input.removeClass('is-invalid');
                 input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 $('#image_error').removeClass('d-block');
-                checkErrors();
+                checkErrors(saveButton);
             },
             error: function (response) {
                 input.siblings('.invalid-feedback').remove();
@@ -183,17 +181,9 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                         }
                     }
                 }
-                checkErrors();
+                checkErrors(saveButton);
             }
         });
-    }
-
-    function checkErrors() {
-        if ($('.is-invalid').length > 0) {
-            saveButton.prop('disabled', true);
-        } else {
-            saveButton.prop('disabled', false);
-        }
     }
 
     function validateRoleRequirement() {

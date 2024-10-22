@@ -6,6 +6,7 @@ use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PosRoleController;
+use Modules\Employee\Http\Controllers\TimeCardController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -28,6 +29,17 @@ Route::middleware([
 ])->group(function () {
 
     Route::get('/employees-dashboard', [MainController::class, 'index'])->name('dashboard');
+
+    Route::controller(TimeCardController::class)->name('timecards.')->prefix('timecard')->group(function () {
+        Route::get('', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/store', 'store')->name('store');
+        Route::get('/{timecard}/edit', 'edit')->name('edit');
+        Route::patch('/{timecard}', 'update')->name('update');
+        Route::delete('/{timecard}', 'destroy')->name('delete');
+        Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
+    });
+
     Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 
         Route::get('', 'index')->name('index');

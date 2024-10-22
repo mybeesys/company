@@ -89,5 +89,11 @@ return [
     'rank' => 'الرتبة',
     'name_en' => 'الاسم  بالإنجليزي',
     'administrative_permission_set' => 'مجموعة الأذونات الإدارية',
-    'pos_roles_wages' => 'أدوار وأجور نقاط البيع'
+    'pos_roles_wages' => 'أدوار وأجور نقاط البيع',
+    'wageType' => 'نوع الأجر',
+    'inTime' => 'وقت الدخول',    
+    'outTime' => 'وقت الخروج',    
+    'hours' => 'عدد الساعات',
+    'total_hours' => 'عدد الساعات الكلي',
+    'overtime_hours' => 'عدد الساعات الإضافية',
 ];

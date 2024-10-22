@@ -103,6 +103,11 @@ return [
                 'url' => 'dashboard-role',
                 'permission' => '',
             ],
+            [
+                'name' => 'employees_working_hours',
+                'url' => 'timecard',
+                'permission' => '',
+            ],
         ]
     ],
     [

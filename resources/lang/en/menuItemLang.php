@@ -28,6 +28,7 @@ return [
     'modifiers' => 'Modifiers',
     'pos_roles' => 'POS roles',
     'dashboard_roles' => 'Dashboard roles',
-    'attribute' => 'Attribute'
+    'attribute' => 'Attribute',
+    'employees_working_hours' => 'Employees working hours' 
 
 ];

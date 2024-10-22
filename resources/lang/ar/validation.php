@@ -220,5 +220,9 @@ return [
         'permissionSetName' => 'اسم الدور',
         'rank' => 'الرتبة',
         'department' => 'القسم',
+        'clockInTime' => 'وقت الدخول',
+        'clockOutTime' => 'وقت الخروج',
+        'hoursWorked' => 'ساعات العمل',
+        'overtimeHours' => 'ساعات العمل الإضافية',
     ],
 ];
