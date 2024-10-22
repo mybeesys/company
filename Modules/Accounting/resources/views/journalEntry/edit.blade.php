@@ -91,8 +91,10 @@
             </div>
         </div>
     </div>
-    {{-- <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}"
-        class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a> --}}
+    <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-primary mx-2"
+        style="width: 10rem;padding: 5px;">@lang('general.export_as_pdf')</a>
+    <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}" class="btn btn-primary mx-2"
+        style="width: 10rem;padding: 5px;">@lang('general.export_as_excel')</a>
 
     <div class="separator d-flex flex-center my-5">
 
@@ -101,7 +103,8 @@
     @if ($duplication)
         <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store', $acc_trans_mapping->id) }}">
         @else
-            <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}">
+            <form id="journalEntryForm" method="POST"
+                action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}">
     @endif
     @csrf
 
@@ -247,13 +250,14 @@
                                     @if ($transaction->type == 'debit')
                                         <input type="number"
                                             class="form-control form-control-lg form-control debit-field" name="debit"
-                                            id="debit" placeholder="0.0" value="{{ $transaction->amount }}"
-                                            style="width: 100px;" data-gtm-form-interact-field-id="4">
+                                            id="debit" step="0.000001" placeholder="0.0"
+                                            value="{{ $transaction->amount }}" style="width: 100px;"
+                                            data-gtm-form-interact-field-id="4">
                                     @else
                                         <input type="number"
                                             class="form-control form-control-lg form-control debit-field" name="debit"
-                                            id="debit" placeholder="0.0" value="" style="width: 100px;"
-                                            data-gtm-form-interact-field-id="4">
+                                            id="debit" step="0.000001" placeholder="0.0" value=""
+                                            style="width: 100px;" data-gtm-form-interact-field-id="4">
                                     @endif
 
                                 </td>
@@ -263,12 +267,12 @@
                                         <input type="number"
                                             class="form-control form-control-lg form-control credit-field" name="credit"
                                             id="credit" placeholder="0.0" value="{{ $transaction->amount }}"
-                                            style="width: 107px;" data-gtm-form-interact-field-id="2">
+                                            style="width: 107px;" step="0.000001" data-gtm-form-interact-field-id="2">
                                     @else
                                         <input type="number"
                                             class="form-control form-control-lg form-control credit-field" name="credit"
-                                            id="credit" placeholder="0.0" value="" style="width: 107px;"
-                                            data-gtm-form-interact-field-id="2">
+                                            id="credit" placeholder="0.0" step="0.000001" value=""
+                                            style="width: 107px;" data-gtm-form-interact-field-id="2">
                                     @endif
 
                                 </td>
@@ -367,6 +371,11 @@
             defaultMinute: 0
         });
 
+        $(document).on('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+        });
 
         $('#toggleCostCenter').on('change', function() {
             if ($(this).is(':checked')) {
@@ -378,6 +387,8 @@
             }
         });
 
+
+      
 
         $('#acc_trans_mappings').select2();
         $('#kt_ecommerce_select2_account').select2();
@@ -426,8 +437,8 @@
 
                 </select>
             </td>
-            <td><input type="number" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
+            <td><input type="number" class="form-control debit-field" step="0.000001" name="debit" placeholder="0.0" style="width: 100px;"></td>
+            <td><input type="number" class="form-control credit-field" step="0.000001" name="credit" placeholder="0.0" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">

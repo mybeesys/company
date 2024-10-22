@@ -3,47 +3,89 @@
     $local = session()->get('locale');
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
     $rtl_files = $local == 'ar' ? '.rtl' : '';
-    $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
-    $menu_placement_y = $local == 'ar' ? 'bottom-start' : 'bottom-end';
-@endphp
-<html lang="en" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
 
+
+@endphp
+<html dir="{{$dir}}">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print: {{ $journal->ref_no }}</title>
-    <link href="{{ asset('assets/plugins/global/plugins.bundle' . $rtl_files . '.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('assets/css/style.bundle' . $rtl_files . '.css') }}" rel="stylesheet" type="text/css" />
 
+    {{-- <link href="{{ asset('assets/css/style.bundle' . $rtl_files . '.css') }}" rel="stylesheet" type="text/css" /> --}}
+
+    {{-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet"> --}}
     <!-- jsPDF (for PDF export) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- SheetJS (for Excel export) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script> --}}
 
     <style>
+        * {
+            font-family: DejaVu Sans !important;
+        }
+
         body {
-            font-family: 'Times New Roman', Times, serif;
-            margin: 0;
-            padding: 0;
-            color: #000;
+            font-size: 16px;
+            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
+            padding: 10px;
+            margin: 10px;
+
+            color: #777;
         }
 
-        .template-header {
+
+        body {
+            color: #777;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
+        }
+
+
+
+        .table_component {
+            overflow: auto;
+        }
+
+        .table_component table {
+            border: 1px solid #dededf;
+            /* height: 99%; */
+            table-layout: auto;
+            border-collapse: collapse;
+            border-spacing: 1px;
+            /* text-align: right; */
+            page-break-before: avoid;
+            page-break-after: avoid;
+            direction: ltr;
+            width: 100%;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  /* border: 1px solid; */
+            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
+        }
+
+        .table_component caption {
+            caption-side: top;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};    }
+
+        .table_component th {
+            border: 1px solid #dededf;
+            background-color: #eceff1;
+            color: #000000;
+            padding: 7px;
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        .section {
-            margin-bottom: 20px;
+        .table_component td {
+            border: 1px solid #dededf;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 7px;
         }
 
-        .section-header {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .content {
-            text-align: justify;
+        td {
+            padding: 10px;
+            margin: 10px;
         }
 
         @media print {
@@ -61,22 +103,27 @@
         window.onafterprint = function() {
             window.location.href = "{{ route('journal-entry-index') }}";
         };
-
     </script>
 </head>
 
-<body>
+{{-- <body dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}" style="text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};"> --}}
+
+<body >
+
     <div class="template-header">
         {{-- <h1>Print Page</h1> --}}
+
     </div>
 
     <div class="section">
         <div class="section-header">
             <p>@lang('accounting::fields.ref_no'): {{ $journal->ref_no }}</p>
             <p>@lang('accounting::lang.operation_date'): {{ \Carbon\Carbon::parse($journal->operation_date)->format('Y-m-d') }}</p>
+            <p>@lang('accounting::lang.additionalNotes'): {{ $journal->note }}</p>
+
         </div>
 
-        <div class="content">
+        <div class="content table_component">
             <table class="table table-bordered table-striped hide-footer" id="journal_table">
                 <thead>
                     <tr>
@@ -148,21 +195,6 @@
 
             <hr style="width:100%;text-align:left;margin-left:0">
 
-            <div class="row">
-
-                <div class="col-xs-6"
-                    style="
-                            /* padding: 37px; */
-                        align-items: center;
-
-                        justify-content: flex-start;
-                         ">
-
-                    <p>@lang('accounting::lang.additionalNotes'): {{ $journal->note }}</p>
-                </div>
-
-
-            </div>
 
         </div>
     </div>

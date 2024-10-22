@@ -192,7 +192,7 @@
                                 <td id="totalDebit">0.00</td>
                                 <td id="totalCredit">0.00</td>
                                 {{-- <td colspan="1"> </td> --}}
-                                 <td colspan="2" id="Budget" style="text-align: center;color:red"> </td>
+                                <td colspan="2" id="Budget" style="text-align: center;color:red"> </td>
                             </tr>
                         </tfoot>
 
@@ -318,8 +318,8 @@
 
                 </select>
             </td>
-            <td><input type="number" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
+            <td><input type="number" step="0.000001" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
+            <td><input type="number" step="0.000001" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">
@@ -328,6 +328,13 @@
             </td>
         </tr>
     `;
+
+
+        $(document).on('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();          }
+        });
+
         $('#addJournalEntry').on('click', function() {
 
 
