@@ -55,8 +55,8 @@ function permissionSetRepeater() {
 }
 
 
-function administrativeUser(administrativeUser) {
-
+function administrativeUser(administrativeUser, id) {
+    let saveButton = $(`#${id}_button`);
     if (administrativeUser) {
         $('#dashboard_managment_access').collapse('toggle');
         $('#active_managment_fields_btn').prop('checked', true).val(1);
@@ -71,14 +71,17 @@ function administrativeUser(administrativeUser) {
             if (!administrativeUser) {
                 $('[name="password"]').prop('required', true);
             }
-            $('[name="username"]')
+            $('[name="username"] [name*="[establishment]"], [name*="[dashboardRole]"]')
                 .prop('required', true);
 
         } else {
             $('#active_managment_fields_btn').prop('checked', false);
             $('#active_managment_fields_btn').val(0);
-            $('[name="password"], [name="username"]')
+            $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]')
                 .prop('required', false);
+            $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]').removeClass('is-invalid');
+            $('[name*="[establishment]"], [name*="[dashboardRole]"]').siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
+            checkErrors(saveButton);
         }
     });
 
@@ -100,8 +103,16 @@ function administrativeUser(administrativeUser) {
 
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
-    console.log(saveButton);
+    checkErrors(saveButton);
+
     
+    console.log($('select[name^="dashboard_role_repeater"]').val());
+    if ($('[name="password"], [name="username"], select[name^="dashboard_role_repeater"]').val().length !== 0) {
+        $('#dashboard_managment_access').collapse('toggle');
+        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('[name="username"]').prop('required', true);
+    }
+
     $('[name="permissionSet"]').select2({
         minimumResultsForSearch: -1
     });

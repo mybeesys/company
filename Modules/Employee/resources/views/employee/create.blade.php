@@ -18,7 +18,7 @@
             datePicker('#employmentStartDate', new Date());
             permissionSetRepeater();
             roleRepeater();
-            administrativeUser(false);
+            administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");
         });
