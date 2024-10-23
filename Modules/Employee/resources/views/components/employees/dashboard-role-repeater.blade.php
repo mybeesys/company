@@ -8,7 +8,7 @@
                     <x-form.input-div class="w-100">
                         <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]" :disabled=$disabled
                             optionName="permissionSetName" :options="$permissionSets" :errors="$errors"
-                            placeholder="{{ __('employee::fields.role') }}"
+                            placeholder="{{ __('employee::fields.role') }}" :default_selection_value=null
                             value="{{ is_array($permissionSet) ? $permissionSet['dashboardRole'] ?? '' : $permissionSet?->id }}" />
                     </x-form.input-div>
                     <x-form.input-div class="w-100">
