@@ -35,7 +35,7 @@ class StoreEmployeeRequest extends FormRequest
             'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
             'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:roles,id'],
             'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:establishment_establishments,id'],
-            'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'boolean'],
+            'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'boolean'],
             'password' => ['required_if_accepted:active_managment_fields_btn', 'nullable', Password::default()],
             'username' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
         ];
