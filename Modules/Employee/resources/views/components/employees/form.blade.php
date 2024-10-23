@@ -1,4 +1,4 @@
-@props(['employee' => null, 'roles', 'permissionSets', 'establishments', 'disabled' => false, 'formId'])
+@props(['employee' => null, 'roles', 'permissionSets', 'establishments', 'disabled' => false, 'formId' => null])
 {{-- employee section --}}
 <div class="d-flex flex-column flex-lg-row">
     <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">

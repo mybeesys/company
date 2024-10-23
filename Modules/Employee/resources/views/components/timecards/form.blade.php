@@ -1,4 +1,4 @@
-@props(['employees', 'timecard' => null, 'formId'])
+@props(['employees', 'timecard' => null, 'formId' => null])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.timecard_details')">
         <div class="d-flex flex-wrap">
