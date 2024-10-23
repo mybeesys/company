@@ -100,6 +100,8 @@ function administrativeUser(administrativeUser) {
 
 function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
+    console.log(saveButton);
+    
     $('[name="permissionSet"]').select2({
         minimumResultsForSearch: -1
     });
@@ -190,10 +192,12 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         $('#role_wage_repeater [data-repeater-item]').each(function () {
             const wageInput = $(this).find('input[name*="[wage]"]');
             const roleSelect = $(this).find('select[name*="[role]"]');
+            const wageTypeSelect = $(this).find('select[name*="[wage_type]"]');
 
             // Check if wage input has value
             if (wageInput.val()) {
                 roleSelect.attr('required', true);
+                wageTypeSelect.attr('required', true);
                 // Optionally add an invalid class if it doesn't have a selected value
                 if (!roleSelect.val()) {
                     roleSelect.addClass('is-invalid');
@@ -201,6 +205,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                     roleSelect.removeClass('is-invalid');
                 }
             } else {
+                wageTypeSelect.attr('required', false);
                 roleSelect.attr('required', false);
                 roleSelect.removeClass('is-invalid'); // Remove invalid class if wage is empty
             }
