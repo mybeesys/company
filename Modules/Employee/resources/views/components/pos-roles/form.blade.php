@@ -1,4 +1,4 @@
-@props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false, 'formId'])
+@props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false, 'formId' => null])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
         <div class="d-flex flex-wrap">

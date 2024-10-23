@@ -27,9 +27,6 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
     AuthenticateJWT::class
 ])->group(function () {
-
-    Route::get('/employees-dashboard', [MainController::class, 'index'])->name('dashboard');
-
     Route::controller(TimeCardController::class)->name('timecards.')->prefix('timecard')->group(function () {
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');

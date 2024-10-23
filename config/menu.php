@@ -84,11 +84,6 @@ return [
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'employees-dashboard',
-                'url' => 'employees-dashboard',
-                'permission' => '',
-            ],
-            [
                 'name' => 'employees',
                 'url' => 'employee',
                 'permission' => '',
