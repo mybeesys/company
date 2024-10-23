@@ -84,6 +84,10 @@
                         name: 'overtimeHours'
                     },
                     {
+                        data: 'date',
+                        name: 'date'
+                    },
+                    {
                         data: 'actions',
                         name: 'actions',
                         orderable: false,

@@ -13,6 +13,7 @@ class TimeCardTable
             ["class" => "text-start min-w-100px px-3", "name" => "outTime"],
             ["class" => "text-start min-w-250px px-3", "name" => "total_hours"],
             ["class" => "text-start min-w-250px px-3", "name" => "overtime_hours"],
+            ["class" => "text-start min-w-250px px-3", "name" => "date"],
         ];
     }
 
