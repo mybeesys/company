@@ -12,4 +12,5 @@ return [
     'created_successfully' => 'The :name has been created successfully',
     'updated_successfully' => 'The :name has been updated successfully',
     'deleted_successfully' => 'The :name has been deleted successfully',
+    'opreation_success' => 'Operation done successfully',
 ];
