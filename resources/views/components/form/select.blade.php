@@ -27,7 +27,7 @@
     'form-select',
     $class,
     'is-invalid' => $errors->first($dotNotationName),
-]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}"
+]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}" @required($required)
     @disabled($disabled) data-allow-clear="{{ $data_allow_clear }}" data-kt-filter="{{ $name }}"
     name="{{ $name }}">
     <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>

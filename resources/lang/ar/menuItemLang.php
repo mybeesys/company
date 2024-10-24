@@ -30,7 +30,10 @@ return [
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'attribute' => 'المعاملات',
     'employees_working_hours' => 'دوام الموظفين' ,
+
     'costCenter'=>'مراكز التكلفة',
+
+    'customMenu' => 'القوائم المخصصة'
 
 
 ];

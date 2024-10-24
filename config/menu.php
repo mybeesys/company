@@ -32,6 +32,12 @@ return [
                 'permission' => '',
 
             ],
+            [
+                'name' => 'customMenu',
+                'url' => 'customMenu',
+                'permission' => '',
+
+            ],
         ]
     ],
     [

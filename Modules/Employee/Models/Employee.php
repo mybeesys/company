@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\database\factories\EmployeeFactory;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 
 
 class Employee extends BaseModel
 {
-    use HasFactory, HasRoles, SoftDeletes;
+    use HasFactory, HasRoles, SoftDeletes, HasPermissions;
 
     protected $guard_name = "web";
 

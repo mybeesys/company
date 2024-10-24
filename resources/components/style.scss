@@ -141,6 +141,45 @@ body {
   height: '100%';
 };
 
+.p-inputtext{
+@extend .form-control;
+}
+
+
+.p-checkbox-input
+{
+  padding: 5px !important;
+  margin: 10px !important;
+}
+
+.p-treetable-checkbox 
+{
+  margin: 10px !important;
+}
+
+.p-checkbox.p-highlight .p-checkbox-box 
+{
+@extend .form-check-input;
+border-color:#1B84FF !important;
+background:#1B84FF !important;
+color: white !important;
+}
+.p-timepicker
+{
+  direction: ltr;
+}
+
+.p-datepicker-group-container
+{
+  direction: ltr;
+}
+
+
+.p-treetable-checkbox
+{
+  width:5%;
+}
+
 .text-indent-1{
   width: 90%;
 }
@@ -148,6 +187,7 @@ body {
 .text-indent-2{
   width: 80%;
 }
+
 
 .text-indent-3{
   width: 70%;

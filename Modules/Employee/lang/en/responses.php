@@ -12,4 +12,6 @@ return [
     'created_successfully' => 'The :name has been created successfully',
     'updated_successfully' => 'The :name has been updated successfully',
     'deleted_successfully' => 'The :name has been deleted successfully',
+    'opreation_success' => 'Operation done successfully',
+    'wage_type_required' => 'Wage type field is required when wage feild exists'
 ];

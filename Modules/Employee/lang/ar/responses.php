@@ -12,4 +12,6 @@ return [
     'created_successfully' => 'تمت إضافة :name بنجاح',
     'updated_successfully' => 'تم تعديل :name بنجاح',
     'deleted_successfully' => 'تم حذف :name بنجاح',
+    'opreation_success' => 'تمت العملية بنجاح',
+    'wage_type_required' => 'حقل نوع الراتب مطلوب عند وجود حقل الراتب'
 ];

@@ -9,6 +9,7 @@ use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PermissionSet;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\EmployeeActions;
@@ -29,9 +30,9 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
+        $employees = Employee::with('permissions:id,name')->
+            select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
         if ($request->ajax()) {
-            $employees = Employee::
-                select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
@@ -40,8 +41,36 @@ class EmployeeController extends Controller
             }
             return EmployeeTable::getEmployeeTable($employees);
         }
+        $employees = $employees->get();
         $columns = EmployeeTable::getEmployeeColumns();
-        return view('employee::employee.index', compact('columns'));
+        $permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
+        return view('employee::employee.index', compact('columns', 'permissions', 'employees'));
+    }
+
+    public function aasignPermissionsToEmployee(Request $request, Employee $employee)
+    {
+        $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
+        $permissions = collect($request->permissions)->map(function ($value) {
+            return (int) $value;
+        });
+        $permissions->contains($selectAllPermission->id) ? $employee->syncPermissions([$selectAllPermission->id]) : $employee->syncPermissions($permissions);
+        return response()->json(['message' => __('employee::responses.opreation_success')]);
+    }
+
+    public function getEmployee($id)
+    {
+        $employee = Employee::with(['permissions'])->find($id);
+        $allPermissionId = Permission::firstWhere('name', 'select_all_permissions')->id;
+        if (!$employee) {
+            return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'employeePermissions' => $employee->permissions->pluck('id'),
+                'allPermissionsId' => $allPermissionId,
+            ],
+        ]);
     }
 
     function generatePin()
