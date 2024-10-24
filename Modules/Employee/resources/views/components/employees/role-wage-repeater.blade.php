@@ -11,7 +11,7 @@
                 ];
             @endphp
             {{-- Handling global roles and wages --}}
-            @if ($employee?->roles->isNotEmpty() || !$employee)
+            @if (($employee?->roles->isNotEmpty() || !$employee) || !$employee?->establishmentsPivot()?->exists())
                 @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
                     <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
                         role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"

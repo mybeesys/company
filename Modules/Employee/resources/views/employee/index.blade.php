@@ -226,7 +226,7 @@
                 const employeeId = $(this).data('id');
                 $("#employee_permissions_edit_form #employee_id").val(employeeId);
 
-                ajaxRequest(`{{ url('/employee') }}/${employeeId}`, 'GET', {}, false, true)
+                ajaxRequest(`{{ url('/employee/get-employee/') }}/${employeeId}`, 'GET', {}, false, true)
                     .done(function(response) {
                         if (response.success) {
                             const employeeData = response.data;
@@ -242,6 +242,7 @@
                                     $(this).prop('disabled', false);
                                 });
                             assignPermissionsToEmployeeForm(allPermissionsId);
+                            $('#employee_permissions_edit').modal('toggle');
                         }
                     });
             });

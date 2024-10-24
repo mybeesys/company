@@ -60,7 +60,7 @@ function ajaxRequest(url, method, data = {}, handleResponse = true, handleError 
         },
         error: function (jqXHR, textStatus, errorThrown) {
             if (handleError) {
-                errorAlert
+                errorAlert()
             }
         }
     });
