@@ -5,10 +5,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuItem;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomMenu extends Model
 {
     use HasFactory;
+
+    use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
