@@ -119,7 +119,8 @@ const CustomMenuProduct = ({ translations, customMenuProducts, onProductSelectio
                                 value={products} 
                                 tableStyle={{ minWidth: '50rem' }} 
                                 className={"custom-tree-table"}>
-                                <Column  style={{ width: '20%' }} field={dir=="rtl"? "name_ar":"name_en"}  expander></Column>
+                                <Column  style={{ width: '20%' }} field="name_en" expander></Column>
+                                <Column  style={{ width: '20%' }} field="name_ar" ></Column>
                             </TreeTable>
                             </div>
                             </div>
