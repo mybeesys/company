@@ -76,7 +76,6 @@ function handleAjaxResponse(response) {
     } else {
         showAlert(response.message, Lang.get('general.close'), undefined, "btn-primary", false,
             "success");
-        // dataTable.ajax.reload();
     }
 }
 
