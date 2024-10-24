@@ -13,15 +13,56 @@ function showAlert(text, confirmButtonText, cancelButtonText = '', confirmButton
     });
 }
 
-function ajaxRequest(url, method, data = {}) {
+function ajaxRequest(url, method, data = {}, handleResponse = true, handleError = true) {
     data._token = window.csrfToken;
-    $.ajax({
+
+    const progressBar = $("#ajax-progress-bar");
+    const progressBarInner = progressBar.find('.progress-bar');
+
+    return $.ajax({
         url: url,
-        data: data,
-        dataType: "json",
         type: method,
-        success: handleAjaxResponse,
-        error: errorAlert
+        data: data,
+        xhr: function () {
+            var xhr = new window.XMLHttpRequest();
+            progressBar.show();
+            progressBarInner.css("width", "0%");
+            progressBarInner.stop().animate({
+                width: "5%"
+            }, {
+                duration: 100,
+                easing: 'linear',
+                step: function (now) {
+                    progressBarInner.attr("aria-valuenow", Math.ceil(now));
+                }
+            });
+
+            return xhr;
+        },
+        beforeSend: function () {
+            progressBarInner.css("width", "0%");
+        },
+        complete: function () {
+            progressBarInner.stop().animate({
+                width: "100%"
+            }, 300, function () {
+                setTimeout(() => {
+                    progressBar.hide();
+                    progressBarInner.css("width",
+                        "0%");
+                }, 200);
+            });
+        },
+        success: function (response) {
+            if (handleResponse) {
+                handleAjaxResponse(response)
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if (handleError) {
+                errorAlert
+            }
+        }
     });
 }
 
@@ -35,7 +76,7 @@ function handleAjaxResponse(response) {
     } else {
         showAlert(response.message, Lang.get('general.close'), undefined, "btn-primary", false,
             "success");
-        dataTable.ajax.reload();
+        // dataTable.ajax.reload();
     }
 }
 

@@ -51,7 +51,9 @@
                 "{{ __('employee::general.cancel') }}", undefined,
                 true, "warning").then(function(t) {
                 if (t.isConfirmed) {
-                    ajaxRequest(deleteUrl, 'DELETE');
+                    ajaxRequest(deleteUrl, 'DELETE').done(function() {
+                        dataTable.ajax.reload();
+                    });
                 }
             });
         });

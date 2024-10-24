@@ -38,7 +38,7 @@ function roleForm(id, validationUrl) {
     }
 }
 
-function rolePermissionsForm() {
+function rolePermissionsForm(all = true) {
     $('input[type="checkbox"][value!="all"]').on('change', function (e) {
         const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
         if (!$(this).is(':checked')) {

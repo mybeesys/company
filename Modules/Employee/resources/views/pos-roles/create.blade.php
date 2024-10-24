@@ -15,19 +15,18 @@
     <form id="add_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
         action="{{ route('roles.store') }}">
         @csrf
-        <x-employee::pos-roles.form :departments=$departments :permissions=$permissions formId="edit_role_form" />
+        <x-employee::pos-roles.form :departments=$departments :permissions=$permissions formId="add_role_form" />
     </form>
 @endsection
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
-    <script src="{{ url('modules/employee/js/table.js') }}"></script>
+    <script src="{{ url('js/table.js') }}"></script>
     <script>
         let dataTable;
         $(document).ready(function() {
             roleForm('add_role_form', "{{ route('roles.create.validation') }}");
             rolePermissionsForm();
-            handleSearchDatatable();
         });
     </script>
 @endsection
