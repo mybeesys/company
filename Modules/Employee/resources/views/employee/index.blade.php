@@ -26,7 +26,7 @@
         <div class="modal-dialog modal-dialog-centered mw-800px">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="fw-bold">Update Role</h2>
+                    <h2 class="fw-bold">@lang('employee::general.edit_permissions')</h2>
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                         <i class="ki-outline ki-cross fs-1"></i>
                     </div>
@@ -198,7 +198,7 @@
                 }
             });
 
-            $('#employee_permissions_edit_form').submit(function(e) {
+            $('#employee_permissions_edit_form').off('submit').on('submit', function(e) {
                 e.preventDefault();
 
                 if (selectAllCheckbox.is(':checked')) {
@@ -213,7 +213,8 @@
 
                 ajaxRequest(url, 'PATCH', {
                     permissions: checkedPermissions,
-                })
+                }, true, true);
+
                 $('#employee_permissions_edit').modal('toggle');
             });
 
@@ -221,7 +222,12 @@
 
 
         function assignPermissionsToEmployee() {
-            $(document).on('click', '.edit-permission-button', function(e) {
+            $(document).on('click', '.edit-dashboard-permission-button', function(e) {
+                console.log(123);
+
+            });
+
+            $(document).on('click', '.edit-pos-permission-button', function(e) {
                 e.preventDefault();
                 const employeeId = $(this).data('id');
                 $("#employee_permissions_edit_form #employee_id").val(employeeId);
