@@ -4,6 +4,8 @@ import ProductComponent from './product/ProductComponent';
 import CategoryTree from './product/CategoryTree';
 import Modifiertree from './modifier/modifiertree';
 import Attributetree from './attributes/attributetree';
+import CustomMenuTable from './custommenu/CustomMenuTable';
+import CustomMenuDetail from './custommenu/CustomMenuDetail';
 
 var htmlElement = document.querySelector("html");
 const dir =   htmlElement.getAttribute('dir');
@@ -38,4 +40,18 @@ const Element4 = document.getElementById('attribute-root');
 if (Element4) {
   const root = ReactDOM.createRoot(Element4);
   root.render(<Attributetree />);
+}
+
+const Element5 = document.getElementById('custommenu-root');
+ 
+if (Element5) {
+  const root = ReactDOM.createRoot(Element5);
+  root.render(<CustomMenuTable dir={dir}/>);
+}
+
+const Element6 = document.getElementById('custommenuedit-root');
+ 
+if (Element6) {
+  const root = ReactDOM.createRoot(Element6);
+  root.render(<CustomMenuDetail dir={dir} />);
 }

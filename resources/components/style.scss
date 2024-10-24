@@ -141,6 +141,30 @@ body {
   height: '100%';
 };
 
+.p-inputtext{
+@extend .form-control;
+}
+
+.p-checkbox-input
+{
+  @extend .form-check-input;
+}
+.p-timepicker
+{
+  direction: ltr;
+}
+
+.p-datepicker-group-container
+{
+  direction: ltr;
+}
+
+
+.p-treetable-checkbox
+{
+  width:5%;
+}
+
 .text-indent-1{
   width: 90%;
 }
@@ -148,6 +172,7 @@ body {
 .text-indent-2{
   width: 80%;
 }
+
 
 .text-indent-3{
   width: 70%;

@@ -12,11 +12,13 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
     let dir = rootElement.getAttribute('dir');
     const [Attributes1, setAttributes1] = useState([]); 
     const [Attributes2, setAttributes2] = useState([]); 
-    const [AttributeClass1, setAttributeClass1] = useState([]); 
-    const [AttributeClass2, setAttributeClass2] = useState([]); 
+    const [AttributeClass1, setAttributeClass1] = useState(-1); 
+    const [AttributeClass2, setAttributeClass2] = useState(-1); 
     const [editingRow, setEditingRow] = useState({});
     const [currentKey, setCurrentKey] = useState('-1');
     const [disableButton , setdisableButton] = useState(true);
+    const [disableAttributeClass2 , setdisableAttributeClass2] = useState(false);
+    setdisableAttributeClass2
     const [showAlert, setShowAlert] = useState(false);
     const [autoObject, setAutoObject] = useState({
         'price': false ,
@@ -38,6 +40,8 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
         evt.preventDefault();
         var newMstrix = [];
         var id = 0;
+        if(AttributeClass2 != -1)
+       {
         var Children1 = findChildrenById(AttributeClass1);
         var Children2 = findChildrenById(AttributeClass2);
         Children1.forEach(element1 => {
@@ -67,6 +71,32 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
                 }
             });
         });
+       }
+       else
+       {
+        var Children1 = findChildrenById(AttributeClass1);
+        Children1.forEach(element1 => {
+                let newObject = {};
+                if (element1.data.empty != "Y")
+                {
+                newObject.name_ar =product.name_ar+" " +element1.data.name_ar ;
+                newObject.name_en =product.name_en+" " +element1.data.name_en ;
+                newObject.attribute1 = {};
+                newObject.attribute2 = {};
+                newObject.attribute1.name_ar = element1.data.name_ar;
+                newObject.attribute1.name_en = element1.data.name_en;
+                newObject.attribute1.parent_id = AttributeClass1;
+                newObject.attribute1.id = element1.data.id;
+                newObject.price = autoObject.price? product.price : 0;
+                newObject.barcode = autoObject.barcode? product.barcode : '';
+                newObject.SKU = autoObject.SKU? product.SKU : '';
+                newObject.starting = autoObject.startingCheck? autoObject.starting : 0;
+                newObject.id= id+1;
+                id = id+1;
+                newMstrix.push(newObject);
+                }
+            });
+    }
     
         onGenerate(newMstrix);
         setshowConfirmation(false);
@@ -108,8 +138,19 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
         setAttributeClass2(value);
         setAttributes2(findChildrenById(value));
        }
-
-       setdisableButton(false);
+      if (key =="AttributeClass1" && value != -1)
+      {  
+        setdisableButton(false);
+        setdisableAttributeClass2(false);
+      }
+      else if(key =="AttributeClass1" && value == -1)
+      {
+        setdisableButton(true);
+        setAttributeClass2('-1');
+        setdisableAttributeClass2(true);
+        setAttributes2([]);
+        onGenerate([]);
+      }
     }
 
     const editRow = (data, key) => {
@@ -204,8 +245,8 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
 
     const renderStatic =(node, key1,  key) =>
     {
-    return(
-        <span style={node.deleted == 1? {color:"#DCDCDC"}: {color:"black"}}>{node[key1][key]}</span>);
+        if(node[key1])
+         return(<span style={node.deleted == 1? {color:"#DCDCDC"}: {color:"black"}}>{node[key1][key]}</span>);
     }
 // Recursive function to find children by data id
     const findChildrenById = (id) => {
@@ -229,7 +270,7 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
     if(AttributeClass1 !=AttributeClass2 )
     {
         setshowConfirmation(true);
-    }   
+    }     
    else
    {
     setShowAlert(true);
@@ -248,10 +289,10 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
 }
 
   React.useEffect(() => {
-    productMatrix[0]? !!productMatrix[0].attribute1? setAttributes1(findChildrenById(productMatrix[0].attribute1.parent_id)) :'':'';
-    productMatrix[0]? !!productMatrix[0].attribute2? setAttributes2(findChildrenById(productMatrix[0].attribute2.parent_id)) :'':'';
-    productMatrix[0]? (!!productMatrix[0].attribute1? setAttributeClass1(productMatrix[0].attribute1.parent_id):setAttributeClass1(AttributesTree[0].data.id)):setAttributeClass1(AttributesTree[0].data.id);
-    productMatrix[0]? (!!productMatrix[0].attribute2? setAttributeClass2(productMatrix[0].attribute2.parent_id):setAttributeClass2(AttributesTree[1].data.id)):setAttributeClass2(AttributesTree[1].data.id);
+    productMatrix[0]? !!productMatrix[0].attribute1? setAttributes1(findChildrenById(productMatrix[0].attribute1.parent_id)) :setAttributes1([]):setAttributes1([]);
+    productMatrix[0]? !!productMatrix[0].attribute2? setAttributes2(findChildrenById(productMatrix[0].attribute2.parent_id)) :setAttributes2([]):setAttributes2([]);
+    productMatrix[0]? (!!productMatrix[0].attribute1? setAttributeClass1(productMatrix[0].attribute1.parent_id):setAttributeClass1(AttributesTree[0].data.id)):setAttributeClass1(-1);
+    productMatrix[0]? (!!productMatrix[0].attribute2? setAttributeClass2(productMatrix[0].attribute2.parent_id):setAttributeClass2(AttributesTree[1].data.id)):setAttributeClass2(-1);
   }, []);
       
     return (
@@ -273,6 +314,9 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
                         <div class="col-6">
                             <label for="attributeSet" class="col-form-label">{translations.attr_set1}</label>
                             <select class="form-control selectpicker" value={AttributeClass1} onChange={(e) => handleChange('AttributeClass1', e.target.value)} >
+                                    <option key='-1' value='-1'>
+                                        {translations.nodata }
+                                    </option>
                                     {AttributesTree.map((option) => (
                                         (option.data.id)?
                                         <option key={option.key} value={option.data.id}>
@@ -295,7 +339,10 @@ const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGen
                     <div class="row">
                         <div class="col-6">
                             <label for="attributeSet" class="col-form-label">{translations.attr_set2}</label>
-                            <select class="form-control selectpicker" value={AttributeClass2}  onChange={(e) => handleChange('AttributeClass2', e.target.value)} >
+                            <select class="form-control selectpicker" disabled={disableAttributeClass2} value={AttributeClass2}  onChange={(e) => handleChange('AttributeClass2', e.target.value)} >
+                                    <option key='-1' value='-1'>
+                                        {translations.nodata }
+                                    </option>
                                     {AttributesTree.map((option) => (
                                          (option.data.id)?
                                         <option key={option.key} value={option.data.id}>
