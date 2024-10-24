@@ -29,6 +29,7 @@ return [
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'attribute' => 'المعاملات',
-    'employees_working_hours' => 'دوام الموظفين' 
+    'employees_working_hours' => 'دوام الموظفين' ,
+    'customMenu' => 'القوائم المخصصة'
 
 ];
