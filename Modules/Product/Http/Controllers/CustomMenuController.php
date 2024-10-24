@@ -17,7 +17,7 @@ class CustomMenuController extends Controller
     public function index()
     {
         // Pass the posts to the view
-        return view('product::custommenu.index');
+        return view('product::customMenu.index');
     }
 
     public function getCustomMenus()
@@ -165,7 +165,7 @@ class CustomMenuController extends Controller
             $d->times = $d->times;
         }
         $custommenu->products = $custommenu->products;
-        return view('product::custommenu.edit', compact('custommenu'));
+        return view('product::customMenu.edit', compact('custommenu'));
     }
 
     public function update(Request $request, $id)
