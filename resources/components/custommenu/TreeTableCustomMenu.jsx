@@ -8,7 +8,7 @@ import { defaultMenuTime } from './DefaultTimesSlots';
 
 
 const defaultValue = {application_type : 0, mode:0, station_id :null, active : 1, dates : defaultMenuTime[0]}
-const TreeTableCustomMenu = ({ urlList, applicationTypeValues, translations, modesStations, rootElement }) => {
+const TreeTableCustomMenu = ({ urlList, applicationTypeValues, translations, modesStations, rootElement ,dir }) => {
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState('');
