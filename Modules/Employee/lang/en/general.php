@@ -40,9 +40,9 @@ return [
     'reset' => 'Reset',
     'apply' => 'Apply',
     'image_hint' => 'Only *.png, *.jpg and *.jpeg image files are accepted',
-    'employee_status_hint'=> 'Activate or deactivate this employee',
-    'choose_image'=> 'Choose image',
-    'employee_details'=> 'Employee details',
+    'employee_status_hint' => 'Activate or deactivate this employee',
+    'choose_image' => 'Choose image',
+    'employee_details' => 'Employee details',
     'generate_pin' => 'Generate PIN',
     'please_wait' => 'Please wait',
     'edit_employee' => 'Edit employee',
@@ -74,5 +74,7 @@ return [
     'add_timecard' => 'Add working hours',
     'this_timecard' => 'this working hours',
     'timecard_details' => 'Working hours details',
+    'edit_dashboard_permissions' => 'Edit dashboard permissions',
+    'edit_pos_permissions' => 'Edit pos permissions',
 
 ];
