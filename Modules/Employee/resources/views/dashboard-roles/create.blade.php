@@ -34,13 +34,37 @@
                 ordering: false,
                 autoWidth: false,
             });
-            $(window).on('scroll', function() {
-                var floatingParentChild = $('.dtfh-floatingparent > div');
-                if (floatingParentChild.length) {
+            // $(window).on('scroll', function() {
+            //     var floatingParentChild = $('.dtfh-floatingparent > div');
+            //     if (floatingParentChild.length) {
+            //         floatingParentChild.css('padding-right', '0');
+            //         $('.dtfh-floatingparent').addClass('rounded-start rounded-end');
+            //     }
+            // });
+
+            const targetNode = $("#dashboard-permissions-table")[0];
+            const config = {
+                childList: true,
+                subtree: true
+            };
+
+            const observer = new MutationObserver(function(mutationsList) {
+                mutationsList.forEach(function(mutation) {
+                    const floatingParentChild = $('.dtfh-floatingparent > div');
                     floatingParentChild.css('padding-right', '0');
                     $('.dtfh-floatingparent').addClass('rounded-start rounded-end');
-                }
+                });
             });
+
+            observer.observe(targetNode, config);
+
+
+            $('#kt_app_sidebar_toggle').on('click', function() {
+                setTimeout(function() {
+                    $('#dashboard-permissions-table').DataTable().fixedHeader.adjust();
+                }, 300);
+            });
+
 
         });
     </script>
