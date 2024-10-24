@@ -10,13 +10,28 @@ class AccountingCostCenter extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = [];
+    protected $guarded = ['id'];
 
-    // protected static function newFactory(): AccountingCostCenterFactory
-    // {
-    //     // return AccountingCostCenterFactory::new();
-    // }
+    public function chiledCostCenter()
+    {
+        return $this->hasMany(AccountingCostCenter::class, 'parent_id');
+    }
+
+    public function parentCostCenter()
+    {
+        return $this->belongsTo(AccountingCostCenter::class, 'parent_id');
+    }
+
+
+
+
+    public static function forDropdown()
+    {
+        $main_CostCenter_ids = AccountingCostCenter::where('parent_id','null')->get()->pluck('id');
+        $parent_CostCenter_ids = AccountingCostCenter::where('parent_id', '<>', 'null')->get()->pluck('parent_id');
+
+
+        $query = AccountingCostCenter::where('active',1)->whereNotIn('id', $parent_CostCenter_ids)->whereNotIn('id', $main_CostCenter_ids);
+        return $query->get();
+    }
 }

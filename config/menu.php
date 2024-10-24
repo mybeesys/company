@@ -55,6 +55,11 @@ return [
                 'url' => 'journal-entry-index',
                 'permission' => '',
             ],
+            [
+                'name' => 'costCenter',
+                'url' => 'cost-center-index',
+                'permission' => '',
+            ],
 
         ]
     ],

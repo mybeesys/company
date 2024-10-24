@@ -11,18 +11,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print: {{ $journal->ref_no }}</title>
-
-    {{-- <link href="{{ asset('assets/css/style.bundle' . $rtl_files . '.css') }}" rel="stylesheet" type="text/css" /> --}}
-
-    {{-- <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-        rel="stylesheet"> --}}
-    <!-- jsPDF (for PDF export) -->
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- SheetJS (for Excel export) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script> --}}
-
     <style>
         * {
             font-family: DejaVu Sans !important;
@@ -106,13 +94,11 @@
     </script>
 </head>
 
-{{-- <body dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}" style="text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};"> --}}
 
 <body >
 
     <div class="template-header">
-        {{-- <h1>Print Page</h1> --}}
-
+  
     </div>
 
     <div class="section">
