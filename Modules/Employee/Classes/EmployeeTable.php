@@ -37,7 +37,7 @@ class EmployeeTable
                             <a href="' . url("/employee/{$row->id}/edit") . '" class="menu-link px-3">' . __('employee::fields.edit') . '</a>
                         </div>
                         <div class="menu-item px-3">
-                            <a href="' . url("/employee/{$row->id}/edit") . '" class="menu-link px-3">' . __('employee::general.edit_employee_permission') . '</a>
+                            <a href="#" class="menu-link px-3 edit-permission-button" data-bs-toggle="modal" data-bs-target="#employee_permissions_edit" data-id="' . $row->id . '">' . __('employee::general.edit_employee_permission') . '</a>
                         </div>
                         ';
 

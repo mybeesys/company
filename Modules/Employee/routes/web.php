@@ -49,6 +49,9 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
+        Route::get('/{id}', [EmployeeController::class, 'getEmployee']);
+
+        Route::patch('/{employee}/assign-permissions', 'aasignPermissionsToEmployee')->name('assign.permissions');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
@@ -82,6 +85,5 @@ Route::middleware([
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
-
 });
 
