@@ -112,47 +112,6 @@ class TreeAccountsController extends Controller
             ->where('accounting_account_id', $account->id)->get();
 
 
-        // ->select(
-        //     'operation_date',
-        //     'sub_type',
-        //     'type',
-        //     'amount',
-        //     // DB::raw("CONCAT(COALESCE(users.first_name, ''),' ',COALESCE(users.last_name,'')) as added_by"),
-        //     'users.name',
-        //     // 'transactions.invoice_no',
-        //     'accTransMapping.ref_no',
-        //     'accTransMapping.note'
-        // )
-        // ->get();
-
-
-
-        // if (!empty($start_date) && !empty($end_date)) {
-        //     $transactions->where(function ($query) use ($start_date, $end_date) {
-        //         $query->where(function ($query) use ($start_date, $end_date) {
-        //             $query->where('accounting_accounts_transactions.sub_type', '!=', 'opening_balance')
-        //                 ->whereDate('accounting_accounts_transactions.operation_date', '>=', $start_date)
-        //                 ->whereDate('accounting_accounts_transactions.operation_date', '<=', $end_date);
-        //         })
-        //             ->orWhere(function ($query) use ($start_date, $end_date) {
-        //                 $query->where('accounting_accounts_transactions.sub_type', 'opening_balance')
-        //                     ->whereYear('accounting_accounts_transactions.operation_date', '>=', date('Y', strtotime($start_date)))
-        //                     ->whereYear('accounting_accounts_transactions.operation_date', '<=', date('Y', strtotime($end_date)));
-        //             });
-        //     });
-        // }
-
-        // return  $current_bal = AccountingAccount::leftjoin(
-        //     'accounting_accounts_transactions as AAT',
-        //     'AAT.accounting_account_id',
-        //     '=',
-        //     'accounting_accounts.id'
-        // )
-
-        //     ->where('accounting_accounts.id', $account->id);
-        // ->select([DB::raw($this->accountingUtil->balanceFormula())]);
-        // $current_bal = $current_bal->first()->balance;
-
         return view('accounting::treeOfAccounts.ledger', compact('account', 'account_transactions'));
     }
 
