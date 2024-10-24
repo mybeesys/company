@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Product\Models\Subcategory;
 // use Modules\Product\Database\Factories\CategoryFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
     use HasFactory;
-
+    use SoftDeletes;
+    
     protected $table = 'product_categories';
         
     public $timestamps = true;

@@ -5,13 +5,14 @@ namespace Modules\Product\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     protected $table = 'product_products';
 
     use HasFactory;
-    
+    use SoftDeletes;
     public $timestamps = true;
 
     // Define fillable fields for mass assignment
@@ -58,7 +59,7 @@ class Product extends Model
 
     public function serial_numbers()
     {
-        return $this->hasMany(serial_number::class, 'product_id', 'id');
+        return $this->hasMany(SerialNumber::class, 'product_id', 'id');
     }
 
     public function modifiers()

@@ -5,6 +5,7 @@ namespace Modules\Product\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductModifierFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductModifier extends Model
 {
@@ -12,7 +13,7 @@ class ProductModifier extends Model
     protected $table = 'product_product_modifiers';
 
     use HasFactory;
-    
+    use SoftDeletes;
     public $timestamps = true;
 
     use HasFactory;
@@ -41,7 +42,7 @@ class ProductModifier extends Model
     }
     public function products()
     {
-        return $this->belongsTo(products::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
     // protected static function newFactory(): ProductModifierFactory
