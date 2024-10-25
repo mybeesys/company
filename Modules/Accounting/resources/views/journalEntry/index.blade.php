@@ -29,7 +29,7 @@
             <x-tables.table :columns=$columns model="journalEntry" module="accounting" />
         </x-cards.card-body>
     </div>
-   
+
 @stop
 
 @section('script')

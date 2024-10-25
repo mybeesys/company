@@ -8,8 +8,8 @@
                     value="{{ $dashboardRole?->permissionSetName }}" name="permissionSetName" :label="__('employee::fields.name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)" :disabled=$disabled
-                    value="{{ $dashboardRole?->rank }}" name="rank" :label="__('employee::fields.rank')" />
+                <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
+                    :disabled=$disabled value="{{ $dashboardRole?->rank }}" name="rank" :label="__('employee::fields.rank')" />
             </x-form.input-div>
             <x-form.switch-div class="my-auto">
                 <input type="hidden" name="isActive" value="0">
@@ -22,10 +22,11 @@
     </x-form.form-card>
 
     <div class="table-responsive">
-        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4"
+            id="dashboard-permissions-table">
             <thead>
-                <tr class="border-0">
-                    <th class="w-100 fs-6 fw-bold text-gray-800">
+                <tr class="border-0 rounded-start rounded-end">
+                    <th class="w-100 fs-6 fw-bold text-gray-800 p-0">
                         <div class="d-flex justify-content-between rounded-start rounded-end bg-light p-5">
                             <div class="w-100 d-flex">
                                 <div class="px-10">
@@ -68,7 +69,8 @@
                                             <x-form.input-div
                                                 class="form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
                                                 :row="false">
-                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox" :disabled=$disabled
+                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                                    :disabled=$disabled
                                                     value="{{ $module->has('all') ? $module['all'][$action] : null }}"
                                                     name="permissions[{{ $moduleName }}.all.{{ $action }}]"
                                                     checked="{{ $module->has('all') ? $rolePermissions?->contains($module['all'][$action]) : false }}"
@@ -80,7 +82,7 @@
                                 </div>
                             </div>
                             {{-- child rows --}}
-                            <div id="kt_{{ $loop->index }}" class="collapse {{ $disabled ? 'show' : ''  }}">
+                            <div id="kt_{{ $loop->index }}" class="collapse {{ $disabled ? 'show' : '' }}">
                                 @foreach ($module as $key => $permission)
                                     @if ($key == 'all')
                                         @continue
@@ -123,5 +125,5 @@
             </tbody>
         </table>
     </div>
-    <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" :disabled=$disabled :id=$formId/>
+    <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" :disabled=$disabled :id=$formId />
 </div>

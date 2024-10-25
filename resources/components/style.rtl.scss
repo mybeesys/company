@@ -24,6 +24,7 @@ body {
 .custom-tree-table  {
   border: none !important;
   .p-treetable-wrapper{
+    direction: rtl; /* Set the direction to RTL */
   .p-treetable-table{
     @extend .table ; 
     @extend .table-row-bordered ; 
@@ -60,6 +61,7 @@ body {
       @extend .fw-bold ; 
       @extend .mb-1 ; 
       @extend .fs-6 ; 
+      text-align: right !important;
     }
   }
 }
@@ -75,6 +77,7 @@ body {
 
   th
   {
+      text-align: right !important; 
       font-size: small; 
       padding-left: 5px !important;
   }
@@ -144,6 +147,41 @@ body {
   height: '100%';
 };
 
+.p-inputtext{
+  @extend .form-control;
+  }
+
+  .p-checkbox-input
+  {
+    padding: 5px !important;
+    margin: 10px !important;
+  }
+
+  .p-treetable-checkbox 
+  {
+    margin: 10px !important;
+  }
+  
+.p-checkbox.p-highlight .p-checkbox-box 
+{
+  @extend .form-check-input;
+  border-color:#1B84FF !important;
+  background:#1B84FF !important;
+  color: white !important;
+}
+.p-timepicker
+{
+  direction: ltr;
+}
+
+.p-datepicker-group-container
+{
+  direction: ltr;
+}
+.p-treetable-checkbox
+{
+  width:5%;
+}
 .text-indent-1{
   width: 90%;
 }

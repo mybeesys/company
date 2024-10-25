@@ -30,7 +30,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session()->get('locale') }}", []);
+            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session()->get('locale') }}", [], [0]);
             handleSearchDatatable();
         });
 
@@ -47,7 +47,9 @@
                 "{{ __('employee::general.cancel') }}", undefined,
                 true, "warning").then(function(t) {
                 if (t.isConfirmed) {
-                    ajaxRequest(deleteUrl, 'DELETE');
+                    ajaxRequest(deleteUrl, 'DELETE').done(function() {
+                        dataTable.ajax.reload();
+                    });
                 }
             });
         });

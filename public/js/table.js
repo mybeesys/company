@@ -7,7 +7,8 @@ pdfMake.fonts = {
     }
 };
 
-function exportButtons(columns, id, lang, columnsToReverse) {
+function exportButtons(columns, id, lang, columnsToReverse, columnsToReverseInArabic = []) {
+    
     new $.fn.dataTable.Buttons(table, {
         buttons: [{
             extend: 'excelHtml5',
@@ -33,6 +34,17 @@ function exportButtons(columns, id, lang, columnsToReverse) {
                     for (var i = 1; i < doc.content[2].table.body.length; i++) {
                         for (var j = 0; j < doc.content[2].table.body[i].length; j++) {
                             if (columnsToReverse.includes(j)) {
+                                doc.content[2].table.body[i][j]['text'] = doc.content[2].table.body[i][j]['text'].split(' ').reverse().join(' ');
+                            }
+                        }
+                    }
+                }
+
+                // Function to reverse the text in specific columns when switching lang
+                function reverseColumnTextInArabic(doc) {
+                    for (var i = 1; i < doc.content[2].table.body.length; i++) {
+                        for (var j = 0; j < doc.content[2].table.body[i].length; j++) {
+                            if (columnsToReverseInArabic.includes(j)) {
                                 doc.content[2].table.body[i][j]['text'] = doc.content[2].table.body[i][j]['text'].split(' ').reverse().join(' ');
                             }
                         }
@@ -68,6 +80,7 @@ function exportButtons(columns, id, lang, columnsToReverse) {
 
                 if (lang === 'ar') {
                     reverseForArabic(doc);
+                    reverseColumnTextInArabic(doc)
                 }
             }
         },

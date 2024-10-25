@@ -7,13 +7,13 @@
                 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                     <x-form.input-div class="w-100">
                         <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]" :disabled=$disabled
-                            optionName="permissionSetName" :options="$permissionSets" :errors="$errors"
-                            placeholder="{{ __('employee::fields.role') }}"
+                            optionName="permissionSetName" :options="$permissionSets" :errors="$errors" data_allow_clear="false"
+                            placeholder="{{ __('employee::fields.role') }}" :default_selection_value=null
                             value="{{ is_array($permissionSet) ? $permissionSet['dashboardRole'] ?? '' : $permissionSet?->id }}" />
                     </x-form.input-div>
                     <x-form.input-div class="w-100">
                         <x-form.select name="dashboard_role_repeater[{{ $index }}][establishment]" :disabled=$disabled
-                            data_allow_clear="false" :options="$establishments" :errors="$errors" required
+                            data_allow_clear="false" :options="$establishments" :errors="$errors" 
                             value="{{ is_array($permissionSet) ? $permissionSet['establishment'] ?? '' : $permissionSet?->pivot->establishment_id }}" />
                     </x-form.input-div>
                     <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger" @disabled($disabled)>
