@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
+use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -49,13 +50,14 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
-        Route::get('/get-employee/{id}', [EmployeeController::class, 'getEmployee']);
-
-        Route::patch('/{employee}/assign-permissions', 'aasignPermissionsToEmployee')->name('assign.permissions');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
         Route::get('/generate-pin', 'generatePin')->name('generate.pin');
+    });
+    Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () {
+        Route::patch('/{employee}/assign-permissions', 'aasignPermissionsToEmployee')->name('assign.permissions');
+        Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions');
     });
 
     Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {

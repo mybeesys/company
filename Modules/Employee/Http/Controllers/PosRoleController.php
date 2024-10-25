@@ -65,7 +65,7 @@ class PosRoleController extends Controller
             $storeRole = new PosRoleActions($filteredRequest);
             $storeRole->store();
         });
-        return redirect()->route('roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
+        return to_route('roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -97,7 +97,7 @@ class PosRoleController extends Controller
             $storeRole->update($role);
         });
 
-        return redirect()->route('roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
+        return to_route('roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
