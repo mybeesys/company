@@ -10,7 +10,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print: @lang('menuItemLang.costCenter')</title>
+    <title>@lang('accounting::lang.cost_center_transactions') - @lang('accounting::lang.cost_center') ({{ $costCenter->account_center_number }})
+    </title>
     <style>
         * {
             font-family: DejaVu Sans !important;
@@ -91,7 +92,9 @@
         };
 
         window.onafterprint = function() {
-            window.location.href = "{{ route('cost-center-index') }}";
+            var url = '{{ url('cost-center-transactions') }}/' + {{ $costCenter->id }};
+
+            window.location.href = url;
         };
     </script>
 </head>
@@ -105,27 +108,68 @@
 
     <div class="section">
         <div class="section-header">
-            <p>@lang('menuItemLang.costCenter')</p>
+            <p>@lang('accounting::lang.cost_center_transactions') - @lang('accounting::lang.cost_center')
+                {{ app()->getLocale() == 'ar' ? $costCenter->name_ar : $costCenter->name_en }}
+                ({{ $costCenter->account_center_number }})
+            </p>
         </div>
 
+        
         <div class="content table_component">
             <table class="table table-bordered table-striped hide-footer" dir="{{ $dir }}" id="journal_table">
                 <thead>
                     <tr>
-                        <th>@lang('accounting::lang.cost_center')</th>
-                        <th>@lang('accounting::lang.main_cost_center')</th>
+                        <th class="min-w-125px ">@lang('accounting::lang.transaction_number')</th>
+                        <th class="min-w-80px">@lang('accounting::lang.operation_date')</th>
+                        <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
+                        <th class="min-w-200px">@lang('accounting::lang.added_by')</th>
+                        <th class="min-w-150px">@lang('accounting::lang.amount')</th>
+
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach ($CostCenter as $row)
+                    @foreach ($costCenter->transactions as $transactions)
                         <tr>
-                            <td>{{ $row->account_center_number }} -
-                                {{ app()->getLocale() == 'ar' ? $row->name_ar : $row->name_en }}
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="d-flex justify-content-start flex-column">
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $transactions->accTransMapping->ref_no }}</a>
+
+                                    </div>
+                                </div>
                             </td>
-                            <td>{{ $row->parentCostCenter?->account_center_number }} -
-                                {{ app()->getLocale() == 'ar' ? $row->parentCostCenter?->name_ar : $row->parentCostCenter?->name_en }}
+
+                            <td>
+                                <a
+                                    class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">{{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}</a>
                             </td>
+
+                            <td>
+                                <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
+                            </td>
+
+
+                            <td>
+                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                    {{ $transactions->createdBy->name }}</a>
+
+                            </td>
+
+                            <td>
+
+
+                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                    {{ $transactions->amount }}</a>
+
+
+
+                            </td>
+
+
+
+
                         </tr>
                     @endforeach
                 </tbody>

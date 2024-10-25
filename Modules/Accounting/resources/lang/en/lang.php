@@ -129,6 +129,8 @@ return [
     'note_active_cc' => 'Alert: Once the cost center is activated, users will be able to allocate costs to this center in new transactions. This cost center will appear in all relevant lists and reports.',
     'Include inactive' => 'Include inactive',
     'unInclude inactive' => 'Uninclude inactive',
+    'main_cost_center' => 'Main Cost Center',
+    'amount'=>'Amount',
 
 
 

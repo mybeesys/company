@@ -34,10 +34,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                                                                                                                                                background: #beebff2e !important;
-                                                                                                                                                                                                                                                                                                                border-radius: 13px !important;
-                                                                                                                                                                                                                                                                                                                box-shadow: none !important;
-                                                                                                                                                                                                                                                                                                            } */
+                                                                                                                                                                                                                                                                                                                            background: #beebff2e !important;
+                                                                                                                                                                                                                                                                                                                            border-radius: 13px !important;
+                                                                                                                                                                                                                                                                                                                            box-shadow: none !important;
+                                                                                                                                                                                                                                                                                                                        } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -119,23 +119,46 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-left" role="menu" style=" width: max-content;padding: 10px;"
                         style="padding: 8px 15px;">
-                        <li class="mb-5" style="text-align: justify;">
+                        <li class="mb-5" style="text-align: justify; border-bottom: 1px solid #00000029;
+                        ">
                             <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
                         </li>
+
                         <li>
                             <form method="GET" action="{{ route('cost-center-index') }}">
-                                <input type="hidden" name="includeInactive" value="{{$includeInactive}}"/>
+                                <input type="hidden" name="includeInactive" value="{{ $includeInactive }}" />
                                 @if ($includeInactive)
-                                    <button type="submit" style="width: 100%;text-align: start; padding: 0;" class="btn btn-">@lang('accounting::lang.unInclude inactive')</button>
+                                    <button type="submit" style="width: 100%;text-align: start; padding: 0;"
+                                        class="btn btn-">@lang('accounting::lang.unInclude inactive')</button>
                                 @else
-                                    <button type="submit" style="width: 100%;text-align: start; padding: 0;" class="btn btn-">@lang('accounting::lang.Include inactive')</button>
+                                    <button type="submit" style="width: 100%;text-align: start; padding: 0;"
+                                        class="btn btn-">@lang('accounting::lang.Include inactive')</button>
                                 @endif
 
                             </form>
                         </li>
-<li><div class="menu-item ">
-    <a href= "{{url('/cost-center-print')}}" style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('accounting::fields.print')</a>
-</div></li>
+
+                        <li>
+                            <div class="menu-item ">
+                                <a href= "{{ url('/cost-center-print') }}"
+                                    style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('accounting::fields.print')</a>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="menu-item ">
+                                <a href= "{{ url('/cost-center-export-pdf') }}"
+                                    style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('general.export_as_pdf')</a>
+                            </div>
+                        </li>
+
+
+                        <li>
+                            <div class="menu-item ">
+                                <a href= "{{ url('/cost-center-export-excel') }}"
+                                    style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('general.export_as_excel')</a>
+                            </div>
+                        </li>
 
 
 
@@ -146,7 +169,10 @@
 
 
 
-        @include('accounting::costCenter.tree_cost_centers', ['costCenters' => $costCenters,'includeInactive'=>$includeInactive])
+        @include('accounting::costCenter.tree_cost_centers', [
+            'costCenters' => $costCenters,
+            'includeInactive' => $includeInactive,
+        ])
     @endif
 
 
@@ -224,7 +250,7 @@
                     "themes": {
                         "responsive": true
                     },
-                    },
+                },
                 "types": {
                     "default": {
                         "icon": "fa fa-folder"

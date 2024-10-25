@@ -50,8 +50,13 @@ Route::middleware([
         Route::post('cost-center-store', [CostCenterConrollerController::class, 'store'])->name('cost-center-store');
         Route::post('cost-center-update', [CostCenterConrollerController::class, 'update'])->name('cost-center-update');
         Route::get('cost-center-print', [CostCenterConrollerController::class, 'print'])->name('cost-center-print');
+        Route::get('cost-center-transactions/{id}', [CostCenterConrollerController::class, 'transactions'])->name('cost-center-transactions');
+        Route::get('cost-center-transactions-print/{id}', [CostCenterConrollerController::class, 'transactionsPrint'])->name('cost-center-transactions-print');
+        Route::get('cost-center-transactions-export-pdf/{id}', [CostCenterConrollerController::class, 'exportTransactionsPDF'])->name('cost-center-transactions-export-pdf');
+        Route::get('cost-center-transactions-export-excel/{id}', [CostCenterConrollerController::class, 'exportTransactionsExcel'])->name('cost-center-transactions-export-excel');
         Route::post('change-status-cost-center', [CostCenterConrollerController::class, 'changeStatus'])->name('change-status-cost-center');
-
+        Route::get('cost-center-export-pdf', [CostCenterConrollerController::class, 'exportPDF'])->name('cost-center-export-pdf');
+        Route::get('cost-center-export-excel', [CostCenterConrollerController::class, 'exportExcel'])->name('cost-center-export-excel');
 
 
     });
