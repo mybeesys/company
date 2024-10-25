@@ -61,7 +61,10 @@
             font-optical-sizing: 'auto';
             font-style: normal;
         }
-
+        .dropend .dropdown-toggle::after {
+            border-left: 0;
+            border-right: 0;
+        }
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;

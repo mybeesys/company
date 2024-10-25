@@ -43,8 +43,8 @@
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
-                                        <li><a class="ledger-link" {{-- onclick="setAccountId({{ $account->id }})" --}} {{-- href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $account->id]) }}" --}}
-                                                style="margin: 2px;">
+                                        <li><a class="ledger-link" href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
+                                            style="margin: 2px;">
                                                 <i class="fas fa-file-alt"></i><span
                                                     style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
                                         </li>
@@ -119,7 +119,8 @@
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
-                                        <li><a class="ledger-link" {{-- onclick="setAccountId({{ $account->id }})" --}} {{-- href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $account->id]) }}" --}}
+                                        <li><a class="ledger-link"
+                                                href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
                                                 style="margin: 2px;">
                                                 <i class="fas fa-file-alt"></i><span
                                                     style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
