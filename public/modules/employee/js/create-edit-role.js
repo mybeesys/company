@@ -44,8 +44,8 @@ function rolePermissionsForm(all = true) {
         if (!$(this).is(':checked')) {
             selectAllCheckbox.prop('checked', false);
         } else {
-            const allChecked = $('input[name^="permissions"][value!="all"]').length === $(
-                'input[name^="permissions"][value!="all"]:checked').length;
+            const allChecked = $('input[name^="pos_permissions"][value!="all"]').length === $(
+                'input[name^="pos_permissions"][value!="all"]:checked').length;
             if (allChecked) {
                 selectAllCheckbox.prop('checked', true);
             }

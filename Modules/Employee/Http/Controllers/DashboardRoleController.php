@@ -76,7 +76,7 @@ class DashboardRoleController extends Controller
             $storeRole = new DashboardRoleActions($filteredRequest);
             $storeRole->store();
         });
-        return redirect()->route('dashboard-roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
+        return to_route('dashboard-roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**
@@ -149,7 +149,7 @@ class DashboardRoleController extends Controller
             $storeRole = new DashboardRoleActions($filteredRequest);
             $storeRole->update($dashboardRole);
         });
-        return redirect()->route('dashboard-roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
+        return to_route('dashboard-roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
     }
 
     /**

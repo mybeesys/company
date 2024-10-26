@@ -12,21 +12,18 @@ class PosRoleActions
     public function storeUpdateRolePermissions($role)
     {
         $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
-        $permissions = collect($this->request->permissions)->map(function ($value) {
-            return (int) $value;
-        });
-        $permissions->contains($selectAllPermission->id) ? $role->syncPermissions([$selectAllPermission->id]) : $role->syncPermissions($permissions);
-
+        $permissions = $this->request->has('pos_permissions') ? collect($this->request['pos_permissions'])->map(fn($value) => (int) $value) : null;
+        $permissions ? ($permissions->contains($selectAllPermission->id) ? $role->syncPermissions([$selectAllPermission->id]) : $role->syncPermissions($permissions)) : $role->syncPermissions([]);
     }
     public function store()
     {
-        $role = Role::create($this->request->except('permissions'));
-        $this->request->has('permissions') ? $this->storeUpdateRolePermissions($role) : null;
+        $role = Role::create($this->request->except('pos_permissions'));
+        $this->storeUpdateRolePermissions($role);
     }
 
     public function update($role)
     {
         $role->update($this->request->all());
-        $this->request->has('permissions') ? $this->storeUpdateRolePermissions($role) : null;
+        $this->storeUpdateRolePermissions($role);
     }
 }

@@ -28,9 +28,9 @@
                             <x-form.input-div class="form-check form-check-custom form-check-solid">
                                 <x-form.input :errors=$errors class="form-check-input mx-5" type="checkbox"
                                     value="{{ $permission->name == 'select_all_permissions' ? 'all' : $permission->id }}"
-                                    name="permissions[{{ $permission->id }}]" :form_control="false" :disabled=$disabled
+                                    name="pos_permissions[{{ $permission->id }}]" :form_control="false" :disabled=$disabled
                                     checked="{{ $role?->permissions->contains($permission->id) || $role?->permissions?->first()?->name == 'select_all_permissions' }}"
-                                    attribute="{{ $permission->name === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=permissions' }}" />
+                                    attribute="{{ $permission->name === 'select_all_permissions' ? 'data-kt-check-target=[data-select-all=pos_permissions] data-kt-check=true data-id=' . $permission->id : 'data-select-all=pos_permissions' }}" />
                             </x-form.input-div>
                         </td>
                     @endforeach

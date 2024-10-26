@@ -20,6 +20,7 @@
         $(document).ready(function() {
             roleForm('edit_role_form', "{{ route('dashboard-roles.update.validation') }}");
             dashboardRolePermissionsForm();
+            fixedTableHeader();
         });
     </script>
 @endsection

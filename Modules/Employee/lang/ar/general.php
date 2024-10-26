@@ -77,4 +77,5 @@ return [
     'edit_dashboard_permissions' => 'تعديل صلاحيات لوحة التحكم',
     'edit_pos_permissions' => 'تعديل صلاحيات نقاط البيع',
     'edit_permissions' => 'تعديل الصلاحيات',
+    'this_role' => 'هذا الدور',
 ];

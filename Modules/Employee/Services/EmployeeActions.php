@@ -19,6 +19,28 @@ class EmployeeActions
     {
     }
 
+
+    public static function getShowEditEmployee($id)
+    {
+        return Employee::with([
+            'establishmentsPivot',
+            'establishmentsPivot.wage' => function ($query) {
+                $query->select('id', 'rate', 'wageType');
+            },
+            'establishmentsPivot.establishment' => function ($query) {
+                $query->select('id', 'name');
+            },
+            'roles' => function ($query) {
+                $query->select('roles.id', 'roles.name');
+            },
+            'roles.wage' => function ($query) use ($id) {
+                $query->select('role_id', 'rate', 'wageType', 'establishment_id')->where('employee_id', $id);
+            },
+            'administrativeUser.permissionSets'
+        ])->findOrFail($id);
+    }
+
+
     public function storeUpdateAdministrativeUser($repeaterData, $employee_id)
     {
         $repeaterData = $repeaterData ? collect($repeaterData) : null;
