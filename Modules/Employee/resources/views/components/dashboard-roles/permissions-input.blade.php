@@ -1,6 +1,6 @@
 @props(['modules', 'disabled' => false, 'rolePermissions' => null])
 <div class="table-responsive">
-    <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" id="dashboard-permissions-table">
+    <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 mh-400px" id="dashboard-permissions-table">
         <thead>
             <tr class="border-0 rounded-start rounded-end">
                 <th class="w-100 fs-6 fw-bold text-gray-800 p-0">

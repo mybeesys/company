@@ -132,4 +132,66 @@ function dashboardRolePermissionsForm() {
     }
 
     $(`input[name*="dashboard_permissions["]:checked`).trigger('change');
+
+}
+function fixedTableHeader() {
+    let table = $("#dashboard-permissions-table").DataTable({
+        paging: false,
+        info: false,
+        fixedHeader: {
+            header: true,
+            headerOffset: 100
+        },
+        responsive: true,
+        ordering: false,
+        autoWidth: false,
+    });
+
+    const targetNode = $("#dashboard-permissions-table")[0];
+    const config = {
+        childList: true,
+        subtree: true
+    };
+
+    const observer = new MutationObserver(function (mutationsList) {
+        mutationsList.forEach(function (mutation) {
+            const floatingParent = $('.dtfh-floatingparent');
+            const floatingParentChild = $('.dtfh-floatingparent > div');
+            floatingParentChild.css('padding-right', '0');
+            $('.dtfh-floatingparent').addClass('rounded-start rounded-end');
+            if (window.innerWidth < 990) {
+                floatingParent.css('top', '75px');
+            }
+        });
+    });
+    observer.observe(targetNode, config);
+
+    $(window).on('scroll', function () {
+        if (window.innerWidth < 990) {
+            const floatingParent = $('.dtfh-floatingparent');
+            floatingParent.css('top', '65px');
+        }
+    });
+
+
+    $('#kt_app_sidebar_toggle').on('click', function () {
+        setTimeout(function () {
+            $('#dashboard-permissions-table').DataTable().fixedHeader.adjust();
+        }, 300);
+    });
+
+    $(window).on('resize', function () {
+        const newIsMobile = window.innerWidth < 500;
+        const floatingParentChild = $('.dtfh-floatingparent > div');
+        const floatingParent = $('.dtfh-floatingparent');
+
+        if (newIsMobile && table.fixedHeader) {
+            table.fixedHeader.disable();
+            floatingParentChild.css('padding-right', '0');
+        } else if (!newIsMobile) {
+            table.fixedHeader.enable();
+            table.fixedHeader.adjust();
+            floatingParentChild.css('padding-right', '0');
+        }
+    });
 }

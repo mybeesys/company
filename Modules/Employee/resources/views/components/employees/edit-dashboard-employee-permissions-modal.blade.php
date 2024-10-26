@@ -10,10 +10,7 @@
             </div>
             <div class="modal-body mx-5 pt-0">
                 <form id="employee_dashboard_permissions_edit_form" class="form" action="#">
-                    <div class="d-flex flex-column me-n7" id="kt_modal_update_role_scroll" data-kt-scroll="true"
-                        data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="500px"
-                        data-kt-scroll-dependencies="#kt_modal_update_role_header"
-                        data-kt-scroll-wrappers="#kt_modal_update_role_scroll" data-kt-scroll-offset="300px">
+                    <div class="d-flex flex-column me-n7 " id="kt_modal_update_role_scroll">
                         <x-employee::dashboard-roles.permissions-input :modules=$modules />
                     </div>
                     <div class="text-center pt-5">

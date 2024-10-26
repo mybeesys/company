@@ -1,3 +1,32 @@
+function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
+    $(document).on('click', '.edit-pos-permission-button', function (e) {
+        e.preventDefault();
+        const employeeId = $(this).data('id');
+
+        ajaxRequest(`${getDataUrl}/${employeeId}`, 'GET', {},
+            false, true)
+            .done(function (response) {
+                if (response.success) {
+                    const employeeData = response.data;
+                    const employeePermissions = employeeData.employeePermissions;
+                    const allPermissionsId = employeeData.allPermissionsId;
+
+                    $('#employee_pos_permissions_edit_form').find('input[name^="pos_permissions"]')
+                        .each(
+                            function () {
+                                const permissionId = $(this).val();
+                                $(this).prop('checked', employeePermissions.includes(parseInt(
+                                    permissionId)) || employeePermissions.includes(
+                                        allPermissionsId));
+                                $(this).prop('disabled', false);
+                            });
+                    assignPosPermissionsToEmployeeForm(allPermissionsId, employeeId, assignUrl);
+                    $('#employee_pos_permissions_edit').modal('toggle');
+                }
+            });
+    });
+}
+
 function assignPosPermissionsToEmployeeForm(allPermissionsId, employeeId, assignUrl) {
     const selectAllCheckbox = $(
         `input[type="checkbox"][value="${allPermissionsId}"], input[type="checkbox"][value="all"]`);
@@ -36,58 +65,7 @@ function assignPosPermissionsToEmployeeForm(allPermissionsId, employeeId, assign
 
 }
 
-function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
-    $(document).on('click', '.edit-pos-permission-button', function (e) {
-        e.preventDefault();
-        const employeeId = $(this).data('id');
 
-        ajaxRequest(`${getDataUrl}/${employeeId}`, 'GET', {},
-            false, true)
-            .done(function (response) {
-                if (response.success) {
-                    const employeeData = response.data;
-                    const employeePermissions = employeeData.employeePermissions;
-                    const allPermissionsId = employeeData.allPermissionsId;
-
-                    $('#employee_pos_permissions_edit_form').find('input[name^="pos_permissions"]')
-                        .each(
-                            function () {
-                                const permissionId = $(this).val();
-                                $(this).prop('checked', employeePermissions.includes(parseInt(
-                                    permissionId)) || employeePermissions.includes(
-                                        allPermissionsId));
-                                $(this).prop('disabled', false);
-                            });
-                    assignPosPermissionsToEmployeeForm(allPermissionsId, employeeId, assignUrl);
-                    $('#employee_pos_permissions_edit').modal('toggle');
-                }
-            });
-    });
-}
-
-
-function assignDashboardPermissionsToEmployeeForm(employeeId, assignUrl) {
-
-    $('#employee_dashboard_permissions_edit_form').off('submit').on('submit', function (e) {
-        e.preventDefault();
-        const url = assignUrl.replace(':id', employeeId);
-
-        const checkedPermissions = {};
-        $('input[name^="dashboard_permissions"]:checked:not(:disabled)').each(function () {
-            const name = $(this).attr('name');
-            const value = $(this).val();
-            const key = name.match(/\[(.*?)\]/)[1];
-            checkedPermissions[key] = value;
-        });
-
-        ajaxRequest(url, 'PATCH', {
-            dashboard_permissions: checkedPermissions,
-        }, true, true);
-
-        $('#employee_dashboard_permissions_edit').modal('toggle');
-    });
-
-}
 
 function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
 
@@ -117,4 +95,27 @@ function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
                 }
             });
     });
+}
+
+function assignDashboardPermissionsToEmployeeForm(employeeId, assignUrl) {
+
+    $('#employee_dashboard_permissions_edit_form').off('submit').on('submit', function (e) {
+        e.preventDefault();
+        const url = assignUrl.replace(':id', employeeId);
+
+        const checkedPermissions = {};
+        $('input[name^="dashboard_permissions"]:checked:not(:disabled)').each(function () {
+            const name = $(this).attr('name');
+            const value = $(this).val();
+            const key = name.match(/\[(.*?)\]/)[1];
+            checkedPermissions[key] = value;
+        });
+
+        ajaxRequest(url, 'PATCH', {
+            dashboard_permissions: checkedPermissions,
+        }, true, true);
+
+        $('#employee_dashboard_permissions_edit').modal('toggle');
+    });
+
 }

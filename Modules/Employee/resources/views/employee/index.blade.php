@@ -47,9 +47,9 @@
             $('[name="status"], [name="deleted_records"]').select2({
                 minimumResultsForSearch: -1
             });
+            dashboardRolePermissionsForm();
             assignPosPermissionsToEmployee("{{ url('/permission/get-employee-pos-permissions/') }}",
                 "{{ route('permissions.assign.employee', ':id') }}");
-            dashboardRolePermissionsForm();
             assignDashboardPermissionsToEmployee("{{ url('/permission/get-employee-dashboard-permissions/') }}",
                 "{{ route('permissions.assign.user', ':id') }}");
         });
@@ -155,6 +155,25 @@
                 dataTable.search('').columns().search('').ajax.url(dataUrl)
                     .load();
             });
+
+            let tableElement = $("#dashboard-permissions-table");
+            let modalTable = tableElement.DataTable({
+                paging: false,
+                info: false,
+                responsive: true,
+                ordering: false,
+                autoWidth: false,
+                scrollY: '400px',
+                scrollCollapse: true,
+            });
+
+            $('#employee_dashboard_permissions_edit').on('shown.bs.modal', function() {
+                modalTable.columns.adjust();
+                $(window).on('resize', function() {
+                    modalTable.columns.adjust();
+                });
+            });
+
         };
     </script>
 @endsection
