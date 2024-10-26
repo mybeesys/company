@@ -42,7 +42,7 @@
                 `{{ url('/dashboard-roles/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
-                    name),
+                    '{{ __('employee::general.this_role') }}'),
                 "{{ __('employee::general.delete') }}",
                 "{{ __('employee::general.cancel') }}", undefined,
                 true, "warning").then(function(t) {

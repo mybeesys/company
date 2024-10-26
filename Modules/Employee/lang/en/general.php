@@ -76,5 +76,5 @@ return [
     'timecard_details' => 'Working hours details',
     'edit_dashboard_permissions' => 'Edit dashboard permissions',
     'edit_pos_permissions' => 'Edit pos permissions',
-
+    'this_role' => 'this role',
 ];

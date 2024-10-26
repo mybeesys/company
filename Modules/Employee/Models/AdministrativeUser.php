@@ -5,18 +5,20 @@ namespace Modules\Employee\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 // use Modules\Employee\Database\Factories\AdministrativeUserFactory;
 
 class AdministrativeUser extends BaseModel
 {
-    use HasFactory, HasRoles;
+    use HasFactory, HasRoles, HasPermissions;
 
     /**
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $guard_name = "web";
     /**
      * Get the attributes that should be cast.
      *

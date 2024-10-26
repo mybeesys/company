@@ -1,6 +1,6 @@
-@props(['permissions'])
-<div class="modal fade" id="employee_pos_permissions_edit" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mw-800px">
+@props(['permissions', 'modules'])
+<div class="modal fade" id="employee_dashboard_permissions_edit" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-1000px">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="fw-bold">@lang('employee::general.edit_permissions')</h2>
@@ -9,12 +9,12 @@
                 </div>
             </div>
             <div class="modal-body mx-5 pt-0">
-                <form id="employee_pos_permissions_edit_form" class="form" action="#">
+                <form id="employee_dashboard_permissions_edit_form" class="form" action="#">
                     <div class="d-flex flex-column me-n7" id="kt_modal_update_role_scroll" data-kt-scroll="true"
                         data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="500px"
                         data-kt-scroll-dependencies="#kt_modal_update_role_header"
                         data-kt-scroll-wrappers="#kt_modal_update_role_scroll" data-kt-scroll-offset="300px">
-                        <x-employee::pos-roles.permissions-input :permissions=$permissions :header=false />
+                        <x-employee::dashboard-roles.permissions-input :modules=$modules />
                     </div>
                     <div class="text-center pt-5">
                         <button type="reset" class="btn btn-light me-3"

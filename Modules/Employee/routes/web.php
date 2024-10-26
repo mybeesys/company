@@ -56,8 +56,10 @@ Route::middleware([
         Route::get('/generate-pin', 'generatePin')->name('generate.pin');
     });
     Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () {
-        Route::patch('/{employee}/assign-permissions', 'aasignPermissionsToEmployee')->name('assign.permissions');
+        Route::patch('/{employee}/assign-pos-permissions', 'aasignPosPermissionsToEmployee')->name('assign.employee');
         Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions');
+        Route::patch('/{employee}/assign-dashboard-permissions', 'aasignDashboardPermissionsToUser')->name('assign.user');
+        Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions');
     });
 
     Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {

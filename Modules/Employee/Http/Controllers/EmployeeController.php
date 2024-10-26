@@ -5,7 +5,6 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
@@ -72,7 +71,29 @@ class EmployeeController extends Controller
         $employees = $employees->get();
         $columns = EmployeeTable::getEmployeeColumns();
         $permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-        return view('employee::employee.index', compact('columns', 'permissions', 'employees'));
+
+        $modules = Permission::where('type', 'ems')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+            ->groupBy(function ($item) {
+                return explode(".", $item->name)[0];
+            })
+            ->map(function ($permissions) {
+                return $permissions->map(function ($item) {
+                    $nameParts = explode(".", $item->name);
+                    return [
+                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
+                        'action' => $nameParts[2],
+                        'id' => $item->id,
+                    ];
+                })->groupBy('entity')->map(function ($groupedPermissions) {
+                    return $groupedPermissions->mapWithKeys(function ($item) {
+                        return [
+                            $item['action'] => $item['id'],
+                        ];
+                    });
+                });
+            });
+        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules'));
     }
 
     public function create()

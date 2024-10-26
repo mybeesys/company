@@ -22,12 +22,15 @@
     </x-cards.card>
 
     <x-employee::employees.edit-pos-employee-permissions-modal :permissions=$permissions />
+    <x-employee::employees.edit-dashboard-employee-permissions-modal :modules=$modules />
 @endsection
 
 @section('script')
     @parent
     <script src="{{ url('/js/table.js') }}"></script>
     <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
+    <script src="{{ url('modules/employee/js/create-edit-dashboard-role.js') }}"></script>
+    <script src="{{ url('modules/employee/js/edit-employee-permissions.js') }}"></script>
     <script type="text/javascript" src="vfs_fonts.js"></script>
     <script>
         "use strict";
@@ -44,7 +47,11 @@
             $('[name="status"], [name="deleted_records"]').select2({
                 minimumResultsForSearch: -1
             });
-            assignPermissionsToEmployee();
+            assignPosPermissionsToEmployee("{{ url('/permission/get-employee-pos-permissions/') }}",
+                "{{ route('permissions.assign.employee', ':id') }}");
+            dashboardRolePermissionsForm();
+            assignDashboardPermissionsToEmployee("{{ url('/permission/get-employee-dashboard-permissions/') }}",
+                "{{ route('permissions.assign.user', ':id') }}");
         });
 
         $(document).on('click', '.restore-btn', function(e) {
@@ -149,77 +156,5 @@
                     .load();
             });
         };
-
-        function assignPermissionsToEmployeeForm(allPermissionsId) {
-            const selectAllCheckbox = $(
-                `input[type="checkbox"][value="${allPermissionsId}"], input[type="checkbox"][value="all"]`);;
-
-            $(`input[type="checkbox"][value!="${allPermissionsId}"]`).on('change', function(e) {
-                if (!$(this).is(':checked')) {
-                    selectAllCheckbox.prop('checked', false);
-                } else {
-                    const allChecked = $('input[name^="permissions"][value!="all"]').length === $(
-                        'input[name^="permissions"][value!="all"]:checked').length;
-                    if (allChecked) {
-                        selectAllCheckbox.prop('checked', true);
-                    }
-                }
-            });
-
-            $('#employee_permissions_edit_form').off('submit').on('submit', function(e) {
-                e.preventDefault();
-
-                if (selectAllCheckbox.is(':checked')) {
-                    $('input[type="checkbox"][value!="all"]').prop('disabled', true);
-                    selectAllCheckbox.val(allPermissionsId);
-                }
-                const checkedPermissions = $('input[name^="permissions"]:checked:not(:disabled)').map(function() {
-                    return $(this).val();
-                }).get();
-                const id = $('#employee_permissions_edit_form #employee_id').val();
-                const url = "{{ route('permissions.assign.permissions', ':id') }}".replace(':id', id)
-
-                ajaxRequest(url, 'PATCH', {
-                    permissions: checkedPermissions,
-                }, true, true);
-
-                $('#employee_permissions_edit').modal('toggle');
-            });
-
-        }
-
-
-        function assignPermissionsToEmployee() {
-            $(document).on('click', '.edit-dashboard-permission-button', function(e) {
-                console.log(123);
-
-            });
-
-            $(document).on('click', '.edit-pos-permission-button', function(e) {
-                e.preventDefault();
-                const employeeId = $(this).data('id');
-                $("#employee_permissions_edit_form #employee_id").val(employeeId);
-
-                ajaxRequest(`{{ url('/permission/get-employee-pos-permissions/') }}/${employeeId}`, 'GET', {}, false, true)
-                    .done(function(response) {
-                        if (response.success) {
-                            const employeeData = response.data;
-                            const employeePermissions = employeeData.employeePermissions;
-                            const allPermissionsId = employeeData.allPermissionsId;
-
-                            $('#employee_permissions_edit_form').find('input[name^="permissions"]').each(
-                                function() {
-                                    const permissionId = $(this).val();
-                                    $(this).prop('checked', employeePermissions.includes(parseInt(
-                                        permissionId)) || employeePermissions.includes(
-                                        allPermissionsId));
-                                    $(this).prop('disabled', false);
-                                });
-                            assignPermissionsToEmployeeForm(allPermissionsId);
-                            $('#employee_permissions_edit').modal('toggle');
-                        }
-                    });
-            });
-        }
     </script>
 @endsection
