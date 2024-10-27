@@ -2,7 +2,7 @@
 <div class="modal fade" id="employee_dashboard_permissions_edit" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-1000px">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header mb-2">
                 <h2 class="fw-bold">@lang('employee::general.edit_permissions')</h2>
                 <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                     <i class="ki-outline ki-cross fs-1"></i>
