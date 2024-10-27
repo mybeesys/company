@@ -4,9 +4,11 @@ namespace Modules\Employee\Http\Requests;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Modules\Employee\Rules\EmployeeEstablishmentRule;
+use Modules\Employee\Rules\WageTypeRequired;
 
 class UpdateEmployeeRequest extends FormRequest
 {
@@ -14,7 +16,7 @@ class UpdateEmployeeRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
-    public function rules(): array
+    public function rules(Request $request): array
     {
         $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
@@ -30,7 +32,7 @@ class UpdateEmployeeRequest extends FormRequest
             'role_wage_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
             'role_wage_repeater.*.role' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'numeric'],
-            'role_wage_repeater.*.wage_type' => [Rule::requiredIf($notAjaxValidate), 'nullable', 'in:hourly,weakly,monthly'],
+            'role_wage_repeater.*.wage_type' => [new WageTypeRequired($request->input('role_wage_repeater.*.wage')), 'nullable', 'in:hourly,weakly,monthly'],
             'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
             'active_managment_fields_btn' => ['boolean'],
             'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],

@@ -74,5 +74,8 @@ return [
     'add_timecard' => 'إضافة وقت دوام',
     'this_timecard' => 'هذا الدوام',
     'timecard_details' => 'بيانات الدوام',
-
+    'edit_dashboard_permissions' => 'تعديل صلاحيات لوحة التحكم',
+    'edit_pos_permissions' => 'تعديل صلاحيات نقاط البيع',
+    'edit_permissions' => 'تعديل الصلاحيات',
+    'this_role' => 'هذا الدور',
 ];

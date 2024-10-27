@@ -15,6 +15,7 @@
     'form_control' => true,
     'disabled' => false,
     'readonly' => false,
+    ''
 ])
 
 @php
@@ -27,7 +28,7 @@
 @endif
 @includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])
 {{ $slot }}
-<input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}" @readonly($readonly) $step
+<input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}" @readonly($readonly)
     placeholder="{{ $placeholder }}" id="{{ $name }}" autocomplete="new-password" value="{{ old($name, $value) }}"
     {{ $attribute }} @class([
         'form-control' => $form_control,

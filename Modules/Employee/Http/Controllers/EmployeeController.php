@@ -28,6 +28,33 @@ class EmployeeController extends Controller
         $this->roles = Role::all()->select('id', 'name');
     }
 
+    function generatePin()
+    {
+        $number = mt_rand(10000, 99999);
+        if (Employee::where('pin', $number)->exists()) {
+            return $this->generatePin();
+        }
+        return response()->json(['data' => $number]);
+    }
+
+    public function createLiveValidation(StoreEmployeeRequest $request)
+    {
+    }
+
+    public function updateLiveValidation(UpdateEmployeeRequest $request)
+    {
+    }
+
+    private function getEmployeeViewData(int $id): array
+    {
+        return [
+            'employee' => EmployeeActions::getShowEditEmployee($id),
+            'roles' => $this->roles,
+            'permissionSets' => $this->permissionSets,
+            'establishments' => $this->establishments
+        ];
+    }
+
     public function index(Request $request)
     {
         $employees = Employee::with('permissions:id,name')->
@@ -44,55 +71,29 @@ class EmployeeController extends Controller
         $employees = $employees->get();
         $columns = EmployeeTable::getEmployeeColumns();
         $permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-        return view('employee::employee.index', compact('columns', 'permissions', 'employees'));
-    }
 
-    public function aasignPermissionsToEmployee(Request $request, Employee $employee)
-    {
-        $selectAllPermission = Permission::firstWhere('name', 'select_all_permissions');
-        $permissions = collect($request->permissions)->map(function ($value) {
-            return (int) $value;
-        });
-        $permissions->contains($selectAllPermission->id) ? $employee->syncPermissions([$selectAllPermission->id]) : $employee->syncPermissions($permissions);
-        return response()->json(['message' => __('employee::responses.opreation_success')]);
-    }
-
-    public function getEmployee($id)
-    {
-        $employee = Employee::with(['permissions'])->find($id);
-        $allPermissionId = Permission::firstWhere('name', 'select_all_permissions')->id;
-        if (!$employee) {
-            return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
-        }
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'employeePermissions' => $employee->permissions->pluck('id'),
-                'allPermissionsId' => $allPermissionId,
-            ],
-        ]);
-    }
-
-    function generatePin()
-    {
-        $number = mt_rand(10000, 99999);
-        if ($this->barcodeNumberExists($number)) {
-            return $this->generatePin();
-        }
-        return response()->json(['data' => $number]);
-    }
-
-    function barcodeNumberExists($number)
-    {
-        return Employee::where('pin', $number)->exists();
-    }
-
-    public function createLiveValidation(StoreEmployeeRequest $request)
-    {
-    }
-
-    public function updateLiveValidation(UpdateEmployeeRequest $request)
-    {
+        $modules = Permission::where('type', 'ems')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
+            ->groupBy(function ($item) {
+                return explode(".", $item->name)[0];
+            })
+            ->map(function ($permissions) {
+                return $permissions->map(function ($item) {
+                    $nameParts = explode(".", $item->name);
+                    return [
+                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
+                        'action' => $nameParts[2],
+                        'id' => $item->id,
+                    ];
+                })->groupBy('entity')->map(function ($groupedPermissions) {
+                    return $groupedPermissions->mapWithKeys(function ($item) {
+                        return [
+                            $item['action'] => $item['id'],
+                        ];
+                    });
+                });
+            });
+        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules'));
     }
 
     public function create()
@@ -112,48 +113,17 @@ class EmployeeController extends Controller
             $storeEmployee = new EmployeeActions($filteredRequest);
             $storeEmployee->store();
         });
-        return redirect()->route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
-    }
-
-    public function getShowEditEmployee($id)
-    {
-        return Employee::with([
-            'establishmentsPivot',
-            'establishmentsPivot.wage' => function ($query) {
-                $query->select('id', 'rate', 'wageType');
-            },
-            'establishmentsPivot.establishment' => function ($query) {
-                $query->select('id', 'name');
-            },
-            'roles' => function ($query) {
-                $query->select('roles.id', 'roles.name');
-            },
-            'roles.wage' => function ($query) use ($id) {
-                $query->select('role_id', 'rate', 'wageType', 'establishment_id')->where('employee_id', $id);
-            },
-            'administrativeUser.permissionSets'
-        ])->findOrFail($id);
-    }
-
-    public function getShowEditVariables($id)
-    {
-        return ['employee' => $this->getShowEditEmployee($id), 'roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments];
+        return to_route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
     }
 
     public function show(int $id)
     {
-        return view(
-            'employee::employee.show',
-            $this->getShowEditVariables($id)
-        );
+        return view('employee::employee.show', $this->getEmployeeViewData($id));
     }
 
     public function edit(int $id)
     {
-        return view(
-            'employee::employee.edit',
-            $this->getShowEditVariables($id)
-        );
+        return view('employee::employee.edit', $this->getEmployeeViewData($id));
     }
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
@@ -166,7 +136,7 @@ class EmployeeController extends Controller
             $updateEmployee->update($employee);
         });
 
-        return redirect()->route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
+        return to_route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
     }
 
     public function restore($id)

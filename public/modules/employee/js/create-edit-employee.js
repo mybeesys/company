@@ -105,8 +105,6 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     let saveButton = $(`#${id}_button`);
     checkErrors(saveButton);
 
-    
-    console.log($('select[name^="dashboard_role_repeater"]').val());
     if ($('[name="password"], [name="username"], select[name^="dashboard_role_repeater"]').val().length !== 0) {
         $('#dashboard_managment_access').collapse('toggle');
         $('#active_managment_fields_btn').prop('checked', true).val(1);
@@ -141,18 +139,8 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         e.preventDefault();
         $('#PIN').removeClass('is-invalid');
         checkErrors(saveButton);
-        $.ajax({
-            url: generatePinUrl,
-            type: 'GET',
-            success: function (response) {
-                $('#PIN').val(response.data);
-            },
-            error: function () {
-                showAlert(Lang.get('responses.something_wrong_happened'),
-                    Lang.get('general.try_again'),
-                    undefined, undefined,
-                    false, "error");
-            }
+        ajaxRequest(generatePinUrl, 'GET', {}, false, true).done(function (response) {
+            $('#PIN').val(response.data);
         });
     });
 

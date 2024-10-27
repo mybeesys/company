@@ -113,7 +113,26 @@ return [
     'The journal entry is unbalanced with a difference of' => 'القيد غير متوازن بفارق قدره',
     'The journal entry is unbalanced with a difference between debit and credit.' => 'القيد غير متوازن بفارق بين المدين والدائن',
     'Error in the process' => 'خطأ في العملية',
-    'type'=>'نوع',
+    'type' => 'نوع',
+    'add_main_cost_center' => 'إضافة مركز تكلفة رئيسي',
+    'costCenter_name_ar' => 'اسم مركز التكلفة (عربي)',
+    'costCenter_name_en' => 'اسم مركز التكلفة (إنكليزي)',
+    'add_cost_center' => 'إضافة مركز تكلفة',
+    'cost_center_transactions' => 'المعاملات',
+    'add_cost_center_title' => 'إضافة مركز تكلفة فرعي من ',
+    'no_costCenters' => 'لا يوجد لديك حاليًا أي مراكز تكلفة.',
+    'create_suggestion_tree_of_costCenters' => 'هل ترغب في إنشاء مركز تكلفة جديد؟ يمكنك تعديل أو حذف مراكز التكلفة او إضافة مراكز فرعية هذه لاحقًا بعد إنشائها.',
+    'edit_cost_center' => 'تعديل مركز تكلفة',
+    'note_deactive_cc' => 'تنبيه: عند إلغاء تنشيط مركز تكلفة، سيتم حذفه من القوائم النشطة، ولن يتمكن المستخدمون من استخدامه في المعاملات الجديدة. ومع ذلك، سيظل موجودًا في السجلات السابقة.',
+    'note_active_cc' => 'تنبيه: بمجرد تنشيط مركز التكلفة، سيتمكن المستخدمون من إدراج التكاليف المرتبطة بهذا المركز في المعاملات الجديدة. سيظهر مركز التكلفة هذا في جميع القوائم والمخططات ذات الصلة.',
+    'Include inactive' => 'تضمين غير النشط',
+    'unInclude inactive' => 'إلغاء تضمين غير نشط',
+    'main_cost_center' => 'فرعي من مركز التكلفة',
+    'amount'=>'المبلغ',
+
+
+
+
 
 
 

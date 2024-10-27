@@ -49,7 +49,7 @@ class TimeCardController extends Controller
             'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
-        return redirect()->route('timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
+        return to_route('timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
     }
 
     /**
@@ -71,7 +71,7 @@ class TimeCardController extends Controller
             'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
-        return redirect()->route('timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));
+        return to_route('timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));
     }
 
     /**

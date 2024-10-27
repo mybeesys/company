@@ -115,8 +115,22 @@ return [
     'The journal entry is unbalanced with a difference of' => 'The journal entry is unbalanced with a difference of',
     'The journal entry is unbalanced with a difference between debit and credit.' => 'The journal entry is unbalanced with a difference between debit and credit.',
     'Error in the process' => 'Error in the process',
-    'type'=>'Type',
-
+    'type' => 'Type',
+    'add_main_cost_center' => 'Add Main Cost Center',
+    'costCenter_name_ar' => 'Cost Center Name (Arabic)',
+    'costCenter_name_en' => 'Cost Center Name (English)',
+    'add_cost_center' => 'Add Cost Center',
+    'cost_center_transactions' => 'Transactions',
+    'add_cost_center_title' => 'Add a sub-cost center from ',
+    'no_costCenters' => 'You currently have no Cost Centers.',
+    'create_suggestion_tree_of_costCenters' => 'Do you want to create a new cost center? You can edit or delete these cost centers or add sub-centers later after creating them.',
+    'edit_cost_center' => 'Edit cost center',
+    'note_deactive_cc' => 'Alert: When a cost center is deactivated, it will be removed from active lists, and users will no longer be able to assign costs to it in future transactions. However, it will still be present in past records.',
+    'note_active_cc' => 'Alert: Once the cost center is activated, users will be able to allocate costs to this center in new transactions. This cost center will appear in all relevant lists and reports.',
+    'Include inactive' => 'Include inactive',
+    'unInclude inactive' => 'Uninclude inactive',
+    'main_cost_center' => 'Main Cost Center',
+    'amount'=>'Amount',
 
 
 

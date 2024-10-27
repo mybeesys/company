@@ -21,9 +21,6 @@ use Modules\Accounting\Utils\AccountingUtil;
 use Mpdf\Mpdf;
 use Yajra\DataTables\Facades\DataTables;
 
-// use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
-// use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
-// use OpenSpout\Writer\XLSX\Writer;
 
 class JournalEntryController extends Controller
 {
@@ -34,15 +31,8 @@ class JournalEntryController extends Controller
     {
 
         if ($request->ajax()) {
-            // $employees = Employee::
-            //     select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
             $acc_trans_mapping =  AccountingAccTransMapping::select('id', 'ref_no', 'type', 'operation_date', 'created_by', 'note');
 
-            // if ($request->has('deleted_records') && !empty($request->deleted_records)) {
-            //     $request->deleted_records == 'only_deleted_records'
-            //         ? $employees->onlyTrashed()
-            //         : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
-            // }
             return  AccountingAccTransMappingTable::getAccTransMappingTable($acc_trans_mapping);
         }
         $columns = AccountingAccTransMappingTable::getAccTransMappingColumns();
@@ -56,7 +46,7 @@ class JournalEntryController extends Controller
     public function create()
     {
         $accounts =  AccountingAccount::forDropdown();
-        $cost_centers = AccountingCostCenter::all();
+        $cost_centers = AccountingCostCenter::forDropdown();
         return view('accounting::journalEntry.create', compact('accounts', 'cost_centers'));
     }
 
@@ -182,12 +172,10 @@ class JournalEntryController extends Controller
 
     public function exportExcel($id)
     {
-        // جلب البيانات التي سيتم تصديرها
         $journal = AccountingAccTransMapping::with('transactions')->find($id);
 
         $filename = 'journal' . str_replace(['/', '\\'], '-', $journal->ref_no) . '.xlsx';
 
-        // تصدير البيانات باستخدام Maatwebsite Excel
         return Excel::download(new JournalExport($journal), $filename);
     }
     /**
@@ -196,7 +184,7 @@ class JournalEntryController extends Controller
     public function edit($id)
     {
         $accounts =  AccountingAccount::forDropdown();
-        $cost_centers = AccountingCostCenter::all();
+        $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
         $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
         $acc_trans_mappings = AccountingAccTransMapping::all();
@@ -211,7 +199,7 @@ class JournalEntryController extends Controller
     public function duplication($id)
     {
         $accounts =  AccountingAccount::forDropdown();
-        $cost_centers = AccountingCostCenter::all();
+        $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
         $acc_trans_mappings = AccountingAccTransMapping::all();
         $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();

@@ -21,7 +21,7 @@
             datePicker('#employmentEndDate');
             permissionSetRepeater();
             roleRepeater();
-            administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});
+            administrativeUser({{ $employee->administrativeUser()->exists() }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
                 "{{ route('employees.generate.pin') }}");
         });

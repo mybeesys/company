@@ -13,7 +13,7 @@
                     </x-form.input-div>
                     <x-form.input-div class="w-100">
                         <x-form.select name="dashboard_role_repeater[{{ $index }}][establishment]" :disabled=$disabled
-                            data_allow_clear="false" :options="$establishments" :errors="$errors" required 
+                            data_allow_clear="false" :options="$establishments" :errors="$errors" 
                             value="{{ is_array($permissionSet) ? $permissionSet['establishment'] ?? '' : $permissionSet?->pivot->establishment_id }}" />
                     </x-form.input-div>
                     <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger" @disabled($disabled)>

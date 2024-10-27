@@ -1,13 +1,13 @@
 function dashboardRolePermissionsForm() {
 
-    $(`input[name*="permissions["][name*=".all."]`).on('change', function () {
-        let nameParts = $(this).attr('name').replace('permissions[', '').replace(']', '').split('.');
+    $(`input[name*="dashboard_permissions["][name*=".all."]`).on('change', function () {
+        let nameParts = $(this).attr('name').replace('dashboard_permissions[', '').replace(']', '').split('.');
         let moduleName = nameParts[0];
         let action = nameParts[2];
         let isChecked = $(this).is(':checked');
 
         // Toggle checkboxes for the specific action
-        $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).not(':disabled').prop('checked', isChecked);
+        $(`input[name^="dashboard_permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).not(':disabled').prop('checked', isChecked);
 
         const dependenciesMap = {
             delete: { enable: ['edit', 'create', 'print', 'show', 'delete'], disable: [] },
@@ -23,9 +23,9 @@ function dashboardRolePermissionsForm() {
         toggleAllDependencies($(this), moduleName, enable, disable);
     });
 
-    $(`input[name^="permissions["][name$="]"]:not([name*=".all."])`).on('change', function () {
+    $(`input[name^="dashboard_permissions["][name$="]"]:not([name*=".all."])`).on('change', function () {
         let name = $(this).attr('name');
-        let moduleName = name.split('.')[0].replace('permissions[', '');
+        let moduleName = name.split('.')[0].replace('dashboard_permissions[', '');
         let permissionName = name.split('.')[1];
         let action = name.split('.')[2].replace(']', '');
 
@@ -43,9 +43,9 @@ function dashboardRolePermissionsForm() {
     });
 
     // Handle child permissions logic
-    $(`input[name^="permissions["][name$="]"]:not([name*=".all."])`).on('change', function () {
+    $(`input[name^="dashboard_permissions["][name$="]"]:not([name*=".all."])`).on('change', function () {
         let name = $(this).attr('name');
-        let moduleName = name.split('.')[0].replace('permissions[', '');
+        let moduleName = name.split('.')[0].replace('dashboard_permissions[', '');
         let permissionName = name.split('.')[1];
         let action = name.split('.')[2].replace(']', '');
 
@@ -67,15 +67,15 @@ function dashboardRolePermissionsForm() {
 
         // Toggle dependencies
         dependencies.forEach(function (dependency) {
-            let childCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
+            let childCheckbox = $(`input[name="dashboard_permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
 
             if (isChecked) {
-                $(`input[name^="permissions[${moduleName}"]`).filter(`[name*=".${dependency}"]`).not(':disabled').prop('checked', true);
+                $(`input[name^="dashboard_permissions[${moduleName}"]`).filter(`[name*=".${dependency}"]`).not(':disabled').prop('checked', true);
                 childCheckbox.prop('checked', true);
             } else {
                 uncheckDependencies.forEach(function (dep) {
-                    let uncheckAll = $(`input[name="permissions[${moduleName}.all.${dep}]"]`);
-                    let uncheck = $(`input[name^="permissions[${moduleName}."][name*=".${dep}"]`);
+                    let uncheckAll = $(`input[name="dashboard_permissions[${moduleName}.all.${dep}]"]`);
+                    let uncheck = $(`input[name^="dashboard_permissions[${moduleName}."][name*=".${dep}"]`);
                     uncheckAll.prop('checked', false);
                     uncheck.prop('checked', false);
                 });
@@ -92,13 +92,13 @@ function dashboardRolePermissionsForm() {
         const actions = ['show', 'print', 'create', 'edit', 'delete'];
 
         dependencies.forEach(function (dependency) {
-            let childCheckbox = $(`input[name="permissions[${moduleName}.${permissionName}.${dependency}]"]`).not(':disabled');
-            let childAllCheckbox = $(`input[name="permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
+            let childCheckbox = $(`input[name="dashboard_permissions[${moduleName}.${permissionName}.${dependency}]"]`).not(':disabled');
+            let childAllCheckbox = $(`input[name="dashboard_permissions[${moduleName}.all.${dependency}]"]`).not(':disabled');
 
             actions.forEach(action => {
-                let allActionCheckbox = $(`input[name="permissions[${moduleName}.all.${action}]"]`);
-                const allActionChecked = $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:not([name*=".all."])`).not(':disabled').length ===
-                    $(`input[name^="permissions[${moduleName}."][name$=".${action}]"]:checked:not([name*=".all."])`).not(':disabled').length;
+                let allActionCheckbox = $(`input[name="dashboard_permissions[${moduleName}.all.${action}]"]`);
+                const allActionChecked = $(`input[name^="dashboard_permissions[${moduleName}."][name$=".${action}]"]:not([name*=".all."])`).not(':disabled').length ===
+                    $(`input[name^="dashboard_permissions[${moduleName}."][name$=".${action}]"]:checked:not([name*=".all."])`).not(':disabled').length;
 
                 if (allActionChecked) {
                     allActionCheckbox.not(':disabled').prop('checked', true);
@@ -109,8 +109,8 @@ function dashboardRolePermissionsForm() {
                 childCheckbox.not(':disabled').prop('checked', true);
             } else {
                 uncheckDependencies.forEach(function (dep) {
-                    let uncheckAll = $(`input[name="permissions[${moduleName}.all.${dep}]"]`);
-                    let uncheck = $(`input[name="permissions[${moduleName}.${permissionName}.${dep}]"]`);
+                    let uncheckAll = $(`input[name="dashboard_permissions[${moduleName}.all.${dep}]"]`);
+                    let uncheck = $(`input[name="dashboard_permissions[${moduleName}.${permissionName}.${dep}]"]`);
                     uncheckAll.prop('checked', false);
                     uncheck.prop('checked', false);
                 });
@@ -122,14 +122,76 @@ function dashboardRolePermissionsForm() {
     function handleSelectAll(moduleName) {
         ['show', 'print', 'create', 'edit', 'delete'].forEach(function (action) {
             let allChecked = true;
-            $(`input[name^="permissions[${moduleName}"]`).each(function () {
+            $(`input[name^="dashboard_permissions[${moduleName}"]`).each(function () {
                 if ($(this).attr('name').includes(action) && !$(this).is(':checked')) {
                     allChecked = false;
                 }
             });
-            $(`input[name="permissions[${moduleName}.all.${action}"]`).not(':disabled').prop('checked', allChecked);
+            $(`input[name="dashboard_permissions[${moduleName}.all.${action}"]`).not(':disabled').prop('checked', allChecked);
         });
     }
 
-    $(`input[name*="permissions["]:checked`).trigger('change');
+    $(`input[name*="dashboard_permissions["]:checked`).trigger('change');
+
+}
+function fixedTableHeader() {
+    let table = $("#dashboard-permissions-table").DataTable({
+        paging: false,
+        info: false,
+        fixedHeader: {
+            header: true,
+            headerOffset: 100
+        },
+        responsive: true,
+        ordering: false,
+        autoWidth: false,
+    });
+
+    const targetNode = $("#dashboard-permissions-table")[0];
+    const config = {
+        childList: true,
+        subtree: true
+    };
+
+    const observer = new MutationObserver(function (mutationsList) {
+        mutationsList.forEach(function (mutation) {
+            const floatingParent = $('.dtfh-floatingparent');
+            const floatingParentChild = $('.dtfh-floatingparent > div');
+            floatingParentChild.css('padding-right', '0');
+            $('.dtfh-floatingparent').addClass('rounded-start rounded-end');
+            if (window.innerWidth < 990) {
+                floatingParent.css('top', '75px');
+            }
+        });
+    });
+    observer.observe(targetNode, config);
+
+    $(window).on('scroll', function () {
+        if (window.innerWidth < 990) {
+            const floatingParent = $('.dtfh-floatingparent');
+            floatingParent.css('top', '65px');
+        }
+    });
+
+
+    $('#kt_app_sidebar_toggle').on('click', function () {
+        setTimeout(function () {
+            $('#dashboard-permissions-table').DataTable().fixedHeader.adjust();
+        }, 300);
+    });
+
+    $(window).on('resize', function () {
+        const newIsMobile = window.innerWidth < 500;
+        const floatingParentChild = $('.dtfh-floatingparent > div');
+        const floatingParent = $('.dtfh-floatingparent');
+
+        if (newIsMobile && table.fixedHeader) {
+            table.fixedHeader.disable();
+            floatingParentChild.css('padding-right', '0');
+        } else if (!newIsMobile) {
+            table.fixedHeader.enable();
+            table.fixedHeader.adjust();
+            floatingParentChild.css('padding-right', '0');
+        }
+    });
 }
