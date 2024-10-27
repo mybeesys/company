@@ -11,8 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product_Attribute extends Model
 {
     use HasFactory;
-    use SoftDeletes;
-
+    
     protected $table = 'product_product_attribute';
         
     public $timestamps = true;

@@ -5,6 +5,10 @@ namespace Modules\Product\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\ProductModifier;
+use Modules\Product\Models\ModifierClass;
+use Modules\Product\Models\TreeBuilder;
+use Modules\Product\Models\Modifier;
+
 
 class ProductModifierController extends Controller
 {
