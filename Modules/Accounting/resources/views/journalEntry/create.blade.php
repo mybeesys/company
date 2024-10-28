@@ -318,8 +318,8 @@
 
                 </select>
             </td>
-            <td><input type="number" step="0.000001" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" step="0.000001" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
+            <td><input type="number" step="any" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
+            <td><input type="number" step="any" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">
@@ -332,7 +332,8 @@
 
         $(document).on('keydown', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault();          }
+                event.preventDefault();
+            }
         });
 
         $('#addJournalEntry').on('click', function() {

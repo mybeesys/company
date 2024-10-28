@@ -42,12 +42,16 @@ class AccountingAccount extends Model
     }
 
 
-    public static function forDropdown()
+    public static function forDropdown($q = '')
     {
         $parent_account_ids = AccountingAccount::where('parent_account_id', '<>', null)->get()->pluck('parent_account_id');
         $query = AccountingAccount::
         // where('accounting_accounts.parent_account_id', '<>', null)
         where('status','active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
+
+        if (!empty($q)) {
+            $query->where('accounting_accounts.name_ar', 'like', "%{$q}%")->orWhere('accounting_accounts.name_en', 'like', "%{$q}%");
+        }
         return $query->get();
     }
 }

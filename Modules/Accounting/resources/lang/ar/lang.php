@@ -129,6 +129,7 @@ return [
     'unInclude inactive' => 'إلغاء تضمين غير نشط',
     'main_cost_center' => 'فرعي من مركز التكلفة',
     'amount'=>'المبلغ',
+    'parent_account'=>'الحساب الاب',
 
 
 

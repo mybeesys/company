@@ -31,6 +31,7 @@ Route::middleware([
         Route::post('update-account', [TreeAccountsController::class, 'update'])->name('update-account');
         Route::get('ledger', [TreeAccountsController::class, 'ledger'])->name('ledger');
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])->name('change-status-account');
+        Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
 
         // Journal Enter
