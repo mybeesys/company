@@ -33,7 +33,7 @@ const CustomMenuTable = ({dir, translations}) => {
       setModesStations(ms);
     }
     fetchData().catch(console.error);
-  }, [stationUrl, localizationurl, applicationTypeUrl]);
+  }, [stationUrl, applicationTypeUrl]);
 
   return (
     <div>
