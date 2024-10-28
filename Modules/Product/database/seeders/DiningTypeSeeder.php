@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Product\database\Seeders;
+namespace Modules\Product\database\seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Product\Models\DiningType;
