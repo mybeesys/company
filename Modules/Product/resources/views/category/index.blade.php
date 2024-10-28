@@ -4,7 +4,7 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="category-root" 
+      <div id="root" type="category"
 	  product-crud-url="{{ json_encode(route('product.index'))}}"
 	  list-url="{{json_encode(route('categoryList'))}}"
 	  category-url="{{ json_encode(route('category.store'))}}"

@@ -16,8 +16,17 @@ use Modules\Product\Http\Controllers\ButtonDisplayController;
 use Modules\Product\Http\Controllers\ModifierDisplayController;
 use Modules\Product\Http\Controllers\CustomMenuController;
 use Modules\Product\Http\Controllers\ApplicationTypeController;
+use Modules\Product\Http\Controllers\CreditCardTypeController;
+use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\ModeController;
 use Modules\Product\Http\Controllers\StationController;
+use Modules\Product\Http\Controllers\PaymentCardController;
+use Modules\Product\Http\Controllers\ServiceFeeAppTypeController;
+use Modules\Product\Http\Controllers\ServiceFeeAutoApplyTypeController;
+use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
+use Modules\Product\Http\Controllers\ServiceFeeController;
+use Modules\Product\Http\Controllers\ServiceFeeTypeController;
+use Modules\Product\Models\ServiceFee;
 
 
 /*
@@ -64,4 +73,14 @@ Route::middleware([
 	
     Route::resource('ingredient', IngredientController::class)->names('ingredient');
     Route::get('ingredientList', [IngredientController::class, 'getIngredient'])->name('ingredientList');
+	
+	Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
+    Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
+    Route::get('serviceFeeTypeValues', [ServiceFeeTypeController::class, 'getServiceFeeTypeValues'])->name('serviceFeeTypeValues');
+    Route::get('serviceFeeAppTypeValues', [ServiceFeeAppTypeController::class, 'getServiceFeeAppTypeValues'])->name('serviceFeeAppTypeValues');
+    Route::get('serviceFeeCalcMetheodValues', [ServiceFeeCalcMethedController::class, 'getServiceFeeCalcMethodValues'])->name('serviceFeeCalcMetheodValues');
+    Route::get('serviceFeeAutoApplyValues', [ServiceFeeAutoApplyTypeController::class, 'getServiceFeeAutoApplyValues'])->name('serviceFeeAutoApplyValues');
+    Route::get('creditCardTypeValues', [CreditCardTypeController::class, 'getCreditCardTypeValues'])->name('creditCardTypeValues');
+    Route::get('paymentCards', [PaymentCardController::class, 'getPaymentCards'])->name('paymentCards');
+    Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
 });

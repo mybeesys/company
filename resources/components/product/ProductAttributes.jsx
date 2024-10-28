@@ -8,7 +8,7 @@ import ConfirmationModal from './ConfirmationModal';
 import SweetAlert2 from 'react-sweetalert2';
 
 const ProductAttribute = ({translations, onChange, onActiveDeactiveMatrix, onGenerate, product, productMatrix, AttributesTree, parentHandlematrix}) => {
-    const rootElement = document.getElementById('product-root');
+    const rootElement = document.getElementById('root');
     let dir = rootElement.getAttribute('dir');
     const [Attributes1, setAttributes1] = useState([]); 
     const [Attributes2, setAttributes2] = useState([]); 

@@ -6,11 +6,9 @@ import CustomMenuBasicInfo from './CustomMenuBasicInfo';
 import { defaultMenuTime } from './DefaultTimesSlots';
 
 
-const CustomMenuDetail = ({dir}) => {
-  const rootElement = document.getElementById('custommenuedit-root');
-  let localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
+const CustomMenuDetail = ({dir, translations}) => {
+  const rootElement = document.getElementById('root');
   let custommenu = JSON.parse(rootElement.getAttribute('custommenu'));
-  const [translations, setTranslations] = useState({});
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
     { key: 'times', visible: false },
@@ -24,14 +22,6 @@ const CustomMenuDetail = ({dir}) => {
   const [showAlert, setShowAlert] = useState(false);
   
   useEffect(() => {
-    axios.get(localizationurl)
-    .then(response => {
-      setTranslations(response.data);
-    })
-    .catch(error => {
-      console.error('Error fetching translations', error);
-    });
-    console.log(customMenuDates);
   }, []);
 
   const saveChanges = async () => {

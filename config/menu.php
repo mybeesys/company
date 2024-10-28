@@ -38,6 +38,12 @@ return [
                 'permission' => '',
 
             ],
+            [
+                'name' => 'serviceFee',
+                'url' => 'serviceFee',
+                'permission' => '',
+
+            ],
         ]
     ],
     [

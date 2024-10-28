@@ -30,6 +30,7 @@ return [
     'dashboard_roles' => 'Dashboard roles',
     'attribute' => 'Attribute',
     'costCenter'=>'Cost Centers',
+    'serviceFee' => 'Service Fees',
 
     'employees_working_hours' => 'Employees working hours' ,
     'customMenu' => 'Custom Menu'

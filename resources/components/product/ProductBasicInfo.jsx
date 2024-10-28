@@ -5,7 +5,7 @@ import axios from 'axios';
 
 
 const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
-  const rootElement = document.getElementById('product-root');
+  const rootElement = document.getElementById('root');
   const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
   const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
   let imageurl = rootElement.getAttribute('image-url');

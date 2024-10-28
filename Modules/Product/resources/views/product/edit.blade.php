@@ -8,7 +8,7 @@
 @section('content')
 
    						
-      <div id="product-root" 
+      <div id="root" type="product"
         category-url ="{{ json_encode(route('category.index'))}}"
 	      product-url="{{ json_encode(route('product.store'))}}"
         product="{{json_encode($product)}}"

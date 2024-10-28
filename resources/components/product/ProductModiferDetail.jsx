@@ -83,7 +83,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                                                 onChange={(e) => handleChange('default', e.target.checked ? 1 : 0)}
                                                             />
                                                         </div>
-                                                        <div class="col-8">{`${translations.default} ${translations.modifiers}`}</div>
+                                                        <div class="col-8">{translations.defaultModifier}</div>
                                                     </div>
                                                 </label>
                                             </div>

@@ -8,7 +8,7 @@
 @section('content')
 
    						
-      <div id="custommenuedit-root" 
+      <div id="root" type="custommenuedit" 
       custommenu="{{json_encode($custommenu)}}"
         localization-url ="{{json_encode(route('localization'))}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">

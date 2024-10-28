@@ -4,7 +4,7 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="custommenu-root" 
+      <div id="root" type="custommenu" 
 	  list-url="{{json_encode(route('customMenuList'))}}"
 	  customMenu-url="{{ json_encode(route('customMenu.store'))}}"
 	  application-type-url = "{{json_encode(route('application-type-values'))}}"

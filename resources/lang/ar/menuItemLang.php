@@ -33,7 +33,8 @@ return [
 
     'costCenter'=>'مراكز التكلفة',
 
-    'customMenu' => 'القوائم المخصصة'
+    'customMenu' => 'القوائم المخصصة',
+    'serviceFee' => 'رسوم الخدمات'
 
 
 ];

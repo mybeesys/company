@@ -5,7 +5,7 @@ import axios from 'axios';
 import { SketchPicker, BlockPicker } from "react-color";
 
 const ProductDisplay = ({translations ,parentHandlechanges ,product ,saveChanges}) => {
-    const rootElement = document.getElementById('product-root');
+    const rootElement = document.getElementById('root');
     let  imageurl = rootElement.getAttribute('image-url');
     let dir = rootElement.getAttribute('dir');
     const [currentObject, setcurrentObject] = useState(product); 

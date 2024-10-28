@@ -4,12 +4,11 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column'; 
 import { Button } from 'primereact/button';
 import { Dropdown, Form } from 'react-bootstrap';
-import ConfirmationModal from './ConfirmationModal';
 import SweetAlert2 from 'react-sweetalert2';
 
-const ingredient = ({}) => 
+const ingredient = ({translations}) => 
     {
-        const rootElement = document.getElementById('ingredient-root');
+        const rootElement = document.getElementById('root');
         const urlList = JSON.parse(rootElement.getAttribute('list-url'));
 
 

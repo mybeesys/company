@@ -8,17 +8,15 @@ import SweetAlert2 from 'react-sweetalert2';
 import { Button } from 'primereact/button';
 
 
-const ProductComponent = () => {
-  const rootElement = document.getElementById('product-root');
+const ProductComponent = ({translations}) => {
+  const rootElement = document.getElementById('root');
   const producturl = JSON.parse(rootElement.getAttribute('product-url'));
   const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
-  let localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
   const modifierClassUrl = JSON.parse(rootElement.getAttribute('listModifier-url'));
   let getProductMatrix = JSON.parse(rootElement.getAttribute('getProductMatrix-url'));
   let listAttributeUrl = JSON.parse(rootElement.getAttribute('listAttribute-url'));
   let dir = rootElement.getAttribute('dir');
   const [AttributesTree, setAttributesTree] = useState([]);
-  const [translations, setTranslations] = useState({});
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [currentObject, setcurrentObject] = useState(product);
   const [productMatrix, setProductMatrix] = useState(product.attributeMatrix);
@@ -134,13 +132,6 @@ const ProductComponent = () => {
   React.useEffect(() => {
     getMatrix();
     getAttributes();
-    axios.get(localizationurl)
-      .then(response => {
-        setTranslations(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching translations', error);
-      });
   }, []);
 
 

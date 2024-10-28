@@ -6,7 +6,7 @@ import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 
 
-const TreeTableProduct = ({ urlList, rootElement }) => {
+const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -16,9 +16,7 @@ const TreeTableProduct = ({ urlList, rootElement }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
-    let  localizationurl = JSON.parse(rootElement.getAttribute('localization-url'));
-    const [translations, setTranslations] = useState({});
-
+    
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -55,13 +53,6 @@ const TreeTableProduct = ({ urlList, rootElement }) => {
     }
 
     useEffect(() => {
-        axios.get(localizationurl)
-        .then(response => {
-          setTranslations(response.data);
-        })
-        .catch(error => {
-          console.error('Error fetching translations', error);
-        });
         refreshTree();
     }, []);
 

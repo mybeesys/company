@@ -3,7 +3,7 @@ import ProductModiferDetail from './ProductModiferDetail';
 
 
 const ProductModifier = ({translations, urlList, productId, productModifiers, onChange, onSelectAll}) => {
-    const rootElement = document.getElementById('product-root');
+    const rootElement = document.getElementById('root');
     let dir = rootElement.getAttribute('dir');
     const [data, setData] = useState([]);
     
