@@ -9,7 +9,7 @@ use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 // use Modules\Employee\Database\Factories\AdministrativeUserFactory;
 
-class AdministrativeUser extends BaseModel
+class AdministrativeUser extends BaseEmployeeModel
 {
     use HasFactory, HasRoles, HasPermissions;
 

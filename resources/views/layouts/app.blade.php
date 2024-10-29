@@ -88,7 +88,7 @@
 <body id="kt_app_body" data-kt-app-header-fixed="true" data-kt-app-header-fixed-mobile="true"
     data-kt-app-sidebar-minimize="on" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
     data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
-    data-kt-app-aside-enabled="true" data-kt-app-aside-fixed="true" data-kt-app-aside-push-toolbar="true"
+    data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
     data-kt-app-aside-push-footer="true" class="app-default">
     <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100" style="height: 5px; z-index: 3000; display: none;">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
@@ -122,7 +122,7 @@
             <div id="kt_app_header" class="app-header d-flex flex-column flex-stack">
                 <!--begin::Header main-->
                 <div class="d-flex flex-stack flex-grow-1">
-                    <div class="app-header-logo d-flex align-items-center ps-lg-12" id="kt_app_header_logo">
+                    <div class="app-header-logo d-flex align-items-center ps-lg-10" id="kt_app_header_logo">
                         <!--begin::Sidebar toggle-->
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-30px h-30px ms-n2 me-4 d-none d-lg-flex"
@@ -139,7 +139,7 @@
                         <!--end::Sidebar mobile toggle-->
                         <!--begin::Logo-->
                         <a href="index.html" class="app-sidebar-logo">
-                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-90px theme-light-show" />
+                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-80px theme-light-show" />
                             <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
                         <!--end::Logo-->
@@ -195,7 +195,7 @@
                     <div id="kt_app_footer" class="app-footer">
                         <!--begin::Footer container-->
                         <div
-                            class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack py-3">
+                            class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack">
                             <!--begin::Copyright-->
                             <div class="text-gray-900 order-2 order-md-1">
                                 <span class="text-muted fw-semibold me-1">2025&copy;</span>

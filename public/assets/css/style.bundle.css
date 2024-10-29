@@ -48269,8 +48269,8 @@ body,
 
 @media (min-width: 992px) {
   .app-container {
-    padding-left: 35px !important;
-    padding-right: 35px !important;
+    padding-left: 25px !important;
+    padding-right: 25px !important;
   }
   .app-container-fit-desktop {
     padding-left: 0 !important;
@@ -48338,8 +48338,8 @@ body,
 
 @media (min-width: 992px) {
   :root {
-    --bs-app-header-height: 105px;
-    --bs-app-header-height-actual: 105px;
+    --bs-app-header-height: 90px;
+    --bs-app-header-height-actual: 90px;
   }
   [data-kt-app-header-fixed=true][data-kt-app-header-stacked=true] {
     --bs-app-header-height: calc(var(--bs-app-header-primary-height, 0px) + var(--bs-app-header-secondary-height, 0px) + var(--bs-app-header-tertiary-height, 0px));
@@ -48871,8 +48871,8 @@ body,
     margin-bottom: 0px;
   }
   :root {
-    --bs-app-sidebar-width: 280px;
-    --bs-app-sidebar-width-actual: 280px;
+    --bs-app-sidebar-width: 250px;
+    --bs-app-sidebar-width-actual: 250px;
     --bs-app-sidebar-gap-start: 0px;
     --bs-app-sidebar-gap-end: 0px;
     --bs-app-sidebar-gap-top: 0px;
@@ -48882,7 +48882,7 @@ body,
     --bs-app-sidebar-width: calc(var(--bs-app-sidebar-primary-width) + var(--bs-app-sidebar-secondary-width, 0px));
   }
   [data-kt-app-sidebar-minimize=on] {
-    --bs-app-sidebar-width: 90px;
+    --bs-app-sidebar-width: 85px;
     --bs-app-sidebar-gap-start: 0px;
     --bs-app-sidebar-gap-end: 0px;
     --bs-app-sidebar-gap-top: 0px;
@@ -49842,8 +49842,8 @@ body,
 }
 @media (min-width: 992px) {
   .app-content {
-    padding-top: 35px;
-    padding-bottom: 35px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     padding-left: 0;
     padding-right: 0;
   }

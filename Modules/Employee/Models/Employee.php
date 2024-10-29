@@ -10,7 +10,7 @@ use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 
 
-class Employee extends BaseModel
+class Employee extends BaseEmployeeModel
 {
     use HasFactory, HasRoles, SoftDeletes, HasPermissions;
 
