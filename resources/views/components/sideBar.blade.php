@@ -1,6 +1,6 @@
 <!--begin::Sidebar menu-->
 <div id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false"
-    class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-3 mb-5">
+    class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-0 mb-5">
     <!--begin:Menu item-->
     @foreach (config('menu') as $menuItem)
         @php

@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
+@section('title', __('employee::general.edit_role'))
 
 @section('content')
     <form id="edit_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"

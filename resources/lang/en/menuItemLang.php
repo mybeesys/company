@@ -29,10 +29,10 @@ return [
     'pos_roles' => 'POS roles',
     'dashboard_roles' => 'Dashboard roles',
     'attribute' => 'Attribute',
+    'employees_working_hours' => 'Employees working hours' ,
     'costCenter'=>'Cost Centers',
     'serviceFee' => 'Service Fees',
 
-    'employees_working_hours' => 'Employees working hours' ,
     'customMenu' => 'Custom Menu'
 
 

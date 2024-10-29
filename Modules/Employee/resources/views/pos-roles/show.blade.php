@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
+@section('title', __('employee::general.show_role'))
 
 @section('content')
     <x-employee::pos-roles.form :role=$role :departments=$departments :permissions=$permissions disabled/>

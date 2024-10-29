@@ -77,4 +77,9 @@ return [
     'edit_dashboard_permissions' => 'Edit dashboard permissions',
     'edit_pos_permissions' => 'Edit pos permissions',
     'this_role' => 'this role',
+    'show_role' => 'Show role',
+    'show_employee' => 'Show employee',
+    'add_working_hours' => 'Add working hours',
+    'edit_working_hours' => 'Edit working hours',
+    'show_working_hours' => 'Show working hours',
 ];

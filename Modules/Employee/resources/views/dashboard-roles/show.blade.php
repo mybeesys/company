@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
+@section('title', __('employee::general.show_role'))
 
 @section('content')
     <x-employee::dashboard-roles.form :dashboardRole=$dashboardRole :modules=$modules :rolePermissions=$rolePermissions disabled/>
