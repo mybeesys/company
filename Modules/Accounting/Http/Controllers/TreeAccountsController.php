@@ -4,13 +4,17 @@ namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\Accounting\classes\LedgerExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Utils\AccountingUtil;
+use Mpdf\Mpdf;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 class TreeAccountsController extends Controller
@@ -235,7 +239,7 @@ class TreeAccountsController extends Controller
             ->findorFail($account_id);
 
         $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
-            ->where('accounting_account_id', $account->id)->get();
+            ->where('accounting_account_id', $account->id)->paginate(10);
 
         $current_bal = AccountingAccount::leftjoin(
             'accounting_accounts_transactions as AAT',
@@ -253,6 +257,97 @@ class TreeAccountsController extends Controller
 
         $accountingAccount = AccountingAccount::forDropdown();
         return view('accounting::treeOfAccounts.ledger', compact('account', 'previous', 'next', 'accountingAccount', 'current_bal', 'account_transactions'));
+    }
+
+
+    public function ledgerPrint(Request $request, $id)
+    {
+
+        $account_id = $id;
+
+        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
+            ->findorFail($account_id);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+            ->where('accounting_account_id', $account->id)->get();
+
+        $current_bal = AccountingAccount::leftjoin(
+            'accounting_accounts_transactions as AAT',
+            'AAT.accounting_account_id',
+            '=',
+            'accounting_accounts.id'
+        )
+
+            ->where('accounting_accounts.id', $account->id)
+            ->select([DB::raw(AccountingUtil::balanceFormula())]);
+        $current_bal = $current_bal->first()->balance;
+        return view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions'));
+    }
+
+
+    public function ledgerExportPdf($id)
+    {
+        $account_id = $id;
+
+        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
+            ->findorFail($account_id);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+            ->where('accounting_account_id', $account->id)->get();
+
+        $current_bal = AccountingAccount::leftjoin(
+            'accounting_accounts_transactions as AAT',
+            'AAT.accounting_account_id',
+            '=',
+            'accounting_accounts.id'
+        ) ->where('accounting_accounts.id', $account->id)
+            ->select([DB::raw(AccountingUtil::balanceFormula())]);
+        $current_bal = $current_bal->first()->balance;
+
+        $html = view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions'))->render();
+
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.pdf';
+
+        return $mpdf->Output($filename, 'D');
+    }
+
+    public function ledgerExportExcel($id)
+    {
+        $account_id = $id;
+
+        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
+            ->findorFail($account_id);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+            ->where('accounting_account_id', $account->id)->get();
+
+        $current_bal = AccountingAccount::leftjoin(
+            'accounting_accounts_transactions as AAT',
+            'AAT.accounting_account_id',
+            '=',
+            'accounting_accounts.id'
+        ) ->where('accounting_accounts.id', $account->id)
+            ->select([DB::raw(AccountingUtil::balanceFormula())]);
+        $current_bal = $current_bal->first()->balance;
+
+        $account['transactions']=$account_transactions;
+        $account['current_bal']=$current_bal;
+
+        $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.xlsx';
+
+        return Excel::download(new LedgerExport($account), $filename);
     }
 
     public function activateDeactivate(Request $request)
@@ -277,7 +372,7 @@ class TreeAccountsController extends Controller
             $q = request()->input('q', '');
 
             $accounts = AccountingAccount::forDropdown($q);
-            $accounts_array=[];
+            $accounts_array = [];
             foreach ($accounts as $account) {
                 if (app()->getLocale() == 'ar') {
                     $text = $account->name_ar . ' - <small class="text-muted">' . __('accounting::lang.' . $account->account_primary_type) . '</small>';

@@ -77,9 +77,7 @@
             height: 49px !important;
         }
 
-        
-
-        .link-underline {
+               .link-underline {
             text-decoration: underline !important;
             cursor: pointer !important;
             color: #007bff !important;
@@ -88,6 +86,23 @@
         .link-underline:hover {
             color: #0056b3 !important;
             text-decoration: underline !important;
+        }
+
+        .menu-item-custom:hover {
+            transition: color 0.2s ease;
+            background-color: var(--bs-primary-light);
+            color: var(--bs-primary);
+        }
+
+        .menu-item-custom {
+            display: block;
+            border-radius: 11px;
+        }
+
+        .menu-item-custom a {
+            padding: 0.65rem 1rem;
+            transition: none;
+            outline: none !important;
         }
 
         @if ($local == 'ar')

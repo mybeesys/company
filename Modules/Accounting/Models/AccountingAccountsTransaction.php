@@ -35,8 +35,8 @@ class AccountingAccountsTransaction extends Model
     }
 
 
-    // public function costCenter()
-    // {
-    //     return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
-    // }
+    public function costCenter()
+    {
+        return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
+    }
 }

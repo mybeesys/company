@@ -14,6 +14,8 @@
             gap: 11px;
             padding-bottom: 37px;
         }
+
+
     </style>
 @stop
 @section('content')
@@ -88,7 +90,7 @@
                 </span>
             </h3>
             @if (count($costCenter->transactions) > 0)
-                <div style="">
+                
                     <div class="card-toolbar">
                         <div class="btn-group dropend">
 
@@ -100,34 +102,32 @@
                             <ul class="dropdown-menu dropdown-menu-left" role="menu"
                                 style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
                                 <li class="mb-5"
-                                    style="text-align: justify; border-bottom: 1px solid #00000029;
+                                    style="text-align: justify; border-bottom: 1px solid #00000029; padding:0.8rem;
                             ">
-                                    <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
+                                    <span class="card-label fw-bold fs-6 mb-1 ">@lang('messages.settings')</span>
                                 </li>
 
 
 
                                 <li>
-                                    <div class="menu-item ">
+
+                                    <div class="menu-item-custom ">
                                         <a href= "{{ url('/cost-center-transactions-print', $costCenter->id) }}"
-                                            style="width: 100%;text-align: start; padding: 0;"
-                                            class="btn">@lang('accounting::fields.print')</a>
+                                             class="btn">@lang('accounting::fields.print')</a>
                                     </div>
                                 </li>
 
                                 <li>
-                                    <div class="menu-item ">
+                                    <div class="menu-item-custom ">
                                         <a href= "{{ url('/cost-center-transactions-export-pdf', $costCenter->id) }}"
-                                            style="width: 100%;text-align: start; padding: 0;"
                                             class="btn">@lang('general.export_as_pdf')</a>
                                     </div>
                                 </li>
 
 
                                 <li>
-                                    <div class="menu-item ">
+                                    <div class="menu-item-custom ">
                                         <a href= "{{ url('/cost-center-transactions-export-excel', $costCenter->id) }}"
-                                            style="width: 100%;text-align: start; padding: 0;"
                                             class="btn">@lang('general.export_as_excel')</a>
                                     </div>
                                 </li>
@@ -137,7 +137,7 @@
                             </ul>
                         </div>
                     </div>
-                </div>
+
             @endif
         </div>
 
