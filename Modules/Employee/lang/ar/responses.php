@@ -13,5 +13,6 @@ return [
     'updated_successfully' => 'تم تعديل :name بنجاح',
     'deleted_successfully' => 'تم حذف :name بنجاح',
     'opreation_success' => 'تمت العملية بنجاح',
-    'wage_type_required' => 'حقل نوع الراتب مطلوب عند وجود حقل الراتب'
+    'wage_type_required' => 'حقل نوع الراتب مطلوب عند وجود حقل الراتب',
+    'minutes_cannot_be_above_60' => 'لا يمكن للدقائق أن تتجاوز الـ60'
 ];

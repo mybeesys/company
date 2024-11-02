@@ -39,7 +39,7 @@
             var id = $(this).data('id');
             var name = $(this).data('name');
             let deleteUrl =
-                `{{ url('/dashboard-roles/${id}') }}`;
+                `{{ url('/dashboard-role/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     '{{ __('employee::general.this_role') }}'),

@@ -29,7 +29,11 @@ return [
     'pos_roles' => 'POS roles',
     'dashboard_roles' => 'Dashboard roles',
     'attribute' => 'Attribute',
-    'employees_working_hours' => 'Employees working hours' ,
+    'employees_working_hours' => 'Employees working hours',
+    'timesheet_rule' => 'Timesheet settings',
+    'shift_schedule' => 'Shift schedules',
+    'time_worked' => 'Time worked',
+    'payroll' => 'Payroll',
     'costCenter'=>'Cost Centers',
     'serviceFee' => 'Service Fees',
 

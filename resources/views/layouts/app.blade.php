@@ -122,7 +122,7 @@
     data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
     data-kt-app-aside-push-footer="true" class="app-default">
     <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100"
-        style="height: 5px; z-index: 3000; display: none;">
+        style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>

@@ -12,7 +12,7 @@ class ShiftScheduleController extends Controller
      */
     public function index()
     {
-        return view('employee::index');
+        return view('employee::schedules.shift-schedules.index');
     }
 
     /**

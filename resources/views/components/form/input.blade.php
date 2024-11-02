@@ -15,7 +15,6 @@
     'form_control' => true,
     'disabled' => false,
     'readonly' => false,
-    ''
 ])
 
 @php

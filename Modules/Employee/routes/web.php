@@ -7,6 +7,7 @@ use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
+use Modules\Employee\Http\Controllers\ShiftScheduleController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -95,6 +96,14 @@ Route::middleware([
     });
     Route::name('schedules.')->prefix('schedule')->group(function () {
         Route::controller(TimeSheetRuleController::class)->name('timesheet-rules.')->prefix('/timesheet-rule')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::post('/store', 'store')->name('store');
+
+            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
+            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+        });
+
+        Route::controller(ShiftScheduleController::class)->name('shift-schedules.')->prefix('/shift-schedule')->group(function () {
             Route::get('', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
             Route::get('/show/{dashboardRole}', 'show')->name('show');
