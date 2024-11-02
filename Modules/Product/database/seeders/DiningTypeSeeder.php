@@ -5,7 +5,7 @@ namespace Modules\Product\database\seeders;
 use Illuminate\Database\Seeder;
 use Modules\Product\Models\DiningType;
 use Modules\Product\Models\PaymentCard;
-
+use Modules\Product\Models\Vendor;
 
 class DiningTypeSeeder extends Seeder
 {
@@ -40,6 +40,11 @@ class DiningTypeSeeder extends Seeder
         'name_en' => 'Master Card',
         'active' => 1,
         ]);
+
+        Vendor::updateOrCreate([
+            'name_ar' => 'الافتراضي',
+            'name_en' => 'Default',
+            ]);
     }
 
 
