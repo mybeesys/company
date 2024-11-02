@@ -4,64 +4,113 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\Category;
-use Modules\Product\Models\Subcategory;
+use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Unit;
+use Modules\Product\Models\Vendor;
 
 class IngredientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function getIngredientsTree()
+    {
+        $ingredients = Ingredient::all();
+        $treeBuilder = new TreeBuilder();
+        $tree = $treeBuilder->buildTree($ingredients ,null, 'Ingredient', null, null, null);
+        return response()->json($tree);
+    }
+
+    public function getUnitTypeList ()
+    {
+        $units = Unit::all();
+        return response()->json($units);
+    }
+
+    public function getVendors ()
+    {
+        $units = Vendor::all();
+        return response()->json($units);
+    }
+
     public function index()
     {
-        return view('product::category.index' ); 
-    }
-    
-  
-    public function create()
-    {
-        return view('product::create');
+        return view('product::ingredient.index' ); 
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-       
-
-        return response()->json(["message"=>"Done"]);
-    }
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('product::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
-        return view('product::edit');
+        $ingredient  = Ingredient::find($id);
+        return view('product::ingredient.edit', compact('ingredient'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function create()
     {
-        //
+        $ingredient  = new Ingredient();
+    
+        return view('product::ingredient.create', compact('ingredient'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string',
+            'cost' => 'required|numeric',
+            'unit_measurement' => 'required|numeric',
+            'active' => 'required|boolean',
+            'SKU' => 'nullable|string',
+            'barcode' => 'nullable|string',
+            'vendor_id' => 'nullable|numeric',
+            'reorder_point' => 'nullable|numeric',
+            'reorder_quantity' => 'nullable|numeric',
+            'yield_percentage' => 'nullable|numeric',
+            'id' => 'nullable|numeric',
+            'method' => 'nullable|string'
+        ]);
+
+        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+            $serviceFee = Ingredient::find($validated['id']);
+            $serviceFee->delete();
+            return response()->json(["message" => "Done"]);
+        }
+
+        if (!isset($validated['id'])) {
+            $serviceFee = Ingredient::where('name_ar', $validated['name_ar'])->first();
+            if($serviceFee != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $serviceFee = Ingredient::where('name_en', $validated['name_en'])->first();
+            if($serviceFee != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            
+            Ingredient::create($validated);
+            
+        } else {
+            $ingredient = Ingredient::where([
+                ['id', '!=', $validated['id']],
+                ['name_ar', '=', $validated['name_ar']]])->first();
+            if($ingredient != null)
+                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            $ingredient = Ingredient::where([
+                ['id', '!=', $validated['id']],
+                ['name_en', '=', $validated['name_en']]])->first();
+            if($ingredient != null)
+                return response()->json(["message"=>"NAME_EN_EXIST"]);
+
+            $Ingredient = Ingredient::find($validated['id']);
+            $Ingredient->name_ar = $validated['name_ar'];
+            $Ingredient->name_en = $validated['name_en'];
+            $Ingredient->cost = $validated['cost'];
+            $Ingredient->unit_measurement = $validated['unit_measurement'];
+            $Ingredient->active = $validated['active'];
+            $Ingredient->SKU = isset($validated['SKU']) ? $validated['SKU'] : null;
+            $Ingredient->barcode = isset($validated['barcode']) ? $validated['barcode'] : null;
+            $Ingredient->vendor_id =  isset($validated['vendor_id']) ? $validated['vendor_id'] :null;
+            $Ingredient->reorder_point = isset($validated['reorder_point']) ? $validated['reorder_point']:null;
+            $Ingredient->reorder_quantity = isset($validated['reorder_quantity']) ? $validated['reorder_quantity'] :null;
+            $Ingredient->yield_percentage = isset($validated['yield_percentage']) ? $validated['yield_percentage'] :null;
+            $Ingredient->save();
+        }
+        return response()->json(["message" => "Done"]);
     }
-}
+
+   }

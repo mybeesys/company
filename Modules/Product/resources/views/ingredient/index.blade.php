@@ -6,8 +6,8 @@
    						
       <div id="root" type="ingredient" 
 	    list-url="{{json_encode(route('ingredientList'))}}"
-	    attribute-url="{{ json_encode(route('ingredient.store'))}}"
-        localization-url ="{{json_encode(route('localization'))}}"
+      unitTypes-url="{{json_encode(route('unitTypeList'))}}"
+      Ingredient-url="{{ json_encode(route('ingredient.store'))}}"
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>
 

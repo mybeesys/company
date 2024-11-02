@@ -33,7 +33,9 @@ return [
     'serviceFee' => 'Service Fees',
 
     'employees_working_hours' => 'Employees working hours' ,
-    'customMenu' => 'Custom Menu'
-
+    'customMenu' => 'Custom Menu',
+    'discount' => 'Discount',
+    'ingredient' =>'Ingredient' ,
+    'unit' => 'Unit'
 
 ];

@@ -9,7 +9,6 @@
 
    						
       <div id="root" type="servicefeeedit"
-        localization-url ="{{json_encode(route('localization'))}}"
         serviceFee="{{json_encode($serviceFee)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>

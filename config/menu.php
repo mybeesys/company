@@ -44,6 +44,25 @@ return [
                 'permission' => '',
 
             ],
+            [
+                'name' => 'discount',
+                'url' => 'discount',
+                'permission' => '',
+
+            ],
+            [
+                'name' => 'ingredient',
+                'url' => 'ingredient',
+                'permission' => '',
+
+            ],
+            [
+                'name' => 'unit',
+                'url' => 'unit',
+                'permission' => '',
+
+            ],
+
         ]
     ],
     [

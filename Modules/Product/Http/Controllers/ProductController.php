@@ -8,18 +8,20 @@ use Illuminate\Http\Request;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\Product_Attribute;
+use Modules\Product\Models\RecipeProduct;
+use Modules\Product\Models\TreeBuilder;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
 
-     public function localization()
-     {
-         return response()->json(__('product::messages'));
-     }
-
+    public function listRecipe($id)
+    {
+        $recipe = RecipeProduct::where([['product_id', '=', $id]])->first();
+        $recipeTree = new TreeBuilder();
+        $tree = $recipeTree->buildTree($recipe ,null, 'RecipeProduct', null, null, null);
+        return response()->json($tree);
+    }
+    
     public function index()
     {
         return view('product::product.index' ); 

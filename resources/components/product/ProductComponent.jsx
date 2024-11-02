@@ -3,21 +3,23 @@ import ProductBasicInfo from "./ProductBasicInfo";
 import ProductDisplay from "./ProductDisplay";
 import ProductAttributes from "./ProductAttributes";
 import ProductModifier from './ProductModifier';
+import ProductRecipe from './ProductRecipe';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 import { Button } from 'primereact/button';
 
 
-const ProductComponent = ({translations}) => {
+const ProductComponent = ({translations , dir}) => {
   const rootElement = document.getElementById('root');
   const producturl = JSON.parse(rootElement.getAttribute('product-url'));
   const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
   const modifierClassUrl = JSON.parse(rootElement.getAttribute('listModifier-url'));
   let getProductMatrix = JSON.parse(rootElement.getAttribute('getProductMatrix-url'));
   let listAttributeUrl = JSON.parse(rootElement.getAttribute('listAttribute-url'));
-  let dir = rootElement.getAttribute('dir');
-  const [AttributesTree, setAttributesTree] = useState([]);
+  let listRecipeUrl = JSON.parse(rootElement.getAttribute('listRecipe-url'));
+  let ingredientUrl = JSON.parse(rootElement.getAttribute('ingredient-url'));
   let product = JSON.parse(rootElement.getAttribute('product'));
+  const [AttributesTree, setAttributesTree] = useState([]);
   const [currentObject, setcurrentObject] = useState(product);
   const [productMatrix, setProductMatrix] = useState(product.attributeMatrix);
   const [defaultMenu , setdefaultMenu] =useState( [
@@ -29,6 +31,8 @@ const ProductComponent = ({translations}) => {
     { key: 'inventory', visible: false }
   ]);
   const [menu, setMenu] = useState(defaultMenu);
+  const [recipe, setRecipe] = useState([]);
+  const [ingredientTree, setIngredientTree] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [currentModifiers, setcurrentModifiers] = useState(!!product.modifiers ? product.modifiers : []);
   const [disableSubmitButton , setSubmitdisableButton] = useState(false);
@@ -118,20 +122,39 @@ const ProductComponent = ({translations}) => {
   }
 
   const getMatrix = async () => {
-    const response = await axios.get(getProductMatrix + '/' + currentObject.id)
+    const response = await axios.get(getProductMatrix + '/' + currentObject.id);
     setProductMatrix(response.data);
   }
 
+  const getName = (name_en, name_ar) => {
+    if (dir == 'ltr')
+      return name_en;
+    else
+      return name_ar
+  }
 
   const getAttributes = async () => {
     const response = await axios.get(listAttributeUrl);
     setAttributesTree(response.data);
   }
 
+  const getRecipe = async () => {
+    const response = await axios.get(listRecipeUrl+'/'+ currentObject.id);
+    setRecipe(response.data);
+  }
+
+  const getIngredient = async () => {
+    const response = await axios.get(ingredientUrl);
+    let result = response.data.map(e => { return { name: getName(e.name_en, e.name_ar), value: e.id } });
+    setIngredientTree(result);
+  }
+
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
     getMatrix();
     getAttributes();
+    getRecipe();
+    getIngredient();
   }, []);
 
 
@@ -139,6 +162,11 @@ const ProductComponent = ({translations}) => {
     let currentMenu = [...menu];
     currentMenu[index].visible = value;
     setMenu([...currentMenu]);
+  }
+
+  const parentHandleRecipe = () => 
+  {
+
   }
 
   const handleGenerateMatrix = (newMatrix) => {
@@ -296,6 +324,17 @@ const ProductComponent = ({translations}) => {
                   urlList={modifierClassUrl}
                   onChange={handleModifierChange}
                   onSelectAll={handleSelectAll} />
+                : <></>
+            }
+            {
+              menu[4].visible ?
+                <ProductRecipe
+                  translations={translations}
+                  product={currentObject}
+                  productRecipe={recipe}
+                  ingredientTree={ingredientTree}
+                  parentHandleRecipe={parentHandleRecipe}
+                  dir={dir} />
                 : <></>
             }
             <input type="submit" id="btnMainSubmit" hidden></input>

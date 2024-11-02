@@ -28,7 +28,9 @@ class Modifier extends Model
         'color',
         'image',
         'order',
-        'active'
+        'active',
+        'prep_recipe',
+        'recipe_yield'
     ];
 
     public function getFillable(){

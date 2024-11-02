@@ -34,7 +34,10 @@ return [
     'costCenter'=>'مراكز التكلفة',
 
     'customMenu' => 'القوائم المخصصة',
-    'serviceFee' => 'رسوم الخدمات'
+    'serviceFee' => 'رسوم الخدمات',
+    'discount' => 'حسومات',
+    'ingredient' =>'المكونات' ,
+    'unit' => 'وحدات القياس'
 
 
 ];

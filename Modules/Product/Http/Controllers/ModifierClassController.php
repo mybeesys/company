@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Modules\Product\Models\ModifierClass;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Modifier;
+use Modules\Product\Models\TreeData;
+use Modules\Product\Models\TreeObject;
 
 class ModifierClassController extends Controller
 {
@@ -24,6 +26,26 @@ class ModifierClassController extends Controller
         $modifiers = ModifierClass::all();
         $tree = $TreeBuilder->buildTree($modifiers, null, 'modifierClass', null, null, null);
         return response()->json($tree);
+    }
+
+    public function getModifierClasses()
+    {
+        $Tree = [];
+        $modifierClasses = ModifierClass::all();
+        $treeId ="0";
+        foreach ($modifierClasses as $item) {
+            $treeObject = new TreeObject();
+            $treeObject->key = $treeId;
+            $treeObject->data = new TreeData();
+            foreach($item->getFillable() as $key) {
+                $treeObject->data->$key = $item->$key;
+            }
+            $treeObject->data->id = $item->id;
+            $treeObject->data->type = $item->type;
+            $treeId = $treeId+1;
+            $Tree[] = $treeObject;
+        }
+        return response()->json($Tree);
     }
 
     /**

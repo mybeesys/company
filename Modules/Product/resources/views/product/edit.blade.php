@@ -17,8 +17,9 @@
         listAttribute-url="{{json_encode(route('attributeClassList'))}}"
         getProductMatrix-url ="{{json_encode(route('getProductMatrix'))}}"
         image-url="{{!$product->image ?  '/assets/media/svg/files/blank-image.svg' : asset($product->image)}}"
-        localization-url ="{{json_encode(route('localization'))}}"
         listModifier-url="{{json_encode(route('modifierClassList'))}}"
+        listRecipe-url="{{json_encode(route('listRecipebyProduct'))}}"
+        ingredient-url="{{json_encode(route('ingredientList'))}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

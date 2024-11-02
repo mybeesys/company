@@ -9,8 +9,7 @@
 
    						
       <div id="root" type="custommenuedit" 
-      custommenu="{{json_encode($custommenu)}}"
-        localization-url ="{{json_encode(route('localization'))}}"
+        custommenu="{{json_encode($custommenu)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

@@ -18,6 +18,8 @@ use Modules\Product\Http\Controllers\CustomMenuController;
 use Modules\Product\Http\Controllers\ApplicationTypeController;
 use Modules\Product\Http\Controllers\CreditCardTypeController;
 use Modules\Product\Http\Controllers\DiningTypeController;
+use Modules\Product\Http\Controllers\DiscountController;
+use Modules\Product\Http\Controllers\DiscountLOVController;
 use Modules\Product\Http\Controllers\ModeController;
 use Modules\Product\Http\Controllers\StationController;
 use Modules\Product\Http\Controllers\PaymentCardController;
@@ -26,6 +28,8 @@ use Modules\Product\Http\Controllers\ServiceFeeAutoApplyTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
 use Modules\Product\Http\Controllers\ServiceFeeController;
 use Modules\Product\Http\Controllers\ServiceFeeTypeController;
+use Modules\Product\Http\Controllers\UnitController;
+use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\ServiceFee;
 
 
@@ -49,7 +53,6 @@ Route::middleware([
     Route::resource('category', CategoryController::class)->names('category');
     Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
     Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
-    Route::get('localization', [ProductController::class, 'localization'])->name('localization');
     Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
 
     Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
@@ -72,8 +75,13 @@ Route::middleware([
     Route::get('stations', [StationController::class, 'getStations'])->name('stationList');
 	
     Route::resource('ingredient', IngredientController::class)->names('ingredient');
-    Route::get('ingredientList', [IngredientController::class, 'getIngredient'])->name('ingredientList');
-	
+    Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+	Route::get('unitTypeList', [IngredientController::class, 'getUnitTypeList'])->name('unitTypeList');
+    Route::get('getVendors', [IngredientController::class, 'getVendors'])->name('getVendors');
+    Route::resource('unit', UnitController::class)->names('unit');
+    Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
+    Route::get('listRecipebyProduct', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
+    
 	Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
     Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
     Route::get('serviceFeeTypeValues', [ServiceFeeTypeController::class, 'getServiceFeeTypeValues'])->name('serviceFeeTypeValues');
@@ -83,4 +91,10 @@ Route::middleware([
     Route::get('creditCardTypeValues', [CreditCardTypeController::class, 'getCreditCardTypeValues'])->name('creditCardTypeValues');
     Route::get('paymentCards', [PaymentCardController::class, 'getPaymentCards'])->name('paymentCards');
     Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
+
+    Route::get('modifierClasses', [ModifierClassController::class, 'getModifierClasses'])->name('modifierClasses');
+    
+    Route::get('discountLovs', [DiscountLOVController::class, 'getDiscountLovs'])->name('discountLovs');
+    Route::get('discounts', [DiscountController::class, 'getDiscounts'])->name('discountList');
+    Route::resource('discount', DiscountController::class)->names('discount');
 });

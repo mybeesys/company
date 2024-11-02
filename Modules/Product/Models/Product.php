@@ -34,7 +34,9 @@ class Product extends Model
         'image',
         'color',
         'commissions',
-        'order'
+        'order',
+        'prep_recipe',
+        'recipe_yield'
     ];
 
     public function getFillable(){

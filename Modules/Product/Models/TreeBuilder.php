@@ -2,11 +2,8 @@
 
 namespace Modules\Product\Models;
 
-
 class TreeBuilder 
 {
-  
-  
 
   public function buildTree($list, $parentKey, $defaultType, $defaultParrentKey, $defaultType1, $defaultParrentKey1)
   {
@@ -65,25 +62,6 @@ class TreeBuilder
        return $Tree;
   }
 }
-
-class TreeObject
-{
-  public $key;
-  public $data;
-  public $children;
-
-  public function  __construct()
-  {
-    $data = new TreeData();
-    $children =[];
-  }
-}
-
-
-class TreeData
-{
-}
-
 
 
 
