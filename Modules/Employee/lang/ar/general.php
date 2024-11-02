@@ -78,4 +78,9 @@ return [
     'edit_pos_permissions' => 'تعديل صلاحيات نقاط البيع',
     'edit_permissions' => 'تعديل الصلاحيات',
     'this_role' => 'هذا الدور',
+    'show_role' => 'عرض دور',
+    'show_employee' => 'عرض موظف',
+    'add_working_hours' => 'إضافة دوام',
+    'edit_working_hours' => 'تعديل دوام',
+    'show_working_hours' => 'عرض دوام',
 ];

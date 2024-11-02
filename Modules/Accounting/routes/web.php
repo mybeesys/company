@@ -30,7 +30,11 @@ Route::middleware([
         Route::post('store-account', [TreeAccountsController::class, 'store'])->name('store-account');
         Route::post('update-account', [TreeAccountsController::class, 'update'])->name('update-account');
         Route::get('ledger', [TreeAccountsController::class, 'ledger'])->name('ledger');
+        Route::get('print-ledger/{id}', [TreeAccountsController::class, 'ledgerPrint'])->name('print-ledger');
+        Route::get('ledger-export-pdf/{id}', [TreeAccountsController::class, 'ledgerExportPdf'])->name('ledger-export-pdf');
+        Route::get('ledger-export-excel/{id}', [TreeAccountsController::class, 'ledgerExportExcel'])->name('ledger-export-excel');
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])->name('change-status-account');
+        Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
 
         // Journal Enter

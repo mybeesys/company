@@ -131,6 +131,8 @@ return [
     'unInclude inactive' => 'Uninclude inactive',
     'main_cost_center' => 'Main Cost Center',
     'amount'=>'Amount',
+    'parent_account'=>'Parent Account',
+
 
 
 

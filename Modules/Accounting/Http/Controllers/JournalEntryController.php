@@ -183,6 +183,8 @@ class JournalEntryController extends Controller
      */
     public function edit($id)
     {
+        $parents_account = AccountingAccount::all();
+
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
@@ -191,13 +193,17 @@ class JournalEntryController extends Controller
 
         $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
 
+        $account_main_types = AccountingUtil::account_type();
+        $account_category = AccountingUtil::account_category();
         $duplication = 0;
-        return view('accounting::journalEntry.edit', compact('accounts', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+        return view('accounting::journalEntry.edit', compact('accounts', 'account_main_types', 'account_category', 'parents_account', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 
     public function duplication($id)
     {
+        $parents_account = AccountingAccount::all();
+
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
@@ -207,8 +213,11 @@ class JournalEntryController extends Controller
         $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
 
         $duplication = 1;
+        $account_main_types = AccountingUtil::account_type();
+        $account_category = AccountingUtil::account_category();
+        return view('accounting::journalEntry.edit', compact('accounts', 'account_main_types', 'account_category', 'parents_account', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
 
-        return view('accounting::journalEntry.edit', compact('accounts', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+        // return view('accounting::journalEntry.edit', compact('accounts', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 

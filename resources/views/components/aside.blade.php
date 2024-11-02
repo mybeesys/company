@@ -1,5 +1,5 @@
 <!--begin::aside-->
-<div id="kt_app_aside" class="app-aside flex-column" data-kt-drawer="true" data-kt-drawer-name="app-aside"
+{{-- <div id="kt_app_aside" class="app-aside flex-column" data-kt-drawer="true" data-kt-drawer-name="app-aside"
     data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="auto"
     data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_app_aside_mobile_toggle">
     <!--begin::Wrapper-->
@@ -27,5 +27,5 @@
         </a>
     </div>
     <!--end::Wrapper-->
-</div>
+</div> --}}
 <!--end::aside-->

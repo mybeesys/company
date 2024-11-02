@@ -42,7 +42,7 @@
                             <span class="required">@lang('accounting::lang.account_type')</span>
                         </label>
                         <select id="kt_ecommerce_select2_account_type data-kt-menu-placement" required
-                            class="form-select select-2 form-select-solid select-2" name="account_type">
+                            class="form-select select-2 form-select-solid kt_ecommerce_select2_account_type_" name="account_type">
                             <option value="" selected>@lang('messages.select')</option>
                             @foreach ($account_main_types as $key => $vale)
                                 <option value="{{ $key }}">{{ $vale }}</option>
@@ -55,7 +55,7 @@
                             <span class="required">@lang('accounting::lang.account_category')</span>
                         </label>
                         <select id="kt_ecommerce_select2_account_category data-kt-menu-placement" required
-                            class="form-select select-2 form-select-solid select-2" name="account_category">
+                            class="form-select select-2 form-select-solid kt_ecommerce_select2_account_category_" name="account_category">
                             <option value="" selected>@lang('messages.select')</option>
                             @foreach ($account_category as $key => $vale)
                                 <option value="{{ $key }}">{{ $vale }}</option>
@@ -63,7 +63,7 @@
                         </select>
                     </div>
 
-                    <input type="text" id="account_id" hidden class="form-control form-control-solid"
+                    <input type="text" id="account_id_" hidden class="form-control form-control-solid"
                         name="account_id" value="">
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">

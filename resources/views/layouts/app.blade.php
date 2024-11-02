@@ -61,10 +61,50 @@
             font-optical-sizing: 'auto';
             font-style: normal;
         }
+
         .dropend .dropdown-toggle::after {
             border-left: 0;
             border-right: 0;
         }
+
+        tr:hover {
+            background: #80808014 !important;
+            /* font-style: italic; */
+            font-weight: bold !important;
+        }
+
+        .select2-container .select2-selection--single {
+            height: 49px !important;
+        }
+
+               .link-underline {
+            text-decoration: underline !important;
+            cursor: pointer !important;
+            color: #007bff !important;
+        }
+
+        .link-underline:hover {
+            color: #0056b3 !important;
+            text-decoration: underline !important;
+        }
+
+        .menu-item-custom:hover {
+            transition: color 0.2s ease;
+            background-color: var(--bs-primary-light);
+            color: var(--bs-primary);
+        }
+
+        .menu-item-custom {
+            display: block;
+            border-radius: 11px;
+        }
+
+        .menu-item-custom a {
+            padding: 0.65rem 1rem;
+            transition: none;
+            outline: none !important;
+        }
+
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;
@@ -74,7 +114,13 @@
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
+                height: 49px !important;
+
             }
+
+
+
+
         @endif
 
         .select2-container .select2-selection--single {
@@ -88,10 +134,12 @@
 <body id="kt_app_body" data-kt-app-header-fixed="true" data-kt-app-header-fixed-mobile="true"
     data-kt-app-sidebar-minimize="on" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
     data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
-    data-kt-app-aside-enabled="true" data-kt-app-aside-fixed="true" data-kt-app-aside-push-toolbar="true"
+    data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
     data-kt-app-aside-push-footer="true" class="app-default">
-    <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100" style="height: 5px; z-index: 3000; display: none;">
-        <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100"
+        style="height: 5px; z-index: 3000; display: none;">
+        <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
+            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
     <!--begin::Theme mode setup on page load-->
     <script>
@@ -122,7 +170,7 @@
             <div id="kt_app_header" class="app-header d-flex flex-column flex-stack">
                 <!--begin::Header main-->
                 <div class="d-flex flex-stack flex-grow-1">
-                    <div class="app-header-logo d-flex align-items-center ps-lg-12" id="kt_app_header_logo">
+                    <div class="app-header-logo d-flex align-items-center ps-lg-10" id="kt_app_header_logo">
                         <!--begin::Sidebar toggle-->
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-30px h-30px ms-n2 me-4 d-none d-lg-flex"
@@ -139,7 +187,7 @@
                         <!--end::Sidebar mobile toggle-->
                         <!--begin::Logo-->
                         <a href="index.html" class="app-sidebar-logo">
-                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-90px theme-light-show" />
+                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-80px theme-light-show" />
                             <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
                         <!--end::Logo-->
@@ -195,7 +243,7 @@
                     <div id="kt_app_footer" class="app-footer">
                         <!--begin::Footer container-->
                         <div
-                            class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack py-3">
+                            class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack">
                             <!--begin::Copyright-->
                             <div class="text-gray-900 order-2 order-md-1">
                                 <span class="text-muted fw-semibold me-1">2025&copy;</span>
@@ -2793,8 +2841,10 @@
     <script src="/assets/js/custom/apps/chat/chat.js"></script>
     <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
-    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    /*
     <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" /> */
 
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}

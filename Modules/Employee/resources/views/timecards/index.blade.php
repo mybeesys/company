@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees'))
+@section('title', __('menuItemLang.employees_working_hours'))
 
 @section('content')
     <x-cards.card>

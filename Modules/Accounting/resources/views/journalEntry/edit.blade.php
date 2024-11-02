@@ -207,8 +207,9 @@
                         @foreach ($acc_trans_mapping->transactions as $transaction)
                             <tr>
                                 <td>
-                                    <select id="kt_ecommerce_select2_account" required
-                                        class="form-select  form-select-solid select-2" name="account_id">
+                                    <select required
+                                        class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
+                                        name="account_id">
 
                                         @foreach ($accounts as $account)
                                             <option value="{{ $account->id }}"
@@ -226,8 +227,9 @@
                                 </td>
                                 <td class="cost-center-column" style="display:none">
 
-                                    <select id="kt_ecommerce_select2_cost_center"
-                                        class="form-select select-2 form-select-solid select-2" name="cost_center">
+                                    <select
+                                        class="form-select select-2 form-select-solid  kt_ecommerce_select2_cost_center"
+                                        name="cost_center">
 
                                         @foreach ($cost_centers as $cost_center)
                                             <option value="{{ $cost_center->id }}"
@@ -250,13 +252,13 @@
                                     @if ($transaction->type == 'debit')
                                         <input type="number"
                                             class="form-control form-control-lg form-control debit-field" name="debit"
-                                            id="debit" step="0.000001" placeholder="0.0"
+                                            id="debit" step="any" placeholder="0.0"
                                             value="{{ $transaction->amount }}" style="width: 100px;"
                                             data-gtm-form-interact-field-id="4">
                                     @else
                                         <input type="number"
                                             class="form-control form-control-lg form-control debit-field" name="debit"
-                                            id="debit" step="0.000001" placeholder="0.0" value=""
+                                            id="debit" step="any" placeholder="0.0" value=""
                                             style="width: 100px;" data-gtm-form-interact-field-id="4">
                                     @endif
 
@@ -267,11 +269,11 @@
                                         <input type="number"
                                             class="form-control form-control-lg form-control credit-field" name="credit"
                                             id="credit" placeholder="0.0" value="{{ $transaction->amount }}"
-                                            style="width: 107px;" step="0.000001" data-gtm-form-interact-field-id="2">
+                                            style="width: 107px;" step="any" data-gtm-form-interact-field-id="2">
                                     @else
                                         <input type="number"
                                             class="form-control form-control-lg form-control credit-field" name="credit"
-                                            id="credit" placeholder="0.0" step="0.000001" value=""
+                                            id="credit" placeholder="0.0" step="any" value=""
                                             style="width: 107px;" data-gtm-form-interact-field-id="2">
                                     @endif
 
@@ -312,6 +314,8 @@
             </div>
 
         </div>
+
+
 
         {{-- <div> @include('accounting::journalEntry.addingJournalEntryParty', [
             'accounts' => $accounts,
@@ -354,13 +358,14 @@
 
     </div>
     </form>
-
+    @include('accounting::journalEntry.create-account', [
+        'parents_account' => $parents_account,
+        'account_main_types' => $account_main_types,
+        'account_category' => $account_category,
+    ])
 @stop
 
 @section('script')
-
-    {{-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
 
     <script>
         flatpickr("#kt_calendar_datepicker_start_date", {
@@ -388,17 +393,15 @@
         });
 
 
-      
+
 
         $('#acc_trans_mappings').select2();
-        $('#kt_ecommerce_select2_account').select2();
-        $('#kt_ecommerce_select2_cost_center').select2();
         const newRow = `
         <tr>
             <td>
 
-                    <select id="kt_ecommerce_select2_account" required
-                                    class="form-select form-select-solid select-2" name="account_id">
+                    <select  required
+                                    class="form-select form-select-solid select-2 kt_ecommerce_select2_account" name="account_id">
 
                                     @foreach ($accounts as $account)
                                         <option value="{{ $account->id }}">
@@ -416,8 +419,8 @@
             </td>
             <td class="cost-center-column" style="display:none">
 
-                    <select id="kt_ecommerce_select2_cost_center"
-                                    class="form-select form-select-solid select-2" name="cost_center">
+                    <select
+                                    class="form-select form-select-solid select-2 kt_ecommerce_select2_cost_center" name="cost_center">
                         <option selected value="">@lang('messages.select')</option>
 
                                     @foreach ($cost_centers as $cost_center)
@@ -437,8 +440,8 @@
 
                 </select>
             </td>
-            <td><input type="number" class="form-control debit-field" step="0.000001" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" class="form-control credit-field" step="0.000001" name="credit" placeholder="0.0" style="width: 107px;"></td>
+            <td><input type="number" class="form-control debit-field" step="any" name="debit" placeholder="0.0" style="width: 100px;"></td>
+            <td><input type="number" class="form-control credit-field" step="any" name="credit" placeholder="0.0" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">
@@ -453,8 +456,43 @@
 
             $('table tbody').append(newRow);
             $('table tbody').append(newRow);
-            $('#kt_ecommerce_select2_account').select2();
-            $('#kt_ecommerce_select2_cost_center').select2();
+            $('.kt_ecommerce_select2_cost_center').select2();
+            $('.kt_ecommerce_select2_account').select2({
+                ajax: {
+                    url: '{{ route('accounts-dropdown') }}',
+                    dataType: 'json',
+                    processResults: function(data) {
+                        return {
+                            results: data
+                        }
+                    },
+                },
+
+                language: {
+                    noResults: function() {
+                        var newAccountText = "@lang('accounting::lang.add_account')";
+                        var $newAccountButton = $(
+                            '<a class="link-underline" data-bs-toggle="modal" data-bs-target="#kt_modal_create_account" id="addNewAccountBtn">' +
+                            newAccountText + '</a>'
+                        );
+                        $newAccountButton.on('click', function() {
+                            $('.kt_ecommerce_select2_account').select2('close');
+                        });
+                        return $newAccountButton;
+                    }
+                },
+
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+
+                templateResult: function(data) {
+                    return data.html || data.text;
+                },
+                templateSelection: function(data) {
+                    return data.text;
+                }
+            });
             updateTotals();
             if ($('#toggleCostCenter').is(':checked')) {
                 $('.cost-center-column').show();
@@ -464,12 +502,80 @@
         });
 
 
+        $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
+            $(this).find('#kt_ecommerce_select2_account_type').select2({
+                dropdownParent: $('#kt_modal_create_account')
+            });
+
+        });
+
         $(document).ready(function() {
-            // for (i = 0; i < 4; i++) {
-            //     $('table tbody').append(newRow);
-            // }
+
+
+            $('.kt_ecommerce_select2_cost_center').select2();
+            $('#kt_ecommerce_select2_account_type').select2();
+            $('.kt_ecommerce_select2_account').select2({
+                ajax: {
+                    url: '{{ route('accounts-dropdown') }}',
+                    dataType: 'json',
+                    processResults: function(data) {
+                        return {
+                            results: data
+                        }
+                    },
+                },
+
+                language: {
+                    noResults: function() {
+                        var newAccountText = "@lang('accounting::lang.add_account')";
+                        var $newAccountButton = $(
+                            '<a class="link-underline" data-bs-toggle="modal" data-bs-target="#kt_modal_create_account" id="addNewAccountBtn">' +
+                            newAccountText + '</a>'
+                        );
+                        $newAccountButton.on('click', function() {
+                            $('.kt_ecommerce_select2_account').select2('close');
+                        });
+                        return $newAccountButton;
+                    }
+                },
+
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+
+                templateResult: function(data) {
+                    return data.html || data.text;
+                },
+                templateSelection: function(data) {
+                    return data.text;
+                }
+            });
+
+            $('#addAccountForm').on('submit', function(e) {
+                e.preventDefault();
+
+                $('#submitBtn .indicator-label').hide();
+                $('#submitBtn .indicator-progress').show();
+
+                $.ajax({
+                    url: "{{ route('store-account') }}",
+                    method: "POST",
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        $('#kt_modal_create_account').modal('hide');
+                        $('#addAccountForm')[0].reset();
+                    },
+                    error: function(xhr) {
+                    },
+                    complete: function() {
+                        $('#submitBtn .indicator-label').show();
+                        $('#submitBtn .indicator-progress').hide();
+                    }
+                });
+            });
+
+
             $('#acc_trans_mappings').on('change', function() {
-                // document.getElementById('acc_trans_mappings').addEventListener('change', function() {
                 var selectedValue = this.value;
                 var duplication = {{ $duplication }};
                 let url = '';
@@ -484,7 +590,7 @@
                 window.location.href = url;
             });
 
-            $('#kt_ecommerce_select2_account').select2();
+            // $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();
             updateTotals();
             if ($('#toggleCostCenter').is(':checked')) {
@@ -519,17 +625,11 @@
                 $('#Budget').text('');
 
             }
-            $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();
 
             $('#totalDebit').text(totalDebit.toFixed(2));
             $('#totalCredit').text(totalCredit.toFixed(2));
         }
-
-
-        // $(document).on('input', 'input[name="debit"], input[name="credit"]', calculateTotals);
-
-
 
         $(document).on('click', '.delete-row', function() {
 

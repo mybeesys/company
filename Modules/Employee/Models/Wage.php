@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Establishment\Models\Establishment;
 // use Modules\Employee\Database\Factories\WageFactory;
 
-class Wage extends BaseModel
+class Wage extends BaseEmployeeModel
 {
     use HasFactory;
 

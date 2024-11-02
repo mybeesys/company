@@ -139,6 +139,11 @@ return [
                 'url' => 'timecard',
                 'permission' => '',
             ],
+            [
+                'name' => 'schedules',
+                'url' => 'schedule/timesheet-rule',
+                'permission' => '',
+            ],
         ]
     ],
     [

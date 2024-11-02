@@ -29,10 +29,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                            background: #beebff2e !important;
-                                                                                                                                                                                            border-radius: 13px !important;
-                                                                                                                                                                                            box-shadow: none !important;
-                                                                                                                                                                                        } */
+                                                                                                                                                                                                        background: #beebff2e !important;
+                                                                                                                                                                                                        border-radius: 13px !important;
+                                                                                                                                                                                                        box-shadow: none !important;
+                                                                                                                                                                                                    } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -161,28 +161,45 @@
         }
         $(document).ready(function() {
 
+            $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
+                $(this).find('.kt_ecommerce_select2_account_type_').select2({
+                    dropdownParent: $('#kt_modal_create_account')
+                });
+                $(this).find('.kt_ecommerce_select2_account_category_').select2({
+                    dropdownParent: $('#kt_modal_create_account')
+                });
 
-            $('#kt_ecommerce_select2_account_type').select2({
-                dropdownParent: $('#kt_modal_create_account'),
-                placeholder: "@lang('messages.select')",
-                allowClear: true
-            });
-            $('#kt_ecommerce_select2_account_category').select2({
-                dropdownParent: $('#kt_modal_create_account'),
-                placeholder: "@lang('messages.select')",
-                allowClear: true
             });
 
-            $('#kt_ecommerce_select2_account_type').select2({
-                dropdownParent: $('#kt_modal_edit_account'),
-                placeholder: "@lang('messages.select')",
-                allowClear: true
+            // $('#kt_ecommerce_select2_account_type').select2({
+            //     dropdownParent: $('#kt_modal_create_account'),
+            //     placeholder: "@lang('messages.select')",
+            //     allowClear: true
+            // });
+            // $('#kt_ecommerce_select2_account_category').select2({
+            //     dropdownParent: $('#kt_modal_create_account'),
+            //     placeholder: "@lang('messages.select')",
+            //     allowClear: true
+            // });
+            $(document).on('shown.bs.modal', '#kt_modal_edit_account', function() {
+                $(this).find('.kt_ecommerce_select2_account_type_').select2({
+                    dropdownParent: $('#kt_modal_edit_account')
+                });
+                $(this).find('.kt_ecommerce_select2_account_category_').select2({
+                    dropdownParent: $('#kt_modal_edit_account')
+                });
+
             });
-            $('#kt_ecommerce_select2_account_category').select2({
-                dropdownParent: $('#kt_modal_edit_account'),
-                placeholder: "@lang('messages.select')",
-                allowClear: true
-            });
+            // $('#kt_ecommerce_select2_account_type').select2({
+            //     dropdownParent: $('#kt_modal_edit_account'),
+            //     placeholder: "@lang('messages.select')",
+            //     allowClear: true
+            // });
+            // $('#kt_ecommerce_select2_account_category').select2({
+            //     dropdownParent: $('#kt_modal_edit_account'),
+            //     placeholder: "@lang('messages.select')",
+            //     allowClear: true
+            // });
 
             $.jstree.defaults.core.themes.variant = "large";
             $('#accounts_tree_container').jstree({
@@ -223,7 +240,7 @@
 
             $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
                 var value = sessionStorage.getItem('account_id');
-                $('#account_id').val(value);
+                $('#account_id_').val(value);
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_deactive', function() {
