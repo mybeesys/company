@@ -13,27 +13,27 @@ class StoreTimesheetRuleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'maximum_regular_hours_per_day' => ['string', $this->minHoursRule()],
-            'maximum_overtime_hours_per_day' => ['string', $this->minHoursRule()],
-            'overtime_rate_multiplier' => ['decimal:0,1'],
-            'doubletime_rate_multiplier' => ['decimal:0,1'],
-            'maximum_regular_hours_per_week' => ['string', $this->minHoursRule()],
-            'allow_clockin_before_shift' => ['boolean'],
-            'require_manager_approval_for_late_clockin' => ['boolean'],
-            'prevent_employee_clockin_before_break_end' => ['boolean'],
-            'consider_seventh_worked_day_as_overtime' => ['boolean'],
-            'display_declared_tips_in_payroll' => ['boolean'],
-            'display_payment_tips_in_payroll' => ['boolean'],
-            'weak_starts_on' => ['string', 'in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
-            '12_hour_clock' => ['boolean'],
-            'day_start_on_time' => ['string', 'date_format:H:i'],
-            'enable_auto_clockout' => ['boolean'],
-            'calculate_paid_unpaid_breaks_by_rules' => ['boolean'],
-            'work_time_to_qualify_for_paid_break' => ['string', $this->minHoursRule()],
-            'duration_of_paid_break' => ['string', $this->minHoursRule()],
-            'employee_declares_break_type' => ['boolean'],
-            'clock_in_before_shift_time_limit' => ['string', $this->minHoursRule()],
-            'auto_clock_out_time' => ['string', 'date_format:H:i']
+            'maximum_regular_hours_per_day' => ['required', 'string', $this->minHoursRule()],
+            'maximum_overtime_hours_per_day' => ['required', 'string', $this->minHoursRule()],
+            'overtime_rate_multiplier' => ['required', 'decimal:0,1'],
+            'doubletime_rate_multiplier' => ['required', 'decimal:0,1'],
+            'maximum_regular_hours_per_week' => ['required', 'string', $this->minHoursRule()],
+            'allow_clockin_before_shift' => ['required', 'boolean'],
+            'require_manager_approval_for_late_clockin' => ['required', 'boolean'],
+            'prevent_employee_clockin_before_break_end' => ['required', 'boolean'],
+            'consider_seventh_worked_day_as_overtime' => ['required', 'boolean'],
+            'display_declared_tips_in_payroll' => ['required', 'boolean'],
+            'display_payment_tips_in_payroll' => ['required', 'boolean'],
+            'weak_starts_on' => ['required', 'string', 'in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
+            '12_hour_clock' => ['required', 'boolean'],
+            'day_start_on_time' => ['required', 'string', 'date_format:H:i'],
+            'enable_auto_clockout' => ['required', 'boolean'],
+            'calculate_paid_unpaid_breaks_by_rules' => ['required', 'boolean'],
+            'work_time_to_qualify_for_paid_break' => ['required', 'string', $this->minHoursRule()],
+            'duration_of_paid_break' => ['required', 'string', $this->minHoursRule()],
+            'employee_declares_break_type' => ['required', 'boolean'],
+            'clock_in_before_shift_time_limit' => ['required_if:allow_clockin_before_shift,true', 'nullable', 'string', $this->minHoursRule()],
+            'auto_clock_out_time' => ['required_if:enable_auto_clockout,true', 'nullable', 'string', 'date_format:H:i']
         ];
     }
 
