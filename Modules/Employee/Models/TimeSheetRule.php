@@ -12,5 +12,9 @@ class TimeSheetRule extends BaseScheduleModel
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected $casts = [
+        'rule_value' => 'array',
+    ];
 }

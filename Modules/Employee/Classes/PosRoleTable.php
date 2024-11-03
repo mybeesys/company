@@ -32,7 +32,7 @@ class PosRoleTable
                 'actions',
                 function ($row) {
                     $actions = '
-                    <div class="text-center"> 
+                    <div class="text-center d-flex"> 
                 <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '">
 					<i class="ki-outline ki-trash fs-3"></i>
 				</a>      

@@ -5,7 +5,7 @@
     @foreach (config('menu') as $menuItem)
         @php
             $isSubmenuActive = collect($menuItem['subMenu'])->contains(function ($submenuItem) {
-                return (request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*'));
+                return request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*');
             });
         @endphp
         <div data-kt-menu-trigger="click" @class(['menu-item here menu-accordion', 'show' => $isSubmenuActive])>
@@ -23,24 +23,48 @@
             <!--begin:Menu sub-->
             <div class="menu-sub menu-sub-accordion">
                 @foreach ($menuItem['subMenu'] as $submenuItem)
-                    <!--begin:Menu item-->
-                    <div class="menu-item">
-                        <!--begin:Menu link-->
-                        <a @class(['menu-link', 'active' => request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*')])  href='/{{ $submenuItem['url'] }}'>
-                            <span class="menu-bullet">
-                                <span class="bullet bullet-dot"></span>
+                    @if (!array_key_exists('subMenu', $submenuItem))
+                        <div class="menu-item">
+                            <a @class([
+                                'menu-link',
+                                'active' =>
+                                    request()->is($submenuItem['url']) ||
+                                    request()->is($submenuItem['url'] . '/*'),
+                            ]) href='/{{ $submenuItem['url'] }}'>
+                                <span class="menu-bullet">
+                                    <span class="bullet bullet-dot"></span>
+                                </span>
+                                <span class="menu-title">{{ __('menuItemLang.' . $submenuItem['name']) }}</span>
+                            </a>
+                        </div>
+                    @else
+                        <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                            <span class="menu-link">
+                                <span class="menu-bullet">
+                                    <span class="bullet bullet-dot"></span>
+                                </span>
+                                <span class="menu-title">{{ __('menuItemLang.' . $submenuItem['name']) }}</span>
+                                <span class="menu-arrow"></span>
                             </span>
-                            <span class="menu-title">{{ __('menuItemLang.' . $submenuItem['name']) }}</span>
-                        </a>
-                        <!--end:Menu link-->
-                    </div>
-                    <!--end:Menu item-->
+                            @foreach ($submenuItem['subMenu'] as $item)
+                                <div class="menu-sub menu-sub-accordion">
+                                    <a @class([
+                                        'menu-link',
+                                        'active' =>
+                                            request()->is($item['url']) ||
+                                            request()->is($item['url'] . '/*'),
+                                    ]) href='/{{ $item['url'] }}'>
+                                        <span class="menu-bullet">
+                                            <span class="bullet bullet-dot"></span>
+                                        </span>
+                                        <span class="menu-title">{{ __('menuItemLang.' . $item['name']) }}</span>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @endforeach
             </div>
-            <!--end:Menu sub-->
         </div>
-        <!--end:Menu item-->
     @endforeach
-    <!--end:Menu item-->
 </div>
-<!--end::Sidebar menu-->

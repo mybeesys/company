@@ -7,6 +7,10 @@ pdfMake.fonts = {
     }
 };
 
+$('#kt_app_sidebar_toggle').on('click', function (){
+    dataTable.columns.adjust().draw();
+})
+
 function exportButtons(columns, id, lang, columnsToReverse, columnsToReverseInArabic = []) {
     
     new $.fn.dataTable.Buttons(table, {

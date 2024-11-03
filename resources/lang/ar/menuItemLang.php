@@ -30,7 +30,10 @@ return [
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'attribute' => 'المعاملات',
     'employees_working_hours' => 'دوام الموظفين' ,
-
+    'timesheet_rule' => 'إعدادات الجدولة',
+    'shift_schedule' => 'جداول العمل',
+    'time_worked' => 'ساعات العمل',
+    'payroll' => 'كشوف المرتبات',
     'costCenter'=>'مراكز التكلفة',
 
     'customMenu' => 'القوائم المخصصة',
