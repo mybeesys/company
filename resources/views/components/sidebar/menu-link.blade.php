@@ -1,4 +1,4 @@
-@props(['name', 'icon' => null])
+@props(['name', 'icon' => null, 'subMenuCount' => null])
 <span class="menu-link">
     @if (!$icon)
         <span class="menu-bullet">
@@ -10,7 +10,7 @@
         </span>
     @endif
     <span class="menu-title">{{ __('menuItemLang.' . $name) }}</span>
-    @if (!$icon)
+    @if ($subMenuCount)
         <span class="menu-arrow"></span>
     @endif
 </span>
