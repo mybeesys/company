@@ -40,12 +40,14 @@ class StoreTimesheetRuleRequest extends FormRequest
     public function minHoursRule()
     {
         return function (string $attribute, mixed $value, Closure $fail) {
-            $string = explode(':', $value);
-            if ((int) $string[1] >= 60) {
-                $fail(__('employee::responses.minutes_cannot_be_above_60'));
-            }
-            if(!is_numeric($string[0]) || !is_numeric($string[1])){
-                $fail('invalid input');
+            if (isset($value)) {
+                $string = explode(':', $value);
+                if ((int) $string[1] >= 60) {
+                    $fail(__('employee::responses.minutes_cannot_be_above_60'));
+                }
+                if (!is_numeric($string[0]) || !is_numeric($string[1])) {
+                    $fail('invalid input');
+                }
             }
         };
     }
