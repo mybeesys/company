@@ -7,7 +7,7 @@
             );
         @endphp
         <x-sidebar.main-menu :isSubmenuActive=$isSubmenuActive>
-            <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" />
+            <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="count($menuItem['subMenu'])" />
             <x-sidebar.submenu>
                 @foreach ($menuItem['subMenu'] as $submenuItem)
                     @if (!array_key_exists('subMenu', $submenuItem))
@@ -20,7 +20,7 @@
                             );
                         @endphp
                         <x-sidebar.main-menu :isSubmenuActive=$isSubsubmenuActive>
-                            <x-sidebar.menu-link :name="$menuItem['name']" />
+                            <x-sidebar.menu-link :name="$submenuItem['name']" :subMenuCount="true"/>
                             <x-sidebar.submenu>
                                 @foreach ($submenuItem['subMenu'] as $item)
                                     <x-sidebar.menu-item :url="$item['url']" :name="$item['name']" />
