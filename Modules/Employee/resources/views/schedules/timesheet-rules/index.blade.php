@@ -38,13 +38,13 @@
                             <x-form.input :errors="$errors" :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']"
                                 :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'form-control-solid py-2'" :form_control="!$isCheckbox"
                                 checked="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : false }}"
-                                value="{{ ($isCheckbox ? '1' : array_key_exists($setting['name'], $stored_settings)) ? $stored_settings[$setting['name']] : '' }}" />
+                                value="{{ $isCheckbox ? '1' : (array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '') }}" />
                         @endif
                     </x-form.input-div>
 
                     @if ($setting['collapse'])
                         <div class="collapse" id="{{ $setting['name'] }}_toggle">
-                            <x-form.input-div class="w-md-50 d-md-flex align-items-center gap-10 fw-bold pt-10"
+                            <x-form.input-div class="w-md-50 d-md-flex align-items-center fw-bold pt-10"
                                 :row="false">
                                 @php
                                     $collapsedInput = $setting['collapsed_input'];
