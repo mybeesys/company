@@ -10,18 +10,20 @@
             <x-form.form-card :title="__('menuItemLang.timesheet_rule')">
                 @foreach ($settings as $setting)
                     @php
-                        $inputDivClass = $setting['collapse']
-                            ? "{$setting['name']}_collapse collapsible form-check form-check-custom form-check-solid w-lg-50 d-md-flex align-items-center fw-bold"
+                        $inputDivClass = 'w-lg-50 d-md-flex align-items-center fw-bold ';
+                        $inputDivClass .= $setting['collapse']
+                            ? "{$setting['name']}_collapse collapsible form-check form-check-custom form-check-solid"
                             : ($setting['type'] == 'checkbox'
-                                ? 'form-check form-check-custom form-check-solid w-lg-50 d-md-flex align-items-center fw-bold'
-                                : 'w-lg-50 d-md-flex align-items-center fw-bold');
+                                ? 'form-check form-check-custom form-check-solid'
+                                : ($setting['type'] == 'select'
+                                    ? ''
+                                    : 'gap-5'));
                         $inputType = $setting['type'] ?? 'text';
                         $hintText = $setting['hint'] ? __('employee::general.' . $setting['name'] . '_hint') : null;
                         $isCheckbox = $setting['type'] == 'checkbox';
                     @endphp
-
                     <x-form.input-div :class="$inputDivClass" :row="false"
-                        attribute="data-bs-toggle=collapse data-bs-target=#{{ $setting['name'] }}_toggle">
+                        attribute="{{ $setting['collapse'] ? 'data-bs-toggle=collapse data-bs-target=#' . $setting['name'] . '_toggle' : '' }}">
                         <div class="{{ $isCheckbox ? 'w-50 d-flex' : 'w-100 d-flex mb-5 mb-md-0' }}">
                             <label class="form-label mb-0" for="{{ $setting['name'] }}">@lang('employee::fields.' . $setting['name'])</label>
                             @if ($hintText)
@@ -29,14 +31,15 @@
                             @endif
                         </div>
                         @if ($setting['type'] == 'select')
-                            <x-form.select :name="$setting['name']" data_allow_clear="false" :errors="$errors" :options="$setting['options']"
+                            <x-form.select :name="$setting['name']" required data_allow_clear="false" :errors="$errors"
+                                :options="$setting['options']"
                                 value="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '' }}" />
                         @else
                             @if ($setting['type'] == 'checkbox')
                                 <input type="hidden" name="{{ $setting['name'] }}" value="0">
                             @endif
-                            <x-form.input :errors="$errors" :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']"
-                                :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'form-control-solid py-2'" :form_control="!$isCheckbox"
+                            <x-form.input :errors="$errors" required="{{ $setting['type'] !== 'checkbox' }}"
+                                :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']" :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'form-control-solid py-2'" :form_control="!$isCheckbox"
                                 checked="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : false }}"
                                 value="{{ $isCheckbox ? '1' : (array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '') }}" />
                         @endif
@@ -44,8 +47,7 @@
 
                     @if ($setting['collapse'])
                         <div class="collapse" id="{{ $setting['name'] }}_toggle">
-                            <x-form.input-div class="w-md-50 d-md-flex align-items-center fw-bold pt-10"
-                                :row="false">
+                            <x-form.input-div class="w-md-50 d-md-flex align-items-center fw-bold pt-10" :row="false">
                                 @php
                                     $collapsedInput = $setting['collapsed_input'];
                                     $collapsedHint = $collapsedInput['hint']
@@ -83,9 +85,21 @@
                 $('#enable_auto_clockout_toggle').collapse('show');
             }
             if ($('#allow_clockin_before_shift').is(':checked')) {
+                $('#clock_in_before_shift_time_limit').prop('required', true);
                 $('#allow_clockin_before_shift_toggle').collapse('show');
             }
         });
+
+        $('form').on('submit', function(e) {
+            if ($('#enable_auto_clockout').is(':checked')) {
+                const timeValue = $('#auto_clock_out_time').val();
+                if (!timeValue) {
+                    e.preventDefault();
+                    $('#auto_clock_out_time').focus();
+                }
+            }
+        });
+        
         $('#day_start_on_time').flatpickr({
             enableTime: true,
             noCalendar: true,
@@ -132,9 +146,11 @@
             if ($(this).attr("aria-expanded") == 'true') {
                 $('#allow_clockin_before_shift').prop('checked', true);
                 $('#allow_clockin_before_shift').val(1);
+                $('#clock_in_before_shift_time_limit').prop('required', true);
             } else {
                 $('#allow_clockin_before_shift').prop('checked', false);
                 $('#allow_clockin_before_shift').val(0);
+                $('#clock_in_before_shift_time_limit').prop('required', false);
             }
         });
 

@@ -217,7 +217,7 @@
                             data-kt-scroll-wrappers="#kt_app_sidebar_wrapper" data-kt-scroll-offset="5px">
                             <!--begin::Sidebar menu-->
 
-                            @include('components.sideBar')
+                            @include('components.sidebar.sideBar')
 
                             <!--end::Sidebar menu-->
                         </div>
