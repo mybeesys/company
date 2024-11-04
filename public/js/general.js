@@ -13,7 +13,49 @@ function showAlert(text, confirmButtonText, cancelButtonText = '', confirmButton
     });
 }
 
-function ajaxRequest(url, method, data = {}, handleResponse = true, handleError = true) {
+function validateField(input, validationUrl, saveButton) {
+    let field = input.attr('name');
+    let data;
+    if (input[0].files) {
+        data = new FormData();
+        data.append(field, input[0].files[0]);
+        data.append("_token", window.csrfToken);
+    } else {
+        data = {
+            [field]: input.val(),
+            "_token": window.csrfToken
+        };
+    }
+    ajaxRequest(validationUrl, 'POST', data, false, false, false).done(function () {
+        input.siblings('.invalid-feedback ').remove();
+        input.removeClass('is-invalid');
+        input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        $('#image_error').removeClass('d-block');
+        checkErrors(saveButton);
+    }).fail(function (response) {
+        input.siblings('.invalid-feedback').remove();
+        input.removeClass('is-invalid');
+        input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        $('#image_error').removeClass('d-block');
+        if (response.responseJSON) {
+            let errorMsg = response.responseJSON.errors[field];
+            if (errorMsg) {
+                input.addClass('is-invalid');
+                input.siblings('.select2-container').find('.select2-selection').addClass('is-invalid');
+                if (input.attr('type') === 'file') {
+                    input.closest('div').after(
+                        '<div class="invalid-feedback d-block" id="image_error">' +
+                        errorMsg[0] + '</div>');
+                } else {
+                    input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
+                }
+            }
+        }
+        checkErrors(saveButton);
+    });
+}
+
+function ajaxRequest(url, method, data = {}, handleResponse = true, handleError = true, showProgressBar = true) {
     data._token = window.csrfToken;
 
     const progressBar = $("#ajax-progress-bar");
@@ -23,9 +65,13 @@ function ajaxRequest(url, method, data = {}, handleResponse = true, handleError 
         url: url,
         type: method,
         data: data,
+        contentType: data instanceof FormData ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
+        processData: !(data instanceof FormData),
         xhr: function () {
             var xhr = new window.XMLHttpRequest();
-            progressBar.show();
+            if (showProgressBar) {
+                progressBar.show();
+            }
             progressBarInner.css("width", "0%");
             progressBarInner.stop().animate({
                 width: "5%"

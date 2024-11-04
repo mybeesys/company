@@ -3,8 +3,7 @@
 @section('title', __('menuItemLang.employees_working_hours'))
 
 @section('content')
-    <form id="timesheet_rules_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        formId="timesheet_rules_form" action="{{ route('schedules.timesheet-rules.store') }}">
+    <form id="timesheet_rules_form" class="form d-flex flex-column flex-lg-row" formId="timesheet_rules_form" action="#">
         @csrf
         <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
             <x-form.form-card :title="__('menuItemLang.timesheet_rule')">
@@ -89,17 +88,28 @@
                 $('#allow_clockin_before_shift_toggle').collapse('show');
             }
         });
-
         $('form').on('submit', function(e) {
+            e.preventDefault();
             if ($('#enable_auto_clockout').is(':checked')) {
                 const timeValue = $('#auto_clock_out_time').val();
                 if (!timeValue) {
-                    e.preventDefault();
                     $('#auto_clock_out_time').focus();
+                    return;
                 }
             }
+            ajaxRequest("{{ route('schedules.timesheet-rules.store') }}", "POST", $(this).serializeArray()).fail(function(data) {
+                $.each(data.responseJSON.errors, function(key, value) {
+                    $(`[name='${key}']`).addClass('is-invalid');
+                    $(`[name='${key}']`).after('<div class="invalid-feedback">' + value + '</div>');
+                });
+            });
         });
-        
+
+        $(`#timesheet_rules_form input`).on('change', function () {
+            let input = $(this);
+            input.removeClass('is-invalid');            
+        });
+
         $('#day_start_on_time').flatpickr({
             enableTime: true,
             noCalendar: true,
@@ -110,7 +120,6 @@
             noCalendar: true,
             dateFormat: "H:i",
         });
-
         Inputmask("datetime", {
             mask: "9.9",
             placeholder: "_._",
@@ -123,7 +132,6 @@
             regex: "([0-9][0-9]):([0-5][0-9])",
             placeholder: "__:__",
         }).mask("#maximum_regular_hours_per_week");
-
 
         hoursMinsInuptMask('clock_in_before_shift_time_limit')
         hoursMinsInuptMask('maximum_regular_hours_per_day')

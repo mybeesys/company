@@ -74,7 +74,7 @@
         }
 
         .select2-container .select2-selection--single {
-            height: 49px !important;
+            height: 43.2px !important;
         }
 
                .link-underline {
@@ -114,7 +114,7 @@
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
-                height: 49px !important;
+                height: 43.2px !important;
 
             }
 
@@ -174,7 +174,7 @@
                         <!--begin::Sidebar toggle-->
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-30px h-30px ms-n2 me-4 d-none d-lg-flex"
-                            data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body"
+                            data-kt-toggle="true" {{-- data-kt-toggle-state="active" --}} data-kt-toggle-target="body"
                             data-kt-toggle-name="app-sidebar-minimize">
                             <i class="ki-outline ki-abstract-14 fs-3 mt-1"></i>
                         </div>

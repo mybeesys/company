@@ -132,7 +132,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
 
     $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
         let input = $(this);
-        validateField(input);
+        validateField(input, validationUrl, saveButton);
     });
 
     $('#generate_pin').on('click', function (e) {
@@ -143,49 +143,6 @@ function employeeForm(id, validationUrl, generatePinUrl) {
             $('#PIN').val(response.data);
         });
     });
-
-    function validateField(input) {
-        let field = input.attr('name');
-        let formData = new FormData();
-        formData.append(field, input[0].files ? input[0].files[0] : input.val());
-        formData.append("_token", window.csrfToken);
-
-        $.ajax({
-            url: validationUrl,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function () {
-                input.siblings('.invalid-feedback ').remove();
-                input.removeClass('is-invalid');
-                input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                $('#image_error').removeClass('d-block');
-                checkErrors(saveButton);
-            },
-            error: function (response) {
-                input.siblings('.invalid-feedback').remove();
-                input.removeClass('is-invalid');
-                input.siblings('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                $('#image_error').removeClass('d-block');
-                if (response.responseJSON) {
-                    let errorMsg = response.responseJSON.errors[field];
-                    if (errorMsg) {
-                        input.addClass('is-invalid');
-                        input.siblings('.select2-container').find('.select2-selection').addClass('is-invalid');
-                        if (input.attr('type') === 'file') {
-                            input.closest('div').after(
-                                '<div class="invalid-feedback d-block" id="image_error">' +
-                                errorMsg[0] + '</div>');
-                        } else {
-                            input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
-                        }
-                    }
-                }
-                checkErrors(saveButton);
-            }
-        });
-    }
 
     function validateRoleRequirement() {
         $('#role_wage_repeater [data-repeater-item]').each(function () {

@@ -24,10 +24,12 @@ class TimeSheetRuleController extends Controller
      */
     public function store(StoreTimesheetRuleRequest $request)
     {
-        foreach ($request->safe()->all() as $setting_name => $value) {
-            TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
+        if(request()->ajax()){
+            foreach ($request->safe()->all() as $setting_name => $value) {
+                TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
+            }
+            return response()->json(['message' => __('employee::responses.opreation_success')]);
         }
-        return back()->with('success', __('employee::responses.opreation_success'));
     }
 
 }
