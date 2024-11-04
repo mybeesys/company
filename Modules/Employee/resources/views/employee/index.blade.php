@@ -175,5 +175,89 @@
             });
 
         };
+
+        // function initToggleToolbar() {
+        //     toolbarBase = $('[data-kt-employee-table-toolbar="base"]');
+        //     toolbarSelected = $('[data-kt-employee-table-toolbar="selected"]');
+        //     selectedCount = $('[data-kt-employee-table-select="selected_count"]');
+        //     const deleteSelected = $('[data-kt-employee-table-select="delete_selected"]');
+
+        //     $('#kt_employee_table_wrapper').on('click', '.employee_select', function() {
+        //         setTimeout(function() {
+        //             toggleToolbars();
+        //         }, 50);
+        //     });
+        //     deleteSelected.on('click', function() {
+        //         Swal.fire({
+        //             text: "Are you sure you want to delete selected customers?",
+        //             icon: "warning",
+        //             showCancelButton: true,
+        //             buttonsStyling: false,
+        //             confirmButtonText: "Yes, delete!",
+        //             cancelButtonText: "No, cancel",
+        //             customClass: {
+        //                 confirmButton: "btn fw-bold btn-danger",
+        //                 cancelButton: "btn fw-bold btn-active-light-primary"
+        //             }
+        //         }).then(function(result) {
+        //             if (result.value) {
+        //                 Swal.fire({
+        //                     text: "You have deleted all selected customers!",
+        //                     icon: "success",
+        //                     buttonsStyling: false,
+        //                     confirmButtonText: "Ok, got it!",
+        //                     customClass: {
+        //                         confirmButton: "btn fw-bold btn-primary"
+        //                     }
+        //                 }).then(function() {
+        //                     const checkboxes = $('.employee_select');
+        //                     checkboxes.each(function() {
+        //                         if (this.checked) {
+        //                             datatable.row($(this).closest('tbody tr')).remove()
+        //                                 .draw();
+        //                         }
+        //                     });
+
+        //                     // Remove header checkbox selection
+        //                     const headerCheckbox = table.find('[type="checkbox"]').first();
+        //                     headerCheckbox.prop('checked', false);
+        //                 }).then(function() {
+        //                     toggleToolbars();
+        //                     initToggleToolbar();
+        //                 });
+        //             } else if (result.dismiss === 'cancel') {
+        //                 Swal.fire({
+        //                     text: "Selected customers were not deleted.",
+        //                     icon: "error",
+        //                     buttonsStyling: false,
+        //                     confirmButtonText: "Ok, got it!",
+        //                     customClass: {
+        //                         confirmButton: "btn fw-bold btn-primary"
+        //                     }
+        //                 });
+        //             }
+        //         });
+        //     });
+        // }
+        // function toggleToolbars() {
+        //     const allCheckboxes = table.find('tbody [type="checkbox"]');
+        //     let checkedState = false;
+        //     let count = 0;
+
+        //     allCheckboxes.each(function() {
+        //         if (this.checked) {
+        //             checkedState = true;
+        //             count++;
+        //         }
+        //     });
+        //     if (checkedState) {
+        //         selectedCount.html(count);
+        //         toolbarBase.addClass('d-none');
+        //         toolbarSelected.removeClass('d-none');
+        //     } else {
+        //         toolbarBase.removeClass('d-none');
+        //         toolbarSelected.addClass('d-none');
+        //     }
+        // }
     </script>
 @endsection

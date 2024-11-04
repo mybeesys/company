@@ -46,37 +46,6 @@ function timecardForm(id, validationUrl) {
 
     $(`#${id} input`).on('change', function () {
         let input = $(this);
-        validateField(input);
+        validateField(input, validationUrl, saveButton);
     });
-
-    function validateField(input) {
-        let field = input.attr('name');
-        let formData = new FormData();
-        formData.append(field, input.val());
-        formData.append("_token", window.csrfToken);
-
-        $.ajax({
-            url: validationUrl,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function () {
-                input.siblings('.invalid-feedback ').remove();
-                input.removeClass('is-invalid');
-                checkErrors(saveButton);
-            },
-            error: function (response) {
-                input.siblings('.invalid-feedback').remove();
-                input.removeClass('is-invalid');
-
-                let errorMsg = response.responseJSON.errors[field];
-                if (errorMsg) {
-                    input.addClass('is-invalid');
-                    input.after('<div class="invalid-feedback">' + errorMsg[0] + '</div>');
-                }
-                checkErrors(saveButton);
-            }
-        });
-    }
 }
