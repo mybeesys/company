@@ -26,5 +26,6 @@ export default defineConfig({
     },
     ssr: {
         external: ["@webassemblyjs/helper-api-error"]
-      }
+      },
+    assetsInclude: ['**/*.node'],
 });
