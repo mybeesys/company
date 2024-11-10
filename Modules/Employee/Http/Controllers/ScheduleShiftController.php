@@ -30,7 +30,8 @@ class ScheduleShiftController extends Controller
     public function getShiftSchedule(Request $request)
     {
         $employee_id = $request->employee_id;
-        $roles = Employee::with('roles')->findOrFail($employee_id)->roles->pluck('id', 'name')->toArray();
+        $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
+        $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(),$employee->establishmentRoles->pluck('id', 'name')->toArray()); 
         return response()->json(['data' => $roles]);
     }
 
@@ -44,21 +45,23 @@ class ScheduleShiftController extends Controller
             $schedule_id = Schedule::updateOrCreate(['start_date' => $startOfWeek], [
                 ['end_date' => $endOfWeek]
             ])->id;
+            $ids = [];
             foreach ($request->schedule_shift_repeater as $item) {
                 $startTime = $request->date . ' ' . $item['startTime'];
                 $endTime = $request->date . ' ' . $item['endTime'];
                 $shift_id = $item['shift_id'];
                 $end_status = $item['end_status'];
                 $break_duration = $end_status === 'break' ? (Carbon::parse($item['startTime'])->diffInMinutes($item['endTime'])) : null;
-                ScheduleShift::updateOrCreate(['id' => $shift_id], [
+                $ids[] = ScheduleShift::updateOrCreate(['id' => $shift_id], [
                     'startTime' => $startTime,
                     'endTime' => $endTime,
                     'employee_id' => $employee_id,
                     'schedule_id' => $schedule_id,
                     'role_id' => $item['role'],
                     'break_duration' => $break_duration
-                ]);
+                ])->id;
             }
+            ScheduleShift::where('employee_id', $employee_id)->whereDate('startTime', $request->date)->whereNotIn('id', $ids)->delete();
         });
 
         return response()->json(['message' => __('employee::responses.opreation_success')]);

@@ -123,6 +123,9 @@ return [
     'end_time' => 'End time',
     'end_status' => 'End status',
     'clockout' => 'Clock out',
-    'break' => 'Break'
+    'break' => 'Break',
+    'establishment' => 'Establishment',
+    'total_wages' => 'Total wages',
+    'all_establishments' => 'All establishments'
   
 ];

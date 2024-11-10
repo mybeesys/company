@@ -116,5 +116,6 @@ return [
     'startTime_before_endTime_error' => 'يجب أن يكون وقت البدء قبل وقت الانتهاء',
     'endTime_after_startTime_error' => 'يجب أن يكون وقت الانتهاء بعد وقت البدء',
     'time_overlap_error' => 'يوجد تقاطع في الأوقات المدرجة',
-    'last_element_end_status_error' => 'يجب أن تكون حالة النهاية للفترة الأخيرة هي تسجيل الخروج'
+    'last_element_end_status_error' => 'يجب أن تكون حالة النهاية للفترة الأخيرة هي تسجيل الخروج',
+    'column_visibility' => 'رؤية العمود',
 ];

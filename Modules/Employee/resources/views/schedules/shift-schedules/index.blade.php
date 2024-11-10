@@ -224,7 +224,7 @@
                         $('#schedule_shift').modal('toggle');
                     }, 300);
                 });
-                
+
                 for (const key in data) {
                     if (key.startsWith('scheduleShiftId')) {
                         scheduleShiftIds.push(data[key]);
@@ -232,9 +232,9 @@
                         startTimes.push(data[key]);
                     } else if (key.startsWith('endTime')) {
                         endTimes.push(data[key]);
-                    } else if(key.startsWith('roleId')){
+                    } else if (key.startsWith('roleId')) {
                         roleId.push(data[key]);
-                    } else if (key.startsWith('breakDuration')){
+                    } else if (key.startsWith('breakDuration')) {
                         breakDuration.push(data[key]);
                     }
                 }
@@ -248,9 +248,9 @@
                     newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
                     newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
                     newItem.find('input[name*="[shift_id]"]').val(shiftId);
-                    if(breakDuration[index]){
+                    if (breakDuration[index]) {
                         newItem.find('select[name*="[end_status]"]').val('break').trigger('change');
-                    }                    
+                    }
                 });
             });
 
@@ -268,7 +268,7 @@
                     startTimeInput.on('change.td', function(
                         e) {
                         if (e.date) {
-                            endTime = endTimeInput.val();                            
+                            endTime = endTimeInput.val();
                             startTime = e.date.toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -401,7 +401,7 @@
                 processing: true,
                 serverSide: true,
                 info: false,
-                pageLength: 50,
+                pageLength: 25,
                 order: [],
                 ajax: {
                     url: "{{ route('schedules.shift-schedules.index') }}",
@@ -413,7 +413,7 @@
                 columns: [{
                         data: 'id',
                         name: 'id',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6',
                     },
                     {
                         data: 'employee',
@@ -425,8 +425,30 @@
                         name: 'total_hours',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
+                    {
+                        data: 'total_wages',
+                        name: 'total_wages',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'role',
+                        name: 'role',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'establishment',
+                        name: 'establishment',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
                     ...columns
-                ]
+                ],
+                dom: "Btr <'row'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar'l><'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>>",
+                buttons: [{
+                    extend: 'colvis',
+                    text: "{{ __('employee::general.column_visibility') }}",
+                    className: 'mb-5',
+                    columns: ':lt(6)'
+                }, ]
             });
         }
 
@@ -446,7 +468,7 @@
             let currentDate = moment(startDate, 'YYYY-MM-DD');
             const endMomentDate = moment(endDate, 'YYYY-MM-DD');
             // Remove all date columns immediately
-            $headerRow.find('th:gt(2)').remove();
+            $headerRow.find('th:gt(5)').remove();
 
             while (currentDate.isSameOrBefore(endDate)) {
                 const formattedDate = currentDate.format('MM/DD');
@@ -470,7 +492,7 @@
                 $th.fadeIn(400);
                 currentDate.add(1, 'day');
             }
-            adjustTableRows($headerRow.find('th').length - 3); // Subtracting static columns  
+            adjustTableRows($headerRow.find('th').length - 6); // Subtracting static columns  
         }
 
         function adjustTableRows(dateColumnsCount) {
