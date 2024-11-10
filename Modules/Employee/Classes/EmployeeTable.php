@@ -42,14 +42,14 @@ class EmployeeTable
                         </div>
                         ';
 
-                    if ($administrativeUser && ! $row->deleted_at) {
+                    if ($administrativeUser && !$row->deleted_at) {
                         $actions .= '<div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 edit-dashboard-permission-button" data-id="' . $row->id . '">' . __('employee::general.edit_dashboard_permissions') . '</a>
                                     </div>';
                     }
 
                     $actions .= '<div class="menu-item px-3">
-                                    <a class="menu-link px-3 delete-btn" data-id="' . $row->id . '" data-deleted="' . $row->deleted_at . '" data-name="' . (session()->get('locale') == 'ar' ? $row->name : $row->name_en ). '">' . ($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')) . '</a>
+                                    <a class="menu-link px-3 delete-btn" data-id="' . $row->id . '" data-deleted="' . $row->deleted_at . '" data-name="' . (session()->get('locale') == 'ar' ? $row->name : $row->name_en) . '">' . ($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')) . '</a>
                                 </div>';
 
                     $row->deleted_at ? $actions .=

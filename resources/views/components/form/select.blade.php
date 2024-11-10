@@ -24,7 +24,7 @@
 @endif
 
 <select @class([
-    'form-select',
+    'form-select d-flex',
     $class,
     'is-invalid' => $errors->first($dotNotationName),
 ]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}" @required($required)

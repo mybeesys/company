@@ -13,5 +13,6 @@ return [
     'updated_successfully' => 'The :name has been updated successfully',
     'deleted_successfully' => 'The :name has been deleted successfully',
     'opreation_success' => 'Operation done successfully',
-    'wage_type_required' => 'Wage type field is required when wage feild exists'
+    'wage_type_required' => 'Wage type field is required when wage feild exists',
+    'minutes_cannot_be_above_60' => 'Minutes can\'t be above 60'
 ];

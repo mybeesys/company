@@ -4,6 +4,8 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Http\Requests\StoreTimesheetRuleRequest;
+use Modules\Employee\Models\TimeSheetRule;
 
 class TimeSheetRuleController extends Controller
 {
@@ -12,54 +14,22 @@ class TimeSheetRuleController extends Controller
      */
     public function index()
     {
-        return view('employee::schedules.timesheet-rules.index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('employee::create');
+        $stored_settings = TimeSheetRule::pluck('rule_value', 'rule_name')->toArray();
+        $settings = include base_path('Modules/Employee/data/timesheet-rules.php');
+        return view('employee::schedules.timesheet-rules.index', compact('settings', 'stored_settings'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTimesheetRuleRequest $request)
     {
-        //
+        if(request()->ajax()){
+            foreach ($request->safe()->all() as $setting_name => $value) {
+                TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
+            }
+            return response()->json(['message' => __('employee::responses.opreation_success')]);
+        }
     }
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('employee::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('employee::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }

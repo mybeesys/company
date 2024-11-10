@@ -17,7 +17,7 @@ return [
 
                 'name' => 'products',
                 'url' => 'category',
-                'permission' => '' ,
+                'permission' => '',
 
             ],
             [
@@ -111,7 +111,6 @@ return [
 
 
     [
-
         'name' => 'crm',
         'url' => '/',
         'icon' => 'fas fa-cogs',
@@ -149,6 +148,28 @@ return [
                 'name' => 'schedules',
                 'url' => 'schedule/timesheet-rule',
                 'permission' => '',
+                'subMenu' => [
+                    [
+                        'name' => 'timesheet_rule',
+                        'url' => 'schedule/timesheet-rule',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'shift_schedule',
+                        'url' => 'schedule/shift-schedule',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'time_worked',
+                        'url' => 'schedule/time-worked',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'payroll',
+                        'url' => 'schedule/payroll',
+                        'permission' => '',
+                    ],
+                ]
             ],
         ]
     ],

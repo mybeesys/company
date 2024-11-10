@@ -74,7 +74,7 @@
         }
 
         .select2-container .select2-selection--single {
-            height: 49px !important;
+            height: 43.2px !important;
         }
 
                .link-underline {
@@ -114,7 +114,7 @@
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
-                height: 49px !important;
+                height: 43.2px !important;
 
             }
 
@@ -137,7 +137,7 @@
     data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
     data-kt-app-aside-push-footer="true" class="app-default">
     <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100"
-        style="height: 5px; z-index: 3000; display: none;">
+        style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
@@ -174,7 +174,7 @@
                         <!--begin::Sidebar toggle-->
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-30px h-30px ms-n2 me-4 d-none d-lg-flex"
-                            data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body"
+                            data-kt-toggle="true" {{-- data-kt-toggle-state="active" --}} data-kt-toggle-target="body"
                             data-kt-toggle-name="app-sidebar-minimize">
                             <i class="ki-outline ki-abstract-14 fs-3 mt-1"></i>
                         </div>
@@ -217,7 +217,7 @@
                             data-kt-scroll-wrappers="#kt_app_sidebar_wrapper" data-kt-scroll-offset="5px">
                             <!--begin::Sidebar menu-->
 
-                            @include('components.sideBar')
+                            @include('components.sidebar.sideBar')
 
                             <!--end::Sidebar menu-->
                         </div>
