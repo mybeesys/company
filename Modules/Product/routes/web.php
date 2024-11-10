@@ -20,9 +20,11 @@ use Modules\Product\Http\Controllers\CreditCardTypeController;
 use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\DiscountController;
 use Modules\Product\Http\Controllers\DiscountLOVController;
+use Modules\Product\Http\Controllers\LinkedComboController;
 use Modules\Product\Http\Controllers\ModeController;
 use Modules\Product\Http\Controllers\StationController;
 use Modules\Product\Http\Controllers\PaymentCardController;
+use Modules\Product\Http\Controllers\ProductLOVController;
 use Modules\Product\Http\Controllers\ServiceFeeAppTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeAutoApplyTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
@@ -76,11 +78,13 @@ Route::middleware([
 	
     Route::resource('ingredient', IngredientController::class)->names('ingredient');
     Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+    Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+    Route::get('ingredientProductList', [IngredientController::class, 'ingredientProductList'])->name('ingredientProductList');
 	Route::get('unitTypeList', [IngredientController::class, 'getUnitTypeList'])->name('unitTypeList');
     Route::get('getVendors', [IngredientController::class, 'getVendors'])->name('getVendors');
     Route::resource('unit', UnitController::class)->names('unit');
     Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
-    Route::get('listRecipebyProduct', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
+    Route::get('listRecipebyProduct/{id?}', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
     
 	Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
     Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
@@ -97,4 +101,10 @@ Route::middleware([
     Route::get('discountLovs', [DiscountLOVController::class, 'getDiscountLovs'])->name('discountLovs');
     Route::get('discounts', [DiscountController::class, 'getDiscounts'])->name('discountList');
     Route::resource('discount', DiscountController::class)->names('discount');
+
+    Route::get('linkedCombos', [LinkedComboController::class, 'getLinkedCombos'])->name('linkedComboList');
+    Route::resource('linkedCombo', LinkedComboController::class)->names('linkedCombo');
+    
+    Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
+    Route::get('productList', [ProductController::class, 'all'])->name('productList');
 });

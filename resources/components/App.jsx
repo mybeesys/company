@@ -8,11 +8,11 @@ import CustomMenuTable from './custommenu/CustomMenuTable';
 import CustomMenuDetail from './custommenu/CustomMenuDetail';
 import ServiceFeeTable from './serviceFee/ServiceFeeTable';
 import ServiceFeeDetail from './serviceFee/ServiceFeeDetail';
-import Ingredient from './ingredients/Ingredient';
-import IngredientDetail from './ingredients/IngredientDetail';
-import TreeTableComponent from './TreeTableComponent';
 import DiscountTable from './discount/DiscountTable';
+import ingredient from './ingredients/ingredient';
 import DiscountDetail from './discount/DiscountDetail';
+import LinkedComboTable from './linkedCombo/LinkedComboTable';
+import LinkedComboDetail from './linkedCombo/LinkedComboDetail';
 
 
 
@@ -29,11 +29,11 @@ const App = ({nodeType, dir}) =>{
     custommenuedit  : <CustomMenuDetail translations={translations} dir={dir}/>,
     serviceFee      : <ServiceFeeTable translations={translations} dir={dir}/>,
     servicefeeedit  : <ServiceFeeDetail translations={translations} dir={dir}/>,
-    ingredient      : <Ingredient translations={translations} dir={dir}/>,
-    ingredientedit  : <IngredientDetail translations={translations} dir={dir}/>,
-    unit            : <TreeTableComponent translations={translations} dir={dir} component={"unit"}/>,
+    ingredient      : <ingredient translations={translations} dir={dir}/>,
     discount        : <DiscountTable translations={translations} dir={dir}/>,
-    discountedit    : <DiscountDetail translations={translations} dir={dir}/>
+    discountedit    : <DiscountDetail translations={translations} dir={dir}/>,
+    linkedCombo     : <LinkedComboTable translations={translations} dir={dir}/>,
+    linkedComboedit    : <LinkedComboDetail translations={translations} dir={dir}/>,
   }
   
   useEffect(() => {

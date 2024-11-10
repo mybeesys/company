@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Product;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\Vendor;
 
@@ -20,6 +21,17 @@ class IngredientController extends Controller
         return response()->json($tree);
     }
 
+    public function ingredientProductList()
+    {
+        $ingredients = Ingredient::all();
+        $product = Product::all();
+        $product = array_map(fn($item) => $item + ['type' => "-p"], $product->toArray());
+        $ingredients = array_map(fn($item) => $item + ['type' => "-i"], $ingredients->toArray());
+        $tree = array_merge($ingredients , $product);
+        return response()->json($tree);
+    }
+
+    
     public function getUnitTypeList ()
     {
         $units = Unit::all();

@@ -1,0 +1,191 @@
+import React, { useEffect, useState } from 'react';
+import SweetAlert2 from 'react-sweetalert2';
+import axios from 'axios';
+import LinkedComboBasicInfo from './LinkedComboBasicInfo';
+import LinkedComboGroup from './LinkedComboGroup';
+
+const LinkedComboDetail = ({dir, translations}) => {
+  const rootElement = document.getElementById('root');
+  let linkedCombo = JSON.parse(rootElement.getAttribute('linkedCombo'));
+  const [defaultMenu, setdefaultMenu] = useState([
+    { key: 'basicInfo', visible: true },
+    { key: 'groups', visible: true }
+  ]);
+  const [disableSubmitButton, setSubmitdisableButton] = useState(false);
+  const [menu, setMenu] = useState(defaultMenu);
+  const [currentObject, setcurrentObject] = useState(linkedCombo);
+  const [showAlert, setShowAlert] = useState(false);
+  const [productsForCombo, setProductsForCombo] = useState([]);
+
+  const getName = (name_en, name_ar) => {
+    if (dir == 'ltr')
+        return name_en;
+    else
+        return name_ar
+  }
+  
+  useEffect(() => {
+    const fetchData = async () => {
+        const response = await axios.get('/productList');
+        const pps = response.data.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id } })
+        setProductsForCombo(pps);
+    }
+    fetchData().catch(console.error);
+  }, []);
+
+  const saveChanges = async () => {
+    try {
+      setSubmitdisableButton(true);
+      let r = { ...currentObject };
+      // r["cards"] = r["cards"].map(x=> { return {payment_card_id : x.value} });
+      // r["diningTypes"] = r["diningTypes"].map(x=> { return {dining_type_id : x.value} });
+      const response = await axios.post('/linkedCombo', r);
+      if (response.data.message == "Done") {
+        window.location.href = '/linkedCombo';
+      }
+      else
+      {
+        setShowAlert(true);
+        Swal.fire({
+            show: showAlert,
+            title: 'Error',
+            text: translations.technicalerror ,
+            icon: "error",
+            timer: 2000,
+            showCancelButton: false,
+            showConfirmButton: false,
+           }).then(() => {
+            setShowAlert(false); // Reset the state after alert is dismissed
+          });
+      }
+    } catch (error) {
+      setShowAlert(true);
+      Swal.fire({
+          show: showAlert,
+          title: 'Error',
+          text: translations.technicalerror ,
+          icon: "error",
+          timer: 2000,
+          showCancelButton: false,
+          showConfirmButton: false,
+         }).then(() => {
+          setShowAlert(false); // Reset the state after alert is dismissed
+        });
+      console.error('There was an error adding the product!', error);
+    }
+    setSubmitdisableButton(false);
+  }
+  
+  const handleMainSubmit = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+
+      var menu = [...defaultMenu]
+      menu[0].visible = true;
+      setMenu([...menu]);
+
+      form.classList.add('was-validated');
+      return;
+    }
+    else {
+      saveChanges();
+    }
+  }
+
+  const handleChange = (index, value) => {
+    let currentMenu = [...menu];
+    currentMenu[index].visible = value;
+    setMenu([...currentMenu]);
+  }
+
+  const clickSubmit = () => {
+    let btnSubmit = document.getElementById("btnMainSubmit");
+    btnSubmit.click();
+  }
+
+  const cancel = () => {
+    window.location.href = "/linkedCombo";
+  }
+
+  const onBasicChange = (key, value) => {
+    currentObject[key] = value;
+    setcurrentObject({...currentObject});
+  }
+
+  const onComboChange = (key, value) => {
+    currentObject[key] = value;
+    setcurrentObject({ ...currentObject });
+    return {
+      message: "Done"
+    }
+  }
+
+  return (
+    <div>
+      <SweetAlert2 />
+      <div class="row" style={{ padding: "5px" }}>
+        <div class="col-9"></div>
+        <div class="col-2">
+          <button class="btn btn-primary" onClick={clickSubmit} disabled={disableSubmitButton}>
+            {translations.savechanges}
+          </button>
+        </div>
+        <div class="col-1">
+          <button class="btn btn-flex" onClick={cancel} >{translations.cancel}</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-3">
+          <div class="card mb-5 mb-xl-8" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: "12px" }}>
+            {menu.map((m, index) => (
+              <div className="row product-side-menu">
+                <div class="col-12">
+                  <label class="col-form-label col-12">
+                    <div class="row">
+                      <div class="col-2">
+                        <input type="checkbox" class="form-check-input" checked={m.visible}
+                          onChange={(e) => handleChange(index, e.target.checked)} />
+                      </div>
+                      <div class="col-10">{translations[m.key]}</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="col-9">
+          <div className="card mb-5 mb-xl-8">
+            <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
+              {
+                menu[0].visible ?
+                  <LinkedComboBasicInfo
+                    translations={translations}
+                    currentObject={currentObject}
+                    onBasicChange = {onBasicChange}
+                    dir ={dir}/>
+                  : <></>
+              }
+              {
+                menu[1].visible ?
+                  <LinkedComboGroup
+                    translations={translations}
+                    dir ={dir}
+                    currentObject={currentObject}
+                    onComboChange = {onComboChange}
+                    products={productsForCombo}
+                  />
+                  : <></>
+              }
+              <input type="submit" id="btnMainSubmit" hidden></input>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LinkedComboDetail;

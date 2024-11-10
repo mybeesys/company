@@ -37,6 +37,7 @@ return [
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
     'ingredient' =>'Ingredient' ,
-    'unit' => 'Unit'
+    'unit' => 'Unit',
+    'linkedCombo' => 'Linked Combo'
 
 ];

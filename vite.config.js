@@ -24,4 +24,7 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'public'), // Alias '@' to the 'resources' directory
         },
     },
+    ssr: {
+        external: ["@webassemblyjs/helper-api-error"]
+      }
 });

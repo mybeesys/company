@@ -7,7 +7,8 @@ import ProductRecipe from './ProductRecipe';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 import { Button } from 'primereact/button';
-
+import ProductCombo from './ProductCombo';
+import ProductLinkedCombo from './ProductLinkedCombo';
 
 const ProductComponent = ({translations , dir}) => {
   const rootElement = document.getElementById('root');
@@ -17,25 +18,29 @@ const ProductComponent = ({translations , dir}) => {
   let getProductMatrix = JSON.parse(rootElement.getAttribute('getProductMatrix-url'));
   let listAttributeUrl = JSON.parse(rootElement.getAttribute('listAttribute-url'));
   let listRecipeUrl = JSON.parse(rootElement.getAttribute('listRecipe-url'));
-  let ingredientUrl = JSON.parse(rootElement.getAttribute('ingredient-url'));
+  let ingredientProductUrl = JSON.parse(rootElement.getAttribute('ingredientProductUrl-url'));
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([]);
   const [currentObject, setcurrentObject] = useState(product);
   const [productMatrix, setProductMatrix] = useState(product.attributeMatrix);
-  const [defaultMenu , setdefaultMenu] =useState( [
+  const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
     { key: 'printInfo', visible: false },
     { key: 'advancedInfo', visible: false },
     { key: 'modifiers', visible: false },
     { key: 'recipe', visible: false },
+    { key: 'groupCombo', visible: false },
+    { key: 'linkedCombo', visible: false },
     { key: 'inventory', visible: false }
   ]);
   const [menu, setMenu] = useState(defaultMenu);
   const [recipe, setRecipe] = useState([]);
   const [ingredientTree, setIngredientTree] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [currentModifiers, setcurrentModifiers] = useState(!!product.modifiers ? product.modifiers : []);
   const [disableSubmitButton , setSubmitdisableButton] = useState(false);
+  const [productLOVs, setProductLOVs] = useState({productForComboLOV:[] ,linkedComboPromptLOV:[], linkedComboLOV :[]});
 
   const parentHandlechanges = (childproduct) => {
     setcurrentObject({ ...childproduct });
@@ -63,17 +68,27 @@ const ProductComponent = ({translations , dir}) => {
       saveChanges();
     }
   }
-
+  const onComboChange = (key, value) => {
+    currentObject[key] = value;
+    setcurrentObject({ ...currentObject });
+    return {
+      message: "Done"
+    }
+  }
   const saveChanges = async () => {
     try {
+      if(!validCombo()) return;
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
       r["track_serial_number"] ? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
       r["sold_by_weight"] ? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
+      r["prep_recipe"] ? r["prep_recipe"] = 1 : r["prep_recipe"] = 0;
       r["modifiers"] = [...currentModifiers];
       var matrixResult = productMatrix.filter((object) => object.deleted != 1);
       r["attributeMatrix"] = [...matrixResult];
+      let recipe1 = recipe.filter((object) => object.id != -100);
+      r["recipe"] = [...recipe1];
 
       const response = await axios.post(producturl, r, {
         headers: {
@@ -121,10 +136,8 @@ const ProductComponent = ({translations , dir}) => {
     window.location.href = categoryurl;
   }
 
-  const getMatrix = async () => {
-    const response = await axios.get(getProductMatrix + '/' + currentObject.id);
-    setProductMatrix(response.data);
-  }
+  
+
 
   const getName = (name_en, name_ar) => {
     if (dir == 'ltr')
@@ -133,28 +146,49 @@ const ProductComponent = ({translations , dir}) => {
       return name_ar
   }
 
-  const getAttributes = async () => {
-    const response = await axios.get(listAttributeUrl);
-    setAttributesTree(response.data);
+  const getProductLOVs = async () => {
+    const response = await axios.get('/productLOVs/'+product.id);
+    const products = response.data.product.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id } });
+    const linkedComboPrompts = response.data.prompt.map(e => { return { label: translations[e.name], value: e.id } });
+    const linkedCombos = response.data.linkedCombo.slice(0, response.data.linkedCombo.length-1).
+              map(e => { 
+                return { 
+                  label: getName(e.data.name_en, e.data.name_ar), 
+                  value: e.data.id,
+                  combos: e.data.combos 
+                } 
+              });
+    
+    const category = response.data.category;    
+    setCategories(category);
+
+    const ingredient = response.data.ingredient.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id + e.type , cost: e.cost } });
+    setIngredientTree(ingredient);
+    const recipe = response.data.recipe.map(e => { return { id : e.newid ,  quantity : e.quantity , cost: null , newid : e.newid }});
+    recipe.push({id: -100 , quantity : null , cost: null , newid : null});
+    setRecipe(recipe);
+
+    const matrix = response.data.matrix;
+    setProductMatrix(matrix);
+
+    const attribute =response.data.attribute;
+    setAttributesTree(attribute);
+    
+    setProductLOVs({
+      "productForComboLOV" : products,
+      "linkedComboPromptLOV" : linkedComboPrompts,
+      "linkedComboLOV" : linkedCombos,
+      "recipe" : recipe , 
+      "ingredient" :ingredient,
+      "attribute": attribute , 
+      "matrix": matrix
+    });
   }
 
-  const getRecipe = async () => {
-    const response = await axios.get(listRecipeUrl+'/'+ currentObject.id);
-    setRecipe(response.data);
-  }
-
-  const getIngredient = async () => {
-    const response = await axios.get(ingredientUrl);
-    let result = response.data.map(e => { return { name: getName(e.name_en, e.name_ar), value: e.id } });
-    setIngredientTree(result);
-  }
 
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
-    getMatrix();
-    getAttributes();
-    getRecipe();
-    getIngredient();
+    getProductLOVs();
   }, []);
 
 
@@ -164,9 +198,9 @@ const ProductComponent = ({translations , dir}) => {
     setMenu([...currentMenu]);
   }
 
-  const parentHandleRecipe = () => 
+  const parentHandleRecipe = (resultrecipe) => 
   {
-
+    setRecipe([...resultrecipe]);
   }
 
   const handleGenerateMatrix = (newMatrix) => {
@@ -252,6 +286,44 @@ const ProductComponent = ({translations , dir}) => {
     setcurrentModifiers([...currentModifiers]);
   }
 
+  const validCombo = () =>{
+    if(!!currentObject.set_price &&
+       !!currentObject.combos && !!currentObject.combos.length)
+      {
+      const totalPrice = currentObject.combos.reduce((sum, item) => sum + (!!item.price ? parseFloat(item.price) : 0) , 0);
+      if(totalPrice!=currentObject.price){
+        setShowAlert(true);
+        Swal.fire({
+          show: showAlert,
+          title: 'Error',
+          text: translations.ComboPriceError,
+          icon: "error",
+          timer: 4000,
+          showCancelButton: false,
+          showConfirmButton: false,
+        }).then(() => {
+          setShowAlert(false); // Reset the state after alert is dismissed
+        });
+        return false;
+      }
+    }
+    if(!!currentObject.group_combo && !!currentObject.linked_combo && currentObject.group_combo == currentObject.linked_combo){
+      setShowAlert(true);
+        Swal.fire({
+          show: showAlert,
+          title: 'Error',
+          text: translations.groupComboAndLinkedComboSelected,
+          icon: "error",
+          timer: 4000,
+          showCancelButton: false,
+          showConfirmButton: false,
+        }).then(() => {
+          setShowAlert(false); // Reset the state after alert is dismissed
+        });
+        return false;
+    }
+    return true;
+  }
 
   return (
     <div>
@@ -292,7 +364,7 @@ const ProductComponent = ({translations , dir}) => {
           <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
             {
               
-                <ProductBasicInfo visible={menu[0].visible} translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject} saveChanges={saveChanges}></ProductBasicInfo>
+                <ProductBasicInfo visible={menu[0].visible} translations={translations} parentHandlechanges={parentHandlechanges} product={currentObject} saveChanges={saveChanges} category ={categories}></ProductBasicInfo>
 
             }
             {
@@ -334,9 +406,32 @@ const ProductComponent = ({translations , dir}) => {
                   productRecipe={recipe}
                   ingredientTree={ingredientTree}
                   parentHandleRecipe={parentHandleRecipe}
+                  handleChange={parentHandlechanges}
                   dir={dir} />
                 : <></>
             }
+            {
+                menu[5].visible ?
+                  <ProductCombo
+                    translations={translations}
+                    product={currentObject}
+                    onComboChange={onComboChange}
+                    products={productLOVs.productForComboLOV}
+                    dir={dir} />
+                  : <></>
+              }
+              {
+                menu[6].visible ?
+                  <ProductLinkedCombo
+                    translations={translations}
+                    product={currentObject}
+                    onComboChange={onComboChange}
+                    pormpts={productLOVs.linkedComboPromptLOV}
+                    linkedCombos={productLOVs.linkedComboLOV}
+                    products={productLOVs.productForComboLOV}
+                    dir={dir} />
+                  : <></>
+              }
             <input type="submit" id="btnMainSubmit" hidden></input>
               </form>
           </div>

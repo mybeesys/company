@@ -19,7 +19,7 @@
         image-url="{{'/assets/media/svg/files/blank-image.svg'}}"
         listModifier-url="{{json_encode(route('modifierClassList'))}}"
         listRecipe-url="{{json_encode(route('listRecipebyProduct'))}}"
-        ingredient-url="{{json_encode(route('ingredientList'))}}"
+        ingredientProductUrl-url="{{json_encode(route('ingredientProductList'))}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

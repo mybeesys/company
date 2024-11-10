@@ -37,7 +37,8 @@ return [
     'serviceFee' => 'رسوم الخدمات',
     'discount' => 'حسومات',
     'ingredient' =>'المكونات' ,
-    'unit' => 'وحدات القياس'
+    'unit' => 'وحدات القياس',
+    'linkedCombo' => 'كومبو'
 
 
 ];

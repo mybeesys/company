@@ -23,10 +23,11 @@ class RecipeModifier extends Model
 
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
-        'ingredient_id',
+        'item_id',
         'modifier_id',
         'quantity',
-        'order'
+        'order',
+        'item_type'
     ];
 
 

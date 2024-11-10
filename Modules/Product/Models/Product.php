@@ -36,7 +36,12 @@ class Product extends Model
         'commissions',
         'order',
         'prep_recipe',
-        'recipe_yield'
+        'recipe_yield',
+        'group_combo',
+        'set_price',
+        'use_upcharge',
+        'linked_combo',
+        'promot_upsell'
     ];
 
     public function getFillable(){
@@ -67,5 +72,14 @@ class Product extends Model
     public function modifiers()
     {
         return $this->hasMany(ProductModifier::class, 'product_id', 'id');
+    }
+    public function combos()
+    {
+        return $this->hasMany(ProductCombo::class, 'product_id', 'id');
+    }
+
+    public function linkedCombos()
+    {
+        return $this->hasMany(ProductLinkedComboItem::class, 'product_id', 'id');
     }
 }

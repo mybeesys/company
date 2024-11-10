@@ -51,6 +51,12 @@ return [
 
             ],
             [
+                'name' => 'linkedCombo',
+                'url' => 'linkedCombo',
+                'permission' => '',
+
+            ],
+            [
                 'name' => 'ingredient',
                 'url' => 'ingredient',
                 'permission' => '',

@@ -225,3 +225,23 @@ color: white !important;
   margin: 10px !important;
   float: right !important;
   }
+
+
+  .product__item__text {
+    padding-top: 20px;
+  }
+  
+  .product__item__text ul {
+    margin-bottom: 10px;
+  }
+  
+  .product__item__text ul li {
+    list-style: none;
+    font-size: 13px;
+    color: #000000;
+    font-weight: 700;
+    padding: 1px 10px;
+    background: rgba(220, 212, 212);
+    border-radius: 50px;
+    display: inline-block;
+  }

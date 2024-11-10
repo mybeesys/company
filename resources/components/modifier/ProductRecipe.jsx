@@ -8,8 +8,8 @@ import { node } from 'webpack';
 
 const animatedComponents = makeAnimated();
 
-const ProductRecipe = ({translations , productRecipe, product, ingredientTree, parentHandleRecipe , handleChange,dir}) => {
-    const [currentObject, setcurrentObject] = useState(product);
+const ProductRecipe = ({translations , productRecipe, modifier, ingredientTree, parentHandleRecipe , handleChange,dir}) => {
+    const [currentObject, setcurrentObject] = useState(modifier);
     const [currentKey, setCurrentKey] = useState('-1');
     const [nodes, setNodes] = useState(productRecipe);
     const [editingRow, setEditingRow] = useState({});
