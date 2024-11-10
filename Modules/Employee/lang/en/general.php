@@ -76,6 +76,7 @@ return [
     'timecard_details' => 'Working hours details',
     'edit_dashboard_permissions' => 'Edit dashboard permissions',
     'edit_pos_permissions' => 'Edit pos permissions',
+    'edit_permissions' => 'Edit permissions',
     'this_role' => 'this role',
     'show_role' => 'Show role',
     'show_employee' => 'Show employee',
@@ -111,4 +112,10 @@ return [
     'thursday' => 'Thursday',
     'friday' => 'Friday',
     'saturday' => 'Saturday',
+    'scheduleshift_search' => 'Employee search',
+    'startTime_before_endTime_error' => 'Start time must be before end time',
+    'endTime_after_startTime_error' => 'End time must be after start time',
+    'time_overlap_error' => 'There is a conflict in the listed times',
+    'last_element_end_status_error' => 'End status of the last interval should be Clockout'
+
 ];

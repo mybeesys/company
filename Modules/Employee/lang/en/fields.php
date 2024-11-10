@@ -119,5 +119,10 @@ return [
     'clock_in_before_shift_time_limit' => 'Clock-in before shift time limit',
     'auto_clock_out_time' => 'Auto clock-out time',
     'h_m' => 'h::m',
+    'start_time' => 'Start time',
+    'end_time' => 'End time',
+    'end_status' => 'End status',
+    'clockout' => 'Clock out',
+    'break' => 'Break'
   
 ];

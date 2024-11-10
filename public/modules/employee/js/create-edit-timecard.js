@@ -1,7 +1,7 @@
 function timecardForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
-    const clockInTimePicker = timePicker($("#clockInTime"));
-    const clockOutTimePicker = timePicker($("#clockOutTime"));
+    const clockInTimePicker = dateTimePicker($("#clockInTime"));
+    const clockOutTimePicker = dateTimePicker($("#clockOutTime"));
 
     $("#clockInTime").on(tempusDominus.Namespace.events.change, function (e) {
         const maxDate = new Date(e.date);

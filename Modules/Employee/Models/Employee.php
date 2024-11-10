@@ -63,4 +63,9 @@ class Employee extends BaseEmployeeModel
     {
         return $this->hasMany(TimeCard::class);
     }
+
+    public function scheduleshifts()
+    {
+        return $this->hasMany(ScheduleShift::class);
+    }
 }
