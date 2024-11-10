@@ -29,17 +29,25 @@ class ScheduleShiftTable
         $end_date = Carbon::createFromFormat('Y-m-d', $request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
         $employees = Employee::with(['timecards', 'scheduleshifts', 'roles', 'establishmentRoles', 'establishments', 'wages'])->get(['id', 'name', 'name_en']);
-        $working_hours = explode(':', TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')->rule_value);
-        $working_hourse_in_mintues = (int) $working_hours[0] * 60 + (int) $working_hours[1];
-        $start_of_day = Carbon::parse(TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')->rule_value);
-        $end_of_day = $start_of_day->copy()->addMinutes($working_hourse_in_mintues)->format('H:i');
+        $working_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value;
+        $start_of_day = TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')?->rule_value;
+        if ($working_hours && $start_of_day) {
+            $working_hours_array = explode(':', $working_hours);
+            $working_hourse_in_mintues = (int) $working_hours_array[0] * 60 + (int) $working_hours_array[1];
+            $start_of_day_time = Carbon::parse($start_of_day);
+            $end_of_day = $start_of_day_time->copy()->addMinutes($working_hourse_in_mintues)->format('H:i');
+        } else {
+            $start_of_day_time = null;
+            $end_of_day = null;
+        }
 
 
-        $employeeData = $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day, $end_of_day) {
+
+        $employeeData = $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
             $scheduleshifts = $employee->scheduleShifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
             for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
                 if (!array_key_exists($date->format('Y-m-d'), $scheduleshifts)) {
-                    $scheduleshifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day->format('H:i') . ' - ' . $end_of_day . '</div>';
+                    $scheduleshifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time?->format('H:i') . ' - ' . $end_of_day . '</div>';
                 } else {
                     $newArray = '<div class="add-schedule-shift-button d-flex flex-column" data-employee-id="' . $employee->id . '" data-date=' . $date->format('Y-m-d');
                     foreach ($scheduleshifts[$date->format('Y-m-d')] as $key => $item) {
