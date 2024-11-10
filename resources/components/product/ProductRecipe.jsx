@@ -103,6 +103,8 @@ const renderDropDownCell = (node, key, autoFocus) => {
       defaultValue={node[key]} 
       onChange={(e) => handleEditorChange(e.value, key , node)}
       autoFocus={!!autoFocus}  
+      menuPortalTarget={document.body} 
+      styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
       />
       
           :

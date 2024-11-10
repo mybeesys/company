@@ -57,9 +57,18 @@ body {
       @extend .text-gray-900 ; 
       @extend .fw-bold ; 
       @extend .mb-1 ; 
-      @extend .fs-6 ; 
+      @extend .fs-6 ;   
     }
   }
+}
+
+
+.p-treetable-tbody tr:nth-child(odd) {
+  background-color: #fff; // White
+}
+
+.p-treetable-tbody tr:nth-child(even) {
+  background-color: #f9f9f9; // Light gray
 }
 
 .p-datatable-thead

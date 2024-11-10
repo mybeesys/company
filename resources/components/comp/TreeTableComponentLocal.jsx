@@ -302,6 +302,8 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
                     components={animatedComponents}
                     defaultValue={val}
                     onChange={val => handleEditorChange(val.map(x=> { return  x.value }), key)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                 />
                 :
                     <div class="product__item__text">

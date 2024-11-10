@@ -90,12 +90,14 @@ const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos,
                             <div class="col-6">
                                 <label for="promot_upsell" class="col-form-label">{translations.promptForUpsell}</label>
                                 <select class="form-control selectpicker" value={product.promot_upsell}
-                                    onChange={(e) => onBasicChange('promot_upsell', e.target.value)} >
+                                    onChange={(e) => onBasicChange('promot_upsell', e.target.value)} 
+                                    style={{marginBottom:"10px"}}>
                                     {pormpts.map((pormpt) => (
                                         <option key={pormpt.value} value={pormpt.value}>
                                             {pormpt.label}
                                         </option>
                                     ))}
+                                  
                                 </select>
                             </div>
                         </div>
