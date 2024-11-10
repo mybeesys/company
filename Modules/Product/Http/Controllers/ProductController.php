@@ -20,7 +20,7 @@ class ProductController extends Controller
         $products = Product::all();
         return response()->json($products);
      }
-     
+
     public function listRecipe($id)
     {
         $recipe = RecipeProduct::where([['product_id', '=', $id]])->get();
@@ -79,11 +79,11 @@ class ProductController extends Controller
             'commissions' => 'nullable|numeric',
             'recipe_yield' => 'nullable|numeric',
             'prep_recipe' => 'nullable|boolean',
-            'group_combo' => 'required|boolean',
-            'set_price' => 'required|boolean',
-            'use_upcharge' => 'required|boolean',
-            'linked_combo' => 'required|boolean',
-            'promot_upsell' => 'required|numeric'
+            'group_combo' => 'nullable|boolean',
+            'set_price' => 'nullable|boolean',
+            'use_upcharge' => 'nullable|boolean',
+            'linked_combo' => 'nullable|boolean',
+            'promot_upsell' => 'nullable|numeric'
         ]);
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
