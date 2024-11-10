@@ -124,5 +124,8 @@ return [
     'end_time' => 'وقت الانتهاء',
     'end_status' => 'حالة الانتهاء',
     'clockout' => 'تسجيل خروج',
-    'break' => 'استراحة'
+    'break' => 'استراحة',
+    'establishment' => 'الفرع',
+    'total_wages' => 'إجمالي المرتب',
+    'all_establishments' => 'كل الأفرع'
 ];

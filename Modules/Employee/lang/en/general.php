@@ -116,6 +116,6 @@ return [
     'startTime_before_endTime_error' => 'Start time must be before end time',
     'endTime_after_startTime_error' => 'End time must be after start time',
     'time_overlap_error' => 'There is a conflict in the listed times',
-    'last_element_end_status_error' => 'End status of the last interval should be Clockout'
-
+    'last_element_end_status_error' => 'End status of the last interval should be Clockout',
+    'column_visibility' => 'Show columns',
 ];
