@@ -26,7 +26,7 @@ return [
     'description' => 'الوصف',
     'image' => 'صورة',
     'type' => 'النوع',
-    'id' => 'الرقم المعرف',
+    'id' => 'الرقم',
     'name' => 'الاسم',
     'gender' => 'الجنس',
     'code' => 'الكود',
@@ -95,7 +95,7 @@ return [
     'inTime' => 'وقت الدخول',
     'outTime' => 'وقت الخروج',
     'hours' => 'عدد الساعات',
-    'total_hours' => 'عدد الساعات الكلي',
+    'total_hours' => 'إجمالي الساعات',
     'overtime_hours' => 'عدد الساعات الإضافية',
     'maximum_regular_hours_per_day' => 'الحد الأقصى لساعات العمل العادي في اليوم',
     'maximum_overtime_hours_per_day' => 'الحد الأقصى لساعات العمل الإضافي في اليوم',
@@ -120,5 +120,9 @@ return [
     'auto_clock_out_time' => 'وقت تسجيل الخروج التلقائي',
     'hours_count' => 'عدد الساعات',
     'h_m' => 'د::س',
-
+    'start_time' => 'وقت البدء',
+    'end_time' => 'وقت الانتهاء',
+    'end_status' => 'حالة الانتهاء',
+    'clockout' => 'تسجيل خروج',
+    'break' => 'استراحة'
 ];
