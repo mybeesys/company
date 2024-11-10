@@ -28,4 +28,7 @@ export default defineConfig({
         external: ["@webassemblyjs/helper-api-error"]
       },
     assetsInclude: ['**/*.node'],
+    optimizeDeps: {
+        include: ['@swc/wasm']
+      }
 });
