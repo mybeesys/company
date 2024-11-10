@@ -44,6 +44,11 @@ class Employee extends BaseEmployeeModel
         return $this->belongsToMany(Establishment::class, 'employee_employee_establishments')->using(EmployeeEstablishment::class)->withTimestamps()->withPivot('role_id', 'wage_id');
     }
 
+    public function establishmentRoles()
+    {
+        return $this->belongsToMany(Role::class, 'employee_employee_establishments')->using(EmployeeEstablishment::class)->withTimestamps()->withPivot('establishment_id', 'wage_id');
+    }
+
     public function wages()
     {
         return $this->hasMany(Wage::class);
@@ -62,5 +67,10 @@ class Employee extends BaseEmployeeModel
     public function timecards()
     {
         return $this->hasMany(TimeCard::class);
+    }
+
+    public function scheduleshifts()
+    {
+        return $this->hasMany(ScheduleShift::class);
     }
 }

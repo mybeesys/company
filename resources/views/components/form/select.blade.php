@@ -13,6 +13,7 @@
     'data_allow_clear' => true,
     'optionName' => 'name',
     'disabled' => false,
+    'attribute' => null,
 ])
 @php
     // handling repeaters errors
@@ -29,7 +30,7 @@
     'is-invalid' => $errors->first($dotNotationName),
 ]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}" @required($required)
     @disabled($disabled) data-allow-clear="{{ $data_allow_clear }}" data-kt-filter="{{ $name }}"
-    name="{{ $name }}">
+    name="{{ $name }}" {{ $attribute }} >
     <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
     @if ($options)
         @foreach ($options as $option)

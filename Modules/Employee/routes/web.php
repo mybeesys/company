@@ -7,7 +7,7 @@ use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
-use Modules\Employee\Http\Controllers\ShiftScheduleController;
+use Modules\Employee\Http\Controllers\ScheduleShiftController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -103,15 +103,11 @@ Route::middleware([
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
 
-        Route::controller(ShiftScheduleController::class)->name('shift-schedules.')->prefix('/shift-schedule')->group(function () {
+        Route::controller(ScheduleShiftController::class)->name('shift-schedules.')->prefix('/shift-schedule')->group(function () {
             Route::get('', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::get('/show/{dashboardRole}', 'show')->name('show');
             Route::post('/store', 'store')->name('store');
-            Route::get('/{dashboardRole}/edit', 'edit')->name('edit');
-            Route::patch('/{dashboardRole}', 'update')->name('update');
-            Route::delete('/{dashboardRole}', 'destroy')->name('delete');
 
+            Route::get('/get-shift-schedule', 'getShiftSchedule')->name('getShiftSchedule');
 
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');

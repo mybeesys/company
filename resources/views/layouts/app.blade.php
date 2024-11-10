@@ -77,7 +77,7 @@
             height: 43.2px !important;
         }
 
-               .link-underline {
+        .link-underline {
             text-decoration: underline !important;
             cursor: pointer !important;
             color: #007bff !important;
@@ -105,6 +105,10 @@
             outline: none !important;
         }
 
+        .select2-container .select2-selection--single .select2-selection__clear {
+            position: absolute !important;
+        }
+
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;
@@ -114,8 +118,6 @@
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
-                height: 43.2px !important;
-
             }
 
 
