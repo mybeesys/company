@@ -22,7 +22,7 @@ class PermissionController extends Controller
         ]);
         $permissions = new PosRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee);
-        return response()->json(['message' => __('employee::responses.opreation_success')]);
+        return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
     public function getEmployeePosPermissions($id)
@@ -55,7 +55,7 @@ class PermissionController extends Controller
         $permissions = new DashboardRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($administrativeUser, false);
 
-        return response()->json(['message' => __('employee::responses.opreation_success')]);
+        return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
     public function getEmployeeDashboardPermissions($id)

@@ -121,6 +121,8 @@
             $(document).on('click', '.add-schedule-shift-button', function(e) {
                 e.preventDefault();
                 employeeId = $(this).data('employee-id');
+                const employeeName = $(this).data('employee-name');
+
                 date = $(this).data('date');
                 const data = $(this).data();
                 const scheduleShiftIds = [];
@@ -132,7 +134,15 @@
                 ajaxRequest("{{ url('/schedule/shift-schedule/get-shift-schedule') }}", 'GET', {
                     employee_id: employeeId,
                 }, false, true).done(function(response) {
-                    roleValues = Object.values(response.data).map(String);
+                    roleValues = Object.values(response.data.roles).map(String);
+                    let startDayTime = response.data.day_times.start_of_day;
+                    let endDayTime = response.data.day_times.end_of_day;
+
+                    $('.work-time-hint').html(
+                        `{{ __('employee::general.day_times_hint', ['start' => ':start', 'end' => ':end']) }}`
+                        .replace(':start', startDayTime)
+                        .replace(':end', endDayTime)
+                    );
 
                     $('select[name*="[role]"]').each(function() {
                         $(this).find('option').each(function() {
@@ -159,6 +169,8 @@
                         $('#schedule_shift').modal('toggle');
                     }, 300);
                 });
+
+                $('.work-time-modal-title').html(employeeName + ' | ' + date);
 
                 for (const key in data) {
                     if (key.startsWith('scheduleShiftId')) {
@@ -386,6 +398,7 @@
                 );
             } else {
                 $(`.repeater-error[data-error-id="${conflictErrorId}"]`).remove();
+                checkErrors($('.submit-form-btn'));
             }
         }
 

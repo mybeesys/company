@@ -122,4 +122,5 @@ return [
     'add_more_shifts' => 'أضف المزيد من الورديات',
     'all_roles' => 'كل الأدوار',
     'all_employees' => 'كل الموظفين',
+    'day_times_hint' => 'يبدأ وقت الدوام من الساعة :start إلى الساعة :end',
 ];
