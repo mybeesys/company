@@ -28,7 +28,7 @@ class TimeSheetRuleController extends Controller
             foreach ($request->safe()->all() as $setting_name => $value) {
                 TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
             }
-            return response()->json(['message' => __('employee::responses.opreation_success')]);
+            return response()->json(['message' => __('employee::responses.operation_success')]);
         }
     }
 

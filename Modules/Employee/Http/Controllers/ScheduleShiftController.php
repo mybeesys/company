@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\ScheduleShiftTable;
+use Modules\Employee\Http\Requests\StoreScheduleShiftRequest;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
@@ -34,11 +35,12 @@ class ScheduleShiftController extends Controller
         $employee_id = $request->employee_id;
         $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
         $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(), $employee->establishmentRoles->pluck('id', 'name')->toArray());
-        return response()->json(['data' => $roles]);
+        $day_times = ScheduleShiftTable::getStartEndDayTime();
+        return response()->json(['data' => ['roles' => $roles, 'day_times' => $day_times]]);
     }
 
 
-    public function store(Request $request)
+    public function store(StoreScheduleShiftRequest $request)
     {
         DB::transaction(function () use ($request) {
             $employee_id = $request->employee_id;
@@ -66,7 +68,7 @@ class ScheduleShiftController extends Controller
             ScheduleShift::where('employee_id', $employee_id)->whereDate('startTime', $request->date)->whereNotIn('id', $ids)->delete();
         });
 
-        return response()->json(['message' => __('employee::responses.opreation_success')]);
+        return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
 }

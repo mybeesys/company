@@ -109,20 +109,25 @@
             position: absolute !important;
         }
 
+
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;
                 right: auto;
             }
 
+            .select2-selection__rendered {
+                padding-left: 0px !important;
+            }
+
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
             }
-
-
-
-
+        @else
+            .select2-selection__rendered {
+                padding-right: 0px !important;
+            }
         @endif
 
         .select2-container .select2-selection--single {

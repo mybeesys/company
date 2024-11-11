@@ -122,4 +122,5 @@ return [
     'add_more_shifts' => 'Add more shifts',
     'all_roles' => 'All roles',
     'all_employees' => 'All employees',
+    'day_times_hint' => 'Business day starts at :start, ends at :end',
 ];

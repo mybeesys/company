@@ -8,8 +8,11 @@
 <div class="modal fade" id="schedule_shift" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-1000px">
         <div class="modal-content">
-            <div class="modal-header mb-2">
-                <h2 class="fw-bold">@lang('employee::general.shifts')</h2>
+            <div class="modal-header mb-2 px-10 py-5">
+                <div class="d-flex flex-column gap-2">
+                    <h2 class="fw-bold work-time-modal-title"></h2>
+                    <spab class="work-time-hint" style="color: #347cff;"></spab>
+                </div>
                 <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                     <i class="ki-outline ki-cross fs-1"></i>
                 </div>

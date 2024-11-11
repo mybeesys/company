@@ -23,7 +23,7 @@
     ];
 @endphp
 @foreach ($filters as $filter)
-    <div class="fv-row flex-md-root min-w-250px min-w-md-150px w-100">
+    <div class="fv-row flex-md-root min-w-250px min-w-md-100px w-100">
         <x-form.select value="{{ $filter['selected'] }}" data_allow_clear="false" :options="$filter['options']" name="{{ $filter['name'] }}" />
     </div>
 @endforeach
