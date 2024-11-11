@@ -8,7 +8,7 @@
     'addButton' => true,
     'elements' => null,
 ])
-<div class="container">
+<div class="container px-0">
     <div class="card-toolbar flex-wrap justify-content-between gap-5" data-kt-{{ $model }}-table-toolbar="base">
 
         <div class="d-flex flex-wrap flex-md-nowrap gap-5 align-items-center me-auto">

@@ -119,5 +119,7 @@ return [
     'last_element_end_status_error' => 'يجب أن تكون حالة النهاية للفترة الأخيرة هي تسجيل الخروج',
     'column_visibility' => 'رؤية العمود',
     'shifts' => 'الورديات',
-    'add_more_shifts' => 'أضف المزيد من الورديات'
+    'add_more_shifts' => 'أضف المزيد من الورديات',
+    'all_roles' => 'كل الأدوار',
+    'all_employees' => 'كل الموظفين',
 ];

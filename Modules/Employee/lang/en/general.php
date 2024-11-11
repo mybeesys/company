@@ -119,5 +119,7 @@ return [
     'last_element_end_status_error' => 'End status of the last interval should be Clockout',
     'column_visibility' => 'Show columns',
     'shifts' => 'Shifts',
-    'add_more_shifts' => 'Add more shifts'
+    'add_more_shifts' => 'Add more shifts',
+    'all_roles' => 'All roles',
+    'all_employees' => 'All employees',
 ];

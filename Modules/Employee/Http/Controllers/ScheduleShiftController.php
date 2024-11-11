@@ -12,6 +12,7 @@ use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\ScheduleShift;
 use Modules\Employee\Models\TimeSheetRule;
+use Modules\Establishment\Models\Establishment;
 
 class ScheduleShiftController extends Controller
 {
@@ -21,17 +22,18 @@ class ScheduleShiftController extends Controller
             return ScheduleShiftTable::getScheduleShiftTable($request);
         }
         $roles = Role::get(['id', 'name']);
+        $establishments = Establishment::get(['id', 'name']);
         $timeSheet_rules = TimeSheetRule::all();
         $columns = ScheduleShiftTable::getScheduleShiftColumns();
-        return view('employee::schedules.shift-schedules.index', compact('columns', 'roles', 'timeSheet_rules'));
+        return view('employee::schedules.shift-schedules.index', compact('columns', 'roles', 'timeSheet_rules', 'establishments'));
     }
 
 
-    public function getShiftSchedule(Request $request)
+    public function getScheduleShift(Request $request)
     {
         $employee_id = $request->employee_id;
         $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
-        $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(),$employee->establishmentRoles->pluck('id', 'name')->toArray()); 
+        $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(), $employee->establishmentRoles->pluck('id', 'name')->toArray());
         return response()->json(['data' => $roles]);
     }
 
@@ -43,7 +45,7 @@ class ScheduleShiftController extends Controller
             $startOfWeek = Carbon::parse($request->date)->startOfWeek()->format('Y-m-d');
             $endOfWeek = Carbon::parse($request->date)->endOfWeek()->format('Y-m-d');
             $schedule_id = Schedule::updateOrCreate(['start_date' => $startOfWeek], [
-                ['end_date' => $endOfWeek]
+                'end_date' => $endOfWeek
             ])->id;
             $ids = [];
             foreach ($request->schedule_shift_repeater as $item) {

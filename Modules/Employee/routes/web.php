@@ -107,7 +107,7 @@ Route::middleware([
             Route::get('', 'index')->name('index');
             Route::post('/store', 'store')->name('store');
 
-            Route::get('/get-shift-schedule', 'getShiftSchedule')->name('getShiftSchedule');
+            Route::get('/get-shift-schedule', 'getScheduleShift')->name('getScheduleShift');
 
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');

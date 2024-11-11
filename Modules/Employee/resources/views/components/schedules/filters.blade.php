@@ -1,25 +1,21 @@
+@props(['establishments', 'roles'])
 @php
     $filters = [
         [
-            'label' => __('employee::fields.establishment'),
-            'name' => 'establishment',
-            'options' => [
-                ['id' => 'with_deleted_records', 'name' => __('employee::general.with_deleted_records')],
-                ['id' => 'only_deleted_records', 'name' => __('employee::general.only_deleted_records')],
-            ],
+            'name' => 'establishment_filter',
+            'selected' => 'all',
+            'options' => array_merge([['id' => 'all', 'name' => __('employee::general.all_establishments')]], $establishments->toArray()),
         ],
         [
-            'label' => __('employee::fields.role'),
-            'name' => 'role',
-            'options' => [
-                ['id' => '1', 'name' => __('employee::fields.active')],
-                ['id' => '0', 'name' => __('employee::fields.inActive')],
-            ],
+            'name' => 'role_filter',
+            'selected' => 'all',
+            'options' => array_merge([['id' => 'all', 'name' => __('employee::general.all_roles')]], $roles->toArray()),
         ],
         [
-            'label' => __('employee::fields.employee'),
-            'name' => 'employee',
+            'name' => 'employee_filter',
+            'selected' => 'all',
             'options' => [
+                ['id' => 'all', 'name' => __('employee::general.all_employees')],
                 ['id' => '1', 'name' => __('employee::fields.active')],
                 ['id' => '0', 'name' => __('employee::fields.inActive')],
             ],
@@ -28,6 +24,6 @@
 @endphp
 @foreach ($filters as $filter)
     <div class="fv-row flex-md-root min-w-250px min-w-md-150px w-100">
-        <x-form.select :options="$filter['options']" name="{{ $filter['name'] }}" />
+        <x-form.select value="{{ $filter['selected'] }}" data_allow_clear="false" :options="$filter['options']" name="{{ $filter['name'] }}" />
     </div>
 @endforeach
