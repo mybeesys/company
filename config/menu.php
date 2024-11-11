@@ -146,7 +146,7 @@ return [
             ],
             [
                 'name' => 'schedules',
-                'url' => 'schedule/timesheet-rule',
+                'url' => 'schedule',
                 'permission' => '',
                 'subMenu' => [
                     [

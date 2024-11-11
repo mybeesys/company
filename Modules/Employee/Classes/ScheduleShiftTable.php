@@ -41,8 +41,6 @@ class ScheduleShiftTable
             $end_of_day = null;
         }
 
-
-
         $employeeData = $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
             $scheduleshifts = $employee->scheduleShifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
             for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {

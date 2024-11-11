@@ -118,4 +118,6 @@ return [
     'time_overlap_error' => 'There is a conflict in the listed times',
     'last_element_end_status_error' => 'End status of the last interval should be Clockout',
     'column_visibility' => 'Show columns',
+    'shifts' => 'Shifts',
+    'add_more_shifts' => 'Add more shifts'
 ];

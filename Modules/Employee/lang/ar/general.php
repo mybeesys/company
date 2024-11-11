@@ -118,4 +118,6 @@ return [
     'time_overlap_error' => 'يوجد تقاطع في الأوقات المدرجة',
     'last_element_end_status_error' => 'يجب أن تكون حالة النهاية للفترة الأخيرة هي تسجيل الخروج',
     'column_visibility' => 'رؤية العمود',
+    'shifts' => 'الورديات',
+    'add_more_shifts' => 'أضف المزيد من الورديات'
 ];
