@@ -1,21 +1,22 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees_working_hours'))
+@section('title', __('menuItemLang.shift_schedule'))
 
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="scheduleshift" :addButton=false :idColumn=false module="employee">
                 <x-slot:filters>
-                    <x-tables.filters-dropdown>
-                        <x-employee::employees.filters />
-                    </x-tables.filters-dropdown>
+                    <x-employee::schedules.filters />
                 </x-slot:filters>
                 <x-slot:elements>
-                    <x-form.input-div class="mb-8 w-25" :row=false>
+                    <x-form.input-div class="mb-8 min-w-250px w-100" :row=false>
                         <x-form.input class="form-control form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
                     </x-form.input-div>
                 </x-slot:elements>
+                <x-slot:export>
+                    <x-tables.export-menu id="employee" />
+                </x-slot:export>
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
@@ -33,7 +34,7 @@
         <div class="modal-dialog modal-dialog-centered mw-1000px">
             <div class="modal-content">
                 <div class="modal-header mb-2">
-                    <h2 class="fw-bold">@lang('employee::general.edit_permissions')</h2>
+                    <h2 class="fw-bold">@lang('employee::general.shifts')</h2>
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                         <i class="ki-outline ki-cross fs-1"></i>
                     </div>
@@ -83,7 +84,7 @@
                                 </div>
                                 <div class="form-group mt-7">
                                     <button type="button" data-repeater-create class="btn btn-sm btn-light-primary">
-                                        <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</button>
+                                        <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_shifts')</button>
                                 </div>
                             </div>
                         </div>
@@ -446,7 +447,7 @@
                 buttons: [{
                     extend: 'colvis',
                     text: "{{ __('employee::general.column_visibility') }}",
-                    className: 'mb-5',
+                    className: 'mb-5 ms-3 ms-md-5 ms-xl-0',
                     columns: ':lt(6)'
                 }, ]
             });

@@ -4,7 +4,7 @@
         <i class="ki-outline ki-filter fs-2"></i>@lang('general.filters')
     </button>
 
-    <div class="menu menu-sub menu-sub-dropdown w-300px w-md-325px" data-kt-menu="true">
+    <div class="menu menu-sub menu-sub-dropdown min-w-300px min-w-md-325px" data-kt-menu="true">
 
         <div class="px-7 py-5">
             <div class="fs-5 text-gray-900 fw-bold">@lang('general.filters')</div>
