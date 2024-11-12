@@ -68,11 +68,22 @@
         }
 
         tr:hover {
-            background: #80808014 !important;
+            background: #b4d4f8 !important;
             /* font-style: italic; */
+
             font-weight: bold !important;
         }
 
+        .form-check:not(.form-switch) .form-check-input[type=checkbox] {
+
+    border: 1px solid #9b94949e !important;
+}
+
+.form-control.form-control-solid {
+
+    border-color: #9b94949e !important;
+
+}
         .select2-container .select2-selection--single {
             height: 49px !important;
         }
