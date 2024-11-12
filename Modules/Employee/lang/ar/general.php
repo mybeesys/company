@@ -118,9 +118,11 @@ return [
     'time_overlap_error' => 'يوجد تقاطع في الأوقات المدرجة',
     'last_element_end_status_error' => 'يجب أن تكون حالة النهاية للفترة الأخيرة هي تسجيل الخروج',
     'column_visibility' => 'رؤية العمود',
-    'shifts' => 'الورديات',
-    'add_more_shifts' => 'أضف المزيد من الورديات',
+    'shifts' => 'فترات العمل',
+    'add_more_shifts' => 'أضف المزيد من فترات العمل',
     'all_roles' => 'كل الأدوار',
     'all_employees' => 'كل الموظفين',
     'day_times_hint' => 'يبدأ وقت الدوام من الساعة :start إلى الساعة :end',
+    'copy_shifts' => 'نسخ فترات العمل',
+    'select_week_to_copy_to' => 'اختر أسبوع للنسخ إاليه',
 ];
