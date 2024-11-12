@@ -150,7 +150,7 @@ return [
                     ],
                     [
                         'name' => 'shift_schedule',
-                        'url' => 'schedule/shift-schedule',
+                        'url' => 'schedule/shift',
                         'permission' => '',
                     ],
                     [

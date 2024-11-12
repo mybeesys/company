@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Employee\Models\Employee;
 
-class StoreScheduleShiftRequest extends FormRequest
+class StoreShiftRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -28,32 +28,6 @@ class StoreScheduleShiftRequest extends FormRequest
         ];
     }
 
-    // public function withValidator($validator)
-    // {
-    //     $validator->after(function ($validator) {
-    //         foreach ($this->input('schedule_shift_repeater', []) as $index => $shift) {
-    //             if (isset($shift['startTime'], $shift['endTime'])) {
-    //                 if ($shift['startTime'] >= $shift['endTime']) {
-    //                     $validator->errors()->add(
-    //                         "schedule_shift_repeater.$index.endTime",
-    //                         __('employee::general.startTime_before_endTime_error')
-    //                     );
-    //                 }
-    //                 foreach ($this->input('schedule_shift_repeater', []) as $other_index => $other_shift) {
-    //                     if ($index !== $other_index && isset($other_shift['startTime'], $other_shift['endTime'])) {
-    //                         if ($shift['startTime'] < $other_shift['endTime'] && $shift['endTime'] > $other_shift['startTime']) {
-    //                             $validator->errors()->add(
-    //                                 "schedule_shift_repeater.$index.endTime",
-    //                                 __('employee::general.time_overlap_error')
-    //                             );
-    //                             break;
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     });
-    // }
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {

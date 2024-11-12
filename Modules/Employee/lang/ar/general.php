@@ -125,4 +125,5 @@ return [
     'day_times_hint' => 'يبدأ وقت الدوام من الساعة :start إلى الساعة :end',
     'copy_shifts' => 'نسخ فترات العمل',
     'select_week_to_copy_to' => 'اختر أسبوع للنسخ إاليه',
+    'copy_warning' => 'تحذير: كل التواريخ في الأسبوع من :start إلى :end سيتم استبدالها'
 ];

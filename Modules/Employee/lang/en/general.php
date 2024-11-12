@@ -125,4 +125,5 @@ return [
     'day_times_hint' => 'Business day starts at :start, ends at :end',
     'copy_shifts' => 'Copy shifts',
     'select_week_to_copy_to' => 'Select week to copy to',
+    'copy_warning' => 'Warning: all dates in week from :start to :end will be overwritten'
 ];

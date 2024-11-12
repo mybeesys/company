@@ -8,11 +8,8 @@
 <div class="modal fade" id="schedule_shift_copy" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-600px">
         <div class="modal-content">
-            <div class="modal-header mb-2 px-10 py-5">
-                <div class="d-flex flex-column gap-2">
-                    <h2 class="fw-bold copy-shifts-modal-title"></h2>
-                    <spab class="copy-shifts-hint" style="color: #347cff;"></spab>
-                </div>
+            <div class="modal-header px-8 py-5">
+                <h2 class="copy-shifts-modal-title fs-5 mb-0 text-danger"></h2>
                 <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                     <i class="ki-outline ki-cross fs-1"></i>
                 </div>
@@ -21,10 +18,6 @@
                 <form id="schedule_shift_copy_form" class="form" action="#">
                     @csrf
                     <div id="kt_modal_update_schedule_shift_copy_scroll">
-                        <div class="repeater-error-template d-none">
-                            <div class="invalid-feedback repeater-error mb-5 mt-n2"></div>
-                        </div>
-                        <div id="error-container"></div>
                         <x-form.input-div class="mb-8 w-100 d-flex align-items-center" :row=false>
                             <label class="w-100 fs-5">@lang('employee::general.select_week_to_copy_to')</label>
                             <x-form.input class="form-control form-control-solid" name="copyShiftDatePicker" />
