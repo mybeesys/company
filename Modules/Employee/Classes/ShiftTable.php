@@ -8,10 +8,10 @@ use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\TimeSheetRule;
 use Yajra\DataTables\DataTables;
 
-class ScheduleShiftTable
+class ShiftTable
 {
 
-    public static function getScheduleShiftColumns()
+    public static function getShiftColumns()
     {
         return [
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
@@ -23,12 +23,12 @@ class ScheduleShiftTable
         ];
     }
 
-    public static function getScheduleShiftTable($request)
+    public static function getShiftTable($request)
     {
         $start_date = Carbon::createFromFormat('Y-m-d', $request->input('start_date'));
         $end_date = Carbon::createFromFormat('Y-m-d', $request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
-        $employees = Employee::with(['timecards', 'scheduleshifts', 'roles', 'establishmentRoles', 'establishments', 'wages']);
+        $employees = Employee::with(['timecards', 'shifts', 'roles', 'establishmentRoles', 'establishments', 'wages']);
 
         self::applyFilters($request, $employees);
 
@@ -77,14 +77,14 @@ class ScheduleShiftTable
         $end_of_day = $day_times['end_of_day'];
 
         return $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
-            $scheduleshifts = $employee->scheduleShifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
+            $shifts = $employee->shifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
             $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
             for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
-                if (!array_key_exists($date->format('Y-m-d'), $scheduleshifts)) {
-                    $scheduleshifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time . ' - ' . $end_of_day . '</div>';
+                if (!array_key_exists($date->format('Y-m-d'), $shifts)) {
+                    $shifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time . ' - ' . $end_of_day . '</div>';
                 } else {
                     $newArray = '<div class="add-schedule-shift-button d-flex flex-column" data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date=' . $date->format('Y-m-d');
-                    foreach ($scheduleshifts[$date->format('Y-m-d')] as $key => $item) {
+                    foreach ($shifts[$date->format('Y-m-d')] as $key => $item) {
                         if (!array_key_exists('break_duration', $item))
                             $item['break_duration'] = 'false';
 
@@ -95,11 +95,11 @@ class ScheduleShiftTable
                             ' data-end-time-' . $key . '=' . Carbon::createFromFormat('Y-m-d H:i:s', $item['endTime'])->format('H:i');
                     }
                     $newArray .= '>';
-                    foreach ($scheduleshifts[$date->format('Y-m-d')] as $item) {
+                    foreach ($shifts[$date->format('Y-m-d')] as $item) {
                         $newArray .= '<div>' . Carbon::createFromFormat('Y-m-d H:i:s', $item['startTime'])->format('H:i') . ' - ' . Carbon::createFromFormat('Y-m-d H:i:s', $item['endTime'])->format('H:i') . '</div>';
                     }
                     $newArray .= '</div>';
-                    $scheduleshifts[$date->format('Y-m-d')] = $newArray;
+                    $shifts[$date->format('Y-m-d')] = $newArray;
                 }
             }
             return array_merge([
@@ -109,7 +109,7 @@ class ScheduleShiftTable
                 'total_wages' => $employee->wages->sum('rate'),
                 'role' => array_merge($employee->roles->pluck('name')->toArray(), $employee->establishmentRoles->pluck('name')->toArray()),
                 'establishment' => $employee->roles->isNotEmpty() ? array_merge($employee->establishments->pluck('name')->toArray(), [__('employee::fields.all_establishments')]) : $employee->establishments->pluck('name')->toArray()
-            ], $scheduleshifts);
+            ], $shifts);
         });
     }
 }

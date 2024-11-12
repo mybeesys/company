@@ -44,6 +44,7 @@
         let filterRoleId;
         let filterEstablishmentId;
         let filterEmployeeStatus;
+        let copyShiftflatpickrInstance;
 
         const table = $('#kt_scheduleshift_table');
 
@@ -68,7 +69,7 @@
                     name: 'date',
                     value: date
                 });
-                ajaxRequest("{{ route('schedules.shift-schedules.store') }}", 'POST', data, true, true)
+                ajaxRequest("{{ route('schedules.shifts.store') }}", 'POST', data, true, true)
                     .done(function() {
                         dataTable.ajax.reload();
                         $('#schedule_shift_add').modal('toggle');
@@ -97,7 +98,7 @@
             });
 
             function filter() {
-                dataTable.ajax.url('{{ route('schedules.shift-schedules.index') }}?' + $.param({
+                dataTable.ajax.url('{{ route('schedules.shifts.index') }}?' + $.param({
                     filter_role_id: filterRoleId,
                     filter_establishment_id: filterEstablishmentId,
                     filter_employee_status: filterEmployeeStatus,
@@ -121,7 +122,7 @@
                 const breakDuration = [];
 
 
-                ajaxRequest("{{ url('/schedule/shift-schedule/get-shift-schedule') }}", 'GET', {
+                ajaxRequest("{{ url('/schedule/shift/get-shift-schedule') }}", 'GET', {
                     employee_id: employeeId,
                 }, false, true).done(function(response) {
                     roleValues = response.data.roles;
@@ -139,13 +140,17 @@
 
                     $('[data-repeater-create]').on('click', function() {
                         const newRow = $('select[name*="[role]"]').last();
+
                         $.each(roleValues, function(roleName, roleId) {
-                            newRow.append(new Option(roleName, roleId));
+                            if (newRow.find(`option[value="${roleId}"]`).length ===
+                                0) {
+                                newRow.append(new Option(roleName, roleId));
+                            }
                         });
                     });
 
                     $('.work-time-modal-title').html(employeeName + ' | ' + date);
-    
+
                     for (const key in data) {
                         if (key.startsWith('scheduleShiftId')) {
                             scheduleShiftIds.push(data[key]);
@@ -159,7 +164,7 @@
                             breakDuration.push(data[key]);
                         }
                     }
-    
+
                     const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
                     repeaterList.empty();
                     scheduleShiftIds.forEach((shiftId, index) => {
@@ -167,10 +172,11 @@
                         const newItem = repeaterList.find('[data-repeater-item]').last();
                         newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
                         newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
-                        newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');                        
+                        newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
                         newItem.find('input[name*="[shift_id]"]').val(shiftId);
                         if (breakDuration[index]) {
-                            newItem.find('select[name*="[end_status]"]').val('break').trigger('change');
+                            newItem.find('select[name*="[end_status]"]').val('break').trigger(
+                                'change');
                         }
                     });
 
@@ -319,14 +325,6 @@
                 weekNumbers: true,
             });
 
-            $("#copyShiftDatePicker").flatpickr({
-                "plugins": [weekSelectPlugin(false)],
-                locale: {
-                    firstDayOfWeek: firstDayOfWeekNumber
-                },
-                weekNumbers: true,
-            });
-
             $('[name="establishment_filter"]').select2({
                 minimumResultsForSearch: -1,
             });
@@ -338,6 +336,27 @@
             });
 
             handleSearchDatatable();
+
+            $('#copyShiftDatePicker').on('click', function() {
+                copyShiftflatpickrInstance.open();
+            });
+
+            $('#schedule_shift_copy_form').on('submit', function(e) {
+                e.preventDefault();
+                let copyFromDate = $('#periodDatePicker').val().split('-');
+                let copyDate = $('#copyShiftDatePicker').val().split('-');
+                let data = {
+                    start_date: copyDate[0],
+                    end_date: copyDate[1],
+                    copy_from_start_date: copyFromDate[0],
+                    copy_from_end_date: copyFromDate[1]
+                };
+                ajaxRequest("{{ route('schedules.shifts.copy-shifts') }}", 'POST', data, true, true)
+                    .done(function() {
+                        dataTable.ajax.reload();
+                        $('#schedule_shift_copy').modal('toggle');
+                    });
+            });
         }
 
         function startEndTimeValidate(startTime, endTime, thisElement, otherInput) {
@@ -399,7 +418,7 @@
                 pageLength: 25,
                 order: [],
                 ajax: {
-                    url: "{{ route('schedules.shift-schedules.index') }}",
+                    url: "{{ route('schedules.shifts.index') }}",
                     data: function(d) {
                         d.start_date = startDate;
                         d.end_date = endDate;
@@ -459,15 +478,34 @@
         }
 
         function copyShifts() {
+            if (copyShiftflatpickrInstance) {
+                copyShiftflatpickrInstance.destroy();
+            }
+            copyShiftflatpickrInstance = $("#copyShiftDatePicker").flatpickr({
+                plugins: [weekSelectPlugin(false)],
+                locale: {
+                    firstDayOfWeek: firstDayOfWeekNumber
+                },
+                weekNumbers: true,
+                clickOpens: false
+            });
 
-            $('.copy-shifts-modal-title').html();
+            let copyDate = $('#copyShiftDatePicker').val().split('-');
+
+            if ($('#copyShiftDatePicker').val()) {
+                $('.copy-shifts-modal-title').html(
+                    "{{ __('employee::general.copy_warning', ['start' => ':start', 'end' => ':end']) }}".replace(
+                        ':start', copyDate[0]).replace(':end', copyDate[1]));
+            }
             $('#schedule_shift_copy').modal('toggle');
-            // console.log($('#copyShiftDatePicker').val());
+
             $('#copyShiftDatePicker').on('change', function() {
-                console.log($(this).val());
-            })
-
-
+                copyDate = $(this).val().split('-');
+                $('.copy-shifts-modal-title').html(
+                    "{{ __('employee::general.copy_warning', ['start' => ':start', 'end' => ':end']) }}"
+                    .replace(
+                        ':start', copyDate[0]).replace(':end', copyDate[1]));
+            });
         }
 
         function updateTableHeader(startDate, endDate) {

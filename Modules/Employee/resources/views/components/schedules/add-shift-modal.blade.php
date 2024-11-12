@@ -39,11 +39,11 @@
                                     <div data-repeater-item class="d-flex align-items-center gap-3">
                                         <x-form.input :errors="$errors" required :placeholder="__('employee::fields.h_m')"
                                             name="schedule_shift_repeater[][startTime]"
-                                            class="form-control-solid py-2 w-100px" />
+                                            class="form-control-solid py-2 w-100px" readonly />
                                         <span>-</span>
                                         <x-form.input :errors="$errors" required :placeholder="__('employee::fields.h_m')"
                                             name="schedule_shift_repeater[][endTime]"
-                                            class="form-control-solid py-2 w-100px" />
+                                            class="form-control-solid py-2 w-100px" readonly />
                                         <x-form.input-div class="w-100">
                                             <x-form.select name="schedule_shift_repeater[][end_status]" required
                                                 :options="$endStatusOptions" :errors="$errors" data_allow_clear="false" />

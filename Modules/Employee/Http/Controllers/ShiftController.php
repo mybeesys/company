@@ -6,41 +6,41 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
-use Modules\Employee\Classes\ScheduleShiftTable;
-use Modules\Employee\Http\Requests\StoreScheduleShiftRequest;
+use Modules\Employee\Classes\ShiftTable;
+use Modules\Employee\Http\Requests\StoreShiftRequest;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
-use Modules\Employee\Models\ScheduleShift;
+use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 use Modules\Establishment\Models\Establishment;
 
-class ScheduleShiftController extends Controller
+class ShiftController extends Controller
 {
     public function index(Request $request)
     {
         if (request()->ajax()) {
-            return ScheduleShiftTable::getScheduleShiftTable($request);
+            return ShiftTable::getShiftTable($request);
         }
         $roles = Role::get(['id', 'name']);
         $establishments = Establishment::get(['id', 'name']);
         $timeSheet_rules = TimeSheetRule::all();
-        $columns = ScheduleShiftTable::getScheduleShiftColumns();
+        $columns = ShiftTable::getShiftColumns();
         return view('employee::schedules.shift-schedules.index', compact('columns', 'roles', 'timeSheet_rules', 'establishments'));
     }
 
 
-    public function getScheduleShift(Request $request)
+    public function getShift(Request $request)
     {
         $employee_id = $request->employee_id;
         $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
         $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(), $employee->establishmentRoles->pluck('id', 'name')->toArray());
-        $day_times = ScheduleShiftTable::getStartEndDayTime();
+        $day_times = ShiftTable::getStartEndDayTime();
         return response()->json(['data' => ['roles' => $roles, 'day_times' => $day_times]]);
     }
 
 
-    public function store(StoreScheduleShiftRequest $request)
+    public function store(StoreShiftRequest $request)
     {
         DB::transaction(function () use ($request) {
             $employee_id = $request->employee_id;
@@ -56,7 +56,7 @@ class ScheduleShiftController extends Controller
                 $shift_id = $item['shift_id'];
                 $end_status = $item['end_status'];
                 $break_duration = $end_status === 'break' ? (Carbon::parse($item['startTime'])->diffInMinutes($item['endTime'])) : null;
-                $ids[] = ScheduleShift::updateOrCreate(['id' => $shift_id], [
+                $ids[] = Shift::updateOrCreate(['id' => $shift_id], [
                     'startTime' => $startTime,
                     'endTime' => $endTime,
                     'employee_id' => $employee_id,
@@ -65,9 +65,34 @@ class ScheduleShiftController extends Controller
                     'break_duration' => $break_duration
                 ])->id;
             }
-            ScheduleShift::where('employee_id', $employee_id)->whereDate('startTime', $request->date)->whereNotIn('id', $ids)->delete();
+            Shift::where('employee_id', $employee_id)->whereDate('startTime', $request->date)->whereNotIn('id', $ids)->delete();
         });
 
+        return response()->json(['message' => __('employee::responses.operation_success')]);
+    }
+
+    public function copy_shifts(Request $request)
+    {
+        $copy_from_start_date = Carbon::createFromFormat('d/m/Y', $request->copy_from_start_date);
+        $copy_from_end_date = Carbon::createFromFormat('d/m/Y', $request->copy_from_end_date);
+        $copy_to_start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
+        $copy_to_end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
+        $schedule_id = Schedule::firstOrCreate(['start_date' => $copy_from_start_date->format('Y-m-d'), 'end_date' => $copy_from_end_date->format('Y-m-d')])->id;
+        $shifts = Shift::where('schedule_id', $schedule_id)->get();
+
+        $new_schedule_id = Schedule::firstOrCreate(['start_date' => $copy_to_start_date->format('Y-m-d'), 'end_date' => $copy_to_end_date->format('Y-m-d')])->id;
+        Shift::where('schedule_id', $new_schedule_id)?->delete();
+        $diff = $copy_from_start_date->diffInDays($copy_to_start_date);
+
+        if($shifts->isNotEmpty()){
+            foreach($shifts as $shift){
+                $new_shift = $shift->replicate();
+                $new_shift->startTime = Carbon::parse($shift->startTime)->addDays($diff);
+                $new_shift->endTime = Carbon::parse($shift->endTime)->addDays($diff);
+                $new_shift->schedule_id = $new_schedule_id;
+                $new_shift->save();
+            }
+        }
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
