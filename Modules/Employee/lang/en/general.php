@@ -123,4 +123,6 @@ return [
     'all_roles' => 'All roles',
     'all_employees' => 'All employees',
     'day_times_hint' => 'Business day starts at :start, ends at :end',
+    'copy_shifts' => 'Copy shifts',
+    'select_week_to_copy_to' => 'Select week to copy to',
 ];

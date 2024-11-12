@@ -78,11 +78,11 @@ class ScheduleShiftTable
 
         return $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
             $scheduleshifts = $employee->scheduleShifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
+            $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
             for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
                 if (!array_key_exists($date->format('Y-m-d'), $scheduleshifts)) {
-                    $scheduleshifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time . ' - ' . $end_of_day . '</div>';
+                    $scheduleshifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time . ' - ' . $end_of_day . '</div>';
                 } else {
-                    $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
                     $newArray = '<div class="add-schedule-shift-button d-flex flex-column" data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date=' . $date->format('Y-m-d');
                     foreach ($scheduleshifts[$date->format('Y-m-d')] as $key => $item) {
                         if (!array_key_exists('break_duration', $item))

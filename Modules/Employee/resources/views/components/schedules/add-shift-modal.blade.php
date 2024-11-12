@@ -5,7 +5,7 @@
         ['id' => 'break', 'name' => __('employee::fields.break')],
     ];
 @endphp
-<div class="modal fade" id="schedule_shift" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="schedule_shift_add" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-1000px">
         <div class="modal-content">
             <div class="modal-header mb-2 px-10 py-5">
@@ -18,9 +18,9 @@
                 </div>
             </div>
             <div class="modal-body mx-5 pt-5">
-                <form id="schedule_shift_form" class="form" action="#">
+                <form id="schedule_shift_add_form" class="form" action="#">
                     @csrf
-                    <div id="kt_modal_update_schedule_shift_scroll">
+                    <div id="kt_modal_update_schedule_shift_add_scroll">
                         <div class="repeater-error-template d-none">
                             <div class="invalid-feedback repeater-error mb-5 mt-n2"></div>
                         </div>
@@ -49,7 +49,7 @@
                                                 :options="$endStatusOptions" :errors="$errors" data_allow_clear="false" />
                                         </x-form.input-div>
                                         <x-form.input-div class="w-100">
-                                            <x-form.select name="dashboard_role_repeater[][role]" required
+                                            <x-form.select name="schedule_shift_repeater[][role]" required
                                                 data_allow_clear="false" :options=$roles :errors="$errors" />
                                         </x-form.input-div>
                                         <input type="hidden" name="schedule_shift_repeater[][shift_id]">

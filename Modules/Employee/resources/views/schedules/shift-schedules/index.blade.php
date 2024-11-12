@@ -25,6 +25,7 @@
     </x-cards.card>
 
     <x-employee::schedules.add-shift-modal :roles=$roles />
+    <x-employee::schedules.copy-shift-modal />
 @endsection
 
 
@@ -36,9 +37,6 @@
     <script>
         let dataTable;
         let columns;
-        let startDate;
-        let endDate;
-        let roleOptions = [];
         let roleValues = [];
         let employeeId;
         let date;
@@ -59,18 +57,8 @@
             handleFilters();
         });
 
-        function getVisibleColumns() {
-            return Array.from({
-                length: table.DataTable().columns(':visible').nodes().length
-            }, (_, index) => index);
-        }
-
-        function exportVisibleColumns() {
-
-        }
-
         function addShiftForm() {
-            $('#schedule_shift_form').on('submit', function(e) {
+            $('#schedule_shift_add_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
                 data.push({
@@ -83,7 +71,7 @@
                 ajaxRequest("{{ route('schedules.shift-schedules.store') }}", 'POST', data, true, true)
                     .done(function() {
                         dataTable.ajax.reload();
-                        $('#schedule_shift').modal('toggle');
+                        $('#schedule_shift_add').modal('toggle');
                     });
             });
         }
@@ -131,46 +119,44 @@
                 const roleId = [];
                 const breakDuration = [];
 
+
                 ajaxRequest("{{ url('/schedule/shift-schedule/get-shift-schedule') }}", 'GET', {
                     employee_id: employeeId,
                 }, false, true).done(function(response) {
-                    roleValues = Object.values(response.data.roles).map(String);
+                    roleValues = response.data.roles;
+
                     let startDayTime = response.data.day_times.start_of_day;
                     let endDayTime = response.data.day_times.end_of_day;
+                    if (startDayTime && endDayTime) {
+                        $('.work-time-hint').html(
+                            `{{ __('employee::general.day_times_hint', ['start' => ':start', 'end' => ':end']) }}`
+                            .replace(':start', startDayTime)
+                            .replace(':end', endDayTime)
+                        );
+                    }
 
-                    $('.work-time-hint').html(
-                        `{{ __('employee::general.day_times_hint', ['start' => ':start', 'end' => ':end']) }}`
-                        .replace(':start', startDayTime)
-                        .replace(':end', endDayTime)
-                    );
-
-                    $('select[name*="[role]"]').each(function() {
-                        $(this).find('option').each(function() {
-                            const optionValue = $(this).val();
-                            if (!roleValues.includes(optionValue)) {
-                                $(this).remove();
-                            }
-                        });
-                    });
-
-                    $('[data-repeater-create]').on('click', function() {
+                    function populateRoleOptions() {
                         $('select[name*="[role]"]').each(function() {
-                            $(this).find('option').each(function() {
-                                const optionValue = $(this)
-                                    .val();
-                                if (!roleValues.includes(
-                                        optionValue)) {
-                                    $(this).remove();
-                                }
+                            const selectElement = $(this);
+                            selectElement.empty();
+                            $.each(roleValues, function(roleName, roleId) {
+                                selectElement.append(new Option(roleName, roleId));
                             });
                         });
+                    }
+                    populateRoleOptions();
+
+                    $('[data-repeater-create]').on('click', function() {
+                        populateRoleOptions();
                     });
+
                     setTimeout(() => {
-                        $('#schedule_shift').modal('toggle');
+                        $('#schedule_shift_add').modal('toggle');
                     }, 300);
                 });
 
                 $('.work-time-modal-title').html(employeeName + ' | ' + date);
+                console.log(data);
 
                 for (const key in data) {
                     if (key.startsWith('scheduleShiftId')) {
@@ -332,7 +318,15 @@
             }
 
             $("#periodDatePicker").flatpickr({
-                "plugins": [weekSelectPlugin()],
+                "plugins": [weekSelectPlugin(true)],
+                locale: {
+                    firstDayOfWeek: firstDayOfWeekNumber
+                },
+                weekNumbers: true,
+            });
+
+            $("#copyShiftDatePicker").flatpickr({
+                "plugins": [weekSelectPlugin(false)],
                 locale: {
                     firstDayOfWeek: firstDayOfWeekNumber
                 },
@@ -454,12 +448,32 @@
                 ],
                 dom: "Btr <'row'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar'l><'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>>",
                 buttons: [{
-                    extend: 'colvis',
-                    text: "{{ __('employee::general.column_visibility') }}",
-                    className: 'mb-5',
-                    columns: ':lt(6)'
-                }, ]
+                        extend: 'colvis',
+                        text: "{{ __('employee::general.column_visibility') }}",
+                        className: 'mb-5',
+                        columns: ':lt(6)'
+                    },
+                    {
+                        text: "{{ __('employee::general.copy_shifts') }}",
+                        className: 'mb-5',
+                        action: function(e, dt, node, config) {
+                            copyShifts();
+                        }
+                    }
+                ]
             });
+        }
+
+        function copyShifts() {
+
+            $('.copy-shifts-modal-title').html();
+            $('#schedule_shift_copy').modal('toggle');
+            // console.log($('#copyShiftDatePicker').val());
+            $('#copyShiftDatePicker').on('change', function() {
+                console.log($(this).val());
+            })
+
+
         }
 
         function updateTableHeader(startDate, endDate) {
@@ -520,7 +534,9 @@
             }
         }
 
-        function weekSelectPlugin() {
+        function weekSelectPlugin(reinitialize_table) {
+            let startDate;
+            let endDate;
             return function(fp) {
                 function onDayHover(event) {
                     var day = event.target;
@@ -580,7 +596,9 @@
                         `${endOfWeek.getFullYear()}-${String(endOfWeek.getMonth() + 1).padStart(2, '0')}-${String(endOfWeek.getDate()).padStart(2, '0')}`;
                     fp.setDate([startOfWeek, endOfWeek]);
                     highlightWeek();
-                    initTable(startDate, endDate);
+                    if (reinitialize_table) {
+                        initTable(startDate, endDate);
+                    }
                 }
 
                 function clearHover() {
@@ -623,8 +641,11 @@
                             `${sDate.getFullYear()}-${String(sDate.getMonth() + 1).padStart(2, '0')}-${String(sDate.getDate()).padStart(2, '0')}`;
                         endDate =
                             `${eDate.getFullYear()}-${String(eDate.getMonth() + 1).padStart(2, '0')}-${String(eDate.getDate()).padStart(2, '0')}`;
-                        dataTable.destroy();
-                        initTable(startDate, endDate);
+
+                        if (reinitialize_table) {
+                            dataTable.destroy();
+                            initTable(startDate, endDate);
+                        }
                     },
                 };
             };
