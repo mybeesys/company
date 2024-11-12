@@ -24,7 +24,7 @@
         </x-cards.card-body>
     </x-cards.card>
 
-    <x-employee::schedules.add-shift-modal :roles=$roles />
+    <x-employee::schedules.add-shift-modal />
     <x-employee::schedules.copy-shift-modal />
 @endsection
 
@@ -105,6 +105,7 @@
             }
         }
 
+
         function addShiftModal() {
             $(document).on('click', '.add-schedule-shift-button', function(e) {
                 e.preventDefault();
@@ -127,6 +128,7 @@
 
                     let startDayTime = response.data.day_times.start_of_day;
                     let endDayTime = response.data.day_times.end_of_day;
+
                     if (startDayTime && endDayTime) {
                         $('.work-time-hint').html(
                             `{{ __('employee::general.day_times_hint', ['start' => ':start', 'end' => ':end']) }}`
@@ -135,19 +137,41 @@
                         );
                     }
 
-                    function populateRoleOptions() {
-                        $('select[name*="[role]"]').each(function() {
-                            const selectElement = $(this);
-                            selectElement.empty();
-                            $.each(roleValues, function(roleName, roleId) {
-                                selectElement.append(new Option(roleName, roleId));
-                            });
-                        });
-                    }
-                    populateRoleOptions();
-
                     $('[data-repeater-create]').on('click', function() {
-                        populateRoleOptions();
+                        const newRow = $('select[name*="[role]"]').last();
+                        $.each(roleValues, function(roleName, roleId) {
+                            newRow.append(new Option(roleName, roleId));
+                        });
+                    });
+
+                    $('.work-time-modal-title').html(employeeName + ' | ' + date);
+    
+                    for (const key in data) {
+                        if (key.startsWith('scheduleShiftId')) {
+                            scheduleShiftIds.push(data[key]);
+                        } else if (key.startsWith('startTime')) {
+                            startTimes.push(data[key]);
+                        } else if (key.startsWith('endTime')) {
+                            endTimes.push(data[key]);
+                        } else if (key.startsWith('roleId')) {
+                            roleId.push(data[key]);
+                        } else if (key.startsWith('breakDuration')) {
+                            breakDuration.push(data[key]);
+                        }
+                    }
+    
+                    const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
+                    repeaterList.empty();
+                    scheduleShiftIds.forEach((shiftId, index) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+                        newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
+                        newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
+                        newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');                        
+                        newItem.find('input[name*="[shift_id]"]').val(shiftId);
+                        if (breakDuration[index]) {
+                            newItem.find('select[name*="[end_status]"]').val('break').trigger('change');
+                        }
                     });
 
                     setTimeout(() => {
@@ -155,36 +179,6 @@
                     }, 300);
                 });
 
-                $('.work-time-modal-title').html(employeeName + ' | ' + date);
-                console.log(data);
-
-                for (const key in data) {
-                    if (key.startsWith('scheduleShiftId')) {
-                        scheduleShiftIds.push(data[key]);
-                    } else if (key.startsWith('startTime')) {
-                        startTimes.push(data[key]);
-                    } else if (key.startsWith('endTime')) {
-                        endTimes.push(data[key]);
-                    } else if (key.startsWith('roleId')) {
-                        roleId.push(data[key]);
-                    } else if (key.startsWith('breakDuration')) {
-                        breakDuration.push(data[key]);
-                    }
-                }
-
-                const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
-                repeaterList.empty();
-                scheduleShiftIds.forEach((shiftId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
-                    newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
-                    newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
-                    newItem.find('input[name*="[shift_id]"]').val(shiftId);
-                    if (breakDuration[index]) {
-                        newItem.find('select[name*="[end_status]"]').val('break').trigger('change');
-                    }
-                });
             });
         }
 

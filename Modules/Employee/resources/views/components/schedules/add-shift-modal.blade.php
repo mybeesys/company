@@ -50,7 +50,7 @@
                                         </x-form.input-div>
                                         <x-form.input-div class="w-100">
                                             <x-form.select name="schedule_shift_repeater[][role]" required
-                                                data_allow_clear="false" :options=$roles :errors="$errors" />
+                                                data_allow_clear="false" :options="[]" :errors="$errors" />
                                         </x-form.input-div>
                                         <input type="hidden" name="schedule_shift_repeater[][shift_id]">
                                         <button type="button" data-repeater-delete
