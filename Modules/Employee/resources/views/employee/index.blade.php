@@ -31,7 +31,7 @@
     <script src="{{ url('modules/employee/js/create-edit-role.js') }}"></script>
     <script src="{{ url('modules/employee/js/create-edit-dashboard-role.js') }}"></script>
     <script src="{{ url('modules/employee/js/edit-employee-permissions.js') }}"></script>
-    <script type="text/javascript" src="vfs_fonts.js"></script>
+    <script type="text/javascript" src="/vfs_fonts.js"></script>
     <script>
         "use strict";
         let dataTable;
@@ -52,6 +52,26 @@
                 "{{ route('permissions.assign.employee', ':id') }}");
             assignDashboardPermissionsToEmployee("{{ url('/permission/get-employee-dashboard-permissions/') }}",
                 "{{ route('permissions.assign.user', ':id') }}");
+
+            let tableElement = $("#dashboard-permissions-table");
+            let modalTable = tableElement.DataTable({
+                paging: false,
+                info: false,
+                responsive: true,
+                ordering: false,
+                autoWidth: false,
+                scrollY: '400px',
+                scrollCollapse: true,
+            });
+
+            $('#employee_dashboard_permissions_edit').on('shown.bs.modal', function() {
+                modalTable.columns.adjust();
+                $(window).on('resize', function() {
+                    modalTable.columns.adjust();
+                });
+            });
+
+
         });
 
         $(document).on('click', '.restore-btn', function(e) {
@@ -155,25 +175,6 @@
                 dataTable.search('').columns().search('').ajax.url(dataUrl)
                     .load();
             });
-
-            let tableElement = $("#dashboard-permissions-table");
-            let modalTable = tableElement.DataTable({
-                paging: false,
-                info: false,
-                responsive: true,
-                ordering: false,
-                autoWidth: false,
-                scrollY: '400px',
-                scrollCollapse: true,
-            });
-
-            $('#employee_dashboard_permissions_edit').on('shown.bs.modal', function() {
-                modalTable.columns.adjust();
-                $(window).on('resize', function() {
-                    modalTable.columns.adjust();
-                });
-            });
-
         };
 
         // function initToggleToolbar() {

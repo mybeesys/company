@@ -1,21 +1,22 @@
 @extends('employee::layouts.master')
 
-@section('title', __('menuItemLang.employees_working_hours'))
+@section('title', __('menuItemLang.shift_schedule'))
 
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="scheduleshift" :addButton=false :idColumn=false module="employee">
                 <x-slot:filters>
-                    <x-tables.filters-dropdown>
-                        <x-employee::employees.filters />
-                    </x-tables.filters-dropdown>
+                    <x-employee::schedules.filters :establishments=$establishments :roles=$roles />
                 </x-slot:filters>
                 <x-slot:elements>
-                    <x-form.input-div class="mb-8 w-25" :row=false>
+                    <x-form.input-div class="mb-md-8 min-w-250px w-100" :row=false>
                         <x-form.input class="form-control form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
                     </x-form.input-div>
                 </x-slot:elements>
+                <x-slot:export>
+                    <x-tables.export-menu id="scheduleshift" />
+                </x-slot:export>
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
@@ -23,149 +24,42 @@
         </x-cards.card-body>
     </x-cards.card>
 
-    @php
-        $endStatusOptions = [
-            ['id' => 'clockout', 'name' => __('employee::fields.clockout')],
-            ['id' => 'break', 'name' => __('employee::fields.break')],
-        ];
-    @endphp
-    <div class="modal fade" id="schedule_shift" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mw-1000px">
-            <div class="modal-content">
-                <div class="modal-header mb-2">
-                    <h2 class="fw-bold">@lang('employee::general.edit_permissions')</h2>
-                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="ki-outline ki-cross fs-1"></i>
-                    </div>
-                </div>
-                <div class="modal-body mx-5 pt-5">
-                    <form id="schedule_shift_form" class="form" action="#">
-                        @csrf
-                        <div id="kt_modal_update_schedule_shift_scroll">
-                            <div class="repeater-error-template d-none">
-                                <div class="invalid-feedback repeater-error mb-5 mt-n2"></div>
-                            </div>
-                            <div id="error-container"></div>
-                            <div id="schedule_shift_repeater">
-                                <div class="form-group">
-                                    <div class="d-flex align-items-center gap-3 px-2 mb-2">
-                                        <label class="w-100px">@lang('employee::fields.start_time')</label>
-                                        <span class="px-1"></span>
-                                        <label class="w-100px">@lang('employee::fields.end_time')</label>
-                                        <label style="width: 316.38px;">@lang('employee::fields.end_status')</label>
-                                        <label style="width: 316.38px;" class="ps-2">@lang('employee::fields.role')</label>
-                                        <label style="width: 34.83px;"></label>
-                                    </div>
-                                    <div data-repeater-list="schedule_shift_repeater" class="d-flex flex-column gap-3">
-                                        <div data-repeater-item class="d-flex align-items-center gap-3">
-                                            <x-form.input :errors="$errors" required :placeholder="__('employee::fields.h_m')"
-                                                name="schedule_shift_repeater[][startTime]" readonly
-                                                class="form-control-solid py-2 w-100px" />
-                                            <span>-</span>
-                                            <x-form.input :errors="$errors" required :placeholder="__('employee::fields.h_m')"
-                                                name="schedule_shift_repeater[][endTime]" readonly
-                                                class="form-control-solid py-2 w-100px" />
-                                            <x-form.input-div class="w-100">
-                                                <x-form.select name="schedule_shift_repeater[][end_status]" required
-                                                    :options="$endStatusOptions" :errors="$errors" data_allow_clear="false" />
-                                            </x-form.input-div>
-                                            <x-form.input-div class="w-100">
-                                                <x-form.select name="dashboard_role_repeater[][role]" required
-                                                    data_allow_clear="false" :options=$roles :errors="$errors" />
-                                            </x-form.input-div>
-                                            <input type="hidden" name="schedule_shift_repeater[][shift_id]">
-                                            <button type="button" data-repeater-delete
-                                                class="btn btn-sm btn-icon btn-light-danger">
-                                                <i class="ki-outline ki-cross fs-1"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group mt-7">
-                                    <button type="button" data-repeater-create class="btn btn-sm btn-light-primary">
-                                        <i class="ki-outline ki-plus fs-2"></i>@lang('employee::general.add_more_roles')</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-center pt-5">
-                            <button type="reset" class="btn btn-light me-3"
-                                data-bs-dismiss="modal">@lang('general.cancel')</button>
-                            <button type="submit" class="submit-form-btn btn btn-primary"
-                                data-kt-schedule-shift-modal-action="submit">
-                                <span class="indicator-label">@lang('general.save')</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-employee::schedules.add-shift-modal />
+    <x-employee::schedules.copy-shift-modal />
 @endsection
 
 
 @section('script')
     @parent
     <script src="{{ url('/js/table.js') }}"></script>
+    <script type="text/javascript" src="/vfs_fonts.js"></script>
+
     <script>
         let dataTable;
         let columns;
-        let startDate;
-        let endDate;
-        let roleOptions = [];
         let roleValues = [];
         let employeeId;
         let date;
+        let firstDayOfWeekNumber;
+        let filterRoleId;
+        let filterEstablishmentId;
+        let filterEmployeeStatus;
+        let copyShiftflatpickrInstance;
+
+        const table = $('#kt_scheduleshift_table');
 
         $(document).ready(function() {
-            moment.updateLocale('en', {
-                week: {
-                    dow: 6
-                }
-            });
-            var start = moment().startOf('week');
-            var end = moment().endOf('week');
-            let firstDayOfWeek =
-                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'weak_starts_on')?->rule_value }}";
-            if (!firstDayOfWeek) {
-                firstDayOfWeek = 'saturday';
-            }
+            initElements();
+            addShiftForm();
+            addShiftModal();
+            scheduleShiftRepeater();
+            exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_scheduleshift_table',
+                "{{ session()->get('locale') }}", [5], [11], 'A2');
+            handleFilters();
+        });
 
-            let firstDayOfWeekNumber;
-            switch (firstDayOfWeek) {
-                case "sunday":
-                    firstDayOfWeekNumber = 0;
-                    break;
-                case "monday":
-                    firstDayOfWeekNumber = 1;
-                    break;
-                case "tuesday":
-                    firstDayOfWeekNumber = 2;
-                    break;
-                case "wednesday":
-                    firstDayOfWeekNumber = 3;
-                    break;
-                case "thursday":
-                    firstDayOfWeekNumber = 4;
-                    break;
-                case "friday":
-                    firstDayOfWeekNumber = 5;
-                    break;
-                case "saturday":
-                    firstDayOfWeekNumber = 6;
-            }
-
-            $("#periodDatePicker").flatpickr({
-                "plugins": [weekSelectPlugin()],
-                locale: {
-                    firstDayOfWeek: firstDayOfWeekNumber
-                },
-                weekNumbers: true,
-            });
-
-            handleSearchDatatable();
-
-
-            $('#schedule_shift_form').on('submit', function(e) {
+        function addShiftForm() {
+            $('#schedule_shift_add_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
                 data.push({
@@ -175,17 +69,50 @@
                     name: 'date',
                     value: date
                 });
-                ajaxRequest("{{ route('schedules.shift-schedules.store') }}", 'POST', data, true, true)
+                ajaxRequest("{{ route('schedules.shifts.store') }}", 'POST', data, true, true)
                     .done(function() {
                         dataTable.ajax.reload();
-                        $('#schedule_shift').modal('toggle');
+                        $('#schedule_shift_add').modal('toggle');
                     });
-            })
+            });
+        }
+
+        function handleFilters() {
+            const employee = $('[data-kt-filter="employee_filter"]');
+            const establishment = $('[data-kt-filter="establishment_filter"]');
+            const role = $('[data-kt-filter="role_filter"]');
+
+            role.on('change', function() {
+                filterRoleId = $(this).val();
+                filter();
+            });
+
+            establishment.on('change', function() {
+                filterEstablishmentId = $(this).val();
+                filter();
+            });
+
+            employee.on('change', function() {
+                filterEmployeeStatus = $(this).val();
+                filter();
+            });
+
+            function filter() {
+                dataTable.ajax.url('{{ route('schedules.shifts.index') }}?' + $.param({
+                    filter_role_id: filterRoleId,
+                    filter_establishment_id: filterEstablishmentId,
+                    filter_employee_status: filterEmployeeStatus,
+                })).load();
+            }
+        }
 
 
+        function addShiftModal() {
             $(document).on('click', '.add-schedule-shift-button', function(e) {
                 e.preventDefault();
                 employeeId = $(this).data('employee-id');
+                const employeeName = $(this).data('employee-name');
+
                 date = $(this).data('date');
                 const data = $(this).data();
                 const scheduleShiftIds = [];
@@ -194,66 +121,74 @@
                 const roleId = [];
                 const breakDuration = [];
 
-                ajaxRequest("{{ url('/schedule/shift-schedule/get-shift-schedule') }}", 'GET', {
+
+                ajaxRequest("{{ url('/schedule/shift/get-shift-schedule') }}", 'GET', {
                     employee_id: employeeId,
                 }, false, true).done(function(response) {
-                    roleValues = Object.values(response.data).map(String);
+                    roleValues = response.data.roles;
 
-                    $('select[name*="[role]"]').each(function() {
-                        $(this).find('option').each(function() {
-                            const optionValue = $(this).val();
-                            if (!roleValues.includes(optionValue)) {
-                                $(this).remove();
+                    let startDayTime = response.data.day_times.start_of_day;
+                    let endDayTime = response.data.day_times.end_of_day;
+
+                    if (startDayTime && endDayTime) {
+                        $('.work-time-hint').html(
+                            `{{ __('employee::general.day_times_hint', ['start' => ':start', 'end' => ':end']) }}`
+                            .replace(':start', startDayTime)
+                            .replace(':end', endDayTime)
+                        );
+                    }
+
+                    $('[data-repeater-create]').on('click', function() {
+                        const newRow = $('select[name*="[role]"]').last();
+
+                        $.each(roleValues, function(roleName, roleId) {
+                            if (newRow.find(`option[value="${roleId}"]`).length ===
+                                0) {
+                                newRow.append(new Option(roleName, roleId));
                             }
                         });
                     });
 
-                    $('[data-repeater-create]').on('click', function() {
-                        $('select[name*="[role]"]').each(function() {
-                            $(this).find('option').each(function() {
-                                const optionValue = $(this)
-                                    .val();
-                                if (!roleValues.includes(
-                                        optionValue)) {
-                                    $(this).remove();
-                                }
-                            });
-                        });
+                    $('.work-time-modal-title').html(employeeName + ' | ' + date);
+
+                    for (const key in data) {
+                        if (key.startsWith('scheduleShiftId')) {
+                            scheduleShiftIds.push(data[key]);
+                        } else if (key.startsWith('startTime')) {
+                            startTimes.push(data[key]);
+                        } else if (key.startsWith('endTime')) {
+                            endTimes.push(data[key]);
+                        } else if (key.startsWith('roleId')) {
+                            roleId.push(data[key]);
+                        } else if (key.startsWith('breakDuration')) {
+                            breakDuration.push(data[key]);
+                        }
+                    }
+
+                    const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
+                    repeaterList.empty();
+                    scheduleShiftIds.forEach((shiftId, index) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+                        newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
+                        newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
+                        newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
+                        newItem.find('input[name*="[shift_id]"]').val(shiftId);
+                        if (breakDuration[index]) {
+                            newItem.find('select[name*="[end_status]"]').val('break').trigger(
+                                'change');
+                        }
                     });
+
                     setTimeout(() => {
-                        $('#schedule_shift').modal('toggle');
+                        $('#schedule_shift_add').modal('toggle');
                     }, 300);
                 });
 
-                for (const key in data) {
-                    if (key.startsWith('scheduleShiftId')) {
-                        scheduleShiftIds.push(data[key]);
-                    } else if (key.startsWith('startTime')) {
-                        startTimes.push(data[key]);
-                    } else if (key.startsWith('endTime')) {
-                        endTimes.push(data[key]);
-                    } else if (key.startsWith('roleId')) {
-                        roleId.push(data[key]);
-                    } else if (key.startsWith('breakDuration')) {
-                        breakDuration.push(data[key]);
-                    }
-                }
-
-                const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
-                repeaterList.empty();
-                scheduleShiftIds.forEach((shiftId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
-                    newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
-                    newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
-                    newItem.find('input[name*="[shift_id]"]').val(shiftId);
-                    if (breakDuration[index]) {
-                        newItem.find('select[name*="[end_status]"]').val('break').trigger('change');
-                    }
-                });
             });
+        }
 
+        function scheduleShiftRepeater() {
             $('#schedule_shift_repeater').repeater({
                 show: function() {
                     $(this).slideDown();
@@ -343,7 +278,86 @@
                     }
                 }
             });
-        });
+        }
+
+        function initElements() {
+            moment.updateLocale('en', {
+                week: {
+                    dow: 6
+                }
+            });
+            var start = moment().startOf('week');
+            var end = moment().endOf('week');
+            let firstDayOfWeek =
+                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'weak_starts_on')?->rule_value }}";
+            if (!firstDayOfWeek) {
+                firstDayOfWeek = 'saturday';
+            }
+
+            switch (firstDayOfWeek) {
+                case "sunday":
+                    firstDayOfWeekNumber = 0;
+                    break;
+                case "monday":
+                    firstDayOfWeekNumber = 1;
+                    break;
+                case "tuesday":
+                    firstDayOfWeekNumber = 2;
+                    break;
+                case "wednesday":
+                    firstDayOfWeekNumber = 3;
+                    break;
+                case "thursday":
+                    firstDayOfWeekNumber = 4;
+                    break;
+                case "friday":
+                    firstDayOfWeekNumber = 5;
+                    break;
+                case "saturday":
+                    firstDayOfWeekNumber = 6;
+            }
+
+            $("#periodDatePicker").flatpickr({
+                "plugins": [weekSelectPlugin(true)],
+                locale: {
+                    firstDayOfWeek: firstDayOfWeekNumber
+                },
+                weekNumbers: true,
+            });
+
+            $('[name="establishment_filter"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $('[name="role_filter"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $('[name="employee_filter"]').select2({
+                minimumResultsForSearch: -1,
+            });
+
+            handleSearchDatatable();
+
+            $('#copyShiftDatePicker').on('click', function() {
+                copyShiftflatpickrInstance.open();
+            });
+
+            $('#schedule_shift_copy_form').on('submit', function(e) {
+                e.preventDefault();
+                let copyFromDate = $('#periodDatePicker').val().split('-');
+                let copyDate = $('#copyShiftDatePicker').val().split('-');
+                let data = {
+                    start_date: copyDate[0],
+                    end_date: copyDate[1],
+                    copy_from_start_date: copyFromDate[0],
+                    copy_from_end_date: copyFromDate[1]
+                };
+                ajaxRequest("{{ route('schedules.shifts.copy-shifts') }}", 'POST', data, true, true)
+                    .done(function() {
+                        dataTable.ajax.reload();
+                        $('#schedule_shift_copy').modal('toggle');
+                    });
+            });
+        }
 
         function startEndTimeValidate(startTime, endTime, thisElement, otherInput) {
 
@@ -391,23 +405,26 @@
                 );
             } else {
                 $(`.repeater-error[data-error-id="${conflictErrorId}"]`).remove();
+                checkErrors($('.submit-form-btn'));
             }
         }
 
-
         function initTable(startDate, endDate) {
             updateTableHeader(startDate, endDate);
-            dataTable = $('#kt_scheduleshift_table').DataTable({
+            dataTable = table.DataTable({
                 processing: true,
                 serverSide: true,
                 info: false,
                 pageLength: 25,
                 order: [],
                 ajax: {
-                    url: "{{ route('schedules.shift-schedules.index') }}",
+                    url: "{{ route('schedules.shifts.index') }}",
                     data: function(d) {
                         d.start_date = startDate;
                         d.end_date = endDate;
+                        d.filter_role_id = filterRoleId;
+                        d.filter_establishment_id = filterEstablishmentId;
+                        d.filter_employee_status = filterEmployeeStatus;
                     },
                 },
                 columns: [{
@@ -444,11 +461,50 @@
                 ],
                 dom: "Btr <'row'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar'l><'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>>",
                 buttons: [{
-                    extend: 'colvis',
-                    text: "{{ __('employee::general.column_visibility') }}",
-                    className: 'mb-5',
-                    columns: ':lt(6)'
-                }, ]
+                        extend: 'colvis',
+                        text: "{{ __('employee::general.column_visibility') }}",
+                        className: 'mb-5',
+                        columns: ':lt(6)'
+                    },
+                    {
+                        text: "{{ __('employee::general.copy_shifts') }}",
+                        className: 'mb-5',
+                        action: function(e, dt, node, config) {
+                            copyShifts();
+                        }
+                    }
+                ]
+            });
+        }
+
+        function copyShifts() {
+            if (copyShiftflatpickrInstance) {
+                copyShiftflatpickrInstance.destroy();
+            }
+            copyShiftflatpickrInstance = $("#copyShiftDatePicker").flatpickr({
+                plugins: [weekSelectPlugin(false)],
+                locale: {
+                    firstDayOfWeek: firstDayOfWeekNumber
+                },
+                weekNumbers: true,
+                clickOpens: false
+            });
+
+            let copyDate = $('#copyShiftDatePicker').val().split('-');
+
+            if ($('#copyShiftDatePicker').val()) {
+                $('.copy-shifts-modal-title').html(
+                    "{{ __('employee::general.copy_warning', ['start' => ':start', 'end' => ':end']) }}".replace(
+                        ':start', copyDate[0]).replace(':end', copyDate[1]));
+            }
+            $('#schedule_shift_copy').modal('toggle');
+
+            $('#copyShiftDatePicker').on('change', function() {
+                copyDate = $(this).val().split('-');
+                $('.copy-shifts-modal-title').html(
+                    "{{ __('employee::general.copy_warning', ['start' => ':start', 'end' => ':end']) }}"
+                    .replace(
+                        ':start', copyDate[0]).replace(':end', copyDate[1]));
             });
         }
 
@@ -481,8 +537,7 @@
                         <span>${dayTranslation}</span> 
                         <span>${formattedDate}</span>
                     </span>
-                </th>
-            `);
+                </th>`);
                 columns.push({
                     data: currentDate.format('YYYY-MM-DD'),
                     name: currentDate.format('YYYY-MM-DD'),
@@ -511,7 +566,9 @@
             }
         }
 
-        function weekSelectPlugin() {
+        function weekSelectPlugin(reinitialize_table) {
+            let startDate;
+            let endDate;
             return function(fp) {
                 function onDayHover(event) {
                     var day = event.target;
@@ -571,7 +628,9 @@
                         `${endOfWeek.getFullYear()}-${String(endOfWeek.getMonth() + 1).padStart(2, '0')}-${String(endOfWeek.getDate()).padStart(2, '0')}`;
                     fp.setDate([startOfWeek, endOfWeek]);
                     highlightWeek();
-                    initTable(startDate, endDate);
+                    if (reinitialize_table) {
+                        initTable(startDate, endDate);
+                    }
                 }
 
                 function clearHover() {
@@ -614,8 +673,11 @@
                             `${sDate.getFullYear()}-${String(sDate.getMonth() + 1).padStart(2, '0')}-${String(sDate.getDate()).padStart(2, '0')}`;
                         endDate =
                             `${eDate.getFullYear()}-${String(eDate.getMonth() + 1).padStart(2, '0')}-${String(eDate.getDate()).padStart(2, '0')}`;
-                        dataTable.destroy();
-                        initTable(startDate, endDate);
+
+                        if (reinitialize_table) {
+                            dataTable.destroy();
+                            initTable(startDate, endDate);
+                        }
                     },
                 };
             };

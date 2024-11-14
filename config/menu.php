@@ -146,7 +146,7 @@ return [
             ],
             [
                 'name' => 'schedules',
-                'url' => 'schedule/timesheet-rule',
+                'url' => 'schedule',
                 'permission' => '',
                 'subMenu' => [
                     [
@@ -156,7 +156,7 @@ return [
                     ],
                     [
                         'name' => 'shift_schedule',
-                        'url' => 'schedule/shift-schedule',
+                        'url' => 'schedule/shift',
                         'permission' => '',
                     ],
                     [

@@ -7,12 +7,12 @@ pdfMake.fonts = {
     }
 };
 
-$('#kt_app_sidebar_toggle').on('click', function (){
+$('#kt_app_sidebar_toggle').on('click', function () {
     dataTable.columns.adjust().draw();
 })
 
-function exportButtons(columns, id, lang, columnsToReverse, columnsToReverseInArabic = []) {
-    
+function exportButtons(columns, id, lang, columnsToReverse = [], columnsToReverseInArabic = [], pageSize = 'A4') {
+
     new $.fn.dataTable.Buttons(table, {
         buttons: [{
             extend: 'excelHtml5',
@@ -22,7 +22,9 @@ function exportButtons(columns, id, lang, columnsToReverse, columnsToReverseInAr
         },
         {
             extend: 'pdfHtml5',
-            messageTop: 'message',
+            messageTop: ' ',
+            orientation: 'landscape',
+            pageSize: pageSize,
             text: "PDF",
             exportOptions: {
                 orthogonal: "PDF",
@@ -81,7 +83,7 @@ function exportButtons(columns, id, lang, columnsToReverse, columnsToReverseInAr
                 centerTable(doc);
 
                 reverseColumnText(doc);
-
+                
                 if (lang === 'ar') {
                     reverseForArabic(doc);
                     reverseColumnTextInArabic(doc)

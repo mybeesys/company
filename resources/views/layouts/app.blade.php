@@ -68,11 +68,22 @@
         }
 
         tr:hover {
-            background: #80808014 !important;
+            background: #b4d4f8 !important;
             /* font-style: italic; */
+
             font-weight: bold !important;
         }
 
+        .form-check:not(.form-switch) .form-check-input[type=checkbox] {
+
+    border: 1px solid #9b94949e !important;
+}
+
+.form-control.form-control-solid {
+
+    border-color: #9b94949e !important;
+
+}
         .select2-container .select2-selection--single {
             height: 43.2px !important;
         }
@@ -109,20 +120,25 @@
             position: absolute !important;
         }
 
+
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;
                 right: auto;
             }
 
+            .select2-selection__rendered {
+                padding-left: 0px !important;
+            }
+
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
             }
-
-
-
-
+        @else
+            .select2-selection__rendered {
+                padding-right: 0px !important;
+            }
         @endif
 
         .select2-container .select2-selection--single {

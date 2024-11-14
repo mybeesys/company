@@ -118,4 +118,12 @@ return [
     'time_overlap_error' => 'There is a conflict in the listed times',
     'last_element_end_status_error' => 'End status of the last interval should be Clockout',
     'column_visibility' => 'Show columns',
+    'shifts' => 'Shifts',
+    'add_more_shifts' => 'Add more shifts',
+    'all_roles' => 'All roles',
+    'all_employees' => 'All employees',
+    'day_times_hint' => 'Business day starts at :start, ends at :end',
+    'copy_shifts' => 'Copy shifts',
+    'select_week_to_copy_to' => 'Select week to copy to',
+    'copy_warning' => 'Warning: all dates in week from :start to :end will be overwritten'
 ];

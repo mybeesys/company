@@ -1,4 +1,3 @@
-@props(['options' => null])
 @php
     $filters = [
         [
