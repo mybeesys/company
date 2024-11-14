@@ -4,7 +4,6 @@ import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column'; 
-import { node } from 'webpack';
 
 const animatedComponents = makeAnimated();
 

@@ -9,6 +9,7 @@ use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\Unit;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
 
 class IngredientController extends Controller
@@ -94,7 +95,21 @@ class IngredientController extends Controller
             if($serviceFee != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
             
-            Ingredient::create($validated);
+            $ingredient= Ingredient::create($validated);
+
+            if(isset($request["transfer"]))
+            {
+                foreach ($request["transfer"] as $transfer) 
+                {
+                    $tran = [];
+                    $tran['ingredient_id'] =  $ingredient->id;
+                    $tran['unit2'] = $transfer['unit2'];
+                    $tran['transfer'] = $transfer['transfer'];
+                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    UnitTransfer::create($tran);
+                }
+            }
             
         } else {
             $ingredient = Ingredient::where([
@@ -120,6 +135,24 @@ class IngredientController extends Controller
             $Ingredient->reorder_point = isset($validated['reorder_point']) ? $validated['reorder_point']:null;
             $Ingredient->reorder_quantity = isset($validated['reorder_quantity']) ? $validated['reorder_quantity'] :null;
             $Ingredient->yield_percentage = isset($validated['yield_percentage']) ? $validated['yield_percentage'] :null;
+            if(isset($request["transfer"]))
+            {
+                $oldUnites = UnitTransfer::where('ingredient_id' , $validated['id'])->get();
+                foreach ( $oldUnites as $oldUnite)
+                {
+                    $oldUnite->delete();
+                }
+                foreach ($request["transfer"] as $transfer) 
+                {
+                    $tran = [];
+                    $tran['ingredient_id'] =  $validated['id'];
+                    $tran['unit2'] = $transfer['unit2'];
+                    $tran['transfer'] = $transfer['transfer'];
+                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    UnitTransfer::create($tran);
+                }
+            }
             $Ingredient->save();
         }
         return response()->json(["message" => "Done"]);

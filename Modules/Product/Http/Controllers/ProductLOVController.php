@@ -17,6 +17,8 @@ class ProductLOVController extends Controller
     protected $attributeController;
     protected $attributeClassController;
     protected $categoryController;
+    protected $unitTransferController;
+    protected $unitController;
 
     public function __construct(ProductController $productController,
                                 LinkedComboxPromptController $linkedComboxPromptController,
@@ -24,7 +26,9 @@ class ProductLOVController extends Controller
                                 IngredientController $ingredientController,
                                 AttributeController $attributeController,
                                 AttributesClassController $attributeClassController,
-                                CategoryController $categoryController)
+                                CategoryController $categoryController,
+                                UnitTransferController $unitTransferController,
+                                UnitController $unitController)
     {
         $this->productController = $productController;
         $this->linkedComboPromptController = $linkedComboxPromptController;
@@ -33,6 +37,8 @@ class ProductLOVController extends Controller
         $this->attributeController = $attributeController;
         $this->attributeClassController = $attributeClassController;
         $this->categoryController = $categoryController;
+        $this->unitTransferController = $unitTransferController;
+        $this->unitController = $unitController;
     }
 
     public function getProductLOVs($id)
@@ -45,6 +51,8 @@ class ProductLOVController extends Controller
         $matrix = $this->attributeController->getProductMatrix($id);
         $attribute = $this->attributeClassController->getAttributes();
         $category = $this->categoryController->getminicategorylist();
+        $unitTransfer = $this->unitTransferController->getUnitsTransferList("product" , $id);
+        $units = $this->unitController->getUnitsTree();
         
         $lov = [];
         $lov["product"] = $productList->original;
@@ -55,6 +63,8 @@ class ProductLOVController extends Controller
         $lov["matrix"] = $matrix;
         $lov["attribute"] = $attribute->original;
         $lov["category"] = $category->original;
+        $lov["unitTransfer"] = $unitTransfer->original;
+        $lov["units"] = $units->original;
 
         return response()->json($lov);
     }

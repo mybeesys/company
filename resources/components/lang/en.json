@@ -174,5 +174,7 @@
   "promptForUpsell": "Prompt for upsell", 
   "yes": "Yes",
   "no": "No",
-  "groupComboAndLinkedComboSelected":"One Combo Should be Selected"
+  "groupComboAndLinkedComboSelected":"One Combo Should be Selected",
+  "transfer": "=",
+  "primary":"Primary"
 }

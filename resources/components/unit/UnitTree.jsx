@@ -1,22 +1,25 @@
-import React , { useState, useEffect  } from 'react';
-import axios from 'axios';
-import { Column } from 'primereact/column'; 
-import SweetAlert2 from 'react-sweetalert2';
-import DeleteModal from '../product/DeleteModal';
-import { TreeTable } from 'primereact/treetable';
+import TreeTableComponent from '../comp/TreeTableComponent';
 
-const UnitTree = ({translations, nodes, handleSubmit ,actionTemplate ,renderCell}) => 
+const UnitTree = ({translations, dir}) => 
     {
+        const rootElement = document.getElementById('root');
+        const urlList = JSON.parse(rootElement.getAttribute('list-url'));
 
-          return (   
-                <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
-                    <TreeTable  value={nodes}  tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
-                        <Column header={translations.name_en} body={(node) => (renderCell(node, 'name_en', true,[] , "Text"))} sortable></Column>
-                        <Column header={translations.name_ar} body={(node) => (renderCell(node, 'name_ar' , false , [] ,"Text"))} sortable></Column>
-                        <Column  body={(node) => (actionTemplate(node))} />
-                    </TreeTable>
-                </form>
-        );
+        return (  
+        <TreeTableComponent 
+        translations={translations}
+        dir={dir}
+        urlList={urlList}
+        editUrl={null}
+        addUrl={null}
+        canAddInline={true}
+        title="Unit"
+        cols={[
+            {key : "name_en", autoFocus: true, options: [], type :"Text", width:'16%'},
+            {key : "name_ar", autoFocus: false, options: [], type :"Text", width:'15%'}
+        ]}
+      /> );
+       
     };        
 export default UnitTree;
  

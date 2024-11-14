@@ -9,6 +9,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import { Button } from 'primereact/button';
 import ProductCombo from './ProductCombo';
 import ProductLinkedCombo from './ProductLinkedCombo';
+import UnitTransferProduct from './UnitTransferProduct';
 
 const ProductComponent = ({translations , dir}) => {
   const rootElement = document.getElementById('root');
@@ -23,6 +24,8 @@ const ProductComponent = ({translations , dir}) => {
   const [AttributesTree, setAttributesTree] = useState([]);
   const [currentObject, setcurrentObject] = useState(product);
   const [productMatrix, setProductMatrix] = useState(product.attributeMatrix);
+  const [units, setUnits] = useState([]);
+  const [unitTransfer, setUnitTransfers] = useState(product.unitTransfer);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
     { key: 'printInfo', visible: false },
@@ -31,7 +34,8 @@ const ProductComponent = ({translations , dir}) => {
     { key: 'recipe', visible: false },
     { key: 'groupCombo', visible: false },
     { key: 'linkedCombo', visible: false },
-    { key: 'inventory', visible: false }
+    { key: 'inventory', visible: false },
+    { key: 'Unit', visible: false },
   ]);
   const [menu, setMenu] = useState(defaultMenu);
   const [recipe, setRecipe] = useState([]);
@@ -89,6 +93,8 @@ const ProductComponent = ({translations , dir}) => {
       r["attributeMatrix"] = [...matrixResult];
       let recipe1 = recipe.filter((object) => object.id != -100);
       r["recipe"] = [...recipe1];
+      let transfer = unitTransfer.filter((object) => object.id != -100);
+      r["transfer"] = [...transfer];
 
       const response = await axios.post(producturl, r, {
         headers: {
@@ -173,6 +179,16 @@ const ProductComponent = ({translations , dir}) => {
 
     const attribute =response.data.attribute;
     setAttributesTree(attribute);
+
+    const units =response.data.units;
+    const unitsResult = units.map(e => { return { label: getName(e.data.name_en, e.data.name_ar), value: e.data.id } });
+    setUnits(unitsResult);
+
+    
+    const unitTransfers =response.data.unitTransfer;
+    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.newid ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
+    unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
+    setUnitTransfers(unitTransfersResult);
     
     setProductLOVs({
       "productForComboLOV" : products,
@@ -202,6 +218,11 @@ const ProductComponent = ({translations , dir}) => {
   {
     setRecipe([...resultrecipe]);
   }
+
+  const parentHandleTransfer = (result) => 
+    {
+      setUnitTransfers([...result]);
+    }
 
   const handleGenerateMatrix = (newMatrix) => {
     setProductMatrix([...newMatrix]);
@@ -430,6 +451,17 @@ const ProductComponent = ({translations , dir}) => {
                     linkedCombos={productLOVs.linkedComboLOV}
                     products={productLOVs.productForComboLOV}
                     dir={dir} />
+                  : <></>
+              }
+               {
+                menu[8].visible ?
+                  <UnitTransferProduct
+                  translations={translations}
+                  product={currentObject}
+                  unitTransfer={unitTransfer}
+                  unitTree={units}
+                  parentHandle={parentHandleTransfer}
+                  dir={dir} />
                   : <></>
               }
             <input type="submit" id="btnMainSubmit" hidden></input>

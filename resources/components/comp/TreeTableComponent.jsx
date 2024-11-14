@@ -15,6 +15,7 @@ const TreeTableComponent = ({translations, dir, urlList, editUrl, addUrl, canAdd
         const [currentKey, setCurrentKey] = useState('-1');
         const [showAlert, setShowAlert] = useState(false);
         const [currentNode, setCurrentNode] = useState({});
+        const [validated, setValidated] = useState(false);
 
 
         useEffect(() => {
@@ -346,7 +347,7 @@ const TreeTableComponent = ({translations, dir, urlList, editUrl, addUrl, canAdd
                     <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a>
-                    <button id="btnSubmit" type="submit" style={{display:"none"}}></button>
+                   
                 </div> : <></>
         );
     };
@@ -375,12 +376,15 @@ const TreeTableComponent = ({translations, dir, urlList, editUrl, addUrl, canAdd
                     </div>
                 </div>
                 <div class="card-body">
+                <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
                     <TreeTable  value={nodes}  tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                         {cols.map((col)=>
                             <Column header={translations[col.key]} body={(node) => (renderCell(node, col.key, col.autoFocus, col.options , col.type))}></Column>    
                         )}
                         <Column  body={(node) => (actionTemplate(node))} />
                     </TreeTable>
+                    <button id="btnSubmit" type="submit" style={{display:"none"}}/>
+                </form>
                 </div>
     
             </div>

@@ -13,6 +13,8 @@ use Modules\Product\Models\ProductCombo;
 use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
+use Modules\Product\Models\Unit;
+use Modules\Product\Models\UnitTransfer;
 
 class ProductController extends Controller
 {
@@ -201,6 +203,24 @@ class ProductController extends Controller
                     Product_Attribute::create($att);
                 }
             }
+            if(isset($request["transfer"]))
+            {
+                $oldUnites = UnitTransfer::where('product_id' , $validated['id'])->get();
+                foreach ( $oldUnites as $oldUnite)
+                {
+                    $oldUnite->delete();
+                }
+                foreach ($request["transfer"] as $transfer) 
+                {
+                    $tran = [];
+                    $tran['product_id'] =  $validated['id'];
+                    $tran['unit2'] = $transfer['unit2'];
+                    $tran['transfer'] = $transfer['transfer'];
+                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    UnitTransfer::create($tran);
+                }
+            }
             if(isset($request["combos"]))
             {
                 ProductCombo::where('product_id', '=', $product->id)->delete();
@@ -278,6 +298,19 @@ class ProductController extends Controller
                     $att['price'] = $attribute['price'];
                     $att['starting'] = isset($attribute['starting'])? $attribute['starting']: null;
                     Product_Attribute::create($att);
+                }
+            }
+            if(isset($request["transfer"]))
+            {
+                foreach ($request["transfer"] as $transfer) 
+                {
+                    $tran = [];
+                    $tran['product_id'] =  $product->id;
+                    $tran['unit2'] = $transfer['unit2'];
+                    $tran['transfer'] = $transfer['transfer'];
+                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    UnitTransfer::create($tran);
                 }
             }
             if ($request->hasFile('image_file')) {

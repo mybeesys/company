@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SweetAlert2 from 'react-sweetalert2';
 import IngredientBasicInfo from './IngredientBasicInfo';
+import UnitTransferIngredient from './UnitTransferIngredient';
 import axios from 'axios';
 
 const IngredientDetail = ({dir, translations}) => {
@@ -9,11 +10,13 @@ const IngredientDetail = ({dir, translations}) => {
   const [currentObject, setcurrentObject] = useState(ingredient);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
+    { key: 'Unit', visible: false },
   ]);
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
   const [menu, setMenu] = useState(defaultMenu);
   const [units, setUnits] = useState([]);
   const [vendor, setVendor] = useState([]);
+  const [unitTransfer, setUnitTransfers] = useState([]);
 
   const handleChange = (index, value) => {
     let currentMenu = [...menu];
@@ -44,6 +47,9 @@ const IngredientDetail = ({dir, translations}) => {
 
       r['unit_measurement'] = r['unit_measurement'] ? r['unit_measurement'] : units[0].value ;
       r['active'] = r['active'] ? r['active'] : 0 ;
+
+      let transfer = unitTransfer.filter((object) => object.id != -100);
+      r["transfer"] = [...transfer];
 
       const response = await axios.post('/ingredient', r);
       if (response.data.message == "Done") {
@@ -82,6 +88,11 @@ const IngredientDetail = ({dir, translations}) => {
     setSubmitdisableButton(false);
   }
 
+  const unitTransferHandle = (result) =>
+  {
+    setUnitTransfers([...result]);
+  }
+
   const handleMainSubmit = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -103,9 +114,17 @@ const IngredientDetail = ({dir, translations}) => {
   useEffect(() => {
     const fetchData = async () => {
         const res2 = await axios.get('/unitTypeList');
-        const units = res2.data.map(e => { return { name: dir=='rtl'? e.name_ar : e.name_en, value: e.id } });
+        const units = res2.data.map(e => { return { label: dir=='rtl'? e.name_ar : e.name_en, name: dir=='rtl'? e.name_ar : e.name_en, value: e.id } });
+     
+        const res1 = await axios.get('/getUnitsTransferList/ingredient/'+ currentObject.id);
+        const unitTransfers =res1.data;
+        const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.newid ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
+        unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
+      
         const res = await axios.get('/getVendors');
         const vendors = res.data.map(e => { return { name: dir=='rtl'? e.name_ar : e.name_en, value: e.id } });
+
+        setUnitTransfers(unitTransfersResult);
         setVendor(vendors);
         setUnits(units);
       }
@@ -161,6 +180,18 @@ const IngredientDetail = ({dir, translations}) => {
                       />
                   : <></>
               }
+                {
+                menu[1].visible ?
+                  <UnitTransferIngredient
+                    translations={translations}
+                    parentHandle = {unitTransferHandle}
+                    unitTree={units}
+                    unitTransfer={unitTransfer}
+                    dir ={dir}
+                      />
+                  : <></>
+              }
+          
           
               <input type="submit" id="btnMainSubmit" hidden></input>
             </form>

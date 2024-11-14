@@ -174,5 +174,7 @@
   "promptForUpsell": "Prompt for upsell", 
   "yes": "نعم",
   "no": "لا",
-  "groupComboAndLinkedComboSelected":"يجب اختيار نوع واحد من الكومبو"
+  "groupComboAndLinkedComboSelected":"يجب اختيار نوع واحد من الكومبو",
+  "transfer": "=",
+  "primary":"أساسي"
 }

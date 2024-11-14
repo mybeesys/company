@@ -31,8 +31,7 @@ use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
 use Modules\Product\Http\Controllers\ServiceFeeController;
 use Modules\Product\Http\Controllers\ServiceFeeTypeController;
 use Modules\Product\Http\Controllers\UnitController;
-use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\ServiceFee;
+use Modules\Product\Http\Controllers\UnitTransferController;
 
 
 /*
@@ -107,4 +106,7 @@ Route::middleware([
     
     Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
     Route::get('productList', [ProductController::class, 'all'])->name('productList');
+    
+    Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
+    
 });
