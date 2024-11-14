@@ -89,16 +89,16 @@
         </div>
     </div>
 </div>
-{{-- console access managment (optional) --}}
+{{-- console access management (optional) --}}
 <div class="mb-5 mt-5">
-    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_managment_access" :collapsible=!$disabled
-        headerClass="active-managment-fields">
+    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_management_access" :collapsible=!$disabled
+        headerClass="active-management-fields">
         <x-slot:header>
             <div class="card-toolbar justify-content-end">
                 <x-form.switch-div class="form-check-custom">
-                    <input type="hidden" name="active_managment_fields_btn" value="0">
+                    <input type="hidden" name="active_management_fields_btn" value="0">
                     <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1" type="checkbox" :disabled=$disabled
-                        name="active_managment_fields_btn" />
+                        name="active_management_fields_btn" />
                 </x-form.switch-div>
             </div>
         </x-slot:header>

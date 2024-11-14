@@ -5,7 +5,7 @@
         ['id' => 'break', 'name' => __('employee::fields.break')],
     ];
 @endphp
-<div class="modal fade" id="schedule_shift_copy" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="shift_copy" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered mw-600px">
         <div class="modal-content">
             <div class="modal-header px-8 py-5">
@@ -15,9 +15,9 @@
                 </div>
             </div>
             <div class="modal-body mx-5 pt-5">
-                <form id="schedule_shift_copy_form" class="form" action="#">
+                <form id="shift_copy_form" class="form" action="#">
                     @csrf
-                    <div id="kt_modal_update_schedule_shift_copy_scroll">
+                    <div id="kt_modal_update_shift_copy_scroll">
                         <x-form.input-div class="mb-8 w-100 d-flex align-items-center" :row=false>
                             <label class="w-100 fs-5">@lang('employee::general.select_week_to_copy_to')</label>
                             <x-form.input class="form-control form-control-solid" name="copyShiftDatePicker" />

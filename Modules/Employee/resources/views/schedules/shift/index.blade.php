@@ -5,22 +5,23 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="scheduleshift" :addButton=false :idColumn=false module="employee">
+            <x-tables.table-header model="shift" :addButton=false :idColumn=false module="employee">
                 <x-slot:filters>
                     <x-employee::schedules.filters :establishments=$establishments :roles=$roles />
                 </x-slot:filters>
                 <x-slot:elements>
-                    <x-form.input-div class="mb-md-8 min-w-250px w-100" :row=false>
+                    <x-form.input-div class="mb-md-8 min-w-200px w-100" :row=false>
                         <x-form.input class="form-control form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
                     </x-form.input-div>
                 </x-slot:elements>
                 <x-slot:export>
-                    <x-tables.export-menu id="scheduleshift" />
+                    <x-tables.export-menu id="shift" />
                 </x-slot:export>
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
-            <x-tables.table :columns=$columns model="scheduleshift" :actionColumn=false :idColumn=false module="employee" />
+            <x-tables.table :columns=$columns model="shift" :actionColumn=false :idColumn=false selectColumn
+                :footers=$footers module="employee" />
         </x-cards.card-body>
     </x-cards.card>
 
@@ -44,22 +45,104 @@
         let filterRoleId;
         let filterEstablishmentId;
         let filterEmployeeStatus;
+        let filterFormat;
         let copyShiftflatpickrInstance;
+        let tableType;
 
-        const table = $('#kt_scheduleshift_table');
+        const table = $('#kt_shift_table');
 
         $(document).ready(function() {
             initElements();
             addShiftForm();
             addShiftModal();
-            scheduleShiftRepeater();
-            exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_scheduleshift_table',
+            shiftRepeater();
+            exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_shift_table',
                 "{{ session()->get('locale') }}", [5], [11], 'A2');
             handleFilters();
+
+            $('.table-buttons').addClass('d-flex justify-content-between flex-wrap').append(
+                `<div class="card-rounded bg-light d-flex mb-5">		
+                        <ul class="nav d-flex flex-nowrap border-transparent fw-bold">
+                            <li class="nav-item">
+                                <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 active table-shift" href="#">{{ __('employee::general.shifts') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-hours" href="#">{{ __('employee::fields.hours') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-wage" href="#">{{ __('employee::fields.wage-forecasting') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-break" href="#">{{ __('employee::fields.breaks') }}</a>
+                            </li>
+                        </ul>
+                </div>`
+            )
+            $('.table-hours').on('click', function() {
+                $('.nav-link.active').removeClass('active');
+                $(this).addClass('active');
+                tableType = 'hours';
+
+                dataTable.ajax.url('{{ route('schedules.shifts.index') }}?' + $.param({
+                    table_type: tableType,
+                    filter_role: filterRoleId,
+                    filter_establishment: filterEstablishmentId,
+                    filter_employee_status: filterEmployeeStatus,
+                    format: filterFormat
+                })).load();
+
+                $('.table-hours-footer').removeClass('d-none');
+            });
+
+            $('.table-shift').on('click', function() {
+                $('.nav-link.active').removeClass('active');
+                $(this).addClass('active');
+                tableType = 'default';
+                dataTable.ajax.url('{{ route('schedules.shifts.index') }}?' + $.param({
+                    table_type: tableType,
+                    filter_role: filterRoleId,
+                    filter_establishment: filterEstablishmentId,
+                    filter_employee_status: filterEmployeeStatus,
+                    format: filterFormat
+                })).load();
+
+                $('.table-hours-footer').addClass('d-none');
+            })
+
+            $('#copyShiftDatePicker').on('click', function() {
+                copyShiftflatpickrInstance.open();
+            });
+
+            $('#shift_copy_form').on('submit', function(e) {
+                e.preventDefault();
+
+                const checkedCheckboxes = table.find('tbody [type="checkbox"]:checked');
+                let employeeIds = [];
+                checkedCheckboxes.each(function() {
+                    employeeIds.push($(this).data('employee-id'));
+                });
+
+                let copyFromDate = $('#periodDatePicker').val().split('-');
+                let copyDate = $('#copyShiftDatePicker').val().split('-');
+                let data = {
+                    start_date: copyDate[0],
+                    end_date: copyDate[1],
+                    copy_from_start_date: copyFromDate[0],
+                    copy_from_end_date: copyFromDate[1],
+                    employee_ids: employeeIds
+                };
+                ajaxRequest("{{ route('schedules.shifts.copy-shifts') }}", 'POST', data, true, true)
+                    .done(function() {
+                        dataTable.ajax.reload();
+                        $('#shift_copy').modal('toggle');
+                    }).always(function() {
+                        $('.copy-shifts-btn').html("{{ __('employee::general.copy_shifts') }}");
+                    });
+            });
         });
 
         function addShiftForm() {
-            $('#schedule_shift_add_form').on('submit', function(e) {
+            $('#shift_add_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
                 data.push({
@@ -72,7 +155,7 @@
                 ajaxRequest("{{ route('schedules.shifts.store') }}", 'POST', data, true, true)
                     .done(function() {
                         dataTable.ajax.reload();
-                        $('#schedule_shift_add').modal('toggle');
+                        $('#shift_add').modal('toggle');
                     });
             });
         }
@@ -80,6 +163,7 @@
         function handleFilters() {
             const employee = $('[data-kt-filter="employee_filter"]');
             const establishment = $('[data-kt-filter="establishment_filter"]');
+            const format = $('[data-kt-filter="format_filter"]');
             const role = $('[data-kt-filter="role_filter"]');
 
             role.on('change', function() {
@@ -97,15 +181,21 @@
                 filter();
             });
 
+            format.on('change', function() {
+                filterFormat = $(this).val();
+                filter();
+            });
+
             function filter() {
                 dataTable.ajax.url('{{ route('schedules.shifts.index') }}?' + $.param({
-                    filter_role_id: filterRoleId,
-                    filter_establishment_id: filterEstablishmentId,
+                    table_type: tableType,
+                    filter_role: filterRoleId,
+                    filter_establishment: filterEstablishmentId,
                     filter_employee_status: filterEmployeeStatus,
+                    format: filterFormat
                 })).load();
             }
         }
-
 
         function addShiftModal() {
             $(document).on('click', '.add-schedule-shift-button', function(e) {
@@ -121,14 +211,13 @@
                 const roleId = [];
                 const breakDuration = [];
 
-
                 ajaxRequest("{{ url('/schedule/shift/get-shift-schedule') }}", 'GET', {
                     employee_id: employeeId,
                 }, false, true).done(function(response) {
                     roleValues = response.data.roles;
 
-                    let startDayTime = response.data.day_times.start_of_day;
-                    let endDayTime = response.data.day_times.end_of_day;
+                    let startDayTime = response.data.start_of_day;
+                    let endDayTime = response.data.end_of_day;
 
                     if (startDayTime && endDayTime) {
                         $('.work-time-hint').html(
@@ -165,7 +254,7 @@
                         }
                     }
 
-                    const repeaterList = $('[data-repeater-list="schedule_shift_repeater"]');
+                    const repeaterList = $('[data-repeater-list="shift_repeater"]');
                     repeaterList.empty();
                     scheduleShiftIds.forEach((shiftId, index) => {
                         $('[data-repeater-create]').trigger('click');
@@ -181,15 +270,15 @@
                     });
 
                     setTimeout(() => {
-                        $('#schedule_shift_add').modal('toggle');
+                        $('#shift_add').modal('toggle');
                     }, 300);
                 });
 
             });
         }
 
-        function scheduleShiftRepeater() {
-            $('#schedule_shift_repeater').repeater({
+        function shiftRepeater() {
+            $('#shift_repeater').repeater({
                 show: function() {
                     $(this).slideDown();
                     let startTime;
@@ -225,13 +314,13 @@
                         }
                     });
 
-                    $(this).find('select[name^="schedule_shift_repeater"]').select2({
+                    $(this).find('select[name^="shift_repeater"]').select2({
                         minimumResultsForSearch: -1,
                     });
 
                     $(this).find('select[name*="[end_status]"]').val('clockout').trigger('change');
 
-                    $('#schedule_shift_repeater [data-repeater-item]').each(function() {
+                    $('#shift_repeater [data-repeater-item]').each(function() {
                         const currentErrorId = $(this).find(
                                 'select[name*="[end_status]"]').attr('name')
                             .replace(/\[\d+\]\[\w+\]/, (match) => {
@@ -251,7 +340,7 @@
                         });
 
                         const lastRepeaterItem = $(
-                            '#schedule_shift_repeater [data-repeater-item]').last();
+                            '#shift_repeater [data-repeater-item]').last();
 
                         if ($(this).val() === 'break') {
                             if ($(this).closest('[data-repeater-item]').is(lastRepeaterItem)) {
@@ -268,7 +357,7 @@
                     });
                 },
                 hide: function(deleteElement) {
-                    if ($('#schedule_shift_repeater [data-repeater-item]').length > 1) {
+                    if ($('#shift_repeater [data-repeater-item]').length > 1) {
                         $(this).slideUp(deleteElement);
                     } else {
                         showAlert(Lang.get('responses.emptyRepeaterwarning'),
@@ -328,6 +417,11 @@
             $('[name="establishment_filter"]').select2({
                 minimumResultsForSearch: -1,
             });
+
+            $('[name="format_filter"]').select2({
+                minimumResultsForSearch: -1,
+            });
+
             $('[name="role_filter"]').select2({
                 minimumResultsForSearch: -1,
             });
@@ -336,27 +430,6 @@
             });
 
             handleSearchDatatable();
-
-            $('#copyShiftDatePicker').on('click', function() {
-                copyShiftflatpickrInstance.open();
-            });
-
-            $('#schedule_shift_copy_form').on('submit', function(e) {
-                e.preventDefault();
-                let copyFromDate = $('#periodDatePicker').val().split('-');
-                let copyDate = $('#copyShiftDatePicker').val().split('-');
-                let data = {
-                    start_date: copyDate[0],
-                    end_date: copyDate[1],
-                    copy_from_start_date: copyFromDate[0],
-                    copy_from_end_date: copyFromDate[1]
-                };
-                ajaxRequest("{{ route('schedules.shifts.copy-shifts') }}", 'POST', data, true, true)
-                    .done(function() {
-                        dataTable.ajax.reload();
-                        $('#schedule_shift_copy').modal('toggle');
-                    });
-            });
         }
 
         function startEndTimeValidate(startTime, endTime, thisElement, otherInput) {
@@ -385,7 +458,7 @@
             }
 
             let hasOverlap = false;
-            $('#schedule_shift_repeater [data-repeater-item]').each(function() {
+            $('#shift_repeater [data-repeater-item]').each(function() {
                 const currentStartTime = $(this).find('input[name*="[startTime]"]').val();
                 const currentEndTime = $(this).find('input[name*="[endTime]"]').val();
 
@@ -422,12 +495,16 @@
                     data: function(d) {
                         d.start_date = startDate;
                         d.end_date = endDate;
-                        d.filter_role_id = filterRoleId;
-                        d.filter_establishment_id = filterEstablishmentId;
-                        d.filter_employee_status = filterEmployeeStatus;
                     },
                 },
                 columns: [{
+                        data: 'select',
+                        name: 'select',
+                        className: 'px-3 py-2 border',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
                         data: 'id',
                         name: 'id',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6',
@@ -459,7 +536,7 @@
                     },
                     ...columns
                 ],
-                dom: "Btr <'row'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar'l><'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>>",
+                dom: "<'table-buttons'B> tr <'row'<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start dt-toolbar'l><'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>>",
                 buttons: [{
                         extend: 'colvis',
                         text: "{{ __('employee::general.column_visibility') }}",
@@ -468,13 +545,67 @@
                     },
                     {
                         text: "{{ __('employee::general.copy_shifts') }}",
-                        className: 'mb-5',
+                        className: 'mb-5 copy-shifts-btn mw-275px',
                         action: function(e, dt, node, config) {
                             copyShifts();
                         }
                     }
-                ]
+                ],
+                "footerCallback": function(row, data, start, end, display) {
+                    var api = this.api();
+
+                    var intVal = function(i) {
+                        if (typeof i === "string" && i.match(/(\d{2}):(\d{2})/)) {
+                            var timeParts = i.split(':');
+                            var hours = parseInt(timeParts[0]);
+                            var minutes = parseInt(timeParts[1]);
+                            return (hours * 60 + minutes) / 60;
+                        } else {
+                            var x = parseFloat(i, 10);
+                            return isNaN(x) ? 0 : x;
+                        }
+                    };
+
+                    var columnsToSum = [3];
+                    for (var i = 7; i <= 13; i++) {
+                        columnsToSum.push(i);
+                    }
+
+                    let format = $('select[name="format_filter"]').val();
+                    if (!$('.table-shift').hasClass('active')) {
+                        columnsToSum.forEach(function(colIndex) {
+                            var total = api.column(colIndex).data().reduce(function(a, b) {
+                                var value = $(b).find('div').text() || b;
+                                return intVal(a) + intVal(value);
+                            }, 0).toFixed(2);
+
+                            var pageTotal = api.column(colIndex, {
+                                page: "current"
+                            }).data().reduce(function(a, b) {
+                                var value = $(b).find('div').text() || b;
+                                return intVal(a) + intVal(value);
+                            }, 0).toFixed(2);
+                            if (format === 'decimal') {
+                                $(api.column(colIndex).footer()).html(pageTotal + " (" + total + ")");
+                            } else {
+                                var convertToHHMM = function(value) {
+                                    var hours = Math.floor(value); // Get whole hours
+                                    var minutes = Math.round((value - hours) * 60);
+                                    minutes = minutes < 10 ? '0' + minutes : minutes;
+
+                                    return hours + ':' + minutes; // Return in HH:MM format
+                                };
+                                var formattedTotal = convertToHHMM(total);
+                                var formattedPageTotal = convertToHHMM(pageTotal);
+
+                                $(api.column(colIndex).footer()).html(formattedPageTotal + " (" +
+                                    formattedTotal + ")");
+                            }
+                        });
+                    }
+                }
             });
+            initToggleToolbar();
         }
 
         function copyShifts() {
@@ -497,7 +628,7 @@
                     "{{ __('employee::general.copy_warning', ['start' => ':start', 'end' => ':end']) }}".replace(
                         ':start', copyDate[0]).replace(':end', copyDate[1]));
             }
-            $('#schedule_shift_copy').modal('toggle');
+            $('#shift_copy').modal('toggle');
 
             $('#copyShiftDatePicker').on('change', function() {
                 copyDate = $(this).val().split('-');
@@ -509,7 +640,7 @@
         }
 
         function updateTableHeader(startDate, endDate) {
-            const $headerRow = $('#scheduleshift_headerRow');
+            const $headerRow = $('#shift_headerRow');
             columns = [];
             const dayTranslations = {
                 'sunday': '{{ __('employee::general.sunday') }}',
@@ -524,7 +655,7 @@
             let currentDate = moment(startDate, 'YYYY-MM-DD');
             const endMomentDate = moment(endDate, 'YYYY-MM-DD');
             // Remove all date columns immediately
-            $headerRow.find('th:gt(5)').remove();
+            $headerRow.find('th:gt(6)').remove();
 
             while (currentDate.isSameOrBefore(endDate)) {
                 const formattedDate = currentDate.format('MM/DD');
@@ -532,7 +663,7 @@
                 const dayTranslation = dayTranslations[dayOfWeek];
 
                 const $th = $(`
-                <th style="display: none;" class="min-w-200px border text-center py-1 align-middle">
+                <th style="display: none;" class="min-w-125px border text-center py-1 align-middle">
                     <span class="d-flex flex-column">
                         <span>${dayTranslation}</span> 
                         <span>${formattedDate}</span>
@@ -541,17 +672,17 @@
                 columns.push({
                     data: currentDate.format('YYYY-MM-DD'),
                     name: currentDate.format('YYYY-MM-DD'),
-                    className: 'text-start min-w-200px px-3 py-2 border text-center text-gray-800 fs-6'
+                    className: 'text-start min-w-125px px-3 py-2 border text-center text-gray-800 fs-6'
                 });
                 $headerRow.append($th);
                 $th.fadeIn(400);
                 currentDate.add(1, 'day');
             }
-            adjustTableRows($headerRow.find('th').length - 6); // Subtracting static columns  
+            adjustTableRows($headerRow.find('th').length - 7); // Subtracting static columns  
         }
 
         function adjustTableRows(dateColumnsCount) {
-            const $tableBody = $('#scheduleshift_tableBody');
+            const $tableBody = $('#shift_tableBody');
             $tableBody.find('tr').each(function() {
                 $(this).find('td').remove();
             });
@@ -681,6 +812,35 @@
                     },
                 };
             };
+        }
+
+        function initToggleToolbar() {
+            selectedCount = $('[data-kt-shift-table-select="selected_count"]');
+
+            $('#kt_shift_table_wrapper').on('click', '.shift_select', function() {
+                setTimeout(function() {
+                    toggleToolbars();
+                }, 50);
+            });
+        }
+
+        function toggleToolbars() {
+            const allCheckboxes = table.find('tbody [type="checkbox"]');
+            let checkedState = false;
+            let count = 0;
+
+            allCheckboxes.each(function() {
+                if (this.checked) {
+                    checkedState = true;
+                    count++;
+                }
+            });
+            if (checkedState) {
+                selectedCount.html(' ' + count);
+                $('.copy-shifts-btn').html("{{ __('employee::general.copy_selected_employees_shifts') }}");
+            } else {
+                $('.copy-shifts-btn').html("{{ __('employee::general.copy_shifts') }}");
+            }
         }
     </script>
 @endsection

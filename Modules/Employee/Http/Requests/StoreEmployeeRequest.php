@@ -33,13 +33,13 @@ class StoreEmployeeRequest extends FormRequest
             'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'max_digits:12'],
             'role_wage_repeater.*.wage_type' => [new WageTypeRequired($request->input('role_wage_repeater.*.wage')), 'nullable', 'in:hourly,weakly,monthly'],
             'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
-            'active_managment_fields_btn' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'active_management_fields_btn' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
-            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:roles,id'],
-            'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'exists:establishment_establishments,id'],
-            'accountLocked' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'boolean'],
-            'password' => ['required_if_accepted:active_managment_fields_btn', 'nullable', Password::default()],
-            'username' => ['required_if_accepted:active_managment_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
+            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'exists:roles,id'],
+            'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'exists:establishment_establishments,id'],
+            'accountLocked' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'boolean'],
+            'password' => ['required_if_accepted:active_management_fields_btn', 'nullable', Password::default()],
+            'username' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
         ];
     }
 

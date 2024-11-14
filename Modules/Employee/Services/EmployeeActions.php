@@ -56,18 +56,18 @@ class EmployeeActions
         }
 
         $user = AdministrativeUser::updateOrCreate(['employee_id' => $employee_id], $data);
-        $administrativeUserEstablishmen_ids = [];
+        $administrativeUserEstablishment_ids = [];
         if ($repeaterData) {
-            $repeaterData->each(function ($repData) use ($user, &$administrativeUserEstablishmen_ids) {
+            $repeaterData->each(function ($repData) use ($user, &$administrativeUserEstablishment_ids) {
                 $administrativeUserEstablishment = AdministrativeUserEstablishment::updateOrCreate([
                     'user_id' => $user->id,
                     'establishment_id' => $repData['establishment']
                 ], [
                     'permissionSet_id' => $repData['dashboardRole']
                 ]);
-                $administrativeUserEstablishmen_ids[] = $administrativeUserEstablishment->id;
+                $administrativeUserEstablishment_ids[] = $administrativeUserEstablishment->id;
             });
-            AdministrativeUserEstablishment::whereNotIn('id', $administrativeUserEstablishmen_ids)->delete();
+            AdministrativeUserEstablishment::where('user_id', $user->id)->whereNotIn('id', $administrativeUserEstablishment_ids)->delete();
         } else {
             AdministrativeUserEstablishment::where('user_id', $user->id)->delete();
         }
@@ -113,13 +113,13 @@ class EmployeeActions
                 $employeeEstablishment_ids[] = $employeeEstablishment->id;
             }
         });
-        EmployeeEstablishment::whereNotIn('id', $employeeEstablishment_ids)->delete();
-        Wage::whereNotIn('id', $wages_ids)->delete();
+        EmployeeEstablishment::where('employee_id', $employee->id)->whereNotIn('id', $employeeEstablishment_ids)->delete();
+        Wage::where('employee_id', $employee->id)->whereNotIn('id', $wages_ids)->delete();
     }
 
-    public function storeImage($image, $oldimage = null)
+    public function storeImage($image, $oldImage = null)
     {
-        $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldimage);
+        $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldImage);
 
         if (File::exists($oldPath)) {
             File::delete($oldPath);
@@ -139,22 +139,22 @@ class EmployeeActions
             'employmentStartDate' => Carbon::parse($this->request->get('employmentStartDate'))->format('Y-m-d')
         ])->all());
 
-        // Hanlding employee's POS roles and wages
+        // Handling employee's POS roles and wages
         !empty($this->request->get('role_wage_repeater')) && $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee);
 
         // Handling administrative User and their roles and establishments
-        $this->request->get('active_managment_fields_btn') &&
+        $this->request->get('active_management_fields_btn') &&
             $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id);
     }
 
     public function update($employee)
     {
         // Handling administrative User and their roles and establishments
-        $this->request->get('active_managment_fields_btn') ?
+        $this->request->get('active_management_fields_btn') ?
             $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id) : $employee?->administrativeUser?->delete();
 
-        // Hanlding employee's POS roles and wages
-        !empty($this->request->get('role_wage_repeater')) ? $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee) : $this->unsyncAllRoles($employee);
+        // Handling employee's POS roles and wages
+        !empty($this->request->get('role_wage_repeater')) ? $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee) : $this->unSyncAllRoles($employee);
 
         $imageName = $this->request->has('image') ? $this->storeImage($this->request->image, $employee->image) : null;
 
@@ -170,7 +170,7 @@ class EmployeeActions
         return $employee->update($data->toArray());
     }
 
-    public function unsyncAllRoles($employee)
+    public function unSyncAllRoles($employee)
     {
         Wage::where('employee_id', $employee->id)->delete();
         $employee->syncRoles(null);

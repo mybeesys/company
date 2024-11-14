@@ -118,7 +118,8 @@ return [
     'employee_declares_break_type' => 'Employee declares break type',
     'clock_in_before_shift_time_limit' => 'Clock-in before shift time limit',
     'auto_clock_out_time' => 'Auto clock-out time',
-    'h_m' => 'h::m',
+    'h_m' => 'HH:MM',
+    'decimal' => 'Decimal',
     'start_time' => 'Start time',
     'end_time' => 'End time',
     'end_status' => 'End status',
@@ -126,6 +127,8 @@ return [
     'break' => 'Break',
     'establishment' => 'Establishment',
     'total_wages' => 'Total wages',
-    'all_establishments' => 'All establishments'
-  
+    'all_establishments' => 'All establishments',
+    'wage-forecasting' => 'Wage/Forecasting',
+    'breaks' => 'Breaks'
+
 ];

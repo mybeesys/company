@@ -119,7 +119,8 @@ return [
     'clock_in_before_shift_time_limit' => 'الحد الزمني لتسجيل الدخول قبل بدء الوردية',
     'auto_clock_out_time' => 'وقت تسجيل الخروج التلقائي',
     'hours_count' => 'عدد الساعات',
-    'h_m' => 'د::س',
+    'h_m' => 'د:س',
+    'decimal' => 'عشري',
     'start_time' => 'وقت البدء',
     'end_time' => 'وقت الانتهاء',
     'end_status' => 'حالة الانتهاء',
@@ -127,5 +128,7 @@ return [
     'break' => 'استراحة',
     'establishment' => 'الفرع',
     'total_wages' => 'إجمالي المرتب',
-    'all_establishments' => 'كل الأفرع'
+    'all_establishments' => 'كل الأفرع',
+    'wage-forecasting' => 'الأجر/التنبؤ',
+    'breaks' => 'الإستراحات'
 ];

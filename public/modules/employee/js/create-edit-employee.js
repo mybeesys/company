@@ -58,15 +58,15 @@ function permissionSetRepeater() {
 function administrativeUser(administrativeUser, id) {
     let saveButton = $(`#${id}_button`);
     if (administrativeUser) {
-        $('#dashboard_managment_access').collapse('toggle');
-        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('#dashboard_management_access').collapse('toggle');
+        $('#active_management_fields_btn').prop('checked', true).val(1);
         $('[name="username"]').prop('required', true);
     }
 
-    $('.active-managment-fields').on('click', function (e) {
+    $('.active-management-fields').on('click', function (e) {
         if ($(this).attr("aria-expanded") == 'true') {
-            $('#active_managment_fields_btn').prop('checked', true);
-            $('#active_managment_fields_btn').val(1);
+            $('#active_management_fields_btn').prop('checked', true);
+            $('#active_management_fields_btn').val(1);
 
             if (!administrativeUser) {
                 $('[name="password"]').prop('required', true);
@@ -75,8 +75,8 @@ function administrativeUser(administrativeUser, id) {
                 .prop('required', true);
 
         } else {
-            $('#active_managment_fields_btn').prop('checked', false);
-            $('#active_managment_fields_btn').val(0);
+            $('#active_management_fields_btn').prop('checked', false);
+            $('#active_management_fields_btn').val(0);
             $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]')
                 .prop('required', false);
             $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]').removeClass('is-invalid');
@@ -106,8 +106,8 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     checkErrors(saveButton);
 
     if ($('[name="password"], [name="username"], select[name^="dashboard_role_repeater"]').val().length !== 0) {
-        $('#dashboard_managment_access').collapse('toggle');
-        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('#dashboard_management_access').collapse('toggle');
+        $('#active_management_fields_btn').prop('checked', true).val(1);
         $('[name="username"]').prop('required', true);
     }
 

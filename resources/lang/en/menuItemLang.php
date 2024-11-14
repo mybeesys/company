@@ -7,7 +7,7 @@ return [
     'product_module' => 'Product Mangment',
     'chart_of_accounts' => 'Tree of accounts',
 
-    'employees_management_module' => 'Employee managment',
+    'employees_management_module' => 'Employee management',
     'establishments_module' => 'Establishments',
     'users' => 'Users',
     'roles' => 'Roles',
