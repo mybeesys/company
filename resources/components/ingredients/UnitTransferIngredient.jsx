@@ -32,7 +32,9 @@ const cancelEdit = (node) => {
     parentHandle(r);
 }
 
-const triggerSubmit = () => {
+const triggerSubmit = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     handleSubmit(formRef.current);
 };
 
@@ -168,7 +170,7 @@ const addInline = (node) => {
             <div class="card-body"  dir={dir}>
             <div>
             <form  id="treeForm" ref={formRef} noValidate validated={true} class="needs-validation">
-            <DataTable value={nodes} tableStyle={{ minWidth: '20rem' }} noValidate validated={true} className={"custom-tree-table"} onSubmit={handleSubmit}>
+            <DataTable value={nodes} tableStyle={{ minWidth: '20rem' }} noValidate validated={true} className={"custom-tree-table"}>
                 <Column field="unit1" style={{ width: '20%' }}  header={translations.Unit} body={(node) => (renderTextCell(node, 'unit1' , true))}></Column>
                 <Column field="transfer" style={{ width: '20%' }}  header={translations.transfer} body={(node) => (node.id==-100 ? "" :renderDecimalCell(node, 'transfer' , false ))}></Column>
                 <Column field="unit2" style={{ width: '20%' }}  header={translations.Unit} body={(node) => (node.id==-100 ? "" : renderDropDownCell(node, 'unit2' , false))}></Column>

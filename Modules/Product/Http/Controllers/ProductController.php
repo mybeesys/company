@@ -161,13 +161,14 @@ class ProductController extends Controller
                     }
                 }
             } 
-            if(isset($request["recipe"]))
-            {
+           
                 $oldRecipe = RecipeProduct::where('product_id' , $validated['id'])->get();
                 foreach ($oldRecipe as $recipe)
                 {
                     $recipe->delete();
                 }
+                if(isset($request["recipe"]))
+                {
                 $order = 0 ;
                 foreach ($request["recipe"] as $recipe) 
                 {
@@ -181,13 +182,15 @@ class ProductController extends Controller
                     RecipeProduct::create($rec);
                 }
             }  
-            if(isset($request["attributeMatrix"]))
-            {
+          
                 $oldAttributes = Product_Attribute::where('product_id' , $validated['id'])->get();
                 foreach ( $oldAttributes as $oldAttribute)
                 {
                     $oldAttribute->delete();
                 }
+                
+                if(isset($request["attributeMatrix"]))
+                {
                 foreach ($request["attributeMatrix"] as $attribute) 
                 {
                     $att = [];
@@ -203,13 +206,15 @@ class ProductController extends Controller
                     Product_Attribute::create($att);
                 }
             }
-            if(isset($request["transfer"]))
-            {
+          
                 $oldUnites = UnitTransfer::where('product_id' , $validated['id'])->get();
                 foreach ( $oldUnites as $oldUnite)
                 {
                     $oldUnite->delete();
                 }
+
+                if(isset($request["transfer"]))
+                {
                 foreach ($request["transfer"] as $transfer) 
                 {
                     $tran = [];

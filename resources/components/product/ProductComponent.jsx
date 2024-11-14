@@ -186,7 +186,7 @@ const ProductComponent = ({translations , dir}) => {
 
     
     const unitTransfers =response.data.unitTransfer;
-    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.newid ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
+    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.id ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
     unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
     setUnitTransfers(unitTransfersResult);
     
