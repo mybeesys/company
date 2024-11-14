@@ -6,110 +6,193 @@ use Carbon\Carbon;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Services\ShiftFilters;
 use Yajra\DataTables\DataTables;
 
 class ShiftTable
 {
+    public function __construct(protected $table_type, protected $request)
+    {
+    }
 
     public static function getShiftColumns()
     {
         return [
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
-            ["class" => "text-start min-w-175px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
-            ["class" => "text-start min-w-100px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
-            ["class" => "text-start min-w-100px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
-            ["class" => "text-start min-w-175px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
-            ["class" => "text-start min-w-175px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
+            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],
         ];
     }
 
-    public static function getShiftTable($request)
+    public static function getShiftFooters()
     {
-        $start_date = Carbon::createFromFormat('Y-m-d', $request->input('start_date'));
-        $end_date = Carbon::createFromFormat('Y-m-d', $request->input('end_date'));
+        return [
+            [
+                'class' => 'd-none table-hours-footer',
+                'th' => [
+                    ['class' => 'border text-start px-5', 'colspan' => '3', 'text' => __('employee::fields.total_hours')],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => ''],
+                    ['class' => '', 'colspan' => '1', 'text' => '']
+                ]
+            ],
+        ];
+    }
+
+    public function getShiftTable()
+    {
+        $start_date = Carbon::createFromFormat('Y-m-d', $this->request->input('start_date'));
+        $end_date = Carbon::createFromFormat('Y-m-d', $this->request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
         $employees = Employee::with(['timecards', 'shifts', 'roles', 'establishmentRoles', 'establishments', 'wages']);
 
-        self::applyFilters($request, $employees);
+        $filters = new ShiftFilters(['filter_role', 'filter_establishment', 'filter_employee_status']);
 
-        $employeeData = self::getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
+        $filters->applyFilters($this->request, $employees);
+
+        $employeeData = $this->getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
 
         return DataTables::of($employeeData)->rawColumns($employeeData->first() ? array_keys($employeeData->first()) : [])->make(true);
     }
 
-    public static function getStartEndDayTime()
+    public function getEmployeeData($employees, $start_date, $end_date, $schedules_ids)
     {
-        $working_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value;
-        $start_of_day = TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')?->rule_value;
-        if ($working_hours && $start_of_day) {
-            $working_hours_array = explode(':', $working_hours);
-            $working_hourse_in_mintues = (int) $working_hours_array[0] * 60 + (int) $working_hours_array[1];
-            $start_of_day_instance = Carbon::parse($start_of_day);
-            $start_of_day_formatted = $start_of_day_instance->copy()->format('H:i'); 
-            $end_of_day = $start_of_day_instance->copy()->addMinutes($working_hourse_in_mintues)->format('H:i');
-            return ['start_of_day' => $start_of_day_formatted, 'end_of_day' => $end_of_day];
-        }
-        $start_of_day_instance = null;
-        $end_of_day = null;
-        return ['start_of_day' => $start_of_day_instance, 'end_of_day' => $end_of_day];
-    }
+        $day_times = $this->getStartEndDayTime();
 
-    public static function applyFilters($request, $employees)
-    {
-        if ($request->has('filter_role_id') && !empty($request->filter_role_id)) {
-            $request->filter_role_id === 'all' ? $employees : $employees->where(function ($query) use ($request) {
-                $query->whereHas('roles', fn($query) => $query->where('role_id', $request->filter_role_id))
-                    ->orWhereHas('establishmentRoles', fn($query) => $query->where('role_id', $request->filter_role_id));
-            });
-        }
-        if ($request->has('filter_establishment_id') && !empty($request->filter_establishment_id)) {
-            $request->filter_establishment_id === 'all' ? $employees : $employees->whereHas('establishments', fn($query) => $query->where('establishment_id', $request->filter_establishment_id));
-        }
-        if ($request->has('filter_employee_status') && isset($request->filter_employee_status)) {
-            $request->filter_employee_status === 'all' ? $employees : $employees->where('isActive', $request->filter_employee_status);
-        }
-    }
-
-    public static function getEmployeeData($employees, $start_date, $end_date, $schedules_ids)
-    {
-        $day_times = self::getStartEndDayTime();
         $start_of_day_time = $day_times['start_of_day'];
         $end_of_day = $day_times['end_of_day'];
 
         return $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
-            $shifts = $employee->shifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
-            $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
-            for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
-                if (!array_key_exists($date->format('Y-m-d'), $shifts)) {
-                    $shifts[$date->format('Y-m-d')] = '<div class="add-schedule-shift-button d-flex flex-column" data-schedule-shift-id=null data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date="' . $date->format('Y-m-d') . '">' . $start_of_day_time . ' - ' . $end_of_day . '</div>';
-                } else {
-                    $newArray = '<div class="add-schedule-shift-button d-flex flex-column" data-employee-id="' . $employee->id . '" data-employee-name="' . $employee_name . '" data-date=' . $date->format('Y-m-d');
-                    foreach ($shifts[$date->format('Y-m-d')] as $key => $item) {
-                        if (!array_key_exists('break_duration', $item))
-                            $item['break_duration'] = 'false';
 
-                        $newArray .= ' data-schedule-shift-id-' . $key . '=' . $item['id'] .
-                            ' data-role-id-' . $key . '=' . $item['role_id'] .
-                            ' data-break-duration-' . $key . '=' . $item['break_duration'] .
-                            ' data-start-time-' . $key . '=' . Carbon::createFromFormat('Y-m-d H:i:s', $item['startTime'])->format('H:i') .
-                            ' data-end-time-' . $key . '=' . Carbon::createFromFormat('Y-m-d H:i:s', $item['endTime'])->format('H:i');
-                    }
-                    $newArray .= '>';
-                    foreach ($shifts[$date->format('Y-m-d')] as $item) {
-                        $newArray .= '<div>' . Carbon::createFromFormat('Y-m-d H:i:s', $item['startTime'])->format('H:i') . ' - ' . Carbon::createFromFormat('Y-m-d H:i:s', $item['endTime'])->format('H:i') . '</div>';
-                    }
-                    $newArray .= '</div>';
-                    $shifts[$date->format('Y-m-d')] = $newArray;
-                }
+            $shifts = $employee->shifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
+
+            $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
+
+            for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
+
+                $formatted_date = $date->format('Y-m-d');
+
+                $shiftHtml = "<div class='add-schedule-shift-button d-flex flex-column' data-employee-id='$employee->id' data-employee-name='$employee_name' data-date='$formatted_date'";
+
+                isset($shifts[$formatted_date]) ? $shifts[$formatted_date] = $this->createDataShiftHtml($shiftHtml, $shifts, $formatted_date) :
+                    $shifts[$formatted_date] = $this->generateShiftHtml($this->getFieldByType($start_of_day_time, $end_of_day), $shiftHtml);
             }
-            return array_merge([
-                'id' => $employee->id,
-                'employee' => session()->get('locale') === 'ar' ? $employee->name : $employee->name_en,
-                'total_hours' => $employee->timecards->sum('hoursWorked'),
-                'total_wages' => $employee->wages->sum('rate'),
-                'role' => array_merge($employee->roles->pluck('name')->toArray(), $employee->establishmentRoles->pluck('name')->toArray()),
-                'establishment' => $employee->roles->isNotEmpty() ? array_merge($employee->establishments->pluck('name')->toArray(), [__('employee::fields.all_establishments')]) : $employee->establishments->pluck('name')->toArray()
-            ], $shifts);
+            $essentialColumns = $this->getEssentialColumns($employee);
+            return array_merge($essentialColumns, $shifts);
         });
+    }
+
+    public function getFieldByType(Carbon $first_time, Carbon $second_time)
+    {
+        $divElement = match ($this->table_type) {
+            'default' => $first_time->format('H:i') . ' - ' . $second_time->format('H:i'),
+            'hours' => $first_time->diffInMinutes($second_time),
+            'breaks', 'wage' => '',
+            default => '',
+        };
+        return $divElement;
+    }
+
+    public function createDataShiftHtml($shiftHtml, $shifts, $formatted_date)
+    {
+        foreach ($shifts[$formatted_date] as $key => $item) {
+            $breakDuration = $item['break_duration'] ?? 'false';
+            $startTime = Carbon::parse($item['startTime'])->format('H:i');
+            $endTime = Carbon::parse($item['endTime'])->format('H:i');
+
+            $shiftHtml .= ' data-schedule-shift-id-' . $key . '="' . $item['id'] . '"';
+            $shiftHtml .= ' data-role-id-' . $key . '="' . $item['role_id'] . '"';
+            $shiftHtml .= " data-break-duration-$key=$breakDuration ";
+            $shiftHtml .= "data-start-time-$key=$startTime ";
+            $shiftHtml .= "data-end-time-$key=$endTime ";
+        }
+        $shiftHtml .= '>';
+        $divElement = [];
+
+        $divElement = [];
+        foreach ($shifts[$formatted_date] as $item) {
+            $startTime = Carbon::parse($item['startTime']);
+            $endTime = Carbon::parse($item['endTime']);
+
+            $divElement[] = $this->getFieldByType($startTime, $endTime);
+        }
+        $shiftHtml = $this->generateShiftHtml($divElement, $shiftHtml);
+        $shiftHtml .= '</div>';
+
+        return $shiftHtml;
+    }
+
+    public function generateShiftHtml($divElement, $shiftHtml)
+    {
+        $isArray = is_array($divElement);
+        $element = $isArray ? array_sum($divElement) : $divElement;
+
+        if (!($isArray ? str_contains($divElement[0], '-') : str_contains($divElement, '-'))) {
+            if (!$isArray) {
+                $shiftHtml .= "data-schedule-shift-id=null>";
+            }
+            if ($this->request->format === 'hours_minutes') {
+                return $shiftHtml .= "<div> " . self::convertToHoursMinutesHelper($element) . " </div>";
+            }
+            return $shiftHtml .= "<div> " . round($element / 60, 2) . " </div>";
+
+        } else {
+            if ($isArray) {
+                return $shiftHtml .= implode('', array_map(fn($element) => "<div> $element </div>", $divElement));
+            }
+            return $shiftHtml .= "data-schedule-shift-id=null> $divElement </div>";
+        }
+    }
+
+    public function getEssentialColumns($employee)
+    {
+        return [
+            'id' => $employee->id,
+            'employee' => session()->get('locale') === 'ar' ? $employee->name : $employee->name_en,
+            'total_hours' => $employee->timecards->sum('hoursWorked'),
+            'total_wages' => $employee->wages->sum('rate'),
+            'role' => array_merge($employee->roles->pluck('name')->toArray(), $employee->establishmentRoles->pluck('name')->toArray()),
+            'establishment' => $employee->roles->isNotEmpty() ? array_merge($employee->establishments->pluck('name')->toArray(), [__('employee::fields.all_establishments')]) : $employee->establishments->pluck('name')->toArray(),
+            'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
+                            <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
+                        </div>'
+        ];
+    }
+
+    public static function getStartEndDayTime()
+    {
+        $workingHours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value;
+        $startOfDay = TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')?->rule_value;
+
+        if ($workingHours && $startOfDay) {
+            $workingMinutes = explode(':', $workingHours);
+            $totalMinutes = $workingMinutes[0] * 60 + $workingMinutes[1];
+
+            $startOfDayTime = Carbon::parse($startOfDay);
+            return [
+                'start_of_day' => $startOfDayTime,
+                'end_of_day' => $startOfDayTime->copy()->addMinutes($totalMinutes)
+            ];
+        }
+
+        return ['start_of_day' => null, 'end_of_day' => null];
+    }
+
+    public static function convertToHoursMinutesHelper($totalMinutes)
+    {
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+        return sprintf('%02d:%02d', $hours, $minutes);
     }
 }
