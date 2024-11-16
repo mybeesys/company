@@ -107,7 +107,7 @@ Route::middleware([
             Route::get('', 'index')->name('index');
             Route::post('/store', 'store')->name('store');
 
-            Route::get('/get-shift-schedule', 'getShift')->name('getShift');
+            Route::get('/get-shift', 'getShift')->name('getShift');
 
             Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts');
 

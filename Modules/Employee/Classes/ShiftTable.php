@@ -29,26 +29,48 @@ class ShiftTable
 
     public static function getShiftFooters()
     {
+        $generateRow = function (string $text) {
+            $row = [
+                ['class' => 'border text-end px-5', 'colspan' => '3', 'text' => $text],
+            ];
+            for ($i = 0; $i < 11; $i++) {
+                $row[] = ['class' => '', 'colspan' => '1', 'text' => ''];
+            }
+            return $row;
+        };
+
         return [
             [
+                'class' => 'd-none table-wages-footer total-wage',
+                'th' => $generateRow(__('employee::fields.total_wages')),
+            ],
+            [
+                'class' => 'd-none table-wages-footer forecasted-sales',
+                'th' => $generateRow(__('employee::fields.forecasted_sales')),
+            ],
+            [
+                'class' => 'd-none table-wages-footer mean-sales',
+                'th' => $generateRow(__('employee::fields.mean_sales')),
+            ],
+            [
+                'class' => 'd-none table-wages-footer forecasted-labor-cost',
+                'th' => $generateRow(__('employee::fields.forecasted_labor_cost')),
+            ],
+            [
+                'class' => 'd-none table-wages-footer mean-labor-cost',
+                'th' => $generateRow(__('employee::fields.mean_labor_cost')),
+            ],
+            [
+                'class' => 'd-none table-breaks-footer',
+                'th' => $generateRow(__('employee::fields.breaks_total')),
+            ],
+            [
                 'class' => 'd-none table-hours-footer',
-                'th' => [
-                    ['class' => 'border text-start px-5', 'colspan' => '3', 'text' => __('employee::fields.total_hours')],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => ''],
-                    ['class' => '', 'colspan' => '1', 'text' => '']
-                ]
+                'th' => $generateRow(__('employee::fields.total_hours')),
             ],
         ];
     }
+
 
     public function getShiftTable()
     {
@@ -83,7 +105,7 @@ class ShiftTable
 
                 $formatted_date = $date->format('Y-m-d');
 
-                $shiftHtml = "<div class='add-schedule-shift-button d-flex flex-column' data-employee-id='$employee->id' data-employee-name='$employee_name' data-date='$formatted_date'";
+                $shiftHtml = "<div class='add-schedule-shift-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee_name' data-date='$formatted_date'";
 
                 isset($shifts[$formatted_date]) ? $shifts[$formatted_date] = $this->createDataShiftHtml($shiftHtml, $shifts, $formatted_date) :
                     $shifts[$formatted_date] = $this->generateShiftHtml($this->getFieldByType($start_of_day_time, $end_of_day), $shiftHtml);
@@ -93,12 +115,13 @@ class ShiftTable
         });
     }
 
-    public function getFieldByType(Carbon $first_time, Carbon $second_time)
+    public function getFieldByType(Carbon $first_time, Carbon $second_time, $break_duration = null)
     {
         $divElement = match ($this->table_type) {
             'default' => $first_time->format('H:i') . ' - ' . $second_time->format('H:i'),
             'hours' => $first_time->diffInMinutes($second_time),
-            'breaks', 'wage' => '',
+            'breaks' => $break_duration ? $second_time->format('H:i') . '-' . $second_time->addMinutes($break_duration)->format('H:i') . ' (' . ($this->request->format === 'hours_minutes' ? self::convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)) . ')' : '-',
+            'wage' => '-',
             default => '',
         };
         return $divElement;
@@ -107,13 +130,13 @@ class ShiftTable
     public function createDataShiftHtml($shiftHtml, $shifts, $formatted_date)
     {
         foreach ($shifts[$formatted_date] as $key => $item) {
-            $breakDuration = $item['break_duration'] ?? 'false';
+            $break_duration = $item['break_duration'] ?? 'false';
             $startTime = Carbon::parse($item['startTime'])->format('H:i');
             $endTime = Carbon::parse($item['endTime'])->format('H:i');
 
             $shiftHtml .= ' data-schedule-shift-id-' . $key . '="' . $item['id'] . '"';
             $shiftHtml .= ' data-role-id-' . $key . '="' . $item['role_id'] . '"';
-            $shiftHtml .= " data-break-duration-$key=$breakDuration ";
+            $shiftHtml .= " data-break-duration-$key=$break_duration ";
             $shiftHtml .= "data-start-time-$key=$startTime ";
             $shiftHtml .= "data-end-time-$key=$endTime ";
         }
@@ -121,11 +144,11 @@ class ShiftTable
         $divElement = [];
 
         $divElement = [];
-        foreach ($shifts[$formatted_date] as $item) {
+        foreach ($shifts[$formatted_date] as $key => $item) {
             $startTime = Carbon::parse($item['startTime']);
             $endTime = Carbon::parse($item['endTime']);
-
-            $divElement[] = $this->getFieldByType($startTime, $endTime);
+            $break_duration = isset($item['break_duration']) ? $item['break_duration'] : null;
+            $divElement[] = $this->getFieldByType($startTime, $endTime, $break_duration);
         }
         $shiftHtml = $this->generateShiftHtml($divElement, $shiftHtml);
         $shiftHtml .= '</div>';
@@ -136,20 +159,29 @@ class ShiftTable
     public function generateShiftHtml($divElement, $shiftHtml)
     {
         $isArray = is_array($divElement);
-        $element = $isArray ? array_sum($divElement) : $divElement;
-
+        $element = $isArray ? array_sum(array_filter($divElement, 'is_numeric')) : $divElement;
         if (!($isArray ? str_contains($divElement[0], '-') : str_contains($divElement, '-'))) {
             if (!$isArray) {
                 $shiftHtml .= "data-schedule-shift-id=null>";
             }
             if ($this->request->format === 'hours_minutes') {
-                return $shiftHtml .= "<div> " . self::convertToHoursMinutesHelper($element) . " </div>";
+                return $shiftHtml .= "<div> " . (is_numeric($element) ? self::convertToHoursMinutesHelper($element) : $element) . " </div>";
             }
-            return $shiftHtml .= "<div> " . round($element / 60, 2) . " </div>";
+            return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
 
         } else {
             if ($isArray) {
-                return $shiftHtml .= implode('', array_map(fn($element) => "<div> $element </div>", $divElement));
+                if (count(array_filter($divElement, fn($item) => $item !== "-")) === 0) {
+                    // If the array contains only dashes ("-")
+                    $divElement = ["-"];  // Keep only one "-"
+                } else {
+                    // If the array contains other items, remove all dashes
+                    $divElement = array_filter($divElement, fn($item) => $item !== "-");
+                }
+
+                return $shiftHtml .= implode('', array_map(function ($element) {
+                    return "<div> $element </div>";
+                }, $divElement));
             }
             return $shiftHtml .= "data-schedule-shift-id=null> $divElement </div>";
         }

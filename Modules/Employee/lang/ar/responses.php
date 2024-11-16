@@ -7,7 +7,7 @@ return [
     'something_wrong_happened' => 'حدث خطأ ما!',
     'change_employee_status_warning' => 'عند تعطيل الموظف سيتم تعطيله في كافة الفروع',
     'employee_establishment_rule_fail' => 'يجب اختيار جميع الفروع أو فرع موجود',
-    'emptyRepeaterwarning' => 'عذرا, لايمكنك حذف كل العناصر',
+    'empty_repeater_warning' => 'عذرا, لايمكنك حذف كل العناصر',
     'change_user_status_warning' => 'عند تعطيل المستخدم سيتم تعطيله في كافة الفروع',
     'created_successfully' => 'تمت إضافة :name بنجاح',
     'updated_successfully' => 'تم تعديل :name بنجاح',

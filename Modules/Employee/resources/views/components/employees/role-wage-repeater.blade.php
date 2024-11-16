@@ -6,7 +6,6 @@
             @php
                 $wageTypes = [
                     ['id' => 'hourly', 'name' => __('employee::general.hourly')],
-                    ['id' => 'weakly', 'name' => __('employee::general.weakly')],
                     ['id' => 'monthly', 'name' => __('employee::general.monthly')],
                 ];
             @endphp

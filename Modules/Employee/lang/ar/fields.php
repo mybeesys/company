@@ -129,6 +129,11 @@ return [
     'establishment' => 'الفرع',
     'total_wages' => 'إجمالي المرتب',
     'all_establishments' => 'كل الأفرع',
-    'wage-forecasting' => 'الأجر/التنبؤ',
-    'breaks' => 'الإستراحات'
+    'wage_forecasting' => 'الأجر/التنبؤ',
+    'breaks' => 'الإستراحات',
+    'forecasted_sales' => 'المبيعات المتوقعة',
+    'mean_sales' => 'متوسط المبيعات',
+    'forecasted_labor_cost' => 'تكلفة العمالة المتوقعة %',
+    'mean_labor_cost' => 'متوسط ​​تكلفة العمالة %',
+    'breaks_total' => 'إجمالي الإستراحات',
 ];

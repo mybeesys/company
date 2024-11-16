@@ -128,7 +128,12 @@ return [
     'establishment' => 'Establishment',
     'total_wages' => 'Total wages',
     'all_establishments' => 'All establishments',
-    'wage-forecasting' => 'Wage/Forecasting',
-    'breaks' => 'Breaks'
+    'wage_forecasting' => 'Wage/Forecasting',
+    'breaks' => 'Breaks',
+    'forecasted_sales' => 'Forecasted sales',
+    'mean_sales' => 'Mean sales',
+    'forecasted_labor_cost' => 'Forecasted labor cost %',
+    'mean_labor_cost' => 'Mean labor cost %',
+    'breaks_total' => 'Breaks total',
 
 ];
