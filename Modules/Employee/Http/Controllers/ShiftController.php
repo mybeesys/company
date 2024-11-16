@@ -52,12 +52,12 @@ class ShiftController extends Controller
                 'end_date' => $endOfWeek
             ])->id;
             $ids = [];
-            foreach ($request->shift_repeater as $item) {
+            foreach ($request->shift_repeater as $key => $item) {
                 $startTime = $request->date . ' ' . $item['startTime'];
                 $endTime = $request->date . ' ' . $item['endTime'];
                 $shift_id = $item['shift_id'];
                 $end_status = $item['end_status'];
-                $break_duration = $end_status === 'break' ? (Carbon::parse($item['startTime'])->diffInMinutes($item['endTime'])) : null;
+                $break_duration = $end_status === 'break' ? (Carbon::parse($item['endTime'])->diffInMinutes(Carbon::parse($request->shift_repeater[$key + 1]['startTime']))) : null;
                 $ids[] = Shift::updateOrCreate(['id' => $shift_id], [
                     'startTime' => $startTime,
                     'endTime' => $endTime,

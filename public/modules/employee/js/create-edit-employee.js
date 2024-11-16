@@ -16,7 +16,7 @@ function roleRepeater() {
             if ($('#role_wage_repeater [data-repeater-item]').length > 1) {
                 $(this).slideUp(deleteElement);
             } else {
-                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                showAlert(Lang.get('responses.empty_repeater_warning'),
                     Lang.get('general.ok'),
                     undefined, undefined,
                     false, "error");
@@ -45,7 +45,7 @@ function permissionSetRepeater() {
             if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
                 $(this).slideUp(deleteElement);
             } else {
-                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                showAlert(Lang.get('responses.empty_repeater_warning'),
                     Lang.get('general.ok'),
                     undefined, undefined,
                     false, "error");
