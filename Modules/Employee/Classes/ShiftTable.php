@@ -108,7 +108,7 @@ class ShiftTable
                 $shiftHtml = "<div class='add-schedule-shift-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee_name' data-date='$formatted_date'";
 
                 isset($shifts[$formatted_date]) ? $shifts[$formatted_date] = $this->createDataShiftHtml($shiftHtml, $shifts, $formatted_date) :
-                    $shifts[$formatted_date] = $this->generateShiftHtml($this->getFieldByType($start_of_day_time, $end_of_day), $shiftHtml);
+                    $shifts[$formatted_date] = $this->generateShiftHtml(($start_of_day_time && $end_of_day) ? $this->getFieldByType($start_of_day_time, $end_of_day) : '-', $shiftHtml);
             }
             $essentialColumns = $this->getEssentialColumns($employee);
             return array_merge($essentialColumns, $shifts);
