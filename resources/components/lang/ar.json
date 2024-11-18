@@ -176,5 +176,9 @@
   "no": "لا",
   "groupComboAndLinkedComboSelected":"يجب اختيار نوع واحد من الكومبو",
   "transfer": "=",
-  "primary":"أساسي"
+  "primary":"أساسي",
+  "inventoryUOM":"وحدة قياس المستودع",
+  "threshold" : "Low Stock Alert",
+  "defaultPrice" : "السعر الافتراضي",
+  "defaultAuantity" : "الكمية الافتراضية"
 }

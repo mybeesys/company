@@ -176,5 +176,9 @@
   "no": "No",
   "groupComboAndLinkedComboSelected":"One Combo Should be Selected",
   "transfer": "=",
-  "primary":"Primary"
+  "primary":"Primary",
+  "inventoryUOM":"Inventory UOM",
+  "threshold" : "Low Stock Alert",
+  "defaultPrice" : "Default Price",
+  "defaultQuantity" : "Default Quantity"
 }

@@ -47,13 +47,6 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         setEditingRow({ ...data });
     }
 
-    const getName = (name_en, name_ar) => {
-        if (dir == 'ltr')
-            return name_en;
-        else
-            return name_ar
-    }
-
     const openDeleteModel = (data) => {
         setUrl(JSON.parse(rootElement.getAttribute(`${data.type}-url`)));
         setCurrentNode(data);

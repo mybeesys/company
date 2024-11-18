@@ -14,7 +14,8 @@ import IngredientDetail from './ingredients/IngredientDetail';
 import DiscountDetail from './discount/DiscountDetail';
 import LinkedComboTable from './linkedCombo/LinkedComboTable';
 import LinkedComboDetail from './linkedCombo/LinkedComboDetail';
-import UnitTree from './unit/UnitTree';
+import ProductInventoryTable from './Inventory/product/ProductInventoryTable';
+import ProductInventoryDetail from './Inventory/product/ProductInventoryDetail';
 
 
 
@@ -36,8 +37,9 @@ const App = ({nodeType, dir}) =>{
     discount        : <DiscountTable translations={translations} dir={dir}/>,
     discountedit    : <DiscountDetail translations={translations} dir={dir}/>,
     linkedCombo     : <LinkedComboTable translations={translations} dir={dir}/>,
-    linkedComboedit : <LinkedComboDetail translations={translations} dir={dir}/>,
-    unit            : <UnitTree translations={translations} dir={dir}/>,
+    linkedComboedit    : <LinkedComboDetail translations={translations} dir={dir}/>,
+    productinventory : <ProductInventoryTable translations={translations} dir={dir}/>,
+    productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

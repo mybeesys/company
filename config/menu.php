@@ -62,14 +62,20 @@ return [
                 'permission' => '',
 
             ],
-            [
-                'name' => 'unit',
-                'url' => 'unit',
-                'permission' => '',
-
-            ],
+           
 
         ]
+    ],
+    [
+        'name' => 'inventory_module',
+        'url' => 'productInventory',
+        'permission' => '',
+        'icon' => 'fas fa-building',
+        'subMenu' => [ [
+            'name' => 'inventory',
+            'url' => 'productInventory',
+            'permission' => '',
+        ]]
     ],
     [
         'name' => 'accounting_module',

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Inventory\Models\ProductInventory;
 
 class Product extends Model
 {
@@ -48,6 +49,10 @@ class Product extends Model
         return $this->fillable;
     }
 
+    public function addToFillable($key){
+        return array_push($this->fillable, $key);
+    }
+
     public $type = 'product';
     public $parentKey = 'subcategory_id';
 
@@ -81,5 +86,10 @@ class Product extends Model
     public function linkedCombos()
     {
         return $this->hasMany(ProductLinkedComboItem::class, 'product_id', 'id');
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(ProductInventory::class, 'id', 'product_id');
     }
 }

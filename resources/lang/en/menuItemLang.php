@@ -42,6 +42,8 @@ return [
     'discount' => 'Discount',
     'ingredient' =>'Ingredient' ,
     'unit' => 'Unit',
-    'linkedCombo' => 'Linked Combo'
+    'linkedCombo' => 'Linked Combo',
+     'inventory' =>'Product',
+    'inventory_module' => 'Invenetory'
 
 ];

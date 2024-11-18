@@ -19,6 +19,22 @@ class UnitController extends Controller
         return response()->json($tree);
     }
 
+    public function searchUnits(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $units = Unit::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->get();
+        return response()->json($units);
+    }
+
+    public function Units($id)
+    {
+        $unit = Unit::find($id);
+        return response()->json($unit);
+    }
+
     public function index()
     {
         return view('product::unit.index' ); 

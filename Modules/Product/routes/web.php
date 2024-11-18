@@ -32,7 +32,7 @@ use Modules\Product\Http\Controllers\ServiceFeeController;
 use Modules\Product\Http\Controllers\ServiceFeeTypeController;
 use Modules\Product\Http\Controllers\UnitController;
 use Modules\Product\Http\Controllers\UnitTransferController;
-
+use Modules\Product\Http\Controllers\VendorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -108,5 +108,9 @@ Route::middleware([
     Route::get('productList', [ProductController::class, 'all'])->name('productList');
     
     Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
-    
+    Route::get('units', [UnitController::class, 'units'])->name('units');    
+    Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
+
+    Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
+    Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
 });

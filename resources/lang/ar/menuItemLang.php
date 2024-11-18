@@ -41,7 +41,8 @@ return [
     'discount' => 'حسومات',
     'ingredient' =>'المكونات' ,
     'unit' => 'وحدات القياس',
-    'linkedCombo' => 'كومبو'
-
+    'linkedCombo' => 'كومبو',
+    'inventory' =>'المنتجات',
+    'inventory_module' => 'المستودع'
 
 ];
