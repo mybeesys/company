@@ -6,8 +6,8 @@
         action="{{ route('employees.update', ['employee' => $employee]) }}">
         @method('patch')
         @csrf
-        <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets formId="edit_employee_form"
-            :establishments=$establishments />
+        <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets :allowances_types="$allowances_types"
+            formId="edit_employee_form" :establishments=$establishments />
     </form>
 @endsection
 
@@ -20,6 +20,7 @@
             datePicker('#employmentStartDate', new Date());
             datePicker('#employmentEndDate');
             permissionSetRepeater();
+            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
             roleRepeater();
             administrativeUser({{ $employee->administrativeUser()->exists() }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",

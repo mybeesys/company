@@ -6,7 +6,7 @@
     <form id="add_employee_form" class="form d-flex flex-column gap-2" method="POST" enctype="multipart/form-data"
         action="{{ route('employees.store') }}">
         @csrf
-        <x-employee::employees.form :roles=$roles :permissionSets=$permissionSets :establishments=$establishments formId="add_employee_form"/>
+        <x-employee::employees.form :roles=$roles :permissionSets=$permissionSets :establishments=$establishments :allowances_types="$allowances_types" formId="add_employee_form"/>
     </form>
 @endsection
 
@@ -18,6 +18,7 @@
             datePicker('#employmentStartDate', new Date());
             permissionSetRepeater();
             roleRepeater();
+            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");

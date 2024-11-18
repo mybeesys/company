@@ -3,7 +3,7 @@
 @section('title', __('menuItemLang.show_employee'))
 
 @section('content')
-    <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets disabled
+    <x-employee::employees.form :roles=$roles :employee=$employee :permissionSets=$permissionSets disabled :allowances_types="$allowances_types"
         :establishments=$establishments />
 @endsection
 
@@ -14,6 +14,7 @@
         $(document).ready(function() {
             permissionSetRepeater();
             roleRepeater();
+            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser({{ $employee->administrativeUser()->exists() ? true : false }});
         });
     </script>

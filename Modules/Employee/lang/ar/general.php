@@ -127,5 +127,8 @@ return [
     'select_week_to_copy_to' => 'اختر أسبوع للنسخ إاليه',
     'copy_warning' => 'تحذير: كل التواريخ في الأسبوع من :start إلى :end سيتم استبدالها',
     'selected' => 'تم تحديد',
-    'copy_selected_employees_shifts' => 'نسخ فترات عمل الموظفين المحددين',    
+    'copy_selected_employees_shifts' => 'نسخ فترات عمل الموظفين المحددين',
+    'fixed' => 'ثابت',
+    'percent' => 'نسبة',
+    'add_more_allowances' => 'أضف المزيد من البدلات',
 ];

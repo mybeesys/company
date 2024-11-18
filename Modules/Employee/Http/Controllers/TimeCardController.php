@@ -18,25 +18,31 @@ class TimeCardController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $timecards = TimeCard::
-                select('id', 'clockInTime', 'clockOutTime', 'hoursWorked', 'overtimeHours', 'date');
+            $timecards = TimeCard::with('employee');
+
+            if ($request->has('date') && !empty($request->date)) {
+                $timecards->whereDate('date', $request->date);
+            }
+            if ($request->has('employee_status') && isset($request->employee_status)) {
+                $timecards->whereHas('employee', fn($query) => $query->where('isActive', $request->employee_status));
+            }
             return TimeCardTable::getTimecardTable($timecards);
         }
         $columns = TimeCardTable::getTimecardColumns();
-        return view('employee::timecards.index', compact('columns'));
+        return view('employee::schedules.timecards.index', compact('columns'));
     }
 
     public function createLiveValidation(StoreTimecardRequest $request)
     {
     }
 
-    /**
+    /**                                                                                                                             
      * Show the form for creating a new resource.
      */
     public function create()
     {
         $employees = Employee::get(['id', 'name', 'name_en']);
-        return view('employee::timecards.create', compact('employees'));
+        return view('employee::schedules.timecards.create', compact('employees'));
     }
 
     /**
@@ -49,7 +55,7 @@ class TimeCardController extends Controller
             'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
-        return to_route('timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
+        return to_route('schedules.timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
     }
 
     /**
@@ -58,7 +64,7 @@ class TimeCardController extends Controller
     public function edit(TimeCard $timecard)
     {
         $employees = Employee::get(['id', 'name', 'name_en']);
-        return view('employee::timecards.edit', compact('employees', 'timecard'));
+        return view('employee::schedules.timecards.edit', compact('employees', 'timecard'));
     }
 
     /**
@@ -71,7 +77,7 @@ class TimeCardController extends Controller
             'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
-        return to_route('timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));
+        return to_route('schedules.timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));
     }
 
     /**

@@ -25,7 +25,7 @@
                 <th class="{{ $column['class'] }}"><span class="px-1">@lang("{$module}::fields.{$column['name']}")</span></th>
             @endforeach
             @if ($actionColumn)
-                <th class="text-center align-middle">@lang("{$module}::fields.actions")</th>
+                <th class="text-center align-middle min-w-125px">@lang("{$module}::fields.actions")</th>
             @endif
         </tr>
     </thead>
