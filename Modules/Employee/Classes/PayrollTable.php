@@ -1,24 +1,29 @@
 <?php
 
+
 namespace Modules\Employee\Classes;
 use Carbon\Carbon;
+use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\Schedule;
+use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Services\ShiftFilters;
 use Yajra\DataTables\DataTables;
 
-class TimeCardTable
+class PayrollTable
 {
-    public static function getTimecardColumns()
+    public static function getPayrollColumns()
     {
         return [
-            ["class" => "text-start align-middle px-3", "name" => "employee"],
-            ["class" => "text-start align-middle px-3", "name" => "inTime"],
-            ["class" => "text-start align-middle min-w-100px px-3", "name" => "outTime"],
-            ["class" => "text-start align-middle min-w-250px px-3", "name" => "total_hours"],
-            ["class" => "text-start align-middle min-w-250px px-3", "name" => "overtime_hours"],
-            ["class" => "text-start align-middle min-w-250px px-3", "name" => "date"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
+            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],
         ];
     }
 
-    public static function getTimecardTable($roles)
+    public static function getPayrollTable($roles)
     {
         return DataTables::of($roles)
             ->editColumn('id', function ($row) {
@@ -26,13 +31,13 @@ class TimeCardTable
                                  {$row->id} 
                         </div>";
             })
-            ->addColumn('employee', function($row){
+            ->addColumn('employee', function ($row) {
                 return session()->get('locale') === 'ar' ? $row->employee->name : $row->employee->name_en;
             })
-            ->editColumn('clockInTime', function ($row){
+            ->editColumn('clockInTime', function ($row) {
                 return Carbon::parse($row->clockInTime)->format('H:i');
             })
-            ->editColumn('clockOutTime', function ($row){
+            ->editColumn('clockOutTime', function ($row) {
                 return Carbon::parse($row->clockOutTime)->format('H:i');
             })
             ->addColumn(
@@ -53,5 +58,4 @@ class TimeCardTable
             ->rawColumns(['actions', 'id', 'employee'])
             ->make(true);
     }
-
 }

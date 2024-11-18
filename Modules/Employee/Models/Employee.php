@@ -73,4 +73,14 @@ class Employee extends BaseEmployeeModel
     {
         return $this->hasMany(Shift::class);
     }
+
+    public function allowances()
+    {
+        return $this->hasMany(AllowanceDeduction::class)->where('type', 'allowance');
+    }
+
+    public function deductions()
+    {
+        return $this->hasMany(AllowanceDeduction::class)->where('type', 'deduction');
+    }
 }

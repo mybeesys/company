@@ -2,9 +2,11 @@
 
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
+use Modules\Employee\Http\Controllers\AllowanceTypeController;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
+use Modules\Employee\Http\Controllers\PayrollController;
 use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
 use Modules\Employee\Http\Controllers\ShiftController;
@@ -30,16 +32,6 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
     AuthenticateJWT::class
 ])->group(function () {
-    Route::controller(TimeCardController::class)->name('timecards.')->prefix('timecard')->group(function () {
-        Route::get('', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/store', 'store')->name('store');
-        Route::get('/{timecard}/edit', 'edit')->name('edit');
-        Route::patch('/{timecard}', 'update')->name('update');
-        Route::delete('/{timecard}', 'destroy')->name('delete');
-        Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-    });
-
     Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 
         Route::get('', 'index')->name('index');
@@ -94,6 +86,11 @@ Route::middleware([
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
+
+    Route::controller(AllowanceTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function(){
+        Route::post('/store', 'store')->name('store');
+    });
+
     Route::name('schedules.')->prefix('schedule')->group(function () {
         Route::controller(TimeSheetRuleController::class)->name('timesheet-rules.')->prefix('/timesheet-rule')->group(function () {
             Route::get('', 'index')->name('index');
@@ -103,16 +100,28 @@ Route::middleware([
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
 
+        Route::controller(TimeCardController::class)->name('timecards.')->prefix('timecard')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/store', 'store')->name('store');
+            Route::get('/{timecard}/edit', 'edit')->name('edit');
+            Route::patch('/{timecard}', 'update')->name('update');
+            Route::delete('/{timecard}', 'destroy')->name('delete');
+            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
+        });
+
         Route::controller(ShiftController::class)->name('shifts.')->prefix('/shift')->group(function () {
             Route::get('', 'index')->name('index');
             Route::post('/store', 'store')->name('store');
 
-            Route::get('/get-shift-schedule', 'getShift')->name('getShift');
+            Route::get('/get-shift', 'getShift')->name('getShift');
 
             Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts');
+        });
 
-            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+        Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::post('/store', 'store')->name('store');
         });
     });
 });

@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Employee\Database\Factories\PayslipFactory;
 
-class Payslip extends BaseScheduleModel
+class Payroll extends BaseScheduleModel
 {
     use HasFactory;
 
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $guarded = ['id', 'created_at, updated_at'];
 }

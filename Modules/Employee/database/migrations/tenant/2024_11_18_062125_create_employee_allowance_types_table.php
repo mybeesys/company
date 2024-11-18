@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('schedule_payroll_periods', function (Blueprint $table) {
+        Schema::create('employee_allowance_types', function (Blueprint $table) {
             $table->id();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
+            $table->string('name')->nullable();
+            $table->string('name_en')->nullable();
+            $table->enum('type', ['fixed', 'percent'])->default('fixed');
+            $table->decimal('amount', 10,2)->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payroll_periods');
+        Schema::dropIfExists('allowance_types');
     }
 };

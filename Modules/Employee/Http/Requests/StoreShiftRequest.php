@@ -5,6 +5,7 @@ namespace Modules\Employee\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Rules\LastShiftEndStatus;
 
 class StoreShiftRequest extends FormRequest
 {
@@ -19,19 +20,19 @@ class StoreShiftRequest extends FormRequest
         return [
             'employee_id' => ['required', 'exists:employee_employees,id'],
             'date' => ['required', 'date'],
-            'schedule_shift_repeater' => ['array', 'required'],
-            'schedule_shift_repeater.*.startTime' => ['required', 'date_format:H:i'],
-            'schedule_shift_repeater.*.endTime' => ['required', 'date_format:H:i'],
-            'schedule_shift_repeater.*.end_status' => ['required', 'in:clockout,break'],
-            'schedule_shift_repeater.*.role' => ['integer', 'exists:roles,id', Rule::in(array_merge($roleIds, $establishmentRoleIds))],
-            'shift_id' => ['nullable', 'integer', 'exists:schedule_shifts,id']
+            'shift_repeater' => ['array', 'required', new LastShiftEndStatus()],
+            'shift_repeater.*.startTime' => ['required', 'date_format:H:i'],
+            'shift_repeater.*.endTime' => ['required', 'date_format:H:i'],
+            'shift_repeater.*.end_status' => ['required', 'in:clockout,break'],
+            'shift_repeater.*.role' => ['integer', 'exists:roles,id', Rule::in(array_merge($roleIds, $establishmentRoleIds))],
+            'shift_id' => ['nullable', 'integer', 'exists:schedule_shifts,id'],
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $shifts = $this->input('schedule_shift_repeater', []);
+            $shifts = $this->input('shift_repeater', []);
             usort($shifts, function ($a, $b) {
                 return $a['startTime'] <=> $b['startTime'];
             });
@@ -39,7 +40,7 @@ class StoreShiftRequest extends FormRequest
             foreach ($shifts as $index => $shift) {
                 if (isset($shift['startTime'], $shift['endTime']) && $shift['startTime'] >= $shift['endTime']) {
                     $validator->errors()->add(
-                        "schedule_shift_repeater.$index.endTime",
+                        "shift_repeater.$index.endTime",
                         __('employee::general.startTime_before_endTime_error')
                     );
                 }
@@ -48,7 +49,7 @@ class StoreShiftRequest extends FormRequest
                     $nextShift = $shifts[$index + 1];
                     if ($shift['endTime'] > $nextShift['startTime']) {
                         $validator->errors()->add(
-                            "schedule_shift_repeater.$index.endTime",
+                            "shift_repeater.$index.endTime",
                             __('employee::general.time_overlap_error')
                         );
                         break;

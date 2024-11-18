@@ -5,9 +5,10 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="timecard" url="timecard/create" module="employee" :search=false>
+            <x-tables.table-header model="timecard" url="schedule/timecard/create" module="employee" :search=false>
                 <x-slot:filters>
                     <x-tables.filters-dropdown>
+                        <x-employee::timecards.filters />
                     </x-tables.filters-dropdown>
                 </x-slot:filters>
                 <x-slot:export>
@@ -24,18 +25,23 @@
 @section('script')
     @parent
     <script src="{{ url('/js/table.js') }}"></script>
-    <script type="text/javascript" src="vfs_fonts.js"></script>
+    <script type="text/javascript" src="/vfs_fonts.js"></script>
     <script>
         "use strict";
         let dataTable;
         const table = $('#kt_timecard_table');
-        const dataUrl = '{{ route('timecards.index') }}';
+        const dataUrl = '{{ route('schedules.timecards.index') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
             exportButtons([0, 1, 2, 3, 4], '#kt_timecard_table', "{{ session()->get('locale') }}", []);
             handleSearchDatatable();
+            handleFormFiltersDatatable();
+            $('#date').flatpickr();
+            $('[name="employee_status"]').select2({
+                minimumResultsForSearch: -1,
+            });
         });
 
         $(document).on('click', '.delete-btn', function(e) {
@@ -43,7 +49,7 @@
             var id = $(this).data('id');
             var name = $(this).data('name');
             let deleteUrl =
-                `{{ url('/timecard/${id}') }}`;
+                `{{ url('schedule/timecard/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     '{{ __('employee::general.this_timecard') }}'),
@@ -67,31 +73,42 @@
                 columns: [{
                         data: 'id',
                         name: 'id',
-                        className: 'text-start'
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'employee',
+                        name: 'employee',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'clockInTime',
-                        name: 'clockInTime'
+                        name: 'clockInTime',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'clockOutTime',
-                        name: 'clockOutTime'
+                        name: 'clockOutTime',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'hoursWorked',
-                        name: 'hoursWorked'
+                        name: 'hoursWorked',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'overtimeHours',
-                        name: 'overtimeHours'
+                        name: 'overtimeHours',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'date',
-                        name: 'date'
+                        name: 'date',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'actions',
                         name: 'actions',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6',
                         orderable: false,
                         searchable: false
                     }
@@ -102,6 +119,30 @@
                 drawCallback: function() {
                     KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
                 }
+            });
+        };
+
+        function handleFormFiltersDatatable() {
+            const filters = $('[data-kt-filter="filter"]');
+            const resetButton = $('[data-kt-filter="reset"]');
+            const date = $('#date');
+            const status = $('[data-kt-filter="employee_status"]');
+
+            filters.on('click', function(e) {
+                const dateValue = date.val();
+                const statusValue = status.val();
+
+                dataTable.ajax.url(dataUrl + '?' + $.param({
+                    date: dateValue,
+                    employee_status: statusValue
+                })).load();
+            });
+
+            resetButton.on('click', function(e) {
+                status.val(null).trigger('change');
+                date.val(null).trigger('change');
+                dataTable.ajax.url(dataUrl)
+                    .load();
             });
         };
     </script>

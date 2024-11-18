@@ -1,4 +1,12 @@
-@props(['employee' => null, 'roles', 'permissionSets', 'establishments', 'disabled' => false, 'formId' => null])
+@props([
+    'employee' => null,
+    'roles',
+    'permissionSets',
+    'establishments',
+    'disabled' => false,
+    'formId' => null,
+    'allowances_types',
+])
 {{-- employee section --}}
 <div class="d-flex flex-column flex-lg-row">
     <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
@@ -15,8 +23,8 @@
             </x-slot>
             <x-form.switch-div>
                 <input type="hidden" name="isActive" value="0">
-                <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox" :disabled=$disabled
-                    labelClass="form-check-label" name="isActive"
+                <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
+                    :disabled=$disabled labelClass="form-check-label" name="isActive"
                     label="{{ __('employee::general.deactivate/activate') }}" checked="{{ $employee?->isActive }}" />
             </x-form.switch-div>
         </x-form.form-card>
@@ -49,8 +57,9 @@
                         </x-form.input-div>
 
                         <x-form.input-div class="mb-10 w-100 px-2">
-                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.phone_number') }}" :disabled=$disabled
-                                value="{{ $employee?->phoneNumber }}" name="phoneNumber" :label="__('employee::fields.phone_number')" />
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.phone_number') }}"
+                                :disabled=$disabled value="{{ $employee?->phoneNumber }}" name="phoneNumber"
+                                :label="__('employee::fields.phone_number')" />
                         </x-form.input-div>
                     </div>
 
@@ -74,31 +83,36 @@
                         <x-form.input-div class="mb-10 w-100 px-2">
                             <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                             <div class="input-group">
-                                <x-form.input :errors=$errors type="number" placeholder="PIN" name="PIN" :disabled=$disabled
-                                    value="{{ $employee?->PIN }}" required>
+                                <x-form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
+                                    :disabled=$disabled value="{{ $employee?->PIN }}" required>
                                     <button type="button" id="generate_pin" @disabled($disabled)
                                         class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                 </x-form.input>
                             </div>
                         </x-form.input-div>
                     </div>
-                    <x-employee::employees.role-wage-repeater :roles=$roles :employee=$employee :disabled=$disabled
-                        :establishments=$establishments />
+                    <div class="mb-5 ">
+                        <x-employee::employees.role-wage-repeater :roles=$roles :employee=$employee :disabled=$disabled
+                            :establishments=$establishments />
+                    </div>
+                    <div>
+                        <x-employee::employees.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
+                    </div>
                 </x-form.form-card>
             </div>
         </div>
     </div>
 </div>
-{{-- console access managment (optional) --}}
+{{-- console access management (optional) --}}
 <div class="mb-5 mt-5">
-    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_managment_access" :collapsible=!$disabled
-        headerClass="active-managment-fields">
+    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_management_access" :collapsible=!$disabled
+        headerClass="active-management-fields">
         <x-slot:header>
             <div class="card-toolbar justify-content-end">
                 <x-form.switch-div class="form-check-custom">
-                    <input type="hidden" name="active_managment_fields_btn" value="0">
-                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1" type="checkbox" :disabled=$disabled
-                        name="active_managment_fields_btn" />
+                    <input type="hidden" name="active_management_fields_btn" value="0">
+                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1" type="checkbox"
+                        :disabled=$disabled name="active_management_fields_btn" />
                 </x-form.switch-div>
             </div>
         </x-slot:header>

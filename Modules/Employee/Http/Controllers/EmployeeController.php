@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
+use Modules\Employee\Models\AllowanceType;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PermissionSet;
@@ -20,12 +21,14 @@ class EmployeeController extends Controller
     protected $establishments;
     protected $permissionSets;
     protected $roles;
+    protected $allowances_types;
 
     public function __construct()
     {
         $this->establishments = Establishment::all()->select('id', 'name');
         $this->permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
         $this->roles = Role::all()->select('id', 'name');
+        $this->allowances_types = AllowanceType::all();
     }
 
     function generatePin()
@@ -51,7 +54,8 @@ class EmployeeController extends Controller
             'employee' => EmployeeActions::getShowEditEmployee($id),
             'roles' => $this->roles,
             'permissionSets' => $this->permissionSets,
-            'establishments' => $this->establishments
+            'establishments' => $this->establishments,
+            'allowances_types' => $this->allowances_types
         ];
     }
 
@@ -100,7 +104,7 @@ class EmployeeController extends Controller
     {
         return view(
             'employee::employee.create',
-            ['roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments]
+            ['roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments, 'allowances_types' => $this->allowances_types]
         );
     }
 

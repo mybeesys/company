@@ -146,11 +146,6 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'employees_working_hours',
-                'url' => 'timecard',
-                'permission' => '',
-            ],
-            [
                 'name' => 'schedules',
                 'url' => 'schedule',
                 'permission' => '',
@@ -166,8 +161,8 @@ return [
                         'permission' => '',
                     ],
                     [
-                        'name' => 'time_worked',
-                        'url' => 'schedule/time-worked',
+                        'name' => 'employees_working_hours',
+                        'url' => 'schedule/timecard',
                         'permission' => '',
                     ],
                     [

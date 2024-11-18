@@ -4,7 +4,7 @@
 
 @section('content')
     <form id="add_timecard_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        formId="add_timecard_form" action="{{ route('timecards.store') }}">
+        formId="add_timecard_form" action="{{ route('schedules.timecards.store') }}">
         @csrf
         <x-employee::timecards.form :employees=$employees formId="add_timecard_form" />
     </form>
@@ -17,7 +17,7 @@
         $(document).ready(function() {
             $('[name="employee_id"]').select2();
             datePicker('#date');
-            timecardForm("add_timecard_form", "{{ route('timecards.create.validation') }}");
+            timecardForm("add_timecard_form", "{{ route('schedules.timecards.create.validation') }}");
         });
     </script>
 @endsection

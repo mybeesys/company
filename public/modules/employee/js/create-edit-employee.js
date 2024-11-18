@@ -16,11 +16,103 @@ function roleRepeater() {
             if ($('#role_wage_repeater [data-repeater-item]').length > 1) {
                 $(this).slideUp(deleteElement);
             } else {
-                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                showAlert(Lang.get('responses.empty_repeater_warning'),
                     Lang.get('general.ok'),
                     undefined, undefined,
                     false, "error");
             }
+        }
+    });
+}
+
+function allowanceRepeater(addAllowanceTypeUrl, lang) {
+    // Keep track of all custom options
+    const customOptions = new Map();
+
+    function initializeSelect2(element) {
+        const select2Config = {
+            tags: true,
+            createTag: function (params) {
+                const term = (params.term || '').trim();
+
+                if (term === '') {
+                    return null;
+                }
+
+                return {
+                    id: term,
+                    text: term,
+                    newTag: true
+                };
+            },
+            // Add existing custom options to new select2 instances
+            data: Array.from(customOptions.values())
+        };
+
+        element.select2(select2Config)
+            .on('select2:select', handleTagSelection);
+    }
+
+    function handleTagSelection(e) {
+        const data = e.params.data;
+
+        if (!data.newTag) {
+            return;
+        }
+
+        const name_lang = lang === 'ar' ? 'name' : 'name_en';        
+        const $select = $(e.target);
+
+        ajaxRequest(addAllowanceTypeUrl, 'POST', { name: data.text, name_lang: name_lang })
+            .done(function (response) {
+                if (response.id) {
+                    const newOption = {
+                        id: response.id,
+                        text: data.text
+                    };
+                    customOptions.set(response.id, newOption);
+
+                    $('select[name*="[allowance_type]"]').each(function () {
+                        const $select = $(this);
+
+                        const option = new Option(newOption.text, newOption.id, false, false);
+                        $select.append(option);
+
+                        // Update the current select2 instance with the selected value
+                        if (this === e.target) {
+                            $select.val(response.id).trigger('change');
+                        }
+                    });
+                }
+            })
+            .fail(function () {
+                $select.val(null).trigger('change');
+            });
+    }
+
+    $('#allowance_repeater').repeater({
+        initEmpty: false,
+
+        show: function () {
+            const $this = $(this);
+            $this.slideDown();
+            $this.find('select[name*="[amount_type]"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $this.find('input[name*="[applicable_date]"]').flatpickr();
+            initializeSelect2($this.find('select[name*="[allowance_type]"]'));
+        },
+
+        ready: function () {
+            $('select[name*="[amount_type]"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $('input[name*="[applicable_date]"]').flatpickr();
+            initializeSelect2($('select[name*="[allowance_type]"]'));
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
         }
     });
 }
@@ -45,7 +137,7 @@ function permissionSetRepeater() {
             if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
                 $(this).slideUp(deleteElement);
             } else {
-                showAlert(Lang.get('responses.emptyRepeaterwarning'),
+                showAlert(Lang.get('responses.empty_repeater_warning'),
                     Lang.get('general.ok'),
                     undefined, undefined,
                     false, "error");
@@ -58,15 +150,15 @@ function permissionSetRepeater() {
 function administrativeUser(administrativeUser, id) {
     let saveButton = $(`#${id}_button`);
     if (administrativeUser) {
-        $('#dashboard_managment_access').collapse('toggle');
-        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('#dashboard_management_access').collapse('toggle');
+        $('#active_management_fields_btn').prop('checked', true).val(1);
         $('[name="username"]').prop('required', true);
     }
 
-    $('.active-managment-fields').on('click', function (e) {
+    $('.active-management-fields').on('click', function (e) {
         if ($(this).attr("aria-expanded") == 'true') {
-            $('#active_managment_fields_btn').prop('checked', true);
-            $('#active_managment_fields_btn').val(1);
+            $('#active_management_fields_btn').prop('checked', true);
+            $('#active_management_fields_btn').val(1);
 
             if (!administrativeUser) {
                 $('[name="password"]').prop('required', true);
@@ -75,8 +167,8 @@ function administrativeUser(administrativeUser, id) {
                 .prop('required', true);
 
         } else {
-            $('#active_managment_fields_btn').prop('checked', false);
-            $('#active_managment_fields_btn').val(0);
+            $('#active_management_fields_btn').prop('checked', false);
+            $('#active_management_fields_btn').val(0);
             $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]')
                 .prop('required', false);
             $('[name="password"], [name="username"], [name*="[establishment]"], [name*="[dashboardRole]"]').removeClass('is-invalid');
@@ -106,8 +198,8 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     checkErrors(saveButton);
 
     if ($('[name="password"], [name="username"], select[name^="dashboard_role_repeater"]').val().length !== 0) {
-        $('#dashboard_managment_access').collapse('toggle');
-        $('#active_managment_fields_btn').prop('checked', true).val(1);
+        $('#dashboard_management_access').collapse('toggle');
+        $('#active_management_fields_btn').prop('checked', true).val(1);
         $('[name="username"]').prop('required', true);
     }
 

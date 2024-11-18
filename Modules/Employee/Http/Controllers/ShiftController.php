@@ -20,13 +20,15 @@ class ShiftController extends Controller
     public function index(Request $request)
     {
         if (request()->ajax()) {
-            return ShiftTable::getShiftTable($request);
+            $table = new ShiftTable($request->table_type ?? 'default', $request);
+            return $table->getShiftTable();
         }
         $roles = Role::get(['id', 'name']);
         $establishments = Establishment::get(['id', 'name']);
         $timeSheet_rules = TimeSheetRule::all();
         $columns = ShiftTable::getShiftColumns();
-        return view('employee::schedules.shift-schedules.index', compact('columns', 'roles', 'timeSheet_rules', 'establishments'));
+        $footers = ShiftTable::getShiftFooters();
+        return view('employee::schedules.shift.index', compact('columns', 'footers', 'roles', 'timeSheet_rules', 'establishments'));
     }
 
 
@@ -36,7 +38,7 @@ class ShiftController extends Controller
         $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
         $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(), $employee->establishmentRoles->pluck('id', 'name')->toArray());
         $day_times = ShiftTable::getStartEndDayTime();
-        return response()->json(['data' => ['roles' => $roles, 'day_times' => $day_times]]);
+        return response()->json(['data' => ['roles' => $roles, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
     }
 
 
@@ -50,12 +52,12 @@ class ShiftController extends Controller
                 'end_date' => $endOfWeek
             ])->id;
             $ids = [];
-            foreach ($request->schedule_shift_repeater as $item) {
+            foreach ($request->shift_repeater as $key => $item) {
                 $startTime = $request->date . ' ' . $item['startTime'];
                 $endTime = $request->date . ' ' . $item['endTime'];
                 $shift_id = $item['shift_id'];
                 $end_status = $item['end_status'];
-                $break_duration = $end_status === 'break' ? (Carbon::parse($item['startTime'])->diffInMinutes($item['endTime'])) : null;
+                $break_duration = $end_status === 'break' ? (Carbon::parse($item['endTime'])->diffInMinutes(Carbon::parse($request->shift_repeater[$key + 1]['startTime']))) : null;
                 $ids[] = Shift::updateOrCreate(['id' => $shift_id], [
                     'startTime' => $startTime,
                     'endTime' => $endTime,
@@ -78,14 +80,20 @@ class ShiftController extends Controller
         $copy_to_start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
         $copy_to_end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
         $schedule_id = Schedule::firstOrCreate(['start_date' => $copy_from_start_date->format('Y-m-d'), 'end_date' => $copy_from_end_date->format('Y-m-d')])->id;
-        $shifts = Shift::where('schedule_id', $schedule_id)->get();
+        $shifts = Shift::where('schedule_id', $schedule_id);
 
         $new_schedule_id = Schedule::firstOrCreate(['start_date' => $copy_to_start_date->format('Y-m-d'), 'end_date' => $copy_to_end_date->format('Y-m-d')])->id;
-        Shift::where('schedule_id', $new_schedule_id)?->delete();
+        $shiftsToDelete = Shift::where('schedule_id', $new_schedule_id);
+        if (!empty($request->employee_ids)) {
+            $shifts->whereIn('employee_id', $request->employee_ids);
+            $shiftsToDelete->whereIn('employee_id', $request->employee_ids)?->delete();
+        } else {
+            $shiftsToDelete?->delete();
+        }
         $diff = $copy_from_start_date->diffInDays($copy_to_start_date);
 
-        if($shifts->isNotEmpty()){
-            foreach($shifts as $shift){
+        if ($shifts->get()->isNotEmpty()) {
+            foreach ($shifts->get() as $shift) {
                 $new_shift = $shift->replicate();
                 $new_shift->startTime = Carbon::parse($shift->startTime)->addDays($diff);
                 $new_shift->endTime = Carbon::parse($shift->endTime)->addDays($diff);
