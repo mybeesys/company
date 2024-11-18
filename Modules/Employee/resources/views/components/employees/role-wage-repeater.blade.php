@@ -7,6 +7,7 @@
                 $wageTypes = [
                     ['id' => 'hourly', 'name' => __('employee::general.hourly')],
                     ['id' => 'monthly', 'name' => __('employee::general.monthly')],
+                    ['id' => 'fixed', 'name' => __('employee::general.fixed')]
                 ];
             @endphp
             {{-- Handling global roles and wages --}}

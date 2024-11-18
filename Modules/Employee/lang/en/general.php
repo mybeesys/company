@@ -128,4 +128,7 @@ return [
     'copy_warning' => 'Warning: all dates in week from :start to :end will be overwritten',
     'selected' => 'selected',
     'copy_selected_employees_shifts' => 'Copy selected employee\'s shifts',
+    'fixed' => 'Fixed',
+    'percent' => 'Percent',
+    'add_more_allowances' => 'Add more allowances', 
 ];

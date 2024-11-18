@@ -25,6 +25,98 @@ function roleRepeater() {
     });
 }
 
+function allowanceRepeater(addAllowanceTypeUrl, lang) {
+    // Keep track of all custom options
+    const customOptions = new Map();
+
+    function initializeSelect2(element) {
+        const select2Config = {
+            tags: true,
+            createTag: function (params) {
+                const term = (params.term || '').trim();
+
+                if (term === '') {
+                    return null;
+                }
+
+                return {
+                    id: term,
+                    text: term,
+                    newTag: true
+                };
+            },
+            // Add existing custom options to new select2 instances
+            data: Array.from(customOptions.values())
+        };
+
+        element.select2(select2Config)
+            .on('select2:select', handleTagSelection);
+    }
+
+    function handleTagSelection(e) {
+        const data = e.params.data;
+
+        if (!data.newTag) {
+            return;
+        }
+
+        const name_lang = lang === 'ar' ? 'name' : 'name_en';        
+        const $select = $(e.target);
+
+        ajaxRequest(addAllowanceTypeUrl, 'POST', { name: data.text, name_lang: name_lang })
+            .done(function (response) {
+                if (response.id) {
+                    const newOption = {
+                        id: response.id,
+                        text: data.text
+                    };
+                    customOptions.set(response.id, newOption);
+
+                    $('select[name*="[allowance_type]"]').each(function () {
+                        const $select = $(this);
+
+                        const option = new Option(newOption.text, newOption.id, false, false);
+                        $select.append(option);
+
+                        // Update the current select2 instance with the selected value
+                        if (this === e.target) {
+                            $select.val(response.id).trigger('change');
+                        }
+                    });
+                }
+            })
+            .fail(function () {
+                $select.val(null).trigger('change');
+            });
+    }
+
+    $('#allowance_repeater').repeater({
+        initEmpty: false,
+
+        show: function () {
+            const $this = $(this);
+            $this.slideDown();
+            $this.find('select[name*="[amount_type]"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $this.find('input[name*="[applicable_date]"]').flatpickr();
+            initializeSelect2($this.find('select[name*="[allowance_type]"]'));
+        },
+
+        ready: function () {
+            $('select[name*="[amount_type]"]').select2({
+                minimumResultsForSearch: -1,
+            });
+            $('input[name*="[applicable_date]"]').flatpickr();
+            initializeSelect2($('select[name*="[allowance_type]"]'));
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    });
+}
+
 function permissionSetRepeater() {
     $('#dashboard_role_repeater').repeater({
         initEmpty: false,

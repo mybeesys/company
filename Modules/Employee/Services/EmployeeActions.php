@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use File;
 use Modules\Employee\Models\AdministrativeUser;
 use Modules\Employee\Models\AdministrativeUserEstablishment;
+use Modules\Employee\Models\AllowanceDeduction;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\EmployeeEstablishment;
 use Modules\Employee\Models\Role;
@@ -23,6 +24,7 @@ class EmployeeActions
     public static function getShowEditEmployee($id)
     {
         return Employee::with([
+            'allowances',
             'establishmentsPivot',
             'establishmentsPivot.wage' => function ($query) {
                 $query->select('id', 'rate', 'wageType');
@@ -145,6 +147,8 @@ class EmployeeActions
         // Handling administrative User and their roles and establishments
         $this->request->get('active_management_fields_btn') &&
             $this->storeUpdateAdministrativeUser($this->request->get('dashboard_role_repeater'), $employee->id);
+
+        !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
     }
 
     public function update($employee)
@@ -155,6 +159,8 @@ class EmployeeActions
 
         // Handling employee's POS roles and wages
         !empty($this->request->get('role_wage_repeater')) ? $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $employee) : $this->unSyncAllRoles($employee);
+
+        !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
 
         $imageName = $this->request->has('image') ? $this->storeImage($this->request->image, $employee->image) : null;
 
@@ -168,6 +174,31 @@ class EmployeeActions
         ]) : $this->request;
 
         return $employee->update($data->toArray());
+    }
+
+    public function storeUpdateEmployeeAllowances($allowances, $employee_id)
+    {
+        $ids = [];
+        foreach ($allowances as $allowance) {
+            if (isset($allowance['allowance_id'])) {
+                $ids[] = $allowance['allowance_id'];
+                AllowanceDeduction::find($allowance['allowance_id'])->update([
+                    'amount' => $allowance['amount'],
+                    'amount_type' => $allowance['amount_type'],
+                    'allowance_type_id' => $allowance['allowance_type'],
+                    'applicable_date' => $allowance['applicable_date']
+                ]);
+            } else {
+                $ids[] = AllowanceDeduction::create([
+                    'employee_id' => $employee_id,
+                    'amount' => $allowance['amount'],
+                    'amount_type' => $allowance['amount_type'],
+                    'allowance_type_id' => $allowance['allowance_type'],
+                    'applicable_date' => $allowance['applicable_date']
+                ])->id;
+            }
+            AllowanceDeduction::where('type', 'allowance')->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();
+        }
     }
 
     public function unSyncAllRoles($employee)

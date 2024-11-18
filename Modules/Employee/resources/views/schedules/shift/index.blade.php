@@ -7,11 +7,11 @@
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="shift" :addButton=false :idColumn=false module="employee">
                 <x-slot:filters>
-                    <x-employee::schedules.filters :establishments=$establishments :roles=$roles />
+                    <x-employee::shifts.filters :establishments=$establishments :roles=$roles />
                 </x-slot:filters>
                 <x-slot:elements>
                     <x-form.input-div class="mb-md-8 min-w-200px w-100" :row=false>
-                        <x-form.input class="form-control form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
+                        <x-form.input class="form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
                     </x-form.input-div>
                 </x-slot:elements>
                 <x-slot:export>
@@ -25,8 +25,8 @@
         </x-cards.card-body>
     </x-cards.card>
 
-    <x-employee::schedules.add-shift-modal />
-    <x-employee::schedules.copy-shift-modal />
+    <x-employee::shifts.add-shift-modal />
+    <x-employee::shifts.copy-shift-modal />
 @endsection
 
 

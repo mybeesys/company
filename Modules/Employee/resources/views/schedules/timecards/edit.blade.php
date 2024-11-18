@@ -4,7 +4,7 @@
 
 @section('content')
     <form id="edit_timecard_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
-        formId="edit_timecard_form" action="{{ route('timecards.update', ['timecard' => $timecard]) }}">
+        formId="edit_timecard_form" action="{{ route('schedules.timecards.update', ['timecard' => $timecard]) }}">
         @csrf
         @method('patch')
         <x-employee::timecards.form :employees=$employees :timecard=$timecard formId="edit_timecard_form" />
@@ -18,7 +18,7 @@
         $(document).ready(function() {
             $('[name="employee_id"]').select2();
             datePicker('#date');
-            timecardForm("edit_timecard_form", "{{ route('timecards.create.validation') }}");
+            timecardForm("edit_timecard_form", "{{ route('schedules.timecards.create.validation') }}");
         });
     </script>
 @endsection

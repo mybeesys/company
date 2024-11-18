@@ -135,5 +135,10 @@ return [
     'forecasted_labor_cost' => 'Forecasted labor cost %',
     'mean_labor_cost' => 'Mean labor cost %',
     'breaks_total' => 'Breaks total',
-
+    'employee_status' => 'ُEmployee status',
+    'allowances' => 'Allowances',
+    'allowance_type' => 'Allowance type',
+    'applicable_date' => 'Applicable date',
+    'amount_type' => 'Amount type',
+    'new_allowance_type' => 'new allowance type',
 ];
