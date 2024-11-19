@@ -44,7 +44,7 @@ class EmployeeTable
 
                     if ($emsAccess && !$row->deleted_at) {
                         $actions .= '<div class="menu-item px-3">
-                                        <a href="#" class="menu-link px-3 edit-dashboard-permission-button" data-id="' . $row->id . '">' . __('employee::general.edit_dashboard_permissions') . '</a>
+                                        <a href="#" class="menu-link px-3 edit-ems-permission-button" data-id="' . $row->id . '">' . __('employee::general.edit_dashboard_permissions') . '</a>
                                     </div>';
                     }
 

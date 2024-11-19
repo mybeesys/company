@@ -19,17 +19,7 @@ class EmployeeActions
     public function __construct(protected $request)
     {
     }
-
-    public static function getShowEditEmployee($id)
-    {
-        return Employee::with([
-            'allowances',
-            'dashboardRoles',
-            'posRoles',
-        ])->findOrFail($id);
-    }
-
-
+    
     public function assignRolesWagesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
     {
         $PosRepeaterData = $PosRepeaterData ? collect($PosRepeaterData) : null;

@@ -44,6 +44,7 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
+        Route::get('/{id}/get-employee-roles', 'getEmployeeRoles')->name('get-employee-roles');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
@@ -87,7 +88,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
-    Route::controller(AllowanceTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function(){
+    Route::controller(AllowanceTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function () {
         Route::post('/store', 'store')->name('store');
     });
 

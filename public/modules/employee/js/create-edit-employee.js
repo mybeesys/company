@@ -147,7 +147,7 @@ function administrativeUser(administrativeUser, id) {
     if (administrativeUser) {
         $('#dashboard_management_access').collapse('toggle');
         $('#ems_access').prop('checked', true).val(1);
-        $('[name="username"]').prop('required', true);
+        $('[name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]').prop('required', true)
     }
 
     $('.active-management-fields').on('click', function (e) {

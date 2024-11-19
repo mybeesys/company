@@ -69,7 +69,7 @@ function assignPosPermissionsToEmployeeForm(allPermissionsId, employeeId, assign
 
 function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
 
-    $(document).on('click', '.edit-dashboard-permission-button', function (e) {
+    $(document).on('click', '.edit-ems-permission-button', function (e) {
         e.preventDefault();
         const employeeId = $(this).data('id');
         $("#employee_dashboard_permissions_edit_form #employee_id").val(employeeId);
