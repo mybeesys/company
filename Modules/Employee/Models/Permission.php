@@ -9,9 +9,14 @@ class Permission extends SpatiePermission
 {
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    public function permissionSet()
+    public function emsRoles()
     {
-        return $this->belongsToMany(PermissionSet::class, 'employee_permission_set_permissions')->withPivot('accessLevel');
+        return $this->belongsToMany(Role::class, 'em_employee_establishments')->where('type', 'ems');
+    }
+
+    public function posRoles()
+    {
+        return $this->belongsToMany(Role::class, 'em_employee_establishments')->where('type', 'pos');
     }
 
     public function getModifiedNameAttribute()

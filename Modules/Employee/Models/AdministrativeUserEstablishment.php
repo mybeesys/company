@@ -11,7 +11,7 @@ class AdministrativeUserEstablishment extends Pivot
 
     public $incrementing = true;
 
-    protected $table = 'employee_administrative_users_establishments';
+    protected $table = 'emp_administrative_users_establishments';
 
     protected $guarded = [];
 

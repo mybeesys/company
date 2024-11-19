@@ -14,7 +14,7 @@ use Modules\Employee\Services\PosRoleActions;
 class PermissionController extends Controller
 {
 
-    public function aasignPosPermissionsToEmployee(Request $request, Employee $employee)
+    public function assignPosPermissionsToEmployee(Request $request, Employee $employee)
     {
         $validated = $request->validate([
             'pos_permissions' => ['array', 'nullable'],
@@ -45,26 +45,25 @@ class PermissionController extends Controller
         ]);
     }
 
-    public function aasignDashboardPermissionsToUser(Request $request, Employee $employee)
+    public function assignDashboardPermissionsToUser(Request $request, Employee $employee)
     {
-        $administrativeUser = AdministrativeUser::firstWhere('employee_id', $employee->id);
         $validated = $request->validate([
             'dashboard_permissions' => ['array', 'nullable'],
             'dashboard_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')]
         ]);
         $permissions = new DashboardRoleActions(collect($validated));
-        $permissions->storeUpdateRolePermissions($administrativeUser, false);
+        $permissions->storeUpdateRolePermissions($employee, false);
 
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
     public function getEmployeeDashboardPermissions($id)
     {
-        $user = AdministrativeUser::with([
+        $user = Employee::with([
             'permissions' => function ($query) {
                 $query->where('type', 'ems');
             }
-        ])->firstWhere('employee_id', $id);
+        ])->firstWhere('id', $id);
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Employee not found'], 404);

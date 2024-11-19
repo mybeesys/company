@@ -24,7 +24,7 @@ class TimeCardController extends Controller
                 $timecards->whereDate('date', $request->date);
             }
             if ($request->has('employee_status') && isset($request->employee_status)) {
-                $timecards->whereHas('employee', fn($query) => $query->where('isActive', $request->employee_status));
+                $timecards->whereHas('employee', fn($query) => $query->where('is_active', $request->employee_status));
             }
             return TimeCardTable::getTimecardTable($timecards);
         }
@@ -51,8 +51,8 @@ class TimeCardController extends Controller
     public function store(StoreTimecardRequest $request)
     {
         TimeCard::create($request->safe()->merge([
-            'clockInTime' => Carbon::parse($request->get('clockInTime'))->format('Y-m-d H:i:s'),
-            'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
+            'clock_in_time' => Carbon::parse($request->get('clock_in_time'))->format('Y-m-d H:i:s'),
+            'clock_out_time' => Carbon::parse($request->get('clock_out_time'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
         return to_route('schedules.timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
@@ -73,8 +73,8 @@ class TimeCardController extends Controller
     public function update(StoreTimecardRequest $request, TimeCard $timecard)
     {
         $timecard->update($request->safe()->merge([
-            'clockInTime' => Carbon::parse($request->get('clockInTime'))->format('Y-m-d H:i:s'),
-            'clockOutTime' => Carbon::parse($request->get('clockOutTime'))->format('Y-m-d H:i:s'),
+            'clock_in_time' => Carbon::parse($request->get('clock_in_time'))->format('Y-m-d H:i:s'),
+            'clock_out_time' => Carbon::parse($request->get('clock_out_time'))->format('Y-m-d H:i:s'),
             'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
         ])->toArray());
         return to_route('schedules.timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));

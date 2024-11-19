@@ -34,6 +34,6 @@ class ShiftFilters
 
     public function filter_employee_status($value, $employees)
     {
-        $employees->where('isActive', $value);
+        $employees->where('is_active', $value);
     }
 }

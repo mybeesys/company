@@ -66,16 +66,16 @@
                         className: 'text-start'
                     },
                     {
-                        data: 'permissionSetName',
-                        name: 'permissionSetName'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
                         data: 'rank',
                         name: 'rank'
                     },
                     {
-                        data: 'isActive',
-                        name: 'isActive'
+                        data: 'is_active',
+                        name: 'is_active'
                     },
                     {
                         data: 'actions',

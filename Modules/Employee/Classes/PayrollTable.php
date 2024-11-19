@@ -34,11 +34,11 @@ class PayrollTable
             ->addColumn('employee', function ($row) {
                 return session()->get('locale') === 'ar' ? $row->employee->name : $row->employee->name_en;
             })
-            ->editColumn('clockInTime', function ($row) {
-                return Carbon::parse($row->clockInTime)->format('H:i');
+            ->editColumn('clock_in_time', function ($row) {
+                return Carbon::parse($row->clock_in_time)->format('H:i');
             })
-            ->editColumn('clockOutTime', function ($row) {
-                return Carbon::parse($row->clockOutTime)->format('H:i');
+            ->editColumn('clock_out_time', function ($row) {
+                return Carbon::parse($row->clock_out_time)->format('H:i');
             })
             ->addColumn(
                 'actions',

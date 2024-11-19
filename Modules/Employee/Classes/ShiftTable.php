@@ -192,7 +192,7 @@ class ShiftTable
         return [
             'id' => $employee->id,
             'employee' => session()->get('locale') === 'ar' ? $employee->name : $employee->name_en,
-            'total_hours' => $employee->timecards->sum('hoursWorked'),
+            'total_hours' => $employee->timecards->sum('hours_worked'),
             'total_wages' => $employee->wages->sum('rate'),
             'role' => array_merge($employee->roles->pluck('name')->toArray(), $employee->establishmentRoles->pluck('name')->toArray()),
             'establishment' => $employee->roles->isNotEmpty() ? array_merge($employee->establishments->pluck('name')->toArray(), [__('employee::fields.all_establishments')]) : $employee->establishments->pluck('name')->toArray(),

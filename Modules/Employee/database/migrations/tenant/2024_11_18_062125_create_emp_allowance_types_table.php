@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_permission_sets', function (Blueprint $table) {
+        Schema::create('emp_allowance_types', function (Blueprint $table) {
             $table->id();
-            $table->string('permissionSetName', 100);
-            $table->boolean('isActive')->default(true);
-            $table->integer('rank')->nullable();
+            $table->string('name')->nullable();
+            $table->string('name_en')->nullable();
+            $table->enum('type', ['fixed', 'percent'])->default('fixed');
+            $table->decimal('amount', 10,2)->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_permission_sets');
+        Schema::dropIfExists('allowance_types');
     }
 };

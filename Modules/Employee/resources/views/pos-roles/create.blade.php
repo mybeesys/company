@@ -6,7 +6,6 @@
     <style>
         .tooltip-inner {
             white-space: pre-wrap;
-
         }
     </style>
 @endsection

@@ -146,11 +146,11 @@ return [
 
     'attributes' => [
         'name_en' => 'name',
-        'phoneNumber' => 'phone number',
+        'phone_number' => 'phone number',
         'PIN' => 'pin',
-        'employmentStartDate' => 'Employment start date',
-        'employmentEndDate' => 'Employment end date',
-        'permissionSetName' => 'role name',
+        'employment_start_date' => 'Employment start date',
+        'employment_end_date' => 'Employment end date',
+        'permission_set_name' => 'role name',
     ],
 
 ];

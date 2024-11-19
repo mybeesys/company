@@ -91,7 +91,7 @@ return [
     'name_en' => 'الاسم  بالإنجليزي',
     'administrative_permission_set' => 'مجموعة الأذونات الإدارية',
     'pos_roles_wages' => 'أدوار وأجور نقاط البيع',
-    'wageType' => 'نوع الأجر',
+    'wage_type' => 'نوع الأجر',
     'inTime' => 'وقت الدخول',
     'outTime' => 'وقت الخروج',
     'hours' => 'عدد الساعات',

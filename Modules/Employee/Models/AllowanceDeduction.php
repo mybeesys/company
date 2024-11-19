@@ -10,7 +10,7 @@ class AllowanceDeduction extends Model
 {
     use HasFactory;
 
-    protected $table = 'employee_allowances_deductions';
+    protected $table = 'emp_allowances_deductions';
 
     /**
      * The attributes that are mass assignable.

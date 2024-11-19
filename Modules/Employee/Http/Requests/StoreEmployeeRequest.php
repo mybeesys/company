@@ -2,52 +2,21 @@
 
 namespace Modules\Employee\Http\Requests;
 
-use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
-use Modules\Employee\Rules\EmployeeEstablishmentRule;
-use Modules\Employee\Rules\WageTypeRequired;
+use Modules\Employee\Traits\EmployeeValidateTrait;
 
 class StoreEmployeeRequest extends FormRequest
 {
+    use EmployeeValidateTrait;
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(Request $request): array
     {
         $notAjaxValidate = !str_contains(request()->url(), 'validate');
-        return [
-            'validate' => ['boolean', 'nullable'],
-            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
-            'name_en' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
-            'email' => [Rule::requiredIf($notAjaxValidate), 'email', 'unique:employee_employees,email'],
-            'phoneNumber' => ['nullable', 'digits_between:10,15'],
-            'employmentStartDate' => [Rule::requiredIf($notAjaxValidate), 'date'],
-            'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', 'unique:employee_employees,pin'],
-            'image' => ['image', 'max:3072'],
-            'isActive' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
-            'role_wage_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
-            'role_wage_repeater.*.role' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
-            'role_wage_repeater.*.wage' => ['nullable', 'decimal:0,2', 'numeric'],
-            'role_wage_repeater.*.wage_type' => [new WageTypeRequired($request->input('role_wage_repeater.*.wage')), 'nullable', 'in:hourly,monthly,fixed'],
-            'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
-            'allowance_repeater' => ['nullable', 'array'],
-            'allowance_repeater.*.amount_type' => ['required_with:allowance_repeater', 'in:fixed,percent'],
-            'allowance_repeater.*.allowance_type' => ['required_with:allowance_repeater', 'exists:employee_allowance_types,id'],
-            'allowance_repeater.*.amount' => ['required_with:allowance_repeater', 'decimal:0,2', 'numeric'],
-            'allowance_repeater.*.applicable_date' => ['required_with:allowance_repeater', 'date'],
-            'active_management_fields_btn' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
-            'dashboard_role_repeater' => [Rule::requiredIf($notAjaxValidate), 'array'],
-            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'exists:roles,id'],
-            'dashboard_role_repeater.*.establishment' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'exists:establishment_establishments,id'],
-            'accountLocked' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'boolean'],
-            'password' => ['required_if_accepted:active_management_fields_btn', 'nullable', Password::default()],
-            'username' => ['required_if_accepted:active_management_fields_btn', 'nullable', 'string', 'unique:employee_administrative_users,userName', 'max:50'],
-        ];
+        return $this->getCreateValidationRules($notAjaxValidate, $request);
     }
-
 
 
     /**
