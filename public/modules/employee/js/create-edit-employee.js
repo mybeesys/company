@@ -30,7 +30,6 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
             tags: true,
             createTag: function (params) {
                 const term = (params.term || '').trim();
-
                 if (term === '') {
                     return null;
                 }
@@ -44,7 +43,6 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
             // Add existing custom options to new select2 instances
             data: Array.from(customOptions.values())
         };
-
         element.select2(select2Config)
             .on('select2:select', handleTagSelection);
     }

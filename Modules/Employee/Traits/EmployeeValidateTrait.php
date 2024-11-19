@@ -50,7 +50,7 @@ trait EmployeeValidateTrait
             'allowance_repeater.*.applicable_date' => ['required_with:allowance_repeater', 'date'],
             'ems_access' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'dashboard_role_repeater' => ['required_if_accepted:ems_access', 'array'],
-            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:ems_access', 'exists:roles,id'],
+            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:ems_access', 'nullable', 'exists:roles,id'],
             'dashboard_role_repeater.*.wage' => ['nullable', 'decimal:0,2', 'numeric'],
             'dashboard_role_repeater.*.wage_type' => [new WageTypeRequired($request->input('dashboard_role_repeater..wage')), 'nullable', 'in:hourly,monthly,fixed'],
             'user_name' => ['required_if_accepted:ems_access', 'nullable', 'string', 'max:50'],

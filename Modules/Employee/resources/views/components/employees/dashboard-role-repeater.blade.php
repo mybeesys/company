@@ -6,7 +6,7 @@
             @foreach (old('dashboard_role_repeater', $emsUser?->dashboardRoles?->isEmpty() ? [null] : $emsUser?->dashboardRoles ?? [null]) as $index => $dashboardRole)
                 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                     <x-form.input-div class="w-100">
-                        <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]" required
+                        <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]"
                             :disabled=$disabled :options="$dashboardRoles" :errors="$errors" data_allow_clear="false"
                             placeholder="{{ __('employee::fields.role') }}" :default_selection_value=null
                             value="{{ is_array($dashboardRole) ? $dashboardRole['dashboardRole'] ?? '' : $dashboardRole?->id }}" />

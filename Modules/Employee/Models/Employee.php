@@ -59,11 +59,6 @@ class Employee extends BaseEmployeeModel
         return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate');
     }
 
-    // public function wages()
-    // {
-    //     return $this->hasMany(Wage::class);
-    // }
-
     public function timecards()
     {
         return $this->hasMany(TimeCard::class);
