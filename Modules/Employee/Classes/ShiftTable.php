@@ -77,7 +77,7 @@ class ShiftTable
         $start_date = Carbon::createFromFormat('Y-m-d', $this->request->input('start_date'));
         $end_date = Carbon::createFromFormat('Y-m-d', $this->request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
-        $employees = Employee::with(['timecards', 'shifts', 'roles', 'establishmentRoles', 'establishments', 'wages']);
+        $employees = Employee::with(['timecards', 'shifts', 'allRoles', 'establishments', 'wages']);
 
         $filters = new ShiftFilters(['filter_role', 'filter_establishment', 'filter_employee_status']);
 
@@ -194,8 +194,8 @@ class ShiftTable
             'employee' => session()->get('locale') === 'ar' ? $employee->name : $employee->name_en,
             'total_hours' => $employee->timecards->sum('hours_worked'),
             'total_wages' => $employee->wages->sum('rate'),
-            'role' => array_merge($employee->roles->pluck('name')->toArray(), $employee->establishmentRoles->pluck('name')->toArray()),
-            'establishment' => $employee->roles->isNotEmpty() ? array_merge($employee->establishments->pluck('name')->toArray(), [__('employee::fields.all_establishments')]) : $employee->establishments->pluck('name')->toArray(),
+            'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
+            'establishment' => implode('<br>', $employee->getEmployeeEstablishmentsWithAllOption()),
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
                             <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
                         </div>'
