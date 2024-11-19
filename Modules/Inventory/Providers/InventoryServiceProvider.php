@@ -23,7 +23,7 @@ class InventoryServiceProvider extends ServiceProvider
         $this->registerCommandSchedules();
         $this->registerTranslations();
         $this->registerConfig();
-        $this->registerViews();
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'inventory');
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
