@@ -31,7 +31,7 @@ class PosRoleController extends Controller
     {
         if ($request->ajax()) {
             $roles = Role::
-                select('id', 'name', 'guard_name', 'department', 'rank');
+                select('id', 'name', 'guard_name', 'department', 'rank', 'is_active');
             return PosRoleTable::getRoleTable($roles);
         }
         $columns = PosRoleTable::getRoleColumns();

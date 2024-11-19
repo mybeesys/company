@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\TimeCardTable;
 use Modules\Employee\Http\Requests\StoreTimecardRequest;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\Role;
 use Modules\Employee\Models\TimeCard;
 
 class TimeCardController extends Controller
@@ -42,7 +43,8 @@ class TimeCardController extends Controller
     public function create()
     {
         $employees = Employee::get(['id', 'name', 'name_en']);
-        return view('employee::schedules.timecards.create', compact('employees'));
+        $roles = Role::get()->select('id', 'name');
+        return view('employee::schedules.timecards.create', compact('employees', 'roles'));
     }
 
     /**
@@ -64,7 +66,8 @@ class TimeCardController extends Controller
     public function edit(TimeCard $timecard)
     {
         $employees = Employee::get(['id', 'name', 'name_en']);
-        return view('employee::schedules.timecards.edit', compact('employees', 'timecard'));
+        $roles = Role::get()->select('id', 'name');
+        return view('employee::schedules.timecards.edit', compact('employees', 'timecard', 'roles'));
     }
 
     /**

@@ -8,7 +8,7 @@ function roleForm(id, validationUrl) {
 }
 
 function rolePermissionsForm(all = true) {
-    $('input[type="checkbox"][value!="all"]').on('change', function (e) {
+    $('table input[type="checkbox"][value!="all"]').on('change', function (e) {
         const selectAllCheckbox = $('input[type="checkbox"][value="all"]');
         if (!$(this).is(':checked')) {
             selectAllCheckbox.prop('checked', false);

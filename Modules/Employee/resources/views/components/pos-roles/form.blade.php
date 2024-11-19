@@ -1,7 +1,7 @@
 @props(['role' => null, 'departments' => null, 'permissions', 'disabled' => false, 'formId' => null])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.role_details')">
-        <div class="d-flex flex-wrap">
+        <div class="d-flex flex-wrap gap-5">
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input required :errors=$errors :disabled=$disabled
                     placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
@@ -25,6 +25,13 @@
                 <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
                     :disabled=$disabled value="{{ $role?->rank }}" name="rank" :label="__('employee::fields.rank')" />
             </x-form.input-div>
+            <x-form.switch-div class="my-auto">
+                <input type="hidden" name="is_active" value="0">
+                <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
+                    labelClass="form-check-label" name="is_active" :disabled=$disabled
+                    label="{{ __('employee::general.deactivate/activate') }}"
+                    checked="{{ $role?->is_active }}" />
+            </x-form.switch-div>
         </div>
     </x-form.form-card>
     <x-form.form-card :title="__('employee::main.permissions')" bodyClass="d-flex flex-column flex-md-row justify-content-between">
