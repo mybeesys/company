@@ -91,7 +91,7 @@ return [
     'name_en' => 'Name in english',
     'administrative_permission_set' => 'Administrative permission set',
     'pos_roles_wages' => 'Point of sales roles and wages',
-    'wageType' => 'Wage type',
+    'wage_type' => 'Wage type',
     'inTime' => 'In time',
     'outTime' => 'Out time',
     'hours' => 'Hours count',

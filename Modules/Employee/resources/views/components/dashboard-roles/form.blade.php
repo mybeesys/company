@@ -5,18 +5,18 @@
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input required :errors=$errors :disabled=$disabled
                     placeholder="{{ __('employee::fields.name') }} ({{ __('employee::fields.required') }})"
-                    value="{{ $dashboardRole?->permissionSetName }}" name="permissionSetName" :label="__('employee::fields.name')" />
+                    value="{{ $dashboardRole?->name }}" name="name" :label="__('employee::fields.name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input required :errors=$errors placeholder="{{ __('employee::fields.rank') }} (1-999)"
                     :disabled=$disabled value="{{ $dashboardRole?->rank }}" name="rank" :label="__('employee::fields.rank')" />
             </x-form.input-div>
             <x-form.switch-div class="my-auto">
-                <input type="hidden" name="isActive" value="0">
+                <input type="hidden" name="is_active" value="0">
                 <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
-                    labelClass="form-check-label" name="isActive" :disabled=$disabled
+                    labelClass="form-check-label" name="is_active" :disabled=$disabled
                     label="{{ __('employee::general.deactivate/activate') }}"
-                    checked="{{ $dashboardRole?->isActive }}" />
+                    checked="{{ $dashboardRole?->is_active }}" />
             </x-form.switch-div>
         </div>
     </x-form.form-card>

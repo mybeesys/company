@@ -121,20 +121,20 @@
                         name: 'name_en'
                     },
                     {
-                        data: 'phoneNumber',
-                        name: 'phoneNumber'
+                        data: 'phone_number',
+                        name: 'phone_number'
                     },
                     {
-                        data: 'employmentStartDate',
-                        name: 'employmentStartDate'
+                        data: 'employment_start_date',
+                        name: 'employment_start_date'
                     },
                     {
-                        data: 'employmentEndDate',
-                        name: 'employmentEndDate'
+                        data: 'employment_end_date',
+                        name: 'employment_end_date'
                     },
                     {
-                        data: 'isActive',
-                        name: 'isActive'
+                        data: 'pos_is_active',
+                        name: 'pos_is_active'
                     },
                     {
                         data: 'actions',

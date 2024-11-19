@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_allowance_types', function (Blueprint $table) {
+        Schema::create('sch_schedules', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('name_en')->nullable();
-            $table->enum('type', ['fixed', 'percent'])->default('fixed');
-            $table->decimal('amount', 10,2)->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('allowance_types');
+        Schema::dropIfExists('schedules');
     }
 };

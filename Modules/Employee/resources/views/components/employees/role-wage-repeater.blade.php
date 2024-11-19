@@ -1,41 +1,38 @@
-@props(['employee' => null, 'roles', 'establishments', 'disabled' => false])
+@props(['employee' => null, 'posRoles', 'establishments', 'disabled' => false, 'wageTypes'])
 <label @class(['form-label'])>@lang('employee::fields.pos_roles_wages')</label>
 <div id="role_wage_repeater">
     <div class="form-group">
         <div data-repeater-list="role_wage_repeater" class="d-flex flex-column gap-3">
-            @php
-                $wageTypes = [
-                    ['id' => 'hourly', 'name' => __('employee::general.hourly')],
-                    ['id' => 'monthly', 'name' => __('employee::general.monthly')],
-                    ['id' => 'fixed', 'name' => __('employee::general.fixed')]
-                ];
-            @endphp
-            {{-- Handling global roles and wages --}}
-            @if (($employee?->roles->isNotEmpty() || !$employee) || !$employee?->establishmentsPivot()?->exists())
-                @foreach (old('role_wage_repeater', $employee?->roles->isEmpty() ? [null] : $employee?->roles ?? [null]) as $index => $globalRole)
-                    <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
-                        role_select_value="{{ is_array($globalRole) ? $globalRole['role'] ?? '' : $globalRole?->id }}"
-                        establishment_select_value="all" default_selection_value="all"
-                        default_selection="{{ __('employee::general.all_establishments') }}"
-                        wage_value="{{ is_array($globalRole) ? $globalRole['wage'] ?? '' : $globalRole?->wage?->rate }}"
-                        wageType_value="{{ is_array($globalRole) ? $globalRole['wageType'] ?? '' : $globalRole?->wage?->wageType }}"
-                        :wageTypes=$wageTypes :roles=$roles :establishments=$establishments />
-                @endforeach
-            @endif
-
-            {{-- Establishments roles and wages --}}
-            @if ($employee?->establishmentsPivot()?->exists())
-                @foreach (old('role_wage_repeater', $employee?->establishmentsPivot) as $index => $establishmentRole)
-                    <x-employee::employees.role-wage-repeater-inputs :index=$index :disabled=$disabled
-                        role_select_value="{{ is_array($establishmentRole) ? $establishmentRole['role'] ?? '' : $establishmentRole?->role_id }}"
-                        default_selection="{{ __('employee::general.all_establishments') }}"
-                        default_selection_value="all"
-                        establishment_select_value="{{ is_array($establishmentRole) ? $establishmentRole['establishment'] ?? '' : $establishmentRole?->establishment_id }}"
-                        wage_value="{{ is_array($establishmentRole) ? $establishmentRole['wage'] ?? '' : $establishmentRole?->wage?->rate }}"
-                        wageType_value="{{ is_array($establishmentRole) ? $establishmentRole['wageType'] ?? '' : $establishmentRole?->wage?->wageType }}"
-                        :wageTypes=$wageTypes :roles=$roles :establishments=$establishments />
-                @endforeach
-            @endif
+            @foreach (old('role_wage_repeater', $employee?->posRoles->isEmpty() ? [null] : $employee?->posRoles) as $index => $role)
+                <div data-repeater-item @class(["d-flex flex-wrap align-items-center gap-3"]) >
+                    <x-form.input-div class="w-100">
+                        <x-form.select name="role_wage_repeater[{{ $index }}][posRole]" :options="$posRoles"
+                            :errors="$errors" :disabled=$disabled required
+                            placeholder="{{ __('employee::fields.role') }}"
+                            value="{{ is_array($role) ? $role['posRole'] ?? '' : $role?->id }}"
+                            data_allow_clear="false" />
+                    </x-form.input-div>
+                    <x-form.input-div class="w-100">
+                        <x-form.select name="role_wage_repeater[{{ $index }}][establishment]"
+                            data_allow_clear="false" :disabled=$disabled :options="$establishments" :errors="$errors"
+                            :default_selection="__('employee::general.all_establishments')" required default_selection_value="all"
+                            value="{{ is_array($role) ? $role['establishment'] ?? '' : $role?->pivot->establishment_id ?? 'all' }}" />
+                    </x-form.input-div>
+                    <x-form.input-div class="w-100">
+                        <x-form.input :errors="$errors" type="number" :placeholder="__('employee::fields.wage')" :disabled=$disabled
+                            name="role_wage_repeater[{{ $index }}][wage]" :value="is_array($role) ? $role['wage'] ?? '' : $role?->pivot?->rate" />
+                    </x-form.input-div>
+                    <x-form.input-div class="w-100">
+                        <x-form.select name="role_wage_repeater[{{ $index }}][wage_type]" :disabled=$disabled
+                            :options=$wageTypes :errors="$errors" :value="is_array($role) ? $role['wage_type'] ?? '' : $role?->pivot?->wage_type"
+                            placeholder="{{ __('employee::fields.wage_type') }}" />
+                    </x-form.input-div>
+                    <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger"
+                        @disabled($disabled)>
+                        <i class="ki-outline ki-cross fs-1"></i>
+                    </button>
+                </div>
+            @endforeach
         </div>
     </div>
     <div class="form-group mt-7">

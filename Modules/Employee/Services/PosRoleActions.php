@@ -17,7 +17,7 @@ class PosRoleActions
     }
     public function store()
     {
-        $role = Role::create($this->request->except('pos_permissions'));
+        $role = Role::create(array_merge($this->request->except('pos_permissions'), ['type' => 'pos']));
         $this->storeUpdateRolePermissions($role);
     }
 

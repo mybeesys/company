@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Employee\Services;
 use Modules\Employee\Models\PermissionSet;
+use Modules\Employee\Models\Role;
 
 class DashboardRoleActions
 {
@@ -35,7 +36,7 @@ class DashboardRoleActions
 
     public function store()
     {
-        $dashboardRole = PermissionSet::create($this->request->all());
+        $dashboardRole = Role::create($this->request->merge(['type' => 'ems'])->all());
         $this->storeUpdateRolePermissions($dashboardRole);
     }
 

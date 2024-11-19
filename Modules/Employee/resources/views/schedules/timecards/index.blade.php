@@ -81,23 +81,23 @@
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'clockInTime',
-                        name: 'clockInTime',
+                        data: 'clock_in_time',
+                        name: 'clock_in_time',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'clockOutTime',
-                        name: 'clockOutTime',
+                        data: 'clock_out_time',
+                        name: 'clock_out_time',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'hoursWorked',
-                        name: 'hoursWorked',
+                        data: 'hours_worked',
+                        name: 'hours_worked',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'overtimeHours',
-                        name: 'overtimeHours',
+                        data: 'overtime_hours',
+                        name: 'overtime_hours',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {

@@ -29,6 +29,10 @@ return new class extends Migration
             $table->bigIncrements('id'); // permission id
             $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
+            $table->string('name_ar');
+            $table->string('type');
+            $table->text('description')->nullable();
+            $table->text('description_ar')->nullable();
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
@@ -44,6 +48,8 @@ return new class extends Migration
             $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
             $table->string('department')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->enum('type', ['ems', 'pos']);
             $table->integer('rank')->nullable();
             $table->timestamps();
             if ($teams || config('permission.testing')) {

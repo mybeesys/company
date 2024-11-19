@@ -17,7 +17,7 @@ class Role extends SpatieRole
 
     public function wage()
     {
-        return $this->hasOne(Wage::class)->whereNull('establishment_id');
+        return $this->hasOne(Wage::class);
     }
 
     public function establishments()

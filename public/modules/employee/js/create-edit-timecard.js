@@ -1,9 +1,9 @@
 function timecardForm(id, validationUrl) {
     let saveButton = $(`#${id}_button`);
-    const clockInTimePicker = dateTimePicker($("#clockInTime"));
-    const clockOutTimePicker = dateTimePicker($("#clockOutTime"));
+    const clockInTimePicker = dateTimePicker($("#clock_in_time"));
+    const clockOutTimePicker = dateTimePicker($("#clock_out_time"));
 
-    $("#clockInTime").on(tempusDominus.Namespace.events.change, function (e) {
+    $("#clock_in_time").on(tempusDominus.Namespace.events.change, function (e) {
         const maxDate = new Date(e.date);
         maxDate.setDate(maxDate.getDate() + 2);
 
@@ -16,7 +16,7 @@ function timecardForm(id, validationUrl) {
         calculateTimeDifference();
     });
 
-    $("#clockOutTime").on(tempusDominus.Namespace.events.change, function (e) {
+    $("#clock_out_time").on(tempusDominus.Namespace.events.change, function (e) {
         clockInTimePicker.updateOptions({
             restrictions: {
                 maxDate: e.date,
@@ -40,7 +40,7 @@ function timecardForm(id, validationUrl) {
             hours = hours < 10 ? '0' + hours : hours;
 
             const formattedTime = `${hours}.${minutes}`;
-            $("#hoursWorked").val(formattedTime);
+            $("#hours_worked").val(formattedTime);
         }
     };
 

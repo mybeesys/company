@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('schedule_time_sheet_rules', function (Blueprint $table) {
+        Schema::create('sch_time_sheet_rules', function (Blueprint $table) {
             $table->id();
             $table->string('rule_name', 100);
             $table->json('rule_value')->nullable();

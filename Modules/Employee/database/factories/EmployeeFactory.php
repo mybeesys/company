@@ -20,10 +20,10 @@ class EmployeeFactory extends Factory
             'name' => fake()->name(),
             'name_en' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'phoneNumber' => fake()->phoneNumber(),
+            'phone_number' => fake()->phoneNumber(),
             'PIN' => fake()->countryCode(),
-            'employmentStartDate' => fake()->date(),
-            'employmentEndDate' => fake()->date(),
+            'employment_start_date' => fake()->date(),
+            'employment_end_date' => fake()->date(),
             'created_at' => now(),
             'updated_at' => now(),
         ];

@@ -41,12 +41,12 @@ class DashboardRoleTable
                     return $actions;
                 }
             )
-            ->editColumn('isActive', function ($employee) {
-                return $employee->isActive
+            ->editColumn('is_active', function ($employee) {
+                return $employee->is_active
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
                     : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
-            ->rawColumns(['actions', 'isActive', 'id'])
+            ->rawColumns(['actions', 'is_active', 'id'])
             ->make(true);
     }
 }

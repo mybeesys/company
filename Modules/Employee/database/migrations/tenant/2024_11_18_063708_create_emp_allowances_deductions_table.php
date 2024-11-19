@@ -10,10 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('employee_allowances_deductions', function (Blueprint $table) {
+        Schema::create('emp_allowances_deductions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->nullable()->constrained('employee_employees')->nullOnDelete();
-            $table->foreignId('allowance_type_id')->nullable()->constrained('employee_allowance_types')->nullOnDelete();
+            $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
+            $table->foreignId('allowance_type_id')->nullable()->constrained('emp_allowance_types')->nullOnDelete();
             $table->string('description')->nullable();
             $table->string('description_en')->nullable();
             $table->enum('type', ['allowance', 'deduction'])->default('allowance');
