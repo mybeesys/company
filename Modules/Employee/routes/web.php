@@ -3,7 +3,7 @@
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\AllowanceTypeController;
-use Modules\Employee\Http\Controllers\DashboardRoleController;
+use Modules\Employee\Http\Controllers\dashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PayrollController;
@@ -51,9 +51,9 @@ Route::middleware([
     });
 
     Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () {
-        Route::patch('/{employee}/assign-pos-permissions', 'aasignPosPermissionsToEmployee')->name('assign.employee');
+        Route::patch('/{employee}/assign-pos-permissions', 'assignPosPermissionsToEmployee')->name('assign.employee');
         Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions');
-        Route::patch('/{employee}/assign-dashboard-permissions', 'aasignDashboardPermissionsToUser')->name('assign.user');
+        Route::patch('/{employee}/assign-dashboard-permissions', 'assignDashboardPermissionsToUser')->name('assign.user');
         Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions');
     });
 
@@ -73,7 +73,7 @@ Route::middleware([
     });
 
 
-    Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
+    Route::controller(dashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::get('/show/{dashboardRole}', 'show')->name('show');

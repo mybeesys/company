@@ -30,7 +30,7 @@ class EmployeeTable
             ->addColumn(
                 'actions',
                 function ($row) {
-                    $administrativeUser = $row->administrativeUser()->exists();
+                    $emsAccess = $row->ems_access;
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">' . __('employee::fields.actions') . '<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
 
@@ -42,7 +42,7 @@ class EmployeeTable
                         </div>
                         ';
 
-                    if ($administrativeUser && !$row->deleted_at) {
+                    if ($emsAccess && !$row->deleted_at) {
                         $actions .= '<div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 edit-dashboard-permission-button" data-id="' . $row->id . '">' . __('employee::general.edit_dashboard_permissions') . '</a>
                                     </div>';
@@ -61,12 +61,12 @@ class EmployeeTable
                     return $actions;
                 }
             )
-            ->editColumn('isActive', function ($employee) {
-                return $employee->isActive
+            ->editColumn('pos_is_active', function ($employee) {
+                return $employee->pos_is_active
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
                     : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
-            ->rawColumns(['actions', 'isActive', 'id'])
+            ->rawColumns(['actions', 'pos_is_active', 'id'])
             ->make(true);
     }
 }

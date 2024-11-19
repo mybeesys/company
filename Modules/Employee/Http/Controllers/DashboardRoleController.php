@@ -9,8 +9,8 @@ use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\PermissionSet;
-use Modules\Employee\Services\DashboardRoleActions;
+use Modules\Employee\Models\Role;
+use Modules\Employee\Services\dashboardRoleActions;
 
 class DashboardRoleController extends Controller
 {
@@ -20,8 +20,7 @@ class DashboardRoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $dashboardRoles = PermissionSet::
-                select('id', 'permissionSetName', 'isActive', 'rank');
+            $dashboardRoles = Role::where('type', 'ems')->get(['id', 'name', 'is_active', 'rank']);
             return DashboardRoleTable::getDashboardRoleTable($dashboardRoles);
         }
         $columns = DashboardRoleTable::getDashboardRoleColumns();
@@ -73,7 +72,7 @@ class DashboardRoleController extends Controller
     {
         DB::transaction(function () use ($request) {
             $filteredRequest = $request->safe();
-            $storeRole = new DashboardRoleActions($filteredRequest);
+            $storeRole = new dashboardRoleActions($filteredRequest);
             $storeRole->store();
         });
         return to_route('dashboard-roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
@@ -82,7 +81,7 @@ class DashboardRoleController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show(PermissionSet $dashboardRole)
+    public function show(Role $dashboardRole)
     {
         $modules = Permission::where('type', 'ems')
             ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
@@ -112,7 +111,7 @@ class DashboardRoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PermissionSet $dashboardRole)
+    public function edit(Role $dashboardRole)
     {
         $modules = Permission::where('type', 'ems')
             ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
@@ -142,11 +141,11 @@ class DashboardRoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDashboardRoleRequest $request, PermissionSet $dashboardRole)
+    public function update(UpdateDashboardRoleRequest $request, Role $dashboardRole)
     {
         DB::transaction(function () use ($request, $dashboardRole) {
             $filteredRequest = $request->safe();
-            $storeRole = new DashboardRoleActions($filteredRequest);
+            $storeRole = new dashboardRoleActions($filteredRequest);
             $storeRole->update($dashboardRole);
         });
         return to_route('dashboard-roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
@@ -155,7 +154,7 @@ class DashboardRoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PermissionSet $dashboardRole)
+    public function destroy(Role $dashboardRole)
     {
         $delete = $dashboardRole->delete();
         if ($delete) {

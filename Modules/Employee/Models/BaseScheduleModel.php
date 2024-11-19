@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BaseScheduleModel extends Model
 {
-    protected static $prefix = 'schedule_';
+    protected static $prefix = 'sch_';
 
     public function getTable()
     {

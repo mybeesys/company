@@ -29,7 +29,7 @@ class Employee extends BaseEmployeeModel
     protected function casts(): array
     {
         return [
-            'isActive' => 'boolean',
+            'pos_is_active' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -41,27 +41,41 @@ class Employee extends BaseEmployeeModel
 
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'employee_employee_establishments')->using(EmployeeEstablishment::class)->withTimestamps()->withPivot('role_id', 'wage_id');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('role_id', 'wage_type', 'rate');
     }
 
-    public function establishmentRoles()
+    public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'employee_employee_establishments')->using(EmployeeEstablishment::class)->withTimestamps()->withPivot('establishment_id', 'wage_id');
+        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'pos');
+    }
+
+    public function dashboardRoles()
+    {
+        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'ems');
+    }
+
+    public function getEmployeeEstablishmentsWithAllOption()
+    {
+        $hasAllEstablishmentsRole = $this->posRoles()->whereNull('establishment_id')->exists();
+
+        $specificEstablishments = $this->establishments()->whereHas('posRoles')->get();
+
+        $establishments = $specificEstablishments->pluck('name')->toArray();
+        if ($hasAllEstablishmentsRole) {
+            array_unshift($establishments, __('employee::general.all_establishments'));
+        }
+        return $establishments;
+    }
+
+
+    public function allRoles()
+    {
+        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate');
     }
 
     public function wages()
     {
-        return $this->hasMany(Wage::class);
-    }
-
-    public function administrativeUser()
-    {
-        return $this->hasOne(AdministrativeUser::class);
-    }
-
-    public function establishmentsPivot()
-    {
-        return $this->hasMany(EmployeeEstablishment::class);
+        return $this->hasMany(EmployeeRoles::class);
     }
 
     public function timecards()

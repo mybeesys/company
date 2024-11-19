@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\PosRoleTable;
-use Modules\Employee\Http\Requests\StoreRoleRequest;
-use Modules\Employee\Http\Requests\UpdateRoleRequest;
+use Modules\Employee\Http\Requests\StorePosRoleRequest;
+use Modules\Employee\Http\Requests\UpdatePosRoleRequest;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\PosRoleActions;
@@ -38,11 +38,11 @@ class PosRoleController extends Controller
         return view('employee::pos-roles.index', compact('columns'));
     }
 
-    public function createLiveValidation(StoreRoleRequest $request)
+    public function createLiveValidation(StorePosRoleRequest $request)
     {
     }
 
-    public function updateLiveValidation(UpdateRoleRequest $request)
+    public function updateLiveValidation(UpdatePosRoleRequest $request)
     {
     }
 
@@ -58,7 +58,7 @@ class PosRoleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRoleRequest $request)
+    public function store(StorePosRoleRequest $request)
     {
         DB::transaction(function () use ($request) {
             $filteredRequest = $request->safe();
@@ -89,7 +89,7 @@ class PosRoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRoleRequest $request, Role $role)
+    public function update(UpdatePosRoleRequest $request, Role $role)
     {
         DB::transaction(function () use ($request, $role) {
             $filteredRequest = $request->safe();

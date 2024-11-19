@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BaseEmployeeModel extends Model
 {
-    protected static $prefix = 'employee_';
+    protected static $prefix = 'emp_';
 
     public function getTable()
     {

@@ -6,7 +6,7 @@
     <form id="add_employee_form" class="form d-flex flex-column gap-2" method="POST" enctype="multipart/form-data"
         action="{{ route('employees.store') }}">
         @csrf
-        <x-employee::employees.form :roles=$roles :permissionSets=$permissionSets :establishments=$establishments :allowances_types="$allowances_types" formId="add_employee_form"/>
+        <x-employee::employees.form :dashboardRoles=$dashboardRoles :posRoles=$posRoles :establishments=$establishments :allowances_types="$allowances_types" formId="add_employee_form"/>
     </form>
 @endsection
 
@@ -15,7 +15,7 @@
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
     <script>
         $(document).ready(function() {
-            datePicker('#employmentStartDate', new Date());
+            datePicker('#employment_start_date', new Date());
             permissionSetRepeater();
             roleRepeater();
             allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");

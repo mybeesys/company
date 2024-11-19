@@ -13,7 +13,7 @@ class EmployeeDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Employee::factory()->count(5)->create();
+        Employee::factory()->count(5)->create();
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
         $permissions = array_merge($pos_permissions, $dashboard_permissions);

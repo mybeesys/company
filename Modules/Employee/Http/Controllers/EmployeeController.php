@@ -11,7 +11,6 @@ use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
 use Modules\Employee\Models\AllowanceType;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\PermissionSet;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
@@ -19,15 +18,15 @@ use Modules\Establishment\Models\Establishment;
 class EmployeeController extends Controller
 {
     protected $establishments;
-    protected $permissionSets;
-    protected $roles;
+    protected $dashboardRoles;
+    protected $posRoles;
     protected $allowances_types;
 
     public function __construct()
     {
         $this->establishments = Establishment::all()->select('id', 'name');
-        $this->permissionSets = PermissionSet::all()->select('id', 'permissionSetName');
-        $this->roles = Role::all()->select('id', 'name');
+        $this->dashboardRoles = Role::where('type', 'ems')->get(['id', 'name']);
+        $this->posRoles = Role::where('type', 'pos')->get(['id', 'name']);
         $this->allowances_types = AllowanceType::all();
     }
 
@@ -52,8 +51,8 @@ class EmployeeController extends Controller
     {
         return [
             'employee' => EmployeeActions::getShowEditEmployee($id),
-            'roles' => $this->roles,
-            'permissionSets' => $this->permissionSets,
+            'posRoles' => $this->posRoles,
+            'dashboardRoles' => $this->dashboardRoles,
             'establishments' => $this->establishments,
             'allowances_types' => $this->allowances_types
         ];
@@ -62,7 +61,7 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $employees = Employee::with('permissions:id,name')->
-            select('id', 'name', 'name_en', 'phoneNumber', 'employmentStartDate', 'employmentEndDate', 'isActive', 'deleted_at');
+            select('id', 'name', 'name_en', 'phone_number', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'deleted_at');
         if ($request->ajax()) {
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
@@ -104,7 +103,7 @@ class EmployeeController extends Controller
     {
         return view(
             'employee::employee.create',
-            ['roles' => $this->roles, 'permissionSets' => $this->permissionSets, 'establishments' => $this->establishments, 'allowances_types' => $this->allowances_types]
+            ['posRoles' => $this->posRoles, 'dashboardRoles' => $this->dashboardRoles, 'establishments' => $this->establishments, 'allowances_types' => $this->allowances_types]
         );
     }
 
@@ -132,6 +131,7 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
+        // dd($request);
         DB::transaction(function () use ($request, $employee) {
             $filteredRequest = $request->safe()->collect()->filter(function ($item) {
                 return isset($item);

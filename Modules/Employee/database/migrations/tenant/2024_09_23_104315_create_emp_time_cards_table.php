@@ -10,13 +10,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('employee_time_cards', function (Blueprint $table) {
+        Schema::create('emp_time_cards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->nullable()->constrained('employee_employees')->nullOnDelete();
-            $table->timestamp('clockInTime')->nullable();
-            $table->timestamp('clockOutTime')->nullable();
-            $table->decimal('hoursWorked', 5, 2)->nullable();
-            $table->decimal('overtimeHours', 5, 2)->nullable();
+            $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
+            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->timestamp('clock_in_time')->nullable();
+            $table->timestamp('clock_out_time')->nullable();
+            $table->decimal('hours_worked', 5, 2)->nullable();
+            $table->decimal('overtime_hours', 5, 2)->nullable();
             $table->date('date')->nullable();
             $table->timestamps();
         });

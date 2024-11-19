@@ -8,10 +8,10 @@
                     placeholder="{{ __('employee::general.select_option') }}" value="{{ $timecard?->employee_id }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.time-picker name="clockInTime" :label="__('employee::fields.inTime')" value="{{ $timecard?->clockInTime }}" required />
+                <x-form.time-picker name="clock_in_time" :label="__('employee::fields.inTime')" value="{{ $timecard?->clock_in_time }}" required />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.time-picker name="clockOutTime" :label="__('employee::fields.outTime')" value="{{ $timecard?->clockOutTime }}"
+                <x-form.time-picker name="clock_out_time" :label="__('employee::fields.outTime')" value="{{ $timecard?->clock_out_time }}"
                     required />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
@@ -22,11 +22,11 @@
         <div class="d-flex flex-wrap">
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input :errors="$errors" type="number" placeholder="0" readonly required :label="__('employee::fields.total_hours')"
-                    name="hoursWorked" value="{{ $timecard?->hoursWorked }}" />
+                    name="hours_worked" value="{{ $timecard?->hours_worked }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.input :errors="$errors" type="number" placeholder="0" attribute="step=.01" :label="__('employee::fields.overtime_hours')"
-                    name="overtimeHours" value="{{ $timecard?->overtimeHours }}" />
+                    name="overtime_hours" value="{{ $timecard?->overtime_hours }}" />
             </x-form.input-div>
         </div>
     </x-form.form-card>

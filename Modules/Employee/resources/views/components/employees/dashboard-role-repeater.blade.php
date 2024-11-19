@@ -1,22 +1,29 @@
-@props(['permissionSets', 'establishments', 'administrativeUser' => null, 'disabled' => false])
+@props(['dashboardRoles', 'establishments', 'emsUser' => null, 'disabled' => false, 'wageTypes'])
 <label @class(['form-label'])>@lang('employee::fields.administrative_permission_set')</label>
 <div id="dashboard_role_repeater">
     <div class="form-group">
         <div data-repeater-list="dashboard_role_repeater" class="d-flex flex-column gap-3">
-            @foreach (old('dashboard_role_repeater', $administrativeUser?->permissionSets->isEmpty() ? [null] : $administrativeUser?->permissionSets ?? [null]) as $index => $permissionSet)
+            @foreach (old('dashboard_role_repeater', $emsUser?->dashboardRoles?->isEmpty() ? [null] : $emsUser?->dashboardRoles ?? [null]) as $index => $dashboardRole)
                 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                     <x-form.input-div class="w-100">
-                        <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]" :disabled=$disabled
-                            optionName="permissionSetName" :options="$permissionSets" :errors="$errors" data_allow_clear="false"
+                        <x-form.select name="dashboard_role_repeater[{{ $index }}][dashboardRole]"
+                            :disabled=$disabled :options="$dashboardRoles" :errors="$errors" data_allow_clear="false"
                             placeholder="{{ __('employee::fields.role') }}" :default_selection_value=null
-                            value="{{ is_array($permissionSet) ? $permissionSet['dashboardRole'] ?? '' : $permissionSet?->id }}" />
+                            value="{{ is_array($dashboardRole) ? $dashboardRole['dashboardRole'] ?? '' : $dashboardRole?->id }}" />
                     </x-form.input-div>
                     <x-form.input-div class="w-100">
-                        <x-form.select name="dashboard_role_repeater[{{ $index }}][establishment]" :disabled=$disabled
-                            data_allow_clear="false" :options="$establishments" :errors="$errors" 
-                            value="{{ is_array($permissionSet) ? $permissionSet['establishment'] ?? '' : $permissionSet?->pivot->establishment_id }}" />
+                        <x-form.input :errors="$errors" type="number" placeholder="{{ __('employee::fields.wage') }}"
+                            :disabled=$disabled name="dashboard_role_repeater[{{ $index }}][wage]"
+                            value="{{ is_array($dashboardRole) ? $dashboardRole['wage'] ?? '' : $dashboardRole?->pivot->rate }}" />
                     </x-form.input-div>
-                    <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger" @disabled($disabled)>
+                    <x-form.input-div class="w-100">
+                        <x-form.select name="dashboard_role_repeater[{{ $index }}][wage_type]"
+                            :disabled=$disabled :options=$wageTypes :errors="$errors"
+                            value="{{ is_array($dashboardRole) ? $dashboardRole['wage_type'] ?? '' : $dashboardRole?->pivot->wage_type }}"
+                            placeholder="{{ __('employee::fields.wage_type') }}" />
+                    </x-form.input-div>
+                    <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger"
+                        @disabled($disabled)>
                         <i class="ki-outline ki-cross fs-1"></i>
                     </button>
                 </div>

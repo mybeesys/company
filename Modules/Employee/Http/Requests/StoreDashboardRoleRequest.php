@@ -14,8 +14,8 @@ class StoreDashboardRoleRequest extends FormRequest
     {
         $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
-            'permissionSetName' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
-            'isActive' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50', 'unique:roles,name'],
+            'is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'rank' => [Rule::requiredIf($notAjaxValidate), 'numeric', 'max_digits:3'],
             'dashboard_permissions' => ['array', 'nullable'],
             'dashboard_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')]
