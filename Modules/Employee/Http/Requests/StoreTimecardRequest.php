@@ -27,13 +27,16 @@ class StoreTimecardRequest extends FormRequest
 
     public function withValidator($validator)
     {
-        $validator->after(function ($validator) {
-            $employee_id = $this->input('employee_id');
-            $employee_roles_ids = Employee::with('allRoles')->findOrFail($employee_id)->allRoles->pluck('id')->toArray();
-            if (!in_array($this->input('role_id'), $employee_roles_ids)) {
-                $validator->errors()->add("role_id", 'The employee you selected does not have the selected role');
-            }
-        });
+        $notAjaxValidate = !str_contains(request()->url(), 'validate');
+        if($notAjaxValidate){
+            $validator->after(function ($validator) {
+                $employee_id = $this->input('employee_id');
+                $employee_roles_ids = Employee::with('allRoles')->findOrFail($employee_id)->allRoles->pluck('id')->toArray();
+                if (!in_array($this->input('role_id'), $employee_roles_ids)) {
+                    $validator->errors()->add("role_id", 'The employee you selected does not have the selected role');
+                }
+            });
+        }
     }
 
     /**

@@ -31,10 +31,10 @@
                     name="hours_worked" value="{{ $timecard?->hours_worked }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input :errors="$errors" type="number" placeholder="0" attribute="step=.01" :label="__('employee::fields.overtime_hours')"
+                <x-form.input :errors="$errors" type="number" placeholder="0" readonly attribute="step=.01" :label="__('employee::fields.overtime_hours')"
                     name="overtime_hours" value="{{ $timecard?->overtime_hours }}" />
             </x-form.input-div>
         </div>
     </x-form.form-card>
-    <x-form.form-buttons cancelUrl="{{ url('/timecard') }}" :id=$formId />
+    <x-form.form-buttons cancelUrl="{{ url('/schedule/timecard') }}" :id=$formId />
 </div>

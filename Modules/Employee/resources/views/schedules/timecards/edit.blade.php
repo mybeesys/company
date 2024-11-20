@@ -52,7 +52,7 @@
                 handleEmployeeChange();
             }
             datePicker('#date');
-            timecardForm("edit_timecard_form", "{{ route('schedules.timecards.create.validation') }}");
+            timecardForm("edit_timecard_form", "{{ route('schedules.timecards.create.validation') }}", "{{ $maximum_regular_hours }}", "{{ $maximum_overtime_hours }}");
         });
     </script>
 @endsection
