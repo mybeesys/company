@@ -94,7 +94,15 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
             $this.find('select[name*="[amount_type]"]').select2({
                 minimumResultsForSearch: -1,
             });
-            $this.find('input[name*="[applicable_date]"]').flatpickr();
+            $this.find('input[name*="[applicable_date]"]').flatpickr({
+                plugins: [
+                    monthSelectPlugin({
+                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
+                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
+                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
+                    })
+                ]
+            });
             initializeSelect2($this.find('select[name*="[allowance_type]"]'));
         },
 
@@ -102,7 +110,15 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
             $('select[name*="[amount_type]"]').select2({
                 minimumResultsForSearch: -1,
             });
-            $('input[name*="[applicable_date]"]').flatpickr();
+            $('input[name*="[applicable_date]"]').flatpickr({
+                plugins: [
+                    monthSelectPlugin({
+                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
+                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
+                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
+                    })
+                ]
+            });
             initializeSelect2($('select[name*="[allowance_type]"]'));
         },
 

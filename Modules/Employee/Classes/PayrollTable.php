@@ -16,10 +16,13 @@ class PayrollTable
         return [
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
-            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],
+            // ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "date"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "gross_wage"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "net_wage"],
+            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "taxes_withheld"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "tips"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "allowances"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "deductions"],
         ];
     }
 
@@ -34,12 +37,6 @@ class PayrollTable
             ->addColumn('employee', function ($row) {
                 return session()->get('locale') === 'ar' ? $row->employee->name : $row->employee->name_en;
             })
-            ->editColumn('clock_in_time', function ($row) {
-                return Carbon::parse($row->clock_in_time)->format('H:i');
-            })
-            ->editColumn('clock_out_time', function ($row) {
-                return Carbon::parse($row->clock_out_time)->format('H:i');
-            })
             ->addColumn(
                 'actions',
                 function ($row) {
@@ -48,7 +45,7 @@ class PayrollTable
                 <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '">
 					<i class="ki-outline ki-trash fs-3"></i>
 				</a>      
-                <a href="' . url("/schedule/timecard/{$row->id}/edit") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+                <a href="' . url("/schedule/payroll/{$row->id}/edit") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
 					<i class="ki-outline ki-pencil fs-2"></i>
 				</a>                
                 </div>';

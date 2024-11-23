@@ -214,7 +214,6 @@ return [
         'year' => 'السنة',
         'phone_number' => 'رقم الهاتف',
         'name_en' => 'الاسم',
-        'phone_number' => 'رقم الهاتف',
         'PIN' => 'الرقم السري',
         'employment_start_date' => 'تاريخ بداية التوظيف',
         'permission_set_name' => 'اسم الدور',
@@ -236,7 +235,7 @@ return [
         'consider_seventh_worked_day_as_overtime' => 'اعتبار اليوم السابع من العمل كوقت إضافي',
         'display_declared_tips_in_payroll' => 'عرض الإكراميات المصرح بها في كشوف المرتبات',
         'display_payment_tips_in_payroll' => 'عرض إكراميات الدفع في كشوف المرتبات',
-        'weak_starts_on' => 'يوم بداية الأسبوع',
+        'week_starts_on' => 'يوم بداية الأسبوع',
         '12_hour_clock' => 'الساعة بنظام 12 ساعة',
         'day_start_on_time' => 'بداية اليوم عند الساعة',
         'enable_auto_clockout' => 'تفعيل تسجيل الخروج التلقائي',
@@ -245,5 +244,8 @@ return [
         'work_time_to_qualify_for_paid_break' => 'مدة العمل اللازمة للتأهل لاستراحة مدفوعة',
         'duration_of_paid_break' => 'مدة الاستراحة المدفوعة',
         'employee_declares_break_type' => 'الموظف يحدد نوع الاستراحة',
+        'employee_ids' => 'الموظف',
+        'employee_ids.*' => 'للموظف',
+
     ],
 ];

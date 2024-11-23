@@ -6,8 +6,8 @@
         action="{{ route('employees.update', ['employee' => $employee]) }}">
         @method('patch')
         @csrf
-        <x-employee::employees.form :dashboardRoles=$dashboardRoles :employee=$employee :posRoles=$posRoles :allowances_types="$allowances_types"
-            formId="edit_employee_form" :establishments=$establishments />
+        <x-employee::employees.form :dashboardRoles=$dashboardRoles :employee=$employee :posRoles=$posRoles
+            :allowances_types="$allowances_types" formId="edit_employee_form" :establishments=$establishments />
     </form>
 @endsection
 

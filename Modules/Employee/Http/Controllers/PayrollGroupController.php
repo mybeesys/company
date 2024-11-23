@@ -5,7 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class AllowanceDeductionController extends Controller
+class PayrollGroupController extends Controller
 {
     /**
      * Display a listing of the resource.

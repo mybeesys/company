@@ -6,6 +6,7 @@
     'actionColumn' => true,
     'idColumn' => true,
     'footers' => null,
+    'table_body' => null,
 ])
 <table class="table align-middle table-striped table-row-bordered fs-6 gy-5" id="kt_{{ $model }}_table">
     <thead>
@@ -30,6 +31,7 @@
         </tr>
     </thead>
     <tbody class="fw-semibold text-gray-600" id="{{ $model }}_tableBody">
+        {{ $table_body }}
     </tbody>
     <tfoot>
         @if ($footers)

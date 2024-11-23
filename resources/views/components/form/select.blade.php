@@ -14,6 +14,7 @@
     'optionName' => 'name',
     'disabled' => false,
     'attribute' => null,
+    'no_default' => false,
 ])
 @php
     // handling repeaters errors
@@ -23,15 +24,17 @@
 @if ($label)
     <label @class(['form-label', 'required' => $required, $labelClass])>{{ $label }}</label>
 @endif
-
+{{ $slot }}
 <select @class([
     'form-select d-flex',
     $class,
     'is-invalid' => $errors->first($dotNotationName),
-]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}" @required($required)
-    @disabled($disabled) data-allow-clear="{{ $data_allow_clear }}" data-kt-filter="{{ $name }}"
-    name="{{ $name }}" {{ $attribute }} >
-    <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
+]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}"
+    @required($required) @disabled($disabled) data-allow-clear="{{ $data_allow_clear }}"
+    data-kt-filter="{{ $name }}" name="{{ $name }}" {{ $attribute }}>
+    @if (!$no_default)
+        <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
+    @endif
     @if ($options)
         @foreach ($options as $option)
             <option value="{{ $option['id'] }}" @selected($option['id'] == old($name, $value))>{{ $option["{$optionName}"] }}</option>

@@ -24,7 +24,7 @@ class StoreTimesheetRuleRequest extends FormRequest
             'consider_seventh_worked_day_as_overtime' => ['required', 'boolean'],
             'display_declared_tips_in_payroll' => ['required', 'boolean'],
             'display_payment_tips_in_payroll' => ['required', 'boolean'],
-            'weak_starts_on' => ['required', 'string', 'in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
+            'week_starts_on' => ['required', 'string', 'in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
             '12_hour_clock' => ['required', 'boolean'],
             'day_start_on_time' => ['required', 'string', 'date_format:H:i'],
             'enable_auto_clockout' => ['required', 'boolean'],
