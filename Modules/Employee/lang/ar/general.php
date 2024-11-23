@@ -131,4 +131,10 @@ return [
     'fixed' => 'ثابت',
     'percent' => 'نسبة',
     'add_more_allowances' => 'أضف المزيد من البدلات',
+    'add_payroll' => 'إضافة كشف راتب',
+    'create_payroll' => 'إنشاء كشف راتب',
+    'payroll_search' => 'بحث',
+    'select_all' => 'اختيار الكل',
+    'deselect_all' => 'الغاء تحديد الكل',
+    'add_more_deductions' => 'أضف المزيد من الحسومات',
 ];

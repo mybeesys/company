@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\AllowanceTypeController;
+use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\dashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
@@ -88,7 +88,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
-    Route::controller(AllowanceTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function () {
+    Route::controller(PayrollAdjustmentTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function () {
         Route::post('/store', 'store')->name('store');
     });
 
@@ -122,6 +122,7 @@ Route::middleware([
 
         Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {
             Route::get('', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
             Route::post('/store', 'store')->name('store');
         });
     });

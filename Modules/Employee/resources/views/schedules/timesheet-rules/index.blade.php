@@ -143,7 +143,7 @@
         $('.flatpickr-time.time24hr').addClass('gap-15');
         $('.flatpickr-calendar').addClass('h-50px d-flex align-items-center');
 
-        $('[name="weak_starts_on"]').select2({
+        $('[name="week_starts_on"]').select2({
             minimumResultsForSearch: -1
         });
         $('.select2-selection.select2-selection--single').attr('style', function(i, style) {

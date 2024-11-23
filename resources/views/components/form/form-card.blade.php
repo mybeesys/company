@@ -9,7 +9,7 @@
     'class' => '',
 ])
 
-<x-cards.card class="py-4 {{ $class }}">
+<x-cards.card class="{{ $class }}">
     <x-cards.card-header :class=$headerClass :id=$id :collapsible=$collapsible>
         <div class="card-title">
             <h2>{{ $title }}</h2>

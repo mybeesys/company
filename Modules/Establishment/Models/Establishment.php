@@ -8,8 +8,6 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\EmployeeEstablishment;
 use Modules\Employee\Models\EmployeeRoles;
 use Modules\Employee\Models\Role;
-use Modules\Employee\Models\Wage;
-// use Modules\Establishment\Database\Factories\EstablishmentFactory;
 
 class Establishment extends Model
 {
@@ -20,11 +18,6 @@ class Establishment extends Model
      * The attributes that are mass assignable.
      */
     protected $guarded = [];
-
-    public function wages()
-    {
-        return $this->hasMany(Wage::class);
-    }
 
     public function posRoles()
     {

@@ -55,7 +55,6 @@
                                 value="{{ $employee?->name_en }}" name="name_en" :label="__('employee::fields.name_en')" />
                         </x-form.input-div>
                     </div>
-
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
                             <x-form.input type="email" required :errors=$errors :disabled=$disabled
@@ -69,7 +68,6 @@
                                 :label="__('employee::fields.phone_number')" />
                         </x-form.input-div>
                     </div>
-
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
                             <x-form.date-picker name="employment_start_date" :errors=$errors required
@@ -85,7 +83,6 @@
 
                     </div>
                 </x-form.form-card>
-
                 <x-form.form-card :title="__('employee::general.pos')">
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
@@ -100,11 +97,11 @@
                         </x-form.input-div>
                     </div>
                     <div class="mb-5 ">
-                        <x-employee::employees.role-wage-repeater :posRoles=$posRoles :employee=$employee :wageTypes=$wageTypes
+                        <x-employee::employees.repeaters.role-wage-repeater :posRoles=$posRoles :employee=$employee :wageTypes=$wageTypes
                             :disabled=$disabled :establishments=$establishments />
                     </div>
                     <div>
-                        <x-employee::employees.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
+                        <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
                     </div>
                 </x-form.form-card>
             </div>
@@ -138,7 +135,7 @@
         </div>
         <div class="d-flex flex-wrap">
             <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.dashboard-role-repeater :dashboardRoles=$dashboardRoles :disabled=$disabled :wageTypes=$wageTypes
+                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles :disabled=$disabled :wageTypes=$wageTypes
                     :establishments=$establishments :emsUser=$employee />
             </x-form.input-div>
         </div>

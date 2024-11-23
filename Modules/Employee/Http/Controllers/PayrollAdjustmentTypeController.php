@@ -4,9 +4,9 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Employee\Models\AllowanceType;
+use Modules\Employee\Models\PayrollAdjustmentType;
 
-class AllowanceTypeController extends Controller
+class PayrollAdjustmentTypeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,9 +34,9 @@ class AllowanceTypeController extends Controller
             'name' => 'required|string|max:255'
         ]);
 
-        // Create with array of attributes
-        $allowanceType = AllowanceType::create([
-            $request->name_lang => $request->name
+        $allowanceType = PayrollAdjustmentType::create([
+            $request->name_lang => $request->name,
+            'type' => 'allowance'
         ]);
 
         return response()->json([

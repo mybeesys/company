@@ -2,19 +2,20 @@
 
 namespace Modules\Employee\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Employee\Database\Factories\AllowanceDeductionFactory;
 
-class AllowanceDeduction extends Model
+class PayrollAdjustmentType extends BaseEmployeeModel
 {
     use HasFactory;
-
-    protected $table = 'emp_allowances_deductions';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    public function getTranslatedNameAttribute()
+    {
+        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
+        return $this->$name ?? $this->name_en ?? $this->name;
+    }
 }

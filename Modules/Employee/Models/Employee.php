@@ -67,6 +67,11 @@ class Employee extends BaseEmployeeModel
         return $establishments;
     }
 
+    public function getTranslatedNameAttribute()
+    {
+        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
+        return $this->$name;
+    }
 
     public function allRoles()
     {
@@ -90,11 +95,11 @@ class Employee extends BaseEmployeeModel
 
     public function allowances()
     {
-        return $this->hasMany(AllowanceDeduction::class)->where('type', 'allowance');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
     }
 
     public function deductions()
     {
-        return $this->hasMany(AllowanceDeduction::class)->where('type', 'deduction');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
     }
 }
