@@ -5,10 +5,10 @@
             @foreach (old('allowance_repeater', $allowances?->isEmpty() ? [null] : $allowances ?? [null]) as $index => $allowance)
                 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                     <x-form.input-div class="w-100 min-w-125px">
-                        <x-form.select name="allowance_repeater[{{ $index }}][allowance_type]" :disabled=$disabled
+                        <x-form.select name="allowance_repeater[{{ $index }}][adjustment_type]" :disabled=$disabled
                             optionName="translatedName" :options="$allowances_types" :errors="$errors" data_allow_clear="false"
-                            required placeholder="{{ __('employee::fields.allowance_type') }}"
-                            value="{{ is_array($allowance) ? $allowance['allowance_type'] ?? '' : $allowance?->adjustment_type_id }}" />
+                            required placeholder="{{ __('employee::fields.adjustment_type') }}"
+                            value="{{ is_array($allowance) ? $allowance['adjustment_type'] ?? '' : $allowance?->adjustment_type_id }}" />
                     </x-form.input-div>
                     <x-form.input-div class="w-100 min-w-75px">
                         <x-form.input :errors="$errors" type="number" placeholder="{{ __('employee::fields.amount') }}"

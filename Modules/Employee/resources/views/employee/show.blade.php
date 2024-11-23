@@ -14,7 +14,7 @@
         $(document).ready(function() {
             permissionSetRepeater();
             roleRepeater();
-            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
+            allowanceRepeater("{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser({{ $employee->ems_access }});
         });
     </script>

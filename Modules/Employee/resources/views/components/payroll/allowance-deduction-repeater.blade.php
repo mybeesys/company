@@ -5,7 +5,7 @@
             @foreach (old($type . '_repeater', $adjustments?->isEmpty() ? [null] : $adjustments ?? [null]) as $index => $adjustment)
                 <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                     <x-form.input-div class="w-100 min-w-125px">
-                        <x-form.select name="{{ $type }}_repeater[{{ $index }}][{{ $type }}_type]"
+                        <x-form.select name="{{ $type }}_repeater[{{ $index }}][adjustment_type]"
                             :disabled="$disabled" optionName="translatedName" :options="$adjustment_types" :errors="$errors"
                             data_allow_clear="false" required
                             placeholder="{{ __('employee::fields.' . $type . '_type') }}"

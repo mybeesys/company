@@ -35,20 +35,20 @@
                     <div class="container mt-5">
                         <div class="row">
                             <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="total_worked_days" :label="__('employee::fields.total_worked_days')" />
+                                <x-form.input :errors=$errors readonly labelClass="text-nowrap" name="total_worked_days"
+                                    :label="__('employee::fields.total_worked_days')" />
                             </x-form.input-div>
                             <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="regular_worked_hours" :label="__('employee::fields.regular_worked_hours')" />
+                                <x-form.input :errors=$errors readonly labelClass="text-nowrap" name="regular_worked_hours"
+                                    :label="__('employee::fields.regular_worked_hours')" />
                             </x-form.input-div>
                             <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="overtime_worked_hours" :label="__('employee::fields.overtime_worked_hours')" />
+                                <x-form.input :errors=$errors readonly labelClass="text-nowrap" name="overtime_worked_hours"
+                                    :label="__('employee::fields.overtime_worked_hours')" />
                             </x-form.input-div>
                             <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="total_wage_before_tax" :label="__('employee::fields.wage_due_before_tax')" />
+                                <x-form.input :errors=$errors readonly labelClass="text-nowrap" name="total_wage_before_tax"
+                                    :label="__('employee::fields.wage_due_before_tax')" />
                             </x-form.input-div>
                         </div>
                         <div class="row employee-adjustments">
@@ -75,6 +75,7 @@
                             </div>
                         </div>
                     </div>
+                    <input type="hidden" name="employee_id" value="{{ $employee->id }}">
                 </x-form.form-card>
             @endforeach
         </x-cards.card-body>
@@ -89,8 +90,8 @@
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
             })
-            allowanceDeductionRepeater('allowance', "", "ar");
-            allowanceDeductionRepeater('deduction', "", "ar");
+            allowanceDeductionRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
+            allowanceDeductionRepeater('deduction', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
         })
 
         function allowanceDeductionRepeater(type, addAllowanceTypeUrl, lang) {
@@ -128,7 +129,8 @@
 
                 ajaxRequest(addAllowanceTypeUrl, 'POST', {
                         name: data.text,
-                        name_lang: name_lang
+                        name_lang: name_lang,
+                        type: type
                     })
                     .done(function(response) {
                         if (response.id) {
@@ -138,7 +140,7 @@
                             };
                             customOptions.set(response.id, newOption);
 
-                            $(`select[name^="${type}_repeater"][name$="[${type}_type]"]`).each(function() {
+                            $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`).each(function() {
                                 const $select = $(this);
                                 const option = new Option(newOption.text, newOption.id, false, false);
                                 $select.append(option);
@@ -176,9 +178,9 @@
                 const employeeId = match[1];
 
                 const hasInitialValues = $(
-                        `.employee_${employeeId} select[name^="${type}_repeater"][name$="[${type}_type]"]`)
+                        `.employee_${employeeId} select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
                     .val() !== undefined &&
-                    $(`.employee_${employeeId} select[name^="${type}_repeater"][name$="[${type}_type]"]`)
+                    $(`.employee_${employeeId} select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
                     .val() !== '';
                 // Initialize repeater with proper selector
                 $(`.employee_${employeeId} #${type}_repeater`).repeater({
@@ -208,13 +210,13 @@
 
                         // Initialize select2 for type
                         initializeSelect2($this.find(
-                            `select[name^="${type}_repeater"][name$="[${type}_type]"]`
+                            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
                         ));
                     },
 
                     ready: function() {
-                        const $repeater = $(`.employee_${employeeId} .${type}_repeater`);
-                        // Initialize all select2 and flatpickr instances
+                        const $repeater = $(`.employee_${employeeId} #${type}_repeater`);
+
                         $repeater.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
                             .select2({
                                 minimumResultsForSearch: -1
@@ -231,7 +233,7 @@
                                 ]
                             });
 
-                        $repeater.find(`select[name^="${type}_repeater"][name$="[${type}_type]"]`)
+                        $repeater.find(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
                             .each(function() {
                                 initializeSelect2($(this));
                             });
