@@ -141,6 +141,7 @@ return [
     'applicable_date' => 'Applicable date',
     'amount_type' => 'Amount type',
     'new_allowance_type' => 'new allowance type',
+    'new_deduction_type' => 'new deduction type',
     'gross_wage' => 'Gross wage',
     'net_wage' => 'Net wage',
     'taxes_withheld' => 'Taxes withheld',

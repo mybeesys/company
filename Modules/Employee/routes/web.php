@@ -88,7 +88,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
-    Route::controller(PayrollAdjustmentTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function () {
+    Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/allowance-type')->group(function () {
         Route::post('/store', 'store')->name('store');
     });
 

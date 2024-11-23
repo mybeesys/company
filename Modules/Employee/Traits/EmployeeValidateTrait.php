@@ -45,7 +45,7 @@ trait EmployeeValidateTrait
             'role_wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
             'allowance_repeater' => ['nullable', 'array'],
             'allowance_repeater.*.amount_type' => [Rule::when($notAjaxValidate, 'required_with:allowance_repeater'), 'in:fixed,percent'],
-            'allowance_repeater.*.allowance_type' => [Rule::when($notAjaxValidate, 'required_with:allowance_repeater'), 'exists:emp_payroll_adjustment_types,id'],
+            'allowance_repeater.*.adjustment_type' => [Rule::when($notAjaxValidate, 'required_with:allowance_repeater'), 'exists:emp_payroll_adjustment_types,id'],
             'allowance_repeater.*.amount' => [Rule::when($notAjaxValidate, 'required_with:allowance_repeater'), 'decimal:0,2', 'numeric'],
             'allowance_repeater.*.applicable_date' => [Rule::when($notAjaxValidate, 'required_with:allowance_repeater'), 'date_format:Y-m'],
             'ems_access' => [Rule::requiredIf($notAjaxValidate), 'boolean'],

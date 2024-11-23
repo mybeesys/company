@@ -101,7 +101,7 @@ class EmployeeActions
                 PayrollAdjustment::find($allowance['allowance_id'])->update([
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'adjustment_type_id' => $allowance['allowance_type'],
+                    'adjustment_type_id' => $allowance['adjustment_type'],
                     'applicable_date' => $allowance['applicable_date'] . '-01'
                 ]);
             } else {
@@ -109,7 +109,7 @@ class EmployeeActions
                     'employee_id' => $employee_id,
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'adjustment_type_id' => $allowance['allowance_type'],
+                    'adjustment_type_id' => $allowance['adjustment_type'],
                     'applicable_date' => $allowance['applicable_date'] . '-01'
                 ])->id;
             }

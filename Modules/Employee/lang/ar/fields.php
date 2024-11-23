@@ -142,6 +142,7 @@ return [
     'applicable_date' => 'تاريخ التطبيق',
     'amount_type' => 'نوع المبلغ',
     'new_allowance_type' => 'نوع بدل جديد',
+    'new_deduction_type' => 'نوع حسم جديد',
     'gross_wage' => 'إجمالي الأجر',
     'net_wage' => 'صافي الأجر',
     'taxes_withheld' => 'الضرائب المحتجزة',

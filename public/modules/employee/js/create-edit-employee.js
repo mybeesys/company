@@ -66,7 +66,7 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                     };
                     customOptions.set(response.id, newOption);
 
-                    $('select[name*="[allowance_type]"]').each(function () {
+                    $('select[name*="[adjustment_type]"]').each(function () {
                         const $select = $(this);
 
                         const option = new Option(newOption.text, newOption.id, false, false);
@@ -83,8 +83,8 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                 $select.val(null).trigger('change');
             });
     }
-    const hasInitialValues = $('select[name="allowance_repeater[0][allowance_type]"]').val() !== undefined &&
-        $('select[name="allowance_repeater[0][allowance_type]"]').val() !== '';
+    const hasInitialValues = $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== undefined &&
+        $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== '';
     $('#allowance_repeater').repeater({
         initEmpty: !hasInitialValues,
 
@@ -103,7 +103,7 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                     })
                 ]
             });
-            initializeSelect2($this.find('select[name*="[allowance_type]"]'));
+            initializeSelect2($this.find('select[name*="[adjustment_type]"]'));
         },
 
         ready: function () {
@@ -119,7 +119,7 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                     })
                 ]
             });
-            initializeSelect2($('select[name*="[allowance_type]"]'));
+            initializeSelect2($('select[name*="[adjustment_type]"]'));
         },
 
         hide: function (deleteElement) {

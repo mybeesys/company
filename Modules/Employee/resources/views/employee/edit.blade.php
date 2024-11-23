@@ -20,7 +20,7 @@
             datePicker('#employment_start_date', new Date());
             datePicker('#employment_end_date');
             permissionSetRepeater();
-            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
+            allowanceRepeater("{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             roleRepeater();
             administrativeUser({{ $employee->ems_access }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
