@@ -17,7 +17,7 @@ import LinkedComboDetail from './linkedCombo/LinkedComboDetail';
 import ProductInventoryTable from './Inventory/product/ProductInventoryTable';
 import ProductInventoryDetail from './Inventory/product/ProductInventoryDetail';
 import PurchaseOrderDetail from './Inventory/purchaseOrder/PurchaseOrderDetail';
-import PurchaseOrderTable from './Inventory/purchaseOrder/purchaseORderTable';
+import PurchaseOrderTable from './Inventory/purchaseOrder/purchaseOrderTable';
 import PurchaseOrderReceive from './Inventory/purchaseOrder/PurchaseOrderReceive';
 
 
