@@ -2,9 +2,7 @@
 
 namespace Modules\Employee\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Employee\Database\Factories\TimeCardFactory;
 
 class TimeCard extends BaseEmployeeModel
 {
@@ -18,5 +16,10 @@ class TimeCard extends BaseEmployeeModel
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }

@@ -105,7 +105,7 @@
             var start = moment().startOf('week');
             var end = moment().endOf('week');
             let firstDayOfWeek =
-                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'weak_starts_on')?->rule_value }}";
+                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'week_starts_on')?->rule_value }}";
             if (!firstDayOfWeek) {
                 firstDayOfWeek = 'saturday';
             }

@@ -131,4 +131,10 @@ return [
     'fixed' => 'Fixed',
     'percent' => 'Percent',
     'add_more_allowances' => 'Add more allowances', 
+    'add_payroll' => 'Add payroll',
+    'create_payroll' => 'Create payroll',
+    'payroll_search' => 'Search',
+    'select_all' => 'Select all',
+    'deselect_all' => 'Deselect all',
+    'add_more_deductions' => 'Add more deductions',
 ];

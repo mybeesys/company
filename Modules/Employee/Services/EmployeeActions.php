@@ -4,13 +4,8 @@ namespace Modules\Employee\Services;
 
 use Carbon\Carbon;
 use File;
-use Modules\Employee\Models\AdministrativeUser;
-use Modules\Employee\Models\AdministrativeUserEstablishment;
-use Modules\Employee\Models\AllowanceDeduction;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
-use Modules\Employee\Models\EmployeeEstablishment;
-use Modules\Employee\Models\Role;
-use Modules\Employee\Models\Wage;
 
 
 class EmployeeActions
@@ -19,16 +14,6 @@ class EmployeeActions
     public function __construct(protected $request)
     {
     }
-
-    public static function getShowEditEmployee($id)
-    {
-        return Employee::with([
-            'allowances',
-            'dashboardRoles',
-            'posRoles',
-        ])->findOrFail($id);
-    }
-
 
     public function assignRolesWagesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
     {
@@ -113,22 +98,22 @@ class EmployeeActions
         foreach ($allowances as $allowance) {
             if (isset($allowance['allowance_id'])) {
                 $ids[] = $allowance['allowance_id'];
-                AllowanceDeduction::find($allowance['allowance_id'])->update([
+                PayrollAdjustment::find($allowance['allowance_id'])->update([
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'allowance_type_id' => $allowance['allowance_type'],
-                    'applicable_date' => $allowance['applicable_date']
+                    'adjustment_type_id' => $allowance['adjustment_type'],
+                    'applicable_date' => $allowance['applicable_date'] . '-01'
                 ]);
             } else {
-                $ids[] = AllowanceDeduction::create([
+                $ids[] = PayrollAdjustment::create([
                     'employee_id' => $employee_id,
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'allowance_type_id' => $allowance['allowance_type'],
-                    'applicable_date' => $allowance['applicable_date']
+                    'adjustment_type_id' => $allowance['adjustment_type'],
+                    'applicable_date' => $allowance['applicable_date'] . '-01'
                 ])->id;
             }
-            AllowanceDeduction::where('type', 'allowance')->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();
+            PayrollAdjustment::where('type', 'allowance')->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();
         }
     }
 }

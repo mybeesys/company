@@ -4,9 +4,8 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Employee\Models\AllowanceType;
 
-class AllowanceTypeController extends Controller
+class PayrollGroupController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -29,20 +28,7 @@ class AllowanceTypeController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name_lang' => 'required|in:name_en,name',
-            'name' => 'required|string|max:255'
-        ]);
-
-        // Create with array of attributes
-        $allowanceType = AllowanceType::create([
-            $request->name_lang => $request->name
-        ]);
-
-        return response()->json([
-            'id' => $allowanceType->id,
-            'message' => __('employee::responses.created_successfully', ['name' => __('employee::fields.new_allowance_type')])
-        ]);
+        //
     }
 
     /**

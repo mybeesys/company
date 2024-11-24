@@ -4,8 +4,9 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Models\PayrollAdjustmentType;
 
-class AllowanceDeductionController extends Controller
+class PayrollAdjustmentTypeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -28,7 +29,21 @@ class AllowanceDeductionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name_lang' => 'required|in:name_en,name',
+            'name' => 'required|string|max:255',
+            'type' => 'nullable|in:allowance,deduction'
+        ]);
+        $type = $request->type ?? 'allowance';
+        $allowanceType = PayrollAdjustmentType::create([
+            $request->name_lang => $request->name,
+            'type' => $type
+        ]);
+
+        return response()->json([
+            'id' => $allowanceType->id,
+            'message' => __('employee::responses.created_successfully', ['name' => __("employee::fields.new_{$type}_type")])
+        ]);
     }
 
     /**

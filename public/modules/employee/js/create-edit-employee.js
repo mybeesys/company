@@ -66,7 +66,7 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                     };
                     customOptions.set(response.id, newOption);
 
-                    $('select[name*="[allowance_type]"]').each(function () {
+                    $('select[name*="[adjustment_type]"]').each(function () {
                         const $select = $(this);
 
                         const option = new Option(newOption.text, newOption.id, false, false);
@@ -83,8 +83,8 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
                 $select.val(null).trigger('change');
             });
     }
-    const hasInitialValues = $('select[name="allowance_repeater[0][allowance_type]"]').val() !== undefined &&
-        $('select[name="allowance_repeater[0][allowance_type]"]').val() !== '';
+    const hasInitialValues = $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== undefined &&
+        $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== '';
     $('#allowance_repeater').repeater({
         initEmpty: !hasInitialValues,
 
@@ -94,16 +94,32 @@ function allowanceRepeater(addAllowanceTypeUrl, lang) {
             $this.find('select[name*="[amount_type]"]').select2({
                 minimumResultsForSearch: -1,
             });
-            $this.find('input[name*="[applicable_date]"]').flatpickr();
-            initializeSelect2($this.find('select[name*="[allowance_type]"]'));
+            $this.find('input[name*="[applicable_date]"]').flatpickr({
+                plugins: [
+                    monthSelectPlugin({
+                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
+                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
+                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
+                    })
+                ]
+            });
+            initializeSelect2($this.find('select[name*="[adjustment_type]"]'));
         },
 
         ready: function () {
             $('select[name*="[amount_type]"]').select2({
                 minimumResultsForSearch: -1,
             });
-            $('input[name*="[applicable_date]"]').flatpickr();
-            initializeSelect2($('select[name*="[allowance_type]"]'));
+            $('input[name*="[applicable_date]"]').flatpickr({
+                plugins: [
+                    monthSelectPlugin({
+                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
+                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
+                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
+                    })
+                ]
+            });
+            initializeSelect2($('select[name*="[adjustment_type]"]'));
         },
 
         hide: function (deleteElement) {
@@ -147,7 +163,7 @@ function administrativeUser(administrativeUser, id) {
     if (administrativeUser) {
         $('#dashboard_management_access').collapse('toggle');
         $('#ems_access').prop('checked', true).val(1);
-        $('[name="username"]').prop('required', true);
+        $('[name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]').prop('required', true)
     }
 
     $('.active-management-fields').on('click', function (e) {

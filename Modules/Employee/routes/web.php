@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\AllowanceTypeController;
+use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\dashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
@@ -44,6 +44,7 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
+        Route::get('/{id}/get-employee-roles', 'getEmployeeRoles')->name('get-employee-roles');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
@@ -87,7 +88,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
-    Route::controller(AllowanceTypeController::class)->name('allowance_types.')->prefix('/allowance-type')->group(function(){
+    Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/allowance-type')->group(function () {
         Route::post('/store', 'store')->name('store');
     });
 
@@ -121,6 +122,7 @@ Route::middleware([
 
         Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {
             Route::get('', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
             Route::post('/store', 'store')->name('store');
         });
     });

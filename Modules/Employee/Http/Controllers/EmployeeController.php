@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
-use Modules\Employee\Models\AllowanceType;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\EmployeeActions;
@@ -27,7 +27,7 @@ class EmployeeController extends Controller
         $this->establishments = Establishment::all()->select('id', 'name');
         $this->dashboardRoles = Role::where('type', 'ems')->get(['id', 'name']);
         $this->posRoles = Role::where('type', 'pos')->get(['id', 'name']);
-        $this->allowances_types = AllowanceType::all();
+        $this->allowances_types = PayrollAdjustmentType::all();
     }
 
     function generatePin()
@@ -50,7 +50,7 @@ class EmployeeController extends Controller
     private function getEmployeeViewData(int $id): array
     {
         return [
-            'employee' => EmployeeActions::getShowEditEmployee($id),
+            'employee' => Employee::with(['allowances', 'dashboardRoles', 'posRoles'])->findOrFail($id),
             'posRoles' => $this->posRoles,
             'dashboardRoles' => $this->dashboardRoles,
             'establishments' => $this->establishments,
@@ -58,10 +58,16 @@ class EmployeeController extends Controller
         ];
     }
 
+    public function getEmployeeRoles($id)
+    {
+        $roles = Employee::with('allRoles')->findOrFail($id)->allRoles->pluck('id')->unique();
+        return response()->json(['data' => $roles]);
+    }
+
     public function index(Request $request)
     {
         $employees = Employee::with('permissions:id,name')->
-            select('id', 'name', 'name_en', 'phone_number', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'deleted_at');
+            select('id', 'name', 'name_en', 'phone_number', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {

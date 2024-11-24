@@ -4,7 +4,7 @@ namespace Modules\Employee\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class AllowanceType extends BaseEmployeeModel
+class PayrollGroup extends BaseScheduleModel
 {
     use HasFactory;
 
@@ -13,9 +13,8 @@ class AllowanceType extends BaseEmployeeModel
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-    public function getTranslatedNameAttribute()
+    public function payrolls()
     {
-        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
-        return $this->$name ?? $this->name_en ?? $this->name;
+        return $this->hasMany(Payroll::class);
     }
 }

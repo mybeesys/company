@@ -78,6 +78,10 @@
                         name: 'rank'
                     },
                     {
+                        data: 'is_active',
+                        name: 'is_active'
+                    },
+                    {
                         data: 'actions',
                         name: 'actions',
                         orderable: false,

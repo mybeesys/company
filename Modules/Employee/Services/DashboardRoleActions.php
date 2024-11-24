@@ -1,6 +1,5 @@
 <?php
 namespace Modules\Employee\Services;
-use Modules\Employee\Models\PermissionSet;
 use Modules\Employee\Models\Role;
 
 class DashboardRoleActions

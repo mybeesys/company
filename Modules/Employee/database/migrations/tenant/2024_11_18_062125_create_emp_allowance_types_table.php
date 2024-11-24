@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('emp_allowance_types', function (Blueprint $table) {
+        Schema::create('emp_payroll_adjustment_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
             $table->string('name_en')->nullable();
-            $table->enum('type', ['fixed', 'percent'])->default('fixed');
+            $table->enum('type', ['allowance', 'deduction']);
+            $table->enum('amount_type', ['fixed', 'percent'])->default('fixed');
             $table->decimal('amount', 10,2)->nullable();
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('allowance_types');
+        Schema::dropIfExists('adjustment_types');
     }
 };

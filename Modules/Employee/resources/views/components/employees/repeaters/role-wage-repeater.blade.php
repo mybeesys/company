@@ -3,7 +3,7 @@
 <div id="role_wage_repeater">
     <div class="form-group">
         <div data-repeater-list="role_wage_repeater" class="d-flex flex-column gap-3">
-            @foreach (old('role_wage_repeater', $employee?->posRoles->isEmpty() ? [null] : $employee?->posRoles) as $index => $role)
+            @foreach (old('role_wage_repeater', $employee?->posRoles->isEmpty() ? [null] : $employee?->posRoles ?? [null]) as $index => $role)
                 <div data-repeater-item @class(["d-flex flex-wrap align-items-center gap-3"]) >
                     <x-form.input-div class="w-100">
                         <x-form.select name="role_wage_repeater[{{ $index }}][posRole]" :options="$posRoles"

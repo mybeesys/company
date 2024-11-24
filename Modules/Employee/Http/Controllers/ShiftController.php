@@ -35,8 +35,8 @@ class ShiftController extends Controller
     public function getShift(Request $request)
     {
         $employee_id = $request->employee_id;
-        $employee = Employee::with(['roles', 'establishmentRoles'])->findOrFail($employee_id);
-        $roles = array_merge($employee->roles->pluck('id', 'name')->toArray(), $employee->establishmentRoles->pluck('id', 'name')->toArray());
+        $employee = Employee::with(['allRoles'])->findOrFail($employee_id);
+        $roles = $employee->allRoles->pluck('id', 'name')->toArray();
         $day_times = ShiftTable::getStartEndDayTime();
         return response()->json(['data' => ['roles' => $roles, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
     }
