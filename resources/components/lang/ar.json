@@ -176,6 +176,7 @@
   "no": "لا",
   "groupComboAndLinkedComboSelected":"يجب اختيار نوع واحد من الكومبو",
   "transfer": "= معامل التحويل",
+  "newUnit":"الوحدة الجديدة",
   "primary":"أساسي",
   "inventoryUOM":"وحدة قياس المستودع",
   "threshold" : "Low Stock Alert",
