@@ -7,9 +7,19 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
     const [selectedOption, setSelectedOption] = useState(null); // State to store the selected value
     const [options, setOptions] = useState([]); // State to store the options
 
+    const customStyles = {
+        menu: (provided) => ({
+          ...provided,
+          maxHeight: 200, // Limit the height of the dropdown
+          position: 'absolute', // Enable vertical scrolling if content exceeds max height
+          zIndex: 9999,
+        }),
+      };
+      
+
     useEffect(() => {
         fetchOptions();
-    }, []);
+    }, [currentObject]);
 
     const fetchOptions = async () => {
         let optionsData = [];
@@ -24,8 +34,9 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
     };
 
     const filterUnits = async (inputValue, resolve) => {
+        let url = searchUrl.includes('?') ? `/${searchUrl}&key=${inputValue}` : `/${searchUrl}?key=${inputValue}`
         axios
-            .get(`/${searchUrl}?key=${inputValue}`)
+            .get(url)
             .then((response) => {
                 // Format the response data as needed by react-select
                 const options = response.data.map(item => ({
@@ -44,11 +55,12 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
     const setCurrentValue = () => {
         // Example of fetching the current value, this can be an API call or logic
         if (!!currentObject)
-            // Set the current value of the Select component
             setSelectedOption({
                 value: currentObject.id,  // Option value
                 label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
             });
+        else
+            setSelectedOption(null);
     };
 
     useEffect(() => {
@@ -71,6 +83,13 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             loadOptions={promiseOptions}
             options={options}
             value={selectedOption}
+            styles={{
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 9999, // Ensure it’s above other elements
+                }),
+              }}
+            menuPortalTarget={document.body}
             onChange={(e) => onBasicChange(field, {
                 id: e.value,
                 name_er: e.label,

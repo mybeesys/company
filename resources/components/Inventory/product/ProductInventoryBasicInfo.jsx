@@ -24,7 +24,7 @@ const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange,
                         <AsyncSelectComponent
                             field="unit"
                             dir={dir}
-                            searchUrl="searchUnits"
+                            searchUrl={`searchUnitTransfers?product_id=${currentObject.product_id}`}
                             currentObject={currentObject.unit}
                             onBasicChange={onBasicChange} />
                     </div>

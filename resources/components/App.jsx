@@ -16,6 +16,9 @@ import LinkedComboTable from './linkedCombo/LinkedComboTable';
 import LinkedComboDetail from './linkedCombo/LinkedComboDetail';
 import ProductInventoryTable from './Inventory/product/ProductInventoryTable';
 import ProductInventoryDetail from './Inventory/product/ProductInventoryDetail';
+import PurchaseOrderDetail from './Inventory/purchaseOrder/PurchaseOrderDetail';
+import PurchaseOrderTable from './Inventory/purchaseOrder/purchaseORderTable';
+import PurchaseOrderReceive from './Inventory/purchaseOrder/PurchaseOrderReceive';
 
 
 
@@ -39,7 +42,10 @@ const App = ({nodeType, dir}) =>{
     linkedCombo     : <LinkedComboTable translations={translations} dir={dir}/>,
     linkedComboedit    : <LinkedComboDetail translations={translations} dir={dir}/>,
     productinventory : <ProductInventoryTable translations={translations} dir={dir}/>,
-    productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}/>
+    productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}/>,
+    purchaseorderedit : <PurchaseOrderDetail translations={translations} dir={dir}/>,
+    purchaseorderrecieve : <PurchaseOrderReceive translations={translations} dir={dir}/>,
+    purchaseorder : <PurchaseOrderTable translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

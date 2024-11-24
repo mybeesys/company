@@ -52,7 +52,7 @@ class ProductLOVController extends Controller
         $attribute = $this->attributeClassController->getAttributes();
         $category = $this->categoryController->getminicategorylist();
         $unitTransfer = $this->unitTransferController->getUnitsTransferList("product" , $id);
-        $units = $this->unitController->getUnitsTree();
+      
         
         $lov = [];
         $lov["product"] = $productList->original;
@@ -64,7 +64,7 @@ class ProductLOVController extends Controller
         $lov["attribute"] = $attribute->original;
         $lov["category"] = $category->original;
         $lov["unitTransfer"] = $unitTransfer->original;
-        $lov["units"] = $units->original;
+    
 
         return response()->json($lov);
     }

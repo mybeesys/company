@@ -25,7 +25,14 @@ class ProductInventoryController extends Controller
         return response()->json($tree);
     }
  
-
+    public function getProductInventory($id)
+    {
+        $porduct = Product::with(['inventory' => function ($query) {
+            $query->with('vendor');
+            $query->with('unit');
+        }])->find($id);
+        return response()->json($porduct);
+    }
     /**
      * Display a listing of the resource.
      */

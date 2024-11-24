@@ -31,8 +31,9 @@ return new class extends Migration
         });
         Schema::create('inventory_purchase_order_items', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('ingredient_id');
+            $table->unsignedBigInteger('purchase_order_id');
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->boolean('taxed');
             $table->unsignedBigInteger('unit_id');
             $table->decimal('qty');
@@ -40,6 +41,9 @@ return new class extends Migration
             $table->decimal('total');
             $table->timestamps();
             $table->softDeletes();
+            $table->foreign('purchase_order_id')              // Foreign key constraint
+            ->references('id')                    // References the id on the categories table
+            ->on('inventory_purchase_orders');
             $table->foreign('product_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_products');

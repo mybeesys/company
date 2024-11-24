@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SweetAlert2 from 'react-sweetalert2';
 import axios from 'axios';
 
-const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl}) => {
+const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl, afterSubmitUrl}) => {
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
   const [menu, setMenu] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -20,7 +20,7 @@ const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl}
       // r["diningTypes"] = r["diningTypes"].map(x=> { return {dining_type_id : x.value} });
       const response = await axios.post(`/${apiUrl}`, r);
       if (response.data.message == "Done") {
-        window.location.href = `/${apiUrl}`;
+        window.location.href = !!afterSubmitUrl ? afterSubmitUrl : `/${apiUrl}`;
       }
       else
       {
@@ -85,7 +85,7 @@ const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl}
   }
 
   const cancel = () => {
-    window.location.href = `/${apiUrl}`;
+    window.location.href = !!afterSubmitUrl ? afterSubmitUrl : `/${apiUrl}`;
   }
 
   return (

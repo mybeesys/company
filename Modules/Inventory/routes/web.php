@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\Inventory\Http\Controllers\ProductInventoryController;
+use Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -25,4 +26,10 @@ Route::middleware([
 ])->group( function () {
     Route::resource('productInventory', ProductInventoryController::class)->names('productInventory');
     Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
- });
+    Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
+    Route::resource('purchaseOrder', PurchaseOrderController::class)->names('purchaseOrder');
+    Route::get('purchaseOrderList', [PurchaseOrderController::class, 'getPurchaseOrders'])->name('purchaseOrderList');;
+    Route::post('/poStatusUpdate', [PurchaseOrderController::class, 'poStatusUpdate'])->name('poStatusUpdate');
+    Route::post('/updateRecive', [PurchaseOrderController::class, 'updateRecive'])->name('updateRecive');
+    Route::get('/purchaseOrder/{id}/recieve', [PurchaseOrderController::class, 'recieve'])->name('purchaseOrder.recieve');
+});

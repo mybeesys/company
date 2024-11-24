@@ -113,4 +113,5 @@ Route::middleware([
 
     Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
     Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
+    Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
 });

@@ -26,7 +26,7 @@ const ProductInventoryVendor = ({ translations, currentObject, onBasicChange, di
                         <AsyncSelectComponent
                             field="vendor_unit"
                             dir={dir}
-                            searchUrl="searchUnits"
+                            searchUrl={`searchUnitTransfers?product_id=${currentObject.product_id}`}
                             currentObject={currentObject.vendor_unit}
                             onBasicChange={onBasicChange} />
                     </div>
