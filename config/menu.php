@@ -75,6 +75,11 @@ return [
             'name' => 'inventory',
             'url' => 'productInventory',
             'permission' => '',
+        ],
+        [
+            'name' => 'po',
+            'url' => 'purchaseOrder',
+            'permission' => '',
         ]]
     ],
     [

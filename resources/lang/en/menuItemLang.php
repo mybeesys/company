@@ -43,7 +43,8 @@ return [
     'ingredient' =>'Ingredient' ,
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
-     'inventory' =>'Product',
-    'inventory_module' => 'Invenetory'
+    'inventory' =>'Product',
+    'inventory_module' => 'Invenetory',
+    'po' => 'PO'
 
 ];
