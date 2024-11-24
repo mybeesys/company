@@ -521,4 +521,13 @@ class ProductController extends Controller
     {
         //
     }
+    public function searchProducts(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $products = Product::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->get();
+        return response()->json($products);
+    }
 }
