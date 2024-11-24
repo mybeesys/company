@@ -116,10 +116,10 @@ class ProductController extends Controller
             $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
             $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
             $product->group_combo = $validated['group_combo'];
-            $product->set_price = $validated['set_price'];
-            $product->use_upcharge = $validated['use_upcharge'];
+            $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
+            $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
             $product->linked_combo = $validated['linked_combo'];
-            $product->promot_upsell = $validated['promot_upsell'];
+            $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
             if ($request->hasFile('image_file')) 
             {
                 $tenant = tenancy()->tenant;
