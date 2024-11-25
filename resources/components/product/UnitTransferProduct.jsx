@@ -209,9 +209,10 @@ const handleChange =(value) =>
             <div>
             <form  id="treeForm" ref={formRef} noValidate validated={true} class="needs-validation">
             <DataTable value={nodes} tableStyle={{ minWidth: '20rem' }} noValidate validated={true} className={"custom-tree-table"}>
-                <Column field="unit1" style={{ width: '20%' }}  header={translations.newUnit} body={(node) => (renderTextCell(node, 'unit1' , true))}></Column>
-                <Column field="transfer" style={{ width: '20%' }}  header={translations.transfer} body={(node) => (node.id==-100 ? "" :renderDecimalCell(node, 'transfer' , false ))}></Column>
-                <Column field="unit2" style={{ width: '20%' }}  header={translations.Unit} body={(node) => (node.id==-100 ? "" : renderDropDownCell(node, 'unit2' , false))}></Column>
+                  <Column field="unit2" style={{ width: '20%' }}  header={translations.Unit} body={(node) => (node.id==-100 ? "" : renderDropDownCell(node, 'unit2' , false))}></Column>
+                  <Column field="transfer" style={{ width: '20%' }}  header={translations.transfer} body={(node) => (node.id==-100 ? "" :renderDecimalCell(node, 'transfer' , false ))}></Column>
+                  <Column field="unit1" style={{ width: '20%' }}  header={translations.newUnit} body={(node) => (renderTextCell(node, 'unit1' , false))}></Column>
+    
                 <Column field="primiry" style={{ width: '20%' }}  header={translations.primary} body={(node) => (node.id==-100 ? "" : renderCheckCell(node, 'primary' , false))}></Column>
                 <Column style={{ width: '20%' }}  body={(node) => (actionTemplate(node))}></Column>
             </DataTable>

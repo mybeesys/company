@@ -246,7 +246,7 @@ class ProductController extends Controller
                 {
                    foreach($ids as $updateId)
                    {
-                    if($updateId['oldId'] != null && $transfer['unit2'] == $updateId['oldId'] )
+                    if($transfer['unit2'] == $updateId['oldId'] )
                     {
                        $updateObject = UnitTransfer::find($transfer['id']);
                        $updateObject->unit2 =  $updateId['newId'];
@@ -360,7 +360,7 @@ class ProductController extends Controller
                 {
                    foreach($ids as $updateId)
                    {
-                    if($updateId['oldId'] != null && $transfer['unit2'] == $updateId['oldId'] )
+                    if($transfer['unit2'] == $updateId['oldId'] )
                     {
                        $updateObject = UnitTransfer::find($transfer['id']);
                        $updateObject->unit2 =  $updateId['newId'];

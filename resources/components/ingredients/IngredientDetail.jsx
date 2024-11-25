@@ -13,10 +13,13 @@ const IngredientDetail = ({dir, translations}) => {
     { key: 'Unit', visible: false },
   ]);
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  
   const [menu, setMenu] = useState(defaultMenu);
   const [units, setUnits] = useState([]);
   const [vendor, setVendor] = useState([]);
   const [unitTransfer, setUnitTransfers] = useState([]);
+  const [productUnit, setProductUnit] = useState();
 
   const handleChange = (index, value) => {
     let currentMenu = [...menu];
@@ -45,11 +48,20 @@ const IngredientDetail = ({dir, translations}) => {
     
       let r = { ...currentObject };
 
-      r['unit_measurement'] = r['unit_measurement'] ? r['unit_measurement'] : units[0].value ;
+      //r['unit_measurement'] = r['unit_measurement'] ? r['unit_measurement'] : units[0].value ;
       r['active'] = r['active'] ? r['active'] : 0 ;
 
       let transfer = unitTransfer.filter((object) => object.id != -100);
-      r["transfer"] = [...transfer];
+
+      if(!!productUnit){
+        if(!!!productUnit.id)
+          transfer.push({ id: 0 , unit1: productUnit.unit1 , unit2: -100 , transfer: -100 , primary :-100});
+        else
+          transfer.push(productUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});  
+      }
+         
+      const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
+      r["transfer"] = [...sortedItems];
 
       const response = await axios.post('/ingredient', r);
       if (response.data.message == "Done") {
@@ -88,11 +100,7 @@ const IngredientDetail = ({dir, translations}) => {
     setSubmitdisableButton(false);
   }
 
-  const unitTransferHandle = (result) =>
-  {
-    setUnitTransfers([...result]);
-  }
-
+ 
   const handleMainSubmit = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -111,22 +119,42 @@ const IngredientDetail = ({dir, translations}) => {
     }
   } 
 
+  const handleMainUnit = (value) =>{
+    setProductUnit(value);
+   }
+
+
+   const parentHandleTransfer = (result) => 
+    {
+      setUnitTransfers([...result]);
+    }
+
+
   useEffect(() => {
     const fetchData = async () => {
-        const res2 = await axios.get('/unitTypeList');
-        const units = res2.data.map(e => { return { label: dir=='rtl'? e.name_ar : e.name_en, name: dir=='rtl'? e.name_ar : e.name_en, value: e.id } });
-     
-        const res1 = await axios.get('/getUnitsTransferList/ingredient/'+ currentObject.id);
-        const unitTransfers =res1.data;
-        const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.id ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
-        unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
-      
+         
         const res = await axios.get('/getVendors');
         const vendors = res.data.map(e => { return { name: dir=='rtl'? e.name_ar : e.name_en, value: e.id } });
-
-        setUnitTransfers(unitTransfersResult);
         setVendor(vendors);
-        setUnits(units);
+
+        const response = await axios.get('/getUnitsTransferList/ingredient/'+ currentObject.id);
+
+        const units =response.data;
+        const unitsResult = units.map(e => { return { label: e.unit1 , value: e.id } });
+        setUnits(unitsResult);
+    
+        let mainUnit = units.find(function (element) {
+          return element.unit2 == null;
+        });
+    
+        setProductUnit(mainUnit)
+        
+        const unitTransfers =response.data;
+        const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.filter(e=> e.unit2 != null).map(e => {
+              return { id : e.id ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
+        unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
+        setUnitTransfers(unitTransfersResult);
+        
       }
       fetchData().catch(console.error);
   }, []);
@@ -184,10 +212,12 @@ const IngredientDetail = ({dir, translations}) => {
                 menu[1].visible ?
                   <UnitTransferIngredient
                     translations={translations}
-                    parentHandle = {unitTransferHandle}
-                    unitTree={units}
                     unitTransfer={unitTransfer}
-                    dir ={dir}
+                    unitTree={units}
+                    parentHandle={parentHandleTransfer}
+                    handleMainUnit={handleMainUnit}
+                    productUnit ={productUnit}
+                    dir={dir} 
                       />
                   : <></>
               }
