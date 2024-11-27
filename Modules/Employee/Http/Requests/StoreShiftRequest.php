@@ -15,8 +15,8 @@ class StoreShiftRequest extends FormRequest
     public function rules(): array
     {
         $employee = Employee::find(request()->employee_id);
-        $employee = Employee::with(['allRoles'])->find(request()->employee_id);
-        $roleIds = $employee->allRoles->pluck('id')->toArray();
+        $employee = Employee::with(['wageEstablishments'])->find(request()->employee_id);
+        $establishmentsIds = $employee->wageEstablishments->pluck('id')->toArray();
         return [
             'employee_id' => ['required', 'exists:emp_employees,id'],
             'date' => ['required', 'date'],
@@ -24,7 +24,7 @@ class StoreShiftRequest extends FormRequest
             'shift_repeater.*.startTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.endTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.end_status' => ['required', 'in:clockout,break'],
-            'shift_repeater.*.role' => ['integer', 'exists:roles,id', Rule::in($roleIds)],
+            'shift_repeater.*.establishment' => ['integer', 'exists:establishment_establishments,id', Rule::in($establishmentsIds)],
             'shift_id' => ['nullable', 'integer', 'exists:sch_shifts,id'],
         ];
     }

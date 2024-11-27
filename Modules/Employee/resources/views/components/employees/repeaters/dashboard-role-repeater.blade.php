@@ -1,4 +1,4 @@
-@props(['dashboardRoles', 'establishments', 'emsUser' => null, 'disabled' => false, 'wageTypes'])
+@props(['dashboardRoles', 'establishments', 'emsUser' => null, 'disabled' => false])
 <label @class(['form-label'])>@lang('employee::fields.administrative_permission_set')</label>
 <div id="dashboard_role_repeater">
     <div class="form-group">
@@ -10,17 +10,6 @@
                             :disabled=$disabled :options="$dashboardRoles" :errors="$errors" data_allow_clear="false"
                             placeholder="{{ __('employee::fields.role') }}"
                             value="{{ is_array($dashboardRole) ? $dashboardRole['dashboardRole'] ?? '' : $dashboardRole?->id }}" />
-                    </x-form.input-div>
-                    <x-form.input-div class="w-100">
-                        <x-form.input :errors="$errors" type="number" placeholder="{{ __('employee::fields.wage') }}"
-                            :disabled=$disabled name="dashboard_role_repeater[{{ $index }}][wage]"
-                            value="{{ is_array($dashboardRole) ? $dashboardRole['wage'] ?? '' : $dashboardRole?->pivot->rate }}" />
-                    </x-form.input-div>
-                    <x-form.input-div class="w-100">
-                        <x-form.select name="dashboard_role_repeater[{{ $index }}][wage_type]"
-                            :disabled=$disabled :options=$wageTypes :errors="$errors"
-                            value="{{ is_array($dashboardRole) ? $dashboardRole['wage_type'] ?? '' : $dashboardRole?->pivot->wage_type }}"
-                            placeholder="{{ __('employee::fields.wage_type') }}" />
                     </x-form.input-div>
                     <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger"
                         @disabled($disabled)>

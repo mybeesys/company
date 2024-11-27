@@ -3,15 +3,17 @@
 
 namespace Modules\Employee\Classes;
 use Carbon\Carbon;
-use Modules\Employee\Models\Employee;
-use Modules\Employee\Models\Schedule;
-use Modules\Employee\Models\TimeSheetRule;
-use Modules\Employee\Services\ShiftFilters;
+use Modules\Employee\Services\PayrollService;
 use Yajra\DataTables\DataTables;
 
 class PayrollTable
 {
-    public static function getPayrollColumns()
+
+    public function __construct(private PayrollService $payrollService)
+    {
+    }
+
+    public static function getIndexPayrollColumns()
     {
         return [
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
@@ -26,9 +28,42 @@ class PayrollTable
         ];
     }
 
-    public static function getPayrollTable($roles)
+    public static function getCreatePayrollColumns()
     {
-        return DataTables::of($roles)
+        $baseClass = "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6";
+        return [
+            ["class" => $baseClass, "name" => "employee"],
+            ["class" => $baseClass, "name" => "establishments"],
+            ["class" => $baseClass, "name" => "regular_worked_hours"],
+            ["class" => $baseClass, "name" => "overtime_hours"],
+            ["class" => $baseClass, "name" => "total_hours"],
+            ["class" => $baseClass, "name" => "total_worked_days"],
+            ["class" => $baseClass, "name" => "basic_total_wage"],
+            ["class" => $baseClass, "name" => "wage_due_before_tax"],
+            ["class" => $baseClass, "name" => "allowances"],
+            ["class" => $baseClass, "name" => "deductions"],
+            ["class" => $baseClass, "name" => "total_wage_before_tax"],
+            ["class" => $baseClass, "name" => "total_wage"],
+        ];
+    }
+
+
+    public function getCreatePayrollTable($date, array $employeeIds, array $establishmentIds)
+    {
+        $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
+        $carbonMonth = Carbon::createFromFormat('Y-m', $date);
+
+        $payrollData = $employees->map(function ($employee) use ($carbonMonth, $establishmentIds) {
+            return $this->payrollService->calculateEmployeePayroll($employee, $carbonMonth, $establishmentIds);
+        });
+        return DataTables::of($payrollData)
+            ->rawColumns($payrollData->first() ? array_keys($payrollData->first()) : [])
+            ->make(true);
+    }
+
+    public static function getIndexPayrollTable($payrolls)
+    {
+        return DataTables::of($payrolls)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
                                  {$row->id} 

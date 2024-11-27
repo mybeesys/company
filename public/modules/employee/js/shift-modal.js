@@ -28,13 +28,13 @@ function addShiftModal(getShiftUrl) {
         const scheduleShiftIds = [];
         const startTimes = [];
         const endTimes = [];
-        const roleId = [];
+        const establishmentId = [];
         const breakDuration = [];
 
         ajaxRequest(getShiftUrl, 'GET', {
             employee_id: employeeId,
         }, false, true).done(function (response) {
-            roleValues = response.data.roles;
+            establishmentsValues = response.data.establishments;
 
             let startDayTime = response.data.start_of_day;
             let endDayTime = response.data.end_of_day;
@@ -46,12 +46,12 @@ function addShiftModal(getShiftUrl) {
             }
 
             $('[data-repeater-create]').on('click', function () {
-                const newRow = $('select[name*="[role]"]').last();
+                const newRow = $('select[name*="[establishment]"]').last();
 
-                $.each(roleValues, function (roleName, roleId) {
-                    if (newRow.find(`option[value="${roleId}"]`).length ===
+                $.each(establishmentsValues, function (establishmentName, establishmentId) {
+                    if (newRow.find(`option[value="${establishmentId}"]`).length ===
                         0) {
-                        newRow.append(new Option(roleName, roleId));
+                        newRow.append(new Option(establishmentName, establishmentId));
                     }
                 });
             });
@@ -63,21 +63,21 @@ function addShiftModal(getShiftUrl) {
                 const numB = parseInt(b.split('-')[1] || 0, 10);
                 return numA - numB;
             });
-            
-            for  (const key of sortedKeys)  {
+
+            for (const key of sortedKeys) {
                 if (key.startsWith('scheduleShiftId')) {
                     scheduleShiftIds.push(data[key]);
                 } else if (key.startsWith('startTime')) {
                     startTimes.push(data[key]);
                 } else if (key.startsWith('endTime')) {
                     endTimes.push(data[key]);
-                } else if (key.startsWith('roleId')) {
-                    roleId.push(data[key]);
+                } else if (key.startsWith('establishmentId')) {
+                    establishmentId.push(data[key]);
                 } else if (key.startsWith('breakDuration')) {
                     breakDuration.push(data[key]);
                 }
             }
-            
+
             const repeaterList = $('[data-repeater-list="shift_repeater"]');
             repeaterList.empty();
             scheduleShiftIds.forEach((shiftId, index) => {
@@ -86,7 +86,7 @@ function addShiftModal(getShiftUrl) {
                 const newItem = repeaterList.find('[data-repeater-item]').last();
                 newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
                 newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
-                newItem.find('select[name*="[role]"]').val(roleId[index]).trigger('change');
+                newItem.find('select[name*="[establishment]"]').val(establishmentId[index]).trigger('change');
                 newItem.find('input[name*="[shift_id]"]').val(shiftId);
                 if (breakDuration[index]) {
                     newItem.find('select[name*="[end_status]"]').val('break').trigger(
@@ -128,7 +128,6 @@ function copyShifts() {
     });
 }
 
-
 function shiftRepeater() {
     $('#shift_repeater').repeater({
         show: function () {
@@ -138,30 +137,32 @@ function shiftRepeater() {
 
             const startTimeInput = $(this).find('input[name*="[startTime]"]');
             const endTimeInput = $(this).find('input[name*="[endTime]"]');
-            timePicker(startTimeInput[0]);
-            timePicker(endTimeInput[0]);
 
-            startTimeInput.on('change.td', function (
-                e) {
-                if (e.date) {
-                    endTime = endTimeInput.val();
-                    startTime = e.date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
+            Inputmask({
+                regex: "([0-1][0-9]|2[0-3]):([0-5][0-9])",
+                placeholder: "__:__"
+            }).mask(startTimeInput[0]);
+
+            Inputmask({
+                regex: "([0-1][0-9]|2[0-3]):([0-5][0-9])",
+                placeholder: "__:__"
+            }).mask(endTimeInput[0]);
+
+            startTimeInput.on('change', function () {
+                startTime = startTimeInput.val();
+                endTime = endTimeInput.val();
+
+                if (startTime && endTime) {
                     startEndTimeValidate(startTime, endTime, $(this), endTimeInput);
                 }
             });
 
-            endTimeInput.on('change.td', function (e) {
-                if (e.date) {
-                    startTime = startTimeInput.val()
-                    endTime = e.date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
+            // Event listener for end time input
+            endTimeInput.on('change', function () {
+                startTime = startTimeInput.val();
+                endTime = endTimeInput.val();
+
+                if (startTime && endTime) {
                     startEndTimeValidate(startTime, endTime, $(this), startTimeInput);
                 }
             });
@@ -190,7 +191,7 @@ function shiftRepeater() {
                     const index = match.match(/\[(\d+)\]/)[1];
                     return `[${index}][break]`;
                 });
-                
+
                 const lastRepeaterItem = $(
                     '#shift_repeater [data-repeater-item]').last();
 
@@ -224,7 +225,6 @@ function shiftRepeater() {
         }
     });
 }
-
 
 function startEndTimeValidate(startTime, endTime, thisElement, otherInput) {
 

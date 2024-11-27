@@ -1,4 +1,12 @@
-@props(['id', 'title' => null, 'class' => null, 'header_class' => null, 'body_class' => null, 'title' => null, 'header' => null])
+@props([
+    'id',
+    'title' => null,
+    'class' => null,
+    'header_class' => null,
+    'body_class' => null,
+    'title' => null,
+    'header' => null,
+])
 <div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ $class }}">
         <div class="modal-content">
@@ -14,6 +22,7 @@
             </div>
             <div class="modal-body mx-5 {{ $body_class }}">
                 <form id="{{ $id }}_form" class="form" action="#">
+                    @csrf
                     {{ $slot }}
                     <div class="text-center pt-5">
                         <button type="reset" class="btn btn-light me-3"
