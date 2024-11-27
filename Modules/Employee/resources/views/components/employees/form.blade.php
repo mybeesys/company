@@ -9,7 +9,6 @@
 ])
 @php
     $wageTypes = [
-        ['id' => 'hourly', 'name' => __('employee::general.hourly')],
         ['id' => 'monthly', 'name' => __('employee::general.monthly')],
         ['id' => 'fixed', 'name' => __('employee::general.fixed')],
     ];
@@ -32,10 +31,13 @@
                 <input type="hidden" name="pos_is_active" value="0">
                 <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
                     :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
-                    label="{{ __('employee::general.deactivate/activate') }}" checked="{{ $employee?->pos_is_active }}" />
+                    label="{{ __('employee::general.deactivate/activate') }}"
+                    checked="{{ $employee?->pos_is_active }}" />
             </x-form.switch-div>
         </x-form.form-card>
-        <x-form.form-card class="h-100">
+        <x-form.form-card class="h-100" :title="__('employee::fields.wages')">
+            <x-employee::employees.repeaters.wage-repeater :employee=$employee :wageTypes=$wageTypes :disabled=$disabled
+                :establishments=$establishments />
         </x-form.form-card>
     </div>
     <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
@@ -97,10 +99,10 @@
                         </x-form.input-div>
                     </div>
                     <div class="mb-5 ">
-                        <x-employee::employees.repeaters.role-wage-repeater :posRoles=$posRoles :employee=$employee :wageTypes=$wageTypes
+                        <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                             :disabled=$disabled :establishments=$establishments />
                     </div>
-                    <div>
+                    <div class="employee-adjustments">
                         <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
                     </div>
                 </x-form.form-card>
@@ -135,8 +137,8 @@
         </div>
         <div class="d-flex flex-wrap">
             <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles :disabled=$disabled :wageTypes=$wageTypes
-                    :establishments=$establishments :emsUser=$employee />
+                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles
+                    :disabled=$disabled :establishments=$establishments :emsUser=$employee />
             </x-form.input-div>
         </div>
     </x-form.form-card>

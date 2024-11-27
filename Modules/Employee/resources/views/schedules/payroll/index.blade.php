@@ -5,7 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="payroll" :idColumn=true module="employee">
+            <x-tables.table-header model="payroll" module="employee">
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:elements>
@@ -62,12 +62,12 @@
 
                 let baseUrl = `{{ route('schedules.payrolls.create') }}`;
                 let queryParams =
-                    `?employee_ids=${encodeURIComponent(employee_ids)}&establishment=${encodeURIComponent(establishment)}&date=${encodeURIComponent(date)}`;
+                    `?employee_ids=${encodeURIComponent(employee_ids)}&establishment_ids=${encodeURIComponent(establishment)}&date=${encodeURIComponent(date)}`;
 
                 window.location.href = baseUrl + queryParams;
             });
 
-            $('#select-all-btn').on('click', function() {
+            $('#emp-select-all-btn').on('click', function() {
                 $('[name="employee"]').select2('destroy');
                 $('[name="employee"]').select2();
                 let allValues = $('[name="employee"] option').map(function() {
@@ -78,10 +78,27 @@
                 $('[name="employee"]').val(allValues).trigger('change');
             });
 
-            $('#deselect-all-btn').on('click', function() {
+            $('#emp-deselect-all-btn').on('click', function() {
                 $('[name="employee"]').select2('destroy');
                 $('[name="employee"]').select2();
                 $('[name="employee"]').val(null).trigger('change');
+            });
+
+            $('#est-select-all-btn').on('click', function() {
+                $('[name="establishment"]').select2('destroy');
+                $('[name="establishment"]').select2();
+                let allValues = $('[name="establishment"] option').map(function() {
+                    return $(this).val();
+                }).get().filter(function(value) {
+                    return value !== '';
+                });
+                $('[name="establishment"]').val(allValues).trigger('change');
+            });
+
+            $('#est-deselect-all-btn').on('click', function() {
+                $('[name="establishment"]').select2('destroy');
+                $('[name="establishment"]').select2();
+                $('[name="establishment"]').val(null).trigger('change');
             });
         });
 
@@ -93,7 +110,6 @@
         }
 
         function initDatatable() {
-
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,

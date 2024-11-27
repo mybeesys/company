@@ -47,7 +47,7 @@ return [
     'please_wait' => '...الرجاء الانتظار',
     'edit_employee' => 'تعديل موظف',
     'activate' => 'تفعيل',
-    'diactivate' => 'إلغاء تفعيل',
+    'deactivate' => 'إلغاء تفعيل',
     'deactivate/activate' => 'تفعيل/تعطيل',
     'add_role' => 'إضافة دور',
     'edit_role' => 'تعديل دور',
@@ -137,4 +137,8 @@ return [
     'select_all' => 'اختيار الكل',
     'deselect_all' => 'الغاء تحديد الكل',
     'add_more_deductions' => 'أضف المزيد من الحسومات',
+    'add_more_wages' => 'إضافة المزيد من الرواتب',
+    '24_format_hint' => 'الإدخال بصيغة يجب أن يكون بصيغة 24 ساعة',
+    'edit_allowances' => 'تعديل البدلات',
+    'edit_deductions' => 'تعديل الحسومات',
 ];

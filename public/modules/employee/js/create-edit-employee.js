@@ -1,17 +1,17 @@
 function roleRepeater() {
-    const hasInitialValues = $('select[name="role_wage_repeater[0][posRole]"]').val() !== undefined &&
-        $('select[name="role_wage_repeater[0][posRole]"]').val() !== '';
+    const hasInitialValues = $('select[name="pos_role_repeater[0][posRole]"]').val() !== undefined &&
+        $('select[name="pos_role_repeater[0][posRole]"]').val() !== '';
 
-    $('#role_wage_repeater').repeater({
+    $('#pos_role_repeater').repeater({
         initEmpty: !hasInitialValues,
         show: function () {
             $(this).slideDown();
-            $(this).find('select[name^="role_wage_repeater"]').select2({
+            $(this).find('select[name^="pos_role_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
         ready: function () {
-            $('select[name^="role_wage_repeater"]').select2({
+            $('select[name^="pos_role_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
         },
@@ -21,110 +21,259 @@ function roleRepeater() {
     });
 }
 
-function allowanceRepeater(addAllowanceTypeUrl, lang) {
-    // Keep track of all custom options
+function wageRepeater() {
+    const hasInitialValues = $('input[name="wage_repeater[0][wage]"]').val() !== undefined &&
+        $('input[name="wage_repeater[0][wage]"]').val() !== '';
+
+    let isUpdating = false;
+
+    const updateSelectOptions = () => {
+        if (isUpdating) return;
+        isUpdating = true;
+        try {
+            const selectedValues = new Set(
+                $('select[name^="wage_repeater"][name$="[establishment]"]')
+                    .map(function () {
+                        return $(this).val();
+                    })
+                    .get()
+            );
+
+            $('select[name^="wage_repeater"][name$="[establishment]"]').each(function () {
+                const $select = $(this);
+                const currentValue = $select.val();
+
+                const options = $select.find('option');
+                options.each(function () {
+                    const $option = $(this);
+                    if ($option.val() !== currentValue) {
+                        $option.prop('disabled', selectedValues.has($option.val()));
+                    }
+                });
+            });
+        } finally {
+            isUpdating = false;
+        }
+    };
+
+    const initializeSelect2 = ($element) => {
+        $element.find('select[name^="wage_repeater"]').each(function () {
+            const $select = $(this);
+
+            if (!$select.hasClass('select2-hidden-accessible')) {
+                $select.select2({
+                    minimumResultsForSearch: -1,
+                });
+
+                if ($select.is('[name$="[establishment]"]')) {
+                    $select.off('change.wage-repeater').on('change.wage-repeater', function () {
+                        updateSelectOptions();
+                    });
+                }
+            }
+        });
+    };
+
+    $('#wage_repeater').repeater({
+        initEmpty: !hasInitialValues,
+        show: function () {
+            const $row = $(this);
+            $row.slideDown();
+            initializeSelect2($row);
+            updateSelectOptions();
+        },
+        ready: function () {
+            initializeSelect2($('#wage_repeater'));
+            updateSelectOptions();
+        },
+        hide: function (deleteElement) {
+            $(this).slideUp(() => {
+                deleteElement();
+                updateSelectOptions();
+            });
+        },
+    });
+}
+
+
+function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
     const customOptions = new Map();
 
     function initializeSelect2(element) {
-        const select2Config = {
-            tags: true,
-            createTag: function (params) {
-                const term = (params.term || '').trim();
-                if (term === '') {
-                    return null;
-                }
-
-                return {
-                    id: term,
-                    text: term,
-                    newTag: true
-                };
-            },
-            // Add existing custom options to new select2 instances
-            data: Array.from(customOptions.values())
+        const addNewOption = {
+            id: 'add_new',
+            text: lang === 'ar' ? 'إضافة خيار جديد' : 'Add New Option',
+            addNew: true
         };
+        const allOptions = [addNewOption, ...Array.from(customOptions.values())];
+        const select2Config = {
+            tags: false,
+            data: allOptions,
+            templateResult: function (option) {
+                if (option.addNew) {
+                    return $(`
+            <div class="add-new-option">
+                <i class="fas fa-plus me-2"></i>
+                <span>${option.text}</span>
+            </div>
+        `);
+                }
+                return option.text;
+            },
+            templateSelection: function (option) {
+                if (option.addNew) {
+                    return $(
+                        `<input type="text" class="select2-add-new-input" placeholder="${lang === 'ar' ? 'اكتب الخيار الجديد' : 'Type new option...'}"/>`
+                    );
+                }
+                return option.text;
+            }
+        };
+
         element.select2(select2Config)
-            .on('select2:select', handleTagSelection);
+            .on('select2:select', function (e) {
+                const data = e.params.data;
+                if (data.addNew) {
+                    setTimeout(() => {
+                        const input = $('.select2-add-new-input');
+                        input.focus();
+                        let isNewOptionHandled = false;
+
+                        input.on('keydown', function (e) {
+                            if (e.which === 13) {
+                                const newValue = $(this).val();
+                                if (newValue.trim()) {
+                                    handleNewOption(element, newValue);
+                                    isNewOptionHandled = true;
+                                }
+                            }
+                            if (e.which === 32) {
+                                e.stopPropagation();
+                            }
+                        });
+                        input.on('blur', function () {
+                            if (!isNewOptionHandled) {
+                                const newValue = $(this).val().trim();
+                                if (newValue) {
+                                    handleNewOption(element, newValue);
+                                } else {
+                                    element.val(null).trigger('change');
+                                }
+                            }
+                            isNewOptionHandled = false;
+                        });
+                    }, 0);
+                }
+            });
+        reorderOptions();
     }
 
-    function handleTagSelection(e) {
-        const data = e.params.data;
+    function reorderOptions() {
+        const allRepeaters = $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
+        allRepeaters.each(function () {
+            const currentElement = $(this);
+            const addNewOption = currentElement.find('option[value="add_new"]');
+            if (addNewOption.length) {
+                addNewOption.detach();
+                currentElement.append(addNewOption);
+            }
+        });
+    }
 
-        if (!data.newTag) {
-            return;
-        }
-
+    function handleNewOption(element, newValue) {
         const name_lang = lang === 'ar' ? 'name' : 'name_en';
-        const $select = $(e.target);
 
-        ajaxRequest(addAllowanceTypeUrl, 'POST', { name: data.text, name_lang: name_lang })
+        ajaxRequest(addAllowanceTypeUrl, 'POST', {
+            name: newValue,
+            name_lang: name_lang,
+            type: type
+        })
             .done(function (response) {
                 if (response.id) {
                     const newOption = {
                         id: response.id,
-                        text: data.text
+                        text: newValue
                     };
                     customOptions.set(response.id, newOption);
 
-                    $('select[name*="[adjustment_type]"]').each(function () {
-                        const $select = $(this);
+                    const newSelectOption = new Option(newOption.text, newOption.id, true, true);
+                    element.append(newSelectOption);
 
-                        const option = new Option(newOption.text, newOption.id, false, false);
-                        $select.append(option);
+                    reorderOptions();
 
-                        // Update the current select2 instance with the selected value
-                        if (this === e.target) {
-                            $select.val(response.id).trigger('change');
-                        }
-                    });
+                    element.trigger('change');
+                    element.select2('open');
                 }
             })
             .fail(function () {
-                $select.val(null).trigger('change');
+                element.val(null).trigger('change');
             });
     }
-    const hasInitialValues = $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== undefined &&
-        $('select[name="allowance_repeater[0][adjustment_type]"]').val() !== '';
-    $('#allowance_repeater').repeater({
-        initEmpty: !hasInitialValues,
 
-        show: function () {
-            const $this = $(this);
-            $this.slideDown();
-            $this.find('select[name*="[amount_type]"]').select2({
-                minimumResultsForSearch: -1,
-            });
-            $this.find('input[name*="[applicable_date]"]').flatpickr({
-                plugins: [
-                    monthSelectPlugin({
-                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
-                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
-                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
-                    })
-                ]
-            });
-            initializeSelect2($this.find('select[name*="[adjustment_type]"]'));
-        },
+    $('.employee-adjustments').each(function () {
+        const hasInitialValues = $(
+            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+            .val() !== undefined &&
+            $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+                .val() !== '';
 
-        ready: function () {
-            $('select[name*="[amount_type]"]').select2({
-                minimumResultsForSearch: -1,
-            });
-            $('input[name*="[applicable_date]"]').flatpickr({
-                plugins: [
-                    monthSelectPlugin({
-                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
-                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
-                        altFormat: "F Y",  // Displayed format, e.g., "January 2024"
-                    })
-                ]
-            });
-            initializeSelect2($('select[name*="[adjustment_type]"]'));
-        },
+        $(`#${type}_repeater`).repeater({
+            initEmpty: !hasInitialValues,
 
-        hide: function (deleteElement) {
-            $(this).slideUp(deleteElement);
-        }
+            show: function () {
+                const $this = $(this);
+                $this.slideDown();
+
+                $this.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                    .select2({
+                        minimumResultsForSearch: -1
+                    });
+
+                $this.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                    .flatpickr({
+                        plugins: [
+                            monthSelectPlugin({
+                                shorthand: true,
+                                dateFormat: "Y-m",
+                                altFormat: "F Y"
+                            })
+                        ]
+                    });
+
+                initializeSelect2($this.find(
+                    `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
+                ));
+            },
+
+            ready: function () {
+                const $repeater = $(`#${type}_repeater`);
+
+                $repeater.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                    .select2({
+                        minimumResultsForSearch: -1
+                    });
+
+                $repeater.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                    .flatpickr({
+                        plugins: [
+                            monthSelectPlugin({
+                                shorthand: true,
+                                dateFormat: "Y-m",
+                                altFormat: "F Y"
+                            })
+                        ]
+                    });
+
+                $repeater.find(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+                    .each(function () {
+                        initializeSelect2($(this));
+                    });
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        });
     });
 }
 
@@ -209,7 +358,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
             $(this).val(1);
         } else {
             showAlert(Lang.get('responses.change_employee_status_warning'),
-                Lang.get('general.diactivate'),
+                Lang.get('general.deactivate'),
                 Lang.get('general.cancel'), undefined,
                 true, "warning").then(function (t) {
                     if (!t.isConfirmed) {
@@ -231,61 +380,5 @@ function employeeForm(id, validationUrl, generatePinUrl) {
         ajaxRequest(generatePinUrl, 'GET', {}, false, true).done(function (response) {
             $('#PIN').val(response.data);
         });
-    });
-
-    function validatePosRoleRequirement() {
-        $('#role_wage_repeater [data-repeater-item]').each(function () {
-            const wageInput = $(this).find('input[name*="[wage]"]');
-            const roleSelect = $(this).find('select[name*="[role]"]');
-            const wageTypeSelect = $(this).find('select[name*="[wage_type]"]');
-
-            // Check if wage input has value
-            if (wageInput.val()) {
-                roleSelect.attr('required', true);
-                wageTypeSelect.attr('required', true);
-                // Optionally add an invalid class if it doesn't have a selected value
-                if (!roleSelect.val()) {
-                    roleSelect.addClass('is-invalid');
-                } else {
-                    roleSelect.removeClass('is-invalid');
-                }
-            } else {
-                wageTypeSelect.attr('required', false);
-                roleSelect.attr('required', false);
-                roleSelect.removeClass('is-invalid'); // Remove invalid class if wage is empty
-            }
-        });
-    }
-
-    function validateDashboardRoleRequirement() {
-        $('#dashboard_role_repeater [data-repeater-item]').each(function () {
-            const wageInput = $(this).find('input[name*="[wage]"]');
-            const roleSelect = $(this).find('select[name*="[dashboardRole]"]');
-            const wageTypeSelect = $(this).find('select[name*="[wage_type]"]');
-
-            // Check if wage input has value
-            if (wageInput.val()) {
-                roleSelect.attr('required', true);
-                wageTypeSelect.attr('required', true);
-
-                if (!roleSelect.val()) {
-                    roleSelect.addClass('is-invalid');
-                } else {
-                    roleSelect.removeClass('is-invalid');
-                }
-            } else {
-                wageTypeSelect.attr('required', false);
-                roleSelect.attr('required', false);
-                roleSelect.removeClass('is-invalid');
-            }
-        });
-    }
-
-    $('#dashboard_role_repeater').on('input change', 'input[name*="[wage]"], select change', function () {
-        validateDashboardRoleRequirement();
-    });
-
-    $('#role_wage_repeater').on('input change', 'input[name*="[wage]"], select change', function () {
-        validatePosRoleRequirement();
     });
 }

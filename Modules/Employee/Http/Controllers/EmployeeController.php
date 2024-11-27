@@ -5,6 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
+use Log;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
@@ -27,7 +28,7 @@ class EmployeeController extends Controller
         $this->establishments = Establishment::all()->select('id', 'name');
         $this->dashboardRoles = Role::where('type', 'ems')->get(['id', 'name']);
         $this->posRoles = Role::where('type', 'pos')->get(['id', 'name']);
-        $this->allowances_types = PayrollAdjustmentType::all();
+        $this->allowances_types = PayrollAdjustmentType::allowance()->get();
     }
 
     function generatePin()
@@ -50,7 +51,7 @@ class EmployeeController extends Controller
     private function getEmployeeViewData(int $id): array
     {
         return [
-            'employee' => Employee::with(['allowances', 'dashboardRoles', 'posRoles'])->findOrFail($id),
+            'employee' => Employee::with(['allowances' => fn($query) => $query->always(), 'dashboardRoles', 'posRoles'])->findOrFail($id),
             'posRoles' => $this->posRoles,
             'dashboardRoles' => $this->dashboardRoles,
             'establishments' => $this->establishments,
@@ -58,10 +59,10 @@ class EmployeeController extends Controller
         ];
     }
 
-    public function getEmployeeRoles($id)
+    public function getEmployeeEstablishments($id)
     {
-        $roles = Employee::with('allRoles')->findOrFail($id)->allRoles->pluck('id')->unique();
-        return response()->json(['data' => $roles]);
+        $establishments = Employee::with('wageEstablishments')->findOrFail($id)->wageEstablishments->pluck('id')->unique();
+        return response()->json(['data' => $establishments]);
     }
 
     public function index(Request $request)
@@ -115,14 +116,22 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request)
     {
-        DB::transaction(function () use ($request) {
-            $filteredRequest = $request->safe()->collect()->filter(function ($item) {
-                return isset($item);
-            });
-            $storeEmployee = new EmployeeActions($filteredRequest);
-            $storeEmployee->store();
+        return DB::transaction(function () use ($request) {
+            try {
+                $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                    return isset($item);
+                });
+                $storeEmployee = new EmployeeActions($filteredRequest);
+                $storeEmployee->store();
+                return to_route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
+            } catch (\Throwable $e) {
+                Log::error('Employee creation failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return redirect()->back()->with('error', __('employee::responses.something_wrong_happened'));
+            }
         });
-        return to_route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
     }
 
     public function show(int $id)
@@ -137,16 +146,22 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
-        // dd($request);
-        DB::transaction(function () use ($request, $employee) {
-            $filteredRequest = $request->safe()->collect()->filter(function ($item) {
-                return isset($item);
-            });
-            $updateEmployee = new EmployeeActions($filteredRequest);
-            $updateEmployee->update($employee);
+        return DB::transaction(function () use ($request, $employee) {
+            try {
+                $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                    return isset($item);
+                });
+                $updateEmployee = new EmployeeActions($filteredRequest);
+                $updateEmployee->update($employee);
+                return to_route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
+            } catch (\Throwable $e) {
+                Log::error('Employee updating failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return redirect()->back()->with('error', __('employee::responses.something_wrong_happened'));
+            }
         });
-
-        return to_route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
     }
 
     public function restore($id)
