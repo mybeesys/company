@@ -16,7 +16,7 @@ class StoreTimecardRequest extends FormRequest
         $notAjaxValidate = !str_contains(request()->url(), 'validate');
         return [
             'employee_id' => [Rule::requiredIf($notAjaxValidate), 'exists:emp_employees,id'],
-            'role_id' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
+            'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:establishment_establishments,id'],
             'clock_in_time' => [Rule::requiredIf($notAjaxValidate), 'date_format:Y/m/d h:i A', 'before:clock_out_time'],
             'clock_out_time' => [Rule::requiredIf($notAjaxValidate), 'date_format:Y/m/d h:i A', 'after:clock_in_time'],
             'hours_worked' => [Rule::requiredIf($notAjaxValidate), 'numeric', 'between:0,100', 'regex:/^\d+(\.\d{1,2})?$/'],
@@ -31,9 +31,9 @@ class StoreTimecardRequest extends FormRequest
         if($notAjaxValidate){
             $validator->after(function ($validator) {
                 $employee_id = $this->input('employee_id');
-                $employee_roles_ids = Employee::with('allRoles')->findOrFail($employee_id)->allRoles->pluck('id')->toArray();
-                if (!in_array($this->input('role_id'), $employee_roles_ids)) {
-                    $validator->errors()->add("role_id", 'The employee you selected does not have the selected role');
+                $employee_establishments_ids = Employee::with('wageEstablishments')->findOrFail($employee_id)->wageEstablishments->pluck('id')->toArray();
+                if (!in_array($this->input('establishment_id'), $employee_establishments_ids)) {
+                    $validator->errors()->add("establishment_id", 'The employee you selected does not have the selected role');
                 }
             });
         }

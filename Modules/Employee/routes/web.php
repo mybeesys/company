@@ -44,7 +44,7 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
-        Route::get('/{id}/get-employee-roles', 'getEmployeeRoles')->name('get-employee-roles');
+        Route::get('/{id}/get-employee-establishments', 'getEmployeeEstablishments')->name('get-employee-establishments');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
@@ -72,7 +72,6 @@ Route::middleware([
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
-
 
     Route::controller(dashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
         Route::get('', 'index')->name('index');
@@ -124,6 +123,9 @@ Route::middleware([
             Route::get('', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
             Route::post('/store', 'store')->name('store');
+
+            Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-payroll-allowance');
+            Route::post('/store-payroll-deduction', 'storeDeduction')->name('store-payroll-deduction');
         });
     });
 });

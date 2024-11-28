@@ -18,7 +18,7 @@
 ])
 @php
     // handling repeaters errors
-    // Convert array-style name (e.g., 'role_wage_repeater[0][role]') to dot notation (e.g., 'role_wage_repeater.0.role')
+    // Convert array-style name (e.g., 'pos_role_repeater[0][role]') to dot notation (e.g., 'pos_role_repeater.0.role')
     $dotNotationName = str_replace(['[', ']'], ['.', ''], $name);
 @endphp
 @if ($label)

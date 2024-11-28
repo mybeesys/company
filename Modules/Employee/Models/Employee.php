@@ -2,6 +2,7 @@
 
 namespace Modules\Employee\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\database\factories\EmployeeFactory;
@@ -39,19 +40,55 @@ class Employee extends BaseEmployeeModel
         return EmployeeFactory::new();
     }
 
+
+    public function wageEstablishments()
+    {
+        return $this->belongsToMany(Establishment::class, 'emp_wages')->withTimestamps();
+    }
+
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('role_id', 'wage_type', 'rate');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('role_id');
     }
 
     public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'pos');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
     }
 
     public function dashboardRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'ems');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id')->where('type', 'ems');
+    }
+
+    public function allRoles()
+    {
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
+    }
+
+    public function wages()
+    {
+        return $this->hasMany(Wage::class);
+    }
+
+    public function timecards()
+    {
+        return $this->hasMany(TimeCard::class);
+    }
+
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class);
+    }
+
+    public function allowances()
+    {
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
+    }
+
+    public function deductions()
+    {
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
     }
 
     public function getEmployeeEstablishmentsWithAllOption()
@@ -73,33 +110,8 @@ class Employee extends BaseEmployeeModel
         return $this->$name;
     }
 
-    public function allRoles()
+    public function ScopeActive(Builder $query)
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate');
-    }
-
-    public function wages()
-    {
-        return $this->hasMany(EmployeeRoles::class);
-    }
-
-    public function timecards()
-    {
-        return $this->hasMany(TimeCard::class);
-    }
-
-    public function shifts()
-    {
-        return $this->hasMany(Shift::class);
-    }
-
-    public function allowances()
-    {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
-    }
-
-    public function deductions()
-    {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
+        $query->where('pos_is_active', true);
     }
 }

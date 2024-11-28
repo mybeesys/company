@@ -18,7 +18,8 @@
             datePicker('#employment_start_date', new Date());
             permissionSetRepeater();
             roleRepeater();
-            allowanceRepeater("{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
+            wageRepeater();
+            allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");

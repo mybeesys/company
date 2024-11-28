@@ -142,6 +142,7 @@ return [
     'amount_type' => 'Amount type',
     'new_allowance_type' => 'new allowance type',
     'new_deduction_type' => 'new deduction type',
+    'adjustment_type' => 'Adjustment type',
     'gross_wage' => 'Gross wage',
     'net_wage' => 'Net wage',
     'taxes_withheld' => 'Taxes withheld',
@@ -158,4 +159,8 @@ return [
     'total_worked_days' => 'Total worked days',
     'wage_due_before_tax' => 'Wage due before tax',
     'deduction_type' => 'Deduction type',
+    'pos_roles' => 'Pos roles',
+    'wages' => 'Wages',
+    'establishments' => 'Establishments',
+    'basic_total_wage' => 'Basic total wage',
 ];

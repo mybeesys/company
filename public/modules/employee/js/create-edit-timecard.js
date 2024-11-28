@@ -37,10 +37,10 @@ function timecardForm(id, validationUrl, maximum_regular_hours, maximum_overtime
 
             let maximum_regular_time = maximum_regular_hours.split(':');
             let maximum_regular_time_in_minutes = parseInt(maximum_regular_time[0] * 60) + parseInt(maximum_regular_time[1]);
-
+            
             let maximum_over_time = maximum_overtime_hours.split(':');
             let maximum_over_time_in_minutes = parseInt(maximum_over_time[0] * 60) + parseInt(maximum_over_time[1]);
-
+            
             let overTime = totalMinutes - maximum_regular_time_in_minutes;
             if (overTime > 0) {
                 if (overTime > maximum_over_time_in_minutes) {
@@ -48,12 +48,9 @@ function timecardForm(id, validationUrl, maximum_regular_hours, maximum_overtime
                 } else {
                     $("#overtime_hours").val((overTime / 60).toFixed(2));
                 }
+            }else{
+                $("#overtime_hours").val(0);
             }
-            // let hours = Math.floor(totalMinutes / 60);
-            // let minutes = Math.floor(totalMinutes % 60);
-            // minutes = minutes < 10 ? '0' + minutes : minutes;
-            // hours = hours < 10 ? '0' + hours : hours;
-            // const formattedTime = `${hours}.${minutes}`;
         }
     };
 

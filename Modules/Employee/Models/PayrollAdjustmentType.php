@@ -2,6 +2,7 @@
 
 namespace Modules\Employee\Models;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PayrollAdjustmentType extends BaseEmployeeModel
@@ -16,6 +17,21 @@ class PayrollAdjustmentType extends BaseEmployeeModel
     public function getTranslatedNameAttribute()
     {
         $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
-        return $this->$name ?? $this->name_en ?? $this->name;
+        return ($this->$name ?? $this->name_en) ?? $this->name;
+    }
+
+    public function adjustment()
+    {
+        return $this->hasMany(PayrollAdjustment::class);
+    }
+
+    public function scopeAllowance(Builder $query)
+    {
+        $query->where('type', 'allowance');
+    }
+
+    public function scopeDeduction(Builder $query)
+    {
+        $query->where('type', 'deduction');
     }
 }

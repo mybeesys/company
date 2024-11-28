@@ -2,10 +2,13 @@
 
 namespace Modules\Employee\Http\Controllers;
 
+use App\Helpers\TimeHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use DB;
 use Modules\Employee\Http\Requests\StoreTimesheetRuleRequest;
+use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Services\ShiftService;
 
 class TimeSheetRuleController extends Controller
 {
@@ -24,12 +27,14 @@ class TimeSheetRuleController extends Controller
      */
     public function store(StoreTimesheetRuleRequest $request)
     {
-        if(request()->ajax()){
-            foreach ($request->safe()->all() as $setting_name => $value) {
-                TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
-            }
-            return response()->json(['message' => __('employee::responses.operation_success')]);
+        if ($request->ajax()) {
+            return DB::transaction(function () use ($request) {
+                foreach ($request->safe()->all() as $setting_name => $value) {
+                    TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
+                }
+                ShiftService::storeDefaultShifts();
+                return response()->json(['message' => __('employee::responses.operation_success')]);
+            });
         }
     }
-
 }

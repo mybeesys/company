@@ -5,14 +5,19 @@ namespace Modules\Employee\Classes;
 use Carbon\Carbon;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Schedule;
-use Modules\Employee\Models\TimeSheetRule;
 use Modules\Employee\Services\ShiftFilters;
+use Modules\Employee\Services\ShiftService;
+use Modules\Establishment\Models\Establishment;
 use Yajra\DataTables\DataTables;
 
 class ShiftTable
 {
+    protected $lang;
+    protected $establishment_id;
     public function __construct(protected $table_type, protected $request)
     {
+        $this->lang = session()->get('locale');
+        $this->establishment_id = $this->request->get('filter_establishment') ?? Establishment::first()->id;
     }
 
     public static function getShiftColumns()
@@ -54,153 +59,14 @@ class ShiftTable
         $start_date = Carbon::createFromFormat('Y-m-d', $this->request->input('start_date'));
         $end_date = Carbon::createFromFormat('Y-m-d', $this->request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
-        $employees = Employee::with(['timecards', 'shifts', 'allRoles', 'establishments', 'wages']);
+        $employees = Employee::with(['timecards', 'shifts', 'allRoles', 'wageEstablishments', 'wages'])->whereHas('wageEstablishments', fn ($query) => $query->whereIn('establishment_establishments.id', [$this->establishment_id]))->active();
 
         $filters = new ShiftFilters(['filter_role', 'filter_establishment', 'filter_employee_status']);
         $filters->applyFilters($this->request, $employees);
 
-        $employeeData = $this->getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
+        $shiftService = new ShiftService($this->table_type, $this->request, $this->establishment_id);
+        $employeeData = $shiftService->getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
 
         return DataTables::of($employeeData)->rawColumns($employeeData->first() ? array_keys($employeeData->first()) : [])->make(true);
-    }
-
-    public function getEmployeeData($employees, $start_date, $end_date, $schedules_ids)
-    {
-        $day_times = $this->getStartEndDayTime();
-
-        $start_of_day_time = $day_times['start_of_day'];
-        $end_of_day = $day_times['end_of_day'];
-
-        return $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids, $start_of_day_time, $end_of_day) {
-
-            $shifts = $employee->shifts->whereIn('schedule_id', $schedules_ids)->select('id', 'role_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
-
-            $employee_name = session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
-
-            for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
-
-                $formatted_date = $date->format('Y-m-d');
-
-                $shiftHtml = "<div class='add-schedule-shift-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee_name' data-date='$formatted_date'";
-
-                isset($shifts[$formatted_date]) ? $shifts[$formatted_date] = $this->createDataShiftHtml($shiftHtml, $shifts, $formatted_date) :
-                    $shifts[$formatted_date] = $this->generateShiftHtml(($start_of_day_time && $end_of_day) ? $this->getFieldByType($start_of_day_time, $end_of_day) : '-', $shiftHtml);
-            }
-            $essentialColumns = $this->getEssentialColumns($employee);
-            return array_merge($essentialColumns, $shifts);
-        });
-    }
-
-    public function getFieldByType(Carbon $first_time, Carbon $second_time, $break_duration = null)
-    {
-        $divElement = match ($this->table_type) {
-            'default' => $first_time->format('H:i') . ' - ' . $second_time->format('H:i'),
-            'hours' => $first_time->diffInMinutes($second_time),
-            'breaks' => $break_duration ? $second_time->format('H:i') . '-' . $second_time->addMinutes($break_duration)->format('H:i') . ' (' . ($this->request->format === 'hours_minutes' ? self::convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)) . ')' : '-',
-            'wage' => '-',
-            default => '',
-        };
-        return $divElement;
-    }
-
-    public function createDataShiftHtml($shiftHtml, $shifts, $formatted_date)
-    {
-        foreach ($shifts[$formatted_date] as $key => $item) {
-            $break_duration = $item['break_duration'] ?? 'false';
-            $startTime = Carbon::parse($item['startTime'])->format('H:i');
-            $endTime = Carbon::parse($item['endTime'])->format('H:i');
-
-            $shiftHtml .= ' data-schedule-shift-id-' . $key . '="' . $item['id'] . '"';
-            $shiftHtml .= ' data-role-id-' . $key . '="' . $item['role_id'] . '"';
-            $shiftHtml .= " data-break-duration-$key=$break_duration ";
-            $shiftHtml .= "data-start-time-$key=$startTime ";
-            $shiftHtml .= "data-end-time-$key=$endTime ";
-        }
-        $shiftHtml .= '>';
-        $divElement = [];
-
-        $divElement = [];
-        foreach ($shifts[$formatted_date] as $key => $item) {
-            $startTime = Carbon::parse($item['startTime']);
-            $endTime = Carbon::parse($item['endTime']);
-            $break_duration = isset($item['break_duration']) ? $item['break_duration'] : null;
-            $divElement[] = $this->getFieldByType($startTime, $endTime, $break_duration);
-        }
-        $shiftHtml = $this->generateShiftHtml($divElement, $shiftHtml);
-        $shiftHtml .= '</div>';
-
-        return $shiftHtml;
-    }
-
-    public function generateShiftHtml($divElement, $shiftHtml)
-    {
-        $isArray = is_array($divElement);
-        $element = $isArray ? array_sum(array_filter($divElement, 'is_numeric')) : $divElement;
-        if (!($isArray ? str_contains($divElement[0], '-') : str_contains($divElement, '-'))) {
-            if (!$isArray) {
-                $shiftHtml .= "data-schedule-shift-id=null>";
-            }
-            if ($this->request->format === 'hours_minutes') {
-                return $shiftHtml .= "<div> " . (is_numeric($element) ? self::convertToHoursMinutesHelper($element) : $element) . " </div>";
-            }
-            return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
-
-        } else {
-            if ($isArray) {
-                if (count(array_filter($divElement, fn($item) => $item !== "-")) === 0) {
-                    // If the array contains only dashes ("-")
-                    $divElement = ["-"];  // Keep only one "-"
-                } else {
-                    // If the array contains other items, remove all dashes
-                    $divElement = array_filter($divElement, fn($item) => $item !== "-");
-                }
-
-                return $shiftHtml .= implode('', array_map(function ($element) {
-                    return "<div> $element </div>";
-                }, $divElement));
-            }
-            return $shiftHtml .= "data-schedule-shift-id=null> $divElement </div>";
-        }
-    }
-
-    public function getEssentialColumns($employee)
-    {
-        return [
-            'id' => $employee->id,
-            'employee' => session()->get('locale') === 'ar' ? $employee->name : $employee->name_en,
-            'total_hours' => $employee->timecards->sum('hours_worked'),
-            'total_wages' => $employee->wages->sum('rate'),
-            'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
-            'establishment' => implode('<br>', $employee->getEmployeeEstablishmentsWithAllOption()),
-            'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
-                            <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
-                        </div>'
-        ];
-    }
-
-    public static function getStartEndDayTime()
-    {
-        $workingHours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value;
-        $startOfDay = TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')?->rule_value;
-
-        if ($workingHours && $startOfDay) {
-            $workingMinutes = explode(':', $workingHours);
-            $totalMinutes = $workingMinutes[0] * 60 + $workingMinutes[1];
-
-            $startOfDayTime = Carbon::parse($startOfDay);
-            return [
-                'start_of_day' => $startOfDayTime,
-                'end_of_day' => $startOfDayTime->copy()->addMinutes($totalMinutes)
-            ];
-        }
-
-        return ['start_of_day' => null, 'end_of_day' => null];
-    }
-
-    public static function convertToHoursMinutesHelper($totalMinutes)
-    {
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
-        return sprintf('%02d:%02d', $hours, $minutes);
     }
 }

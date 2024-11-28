@@ -11,14 +11,8 @@
         ],
         [
             'name' => 'establishment_filter',
-            'selected' => 'all',
-            'options' => array_merge(
-                [
-                    ['id' => 'all', 'name' => __('employee::general.all')],
-                    ['id' => 'all_establishments', 'name' => __('employee::general.all_establishments')],
-                ],
-                $establishments->toArray(),
-            ),
+            'selected' => $establishments->first()->id,
+            'options' => $establishments->toArray()
         ],
         [
             'name' => 'role_filter',
