@@ -1,47 +1,46 @@
 /* Dropdown container */
 .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-  
-  /* Button that triggers the dropdown */
-  .dropdown-button {
-    background-color: #0078d7;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 4px;
-  }
-  
-  /* Dropdown content */
-  .dropdown-content {
-    position: absolute;
-    background-color: white;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    min-width: 200px;
-    z-index: 1;
-    border-radius: 4px;
-    margin-top: 5px;
-  }
-  
-  /* Dropdown items */
-  .dropdown-content a {
-    padding: 10px 15px;
-    display: block;
-    text-decoration: none;
-    color: #333;
-    font-size: 14px;
-  }
-  
-  .dropdown-content a:hover {
-    background-color: #f1f1f1;
-  }
-  
-  /* Highlight the delete option */
-  .dropdown-content .delete {
-    color: red;
-    font-weight: bold;
-  }
-  
+  position: relative;
+  display: inline-block;
+}
+
+/* Button that triggers the dropdown */
+.dropdown-button {
+  background-color: #F9F9F9;
+  color: #99a1b7;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+/* Dropdown content */
+.dropdown-content {
+  position: fixed;
+  background-color: white;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  z-index: 1;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Dropdown items */
+.dropdown-content a {
+  padding: 10px 15px;
+  display: block;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+/* Highlight the delete option */
+.dropdown-content .delete {
+  color: red;
+  font-weight: bold;
+}

@@ -46,5 +46,7 @@ return [
     'inventory_module' => 'المستودع',
     'po' => 'طلبات الشراء',
     'prep' => 'التحضيرات',
-    'rma' => 'RMA'
+    'rma' => 'RMA',
+    'ingredientInventory' => 'المكونات'
+
 ];

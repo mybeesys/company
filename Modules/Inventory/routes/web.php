@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
+use Modules\Inventory\Http\Controllers\IngredientInventoryController;
 use Modules\Inventory\Http\Controllers\InventoryOperationController;
 use Modules\Inventory\Http\Controllers\PrepController;
 use Modules\Inventory\Http\Controllers\ProductInventoryController;
@@ -30,7 +31,8 @@ Route::middleware([
     Route::resource('productInventory', ProductInventoryController::class)->names('productInventory');
     Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
     Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
-    Route::resource('purchaseOrder', PurchaseOrderController::class)->names('purchaseOrder');
+    Route::resource('ingredientInventory', IngredientInventoryController::class)->names('ingredientInventory');
+    Route::get('ingredientInventoryList', [IngredientInventoryController::class, 'getIngredientInventories'])->name('ingredientInventoryList');
     Route::resource('prep', PrepController::class)->names('prep');
     Route::resource('rma', RMAController::class)->names('rma');
     Route::resource('inventoryOperation', InventoryOperationController::class)->names('inventoryOperation');

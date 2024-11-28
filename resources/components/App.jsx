@@ -44,15 +44,18 @@ const App = ({nodeType, dir}) =>{
     discountedit    : <DiscountDetail translations={translations} dir={dir}/>,
     linkedCombo     : <LinkedComboTable translations={translations} dir={dir}/>,
     linkedComboedit    : <LinkedComboDetail translations={translations} dir={dir}/>,
-    productinventory : <ProductInventoryTable translations={translations} dir={dir}/>,
-    productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}/>,
+    productinventory : <ProductInventoryTable translations={translations} dir={dir} p_type={'product'}/>,
+    productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}  p_type={'product'}/>,
     purchaseOrder : <PurchaseOrderTable translations={translations} dir={dir}/>,
     purchaseorderedit : <PurchaseOrderDetail translations={translations} dir={dir}/>,
     purchaseorderrecieve : <PurchaseOrderReceive translations={translations} dir={dir}/>,
     prep : <PrepTable translations={translations} dir={dir}/>,
     prepedit : <PrepDetail translations={translations} dir={dir}/>,
     rma : <RmaTable translations={translations} dir={dir}/>,
-    rmaedit : <RmaDetail translations={translations} dir={dir}/>
+    rmaedit : <RmaDetail translations={translations} dir={dir}/>,
+    ingredientinventory : <ProductInventoryTable translations={translations} dir={dir} p_type={'ingredient'}/>,
+    ingredientinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}  p_type={'ingredient'}/>,
+   
   }
   
   useEffect(() => {

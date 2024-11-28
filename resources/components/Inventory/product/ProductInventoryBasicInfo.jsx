@@ -3,7 +3,7 @@ import { getName } from "../../lang/Utils";
 import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
 
 
-const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange, dir }) => {
+const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange, dir, p_type}) => {
 
     return (
         <div class="card-body" dir={dir}>
@@ -24,7 +24,7 @@ const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange,
                         <AsyncSelectComponent
                             field="unit"
                             dir={dir}
-                            searchUrl={`searchUnitTransfers?product_id=${currentObject.product_id}`}
+                            searchUrl={`searchUnitTransfers?${p_type}_id=` + currentObject[`${p_type}_id`]}
                             currentObject={currentObject.unit}
                             onBasicChange={onBasicChange} />
                     </div>

@@ -46,6 +46,7 @@ return [
     'inventory_module' => 'Invenetory',
     'po' => 'PO',
     'prep' => 'Prep',
-    'rma' => 'RMA'
+    'rma' => 'RMA',
+    'ingredientInventory' => 'Ingredients'
 
 ];

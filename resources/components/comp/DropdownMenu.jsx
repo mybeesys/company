@@ -30,8 +30,10 @@ const DropdownMenu = ({actions, data, translations, afterExecute}) => {
         <div className="dropdown-content">
           {actions.map((action) => 
             <a href="javascript:void(0);" onClick={(e)=> {
+              toggleDropdown();
               action.action(data);
               afterExecute();
+              
             }}>{translations[action.key]}</a>
           )}
         </div>

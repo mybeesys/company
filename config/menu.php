@@ -77,6 +77,11 @@ return [
             'permission' => '',
         ],
         [
+            'name' => 'ingredientInventory',
+            'url' => 'ingredientInventory',
+            'permission' => '',
+        ],
+        [
             'name' => 'po',
             'url' => 'purchaseOrder',
             'permission' => '',
