@@ -19,7 +19,10 @@ import ProductInventoryDetail from './Inventory/product/ProductInventoryDetail';
 import PurchaseOrderDetail from './Inventory/purchaseOrder/PurchaseOrderDetail';
 import PurchaseOrderTable from './Inventory/purchaseOrder/PurchaseOrderTable';
 import PurchaseOrderReceive from './Inventory/purchaseOrder/PurchaseOrderReceive';
-
+import PrepTable from './Inventory/prep/PrepTable';
+import PrepDetail from './Inventory/prep/PrepDetail';
+import RmaDetail from './Inventory/rma/RmaDetail';
+import RmaTable from './Inventory/rma/RmaTable';
 
 
 const App = ({nodeType, dir}) =>{
@@ -43,9 +46,13 @@ const App = ({nodeType, dir}) =>{
     linkedComboedit    : <LinkedComboDetail translations={translations} dir={dir}/>,
     productinventory : <ProductInventoryTable translations={translations} dir={dir}/>,
     productinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}/>,
+    purchaseOrder : <PurchaseOrderTable translations={translations} dir={dir}/>,
     purchaseorderedit : <PurchaseOrderDetail translations={translations} dir={dir}/>,
     purchaseorderrecieve : <PurchaseOrderReceive translations={translations} dir={dir}/>,
-    purchaseorder : <PurchaseOrderTable translations={translations} dir={dir}/>
+    prep : <PrepTable translations={translations} dir={dir}/>,
+    prepedit : <PrepDetail translations={translations} dir={dir}/>,
+    rma : <RmaTable translations={translations} dir={dir}/>,
+    rmaedit : <RmaDetail translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

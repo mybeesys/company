@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Product\Models\Vendor;
+
 
 class PurchaseOrder extends Model
 {
@@ -17,47 +17,54 @@ class PurchaseOrder extends Model
 
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
-    protected $table = 'inventory_purchase_orders';
+    protected $table = 'inventory_Op_purchaseOrder';
 
     // Specify the primary key if it is not 'id'
     protected $primaryKey = 'id';
 
     // If you want to allow mass assignment, define the fillable fields
-    protected $fillable = [
-        'no',
+    protected $fillable = ['operation_id',
         'vendor_id',
-        'po_status',
         'invoice_status',
-        'po_date',
-        'notes',
         'tax',
         'misc_amount',
-        'shipping_amount',
-        'total'
+        'shipping_amount'
     ];
 
     public function getFillable(){
         return $this->fillable;
     }
 
-    public function addToFillable($key){
-        return array_push($this->fillable, $key);
+    public function addToFillable(){
+        return array_push($this->fillable, 'vendor');
     }
 
     public $type = 'purchaseOrder';
 
     protected $casts = [
-        'po_status' => PurchaseOrderStatus::class,  // Cast the 'status' attribute to the Status enum
-        'invoice_status' => PurchaseOrderInvoiceStatus::class,  // Cast the 'status' attribute to the Status enum
+       'invoice_status' => PurchaseOrderInvoiceStatus::class,  // Cast the 'status' attribute to the Status enum
     ];
+
+    public $validated = ['tax' => 'nullable|numeric',
+            'misc_amount' => 'nullable|numeric',
+            'shipping_amount' => 'nullable|numeric'];
+
+    public function totals($validated){
+        return (isset($validated["tax"]) ? $validated["tax"] : 0 ) + 
+        (isset($validated["misc_amount"]) ? $validated["misc_amount"] : 0 ) +
+        (isset($validated["shipping_amount"]) ? $validated["shipping_amount"] : 0 );
+    }
+
+    public function fillValidated($validated, $data){
+        $validated["invoice_status"] = PurchaseOrderInvoiceStatus::unIvoiced;
+        if (isset($data["vendor"])) {
+            $validated["vendor_id"] = $data["vendor"]["id"];
+        }
+        return $validated;
+    }
 
     public function vendor()
     {
         return $this->belongsTo(Vendor::class, 'vendor_id', 'id');
-    }
-
-    public function items()
-    {
-        return $this->hasMany(PurchaseOrderItem::class, 'purchase_order_id', 'id');
     }
 }

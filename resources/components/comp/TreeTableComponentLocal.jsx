@@ -170,7 +170,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
 
     const renderCell = (node, col, index) => {//key, autoFocus, options, type, editable, required, index, customCell) => {
         if(!!col.customCell && !!!node.data.empty){
-            return col.customCell(node.data, col.key, node.key == currentKey, col.editable);
+            return col.customCell(node.data, col.key, node.key == currentKey, col.editable, handleEditorChange);
         }
         let firstCell = index == "0" ? true: false; 
         if (col.type == "Text")

@@ -92,4 +92,8 @@ class Product extends Model
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'product_id');
     }
+    public function unitTransfers()
+    {
+        return $this->hasMany(UnitTransfer::class, 'product_id', 'id');
+    }
 }

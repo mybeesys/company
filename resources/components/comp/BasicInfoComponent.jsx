@@ -50,6 +50,18 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
                 </>
             )
         }
+        if(field.type == "Number"){
+            return (
+                <>
+                    <label for={field.key} class="col-form-label">{translations[field.title]}</label>
+                    <input type="number" min="0" class="form-control" id={field.key} 
+                    value={currentObject[field.key]}
+                        onChange={(e) => onBasicChange(field.key, e.target.value)}
+                        required={!!field.required}
+                        readOnly={!!field.readOnly}/>
+                </>
+            )
+        }
         if(field.type == "Text"){
             return (
                 <>

@@ -4,7 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DropdownMenu from '../../comp/DropdownMenu';
 import TreeTableComponent from '../../comp/TreeTableComponent';
 
-const PurchaseOrderTable = ({ dir, translations }) => {
+const RmaTable = ({ dir, translations }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
   const [showAlert, setShowAlert] = useState(false);
@@ -41,20 +41,10 @@ const PurchaseOrderTable = ({ dir, translations }) => {
       actions.push({key:"sent", action: (data, afterExecute)=>{
         changeStatus(data, 1, afterExecute);
       }});
-    if(data.op_status != 4 && data.op_status!= 3)
-      actions.push({key:"recieveItems", action: (data)=>{    
-        window.location.href = `purchaseOrder/${data.id}/recieve`;
+    if(data.op_status != 6)
+      actions.push({key:"approved", action: (data, afterExecute)=>{
+        changeStatus(data, 6, afterExecute);
       }});
-    if(data.op_status != 4)
-      actions.push({key:"finalized", action: (data, afterExecute)=>{
-        changeStatus(data, 4, afterExecute);
-      }});
-    // if(data.invoice_status != 2)
-    // {
-    //   actions.push({key:"invoiced", action: (data, afterExecute)=>{
-    //     changeInvoiceStatus(data, 4, afterExecute);
-    //   }});
-    // }
     return <DropdownMenu actions={actions} data={data} translations={translations} afterExecute={refreshTree}/>;
   }
 
@@ -72,12 +62,12 @@ const PurchaseOrderTable = ({ dir, translations }) => {
       <TreeTableComponent
         translations={translations}
         dir={dir}
-        urlList={`${urlList}/0`}
-        editUrl={'purchaseOrder/%/edit'}
-        addUrl={'purchaseOrder/create'}
+        urlList={`${urlList}/2`}
+        editUrl={'rma/%/edit'}
+        addUrl={'rma/create'}
         canEditRow={canEditRow}
         canAddInline={false}
-        title="purchaseOrders"
+        title="rmas"
         cols={[
           {key : "no", autoFocus: true, type :"Text", width:'15%'},
           {key : "vendor", autoFocus: true, type :"AsyncDropDown", width:'15%'},
@@ -95,4 +85,4 @@ const PurchaseOrderTable = ({ dir, translations }) => {
   );
 };
 
-export default PurchaseOrderTable;
+export default RmaTable;

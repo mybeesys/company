@@ -4,10 +4,10 @@ import BasicInfoComponent from "../../comp/BasicInfoComponent";
 import TreeTableComponentLocal from "../../comp/TreeTableComponentLocal";
 import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
 
-const PurchaseOrderDetail = ({ dir, translations }) => {
+const RmaDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
-    let purchaseOrder = JSON.parse(rootElement.getAttribute('purchaseOrder'));
-    const [currentObject, setcurrentObject] = useState(purchaseOrder);
+    let rma = JSON.parse(rootElement.getAttribute('rma'));
+    const [currentObject, setcurrentObject] = useState(rma);
     
     useEffect(() => {
         updateTotals(currentObject);
@@ -123,7 +123,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                 onDelete={null}/>
             },
             { 
-                key: 'pOInfo', 
+                key: 'rmaInfo', 
                 visible: true, 
                 comp : <BasicInfoComponent
                         currentObject={currentObject}
@@ -132,9 +132,9 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                         onBasicChange={onBasicChange}
                         fields={
                             [   
-                                {key:"op_date" , title:"date", type:"Date", required : true, newRow: true},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true},
                                 {key:"notes" , title:"notes", type:"TextArea", newRow: true},
+                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true},
+                                {key:"" , title:"", type:"Empty", newRow: true},
                                 {key:"tax" , title:"tax", type:"Decimal"},
                                 {key:"" , title:"", type:"Empty", newRow: true},
                                 {key:"total" , title:"total", type:"Decimal", readOnly: true},
@@ -152,10 +152,10 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="inventoryOperation/store/0"
-          afterSubmitUrl="../../purchaseOrder"
+          apiUrl="inventoryOperation/store/2"
+          afterSubmitUrl="../../rma"
         />
     );
 }
 
-export default PurchaseOrderDetail;
+export default RmaDetail;

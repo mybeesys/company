@@ -44,6 +44,7 @@ return [
     'linkedCombo' => 'كومبو',
     'inventory' =>'المنتجات',
     'inventory_module' => 'المستودع',
-    'po' => 'طلبات الشراء'
-
+    'po' => 'طلبات الشراء',
+    'prep' => 'التحضيرات',
+    'rma' => 'RMA'
 ];

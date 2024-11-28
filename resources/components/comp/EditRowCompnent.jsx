@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SweetAlert2 from 'react-sweetalert2';
 import axios from 'axios';
 
-const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl, afterSubmitUrl}) => {
+const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl, afterSubmitUrl, validateObject}) => {
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
   const [menu, setMenu] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -16,6 +16,22 @@ const EditRowCompnent = ({dir, translations, defaultMenu, currentObject, apiUrl,
     try {
       setSubmitdisableButton(true);
       let r = { ...currentObject };
+      let message = !!validateObject ? validateObject(currentObject) : 'Success';
+      if(message!= 'Success'){
+        setShowAlert(true);
+        Swal.fire({
+            show: showAlert,
+            title: 'Error',
+            text: message ,
+            icon: "error",
+            timer: 2000,
+            showCancelButton: false,
+            showConfirmButton: false,
+           }).then(() => {
+            setShowAlert(false); // Reset the state after alert is dismissed
+          });
+        return;
+      }
       // r["cards"] = r["cards"].map(x=> { return {payment_card_id : x.value} });
       // r["diningTypes"] = r["diningTypes"].map(x=> { return {dining_type_id : x.value} });
       const response = await axios.post(`/${apiUrl}`, r);

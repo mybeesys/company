@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inventory_purchase_order_items', function (Blueprint $table) {
-            //
-            $table->decimal('recievd_qty')->nullable()->after('qty');
-        });
+        Schema::table('inventory_Operation_items', function (Blueprint $table) {
+          
+            $table->string('item_type');
+             });
     }
 
     /**

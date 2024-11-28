@@ -24,15 +24,39 @@ class ProductController extends Controller
         return response()->json($products);
      }
 
-    public function listRecipe($id)
-    {
-        $recipe = RecipeProduct::where([['product_id', '=', $id]])->get();
-        foreach ( $recipe as $rec) 
-        {
-            $rec->newid = $rec->item_id."-".$rec->item_type;
-        }
-        return response()->json($recipe);
-    }
+     public function searchProducts(Request $request)
+     {
+         $query = $request->query('query');  // Get 'query' parameter
+         $key = $request->query('key', '');
+         $products = Product::where('name_ar', 'like', '%' . $key . '%')
+                             ->orWhere('name_en', 'like', '%' . $key . '%')
+                             ->get();
+         $products = $products->map(function ($product) {
+             $product->item_type = 'p'; // Set the value of 'item_type'
+             return $product;
+         });
+         return response()->json($products);
+     }
+ 
+     public function listRecipe($id, Request $request)
+     {
+         $key = $request->query('with_ingredient', '');
+         $recipes = null;
+         if(isset($key) && $key='Y'){
+             $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+             foreach ($recipes as $recipe) {
+                 $recipe->products = $recipe->products;
+                 $recipe->products->unitTransfers = $recipe->products->unitTransfers;
+             }
+         }
+         else
+             $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+         foreach ( $recipes as $rec) 
+         {
+             $rec->newid = $rec->item_id."-".$rec->item_type;
+         }
+         return response()->json($recipes);
+     }
     
     public function index()
     {
@@ -115,10 +139,12 @@ class ProductController extends Controller
             $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
             $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
             $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
-            $product->group_combo = $validated['group_combo'];
+            if(isset($validated['group_combo']))
+                $product->group_combo = $validated['group_combo'];
             $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
             $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
-            $product->linked_combo = $validated['linked_combo'];
+            if(isset($validated['linked_combo']))
+                $product->linked_combo = $validated['linked_combo'];
             $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
             if ($request->hasFile('image_file')) 
             {
@@ -521,13 +547,5 @@ class ProductController extends Controller
     {
         //
     }
-    public function searchProducts(Request $request)
-    {
-        $query = $request->query('query');  // Get 'query' parameter
-        $key = $request->query('key', '');
-        $products = Product::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->get();
-        return response()->json($products);
-    }
+    
 }

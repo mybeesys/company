@@ -4,7 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DropdownMenu from '../../comp/DropdownMenu';
 import TreeTableComponent from '../../comp/TreeTableComponent';
 
-const PurchaseOrderTable = ({ dir, translations }) => {
+const PrepTable = ({ dir, translations }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
   const [showAlert, setShowAlert] = useState(false);
@@ -17,7 +17,7 @@ const PurchaseOrderTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['prep']}: ${data.no} ${translations[resp.data.op_status_name]}`,
+            title: `${translations['purchaseOrder']}: ${data.no} ${translations[resp.data.op_status_name]}`,
             text: translations.technicalerror ,
             icon: "success",
             timer: 2000,
@@ -38,23 +38,9 @@ const PurchaseOrderTable = ({ dir, translations }) => {
   const dropdownCell = (data, key, editMode, editable, refreshTree) => {
     let actions = [];
     if(data.op_status == 0)
-      actions.push({key:"sent", action: (data, afterExecute)=>{
-        changeStatus(data, 1, afterExecute);
+      actions.push({key:"preped", action: (data, afterExecute)=>{
+        changeStatus(data, 5, afterExecute);
       }});
-    if(data.op_status != 4 && data.op_status!= 3)
-      actions.push({key:"recieveItems", action: (data)=>{    
-        window.location.href = `purchaseOrder/${data.id}/recieve`;
-      }});
-    if(data.op_status != 4)
-      actions.push({key:"finalized", action: (data, afterExecute)=>{
-        changeStatus(data, 4, afterExecute);
-      }});
-    // if(data.invoice_status != 2)
-    // {
-    //   actions.push({key:"invoiced", action: (data, afterExecute)=>{
-    //     changeInvoiceStatus(data, 4, afterExecute);
-    //   }});
-    // }
     return <DropdownMenu actions={actions} data={data} translations={translations} afterExecute={refreshTree}/>;
   }
 
@@ -72,15 +58,15 @@ const PurchaseOrderTable = ({ dir, translations }) => {
       <TreeTableComponent
         translations={translations}
         dir={dir}
-        urlList={`${urlList}/0`}
-        editUrl={'purchaseOrder/%/edit'}
-        addUrl={'purchaseOrder/create'}
+        urlList={`${urlList}/1`}
+        editUrl={'prep/%/edit'}
+        addUrl={'prep/create'}
         canEditRow={canEditRow}
         canAddInline={false}
-        title="purchaseOrders"
+        title="preps"
         cols={[
           {key : "no", autoFocus: true, type :"Text", width:'15%'},
-          {key : "vendor", autoFocus: true, type :"AsyncDropDown", width:'15%'},
+          {key : "product", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},
           {key : "op_status", autoFocus: true, type :"Date", width:'15%',
@@ -95,4 +81,4 @@ const PurchaseOrderTable = ({ dir, translations }) => {
   );
 };
 
-export default PurchaseOrderTable;
+export default PrepTable;

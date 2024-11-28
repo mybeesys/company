@@ -9,7 +9,7 @@
 
    						
       <div id="root" type="purchaseorderedit" 
-      purchaseOrder="{{json_encode($purchaseOrder)}}"
+      purchaseOrder="{{json_encode($inventoryOperation)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

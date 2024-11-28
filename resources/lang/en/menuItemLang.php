@@ -36,7 +36,6 @@ return [
     'payroll' => 'Payroll',
     'costCenter'=>'Cost Centers',
     'serviceFee' => 'Service Fees',
-
     'employees_working_hours' => 'Employees working hours' ,
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
@@ -45,6 +44,8 @@ return [
     'linkedCombo' => 'Linked Combo',
     'inventory' =>'Product',
     'inventory_module' => 'Invenetory',
-    'po' => 'PO'
+    'po' => 'PO',
+    'prep' => 'Prep',
+    'rma' => 'RMA'
 
 ];

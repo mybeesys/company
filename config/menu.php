@@ -80,6 +80,16 @@ return [
             'name' => 'po',
             'url' => 'purchaseOrder',
             'permission' => '',
+        ],
+        [
+            'name' => 'prep',
+            'url' => 'prep',
+            'permission' => '',
+        ],
+        [
+            'name' => 'rma',
+            'url' => 'rma',
+            'permission' => '',
         ]]
     ],
     [

@@ -8,8 +8,8 @@
 @section('content')
 
    						
-      <div id="root" type="purchaseorderrecieve" 
-      purchaseOrder="{{json_encode($inventoryOperation)}}"
+      <div id="root" type="prepedit" 
+      prep="{{json_encode($prep)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 
