@@ -22,8 +22,9 @@
                             <x-form.select name="payroll_group_state" :options="[
                                 ['id' => 'draft', 'name' => __('employee::fields.draft')],
                                 ['id' => 'final', 'name' => __('employee::fields.final_invoice')],
-                            ]" :errors="$errors" value="{{ $payroll_group?->state }}"
-                                data_allow_clear="false" required placeholder="{{ __('employee::fields.status') }}" />
+                            ]" :errors="$errors"
+                                value="{{ $payroll_group?->state }}" data_allow_clear="false" required
+                                placeholder="{{ __('employee::fields.status') }}" />
                         </x-form.input-div>
                     </x-slot:elements>
                     <x-slot:export>
@@ -39,7 +40,8 @@
             <input type="hidden" name="employee_ids" value="{{ request()->get('employee_ids') }}">
             <input type="hidden" name="establishment_ids" value="{{ request()->get('establishment_ids') }}">
             <input type="hidden" name="date" value="{{ request()->get('date') }}">
-            <input type="hidden" name="payroll_group_id" value="{{ isset($payroll_group?->id) ? $payroll_group?->id : null }}">
+            <input type="hidden" name="payroll_group_id"
+                value="{{ isset($payroll_group?->id) ? $payroll_group?->id : null }}">
             <x-form.form-buttons cancelUrl="{{ url('/schedule/payroll') }}" class="px-10 py-5" />
         </form>
     </x-cards.card>
@@ -61,6 +63,7 @@
             let employee_ids = urlParams.get('employee_ids');
             let establishment_ids = urlParams.get('establishment_ids');
             date = urlParams.get('date');
+
             const queryParams = new URLSearchParams({
                 employee_ids: employee_ids,
                 establishment_ids: establishment_ids,
@@ -71,8 +74,8 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('schedules.payrolls.store-payroll-allowance') }}");
-            addDeductionForm("{{ route('schedules.payrolls.store-payroll-deduction') }}")
+            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}");
+            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}")
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
@@ -82,6 +85,37 @@
                 "{{ session()->get('locale') }}");
             allowanceDeductionRepeater('deduction', "{{ route('adjustment_types.store') }}",
                 "{{ session()->get('locale') }}");
+
+
+
+            const lockKey = `payroll_creation_lock_${date}_${establishment_ids}`;
+
+            const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
+            const releaseLockUrl = '{{ route('schedules.payrolls.releaseLock') }}';
+
+            function extendLock() {
+                fetch(extendLockUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        lockKey
+                    })
+                }).catch(() => console.error('Failed to extend lock'));
+            }
+
+            // Extend the lock every 25 seconds
+            const lockInterval = setInterval(extendLock, 25000);
+
+            // Release the lock when the user leaves the page
+            window.addEventListener('beforeunload', () => {
+                clearInterval(lockInterval); // Stop further lock extensions
+                navigator.sendBeacon(releaseLockUrl, JSON.stringify({
+                    lockKey
+                }));
+            });
 
         });
 

@@ -4,7 +4,7 @@ return [
     ['name' => 'maximum_overtime_hours_per_day', 'type' => '', 'hint' => true, 'placeholder' => 'h_m', 'collapse' => false,],
     ['name' => 'overtime_rate_multiplier', 'type' => '', 'hint' => true, 'placeholder' => 'number', 'collapse' => false,],
     // ['name' => 'doubletime_rate_multiplier', 'type' => '', 'hint' => true, 'placeholder' => 'number', 'collapse' => false,],
-    ['name' => 'maximum_regular_hours_per_week', 'type' => '', 'hint' => true, 'placeholder' => 'h_m', 'collapse' => false,],
+    // ['name' => 'maximum_regular_hours_per_week', 'type' => '', 'hint' => true, 'placeholder' => 'h_m', 'collapse' => false,],
     ['name' => 'allow_clockin_before_shift', 'type' => 'checkbox', 'hint' => true, 'placeholder' => '', 'collapse' => true, 'collapsed_input' => ['name' => 'clock_in_before_shift_time_limit', 'type' => '', 'hint' => true, 'placeholder' => 'h_m']],
     ['name' => 'require_manager_approval_for_late_clockin', 'type' => 'checkbox', 'hint' => false, 'placeholder' => '', 'collapse' => false,],
     ['name' => 'prevent_employee_clockin_before_break_end', 'type' => 'checkbox', 'hint' => true, 'placeholder' => '', 'collapse' => false,],

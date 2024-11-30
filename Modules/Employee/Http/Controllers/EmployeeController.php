@@ -13,6 +13,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
+use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
 
@@ -82,27 +83,8 @@ class EmployeeController extends Controller
         $columns = EmployeeTable::getEmployeeColumns();
         $permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
 
-        $modules = Permission::where('type', 'ems')
-            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
-            ->groupBy(function ($item) {
-                return explode(".", $item->name)[0];
-            })
-            ->map(function ($permissions) {
-                return $permissions->map(function ($item) {
-                    $nameParts = explode(".", $item->name);
-                    return [
-                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
-                        'action' => $nameParts[2],
-                        'id' => $item->id,
-                    ];
-                })->groupBy('entity')->map(function ($groupedPermissions) {
-                    return $groupedPermissions->mapWithKeys(function ($item) {
-                        return [
-                            $item['action'] => $item['id'],
-                        ];
-                    });
-                });
-            });
+        $modules = DashboardRoleService::getModulesPermissions();
+
         return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules'));
     }
 

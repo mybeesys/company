@@ -17,7 +17,7 @@ class StoreTimesheetRuleRequest extends FormRequest
             'maximum_overtime_hours_per_day' => ['required', 'string', $this->minHoursRule()],
             'overtime_rate_multiplier' => ['required', 'decimal:0,1'],
             // 'doubletime_rate_multiplier' => ['required', 'decimal:0,1'],
-            'maximum_regular_hours_per_week' => ['required', 'string', $this->minHoursRule()],
+            // 'maximum_regular_hours_per_week' => ['required', 'string', $this->minHoursRule()],
             'allow_clockin_before_shift' => ['required', 'boolean'],
             'require_manager_approval_for_late_clockin' => ['required', 'boolean'],
             'prevent_employee_clockin_before_break_end' => ['required', 'boolean'],

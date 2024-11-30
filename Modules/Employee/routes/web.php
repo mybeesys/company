@@ -13,6 +13,7 @@ use Modules\Employee\Http\Controllers\PosRoleController;
 use Modules\Employee\Http\Controllers\ShiftController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
+use Modules\Employee\Models\PayrollAdjustment;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -131,6 +132,11 @@ Route::middleware([
             Route::get('/save', 'create')->name('create');
             Route::post('/store', 'store')->name('store');
 
+            Route::post('/extend-lock', 'extendLock')->name('extendLock');
+            Route::post('/release-lock', 'releaseLock')->name('releaseLock');
+        });
+
+        Route::controller(PayrollAdjustment::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
             Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-payroll-allowance');
             Route::post('/store-payroll-deduction', 'storeDeduction')->name('store-payroll-deduction');
         });

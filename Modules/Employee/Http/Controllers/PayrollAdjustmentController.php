@@ -3,63 +3,28 @@
 namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Modules\Employee\Http\Requests\StoreAllowanceRequest;
+use Modules\Employee\Http\Requests\StoreDeductionRequest;
+use Modules\Employee\Models\Employee;
+use Modules\Employee\Services\AdjustmentAction;
 
 class PayrollAdjustmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function storeAllowance(StoreAllowanceRequest $request)
     {
-        return view('employee::index');
+        $allowances_repeater = $request->allowance_repeater;
+        $employee = Employee::find($request->employee_id);
+        AdjustmentAction::processPayrollAdjustment($allowances_repeater, $employee, $request->date, 'allowance');
+        return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function storeDeduction(StoreDeductionRequest $request)
     {
-        return view('employee::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('employee::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('employee::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        $deductions_repeater = $request->deduction_repeater;
+        $employee = Employee::find($request->employee_id);
+        
+        AdjustmentAction::processPayrollAdjustment($deductions_repeater, $employee, $request->date, 'deduction');
+        return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 }
