@@ -17,4 +17,5 @@ return [
     'minutes_cannot_be_above_60' => 'Minutes can\'t be above 60',
     'duplicate_payroll' => 'can\'t extract two payrolls for the date and the same establishment at the same time',
     'payroll_created_successfully' => 'Payroll has been created successfully',
+    'payroll_creation_in_progress' => 'Payroll processing is already being conducted for the same date and establishment. Please wait 20 seconds and try again',
 ];
