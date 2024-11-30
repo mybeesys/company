@@ -47,14 +47,17 @@ class PayrollController extends Controller
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
 
-        $lockKey = 'payroll_creation_lock_' . $date . '_' . implode('-', $establishmentIds);
+        $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
         $lock = Cache::lock($lockKey, 30);
+
+        if ($request->ajax()) {
+            return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
+        }
 
         if (!$lock->get()) {
             return to_route('schedules.payrolls.index')
                 ->with('error', __('employee::responses.payroll_creation_in_progress'));
         }
-
 
         $payroll_group = PayrollGroup::with(['establishments', 'payrolls'])
             ->whereHas('establishments', fn($query) => $query->whereIn('id', $establishmentIds))
@@ -69,10 +72,6 @@ class PayrollController extends Controller
                 $employeeIds = $employeeIds->diff($ids_to_remove);
             }
             $payroll_group_id = null;
-        }
-
-        if ($request->ajax()) {
-            return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
         $allowances_types = PayrollAdjustmentType::where('type', 'allowance')->get();
@@ -96,21 +95,13 @@ class PayrollController extends Controller
     public function extendLock(Request $request)
     {
         $lockKey = $request->input('lockKey');
-        $lock = Cache::lock($lockKey, 30); // Reacquire lock for another 30 seconds
+        $lock = Cache::lock($lockKey, 20);
 
         if ($lock->get()) {
-            $lock->release(); // Release immediately to extend the timeout
             return response()->json(['status' => 'lock extended'], 200);
         }
 
         return response()->json(['status' => 'lock not acquired'], 400);
-    }
-
-    public function releaseLock(Request $request)
-    {
-        $lockKey = $request->input('lockKey');
-        Cache::lock($lockKey, 0)->release();
-        return response()->json(['status' => 'lock released'], 200);
     }
 
 

@@ -87,36 +87,21 @@
                 "{{ session()->get('locale') }}");
 
 
-
-            const lockKey = `payroll_creation_lock_${date}_${establishment_ids}`;
+            const lockKey = `payroll_creation_lock_${date}_(${establishment_ids})`;
 
             const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
             const releaseLockUrl = '{{ route('schedules.payrolls.releaseLock') }}';
 
             function extendLock() {
-                fetch(extendLockUrl, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        lockKey
-                    })
-                }).catch(() => console.error('Failed to extend lock'));
+                let data = {
+                    lockKey: lockKey,
+                    _token: '{{ csrf_token() }}'
+                };
+                ajaxRequest(extendLockUrl, 'POST', data, false, false, false);
             }
 
-            // Extend the lock every 25 seconds
-            const lockInterval = setInterval(extendLock, 25000);
-
-            // Release the lock when the user leaves the page
-            window.addEventListener('beforeunload', () => {
-                clearInterval(lockInterval); // Stop further lock extensions
-                navigator.sendBeacon(releaseLockUrl, JSON.stringify({
-                    lockKey
-                }));
-            });
-
+            // Extend the lock every 15 seconds
+            const lockInterval = setInterval(extendLock, 15000);
         });
 
         function addAllowancesForm(storePayrollAllowanceUrl) {
