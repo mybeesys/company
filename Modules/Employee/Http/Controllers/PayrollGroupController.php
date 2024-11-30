@@ -23,21 +23,6 @@ class PayrollGroupController extends Controller
         return view('employee::schedules.payroll-group.index', compact('columns'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('employee::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
 
     /**
      * Show the specified resource.

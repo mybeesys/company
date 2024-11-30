@@ -11,6 +11,7 @@ use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\dashboardRoleActions;
+use Modules\Employee\Services\DashboardRoleService;
 
 class DashboardRoleController extends Controller
 {
@@ -41,27 +42,7 @@ class DashboardRoleController extends Controller
      */
     public function create()
     {
-        $modules = Permission::where('type', 'ems')
-            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
-            ->groupBy(function ($item) {
-                return explode(".", $item->name)[0];
-            })
-            ->map(function ($permissions) {
-                return $permissions->map(function ($item) {
-                    $nameParts = explode(".", $item->name);
-                    return [
-                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
-                        'action' => $nameParts[2],
-                        'id' => $item->id,
-                    ];
-                })->groupBy('entity')->map(function ($groupedPermissions) {
-                    return $groupedPermissions->mapWithKeys(function ($item) {
-                        return [
-                            $item['action'] => $item['id'],
-                        ];
-                    });
-                });
-            });
+        $modules = DashboardRoleService::getModulesPermissions();
         return view('employee::dashboard-roles.create', ['modules' => $modules]);
     }
 
@@ -83,27 +64,8 @@ class DashboardRoleController extends Controller
      */
     public function show(Role $dashboardRole)
     {
-        $modules = Permission::where('type', 'ems')
-            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
-            ->groupBy(function ($item) {
-                return explode(".", $item->name)[0];
-            })
-            ->map(function ($permissions) {
-                return $permissions->map(function ($item) {
-                    $nameParts = explode(".", $item->name);
-                    return [
-                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
-                        'action' => $nameParts[2],
-                        'id' => $item->id,
-                    ];
-                })->groupBy('entity')->map(function ($groupedPermissions) {
-                    return $groupedPermissions->mapWithKeys(function ($item) {
-                        return [
-                            $item['action'] => $item['id'],
-                        ];
-                    });
-                });
-            });
+        $modules = DashboardRoleService::getModulesPermissions();
+
         $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
         return view('employee::dashboard-roles.show', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
@@ -113,27 +75,8 @@ class DashboardRoleController extends Controller
      */
     public function edit(Role $dashboardRole)
     {
-        $modules = Permission::where('type', 'ems')
-            ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
-            ->groupBy(function ($item) {
-                return explode(".", $item->name)[0];
-            })
-            ->map(function ($permissions) {
-                return $permissions->map(function ($item) {
-                    $nameParts = explode(".", $item->name);
-                    return [
-                        'entity' => $item->name_ar ? "$nameParts[1].$item->name_ar" : "$nameParts[1]",
-                        'action' => $nameParts[2],
-                        'id' => $item->id,
-                    ];
-                })->groupBy('entity')->map(function ($groupedPermissions) {
-                    return $groupedPermissions->mapWithKeys(function ($item) {
-                        return [
-                            $item['action'] => $item['id'],
-                        ];
-                    });
-                });
-            });
+        $modules = DashboardRoleService::getModulesPermissions();
+
         $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
         return view('employee::dashboard-roles.edit', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
