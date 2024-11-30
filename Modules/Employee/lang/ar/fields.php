@@ -47,7 +47,7 @@ return [
     'zip_code' => 'الرمز البريدي',
     'national_address' => 'العنوان',
     'country' => 'البلد',
-    'state' => 'الولاية',
+    'state' => 'الحالة',
     'city' => 'المدينة',
     'website' => 'الموقع الإلكتروني',
     'has_subscription' => 'يملك اشتراك',
@@ -164,4 +164,8 @@ return [
     'wages' => 'الرواتب',
     'establishments' => 'الفروع',
     'basic_total_wage' => 'الراتب الأساسي الإجمالي',
+    'payment_status' => 'حالة الدفع',
+    'gross_total' => 'المجموع الكلي',
+    'net_total' => 'المجموع الصافي',
+    'off_days[]' => 'أيام العطلة',
 ];

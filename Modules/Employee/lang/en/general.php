@@ -141,4 +141,6 @@ return [
     '24_format_hint' => 'Input must be in 24 hour format',
     'edit_allowances' => 'Edit allowances',
     'edit_deductions' => 'edit deductions',
+    'payroll_group_search' => 'search for payroll group',
+
 ];

@@ -14,5 +14,7 @@ return [
     'deleted_successfully' => 'تم حذف :name بنجاح',
     'operation_success' => 'تمت العملية بنجاح',
     'wage_type_required' => 'حقل نوع الراتب مطلوب عند وجود حقل الراتب',
-    'minutes_cannot_be_above_60' => 'لا يمكن للدقائق أن تتجاوز الـ60'
+    'minutes_cannot_be_above_60' => 'لا يمكن للدقائق أن تتجاوز الـ60',
+    'duplicate_payroll' => 'لا يمكن استخراج جدولين للرواتب في نفس التاريخ ولنفس الفرع في الوقت نفسه.',
+    'payroll_created_successfully' => 'تم إنشاء كشف الراتب بنجاح',
 ];

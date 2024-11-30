@@ -31,14 +31,16 @@
                         </div>
                         @if ($setting['type'] == 'select')
                             <x-form.select :name="$setting['name']" required data_allow_clear="false" :errors="$errors"
-                                :options="$setting['options']"
-                                value="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '' }}" />
+                                :options="$setting['options']" no_default :value="array_key_exists($setting['name'], $stored_settings)
+                                    ? $stored_settings[$setting['name']]
+                                    : ''" />
                         @else
                             @if ($setting['type'] == 'checkbox')
                                 <input type="hidden" name="{{ $setting['name'] }}" value="0">
                             @endif
                             <x-form.input :errors="$errors" required="{{ $setting['type'] !== 'checkbox' }}"
-                                :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']" :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'form-control-solid py-2'" :form_control="!$isCheckbox"
+                                :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']" :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'form-control-solid py-2'"
+                                :form_control="!$isCheckbox"
                                 checked="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : false }}"
                                 value="{{ $isCheckbox ? '1' : (array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '') }}" />
                         @endif
@@ -87,6 +89,8 @@
                 $('#clock_in_before_shift_time_limit').prop('required', true);
                 $('#allow_clockin_before_shift_toggle').collapse('show');
             }
+
+            $('select[name="off_days[]"]').val(<?php echo json_encode($stored_settings['off_days'] ?? []); ?>).trigger('change');
         });
         $('form').on('submit', function(e) {
             e.preventDefault();
@@ -97,17 +101,19 @@
                     return;
                 }
             }
-            ajaxRequest("{{ route('schedules.timesheet-rules.store') }}", "POST", $(this).serializeArray()).fail(function(data) {
-                $.each(data.responseJSON.errors, function(key, value) {
-                    $(`[name='${key}']`).addClass('is-invalid');
-                    $(`[name='${key}']`).after('<div class="invalid-feedback">' + value + '</div>');
+
+            ajaxRequest("{{ route('schedules.timesheet-rules.store') }}", "POST", $(this).serializeArray()).fail(
+                function(data) {
+                    $.each(data.responseJSON.errors, function(key, value) {
+                        $(`[name='${key}']`).addClass('is-invalid');
+                        $(`[name='${key}']`).after('<div class="invalid-feedback">' + value + '</div>');
+                    });
                 });
-            });
         });
 
-        $(`#timesheet_rules_form input`).on('change', function () {
+        $(`#timesheet_rules_form input`).on('change', function() {
             let input = $(this);
-            input.removeClass('is-invalid');            
+            input.removeClass('is-invalid');
         });
 
         $('#day_start_on_time').flatpickr({
@@ -119,15 +125,26 @@
             enableTime: true,
             noCalendar: true,
             dateFormat: "H:i",
+        })
+
+        $('#auto_clock_out_time').attr('style', function(i, style) {
+            return 'max-width: 325.98px !important;';
         });
+
+        $('#clock_in_before_shift_time_limit').attr('style', function(i, style) {
+            return 'max-width: 325.98px !important;';
+        });
+
         Inputmask("datetime", {
             mask: "9.9",
             placeholder: "_._",
         }).mask("#overtime_rate_multiplier");
+
         Inputmask("datetime", {
             mask: "9.9",
             placeholder: "_._",
         }).mask("#doubletime_rate_multiplier");
+
         Inputmask({
             regex: "([0-9][0-9]):([0-5][0-9])",
             placeholder: "__:__",
@@ -146,8 +163,18 @@
         $('[name="week_starts_on"]').select2({
             minimumResultsForSearch: -1
         });
+
+        $('[name="off_days[]"]').select2({
+            minimumResultsForSearch: -1,
+            multiple: true
+        });
+
         $('.select2-selection.select2-selection--single').attr('style', function(i, style) {
             return 'height: 36.05px !important;';
+        });
+
+        $('.select2-selection.select2-selection--multiple').attr('style', function(i, style) {
+            return 'height: 36.05px !important; max-width: 326.88px; min-height: 36.05px !important;';
         });
 
         $('.allow_clockin_before_shift_collapse').on('click', function() {
