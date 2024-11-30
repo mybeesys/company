@@ -37,14 +37,17 @@ return [
     'costCenter'=>'Cost Centers',
     'serviceFee' => 'Service Fees',
     'payroll_group' => 'Payroll groups',
-
     'employees_working_hours' => 'Employees working hours' ,
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
     'ingredient' =>'Ingredient' ,
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
-     'inventory' =>'Product',
-    'inventory_module' => 'Invenetory'
+    'inventory' =>'Product',
+    'inventory_module' => 'Invenetory',
+    'po' => 'PO',
+    'prep' => 'Prep',
+    'rma' => 'RMA',
+    'ingredientInventory' => 'Ingredients'
 
 ];

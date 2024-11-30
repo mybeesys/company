@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
 
 
-const ProductInventoryVendor = ({ translations, currentObject, onBasicChange, dir }) => {
+const ProductInventoryVendor = ({ translations, currentObject, onBasicChange, dir, p_type }) => {
 
     return (
         <div class="card-body" dir={dir}>
@@ -26,7 +26,7 @@ const ProductInventoryVendor = ({ translations, currentObject, onBasicChange, di
                         <AsyncSelectComponent
                             field="vendor_unit"
                             dir={dir}
-                            searchUrl="searchUnits"
+                            searchUrl={`searchUnitTransfers?${p_type}_id=` + currentObject[`${p_type}_id`]}
                             currentObject={currentObject.vendor_unit}
                             onBasicChange={onBasicChange} />
                     </div>

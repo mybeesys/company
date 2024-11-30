@@ -2,6 +2,7 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Livewire\Features\SupportConsoleCommands\Commands\AttributeCommand;
 use Modules\Product\Enums\DiscountFunction;
 use Modules\Product\Enums\DiscountQualification;
@@ -41,18 +42,18 @@ class ProductLOVController extends Controller
         $this->unitController = $unitController;
     }
 
-    public function getProductLOVs($id)
+    public function getProductLOVs($id, Request $request)
     {
         $ingredient = $this->ingredientController->ingredientProductList();
         $productList = $this->productController->all();
-        $recipe = $this->productController->listRecipe($id);
+        $recipe = $this->productController->listRecipe($id, $request);
         $promptList = $this->linkedComboPromptController->getLinkedComboPromptValues();
         $linkedComboList = $this->linkedComboController->getLinkedCombos();
         $matrix = $this->attributeController->getProductMatrix($id);
         $attribute = $this->attributeClassController->getAttributes();
         $category = $this->categoryController->getminicategorylist();
         $unitTransfer = $this->unitTransferController->getUnitsTransferList("product" , $id);
-        $units = $this->unitController->getUnitsTree();
+      
         
         $lov = [];
         $lov["product"] = $productList->original;
@@ -64,7 +65,7 @@ class ProductLOVController extends Controller
         $lov["attribute"] = $attribute->original;
         $lov["category"] = $category->original;
         $lov["unitTransfer"] = $unitTransfer->original;
-        $lov["units"] = $units->original;
+    
 
         return response()->json($lov);
     }

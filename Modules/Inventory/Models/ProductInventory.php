@@ -5,8 +5,9 @@ namespace Modules\Inventory\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\Unit;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
 
 class ProductInventory extends Model
@@ -25,6 +26,7 @@ class ProductInventory extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'product_id',
+        'ingredient_id',
         'threshold',
         'unit_id',
         'primary_vendor_id',
@@ -49,14 +51,19 @@ class ProductInventory extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
+    }
+
     public function unit()
     {
-        return $this->belongsTo(Unit::class, 'unit_id', 'id');
+        return $this->belongsTo(UnitTransfer::class, 'unit_id', 'id');
     }
 
     public function vendorUnit()
     {
-        return $this->belongsTo(Unit::class, 'primary_vendor_unit_id', 'id');
+        return $this->belongsTo(UnitTransfer::class, 'primary_vendor_unit_id', 'id');
     }
 
 }

@@ -69,7 +69,6 @@ class IngredientController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'cost' => 'required|numeric',
-            'unit_measurement' => 'required|numeric',
             'active' => 'required|boolean',
             'SKU' => 'nullable|string',
             'barcode' => 'nullable|string',
@@ -99,17 +98,39 @@ class IngredientController extends Controller
 
             if(isset($request["transfer"]))
             {
+                    $ids=[];
+                    $insertedIds=[];
                 foreach ($request["transfer"] as $transfer) 
                 {
+                    $newid = [];
+                    $inserted = [];
                     $tran = [];
-                    $tran['ingredient_id'] =  $ingredient->id;
-                    $tran['unit2'] = $transfer['unit2'];
-                    $tran['transfer'] = $transfer['transfer'];
-                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $newid['oldId'] =  $transfer['id'];
+                    $tran['ingredient_id'] =  $validated['id'];
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
-                    UnitTransfer::create($tran);
+                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $id = UnitTransfer::create($tran)->id;
+                    $inserted['id'] = $id;
+                    $inserted['unit2'] = $transfer['unit2'];
+                    $newid['newId'] =  $id;
+                    $ids[] = $newid ;
+                    $insertedIds[] = $inserted;
                 }
-            }
+                foreach ($insertedIds as $transfer) 
+                {
+                   foreach($ids as $updateId)
+                   {
+                    if($transfer['unit2'] == $updateId['oldId'] )
+                    {
+                       $updateObject = UnitTransfer::find($transfer['id']);
+                       $updateObject->unit2 =  $updateId['newId'];
+                       $updateObject->save();
+                    }
+                   } 
+                }   
+            } 
             
         } else {
             $ingredient = Ingredient::where([
@@ -127,7 +148,6 @@ class IngredientController extends Controller
             $Ingredient->name_ar = $validated['name_ar'];
             $Ingredient->name_en = $validated['name_en'];
             $Ingredient->cost = $validated['cost'];
-            $Ingredient->unit_measurement = $validated['unit_measurement'];
             $Ingredient->active = $validated['active'];
             $Ingredient->SKU = isset($validated['SKU']) ? $validated['SKU'] : null;
             $Ingredient->barcode = isset($validated['barcode']) ? $validated['barcode'] : null;
@@ -136,25 +156,53 @@ class IngredientController extends Controller
             $Ingredient->reorder_quantity = isset($validated['reorder_quantity']) ? $validated['reorder_quantity'] :null;
             $Ingredient->yield_percentage = isset($validated['yield_percentage']) ? $validated['yield_percentage'] :null;
           
-                $oldUnites = UnitTransfer::where('ingredient_id' , $validated['id'])->get();
-                foreach ( $oldUnites as $oldUnite)
+            $oldUnites = UnitTransfer::where('ingredient_id' , $validated['id'])->get();
+            
+            if(isset($request["transfer"]))
+            {
+                $ids=[];
+                $insertedIds=[];
+            foreach ( $oldUnites  as $old)
+            {
+                $newid = [];
+                $newid['oldId'] = $old['id'];
+                $newid['newId'] = $old['id'];
+                $ids[] = $newid ;
+            }
+            foreach ($request["transfer"] as $transfer) 
+            {
+                if($transfer['id'] <= 0)
                 {
-                    $oldUnite->delete();
-                }
-                
-                if(isset($request["transfer"]))
-                {
-                foreach ($request["transfer"] as $transfer) 
-                {
-                    $tran = [];
-                    $tran['ingredient_id'] =  $validated['id'];
-                    $tran['unit2'] = $transfer['unit2'];
-                    $tran['transfer'] = $transfer['transfer'];
-                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
-                    $tran['unit1'] = $transfer['unit1'];
-                    UnitTransfer::create($tran);
+                $newid = [];
+                $inserted = [];
+                $tran = [];
+                $newid['oldId'] =  $transfer['id'];
+                $tran['ingredient_id'] =  $validated['id'];
+                $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                $tran['unit1'] = $transfer['unit1'];
+                $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                $id = UnitTransfer::create($tran)->id;
+                $inserted['id'] = $id;
+                $inserted['unit2'] = $transfer['unit2'];
+                $newid['newId'] =  $id;
+                $ids[] = $newid ;
+                $insertedIds[] = $inserted;
                 }
             }
+            foreach ($insertedIds as $transfer) 
+            {
+               foreach($ids as $updateId)
+               {
+                if($transfer['unit2'] == $updateId['oldId'] )
+                {
+                   $updateObject = UnitTransfer::find($transfer['id']);
+                   $updateObject->unit2 =  $updateId['newId'];
+                   $updateObject->save();
+                }
+               } 
+            }
+        }
             $Ingredient->save();
         }
         return response()->json(["message" => "Done"]);

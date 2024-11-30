@@ -44,6 +44,10 @@ return [
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
     'inventory' =>'المنتجات',
-    'inventory_module' => 'المستودع'
+    'inventory_module' => 'المستودع',
+    'po' => 'طلبات الشراء',
+    'prep' => 'التحضيرات',
+    'rma' => 'RMA',
+    'ingredientInventory' => 'المكونات'
 
 ];

@@ -35,6 +35,18 @@ class UnitTransfer extends Model
 
     public $type = 'UnitTransfer';
 
+    protected $appends = ['name_ar', 'name_en']; // Add the custom field to the output
+
+    public function getNameArAttribute()
+    {
+        return $this->unit1;
+    }
+
+    public function getNameEnAttribute()
+    {
+        return $this->unit1;
+    }
+
     public function units1()
     {
         return $this->belongsTo(Unit::class, 'unit1', 'id');

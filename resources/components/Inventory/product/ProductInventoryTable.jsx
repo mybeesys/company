@@ -2,20 +2,9 @@ import TreeTableComponent from '../../comp/TreeTableComponent';
 import { getName } from '../../lang/Utils';
 
 
-const ProductInventoryTable = ({ dir, translations }) => {
+const ProductInventoryTable = ({ dir, translations, p_type }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
-
-  const productDetailCell = (data, key, editMode, editable) => {
-    return  (<>
-        <div class="row">
-          <span>{getName(data.name_en, data.name_ar, dir)}</span>
-        </div>
-        <div class="row">
-          <span>{`${translations.barcode}: ${!!!data.barcode? '' : data.barcode}`}</span>
-        </div>
-      </>);
-  }
 
   return (
     <div>
@@ -23,10 +12,10 @@ const ProductInventoryTable = ({ dir, translations }) => {
         translations={translations}
         dir={dir}
         urlList={urlList}
-        editUrl={'productInventory/%/edit'}
+        editUrl={`${p_type}Inventory/%/edit`}
         addUrl={null}
         canAddInline={false}
-        title="products"
+        title={`${p_type}s`}
         cols={[
           {
             key: "name", autoFocus: true, options: [], type: "Text", width: '16%',
