@@ -4,15 +4,23 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Classes\PayrollGroupTable;
+use Modules\Employee\Models\PayrollGroup;
 
 class PayrollGroupController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('employee::index');
+        if ($request->ajax()) {
+            $payroll_groups = PayrollGroup::with('establishments');
+
+            return PayrollGroupTable::getPayrollGroupTable($payroll_groups);
+        }
+        $columns = PayrollGroupTable::getPayrollGroupColumns();
+        return view('employee::schedules.payroll-group.index', compact('columns'));
     }
 
     /**
@@ -44,7 +52,15 @@ class PayrollGroupController extends Controller
      */
     public function edit($id)
     {
-        return view('employee::edit');
+        $payrollGroup = PayrollGroup::findOrFail($id);
+        $date = $payrollGroup->date;
+        if ($payrollGroup->payment_state === 'final') {
+            redirect()->back();
+        }
+        $establishment_ids = implode(',', $payrollGroup->establishments->pluck('id')->toArray());
+        $employee_ids = implode(',', $payrollGroup->payrolls->pluck('employee_id')->toArray());
+
+        return to_route('schedules.payrolls.create', ['employee_ids' => $employee_ids, 'establishment_ids' => $establishment_ids, 'date' => $date]);
     }
 
     /**

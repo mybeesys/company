@@ -20,7 +20,7 @@ class PayrollService
         $monthEndDate = $carbonMonth->copy()->endOfMonth()->format('Y-m-d');
 
         $basicWages = $employee->wages()->whereIn('establishment_id', $establishmentIds);
-        $timecards = $employee->timecards()->whereBetween('date', [$monthStartDate, $monthEndDate]);
+        $timecards = $employee->timecards()->whereBetween('date', [$monthStartDate, $monthEndDate])->whereIn('establishment_id', $establishmentIds);
 
         $total_hours = $timecards->sum('hours_worked');
         $overtime_hours = $timecards->sum('overtime_hours');
@@ -30,7 +30,7 @@ class PayrollService
             return [Carbon::parse($time->clock_in_time)->format('Y-m-d'), Carbon::parse($time->clock_out_time)->format('Y-m-d')];
         })->unique()->filter()->count();
 
-        $wage_due_before_tax = $this->calculateWageDueBeforeTax($employee, $basicWages, $timecards, $carbonMonth);
+        $wage_due_before_tax = round($this->calculateWageDueBeforeTax($employee, $basicWages, $timecards, $carbonMonth), 2);
         $basic_wage = $basicWages->sum('rate');
         
         //apply working hours deduction
@@ -41,21 +41,23 @@ class PayrollService
             $wage_due_before_tax = $basic_wage;
             $deduction_amount = 0;
         }
-        [$allowances_html, $allowances_value] = $this->getAllowances($employee, $monthStartDate);
-        [$deductions_html, $deductions_value] = $this->getDeductions($employee, $monthStartDate);
+        [$allowances_html, $allowances_value, $allowances_ids] = $this->getAllowances($employee, $monthStartDate);
+        [$deductions_html, $deductions_value, $deductions_ids] = $this->getDeductions($employee, $monthStartDate);
         $total_wage_before_tax = round($wage_due_before_tax + $allowances_value + $deduction_amount - $deductions_value, 2);
-
         return [
             'employee' => $this->getEmployeeName($employee),
-            'establishments' => $this->getEstablishmentNames($employee),
             'regular_worked_hours' => $regular_worked_hours,
             'overtime_hours' => $overtime_hours,
             'total_hours' => $total_hours,
             'total_worked_days' => $total_worked_days,
             'basic_total_wage' => $basicWages->sum('rate'),
-            'wage_due_before_tax' => $this->calculateWageDueBeforeTax($employee, $basicWages, $timecards, $carbonMonth),
-            'allowances' => $allowances_html,
-            'deductions' => $deductions_html,
+            'wage_due_before_tax' => $wage_due_before_tax,
+            'html_allowances' => $allowances_html,
+            'html_deductions' => $deductions_html,
+            'allowances' => $allowances_value,
+            'deductions' => $deductions_value,
+            'allowances_ids' => $allowances_ids,
+            'deductions_ids' => $deductions_ids,
             'total_wage_before_tax' => $total_wage_before_tax,
             'total_wage' => $total_wage_before_tax
         ];
@@ -98,7 +100,7 @@ class PayrollService
         $totalWage = 0;
         foreach ($basicWages->get() as $basicWage) {
             $totalWage += match ($basicWage->wage_type) {
-                'monthly' => $this->wageCalculationService->calculateMonthlyWage($timecards, $basicWage, $carbonMonth, $employee),
+                'monthly' => $this->wageCalculationService->calculateMonthlyWage($timecards->clone()->where('establishment_id', $basicWage->establishment_id), $basicWage, $carbonMonth, $employee),
                 'fixed' => $basicWage->rate,
                 default => 0,
             };
@@ -111,11 +113,6 @@ class PayrollService
         return session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
     }
 
-    private function getEstablishmentNames(Employee $employee)
-    {
-        return $employee->wageEstablishments()->pluck('name')->toArray();
-    }
-
     private function getAllowances(Employee $employee, $date)
     {
         $allowances = $employee->allowances()->where(
@@ -123,25 +120,29 @@ class PayrollService
             $query->where('apply_once', false)->orWhereDate('applicable_date', $date)
         )->where('applicable_date', '<=', $date);
         $sum = $allowances->sum('amount');
+        
+        $ids = $allowances->pluck('id')->toArray();
 
         $html = "<div class='add-allowances-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
         foreach ($allowances->get() as $key => $allowance) {
             $html .= "data-allowance-id-{$key}='$allowance->id' data-amount-{$key}='$allowance->amount' data-am-type-{$key}='$allowance->amount_type' data-allowance-type-{$key}='{$allowance->adjustmentType->id}'";
         }
         $html .= ">{$sum}</div>";
-        return [$html, $sum];
+        return [$html, $sum, $ids];
     }
 
     private function getDeductions(Employee $employee, $date)
     {
         $deductions = $employee->deductions()->whereDate('applicable_date', $date);
         $sum = $deductions->sum('amount');
+
+        $ids = $deductions->pluck('id')->toArray();
         $html = "<div class='add-deductions-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
         foreach ($deductions->get() as $key => $deduction) {
             $html .= "data-deduction-id-{$key}='$deduction->id' data-amount-{$key}='$deduction->amount' data-am-type-{$key}='$deduction->amount_type' data-deduction-type-{$key}='{$deduction->adjustmentType->id}'";
         }
         $html .= ">{$sum}</div>";
-        return [$html, $sum];
+        return [$html, $sum, $ids];
     }
 
 }

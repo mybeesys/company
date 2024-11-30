@@ -163,4 +163,8 @@ return [
     'wages' => 'Wages',
     'establishments' => 'Establishments',
     'basic_total_wage' => 'Basic total wage',
+    'payment_status' => 'Payment status',
+    'gross_total' => 'Gross total',
+    'net_total' => 'Net total',
+    'off_days[]' => 'Off days',
 ];

@@ -7,6 +7,7 @@ use Modules\Employee\Http\Controllers\dashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PayrollController;
+use Modules\Employee\Http\Controllers\PayrollGroupController;
 use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
 use Modules\Employee\Http\Controllers\ShiftController;
@@ -119,9 +120,15 @@ Route::middleware([
             Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts');
         });
 
-        Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {
+        Route::controller(PayrollGroupController::class)->name('payrolls-groups.')->prefix('/payroll-group')->group(function () {
             Route::get('', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+        });
+
+        Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::get('/save', 'create')->name('create');
             Route::post('/store', 'store')->name('store');
 
             Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-payroll-allowance');

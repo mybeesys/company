@@ -35,6 +35,7 @@ return [
     'time_worked' => 'ساعات العمل',
     'payroll' => 'كشوف المرتبات',
     'costCenter'=>'مراكز التكلفة',
+    'payroll_group' => 'مجموعات كشوف المرتبات',
 
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',
