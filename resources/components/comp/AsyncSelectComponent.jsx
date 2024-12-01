@@ -22,19 +22,39 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
     }, [currentObject]);
 
     const fetchOptions = async () => {
-        let optionsData = [];
-        // Replace this with your API call
-        if (!!currentObject)
-            optionsData = [{
-                value: currentObject.id,  // Option value
-                label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
-            }];
+        let url = searchUrl.includes('?') ? `/${searchUrl}&key=` : `/${searchUrl}?key=`;
+        axios
+            .get(url)
+            .then((response) => {
+                // Format the response data as needed by react-select
+                let options = response.data.map(item => ({
+                    label: getName(item.name_en, item.name_ar, dir),  // The text shown in the select options
+                    value: item.id,    // The value of the selected option
+                }));
+                if(!!currentObject && !!!options.find(x=>x.value == currentObject.id))
+                    options.push({
+                        value: currentObject.id,  // Option value
+                        label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+                    });
+                setOptions(options);
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+                reject([]); // Reject the Promise with an empty array in case of an error
+            });
+        // let optionsData = [];
+        // // Replace this with your API call
+        // if (!!currentObject)
+        //     optionsData = [{
+        //         value: currentObject.id,  // Option value
+        //         label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+        //     }];
 
-        setOptions(optionsData); // Set the options in state
+        // setOptions(optionsData); // Set the options in state
     };
 
     const filterUnits = async (inputValue, resolve) => {
-        let url = searchUrl.includes('?') ? `/${searchUrl}&key=${inputValue}` : `/${searchUrl}?key=${inputValue}`
+        let url = searchUrl.includes('?') ? `/${searchUrl}&key=${inputValue}` : `/${searchUrl}?key=${inputValue}`;
         axios
             .get(url)
             .then((response) => {
@@ -43,7 +63,8 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
                     label: getName(item.name_en, item.name_ar, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
                 }));
-                resolve(options); // Resolve the Promise with the formatted options
+                if(!!resolve)
+                    resolve(options); // Resolve the Promise with the formatted options
                 setOptions(options);
             })
             .catch((error) => {
@@ -82,6 +103,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             cacheOptions
             loadOptions={promiseOptions}
             options={options}
+            defaultOptions={options}
             value={selectedOption}
             styles={{
                 menuPortal: (base) => ({
