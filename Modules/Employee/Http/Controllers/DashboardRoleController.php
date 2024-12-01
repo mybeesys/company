@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
-use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Services\dashboardRoleActions;
 use Modules\Employee\Services\DashboardRoleService;

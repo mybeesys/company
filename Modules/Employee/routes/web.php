@@ -4,7 +4,7 @@ use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
-use Modules\Employee\Http\Controllers\dashboardRoleController;
+use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\MainController;
 use Modules\Employee\Http\Controllers\PayrollController;
@@ -75,7 +75,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
-    Route::controller(dashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
+    Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
         Route::get('', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::get('/show/{dashboardRole}', 'show')->name('show');
