@@ -105,44 +105,6 @@ class PayrollController extends Controller
     }
 
 
-    // public function create(CreatePayrollRequest $request)
-    // {
-    //     $employeeIds = $request->validated('employee_ids');
-    //     $establishmentIds = $request->validated('establishment_ids');
-    //     $date = $request->validated('date');
-
-
-    //     $payroll_group = PayrollGroup::with(['establishments', 'payrolls'])->whereHas('establishments', fn($query) => $query->whereIn('id', $establishmentIds))
-    //         ->where('date', $date)->first();
-
-    //     if ($payroll_group?->state === 'draft') {
-    //         $payroll_group_id = $payroll_group->id;
-    //     } else {
-    //         if ($payroll_group) {
-    //             $ids_to_remove = $payroll_group->payrolls->pluck('employee_id');
-    //             $employeeIds = collect($employeeIds);
-    //             $employeeIds = $employeeIds->diff($ids_to_remove);
-    //         }
-    //         $payroll_group_id = null;
-    //     }
-
-    //     if ($request->ajax()) {
-    //         return $this->payrollTable->getCreatePayrollTable($date, $employeeIds, $establishmentIds);
-    //     }
-
-    //     $allowances_types = PayrollAdjustmentType::where('type', 'allowance')->get();
-    //     $deductions_types = PayrollAdjustmentType::where('type', 'deduction')->get();
-    //     $establishments = Establishment::whereIn('id', $establishmentIds)->pluck('name')->toArray();
-    //     $roles = Role::all();
-    //     $columns = PayrollTable::getCreatePayrollColumns();
-
-    //     return view('employee::schedules.payroll.create', compact('allowances_types', 'deductions_types', 'establishments', 'roles', 'columns', 'date', 'payroll_group'));
-
-    // }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StorePayrollRequest $request)
     {
         $employeeIds = $request->validated('employee_ids');
@@ -169,8 +131,9 @@ class PayrollController extends Controller
             }
 
             DB::transaction(
-                fn() =>
-                $this->payrollAction->storePayroll($employeeIds, $date, $request, $establishmentIds, $payroll_group_id)
+                function () use ($employeeIds, $date, $request, $establishmentIds, $payroll_group_id) {
+                    $this->payrollAction->storePayroll($employeeIds, $date, $request, $establishmentIds, $payroll_group_id);
+                }
             );
 
             return redirect()->route('schedules.payrolls.index')->with('success', __('employee::responses.payroll_created_successfully'));

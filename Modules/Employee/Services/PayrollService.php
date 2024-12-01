@@ -2,6 +2,7 @@
 
 namespace Modules\Employee\Services;
 
+use Cache;
 use Carbon\Carbon;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustment;
@@ -32,7 +33,7 @@ class PayrollService
 
         $wage_due_before_tax = round($this->calculateWageDueBeforeTax($employee, $basicWages, $timecards, $carbonMonth), 2);
         $basic_wage = $basicWages->sum('rate');
-        
+
         //apply working hours deduction
         if ($basic_wage > $wage_due_before_tax && request()->deduction_apply == "true") {
             $deduction_amount = $basic_wage - $wage_due_before_tax;
@@ -66,23 +67,25 @@ class PayrollService
 
     public function applyDeduction($employee_id, $amount, $date, $type, $type_ar)
     {
-        PayrollAdjustment::where('employee_id', $employee_id)->where('type', 'deduction')->where('applicable_date', $date)->delete();
+        $deduction = PayrollAdjustment::where('employee_id', $employee_id)->where('type', 'deduction')->where('applicable_date', $date)->get();
         $type_id = PayrollAdjustmentType::where('name', $type_ar)->orWhere('name_en', $type)->first()?->id;
-        if (!$type_id) {
-            $type_id = PayrollAdjustmentType::create([
-                'name_en' => $type,
-                'name' => $type_ar,
-                'type' => 'deduction'
-            ])->id;
+        if ($deduction->isEmpty()) {
+            if (!$type_id) {
+                $type_id = PayrollAdjustmentType::create([
+                    'name_en' => $type,
+                    'name' => $type_ar,
+                    'type' => 'deduction'
+                ])->id;
+            }
+            PayrollAdjustment::create([
+                'employee_id' => $employee_id,
+                'amount' => $amount,
+                'type' => 'deduction',
+                'applicable_date' => $date,
+                'apply_once' => true,
+                'adjustment_type_id' => $type_id
+            ]);
         }
-        PayrollAdjustment::create([
-            'employee_id' => $employee_id,
-            'amount' => $amount,
-            'type' => 'deduction',
-            'applicable_date' => $date,
-            'apply_once' => true,
-            'adjustment_type_id' => $type_id
-        ]);
     }
 
     public function fetchEmployees(array $employeeIds, array $establishmentIds)
@@ -120,12 +123,23 @@ class PayrollService
             $query->where('apply_once', false)->orWhereDate('applicable_date', $date)
         )->where('applicable_date', '<=', $date);
         $sum = $allowances->sum('amount');
-        
+
         $ids = $allowances->pluck('id')->toArray();
 
         $html = "<div class='add-allowances-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
-        foreach ($allowances->get() as $key => $allowance) {
-            $html .= "data-allowance-id-{$key}='$allowance->id' data-amount-{$key}='$allowance->amount' data-am-type-{$key}='$allowance->amount_type' data-allowance-type-{$key}='{$allowance->adjustmentType->id}'";
+
+        $allowances_cache = collect(Cache::get("allowance_{$employee->id}_{$date}"));
+        if ($allowances_cache) {
+            foreach ($allowances_cache as $key => $allowance) {
+                $html .= "data-deduction-id-{$key}='{$allowance['allowance_id']}' 
+                data-amount-{$key}='{$allowance['amount']}' 
+                data-am-type-{$key}='{$allowance['amount_type']}' 
+                data-deduction-type-{$key}='{$allowance['adjustment_type']}'";
+            }
+        } else {
+            foreach ($allowances->get() as $key => $allowance) {
+                $html .= "data-allowance-id-{$key}='$allowance->id' data-amount-{$key}='$allowance->amount' data-am-type-{$key}='$allowance->amount_type' data-allowance-type-{$key}='{$allowance->adjustmentType->id}'";
+            }
         }
         $html .= ">{$sum}</div>";
         return [$html, $sum, $ids];
@@ -134,12 +148,25 @@ class PayrollService
     private function getDeductions(Employee $employee, $date)
     {
         $deductions = $employee->deductions()->whereDate('applicable_date', $date);
-        $sum = $deductions->sum('amount');
+
+        $deductions_cache = collect(Cache::get("deduction_{$employee->id}_{$date}"));
 
         $ids = $deductions->pluck('id')->toArray();
         $html = "<div class='add-deductions-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
-        foreach ($deductions->get() as $key => $deduction) {
-            $html .= "data-deduction-id-{$key}='$deduction->id' data-amount-{$key}='$deduction->amount' data-am-type-{$key}='$deduction->amount_type' data-deduction-type-{$key}='{$deduction->adjustmentType->id}'";
+
+        if ($deductions_cache) {
+            foreach ($deductions_cache as $key => $deduction) {
+                $html .= "data-deduction-id-{$key}='{$deduction['deduction_id']}' 
+                data-amount-{$key}='{$deduction['amount']}' 
+                data-am-type-{$key}='{$deduction['amount_type']}' 
+                data-deduction-type-{$key}='{$deduction['adjustment_type']}'";
+            }
+            $sum = $deductions_cache->sum('amount');
+        } else {
+            $sum = $deductions->sum('amount');
+            foreach ($deductions->get() as $key => $deduction) {
+                $html .= "data-deduction-id-{$key}='$deduction->id' data-amount-{$key}='$deduction->amount' data-am-type-{$key}='$deduction->amount_type' data-deduction-type-{$key}='{$deduction->adjustmentType->id}'";
+            }
         }
         $html .= ">{$sum}</div>";
         return [$html, $sum, $ids];
