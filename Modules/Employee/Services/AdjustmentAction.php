@@ -57,5 +57,6 @@ class AdjustmentAction
                 $employee->deductions()->where('applicable_date', "{$date}-01")->once()->delete();
             }
         }
+        return $ids;
     }
 }

@@ -48,6 +48,14 @@ class PayrollGroupController extends Controller
         return to_route('schedules.payrolls.create', ['employee_ids' => $employee_ids, 'establishment_ids' => $establishment_ids, 'date' => $date]);
     }
 
+    // public function edit($id, Request $request)
+    // {
+    //     $payrollGroup = PayrollGroup::findOrFail($id);
+    //     if($request->ajax()){
+
+    //     }
+    // }
+
     /**
      * Update the specified resource in storage.
      */
