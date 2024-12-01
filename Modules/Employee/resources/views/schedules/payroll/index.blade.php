@@ -8,18 +8,13 @@
             <x-tables.table-header model="payroll" module="employee">
                 <x-slot:filters>
                 </x-slot:filters>
-                <x-slot:elements>
-                    <x-form.input-div class="mb-md-8 min-w-200px w-100" :row=false>
-                        <x-form.input class="form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
-                    </x-form.input-div>
-                </x-slot:elements>
                 <x-slot:export>
                     <x-tables.export-menu id="payroll" />
                 </x-slot:export>
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
-            <x-tables.table :columns=$columns model="payroll" :actionColumn=false :idColumn=false selectColumn
+            <x-tables.table :columns=$columns model="payroll" :idColumn=true
                 module="employee" />
         </x-cards.card-body>
     </x-cards.card>
@@ -126,23 +121,48 @@
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'gross_wage',
-                        name: 'gross_wage',
+                        data: 'payroll_group_name',
+                        name: 'payroll_group_name',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'net_wage',
-                        name: 'net_wage',
+                        data: 'date',
+                        name: 'date',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'regular_worked_hours',
+                        name: 'regular_worked_hours',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'overtime_hours',
+                        name: 'overtime_hours',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'total_hours',
+                        name: 'total_hours',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'total_worked_days',
+                        name: 'total_worked_days',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'basic_total_wage',
+                        name: 'basic_total_wage',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'wage_due_before_tax',
+                        name: 'wage_due_before_tax',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
                         data: 'taxes_withheld',
                         name: 'taxes_withheld',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'tips',
-                        name: 'tips',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
@@ -153,6 +173,16 @@
                     {
                         data: 'deductions',
                         name: 'deductions',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'total_wage_before_tax',
+                        name: 'total_wage_before_tax',
+                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                    },
+                    {
+                        data: 'total_wage',
+                        name: 'total_wage',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {

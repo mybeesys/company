@@ -106,9 +106,11 @@ class EmployeeActions
             'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
         ]);
 
-        $data = $imageName ? array_merge($this->request, [
-            'image' => $imageName,
-        ]) : $this->request;
+        if ($imageName) {
+            $data = $data->merge([
+                'image' => $imageName,
+            ]);
+        }
 
         return $employee->update($data->toArray());
     }

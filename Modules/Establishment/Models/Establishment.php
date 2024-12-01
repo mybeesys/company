@@ -4,6 +4,7 @@ namespace Modules\Establishment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Employee\Models\PayrollGroup;
 use Modules\Employee\Models\Role;
 
 class Establishment extends Model
@@ -19,5 +20,10 @@ class Establishment extends Model
     public function posRoles()
     {
         return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
+    }
+
+    public function payrollGroups()
+    {
+        $this->belongsToMany(PayrollGroup::class, 'sch_establishment_payroll_groups');
     }
 }

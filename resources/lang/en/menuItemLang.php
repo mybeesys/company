@@ -36,6 +36,7 @@ return [
     'payroll' => 'Payroll',
     'costCenter'=>'Cost Centers',
     'serviceFee' => 'Service Fees',
+    'payroll_group' => 'Payroll groups',
     'employees_working_hours' => 'Employees working hours' ,
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',

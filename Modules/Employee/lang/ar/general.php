@@ -141,4 +141,5 @@ return [
     '24_format_hint' => 'الإدخال بصيغة يجب أن يكون بصيغة 24 ساعة',
     'edit_allowances' => 'تعديل البدلات',
     'edit_deductions' => 'تعديل الحسومات',
+    'payroll_group_search' => 'ابحث عن مجموعة كشف راتب',
 ];

@@ -14,5 +14,8 @@ return [
     'deleted_successfully' => 'The :name has been deleted successfully',
     'operation_success' => 'Operation done successfully',
     'wage_type_required' => 'Wage type field is required when wage feild exists',
-    'minutes_cannot_be_above_60' => 'Minutes can\'t be above 60'
+    'minutes_cannot_be_above_60' => 'Minutes can\'t be above 60',
+    'duplicate_payroll' => 'can\'t extract two payrolls for the date and the same establishment at the same time',
+    'payroll_created_successfully' => 'Payroll has been created successfully',
+    'payroll_creation_in_progress' => 'Payroll processing is already being conducted for the same date and establishment. Please wait 20 seconds and try again',
 ];

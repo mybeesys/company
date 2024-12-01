@@ -2,6 +2,7 @@
 
 
 namespace Modules\Employee\Classes;
+use Cache;
 use Carbon\Carbon;
 use Modules\Employee\Services\PayrollService;
 use Yajra\DataTables\DataTables;
@@ -16,15 +17,20 @@ class PayrollTable
     public static function getIndexPayrollColumns()
     {
         return [
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
-            // ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "date"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "gross_wage"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "net_wage"],
-            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "taxes_withheld"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "tips"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "payroll_group_name"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "date"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "regular_worked_hours"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "overtime_hours"],
+            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_worked_days"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "basic_total_wage"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "wage_due_before_tax"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "taxes_withheld"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "allowances"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "deductions"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wage_before_tax"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wage"],
         ];
     }
 
@@ -33,7 +39,6 @@ class PayrollTable
         $baseClass = "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6";
         return [
             ["class" => $baseClass, "name" => "employee"],
-            ["class" => $baseClass, "name" => "establishments"],
             ["class" => $baseClass, "name" => "regular_worked_hours"],
             ["class" => $baseClass, "name" => "overtime_hours"],
             ["class" => $baseClass, "name" => "total_hours"],
@@ -47,17 +52,18 @@ class PayrollTable
         ];
     }
 
-
     public function getCreatePayrollTable($date, array $employeeIds, array $establishmentIds)
     {
         $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
         $carbonMonth = Carbon::createFromFormat('Y-m', $date);
-
-        $payrollData = $employees->map(function ($employee) use ($carbonMonth, $establishmentIds) {
-            return $this->payrollService->calculateEmployeePayroll($employee, $carbonMonth, $establishmentIds);
+        $payrollData = $employees->map(function ($employee) use ($carbonMonth, $establishmentIds, $date) {
+            $employeePayrollData = $this->payrollService->calculateEmployeePayroll($employee, $carbonMonth, $establishmentIds);
+            Cache::forever("payroll_table_{$date}_{$employee->id}", $employeePayrollData);
+            return $employeePayrollData;
         });
+
         return DataTables::of($payrollData)
-            ->rawColumns($payrollData->first() ? array_keys($payrollData->first()) : [])
+            ->rawColumns($payrollData->isNotEmpty() ? array_keys($payrollData->first()) : [])
             ->make(true);
     }
 
@@ -70,18 +76,21 @@ class PayrollTable
                         </div>";
             })
             ->addColumn('employee', function ($row) {
-                return session()->get('locale') === 'ar' ? $row->employee->name : $row->employee->name_en;
+                return session()->get('locale') === 'ar' ? $row?->employee?->name : $row?->employee?->name_en;
+            })
+            ->addColumn('date', function ($row) {
+                return $row?->payrollGroup?->date;
+            })
+            ->addColumn('payroll_group_name', function ($row) {
+                return $row?->payrollGroup?->name;
             })
             ->addColumn(
                 'actions',
                 function ($row) {
                     $actions = '
-                    <div class="text-center"> 
-                <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '">
-					<i class="ki-outline ki-trash fs-3"></i>
-				</a>      
-                <a href="' . url("/schedule/payroll/{$row->id}/edit") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
-					<i class="ki-outline ki-pencil fs-2"></i>
+                    <div class="text-center text-nowrap ">   
+                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+					<i class="ki-outline ki-printer fs-2"></i>
 				</a>                
                 </div>';
                     return $actions;

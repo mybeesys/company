@@ -190,6 +190,11 @@ return [
                         'url' => 'schedule/payroll',
                         'permission' => '',
                     ],
+                    [
+                        'name' => 'payroll_group',
+                        'url' => 'schedule/payroll-group',
+                        'permission' => '',
+                    ],
                 ]
             ],
         ]

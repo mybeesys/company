@@ -3,120 +3,47 @@
 @section('title', __('menuItemLang.shift_schedule'))
 
 @section('content')
-
-    {{-- <x-cards.card>
-    <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col text-nowrap mb-10">
-                    <h1>@lang('employee::general.add_payroll') @lang('employee::general.for'): <span class="text-primary">{{ $date }}</span></h1>
-                    <span>@lang('employee::fields.establishment'): {{ $establishment_name }} </span>
-                </div>
-                <div class="col">
-                    <x-form.input-div class="w-100 mb-10 min-w-200px">
-                        <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
-                            value="" name="payroll_group_name" :label="__('employee::fields.payroll_group_name')" />
-                    </x-form.input-div>
-                </div>
-                <div class="col">
-
-                </div>
-            </div>
-        </div>
-    </x-cards.card-header>
-    <x-cards.card-body>
-        @foreach ($employees as $employee)
-            <x-form.form-card headerClass="mb-5 bg-secondary" class="mb-5" :title="$employee->translatedName">
-                <div class="container mt-5">
-                    @foreach ($employee->allRoles->isEmpty() ? [null] : $employee->allRoles as $role)
-                        <div class="row mb-3">
-                            <div class="col">
-                                <h2 class="text-primary">{{ $role?->name }}:</h2>
-                            </div>
-                        </div>
-                        <div class="row mb-5">
-                            <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap" name="total_worked_days"
-                                    :label="__('employee::fields.total_worked_days')" :value="$role?->days_count" />
-                            </x-form.input-div>
-                            <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="regular_worked_hours" :label="__('employee::fields.regular_worked_hours')" :value="$role?->worked_hours - $role?->overtime_hours" />
-                            </x-form.input-div>
-                            <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="overtime_worked_hours" :label="__('employee::fields.overtime_worked_hours')" :value="$role?->overtime_hours" />
-                            </x-form.input-div>
-                            <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="total_worked_hours" :label="__('employee::fields.total_hours')" :value="$role?->worked_hours" />
-                            </x-form.input-div>
-                            <x-form.input-div class="mb-5 w-100">
-                                <x-form.input :errors=$errors readonly labelClass="text-nowrap"
-                                    name="total_wage_before_tax" :label="__('employee::fields.wage_due_before_tax')" />
-                            </x-form.input-div>
-                        </div>
-                        <div class="separator border-primary my-5"></div>
-                    @endforeach
-                    <div class="row employee-adjustments">
-                        <div class="col">
-                            <x-form.form-card :title="__('employee::fields.allowances')"
-                                class="px-0 employee_{{ $employee->id }} employee_allowance">
-                                <x-employee::payroll.allowance-deduction-repeater type="allowance" :adjustments="$employee->allowances"
-                                    :adjustment_types="$allowances_types" />
-                            </x-form.form-card>
-                        </div>
-                        <div class="col">
-                            <x-form.form-card :title="__('employee::fields.deductions')"
-                                class="px-0 employee_{{ $employee->id }} employee_deduction">
-                                <x-employee::payroll.allowance-deduction-repeater type="deduction" :adjustment_types="$deductions_types" />
-                            </x-form.form-card>
-                        </div>
-                    </div>
-                    <div class="row px-5 mt-10">
-                        <div class="col">
-                            <h2>@lang('employee::fields.total_wage_before_tax'):</h2>
-                        </div>
-                        <div class="col">
-                            <h2>@lang('employee::fields.total_wage'):</h2>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" name="employee_id" value="{{ $employee->id }}">
-            </x-form.form-card>
-        @endforeach
-    </x-cards.card-body>
-</x-cards.card> --}}
     <x-cards.card>
-        <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5 mb-10">
-            <x-tables.table-header model="createPayroll" :search="false" :addButton="false" module="employee">
-                <x-slot:elements>
-                    <div class="col text-nowrap">
-                        <h1>@lang('employee::general.add_payroll') @lang('employee::general.for'): <span class="text-primary">{{ $date }}</span></h1>
-                        {{-- <span>@lang('employee::fields.establishment'): {{ $establishment_name }} </span> --}}
-                    </div>
-                    <x-form.input-div class="w-100 min-w-200px">
-                        <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
-                            value="" name="payroll_group_name" />
-                    </x-form.input-div>
-                    <x-form.input-div class="w-100 min-w-200px">
-                        <x-form.select name="payroll_group_state" :options="[
-                            ['id' => 'draft', 'name' => __('employee::fields.draft')],
-                            ['id' => 'final', 'name' => __('employee::fields.final_invoice')],
-                        ]" :errors="$errors"
-                            data_allow_clear="false" required placeholder="{{ __('employee::fields.status') }}" />
-                    </x-form.input-div>
-                </x-slot:elements>
-                <x-slot:export>
-                    <x-tables.export-menu id="shift" />
-                </x-slot:export>
-            </x-tables.table-header>
-        </x-cards.card-header>
-        <x-cards.card-body class="table-responsive">
-            <x-tables.table :actionColumn="false" :columns=$columns model="createPayroll" :idColumn=false module="employee" />
-        </x-cards.card-body>
+        <form action="{{ route('schedules.payrolls.store') }}" method="POST">
+            @csrf
+            <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5 mb-10">
+                <x-tables.table-header model="createPayroll" :search="false" :addButton="false" module="employee">
+                    <x-slot:elements>
+                        <div class="col text-nowrap">
+                            <h1>@lang('employee::general.add_payroll') @lang('employee::general.for'): <span class="text-primary">{{ $date }}</span>
+                            </h1>
+                            <span>@lang('employee::fields.establishment'): {{ implode(',', $establishments) }} </span>
+                        </div>
+                        <x-form.input-div class="w-100 min-w-200px">
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
+                                value="{{ $payroll_group?->name }}" name="payroll_group_name" />
+                        </x-form.input-div>
+                        <x-form.input-div class="w-100 min-w-200px">
+                            <x-form.select name="payroll_group_state" :options="[
+                                ['id' => 'draft', 'name' => __('employee::fields.draft')],
+                                ['id' => 'final', 'name' => __('employee::fields.final_invoice')],
+                            ]" :errors="$errors"
+                                value="{{ $payroll_group?->state }}" data_allow_clear="false" required
+                                placeholder="{{ __('employee::fields.status') }}" />
+                        </x-form.input-div>
+                    </x-slot:elements>
+                    <x-slot:export>
+                        <x-tables.export-menu id="shift" />
+                    </x-slot:export>
+                </x-tables.table-header>
+            </x-cards.card-header>
+            <x-cards.card-body class="table-responsive">
+                <x-tables.table :actionColumn="false" :columns=$columns model="createPayroll" :idColumn=false
+                    module="employee" />
+            </x-cards.card-body>
 
-        <x-form.form-buttons cancelUrl="{{ url('/schedule/payroll') }}" class="px-10 py-5" />
+            <input type="hidden" name="employee_ids" value="{{ request()->get('employee_ids') }}">
+            <input type="hidden" name="establishment_ids" value="{{ request()->get('establishment_ids') }}">
+            <input type="hidden" name="date" value="{{ request()->get('date') }}">
+            <input type="hidden" name="payroll_group_id"
+                value="{{ isset($payroll_group?->id) ? $payroll_group?->id : null }}">
+            <x-form.form-buttons cancelUrl="{{ url('/schedule/payroll') }}" class="px-10 py-5" />
+        </form>
     </x-cards.card>
     <x-employee::payroll.adjustment-modal :allowances_types="$allowances_types" :deductions_types="$deductions_types" />
 
@@ -136,6 +63,7 @@
             let employee_ids = urlParams.get('employee_ids');
             let establishment_ids = urlParams.get('establishment_ids');
             date = urlParams.get('date');
+
             const queryParams = new URLSearchParams({
                 employee_ids: employee_ids,
                 establishment_ids: establishment_ids,
@@ -146,8 +74,8 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('schedules.payrolls.store-payroll-allowance') }}");
-            addDeductionForm("{{ route('schedules.payrolls.store-payroll-deduction') }}")
+            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}");
+            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}")
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
@@ -158,6 +86,22 @@
             allowanceDeductionRepeater('deduction', "{{ route('adjustment_types.store') }}",
                 "{{ session()->get('locale') }}");
 
+
+            const lockKey = `payroll_creation_lock_${date}_(${establishment_ids})`;
+
+            const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
+            const releaseLockUrl = '{{ route('schedules.payrolls.releaseLock') }}';
+
+            function extendLock() {
+                let data = {
+                    lockKey: lockKey,
+                    _token: '{{ csrf_token() }}'
+                };
+                ajaxRequest(extendLockUrl, 'POST', data, false, false, false);
+            }
+
+            // Extend the lock every 15 seconds
+            const lockInterval = setInterval(extendLock, 15000);
         });
 
         function addAllowancesForm(storePayrollAllowanceUrl) {
@@ -469,11 +413,6 @@
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'establishments',
-                        name: 'establishments',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
                         data: 'regular_worked_hours',
                         name: 'regular_worked_hours',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
@@ -504,13 +443,13 @@
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'allowances',
-                        name: 'allowances',
+                        data: 'html_allowances',
+                        name: 'html_allowances',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'deductions',
-                        name: 'deductions',
+                        data: 'html_deductions',
+                        name: 'html_deductions',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
