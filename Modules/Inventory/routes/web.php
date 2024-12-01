@@ -29,6 +29,7 @@ Route::middleware([
     AuthenticateJWT::class
 ])->group( function () {
     Route::resource('productInventory', ProductInventoryController::class)->names('productInventory');
+    Route::resource('purchaseOrder', PurchaseOrderController::class)->names('purchaseOrder');
     Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
     Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
     Route::resource('ingredientInventory', IngredientInventoryController::class)->names('ingredientInventory');
