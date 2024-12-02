@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use Cache;
 use Modules\Employee\Http\Requests\StoreAllowanceRequest;
 use Modules\Employee\Http\Requests\StoreDeductionRequest;
-use Modules\Employee\Models\Employee;
-use Modules\Employee\Services\AdjustmentAction;
+use Modules\Employee\Models\PayrollAdjustmentType;
 
 class PayrollAdjustmentController extends Controller
 {
@@ -15,22 +14,25 @@ class PayrollAdjustmentController extends Controller
     public function storeAllowance(StoreAllowanceRequest $request)
     {
         $allowances_repeater = $request->allowance_repeater;
-        // $employee = Employee::find($request->employee_id);
-
-        // dd($request->date, "allowance_{$employee_id}_{$request->date}");
+        foreach($allowances_repeater as &$allowance){
+            $adjustment_type_name = PayrollAdjustmentType::find($allowance['adjustment_type'])->name;
+            $allowance['adjustment_type_name'] = $adjustment_type_name;
+        }
         Cache::forever("allowance_{$request->employee_id}_{$request->date}-01", $allowances_repeater);
 
-        // AdjustmentAction::processPayrollAdjustment($allowances_repeater, $employee, $request->date, 'allowance');
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
     public function storeDeduction(StoreDeductionRequest $request)
     {
         $deductions_repeater = $request->deduction_repeater;
-        // $employee = Employee::find($request->employee_id);
+
+        foreach($deductions_repeater as &$deduction){
+            $adjustment_type_name = PayrollAdjustmentType::find($deduction['adjustment_type'])->name;
+            $deduction['adjustment_type_name'] = $adjustment_type_name;
+        }
         Cache::forever("deduction_{$request->employee_id}_{$request->date}-01", $deductions_repeater);
 
-        // AdjustmentAction::processPayrollAdjustment($deductions_repeater, $employee, $request->date, 'deduction');
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 }

@@ -108,23 +108,25 @@ class ShiftService
     public function generateShiftHtml($divElement, $shiftHtml, $updatable)
     {
         $element = array_sum(array_filter($divElement, 'is_numeric'));
-        if (!(str_contains($divElement[0], '-'))) {
+        if ($divElement) {
+            if (!(str_contains($divElement[0], '-'))) {
 
-            if ($this->request->format === 'hours_minutes') {
-                return $shiftHtml .= "<div> " . (is_numeric($element) ? TimeHelper::convertToHoursMinutesHelper($element) : $element) . " </div>";
-            }
-            return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
-        } else {
-            if (count(array_filter($divElement, fn($item) => $item !== "-")) === 0) {
-                // If the array contains only dashes ("-")
-                $divElement = ["-"];  // Keep only one "-"
+                if ($this->request->format === 'hours_minutes') {
+                    return $shiftHtml .= "<div> " . (is_numeric($element) ? TimeHelper::convertToHoursMinutesHelper($element) : $element) . " </div>";
+                }
+                return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
             } else {
-                // If the array contains other items, remove all dashes
-                $divElement = array_filter($divElement, fn($item) => $item !== "-");
+                if (count(array_filter($divElement, fn($item) => $item !== "-")) === 0) {
+                    // If the array contains only dashes ("-")
+                    $divElement = ["-"];  // Keep only one "-"
+                } else {
+                    // If the array contains other items, remove all dashes
+                    $divElement = array_filter($divElement, fn($item) => $item !== "-");
+                }
+                return $shiftHtml .= implode('', array_map(function ($element) use ($updatable) {
+                    return "<div class='" . ($updatable ? 'fw-bolder' : '') . "'>$element</div>";
+                }, $divElement));
             }
-            return $shiftHtml .= implode('', array_map(function ($element) use ($updatable) {
-                return "<div class='" . ($updatable ? 'fw-bolder' : '') . "'>$element</div>";
-            }, $divElement));
         }
     }
 
@@ -134,9 +136,9 @@ class ShiftService
             'id' => $employee->id,
             'employee' => $this->lang === 'ar' ? $employee->name : $employee->name_en,
             'total_hours' => round($employee->timecards->sum('hours_worked'), 2),
-            'total_wages' => $employee->wages->sum('rate'),
+            'total_wage' => $employee->wage->rate,
             'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
-            'establishment' => implode('<br>', $employee->wageEstablishments->pluck('name')->toArray()),
+            'establishment' => $employee?->defaultEstablishment?->name,
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
                             <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
                         </div>'

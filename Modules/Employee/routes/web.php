@@ -46,7 +46,6 @@ Route::middleware([
         Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete');
         Route::post('/restore/{employee}', 'restore')->name('restore');
 
-        Route::get('/{id}/get-employee-establishments', 'getEmployeeEstablishments')->name('get-employee-establishments');
         Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 
@@ -133,7 +132,6 @@ Route::middleware([
             Route::post('/store', 'store')->name('store');
 
             Route::post('/extend-lock', 'extendLock')->name('extendLock');
-            Route::post('/release-lock', 'releaseLock')->name('releaseLock');
         });
 
         Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {

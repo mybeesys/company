@@ -21,80 +21,89 @@ function roleRepeater() {
     });
 }
 
-function wageRepeater() {
-    const hasInitialValues = $('input[name="wage_repeater[0][wage]"]').val() !== undefined &&
-        $('input[name="wage_repeater[0][wage]"]').val() !== '';
+// function wageRepeater() {
+//     const hasInitialValues = $('input[name="wage_repeater[0][wage]"]').val() !== undefined &&
+//         $('input[name="wage_repeater[0][wage]"]').val() !== '';
 
-    let isUpdating = false;
+//     let isUpdating = false;
 
-    const updateSelectOptions = () => {
-        if (isUpdating) return;
-        isUpdating = true;
-        try {
-            const selectedValues = new Set(
-                $('select[name^="wage_repeater"][name$="[establishment]"]')
-                    .map(function () {
-                        return $(this).val();
-                    })
-                    .get()
-            );
+//     const updateSelectOptions = () => {
+//         if (isUpdating) return;
+//         isUpdating = true;
+//         try {
+//             const selectedValues = new Set(
+//                 $('select[name^="wage_repeater"][name$="[establishment]"]')
+//                     .map(function () {
+//                         return $(this).val();
+//                     })
+//                     .get()
+//             );
 
-            $('select[name^="wage_repeater"][name$="[establishment]"]').each(function () {
-                const $select = $(this);
-                const currentValue = $select.val();
+//             $('select[name^="wage_repeater"][name$="[establishment]"]').each(function () {
+//                 const $select = $(this);
+//                 const currentValue = $select.val();
 
-                const options = $select.find('option');
-                options.each(function () {
-                    const $option = $(this);
-                    if ($option.val() !== currentValue) {
-                        $option.prop('disabled', selectedValues.has($option.val()));
-                    }
-                });
-            });
-        } finally {
-            isUpdating = false;
-        }
-    };
+//                 const options = $select.find('option');
+//                 options.each(function () {
+//                     const $option = $(this);
+//                     if ($option.val() !== currentValue) {
+//                         $option.prop('disabled', selectedValues.has($option.val()));
+//                     }
+//                 });
+//             });
+//         } finally {
+//             isUpdating = false;
+//         }
+//     };
 
-    const initializeSelect2 = ($element) => {
-        $element.find('select[name^="wage_repeater"]').each(function () {
-            const $select = $(this);
+//     const initializeSelect2 = ($element) => {
+//         $element.find('select[name^="wage_repeater"]').each(function () {
+//             const $select = $(this);
 
-            if (!$select.hasClass('select2-hidden-accessible')) {
-                $select.select2({
-                    minimumResultsForSearch: -1,
-                });
+//             if (!$select.hasClass('select2-hidden-accessible')) {
+//                 $select.select2({
+//                     minimumResultsForSearch: -1,
+//                 });
 
-                if ($select.is('[name$="[establishment]"]')) {
-                    $select.off('change.wage-repeater').on('change.wage-repeater', function () {
-                        updateSelectOptions();
-                    });
-                }
-            }
-        });
-    };
+//                 if ($select.is('[name$="[establishment]"]')) {
+//                     $select.off('change.wage-repeater').on('change.wage-repeater', function () {
+//                         updateSelectOptions();
+//                     });
+//                 }
+//             }
+//         });
+//     };
 
-    $('#wage_repeater').repeater({
-        initEmpty: !hasInitialValues,
-        show: function () {
-            const $row = $(this);
-            $row.slideDown();
-            initializeSelect2($row);
-            updateSelectOptions();
-        },
-        ready: function () {
-            initializeSelect2($('#wage_repeater'));
-            updateSelectOptions();
-        },
-        hide: function (deleteElement) {
-            $(this).slideUp(() => {
-                deleteElement();
-                updateSelectOptions();
-            });
-        },
+//     $('#wage_repeater').repeater({
+//         initEmpty: !hasInitialValues,
+//         show: function () {
+//             const $row = $(this);
+//             $row.slideDown();
+//             initializeSelect2($row);
+//             updateSelectOptions();
+//         },
+//         ready: function () {
+//             initializeSelect2($('#wage_repeater'));
+//             updateSelectOptions();
+//         },
+//         hide: function (deleteElement) {
+//             $(this).slideUp(() => {
+//                 deleteElement();
+//                 updateSelectOptions();
+//             });
+//         },
+//     });
+// }
+
+function initElements() {
+    $('[name="wage_type"]').select2({
+        minimumResultsForSearch: -1,
+    });
+
+    $('[name="establishment_id"]').select2({
+        minimumResultsForSearch: -1,
     });
 }
-
 
 function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
     const customOptions = new Map();
