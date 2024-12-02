@@ -40,10 +40,9 @@ class Employee extends BaseEmployeeModel
         return EmployeeFactory::new();
     }
 
-
-    public function wageEstablishments()
+    public function defaultEstablishment()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_wages')->withTimestamps();
+        return $this->belongsTo(Establishment::class, 'establishment_id');
     }
 
     public function establishments()
@@ -66,9 +65,9 @@ class Employee extends BaseEmployeeModel
         return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
     }
 
-    public function wages()
+    public function wage()
     {
-        return $this->hasMany(Wage::class);
+        return $this->hasOne(Wage::class);
     }
 
     public function timecards()

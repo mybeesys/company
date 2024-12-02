@@ -18,9 +18,4 @@ class PayrollGroup extends BaseScheduleModel
     {
         return $this->hasMany(Payroll::class);
     }
-
-    public function establishments()
-    {
-        return $this->belongsToMany(Establishment::class, 'sch_establishment_payroll_groups',  'payroll_group_id', 'establishment_id');
-    }
 }

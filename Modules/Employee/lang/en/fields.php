@@ -167,4 +167,8 @@ return [
     'gross_total' => 'Gross total',
     'net_total' => 'Net total',
     'off_days[]' => 'Off days',
+    'default_establishment' => 'Default establishment',
+    'basic_wage' => 'Basic wage',
+    'total_allowances' => 'Total allowances',
+    'total_deductions' => 'Total deductions',
 ];

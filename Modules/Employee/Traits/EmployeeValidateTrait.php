@@ -24,7 +24,6 @@ trait EmployeeValidateTrait
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', Rule::unique('emp_employees', 'email')->ignore($employee->email, 'email')],
             'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'PIN')->ignore($employee->PIN, 'PIN')],
             'password' => ['nullable', Password::default()],
-            'employment_end_date' => ['nullable', 'date'],
         ];
     }
 
@@ -35,17 +34,17 @@ trait EmployeeValidateTrait
             'name_en' => [Rule::requiredIf($notAjaxValidate), 'string', 'max:50'],
             'phone_number' => ['nullable', 'digits_between:10,15'],
             'employment_start_date' => [Rule::requiredIf($notAjaxValidate), 'date'],
+            'employment_end_date' => ['nullable', 'date'],
             'image' => ['image', 'max:3072'],
             'pos_is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
+            'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:establishment_establishments,id'],
 
             'pos_role_repeater' => ['nullable', 'array'],
             'pos_role_repeater.*.posRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'pos_role_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
 
-            'wage_repeater' => ['nullable', 'array'],
-            'wage_repeater.*.wage' => [Rule::requiredIf($notAjaxValidate), 'decimal:0,2', 'numeric'],
-            'wage_repeater.*.wage_type' => [Rule::requiredIf($notAjaxValidate), 'in:monthly,fixed'],
-            'wage_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), 'exists:establishment_establishments,id', 'distinct'],
+            'wage_amount' => [Rule::requiredIf($notAjaxValidate), 'decimal:0,2', 'numeric'],
+            'wage_type' => [Rule::requiredIf($notAjaxValidate), 'in:monthly,fixed'],
 
             'allowance_repeater' => ['nullable', 'array'],
             'allowance_repeater.*.amount_type' => [Rule::requiredIf($notAjaxValidate), 'in:fixed,percent'],
@@ -57,6 +56,7 @@ trait EmployeeValidateTrait
             'dashboard_role_repeater' => ['required_if_accepted:ems_access', 'array'],
             'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:ems_access', 'nullable', 'exists:roles,id'],
             'user_name' => ['required_if_accepted:ems_access', 'nullable', 'string', 'max:50'],
+
         ];
     }
 

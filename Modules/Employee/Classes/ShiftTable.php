@@ -59,7 +59,7 @@ class ShiftTable
         $start_date = Carbon::createFromFormat('Y-m-d', $this->request->input('start_date'));
         $end_date = Carbon::createFromFormat('Y-m-d', $this->request->input('end_date'));
         $schedules_ids = Schedule::where('start_date', '<=', $start_date->format('Y-m-d'))->where('end_date', '>=', $end_date->format('Y-m-d'))->pluck('id')->toArray();
-        $employees = Employee::with(['timecards', 'shifts', 'allRoles', 'wageEstablishments', 'wages'])->whereHas('wageEstablishments', fn ($query) => $query->whereIn('establishment_establishments.id', [$this->establishment_id]))->active();
+        $employees = Employee::with(['timecards', 'shifts', 'allRoles', 'wage'])->whereIn('establishment_id', [$this->establishment_id])->active();
 
         $filters = new ShiftFilters(['filter_role', 'filter_establishment', 'filter_employee_status']);
         $filters->applyFilters($this->request, $employees);

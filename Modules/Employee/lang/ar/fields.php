@@ -168,4 +168,8 @@ return [
     'gross_total' => 'المجموع الكلي',
     'net_total' => 'المجموع الصافي',
     'off_days[]' => 'أيام العطلة',
+    'default_establishment' => 'الفرع الافتراضي',
+    'basic_wage' => 'الراتب الأساسي',
+    'total_allowances' => 'إجمالي البدلات',
+    'total_deductions' => 'إجمالي الحسومات',
 ];

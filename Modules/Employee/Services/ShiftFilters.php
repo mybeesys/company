@@ -26,13 +26,8 @@ class ShiftFilters
 
     public function filter_establishment($value, $employees)
     {
-        $employees->whereHas('wageEstablishments', fn($query) => $query->where('establishment_id', $value));
+        $employees->where('establishment_id', $value);
     }
-    
-    // public function filter_establishment($value, $employees)
-    // {
-    //     $value === 'all_establishments' ? $employees->whereHas('posRoles') : $employees->whereHas('establishments', fn($query) => $query->where('establishment_id', $value));
-    // }
 
     public function filter_employee_status($value, $employees)
     {

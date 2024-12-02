@@ -15,18 +15,16 @@ class WageCalculationService
     {
         $monthWeeks = $this->getMonthWeeksWithManualShifts($carbonMonth, $employee);
 
-        $current_establishment = $basicWage->establishment_id;
-
         $wageCalculationParams = $this->prepareWageCalculationParameters($basicWage, $carbonMonth);
 
-        $totalWage = $this->calculateWageForWeeks($monthWeeks['weeks_with_shifts'], $carbonMonth, $employee, $timecards, $wageCalculationParams, 'calculateDailyWageWithShifts', $current_establishment);
+        $totalWage = $this->calculateWageForWeeks($monthWeeks['weeks_with_shifts'], $carbonMonth, $employee, $timecards, $wageCalculationParams, 'calculateDailyWageWithShifts');
 
-        $totalWage += $this->calculateWageForWeeks($monthWeeks['weeks_without_shifts'], $carbonMonth, $employee, $timecards, $wageCalculationParams, 'calculateDailyWageWithoutShifts', $current_establishment);
+        $totalWage += $this->calculateWageForWeeks($monthWeeks['weeks_without_shifts'], $carbonMonth, $employee, $timecards, $wageCalculationParams, 'calculateDailyWageWithoutShifts');
 
         return round($totalWage, 2);
     }
 
-    private function calculateWageForWeeks($weeks, Carbon $carbonMonth, Employee $employee, $timecards, array $wageParams, $function, $establishment_id): float
+    private function calculateWageForWeeks($weeks, Carbon $carbonMonth, Employee $employee, $timecards, array $wageParams, $function): float
     {
         $totalWage = 0;
         $startOfMonth = $carbonMonth->copy()->startOfMonth();
@@ -38,7 +36,7 @@ class WageCalculationService
 
             $current = $week['start'];
             while ($current->lte($week['end'])) {
-                $totalWage += $this->{$function}($current, $employee, $timecards, $wageParams, $establishment_id);
+                $totalWage += $this->{$function}($current, $employee, $timecards, $wageParams);
                 $current->addDay();
             }
         }
@@ -60,7 +58,7 @@ class WageCalculationService
     }
 
     // This week has custom shifts
-    private function calculateDailyWageWithShifts(Carbon $currentDate, Employee $employee, $timecards, array $wageParams, $establishment_id): float
+    private function calculateDailyWageWithShifts(Carbon $currentDate, Employee $employee, $timecards, array $wageParams): float
     {
         $shifts = ShiftService::getEmployeeShiftsForDate($employee->id, $currentDate);
 
@@ -70,7 +68,7 @@ class WageCalculationService
 
         $formattedDate = $currentDate->format('Y-m-d');
 
-        $totalTimecardMinutes = $this->calculateTimecardsMinutes($timecards, $formattedDate, $employee->id, $wageParams, true, $establishment_id);
+        $totalTimecardMinutes = $this->calculateTimecardsMinutes($timecards, $formattedDate, $employee->id, $wageParams, true);
 
         //Determine if qualify for paid break
         if ($totalTimecardMinutes > $wageParams['minutes_to_qualify_to_paid_break']) {
@@ -82,10 +80,10 @@ class WageCalculationService
     }
 
     // This week is normal week
-    private function calculateDailyWageWithoutShifts(Carbon $currentDate, Employee $employee, $timecards, array $wageParams, $establishment_id): float
+    private function calculateDailyWageWithoutShifts(Carbon $currentDate, Employee $employee, $timecards, array $wageParams): float
     {
         $formattedDate = $currentDate->format('Y-m-d');
-        $totalTimecardMinutes = $this->calculateTimecardsMinutes($timecards, $formattedDate, $employee->id, $wageParams, true, $establishment_id);
+        $totalTimecardMinutes = $this->calculateTimecardsMinutes($timecards, $formattedDate, $employee->id, $wageParams, true);
 
         $regularWorkMinutes = $wageParams['regular_work_minutes'];
 
@@ -130,11 +128,10 @@ class WageCalculationService
         return $totalTimecardMinutes;
     }
 
-    public function calculateTimecardsMinutes($timecards, string $formattedCurrentDate, int $employeeId, $wageParams, $with_over_time, $establishment_id): float
+    public function calculateTimecardsMinutes($timecards, string $formattedCurrentDate, int $employeeId, $wageParams, $with_over_time): float
     {
         return $timecards->clone()
             ->where('employee_id', $employeeId)
-            ->where('establishment_id', $establishment_id)
             ->where(fn($query) => $query->whereDate('clock_in_time', $formattedCurrentDate)
                 ->orWhereDate('clock_out_time', $formattedCurrentDate))
             ->get()

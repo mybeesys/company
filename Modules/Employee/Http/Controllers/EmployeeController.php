@@ -60,11 +60,6 @@ class EmployeeController extends Controller
         ];
     }
 
-    public function getEmployeeEstablishments($id)
-    {
-        $establishments = Employee::with('wageEstablishments')->findOrFail($id)->wageEstablishments->pluck('id')->unique();
-        return response()->json(['data' => $establishments]);
-    }
 
     public function index(Request $request)
     {
