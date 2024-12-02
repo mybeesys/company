@@ -18,4 +18,6 @@ return [
     'duplicate_payroll' => 'can\'t extract two payrolls for the date and the same establishment at the same time',
     'payroll_created_successfully' => 'Payroll has been created successfully',
     'payroll_creation_in_progress' => 'Payroll processing is already being conducted for the same date and establishment. Please wait 20 seconds and try again',
+    'logged_in_successfully' => 'Logged in successfully.',
+    'incorrect_credential' => 'The provided credentials do not match our records',
 ];
