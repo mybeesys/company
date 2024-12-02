@@ -15,7 +15,7 @@ class PayrollGroupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $payroll_groups = PayrollGroup::with('establishments');
+            $payroll_groups = PayrollGroup::all();
 
             return PayrollGroupTable::getPayrollGroupTable($payroll_groups);
         }
