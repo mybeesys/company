@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\Inventory\Http\Controllers\IngredientInventoryController;
 use Modules\Inventory\Http\Controllers\InventoryOperationController;
@@ -24,9 +23,9 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
+    'auth',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    AuthenticateJWT::class
 ])->group( function () {
     Route::resource('productInventory', ProductInventoryController::class)->names('productInventory');
     Route::resource('purchaseOrder', PurchaseOrderController::class)->names('purchaseOrder');
