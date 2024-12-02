@@ -54,11 +54,6 @@
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {
-                        data: 'establishments',
-                        name: 'establishments',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
                         data: 'state',
                         name: 'state',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
