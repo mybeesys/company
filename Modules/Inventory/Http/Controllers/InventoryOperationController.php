@@ -21,11 +21,12 @@ class InventoryOperationController extends Controller
         $TreeBuilder = new TreeBuilder();
         $inventoryOperations = InventoryOperation::where('op_type', '=', $type)->get();
         foreach ($inventoryOperations as $inventoryOperation) {
-            $inventoryOperation->detail->addToFillable();
-            
-            foreach ($inventoryOperation->detail->getFillable() as $key) {
-                $inventoryOperation->$key = $inventoryOperation->detail[$key];
-                $inventoryOperation->addToFillable($key);
+            if($inventoryOperation->hasDetail()){
+                $inventoryOperation->detail->addToFillable();
+                foreach ($inventoryOperation->detail->getFillable() as $key) {
+                    $inventoryOperation->$key = $inventoryOperation->detail[$key];
+                    $inventoryOperation->addToFillable($key);
+                }
             }
             $inventoryOperation->addToFillable('op_status_name');
             $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
@@ -53,7 +54,9 @@ class InventoryOperationController extends Controller
         $prefix = [
             0 => 'PO',
             1 => 'PREP',
-            2 => 'RMA'
+            2 => 'RMA',
+            3 => 'WASTE',
+            4 => 'Trans'
         ];
         // Get the last invoice number (if any)
         $lastPO = InventoryOperation::where('op_type', '=', $opType)->orderBy('no', 'desc')->first();
@@ -94,14 +97,19 @@ class InventoryOperationController extends Controller
             $inventoryOperation = new InventoryOperation();
             $inventoryOperation->op_type = $validated['op_type'];
             $detail = $inventoryOperation->makeDetail();
-            $detailValidated = $request->validate($detail->validated);
-            $total = $itemTotal + $detail->totals($detailValidated);
-            $validated["total"] = $total;
+            $detailValidated = null;
+            if(isset($detail)){
+                $detailValidated = $request->validate($detail->validated);
+                $total = $itemTotal + $detail->totals($detailValidated);
+                $validated["total"] = $total;
+            }
             DB::transaction(function () use ($validated, $request, $detail, $detailValidated) {
                 $inventoryOperation = InventoryOperation::create($validated);
-                $detailValidated = $detail->fillValidated($detailValidated, $request);
-                $detailValidated['operation_id'] = $inventoryOperation->id;
-                $detail = $inventoryOperation->createDetail($detailValidated);
+                if(isset($detail)){
+                    $detailValidated = $detail->fillValidated($detailValidated, $request);
+                    $detailValidated['operation_id'] = $inventoryOperation->id;
+                    $detail = $inventoryOperation->createDetail($detailValidated);
+                }
                 if(isset($request['items'])){
                     foreach ($request['items'] as $newItem) {
                         if(isset($newItem)){
@@ -137,43 +145,47 @@ class InventoryOperationController extends Controller
                     return $carry + $item["qty"] * $item["cost"];
                 }, 0);
             }
-            $detail = $inventoryOperation->detail;
-            $total = $itemTotal + $detail->totals($validated);
-            $inventoryOperation->total = $total;
+            $detail = null;
+            if($inventoryOperation->hasDetail())
+                $inventoryOperation->detail;
+            if(isset($detail)){
+                $total = $itemTotal + $detail->totals($validated);
+                $inventoryOperation->total = $total;
 
-            foreach ($detail->getFillable() as $key) {
-                if(isset($validated[$key]))
-                    $detail->$key = $validated[$key];
+                foreach ($detail->getFillable() as $key) {
+                    if(isset($validated[$key]))
+                        $detail->$key = $validated[$key];
+                }
+                $detail = $detail->fillValidated($detail, $request);
             }
-            $detail = $detail->fillValidated($detail, $request);
-
             DB::transaction(function () use ($inventoryOperation, $validated, $detail, $request) {
                 $inventoryOperation->save();
-                $detail->save();
-            if(isset($request['items'])){
-                InventoryOperationItem::where('operation_id', '=', $inventoryOperation->id)->delete();
-                foreach ($request['items'] as $newItem) {
-                    if(isset($newItem)){
-                        $item = new InventoryOperationItem();
-                        $item->operation_id = $inventoryOperation->id;
-                        $item->product_id = $newItem['product']['id'];
-                        $item->qty = $newItem['qty'];
-                        $item->cost = $newItem['cost'];
-                        $item->total = $newItem['qty'] * $newItem['cost'];
-                        $item->item_type = $newItem['item_type'];
-                        if(isset($newItem['unit'])) 
-                            $item->unit_id = $newItem['unit']['id'];
-                        $item->save();
-                        $detailItem = $item->makeDetail($validated['op_type']);
-                        if(isset($detailItem))
-                        {
-                            $detailItem->fillValidated($detailItem, $newItem);
-                            $detailItem->operation_item_id = $item->id;
-                            $detailItem = $item->createDetail($detailItem->toArray(), $validated['op_type']);
-                   
+                if(isset($detail))
+                    $detail->save();
+                if(isset($request['items'])){
+                    InventoryOperationItem::where('operation_id', '=', $inventoryOperation->id)->delete();
+                    foreach ($request['items'] as $newItem) {
+                        if(isset($newItem)){
+                            $item = new InventoryOperationItem();
+                            $item->operation_id = $inventoryOperation->id;
+                            $item->product_id = $newItem['product']['id'];
+                            $item->qty = $newItem['qty'];
+                            $item->cost = $newItem['cost'];
+                            $item->total = $newItem['qty'] * $newItem['cost'];
+                            $item->item_type = $newItem['item_type'];
+                            if(isset($newItem['unit'])) 
+                                $item->unit_id = $newItem['unit']['id'];
+                            $item->save();
+                            $detailItem = $item->makeDetail($validated['op_type']);
+                            if(isset($detailItem))
+                            {
+                                $detailItem->fillValidated($detailItem, $newItem);
+                                $detailItem->operation_item_id = $item->id;
+                                $detailItem = $item->createDetail($detailItem->toArray(), $validated['op_type']);
+                    
+                            }
                         }
                     }
-                }
             }
             });
         }

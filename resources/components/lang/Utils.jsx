@@ -5,6 +5,13 @@ export const getName = (name_en, name_ar, dir) => {
       return name_ar
 }
 
+export const getRowName = (row, dir) => {
+  if (dir == 'ltr')
+    return !!row.name_en ? row.name_en : row.name;
+  else
+    return !!row.name_ar ? row.name_ar : row.name;
+}
+
 export const toDate = (dateTimeString, type) =>{
   if(!!!dateTimeString) return null;
   if(type == 'D')

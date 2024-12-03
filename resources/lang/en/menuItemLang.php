@@ -48,6 +48,8 @@ return [
     'po' => 'PO',
     'prep' => 'Prep',
     'rma' => 'RMA',
-    'ingredientInventory' => 'Ingredients'
+    'ingredientInventory' => 'Ingredients',
+	 'waste' => 'Waste',
+    'transfer' => 'Transfer'
 
 ];

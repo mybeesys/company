@@ -112,6 +112,7 @@ const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos,
                             translations={translations}
                             dir={dir}
                             header={true}
+                            addNewRow={true}
                             type={"linkedCombo"}
                             title={translations.linkedCombos}
                             currentNodes={[...product.linkedCombos]}

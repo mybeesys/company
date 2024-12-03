@@ -4,7 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DropdownMenu from '../../comp/DropdownMenu';
 import TreeTableComponent from '../../comp/TreeTableComponent';
 
-const PrepTable = ({ dir, translations }) => {
+const WasteTable = ({ dir, translations }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
   const [showAlert, setShowAlert] = useState(false);
@@ -17,7 +17,7 @@ const PrepTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['purchaseOrder']}: ${data.no} ${translations[resp.data.op_status_name]}`,
+            title: `${translations['prep']}: ${data.no} ${translations[resp.data.op_status_name]}`,
             text: translations.technicalerror ,
             icon: "success",
             timer: 2000,
@@ -37,9 +37,9 @@ const PrepTable = ({ dir, translations }) => {
 
   const dropdownCell = (data, key, editMode, editable, refreshTree) => {
     let actions = [];
-    if(data.op_status == 0)
-      actions.push({key:"preped", action: (data, afterExecute)=>{
-        changeStatus(data, 5, afterExecute);
+    if(data.op_status != 6)
+      actions.push({key:"approved", action: (data, afterExecute)=>{
+        changeStatus(data, 6, afterExecute);
       }});
     return <DropdownMenu actions={actions} data={data} translations={translations} afterExecute={refreshTree}/>;
   }
@@ -58,15 +58,14 @@ const PrepTable = ({ dir, translations }) => {
       <TreeTableComponent
         translations={translations}
         dir={dir}
-        urlList={`${urlList}/1`}
-        editUrl={'prep/%/edit'}
-        addUrl={'prep/create'}
+        urlList={`${urlList}/3`}
+        editUrl={'waste/%/edit'}
+        addUrl={'waste/create'}
         canEditRow={canEditRow}
         canAddInline={false}
-        title="preps"
+        title="waste"
         cols={[
           {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
-          {key : "product", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},
           {key : "op_status", autoFocus: true, type :"Date", width:'15%',
@@ -81,4 +80,4 @@ const PrepTable = ({ dir, translations }) => {
   );
 };
 
-export default PrepTable;
+export default WasteTable;

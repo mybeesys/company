@@ -59,6 +59,7 @@ const RmaDetail = ({ dir, translations }) => {
                 translations={translations}
                 dir={dir}
                 header={true}
+                addNewRow={true}
                 type= {"items"}
                 title={translations.items}
                 currentNodes={[...currentObject.items]}
@@ -132,18 +133,13 @@ const RmaDetail = ({ dir, translations }) => {
                         onBasicChange={onBasicChange}
                         fields={
                             [   
-                                {key:"notes" , title:"notes", type:"TextArea", newRow: true},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true},
-                                {key:"" , title:"", type:"Empty", newRow: true},
-                                {key:"tax" , title:"tax", type:"Decimal"},
-                                {key:"" , title:"", type:"Empty", newRow: true},
-                                {key:"total" , title:"total", type:"Decimal", readOnly: true},
-                                {key:"" , title:"", type:"Empty", newRow: true},
-                                {key:"misc_amount" , title:"miscAmount", type:"Decimal"},
-                                {key:"" , title:"", type:"Empty", newRow: true},
-                                {key:"shipping_amount" , title:"shippingAmount", type:"Decimal"},
-                                {key:"" , title:"", type:"Empty", newRow: true},
-                                {key:"grand_total" , title:"grandTotal", type:"Decimal", readOnly: true}, 
+                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:4, newRow: true},
+                                {key:"tax" , title:"tax", type:"Decimal", size:4},
+                                {key:"total" , title:"total", type:"Decimal", readOnly: true, size:4},
+                                {key:"misc_amount" , title:"miscAmount", type:"Decimal", size:4, newRow: true},
+                                {key:"shipping_amount" , title:"shippingAmount", type:"Decimal", size:4},
+                                {key:"grand_total" , title:"grandTotal", type:"Decimal", readOnly: true, size:4}, 
+                                {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:8}
                             ]
                         }
                        />

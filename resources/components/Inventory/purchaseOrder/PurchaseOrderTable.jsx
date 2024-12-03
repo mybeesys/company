@@ -4,6 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DropdownMenu from '../../comp/DropdownMenu';
 import TreeTableComponent from '../../comp/TreeTableComponent';
 
+
 const PurchaseOrderTable = ({ dir, translations }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
@@ -43,12 +44,18 @@ const PurchaseOrderTable = ({ dir, translations }) => {
       }});
     if(data.op_status != 4 && data.op_status!= 3)
       actions.push({key:"recieveItems", action: (data)=>{    
-        window.location.href = `purchaseOrder/${data.id}/recieve`;
+        window.location.href = `../purchaseOrder/${data.id}/recieve`;
       }});
     if(data.op_status != 4)
       actions.push({key:"finalized", action: (data, afterExecute)=>{
         changeStatus(data, 4, afterExecute);
       }});
+    actions.push({
+      key: "print",
+      action: (data, afterExecute)=>{
+        window.open(`../purchaseOrderReport/${data.id}/purchase_order_pdf`, '_blank');
+      }
+    })
     // if(data.invoice_status != 2)
     // {
     //   actions.push({key:"invoiced", action: (data, afterExecute)=>{
@@ -79,7 +86,7 @@ const PurchaseOrderTable = ({ dir, translations }) => {
         canAddInline={false}
         title="purchaseOrders"
         cols={[
-          {key : "no", autoFocus: true, type :"Text", width:'15%'},
+          {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
           {key : "vendor", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},

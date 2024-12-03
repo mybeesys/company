@@ -69,7 +69,7 @@ const RmaTable = ({ dir, translations }) => {
         canAddInline={false}
         title="rmas"
         cols={[
-          {key : "no", autoFocus: true, type :"Text", width:'15%'},
+          {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
           {key : "vendor", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},

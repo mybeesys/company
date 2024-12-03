@@ -85,6 +85,7 @@ const ProductCombo = ({translations, dir, product, products, onComboChange}) => 
                     translations={translations}
                     dir={dir}
                     header={true}
+                    addNewRow={true}
                     type= {"productCombo"}
                     title={translations.productCombos}
                     currentNodes={[...product.combos]}

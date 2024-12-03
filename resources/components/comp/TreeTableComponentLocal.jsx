@@ -6,11 +6,11 @@ import { Column } from 'primereact/column';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 import AsyncSelectComponent from './AsyncSelectComponent';
-import { formatDecimal, getName } from '../lang/Utils';
+import { formatDecimal, getName, getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
 const TreeTableComponentLocal = ({ translations, dir, header, cols, 
-                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete}) => {
+                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete, addNewRow}) => {
 
     const formRef = useRef(null);
 
@@ -30,17 +30,19 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
             return { key: index  + "", data: item }
         });
         let index = currentNodes.length > 0 ? currentNodes.length  + "" : "0";
-        t.push({
-            key : index,
-            data : {
-                "id": null,
-                "type": type,
-                "parentKey": null,
-                "parentKey1": null,
-                "type1": null,
-                "empty": "Y"
-            }
-        });
+        if(!!addNewRow){
+            t.push({
+                key : index,
+                data : {
+                    "id": null,
+                    "type": type,
+                    "parentKey": null,
+                    "parentKey1": null,
+                    "type1": null,
+                    "empty": "Y"
+                }
+            });
+        }
         setNodes([...t]);
     }, [currentNodes]);
 
@@ -337,7 +339,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
                         }
                     }} />
                 :
-                <span>{!!node.data[col.key] ? getName(node.data[col.key].name_en ,node.data[col.key].name_ar, dir) : ''}</span>;
+                <span>{!!node.data[col.key] ? getRowName(node.data[col.key], dir) : ''}</span>;
         }
     }
 

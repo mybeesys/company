@@ -57,7 +57,7 @@ const PrepDetail = ({ dir, translations }) => {
                         onBasicChange={onProductChange}
                         fields={
                             [
-                                {key:"product" , title:"product", searchUrl:"searchProducts", type:"Async", required : true},
+                                {key:"product" , title:"product", searchUrl:"searchPrepProducts", type:"Async", required : true},
                                 {key:"times" , title:"times1",  type:"Number", required : true, newRow:true},
                             ]
                         }

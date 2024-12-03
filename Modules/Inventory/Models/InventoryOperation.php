@@ -16,6 +16,14 @@ class InventoryOperation extends Model
 
     use SoftDeletes;
 
+    protected $relatedModels = [
+        0 => \Modules\Inventory\Models\PurchaseOrder::class,
+        1 => \Modules\Inventory\Models\Prep::class,
+        2 => \Modules\Inventory\Models\PurchaseOrder::class,
+        3 => null,
+        4 => \Modules\Inventory\Models\Transfer::class
+    ];
+
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
     protected $table = 'inventory_Operations';
@@ -48,15 +56,23 @@ class InventoryOperation extends Model
 
     public $type = 'inventoryOperation';
 
+    public function hasDetail(){
+        
+        $relatedModel = $this->relatedModels[$this->op_type->value] ?? null;
+       if(!$relatedModel)
+            return false;
+        else
+            return true;
+    }
+
     public function detail()
     {
-        $relatedModels = [
-            0 => \Modules\Inventory\Models\PurchaseOrder::class,
-            1 => \Modules\Inventory\Models\Prep::class,
-            2 => \Modules\Inventory\Models\PurchaseOrder::class
-        ];
 
-        $relatedModel = $relatedModels[$this->op_type->value] ?? null;
+        $relatedModel = $this->relatedModels[$this->op_type->value] ?? null;
+        
+        if(!$relatedModel)
+            return null;
+
         if ($relatedModel) {
             return $this->belongsTo($relatedModel, 'id', 'operation_id');//->with('vendor');
         }
@@ -68,16 +84,11 @@ class InventoryOperation extends Model
 
     public function createDetail(array $attributes)
     {
-        $relatedModels = [
-            0 => \Modules\Inventory\Models\PurchaseOrder::class,
-            1 => \Modules\Inventory\Models\Prep::class,
-            2 => \Modules\Inventory\Models\PurchaseOrder::class
-        ];
         // Get the related model class based on op_type
-        $modelClass = $relatedModels[$this->op_type->value] ?? null;
+        $modelClass = $this->relatedModels[$this->op_type->value] ?? null;
 
         if (!$modelClass) {
-            throw new \Exception("Invalid op_type: {$this->op_type->value}");
+            return null;
         }
 
         // Create and return the related model instance
@@ -86,16 +97,11 @@ class InventoryOperation extends Model
 
     public function makeDetail()
     {
-        $relatedModels = [
-            0 => \Modules\Inventory\Models\PurchaseOrder::class,
-            1 => \Modules\Inventory\Models\Prep::class,
-            2 => \Modules\Inventory\Models\PurchaseOrder::class
-        ];
         // Determine the model class based on op_type
-        $modelClass = $relatedModels[$this->op_type->value] ?? null;
+        $modelClass = $this->relatedModels[$this->op_type->value] ?? null;
 
         if (!$modelClass) {
-            throw new \Exception("Invalid op_type: {$this->op_type->value}");
+            return null;
         }
 
         // Return an instance of the related model without saving

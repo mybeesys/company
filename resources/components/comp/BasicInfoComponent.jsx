@@ -94,7 +94,7 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
                     return (
                         <>
                         {isNewRow && index !== 0 && <div className="w-100"></div>} {/* Start a new row */}
-                                    <div key={field.key} className="col-6 col-md-6 mb-3">
+                                    <div key={field.key} className={`col-${!!field.size ? field.size : 6} col-md-${!!field.size ? field.size : 6} mb-3`}>
                                         {renderInput(field)}
                             </div>
                         </>

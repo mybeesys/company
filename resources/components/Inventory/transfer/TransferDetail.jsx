@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import BasicInfoComponent from "../../comp/BasicInfoComponent";
 import TreeTableComponentLocal from "../../comp/TreeTableComponentLocal";
-import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
 
-const PurchaseOrderDetail = ({ dir, translations }) => {
+const TransferDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
-    let purchaseOrder = JSON.parse(rootElement.getAttribute('purchaseOrder'));
-    const [currentObject, setcurrentObject] = useState(purchaseOrder);
+    let transfer = JSON.parse(rootElement.getAttribute('transfer'));
+    const [currentObject, setcurrentObject] = useState(transfer);
     
     useEffect(() => {
         updateTotals(currentObject);
@@ -37,7 +36,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
         <EditRowCompnent
          defaultMenu={[
             { 
-                key: 'vendor', 
+                key: 'establishment', 
                 visible: true, 
                 comp : <BasicInfoComponent
                         currentObject={currentObject}
@@ -46,7 +45,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                         onBasicChange={onBasicChange}
                         fields={
                             [
-                                {key:"vendor" , title:"vendor", searchUrl:"searchVendors", type:"Async", required : true},
+                                {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
                             ]
                         }
                        />
@@ -74,7 +73,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                                 row.SKU = prod.SKU;
                                 row.item_type = 'p';
                                 if(!!prod.inventory){
-                                    row.qty = prod.inventory.primary_vendor_default_quantity;
+                                    row.qty = 1;
                                     row.cost = prod.inventory.primary_vendor_default_price;
                                     row.unit = prod.inventory.unit;
                                     row.total = !!prod.inventory.primary_vendor_default_price && !!prod.inventory.primary_vendor_default_quantity 
@@ -124,7 +123,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                 onDelete={null}/>
             },
             { 
-                key: 'pOInfo', 
+                key: 'rmaInfo', 
                 visible: true, 
                 comp : <BasicInfoComponent
                         currentObject={currentObject}
@@ -132,14 +131,9 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                         dir={dir}
                         onBasicChange={onBasicChange}
                         fields={
-                            [   
-                                {key:"op_date" , title:"date", type:"Date", required : true, newRow: true},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:4, newRow: true},
-                                {key:"tax" , title:"tax", type:"Decimal", size:4},
-                                {key:"total" , title:"total", type:"Decimal", readOnly: true, size:4},
-                                {key:"misc_amount" , title:"miscAmount", type:"Decimal", size:4, newRow: true},
-                                {key:"shipping_amount" , title:"shippingAmount", type:"Decimal", size:4},
-                                {key:"grand_total" , title:"grandTotal", type:"Decimal", readOnly: true, size:4}, 
+                            [  
+                                {key:"op_date" , title:"date", type:"Date", required : true, size:4},
+                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:4}, 
                                 {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:8}
                             ]
                         }
@@ -149,10 +143,10 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="inventoryOperation/store/0"
-          afterSubmitUrl="../../purchaseOrder"
+          apiUrl="inventoryOperation/store/4"
+          afterSubmitUrl="../../transfer"
         />
     );
 }
 
-export default PurchaseOrderDetail;
+export default TransferDetail;

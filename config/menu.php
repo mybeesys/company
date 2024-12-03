@@ -95,6 +95,16 @@ return [
             'name' => 'rma',
             'url' => 'rma',
             'permission' => '',
+        ],
+		        [
+            'name' => 'waste',
+            'url' => 'waste',
+            'permission' => '',
+        ],
+        [
+            'name' => 'transfer',
+            'url' => 'transfer',
+            'permission' => '',
         ]]
     ],
     [

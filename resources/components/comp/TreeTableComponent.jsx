@@ -4,7 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DeleteModal from '../product/DeleteModal';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
-import { getName, toDate } from '../lang/Utils';
+import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 
 const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow }) => {
@@ -290,7 +290,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                         }
                     }} />
                 :
-                <span>{!!node.data[col.key] ? getName(node.data[col.key].name_en ,node.data[col.key].name_ar, dir) : ''}</span>;
+                <span>{!!node.data[col.key] ? getRowName(node.data[col.key], dir) : ''}</span>;
         }
     }
 
@@ -422,7 +422,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                     {cols.map((col, index) =>
                         <Column
-                            header={translations[col.key]}
+                            header={!!col.title ? translations[col.title] : translations[col.key]} 
                             body={(node) => (
                                 renderCell(node, col, index)
                             )} />

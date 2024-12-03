@@ -174,6 +174,7 @@
   "promptForUpsell": "Prompt for upsell", 
   "yes": "Yes",
   "no": "No",
+  "number" : "No",
   "groupComboAndLinkedComboSelected":"One Combo Should be Selected",
   "transfer": "=",
   "primary":"Primary",
@@ -209,5 +210,11 @@
   "rmas" : "RMAs",
   "rmaInfo" : "RMA Info",
   "recievd_qty" : "Recievd qty",
-  "item_unit_error" : "All Items Must have unit"
+  "item_unit_error" : "All Items Must have unit",
+  "print" : "Print",
+  "waste" : "Waste",
+  "wasteInfo" : "Waste Info",
+  "op_status" : "Status",
+  "transfers" : "Transfers",
+  "establishment" : "Establishment"
 }

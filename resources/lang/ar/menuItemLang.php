@@ -48,6 +48,8 @@ return [
     'po' => 'طلبات الشراء',
     'prep' => 'التحضيرات',
     'rma' => 'RMA',
-    'ingredientInventory' => 'المكونات'
+    'ingredientInventory' => 'المكونات',
+	 'waste' => 'الاتلاف',
+    'transfer' => 'التحويلات'
 
 ];

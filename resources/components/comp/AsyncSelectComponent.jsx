@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AsyncSelect from 'react-select/async';
-import { getName } from "../lang/Utils";
+import { getName, getRowName } from "../lang/Utils";
 
 
 const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, searchUrl }) => {
@@ -28,13 +28,13 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             .then((response) => {
                 // Format the response data as needed by react-select
                 let options = response.data.map(item => ({
-                    label: getName(item.name_en, item.name_ar, dir),  // The text shown in the select options
+                    label: getRowName(item, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
                 }));
-                if(!!currentObject && !!!options.find(x=>x.value == currentObject.id))
+                if(!!currentObject && !!currentObject.id && !!!options.find(x=>x.value == currentObject.id))
                     options.push({
                         value: currentObject.id,  // Option value
-                        label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+                        label: getRowName(currentObject, dir) // Option label
                     });
                 setOptions(options);
             })
@@ -60,7 +60,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             .then((response) => {
                 // Format the response data as needed by react-select
                 const options = response.data.map(item => ({
-                    label: getName(item.name_en, item.name_ar, dir),  // The text shown in the select options
+                    label: getRowName(item, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
                 }));
                 if(!!resolve)
@@ -78,7 +78,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
         if (!!currentObject)
             setSelectedOption({
                 value: currentObject.id,  // Option value
-                label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+                label: getRowName(currentObject, dir) // Option label
             });
         else
             setSelectedOption(null);
@@ -115,7 +115,8 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             onChange={(e) => onBasicChange(field, {
                 id: e.value,
                 name_er: e.label,
-                name_en: e.label
+                name_en: e.label,
+                name : e.label
             })} />
     );
 }

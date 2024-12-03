@@ -23,6 +23,10 @@ import PrepTable from './Inventory/prep/PrepTable';
 import PrepDetail from './Inventory/prep/PrepDetail';
 import RmaDetail from './Inventory/rma/RmaDetail';
 import RmaTable from './Inventory/rma/RmaTable';
+import WasteTable from './Inventory/waste/WasteTable';
+import WasteDetail from './Inventory/waste/WasteDetail';
+import TransferTable from './Inventory/transfer/TransferTable';
+import TransferDetail from './Inventory/transfer/TransferDetail';
 
 
 const App = ({nodeType, dir}) =>{
@@ -55,7 +59,10 @@ const App = ({nodeType, dir}) =>{
     rmaedit : <RmaDetail translations={translations} dir={dir}/>,
     ingredientinventory : <ProductInventoryTable translations={translations} dir={dir} p_type={'ingredient'}/>,
     ingredientinventoryedit : <ProductInventoryDetail translations={translations} dir={dir}  p_type={'ingredient'}/>,
-   
+    waste : <WasteTable translations={translations} dir={dir}/>,
+    wasteedit : <WasteDetail translations={translations} dir={dir}/>,
+    transfer : <TransferTable translations={translations} dir={dir}/>,
+    transferedit : <TransferDetail translations={translations} dir={dir}/>,
   }
   
   useEffect(() => {

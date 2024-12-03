@@ -6,6 +6,8 @@ enum InventoryOperationType: string
     case po = '0';
     case prep = '1';
     case rma = '2';
+    case waste = '3';
+    case transfer = '4';
 
     public static function values(): array
     {
