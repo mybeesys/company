@@ -76,8 +76,8 @@ const TransferDetail = ({ dir, translations }) => {
                                     row.qty = 1;
                                     row.cost = prod.inventory.primary_vendor_default_price;
                                     row.unit = prod.inventory.unit;
-                                    row.total = !!prod.inventory.primary_vendor_default_price && !!prod.inventory.primary_vendor_default_quantity 
-                                                        ? prod.inventory.primary_vendor_default_price * prod.inventory.primary_vendor_default_quantity : 0;
+                                    row.total = !!prod.inventory.primary_vendor_default_price 
+                                                        ? prod.inventory.primary_vendor_default_price * 1 : 0;
                                 }
                                 else{
                                     row.qty = null;
