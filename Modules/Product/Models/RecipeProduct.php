@@ -45,7 +45,10 @@ class RecipeProduct extends Model
 
     public function products()
     {
-        return $this->belongsTo(Product::class, 'item_id', 'id');
+        if($this->item_type == 'p')
+            return $this->belongsTo(Product::class, 'item_id', 'id');
+        else
+            return $this->belongsTo(Ingredient::class, 'item_id', 'id'); 
     }
 
 }
