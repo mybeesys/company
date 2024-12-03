@@ -22,7 +22,7 @@
             permissionSetRepeater();
             allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             roleRepeater();
-            wageRepeater();
+            initElements();
             administrativeUser({{ $employee->ems_access }});
             employeeForm('edit_employee_form', "{{ route('employees.update.validation') }}",
                 "{{ route('employees.generate.pin') }}");

@@ -8,12 +8,14 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\Product_Attribute;
 use Modules\Product\Models\RecipeProduct;
+use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\ProductCombo;
 use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
+use stdClass;
 
 class ProductController extends Controller
 {
@@ -59,6 +61,7 @@ class ProductController extends Controller
     }
 
 
+   
     public function listRecipe($id, Request $request)
     {
         $key = $request->query('with_ingredient', '');
@@ -78,6 +81,7 @@ class ProductController extends Controller
         }
         return response()->json($recipes);
     }
+    
     
     public function index()
     {
@@ -161,10 +165,10 @@ class ProductController extends Controller
             $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
             $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
             $product->group_combo = $validated['group_combo'];
-            $product->set_price = $validated['set_price'];
-            $product->use_upcharge = $validated['use_upcharge'];
+            $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
+            $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
             $product->linked_combo = $validated['linked_combo'];
-            $product->promot_upsell = $validated['promot_upsell'];
+            $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
             if ($request->hasFile('image_file')) 
             {
                 $tenant = tenancy()->tenant;
@@ -207,13 +211,14 @@ class ProductController extends Controller
                     }
                 }
             } 
-            if(isset($request["recipe"]))
-            {
+           
                 $oldRecipe = RecipeProduct::where('product_id' , $validated['id'])->get();
                 foreach ($oldRecipe as $recipe)
                 {
                     $recipe->delete();
                 }
+                if(isset($request["recipe"]))
+                {
                 $order = 0 ;
                 foreach ($request["recipe"] as $recipe) 
                 {
@@ -227,13 +232,15 @@ class ProductController extends Controller
                     RecipeProduct::create($rec);
                 }
             }  
-            if(isset($request["attributeMatrix"]))
-            {
+          
                 $oldAttributes = Product_Attribute::where('product_id' , $validated['id'])->get();
                 foreach ( $oldAttributes as $oldAttribute)
                 {
                     $oldAttribute->delete();
                 }
+                
+                if(isset($request["attributeMatrix"]))
+                {
                 foreach ($request["attributeMatrix"] as $attribute) 
                 {
                     $att = [];
@@ -249,23 +256,53 @@ class ProductController extends Controller
                     Product_Attribute::create($att);
                 }
             }
-            if(isset($request["transfer"]))
-            {
+          
                 $oldUnites = UnitTransfer::where('product_id' , $validated['id'])->get();
-                foreach ( $oldUnites as $oldUnite)
+            
+                if(isset($request["transfer"]))
                 {
-                    $oldUnite->delete();
+                    $ids=[];
+                    $insertedIds=[];
+                foreach ( $oldUnites  as $old)
+                {
+                    $newid = [];
+                    $newid['oldId'] = $old['id'];
+                    $newid['newId'] = $old['id'];
+                    $ids[] = $newid ;
                 }
                 foreach ($request["transfer"] as $transfer) 
                 {
+                    if($transfer['id'] <= 0)
+                    {
+                    $newid = [];
+                    $inserted = [];
                     $tran = [];
+                    $newid['oldId'] =  $transfer['id'];
                     $tran['product_id'] =  $validated['id'];
-                    $tran['unit2'] = $transfer['unit2'];
-                    $tran['transfer'] = $transfer['transfer'];
-                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
-                    UnitTransfer::create($tran);
+                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $id = UnitTransfer::create($tran)->id;
+                    $inserted['id'] = $id;
+                    $inserted['unit2'] = $transfer['unit2'];
+                    $newid['newId'] =  $id;
+                    $ids[] = $newid ;
+                    $insertedIds[] = $inserted;
+                    }
                 }
+                foreach ($insertedIds as $transfer) 
+                {
+                   foreach($ids as $updateId)
+                   {
+                    if($transfer['unit2'] == $updateId['oldId'] )
+                    {
+                       $updateObject = UnitTransfer::find($transfer['id']);
+                       $updateObject->unit2 =  $updateId['newId'];
+                       $updateObject->save();
+                    }
+                   } 
+                }    
             }
             if(isset($request["combos"]))
             {
@@ -348,17 +385,39 @@ class ProductController extends Controller
             }
             if(isset($request["transfer"]))
             {
+                    $ids=[];
+                    $insertedIds=[];
                 foreach ($request["transfer"] as $transfer) 
                 {
+                    $newid = [];
+                    $inserted = [];
                     $tran = [];
+                    $newid['oldId'] =  $transfer['id'];
                     $tran['product_id'] =  $validated['id'];
-                    $tran['unit2'] = $transfer['unit2'];
-                    $tran['transfer'] = $transfer['transfer'];
-                    $tran['primary'] = $transfer['primary'] == true? 1 : 0;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
-                    UnitTransfer::create($tran);
+                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $id = UnitTransfer::create($tran)->id;
+                    $inserted['id'] = $id;
+                    $inserted['unit2'] = $transfer['unit2'];
+                    $newid['newId'] =  $id;
+                    $ids[] = $newid ;
+                    $insertedIds[] = $inserted;
                 }
-            }
+                foreach ($insertedIds as $transfer) 
+                {
+                   foreach($ids as $updateId)
+                   {
+                    if($transfer['unit2'] == $updateId['oldId'] )
+                    {
+                       $updateObject = UnitTransfer::find($transfer['id']);
+                       $updateObject->unit2 =  $updateId['newId'];
+                       $updateObject->save();
+                    }
+                   } 
+                }   
+            } 
             if ($request->hasFile('image_file')) {
 
                 $tenant = tenancy()->tenant;

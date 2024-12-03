@@ -34,30 +34,18 @@ class PayrollTable
         ];
     }
 
-    public static function getCreatePayrollColumns()
-    {
-        $baseClass = "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6";
-        return [
-            ["class" => $baseClass, "name" => "employee"],
-            ["class" => $baseClass, "name" => "regular_worked_hours"],
-            ["class" => $baseClass, "name" => "overtime_hours"],
-            ["class" => $baseClass, "name" => "total_hours"],
-            ["class" => $baseClass, "name" => "total_worked_days"],
-            ["class" => $baseClass, "name" => "basic_total_wage"],
-            ["class" => $baseClass, "name" => "wage_due_before_tax"],
-            ["class" => $baseClass, "name" => "allowances"],
-            ["class" => $baseClass, "name" => "deductions"],
-            ["class" => $baseClass, "name" => "total_wage_before_tax"],
-            ["class" => $baseClass, "name" => "total_wage"],
-        ];
-    }
-
     public function getCreatePayrollTable($date, array $employeeIds, array $establishmentIds)
     {
+
+        $establishmentChanges = request('establishment_changes', []);
+
         $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
         $carbonMonth = Carbon::createFromFormat('Y-m', $date);
-        $payrollData = $employees->map(function ($employee) use ($carbonMonth, $establishmentIds, $date) {
-            $employeePayrollData = $this->payrollService->calculateEmployeePayroll($employee, $carbonMonth, $establishmentIds);
+        $payrollData = $employees->map(function ($employee) use ($carbonMonth, $date, $establishmentChanges) {
+            if (isset($establishmentChanges[$employee->id])) {
+                $employee->establishment_id = $establishmentChanges[$employee->id];
+            }
+            $employeePayrollData = $this->payrollService->calculateEmployeePayroll($employee, $carbonMonth);
             Cache::forever("payroll_table_{$date}_{$employee->id}", $employeePayrollData);
             return $employeePayrollData;
         });

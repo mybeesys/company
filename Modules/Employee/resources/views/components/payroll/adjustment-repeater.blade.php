@@ -23,7 +23,7 @@
                 <button type="button" data-repeater-delete class="btn btn-sm btn-icon btn-light-danger">
                     <i class="ki-outline ki-cross fs-1"></i>
                 </button>
-                <input type="hidden" name="{{ $type }}_repeater[][{{ $type }}_id]" />
+                <input type="hidden" name="{{ $type }}_repeater[][id]" />
             </div>
         </div>
     </div>

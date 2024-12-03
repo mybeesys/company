@@ -4,7 +4,7 @@
 
 @section('content')
     <x-cards.card>
-        <form action="{{ route('schedules.payrolls.store') }}" method="POST">
+        <form id="payroll-form" action="{{ route('schedules.payrolls.store') }}" method="POST">
             @csrf
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5 mb-10">
                 <x-tables.table-header model="createPayroll" :search="false" :addButton="false" module="employee">
@@ -33,7 +33,7 @@
                 </x-tables.table-header>
             </x-cards.card-header>
             <x-cards.card-body class="table-responsive">
-                <x-tables.table :actionColumn="false" :columns=$columns model="createPayroll" :idColumn=false
+                <x-tables.table :actionColumn="false" :columns="[]" model="createPayroll" :idColumn=false
                     module="employee" />
             </x-cards.card-body>
 
@@ -53,13 +53,18 @@
     @parent
     <script>
         var urlParams = new URLSearchParams(window.location.search);
+        let columns;
         let dataTable;
         let employeeId;
         let date;
-        let deduction_apply = true;
+        let allowancesCount = 0;
+        let deductionsCount = 0;
+        let firstEnter = true;
         const table = $('#kt_createPayroll_table');
         const baseUrl = '{{ route('schedules.payrolls.create') }}';
+
         $(document).ready(function() {
+
             let employee_ids = urlParams.get('employee_ids');
             let establishment_ids = urlParams.get('establishment_ids');
             date = urlParams.get('date');
@@ -74,8 +79,8 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}");
-            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}")
+            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}", dataUrl);
+            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
@@ -86,11 +91,35 @@
             allowanceDeductionRepeater('deduction', "{{ route('adjustment_types.store') }}",
                 "{{ session()->get('locale') }}");
 
+            lock();
 
+            $(document).on('change', '[name^="employee_establishment"]', function() {
+                const employeeId = $(this).data('employee-id');
+                const establishmentId = $(this).val();
+
+
+                let $hiddenInput = $(`#establishment_change_${employeeId}`);
+                if ($hiddenInput.length === 0) {
+                    $('<input>')
+                        .attr('type', 'hidden')
+                        .attr('id', `establishment_change_${employeeId}`)
+                        .attr('name', `establishment_changes[${employeeId}]`)
+                        .val(establishmentId)
+                        .appendTo('#payroll-form');
+                } else {
+                    $hiddenInput.val(establishmentId);
+                }
+
+                // Reload the datatable
+                dataTable.ajax.reload(null, false);
+            });
+
+        });
+
+        function lock(date, establishment_ids) {
             const lockKey = `payroll_creation_lock_${date}_(${establishment_ids})`;
 
             const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
-            const releaseLockUrl = '{{ route('schedules.payrolls.releaseLock') }}';
 
             function extendLock() {
                 let data = {
@@ -102,9 +131,9 @@
 
             // Extend the lock every 15 seconds
             const lockInterval = setInterval(extendLock, 15000);
-        });
+        }
 
-        function addAllowancesForm(storePayrollAllowanceUrl) {
+        function addAllowancesForm(storePayrollAllowanceUrl, dataUrl) {
             $('#payroll_allowance_modal_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
@@ -117,14 +146,21 @@
                 });
                 ajaxRequest(storePayrollAllowanceUrl, 'POST', data, true, true)
                     .done(function() {
-                        deduction_apply = false;
-                        dataTable.ajax.reload(null, false);
+                        firstEnter = false;
+
+                        $.getJSON(dataUrl, {
+                            firstEnter: firstEnter
+                        }, function(response) {
+                            $(table).empty();
+                            dataTable.destroy();
+                            initDatatable(dataUrl);
+                        });
                         $('#payroll_allowance_modal').modal('toggle');
                     });
             });
         }
 
-        function addDeductionForm(storePayrollDeductionUrl) {
+        function addDeductionForm(storePayrollDeductionUrl, dataUrl) {
             $('#payroll_deduction_modal_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
@@ -137,8 +173,18 @@
                 });
                 ajaxRequest(storePayrollDeductionUrl, 'POST', data, true, true)
                     .done(function() {
-                        deduction_apply = false;
-                        dataTable.ajax.reload(null, false);
+                        firstEnter = false;
+
+                        // Reload the table with fresh data
+                        $.getJSON(dataUrl, {
+                            firstEnter: firstEnter
+                        }, function(response) {
+
+                            $(table).empty();
+                            dataTable.destroy();
+                            initDatatable(dataUrl);
+                        });
+
                         $('#payroll_deduction_modal').modal('toggle');
                     });
             });
@@ -187,7 +233,7 @@
                         .trigger('change');
                     newItem.find('select[name*="[adjustment_type]"]').val(allowanceTypes[index])
                         .trigger('change');
-                    newItem.find('input[name*="[allowance_id]"]').val(allowanceId);
+                    newItem.find('input[name*="[id]"]').val(allowanceId);
                 });
 
                 setTimeout(() => {
@@ -239,7 +285,7 @@
                         .trigger('change');
                     newItem.find('select[name*="[adjustment_type]"]').val(deductionTypes[index])
                         .trigger('change');
-                    newItem.find('input[name*="[deduction_id]"]').val(deductionId);
+                    newItem.find('input[name*="[id]"]').val(deductionId);
                 });
 
                 setTimeout(() => {
@@ -282,7 +328,6 @@
                         return option.text;
                     }
                 };
-
                 element.select2(select2Config)
                     .on('select2:select', function(e) {
                         const data = e.params.data;
@@ -395,81 +440,230 @@
             });
         }
 
+
         function initDatatable(dataUrl) {
+            $.getJSON(dataUrl, {
+                firstEnter: firstEnter
+            }, function(response) {
+                allowancesCount = 0;
+                deductionsCount = 0;
+                if (response.data.length > 0) {
+                    const firstRow = response.data[0];
+                    allowancesCount = firstRow.allowances_array ? Object.keys(firstRow.allowances_array).length : 0;
+                    deductionsCount = firstRow.deductions_array ? Object.keys(firstRow.deductions_array).length : 0;
+                }                
+
+                // Update the table header (thead)
+                const tableHead = $('#kt_createPayroll_table thead');
+                tableHead.empty(); // Clear existing thead
+
+                // Create the first row (main headers)
+                const mainHeaderRow = $('<tr></tr>');
+                mainHeaderRow.append(
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.employee')</th>'
+                );
+                mainHeaderRow.append(
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.establishment')</th>'
+                );
+                mainHeaderRow.append(
+                    '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.basic_wage')</th>'
+                );
+                mainHeaderRow.append(
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due_before_tax')</th>'
+                );
+
+                // Dynamic Allowances Header
+                mainHeaderRow.append(
+                    `<th colspan="${allowancesCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.allowances')</th>`
+                );
+
+                // Dynamic Deductions Header
+                mainHeaderRow.append(
+                    `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
+                );
+
+                mainHeaderRow.append(
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
+                );
+                mainHeaderRow.append(
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
+                );
+
+                tableHead.append(mainHeaderRow);
+
+                // Create the second row (sub-headers)
+                const subHeaderRow = $('<tr></tr>');
+                subHeaderRow.append(
+                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.regular_worked_hours')</th>'
+                );
+                subHeaderRow.append(
+                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.overtime_hours')</th>'
+                );
+                subHeaderRow.append(
+                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_hours')</th>'
+                );
+                subHeaderRow.append(
+                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_worked_days')</th>'
+                );
+                subHeaderRow.append(
+                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
+                );
+                                
+                // Add dynamic allowance sub-headers
+                if (allowancesCount > 0) {
+                    Object.keys(response.data[0].allowances_array).forEach(key => {
+                        subHeaderRow.append(
+                            `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
+                        );
+                    });
+                }
+                subHeaderRow.append(
+                    `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_allowances')</th>`
+                );
+                // Add dynamic deduction sub-headers
+                if (deductionsCount > 0) {
+                    Object.keys(response.data[0].deductions_array).forEach(key => {
+                        subHeaderRow.append(
+                            `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
+                        );
+                    });
+                }
+                subHeaderRow.append(
+                    `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_deductions')</th>`
+                );
+
+                tableHead.append(subHeaderRow);
+
+                // Initialize DataTable (from previous code)
+                initDataTableColumns(response.data, dataUrl);
+            });
+        }
+
+        function decodeHTML(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
+        function initDataTableColumns(data, dataUrl) {
+            let columns = [{
+                    data: 'employee',
+                    name: 'employee',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'establishment',
+                    name: 'establishment',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'regular_worked_hours',
+                    name: 'regular_worked_hours',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'overtime_hours',
+                    name: 'overtime_hours',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'total_hours',
+                    name: 'total_hours',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'total_worked_days',
+                    name: 'total_worked_days',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'basic_total_wage',
+                    name: 'basic_total_wage',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+                {
+                    data: 'wage_due_before_tax',
+                    name: 'wage_due_before_tax',
+                    className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+                },
+            ];
+
+            // Add dynamic allowance and deduction columns
+            if (data.length > 0) {
+                const firstRow = data[0];
+                  
+                Object.keys(firstRow.allowances_array || {}).forEach(key => {                    
+                    columns.push({
+                        data: `allowances_array.${key}`,
+                        className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
+                        render: function(data) {                            
+                            return decodeHTML(data); // Decode and render as raw HTML
+                        }
+                    });
+                });
+                columns.push({
+                    data: 'total_allowances',
+                    className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
+                });
+                Object.keys(firstRow.deductions_array || {}).forEach(key => {
+                    columns.push({
+                        data: `deductions_array.${key}`,
+                        className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
+                        render: function(data) {
+                            return decodeHTML(data); // Decode and render as raw HTML
+                        }
+                    });
+                });
+
+                columns.push({
+                    data: 'total_deductions',
+                    className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
+                });
+            }
+            columns.push({
+                data: 'total_wage_before_tax',
+                className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
+            });
+            columns.push({
+                data: 'total_wage',
+                className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
+            });
+            
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,
+                info: false,
                 ajax: {
                     url: dataUrl,
                     type: "GET",
                     data: function(d) {
-                        d.deduction_apply = deduction_apply;
+                        d.firstEnter = firstEnter;
+
+                        let establishmentChanges = {};
+                        $('input[name^="establishment_changes"]').each(function() {
+                            const employeeId = $(this).attr('id').replace('establishment_change_', '');
+                            establishmentChanges[employeeId] = $(this).val();
+                        });
+
+                        // Add establishment changes to the request data
+                        d.establishment_changes = establishmentChanges;
+
+                        return d;
                     }
                 },
-                info: false,
-                columns: [{
-                        data: 'employee',
-                        name: 'employee',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'regular_worked_hours',
-                        name: 'regular_worked_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'overtime_hours',
-                        name: 'overtime_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_hours',
-                        name: 'total_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_worked_days',
-                        name: 'total_worked_days',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'basic_total_wage',
-                        name: 'basic_total_wage',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'wage_due_before_tax',
-                        name: 'wage_due_before_tax',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'html_allowances',
-                        name: 'html_allowances',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'html_deductions',
-                        name: 'html_deductions',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_wage_before_tax',
-                        name: 'total_wage_before_tax',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_wage',
-                        name: 'total_wage',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    }
-                ],
+                columns: columns,
                 order: [],
                 scrollX: true,
                 pageLength: 10,
-                drawCallback: function() {
-                    KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
-                }
             });
-        };
+            dataTable.on('draw', function() {
+                $('[name^="employee_establishment"]').select2({
+                    minimumResultsForSearch: -1
+                });
+                $('.select2-selection.select2-selection--single').attr('style', function(i, style) {
+                    return 'height: 36.05px !important;';
+                });
+            });
+        }
     </script>
 @endsection

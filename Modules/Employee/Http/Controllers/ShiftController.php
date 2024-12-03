@@ -35,9 +35,7 @@ class ShiftController extends Controller
 
     public function getShift(Request $request)
     {
-        $employee_id = $request->employee_id;
-        $employee = Employee::with(['allRoles'])->findOrFail($employee_id);
-        $establishments = $employee->wageEstablishments->pluck('id', 'name')->toArray();
+        $establishments = Establishment::all()->pluck('id', 'name')->toArray();
         $day_times = ShiftService::getStartEndDayTime();
         return response()->json(['data' => ['establishments' => $establishments, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
     }

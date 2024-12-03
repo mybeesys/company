@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AuthenticateJWT;
 use Modules\Product\Http\Controllers\ProductController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -46,9 +45,9 @@ use Modules\Product\Http\Controllers\VendorController;
 */    
 Route::middleware([
     'web',
+    'auth',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    AuthenticateJWT::class
 ])->group( function () {
     Route::resource('product', ProductController::class)->names('product');
     Route::resource('category', CategoryController::class)->names('category');

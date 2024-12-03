@@ -3,6 +3,7 @@
 namespace Modules\Employee\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Establishment\Models\Establishment;
 
 class Payroll extends BaseScheduleModel
 {
@@ -27,5 +28,10 @@ class Payroll extends BaseScheduleModel
     public function payrollGroup()
     {
         return $this->belongsTo(PayrollGroup::class);
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id');
     }
 }

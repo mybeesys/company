@@ -5,15 +5,20 @@ namespace Modules\Employee\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Modules\Employee\database\factories\EmployeeFactory;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 
-class Employee extends BaseEmployeeModel
+class Employee extends Authenticatable
 {
-    use HasFactory, HasRoles, SoftDeletes, HasPermissions;
+    use HasFactory, HasRoles, SoftDeletes, HasPermissions, HasApiTokens, Notifiable;
+
+    protected $table = 'emp_employees';
 
     protected $guard_name = "web";
 
@@ -21,6 +26,17 @@ class Employee extends BaseEmployeeModel
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
+
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -30,7 +46,7 @@ class Employee extends BaseEmployeeModel
     protected function casts(): array
     {
         return [
-            'pos_is_active' => 'boolean',
+            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -40,10 +56,9 @@ class Employee extends BaseEmployeeModel
         return EmployeeFactory::new();
     }
 
-
-    public function wageEstablishments()
+    public function defaultEstablishment()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_wages')->withTimestamps();
+        return $this->belongsTo(Establishment::class, 'establishment_id');
     }
 
     public function establishments()
@@ -66,9 +81,9 @@ class Employee extends BaseEmployeeModel
         return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
     }
 
-    public function wages()
+    public function wage()
     {
-        return $this->hasMany(Wage::class);
+        return $this->hasOne(Wage::class);
     }
 
     public function timecards()
