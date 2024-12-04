@@ -29,7 +29,7 @@ class TimeCardService
                 'clock_in_time' => $clock_in_time,
                 'date' => $date
             ])->id;
-            return ['status' => true, 'timecard_id' => $timecard_id];
+            return ['status' => true, 'id' => $timecard_id];
         } catch (\Throwable $e) {
             Log::error('Timecard creation failed', [
                 'error' => $e->getMessage(),
