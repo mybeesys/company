@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 @php
-    $local = session()->get('locale');
+    $local = app()->currentLocale();
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
     $rtl_files = $local == 'ar' ? '.rtl' : '';
     $menu_placement_x = $local == 'ar' ? 'left-start' : 'right-start';

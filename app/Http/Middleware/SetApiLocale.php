@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class LocalizationMiddleware
+class SetApiLocale
 {
     /**
      * Handle an incoming request.
@@ -15,8 +15,7 @@ class LocalizationMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = session('locale', config('app.locale'));
-        session()->put('locale', $locale);
+        $locale = $request->header('Accept-Language', 'ar');
         app()->setLocale($locale);
 
         return $next($request);

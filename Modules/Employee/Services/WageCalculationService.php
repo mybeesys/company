@@ -53,7 +53,7 @@ class WageCalculationService
             'specified_day_basic_wage' => $this->calculateDailyBasicWage($basicWage, $carbonMonth),
             'basic_wage_rate' => $basicWage->rate,
             'overTime_rate_multiplier' => $this->timeSheetRuleService->getOvertimeRateMultiplier(),
-            'maximum_overtime_minutes' => $this->timeSheetRuleService->getMaximumOvertimeMinutes(minutes: true),
+            'maximum_overtime_minutes' => $this->timeSheetRuleService->getMaximumOvertime(minutes: true),
         ];
     }
 

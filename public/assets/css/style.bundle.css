@@ -48882,7 +48882,7 @@ body,
     --bs-app-sidebar-width: calc(var(--bs-app-sidebar-primary-width) + var(--bs-app-sidebar-secondary-width, 0px));
   }
   [data-kt-app-sidebar-minimize=on] {
-    --bs-app-sidebar-width: 85px;
+    --bs-app-sidebar-width: 75px;
     --bs-app-sidebar-gap-start: 0px;
     --bs-app-sidebar-gap-end: 0px;
     --bs-app-sidebar-gap-top: 0px;

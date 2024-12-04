@@ -384,10 +384,10 @@ function employeeForm(id, validationUrl, generatePinUrl) {
 
     $('#generate_pin').on('click', function (e) {
         e.preventDefault();
-        $('#PIN').removeClass('is-invalid');
+        $('#pin').removeClass('is-invalid');
         checkErrors(saveButton);
         ajaxRequest(generatePinUrl, 'GET', {}, false, true).done(function (response) {
-            $('#PIN').val(response.data);
+            $('#pin').val(response.data);
         });
     });
 }

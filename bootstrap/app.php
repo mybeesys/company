@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\CentralAppAuthenticate;
+use App\Http\Middleware\LocalizationMiddleware;
+use App\Http\Middleware\SetApiLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'auth-central' => CentralAppAuthenticate::class
+        ]);
+        $middleware->web(prepend: [
+            LocalizationMiddleware::class,
+        ]);
+        $middleware->api(prepend: [
+            SetApiLocale::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

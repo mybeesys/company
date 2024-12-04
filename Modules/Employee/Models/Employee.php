@@ -13,7 +13,6 @@ use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-
 class Employee extends Authenticatable
 {
     use HasFactory, HasRoles, SoftDeletes, HasPermissions, HasApiTokens, Notifiable;
@@ -104,19 +103,6 @@ class Employee extends Authenticatable
     public function deductions()
     {
         return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
-    }
-
-    public function getEmployeeEstablishmentsWithAllOption()
-    {
-        $hasAllEstablishmentsRole = $this->posRoles()->whereNull('establishment_id')->exists();
-
-        $specificEstablishments = $this->establishments()->whereHas('posRoles')->get();
-
-        $establishments = $specificEstablishments->pluck('name')->toArray();
-        if ($hasAllEstablishmentsRole) {
-            array_unshift($establishments, __('employee::general.all_establishments'));
-        }
-        return $establishments;
     }
 
     public function getTranslatedNameAttribute()

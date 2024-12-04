@@ -4,6 +4,7 @@ namespace Modules\Employee\database\seeders;
 
 use Hash;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Crypt;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 
@@ -18,7 +19,7 @@ class EmployeeDatabaseSeeder extends Seeder
             'name' => 'آدمن',
             'name_en' => 'admin',
             'password' => Hash::make('12345678'),
-            'PIN' => 13245,
+            'pin' => Crypt::encryptString(13245),
             'ems_access' => true,
             'pos_is_active' => true
         ]);

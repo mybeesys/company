@@ -214,7 +214,7 @@ return [
         'year' => 'السنة',
         'phone_number' => 'رقم الهاتف',
         'name_en' => 'الاسم',
-        'PIN' => 'الرقم السري',
+        'pin' => 'الرقم السري',
         'employment_start_date' => 'تاريخ بداية التوظيف',
         'permission_set_name' => 'اسم الدور',
         'rank' => 'الرتبة',
@@ -246,6 +246,7 @@ return [
         'employee_declares_break_type' => 'الموظف يحدد نوع الاستراحة',
         'employee_ids' => 'الموظف',
         'employee_ids.*' => 'للموظف',
+        'establishment_id' => 'رقم الفرع'
 
     ],
 ];
