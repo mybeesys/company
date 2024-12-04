@@ -24,7 +24,7 @@ class TimeSheetRuleService
         return floatval(TimeSheetRule::firstWhere('rule_name', 'overtime_rate_multiplier')?->rule_value) ?? 1;        
     }
 
-    public function getMaximumOvertimeMinutes($minutes)
+    public function getMaximumOvertime($minutes)
     {
         $maximum_overtime_hours_per_day = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? 0;
         return TimeHelper::convertToDecimalFormatHelper($maximum_overtime_hours_per_day, $minutes);

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Employee\Models\Employee;
 
-class LoginController extends Controller
+class AuthController extends Controller
 {
     /**
      * Display a listing of the resource.

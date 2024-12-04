@@ -100,10 +100,10 @@
                 <x-form.form-card :title="__('employee::general.pos')">
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
-                            <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
+                            <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                             <div class="input-group">
-                                <x-form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
-                                    :disabled=$disabled value="{{ $employee?->PIN }}" required>
+                                <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
+                                    :disabled=$disabled value="{{ $employee?->pin }}" required>
                                     <button type="button" id="generate_pin" @disabled($disabled)
                                         class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                 </x-form.input>

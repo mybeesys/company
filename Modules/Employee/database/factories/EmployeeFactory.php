@@ -3,6 +3,7 @@
 namespace Modules\Employee\database\factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Crypt;
 use Modules\Employee\Models\Employee;
 
 class EmployeeFactory extends Factory
@@ -21,7 +22,7 @@ class EmployeeFactory extends Factory
             'name_en' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone_number' => fake()->phoneNumber(),
-            'PIN' => fake()->countryCode(),
+            'pin' => Crypt::encryptString(fake()->countryCode()),
             'employment_start_date' => fake()->date(),
             'employment_end_date' => fake()->date(),
             'created_at' => now(),

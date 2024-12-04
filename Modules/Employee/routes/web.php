@@ -26,6 +26,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 | contains the "web" middleware group. Now create something great!
 |
 */
+require __DIR__ . '/auth.php';
 
 Route::middleware([
     'web',
@@ -33,21 +34,9 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::middleware(['guest'])->group(function () {
-
-        Route::get('/login', function () {
-            return view('employee::auth.login');
-        })->name('login');
-
-        Route::post('/postlogin', [LoginController::class, 'login'])->name('login.postLogin');
-    });
-
-
     
     Route::middleware(['auth'])->group(function () {
-        
-        Route::get('logout', [LoginController::class, 'logout'])->name('logout');
-        
+                
         Route::get('/', function () {
             return view('employee::layouts.master');
         })->name('dashboard');

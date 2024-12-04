@@ -13,7 +13,7 @@ trait EmployeeValidateTrait
     {
         return $this->getCommonValidationRules($notAjaxValidate, $request) + [
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', 'unique:emp_employees,email'],
-            'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', 'unique:emp_employees,pin'],
+            'pin' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', 'unique:emp_employees,pin'],
             'password' => ['required_if_accepted:ems_access', 'nullable', Password::default()],
         ];
     }
@@ -22,7 +22,7 @@ trait EmployeeValidateTrait
     {
         return $this->getCommonValidationRules($notAjaxValidate, $request) + [
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', Rule::unique('emp_employees', 'email')->ignore($employee->email, 'email')],
-            'PIN' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'PIN')->ignore($employee->PIN, 'PIN')],
+            'pin' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'pin')->ignore($employee->pin, 'pin')],
             'password' => ['nullable', Password::default()],
         ];
     }
