@@ -1,7 +1,6 @@
 {
     "Accounting": true,
     "Product": true,
-    "UserManagement": true,
     "Employee": true,
     "Establishment": true,
     "Inventory": true,

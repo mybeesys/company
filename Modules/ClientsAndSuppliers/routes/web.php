@@ -25,7 +25,8 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::middleware(AuthenticateJWT::class)->group(function () {
+    // Route::middleware(AuthenticateJWT::class)->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::get('clients', [ClientController::class, 'index'])->name('clients');
         Route::get('suppliers', [ClientController::class, 'index'])->name('suppliers');
         Route::get('client-create', [ClientController::class, 'create'])->name('client-create');
@@ -36,8 +37,5 @@ Route::middleware([
         Route::post('client-update', [ClientController::class, 'update'])->name('client-update');
         Route::get('client-update-status/{id}', [ClientsAndSuppliersController::class, 'updateStatus'])->name('client-update-status');
         Route::get('client-destroy/{id}', [ClientsAndSuppliersController::class, 'destroy'])->name('client-destroy');
-
-
-
     });
 });
