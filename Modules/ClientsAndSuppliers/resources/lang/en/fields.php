@@ -1,0 +1,63 @@
+<?php
+
+return [
+
+    'id' => 'id',
+    'client_name' => 'Client Name',
+    'mobile_number' => 'Mobile Number',
+    'email' => 'Email',
+    'commercial_register' => 'Commercial Register',
+    'tax_number' => 'Tax Number',
+    'status' => 'Status',
+    'phone_number' => 'Phone Number',
+    'organization_name' => 'Organization Name',
+    'supplier_name'=>'Supplier Name',
+    'website' => 'Website',
+    'actions'=>'Actions',
+    'Billing Address'=>'Billing Address',
+    'street_name' => 'Street Name',
+    'city' => 'City',
+    'state' => 'State',
+    'postal_code' => 'Postal Code',
+    'building_number' => 'Building Number',
+    'country' => 'Counrty',
+    'select_country' => 'Select Country',
+    'shipping_addresses' => 'Shipping Address',
+    'Copy billing address'=>'Copy billing address',
+    'bank_account_information' => 'Bank Account Information',
+    'bank_name' => 'Bank Name',
+    'bank_account_name' => 'Bank Account Name',
+    'country_bank' => 'Country Bank',
+    'currency' => 'Currency',
+    'iban_number' => 'Iban Number',
+    'bank_account_number' => 'Bank Account Number',
+    'swift_code' => 'Swift Code',
+    'bank_address' => 'Bank Address',
+    'client_contacts' => 'Contacts',
+    'client_contact_name' => 'Name',
+    'client_contact_mobile_number' => 'Contact Number',
+    'alternative_mobile_number' => 'Alternative Contact Number',
+    'client_contact_email' => 'Email',
+    'client_contact_department' => 'Department',
+    'client_contact_position' => 'Position',
+    'Add another contact'=>'Add another contact',
+    'contact'=>'contact ',
+    'delete_contact'=>'Delete contact',
+    'Add custom fields'=>'Add custom field',
+    'customValue'=>'value of custom field',
+    'customLable'=>'lable of custom field',
+    'tooltip_custom_fields'=>'Custom fields add extra info as Label (e.g., Country Name) and Value (e.g., Saudi Arabia).',
+    'Point of sale client'=>'Point of sale client',
+    'financial_information'=>'Financial information',
+
+
+
+    '1' => 'Account',
+'2' => 'Sales',
+'3' => 'Payments',
+'4' => 'Activities',
+'5' => 'Subscriptions',
+
+
+
+];

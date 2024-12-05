@@ -74,6 +74,15 @@
             font-weight: bold !important;
         }
 
+input.no-spin::-webkit-inner-spin-button,
+input.no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input.no-spin {
+    -moz-appearance: textfield; }
+
         .form-check:not(.form-switch) .form-check-input[type=checkbox] {
 
     border: 1px solid #9b94949e !important;

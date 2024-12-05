@@ -43,6 +43,12 @@ return [
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
     'inventory' =>'المنتجات',
-    'inventory_module' => 'المستودع'
+    'inventory_module' => 'المستودع',
+    'sales'=>'المبيعات',
+    'clients'=>'العملاء',
+    'invoices' => 'فواتيير المبيعات',
+    'purchases'=>'المشتريات',
+    'suppliers'=>'الموردين',
+
 
 ];

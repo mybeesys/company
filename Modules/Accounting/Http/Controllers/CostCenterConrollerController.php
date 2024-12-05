@@ -11,6 +11,7 @@ use Modules\Accounting\classes\CostCenterExport;
 use Modules\Accounting\classes\TransactionsCostCenterExport;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\CostCenterUtil;
+use Modules\Product\Models\Product;
 use Mpdf\Mpdf;
 
 class CostCenterConrollerController extends Controller
@@ -21,6 +22,7 @@ class CostCenterConrollerController extends Controller
     public function index(Request $request)
     {
 
+    
         $costCenters = AccountingCostCenter::where('parent_id', 'null')->with('chiledCostCenter')->get();
         $includeInactive = $request->includeInactive == 0 ? 1 : 0;
         return view('accounting::costCenter.index', compact('costCenters', 'includeInactive'));

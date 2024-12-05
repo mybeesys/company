@@ -3,6 +3,8 @@ return [
     'try_now' => 'Try Now',
     'edit' => 'Edit',
     'activate' => 'Activate',
+    'inactive' => 'Inactive',
+
     'deactivate' => 'Deactivate',
     'cancel' => 'Cancel',
     'submit' => 'Submit',
@@ -20,6 +22,7 @@ return [
     'save'=>'Save',
     'actions' => 'Actions',
     'add_successfully'=>'Added Successfully',
+    'deleted_successfully'=>'Deleted Successfully',
     'updated_successfully'=>'Updated Successfully',
     'something_went_wrong'=>'Something went wrong',
     'ref_number already exists'=>'Reference number is already available.',
@@ -27,6 +30,8 @@ return [
     'save&print'=>'Save and print',
     'previous'=>'Previous',
     'next'=>'next',
+    'savedraft'=>'Save as draft',
+
 
 
 

@@ -4,5 +4,8 @@
     "UserManagement": true,
     "Employee": true,
     "Establishment": true,
-    "Inventory": true
+    "Inventory": true,
+    "ClientsAndSuppliers": true,
+    "Sales": true,
+    "General": true
 }

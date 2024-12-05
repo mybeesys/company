@@ -34,16 +34,23 @@ return [
     'shift_schedule' => 'Shift schedules',
     'time_worked' => 'Time worked',
     'payroll' => 'Payroll',
-    'costCenter'=>'Cost Centers',
+    'costCenter' => 'Cost Centers',
     'serviceFee' => 'Service Fees',
 
-    'employees_working_hours' => 'Employees working hours' ,
+    'employees_working_hours' => 'Employees working hours',
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
-    'ingredient' =>'Ingredient' ,
+    'ingredient' => 'Ingredient',
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
-     'inventory' =>'Product',
-    'inventory_module' => 'Invenetory'
+    'inventory' => 'Product',
+    'inventory_module' => 'Invenetory',
+    'sales' => 'Sales',
+    'clients' => 'Clients',
+    'invoices' => 'Invoices',
+    'purchases'=>'Purchases',
+    'suppliers'=>'Suppliers',
+
+
 
 ];
