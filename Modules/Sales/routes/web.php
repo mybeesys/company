@@ -24,10 +24,11 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::middleware(AuthenticateJWT::class)->group(function () {
+    // Route::middleware(AuthenticateJWT::class)->group(function () {
+    Route::middleware(['auth'])->group(function () {
+
         Route::get('invoices', [SellController::class, 'index'])->name('invoices');
         Route::get('create-invoice', [SellController::class, 'create'])->name('create-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
-
     });
 });
