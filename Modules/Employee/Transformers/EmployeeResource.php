@@ -4,7 +4,6 @@ namespace Modules\Employee\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Employee\Transformers\Collections\AdjustmentCollection;
 
 class EmployeeResource extends JsonResource
 {
@@ -29,8 +28,8 @@ class EmployeeResource extends JsonResource
             'deductions' => AdjustmentResource::collection($this->deductions),
             'image' => $this->image,
             'email' => $this->email,
-            'Created at' => $this->created_at->format('d/m/Y H:i'),
-            'Updated at' => $this->updated_at->format('d/m/Y H:i')
+            'created_at' => $this->created_at->format('d/m/Y H:i'),
+            'updated_at' => $this->updated_at->format('d/m/Y H:i')
         ];
     }
 }
