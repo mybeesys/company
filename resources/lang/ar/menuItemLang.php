@@ -45,11 +45,20 @@ return [
     'linkedCombo' => 'كومبو',
     'inventory' =>'المنتجات',
     'inventory_module' => 'المستودع',
+
+    'sales'=>'المبيعات',
+    'clients'=>'العملاء',
+    'invoices' => 'فواتيير المبيعات',
+    'purchases'=>'المشتريات',
+    'suppliers'=>'الموردين',
+
+
     'po' => 'طلبات الشراء',
     'prep' => 'التحضيرات',
     'rma' => 'RMA',
     'ingredientInventory' => 'المكونات',
 	 'waste' => 'الاتلاف',
     'transfer' => 'التحويلات'
+
 
 ];

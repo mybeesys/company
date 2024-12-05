@@ -14,8 +14,6 @@
             gap: 11px;
             padding-bottom: 37px;
         }
-
-
     </style>
 @stop
 @section('content')
@@ -90,54 +88,51 @@
                 </span>
             </h3>
             @if (count($costCenter->transactions) > 0)
-                
-                    <div class="card-toolbar">
-                        <div class="btn-group dropend">
+                <div class="card-toolbar">
+                    <div class="btn-group dropend">
 
-                            <button type="button"
-                                style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
-                                class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-left" role="menu"
-                                style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
-                                <li class="mb-5"
-                                    style="text-align: justify; border-bottom: 1px solid #00000029; padding:0.8rem;
+                        <button type="button" style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
+                            class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
+                            style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
+                            <li class="mb-5"
+                                style="text-align: justify; border-bottom: 1px solid #00000029; padding:0.8rem;
                             ">
-                                    <span class="card-label fw-bold fs-6 mb-1 ">@lang('messages.settings')</span>
-                                </li>
+                                <span class="card-label fw-bold fs-6 mb-1 ">@lang('messages.settings')</span>
+                            </li>
 
 
 
-                                <li>
+                            <li>
 
-                                    <div class="menu-item-custom ">
-                                        <a href= "{{ url('/cost-center-transactions-print', $costCenter->id) }}"
-                                             class="btn">@lang('accounting::fields.print')</a>
-                                    </div>
-                                </li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/cost-center-transactions-print', $costCenter->id) }}"
+                                        class="btn">@lang('accounting::fields.print')</a>
+                                </div>
+                            </li>
 
-                                <li>
-                                    <div class="menu-item-custom ">
-                                        <a href= "{{ url('/cost-center-transactions-export-pdf', $costCenter->id) }}"
-                                            class="btn">@lang('general.export_as_pdf')</a>
-                                    </div>
-                                </li>
-
-
-                                <li>
-                                    <div class="menu-item-custom ">
-                                        <a href= "{{ url('/cost-center-transactions-export-excel', $costCenter->id) }}"
-                                            class="btn">@lang('general.export_as_excel')</a>
-                                    </div>
-                                </li>
+                            <li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/cost-center-transactions-export-pdf', $costCenter->id) }}"
+                                        class="btn">@lang('general.export_as_pdf')</a>
+                                </div>
+                            </li>
 
 
+                            <li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/cost-center-transactions-export-excel', $costCenter->id) }}"
+                                        class="btn">@lang('general.export_as_excel')</a>
+                                </div>
+                            </li>
 
-                            </ul>
-                        </div>
+
+
+                        </ul>
                     </div>
-
+                </div>
             @endif
         </div>
 

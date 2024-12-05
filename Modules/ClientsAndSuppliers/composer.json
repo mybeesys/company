@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/clientsandsuppliers",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ClientsAndSuppliers\\": "app/",
+            "Modules\\ClientsAndSuppliers\\Database\\Factories\\": "database/factories/",
+            "Modules\\ClientsAndSuppliers\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ClientsAndSuppliers\\Tests\\": "tests/"
+        }
+    }
+}

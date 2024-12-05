@@ -3,6 +3,9 @@ return [
     'try_now' => 'جرّب الآن',
     'edit' => 'نعديل',
     'activate' => 'تنشيط',
+
+    'deactivate' => 'إلغاء تنشيط',
+    'inactive' => 'غير نشط',
     'cancel' => 'إلغاء',
     'submit' => 'أرسال',
     'select' => 'الرجاء الاختيار',
@@ -19,14 +22,17 @@ return [
     'save' => 'حفظ',
     'deactivate' => 'إلغاء تنشيط',
     'actions' => 'العمليات',
-    'add_successfully'=>'تمت الإضافة بنجاح',
-    'updated_successfully'=>'تم التعديل بنجاح',
-    'something_went_wrong'=>'لقد حدث خطأ ما',
-    'ref_number already exists'=>'الرقم المرجعي موجود مسبفاً',
-    'save&add'=>'حفظ وإضافة اخر',
-    'save&print'=>'حفظ وطباعة',
-    'previous'=>'السابق',
-    'next'=>'التالي',
+    'add_successfully' => 'تمت الإضافة بنجاح',
+    'updated_successfully' => 'تم التعديل بنجاح',
+    'deleted_successfully'=>'تم الحذف بنجاح',
+    'something_went_wrong' => 'لقد حدث خطأ ما',
+    'ref_number already exists' => 'الرقم المرجعي موجود مسبفاً',
+    'save&add' => 'حفظ وإضافة اخر',
+    'save&print' => 'حفظ وطباعة',
+    'previous' => 'السابق',
+    'next' => 'التالي',
+    'savedraft' => 'حفظ كـ مسودة',
+
 
 
 

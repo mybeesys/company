@@ -62,7 +62,7 @@ return [
                 'permission' => '',
 
             ],
-           
+
 
         ]
     ],
@@ -106,6 +106,37 @@ return [
             'url' => 'transfer',
             'permission' => '',
         ]]
+    ],
+    [
+        'name' => 'sales',
+        'url' => '#',
+        'icon' => 'fas fa-dollar-sign',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'clients',
+                'url' => 'clients',
+                'permission' => '',
+            ],
+            [
+                'name' => 'invoices',
+                'url' => 'invoices',
+                'permission' => '',
+            ],
+        ]
+    ],
+    [
+        'name' => 'purchases',
+        'url' => '#',
+        'icon' => 'fas fa-shopping-cart',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'suppliers',
+                'url' => 'suppliers',
+                'permission' => '',
+            ],
+        ]
     ],
     [
         'name' => 'accounting_module',
