@@ -9,8 +9,6 @@ use Modules\Employee\Transformers\Collections\EmployeeCollection;
 
 class EmployeeController extends Controller
 {
-
-
     public function index(Request $request)
     {
         $request->validate([
