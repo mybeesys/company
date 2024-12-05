@@ -192,9 +192,9 @@ return [
             'Modules/Product/database/migrations/tenant',
             'Modules/Accounting/database/migrations/tenant',
             'Modules/Inventory/database/migrations/tenant',
-            'Modules/clientsandsuppliers/database/migrations/tenant',
-            'Modules/sales/database/migrations/tenant',
-            'Modules/general/database/migrations/tenant',
+            'Modules/ClientsAndSuppliers/database/migrations/tenant',
+            'Modules/Sales/database/migrations/tenant',
+            'Modules/General/database/migrations/tenant',
         ],
 
         '--realpath' => true,
