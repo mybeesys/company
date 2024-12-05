@@ -11,7 +11,7 @@ use Modules\Accounting\database\seeders\AccountingDatabaseSeeder;
 use Modules\Establishment\database\seeders\EstablishmentDatabaseSeeder;
 use Modules\UserManagement\database\seeders\UserManagementDatabaseSeeder;
 use Modules\Employee\database\seeders\EmployeeDatabaseSeeder;
-use Modules\General\Database\Seeders\GeneralDatabaseSeeder;
+use Modules\General\Database\seeders\GeneralDatabaseSeeder;
 use Modules\Product\database\seeders\DiningTypeSeeder;
 use Modules\Product\database\seeders\ProductDatabaseSeeder;
 
