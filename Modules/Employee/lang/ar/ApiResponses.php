@@ -23,4 +23,5 @@ return [
     'server_error' => 'خطأ في المخدم',
     'employee_has_previous_clock_in' => 'الموظف قام بتسجيل الدخول مسبقاً ولم يسجل الخروج', 
     'logged_out' => 'تم تسجيل الخروج بنجاح',
+    'timecards_conflict' => 'يوجد تداخل في أوقات الدوام لهذا الموظف',
 ];
