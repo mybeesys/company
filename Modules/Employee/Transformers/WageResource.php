@@ -1,22 +1,22 @@
 <?php
 
-namespace Modules\Employee\Transformers\Collections;
+namespace Modules\Employee\Transformers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Modules\Employee\Transformers\EmployeeResource;
 
-class EmployeeCollection extends ResourceCollection
+class WageResource extends JsonResource
 {
-    public $collects = EmployeeResource::class;
-
     /**
      * Transform the resource collection into an array.
      */
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection
+            'id' => $this->id,
+            'wage' => $this->wage_type,
+            'rate' => $this->rate
         ];
     }
 }

@@ -23,6 +23,11 @@ class TimeCardService
                     return ['status' => false, 'id' => $perviousTimecard->id, 'message' => __('employee::ApiResponses.employee_has_previous_clock_in'), 'status_code' => 409];
                 }
             }
+            $conflict = $this->clockInConflictCheck($employee_id, $establishment_id, $clock_in_time, $date);
+            if($conflict){
+                return ['status' => false, 'message' => __('employee::ApiResponses.timecards_conflict'), 'status_code' => 409]; 
+            }
+
             $timecard_id = TimeCard::create([
                 'employee_id' => $employee_id,
                 'establishment_id' => $establishment_id,
@@ -35,8 +40,14 @@ class TimeCardService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return ['status' => false, 'message' => __('employee::ApiResponses.server_error'), 'status_code' => 500,];
+            return ['status' => false, 'message' => __('employee::ApiResponses.server_error'), 'status_code' => 500];
         }
+    }
+
+    public function clockInConflictCheck($employee_id, $establishment_id, $clock_in_time, $date)
+    {
+        $conflicted_timecards = TimeCard::whereDate('clock_in_time', $date)->where('employee_id', $employee_id)->where('clock_in_time', '<=', $clock_in_time)->where('clock_out_time', '>=', $clock_in_time)->get();
+        return $conflicted_timecards->isNotEmpty();
     }
 
     public function storeClockOutTimeCard($timecard_id, Carbon $clock_out_time)

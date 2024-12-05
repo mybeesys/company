@@ -28,6 +28,7 @@ class LogoutRequest extends FormRequest
     {
         return [
             'timecard_id' => ['required', 'exists:emp_time_cards,id'],
+            'employee_id' => ['required', 'exists:emp_employees,id'],
             'clock_out_time' => ['required', 'date_format:Y-m-d H:i:s'],
         ];
     }

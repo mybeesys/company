@@ -144,7 +144,7 @@ class WageCalculationService
     private function calculateTimecardMinutesForDate($timecard, string $formattedCurrentDate, $with_over_time, $overTime_rate_multiplier, $regular_work_minutes, $maximum_overtime_minutes): int
     {
         $clockInTime = Carbon::parse($timecard->clock_in_time);
-        $clockOutTime = Carbon::parse($timecard->clock_out_time);
+        $clockOutTime = $timecard->clock_out_time ? Carbon::parse($timecard->clock_out_time) : $clockInTime->copy()->addMinutes($regular_work_minutes);
 
         $startTime = $this->determineStartTime($clockInTime, $formattedCurrentDate);
         $endTime = $this->determineEndTime($clockOutTime, $formattedCurrentDate);

@@ -32,13 +32,11 @@ class AuthController extends Controller
         $timeCard = $this->timeCardService->storeClockInTimecard($employee->id, $request->validated('establishment_id'), $request->validated('clock_in_time'), $request->validated('date'));
 
         if ($timeCard['status']) {
-            return response()->json(['token' => $employee->createToken($employee->email)->plainTextToken, 'timecard_id' => $timeCard['id']]);
+            return response()->json(['employee_id' => $employee->id, 'timecard_id' => $timeCard['id']]);
         } else {
             if ($timeCard['status_code'] == 409) {
                 return response()->json([
                     'error' => $timeCard['message'],
-                    'token' => $employee->createToken($employee->email)->plainTextToken,
-                    'timecard_id' => $timeCard['id']
                 ], $timeCard['status_code']);
             } else {
                 return response()->json(['error' => $timeCard['message']], $timeCard['status_code']);
@@ -50,7 +48,6 @@ class AuthController extends Controller
     {
         $updated = $this->timeCardService->storeClockOutTimeCard($request->validated('timecard_id'), Carbon::parse($request->validated('clock_out_time')));
         if ($updated) {
-            $request->user()->tokens()->delete();
             return response()->json(['message' => __('employee::ApiResponses.logged_out')], 200);
         } else {
             return response()->json(['error' => __('employee::ApiResponses.server_error')], 500);
