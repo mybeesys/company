@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
  *--------------------------------------------------------------------------
@@ -13,7 +15,10 @@ use Modules\Establishment\Http\Controllers\EstablishmentController;
  * is assigned the "api" middleware group. Enjoy building your API!
  *
 */
-
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('establishment', EstablishmentController::class)->names('establishment');
+Route::middleware([
+    'api',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+    require __DIR__ . '/Api/establishment.php';
 });
