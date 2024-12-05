@@ -14,44 +14,50 @@
 @section('content')
 
 
-    {{-- <div class="card1 h-md-100 my-5" dir="ltr">
-        <div class="card-body d-flex flex-column flex-center">
-            <div class="mb-2 px-20" style="place-items: center;">
+    @if (count($transaction) == 0)
+        <div class="card1 h-md-100 my-5" dir="ltr">
+            <div class="card-body d-flex flex-column flex-center">
+                <div class="mb-2 px-20" style="place-items: center;">
 
 
-                <div class="py-10 text-center">
-                    <img src="/assets/media/illustrations/empty-content.svg" class="theme-light-show w-200px" alt="">
-                    <img src="/assets/media/illustrations/empty-content.svg" class="theme-dark-show w-200px" alt="">
+                    <div class="py-10 text-center">
+                        <img src="/assets/media/illustrations/empty-content.svg" class="theme-light-show w-200px"
+                            alt="">
+                        <img src="/assets/media/illustrations/empty-content.svg" class="theme-dark-show w-200px"
+                            alt="">
+                    </div>
+                    <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
+                        <span class="fw-bolder"> @lang('sales::lang.no_invoice')</span> <br>
+                        @lang('sales::lang.create_suggestion_invoice')
+                    </h4>
+                    <a href="{{ route('create-invoice') }}"
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">إنشاء فاتورة </a>
                 </div>
-                <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
-                    <span class="fw-bolder"> @lang('sales::lang.no_invoice')</span> <br>
-                    @lang('sales::lang.create_suggestion_invoice')
-                </h4>
-                <a href="{{ route('create-invoice') }}"
-                    class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">إنشاء فاتورة </a>
+
             </div>
-
         </div>
-    </div> --}}
+    @else
+        <div class="card card-flush">
+            <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
+                <x-tables.table-header model="sell" url="create-invoice" module="sales">
+                    <x-slot:filters>
+                    </x-slot:filters>
+                    <x-slot:export>
+                        <x-tables.export-menu id="sell" />
+                    </x-slot:export>
+                </x-tables.table-header>
+            </x-cards.card-header>
+
+            <x-cards.card-body class="table-responsive">
+                <x-tables.table :columns=$columns model="sell" module="sales" />
+            </x-cards.card-body>
+        </div>
+    @endif
 
 
 
 
-    <div class="card card-flush">
-        <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="sell" url="create-invoice" module="sales">
-                <x-slot:filters>
-                </x-slot:filters>
-                <x-slot:export>
-                    <x-tables.export-menu id="sell" />
-                </x-slot:export>
-            </x-tables.table-header>
-        </x-cards.card-header>
 
-        <x-cards.card-body class="table-responsive">
-            <x-tables.table :columns=$columns model="sell" module="sales" />
-        </x-cards.card-body>
-    </div>
 
 @stop
 
@@ -63,7 +69,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
-        const dataUrl = '{{ route("invoices") }}';
+        const dataUrl = '{{ route('invoices') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -149,7 +155,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route("invoices") }}?' + $.param({
+                dataTable.ajax.url('{{ route('invoices') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 
@@ -166,4 +172,3 @@
         };
     </script>
 @endsection
-

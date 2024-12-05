@@ -24,6 +24,8 @@ class SellController extends Controller
      */
     public function index(Request $request)
     {
+        $transaction = Transaction::where('type', 'sell')->get();
+
         if ($request->ajax()) {
 
             $transaction = Transaction::where('type', 'sell')->get();
@@ -31,7 +33,7 @@ class SellController extends Controller
         }
 
         $columns = Transaction::getsSellsColumns();
-        return view('sales::sell.index', compact('columns'));
+        return view('sales::sell.index', compact('columns','transaction'));
     }
 
     /**
