@@ -2,17 +2,22 @@
 
 namespace Modules\Employee\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Modules\Employee\database\factories\EmployeeFactory;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-
-class Employee extends BaseEmployeeModel
+class Employee extends Authenticatable
 {
-    use HasFactory, HasRoles, SoftDeletes, HasPermissions;
+    use HasFactory, HasRoles, SoftDeletes, HasPermissions, HasApiTokens, Notifiable;
+
+    protected $table = 'emp_employees';
 
     protected $guard_name = "web";
 
@@ -20,6 +25,17 @@ class Employee extends BaseEmployeeModel
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
+
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -29,7 +45,7 @@ class Employee extends BaseEmployeeModel
     protected function casts(): array
     {
         return [
-            'pos_is_active' => 'boolean',
+            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -39,43 +55,34 @@ class Employee extends BaseEmployeeModel
         return EmployeeFactory::new();
     }
 
+    public function defaultEstablishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id');
+    }
+
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('role_id', 'wage_type', 'rate');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('role_id');
     }
 
     public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'pos');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
     }
 
     public function dashboardRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate')->where('type', 'ems');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id')->where('type', 'ems');
     }
-
-    public function getEmployeeEstablishmentsWithAllOption()
-    {
-        $hasAllEstablishmentsRole = $this->posRoles()->whereNull('establishment_id')->exists();
-
-        $specificEstablishments = $this->establishments()->whereHas('posRoles')->get();
-
-        $establishments = $specificEstablishments->pluck('name')->toArray();
-        if ($hasAllEstablishmentsRole) {
-            array_unshift($establishments, __('employee::general.all_establishments'));
-        }
-        return $establishments;
-    }
-
 
     public function allRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_est_roles_wages')->withPivot('establishment_id', 'wage_type', 'rate');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
     }
 
-    public function wages()
+    public function wage()
     {
-        return $this->hasMany(EmployeeRoles::class);
+        return $this->hasOne(Wage::class);
     }
 
     public function timecards()
@@ -90,11 +97,22 @@ class Employee extends BaseEmployeeModel
 
     public function allowances()
     {
-        return $this->hasMany(AllowanceDeduction::class)->where('type', 'allowance');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
     }
 
     public function deductions()
     {
-        return $this->hasMany(AllowanceDeduction::class)->where('type', 'deduction');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
+    }
+
+    public function getTranslatedNameAttribute()
+    {
+        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
+        return $this->$name;
+    }
+
+    public function ScopeActive(Builder $query)
+    {
+        $query->where('pos_is_active', true);
     }
 }

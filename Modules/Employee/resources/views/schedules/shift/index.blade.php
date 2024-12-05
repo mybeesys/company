@@ -5,7 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="shift" :addButton=false :idColumn=false module="employee">
+            <x-tables.table-header model="shift" :addButton=false module="employee">
                 <x-slot:filters>
                     <x-employee::shifts.filters :establishments=$establishments :roles=$roles />
                 </x-slot:filters>
@@ -41,7 +41,7 @@
     <script>
         let dataTable;
         let columns;
-        let roleValues = [];
+        let establishmentsValues = [];
         let employeeId;
         let date;
         let firstDayOfWeekNumber;
@@ -105,7 +105,7 @@
             var start = moment().startOf('week');
             var end = moment().endOf('week');
             let firstDayOfWeek =
-                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'weak_starts_on')?->rule_value }}";
+                "{{ $timeSheet_rules->firstWhere('rule_name', '=', 'week_starts_on')?->rule_value }}";
             if (!firstDayOfWeek) {
                 firstDayOfWeek = 'saturday';
             }

@@ -28,6 +28,7 @@ const ProductComboUpchargeModal = ({ visible, onClose, combo, translations, dir 
               <TreeTableComponentLocal
                 translations={translations}
                 dir={dir}
+                addNewRow={true}
                 type= {"comboUpcharge"}
                 title={translations.comboUpcharge}
                 currentNodes={upchargeProducts}

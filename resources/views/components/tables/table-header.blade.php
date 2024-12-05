@@ -38,10 +38,10 @@
         @endif
 
         @if ($slot->isEmpty() && $addButton)
-            <a href="{{ url("/{$url}") }}"
+            <a href="{{ url("/{$url}") }}" id="add_{{ $model }}_button"
                 class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">@lang("{$module}::general.add_{$model}")
             </a>
         @endif
+        {{ $slot }}
     </div>
-    {{ $slot }}
 </div>

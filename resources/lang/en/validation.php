@@ -147,10 +147,12 @@ return [
     'attributes' => [
         'name_en' => 'name',
         'phone_number' => 'phone number',
-        'PIN' => 'pin',
+        'pin' => 'pin',
         'employment_start_date' => 'Employment start date',
         'employment_end_date' => 'Employment end date',
         'permission_set_name' => 'role name',
+        'employee_ids' => 'The employee',
+        'employee_ids.*' => 'for employee',
     ],
 
 ];

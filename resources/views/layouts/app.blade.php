@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 @php
-    $local = session()->get('locale');
+    $local = app()->currentLocale();
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
     $rtl_files = $local == 'ar' ? '.rtl' : '';
     $menu_placement_x = $local == 'ar' ? 'right-start' : 'left-start';
@@ -85,14 +85,13 @@ input.no-spin {
 
         .form-check:not(.form-switch) .form-check-input[type=checkbox] {
 
-    border: 1px solid #9b94949e !important;
-}
+            border: 1px solid #9b94949e !important;
+        }
 
-.form-control.form-control-solid {
+        .form-control.form-control-solid {
+            border-color: #9b94949e !important;
+        }
 
-    border-color: #9b94949e !important;
-
-}
         .select2-container .select2-selection--single {
             height: 43.2px !important;
         }
@@ -143,6 +142,10 @@ input.no-spin {
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
+            }
+
+            .select2-selection__choice__display {
+                margin-right: 20px;
             }
         @else
             .select2-selection__rendered {

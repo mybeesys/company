@@ -25,6 +25,35 @@ class UnitTransferController extends Controller
         }
     }
 
+    public function searchUnitTransfers(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $porduct_id = $request->query('product_id', '');
+        $ingredient_id = $request->query('ingredient_id', '');
+        $units =[];
+        if ($request->has('product_id')) {
+            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+                            ->where('product_id', '=', $porduct_id)
+                            ->take(10)
+                            ->get();
+        }
+        if($request->has('ingredient_id')){
+            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+                            ->where('ingredient_id', '=', $ingredient_id)
+                            ->take(10)
+                            ->get();
+        }
+        return response()->json($units);
+    }
+
+    public function Units($id)
+    {
+        $unit = Unit::find($id);
+        return response()->json($unit);
+    }
+
+
     public function index()
     {
         return view('product::unit.index' ); 

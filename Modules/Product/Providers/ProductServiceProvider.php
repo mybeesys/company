@@ -26,7 +26,6 @@ class ProductServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'product');
-        $this->app['router']->pushMiddlewareToGroup('web', \App\Http\Middleware\LocalizationMiddleware::class);
     }
 
     /**

@@ -1,4 +1,4 @@
-@props(['employees', 'timecard' => null, 'formId' => null, 'roles'])
+@props(['employees', 'timecard' => null, 'formId' => null, 'establishments'])
 <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
     <x-form.form-card :title="__('employee::general.timecard_details')">
         <div class="d-flex flex-wrap">
@@ -8,9 +8,9 @@
                     placeholder="{{ __('employee::general.select_option') }}" value="{{ $timecard?->employee_id }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.select name="role_id" :options="$roles" :data_allow_clear=false :label="__('employee::fields.role')" required
+                <x-form.select name="establishment_id" :options="$establishments" :data_allow_clear=false :label="__('employee::fields.establishment')" required
                     :errors="$errors" placeholder="{{ __('employee::general.select_option') }}"
-                    value="{{ $timecard?->role_id }}" />
+                    value="{{ $timecard?->establishment_id }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.time-picker name="clock_in_time" :label="__('employee::fields.inTime')" value="{{ $timecard?->clock_in_time }}"

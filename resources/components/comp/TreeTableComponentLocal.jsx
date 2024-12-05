@@ -5,10 +5,12 @@ import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
+import AsyncSelectComponent from './AsyncSelectComponent';
+import { formatDecimal, getName, getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
 const TreeTableComponentLocal = ({ translations, dir, header, cols, 
-                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete}) => {
+                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete, addNewRow}) => {
 
     const formRef = useRef(null);
 
@@ -28,17 +30,19 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
             return { key: index  + "", data: item }
         });
         let index = currentNodes.length > 0 ? currentNodes.length  + "" : "0";
-        t.push({
-            key : index,
-            data : {
-                "id": null,
-                "type": type,
-                "parentKey": null,
-                "parentKey1": null,
-                "type1": null,
-                "empty": "Y"
-            }
-        });
+        if(!!addNewRow){
+            t.push({
+                key : index,
+                data : {
+                    "id": null,
+                    "type": type,
+                    "parentKey": null,
+                    "parentKey1": null,
+                    "type1": null,
+                    "empty": "Y"
+                }
+            });
+        }
         setNodes([...t]);
     }, [currentNodes]);
 
@@ -166,113 +170,127 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         onUpdate(currentNodes);
     }
 
-    const renderCell = (node, key, autoFocus, options, type, editable, required, index, customCell) => {
-        if(!!customCell && !!!node.data.empty){
-            return customCell(node.data, key, node.key == currentKey, editable);
+    const renderCell = (node, col, index) => {//key, autoFocus, options, type, editable, required, index, customCell) => {
+        if(!!col.customCell && !!!node.data.empty){
+            return col.customCell(node.data, col.key, node.key == currentKey, col.editable, handleEditorChange);
         }
         let firstCell = index == "0" ? true: false; 
-        if (type == "Text")
-            return renderTextCell(node, key, autoFocus, editable, required, firstCell);
-        else if (type == "Number")
-            return renderNumberCell(node, key, autoFocus, editable, required, firstCell);
-        else if (type == "Decimal")
-            return renderDecimalCell(node, key, autoFocus, editable, required, firstCell);
-        else if (type == "Check")
-            return renderCheckCell(node, key, autoFocus, editable, required, firstCell);
-        else if (type == "DropDown")
-            return renderDropDownCell(node, key, autoFocus, options, editable, required, firstCell);
-        else if (type == "MultiDropDown")
-            return renderMultiDropDownCell(node, key, autoFocus, options, editable, required, firstCell);
+        if (col.type == "Text")
+            return renderTextCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
+        else if (col.type == "Number")
+            return renderNumberCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
+        else if (col.type == "Decimal")
+            return renderDecimalCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
+        else if (col.type == "Check")
+            return renderCheckCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
+        else if (col.type == "DropDown")
+            return renderDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
+        else if (col.type == "AsyncDropDown")
+            return renderAsyncDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
+        else if (col.type == "MultiDropDown")
+            return renderMultiDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
     }
 
-    const renderTextCell = (node, key, autoFocus, editable, required, firstCell) => {
+    const renderTextCell = (node, col, firstCell) =>{//key, autoFocus, editable, required, firstCell) => {
         const indent = (node.key).toString().split('-').length;
-        if (!!firstCell && !!node.data.empty) {
-            return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+        if (!!node.data.empty) {
+            if(!!firstCell)
+                return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
             return (
-                node.key == currentKey && !!editable ?
+                node.key == currentKey && !!col.editable ?
                     <input type="text" class={`form-control text-editor text-indent-${indent}`} style={{ width: `${100 - (10 * indent)}%!important` }}
-                        defaultValue={node.data[key]}
-                        onChange={(e) => handleEditorChange(e.target.value, key)}
-                        autoFocus={!!autoFocus}
+                        defaultValue={node.data[col.key]}
+                        onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                        autoFocus={!!col.autoFocus}
                         onKeyDown={(e) => e.stopPropagation()}
-                        required={!!required} />
+                        required={!!col.required}
+                        value={editingRow[col.key]} />
                     :
-                    <span>{node.data[key]}</span>);
+                    currentKey && !!!col.editable ? 
+                        <apan>{editingRow[col.key]}</apan>:
+                        <span>{node.data[col.key]}</span>);
         }
 
     }
 
-    const renderNumberCell = (node, key, autoFocus, editable, required, firstCell) => {
+    const renderNumberCell = (node, col, firstCell) =>{//key, autoFocus, editable, required, firstCell) => {
         const indent = (node.key).toString().split('-').length;
         return (
-            node.key == currentKey && !!editable ?
+            node.key == currentKey && !!col.editable ?
                 <input type="number" min="0" class={`form-control text-editor number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]}
+                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required={!!required} />
+                    required={!!col.required} />
                 :
-                <span>{node.data[key]}</span>);
+                <span>{node.data[col.key]}</span>);
     }
 
-    const renderDecimalCell = (node, key, autoFocus, editable, required) => {
+    const renderDecimalCell = (node, col, firstCell)=>{//key, autoFocus, editable, required) => {
         const indent = (node.key).toString().split('-').length;
         return (
-            node.key == currentKey && !!editable?
+            node.key == currentKey && !!col.editable?
                 <input type="number" min="0" step=".01" class={`form-control text-editor number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]? formatDecimal(node.data[col.key]) : ''}
+                    onChange={(e) => {
+                        handleEditorChange(e.target.value, col.key);
+                        if(!!col.onChangeValue){
+                            col.onChangeValue(editingRow, col.key, e.target.value, (row)=>{
+                                setEditingRow({...row});
+                            });
+                        }
+                    }}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required={!!required} />
+                    required={!!col.required}
+                    value={editingRow[col.key] ?? ''} />
                 :
-                <span>{node.data[key]}</span>);
+                <span>{node.data[col.key]}</span>);
     }
 
-    const renderCheckCell = (node, key, autoFocus, editable) => {
+    const renderCheckCell = (node, col, firstCell)=> {//key, autoFocus, editable) => {
         return (
-            node.key == currentKey && !!editable ?
+            node.key == currentKey && !!col.editable ?
                 <div>
-                    <input type="checkbox" checked={editingRow[key] == 1 ? true : false}
-                        class="form-check-input" data-kt-check={node.data[key]}
+                    <input type="checkbox" checked={editingRow[col.key] == 1 ? true : false}
+                        class="form-check-input" data-kt-check={node.data[col.key]}
                         data-kt-check-target=".widget-10-check"
                         onChange={(e) => {
-                            handleEditorChange(e.target.checked ? 1 : 0, key)
+                            handleEditorChange(e.target.checked ? 1 : 0, col.key)
                         }
                         }
                     />
                 </div>
                 :
                 <div>
-                    <input type="checkbox" defaultChecked={false} checked={node.data[key]}
-                        class="form-check-input" data-kt-check={node.data[key]}
+                    <input type="checkbox" defaultChecked={false} checked={node.data[col.key]}
+                        class="form-check-input" data-kt-check={node.data[col.key]}
                         data-kt-check-target=".widget-10-check" disabled />
                 </div>
         )
     }
 
-    const renderDropDownCell = (node, key, autoFocus, options, editable, required, firstCell) => {
-        const val = options.find(x => x.value == node.data[key])
+    const renderDropDownCell = (node, col, firstCell)=>{//key, autoFocus, options, editable, required, firstCell) => {
+        const val = col.options.find(x => x.value == node.data[col.key])
         const indent = (node.key).toString().split('-').length;
         if (!!firstCell && !!node.data.empty) {
             return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
-            return  node.key == currentKey && !!editable ?
+            return  node.key == currentKey && !!col.editable ?
                  <select class={`form-control number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]}
+                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required={!!required}>
-                    {options.map((option) => (
+                    required={!!col.required}>
+                    {col.options.map((option) => (
                         <option value={option.value}>{option.label}</option>
                     ))
                     }
@@ -282,19 +300,62 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         }
     }
 
-    const renderMultiDropDownCell = (node, key, autoFocus, options, editable) => {
-        if(!!!node.data[key]) node.data[key] =[];
-        const val = options.filter(x => node.data[key].includes(x.value))
+    const get = (row, key) =>{
+        const keys = key.split('.'); // Split the key on '.'
+        let value = row;
+        
+        for (const k of keys) {
+          // Check if the key exists and its value is not null
+          if (value[k] === null || value[k] === undefined) {
+            value = null; // Set value to null if any key in the chain is null/undefined
+            break;
+          }
+          value = value[k];
+        }
+        return value;
+    }
+
+    const renderAsyncDropDownCell = (node, col, firstCell)=>{//key, autoFocus, options, editable, required, firstCell) => {
+        const indent = (node.key).toString().split('-').length;
+        let url = !!col.relatedTo ? `${col.searchUrl}?${col.relatedTo.key}=${
+                !!editingRow && !!get(editingRow, col.relatedTo.relatedKey) ? get(editingRow, col.relatedTo.relatedKey) : -1}`
+                :col.searchUrl;
+        if (!!firstCell && !!node.data.empty) {
+            return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+        }
+        else {
+            return  node.key == currentKey && !!col.editable ?
+                <AsyncSelectComponent
+                    field={col.key}
+                    dir={dir}
+                    searchUrl={url}
+                    currentObject={editingRow[col.key]}
+                    onBasicChange={(field, val) => {
+                        handleEditorChange(val, col.key);
+                        if(!!col.onChangeValue){
+                            col.onChangeValue(editingRow, col.key, val, (row)=>{
+                                setEditingRow({...row});
+                            });
+                        }
+                    }} />
+                :
+                <span>{!!node.data[col.key] ? getRowName(node.data[col.key], dir) : ''}</span>;
+        }
+    }
+
+    const renderMultiDropDownCell = (node, col, firstCell)=>{//key, autoFocus, options, editable) => {
+        if(!!!node.data[col.key]) node.data[col.key] =[];
+        const val = col.options.filter(x => node.data[col.key].includes(x.value))
         return (
-            node.key == currentKey && !!editable?
+            node.key == currentKey && !!col.editable?
                 <Select
-                    id="key"
+                    id={col.key}
                     isMulti={true}
-                    options={options}
+                    options={col.options}
                     closeMenuOnSelect={false}
                     components={animatedComponents}
                     defaultValue={val}
-                    onChange={val => handleEditorChange(val.map(x=> { return  x.value }), key)}
+                    onChange={val => handleEditorChange(val.map(x=> { return  x.value }), col.key)}
                     menuPortalTarget={document.body} 
                     styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                 />
@@ -430,9 +491,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
                             style={{ width: !!!col.width ? '10%' : col.width }} 
                             header={!!col.title ? translations[col.title] : translations[col.key]} 
                             body={(node) => (
-                                renderCell(node, col.key, col.autoFocus, col.options, 
-                                        col.type, col.editable, col.required, index,
-                                        col.customCell))} 
+                                renderCell(node, col, index))} 
                             />
                         )}
                         <Column body={(node) => (actionTemplate(node, actions))} />

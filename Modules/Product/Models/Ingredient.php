@@ -7,6 +7,7 @@ use Modules\Product\Models\Vendor;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\RecipeModifier;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Inventory\Models\ProductInventory;
 
 class Ingredient extends Model
 {
@@ -40,6 +41,10 @@ class Ingredient extends Model
         return $this->fillable;
     }
 
+    public function addToFillable($key){
+        return array_push($this->fillable, $key);
+    }
+
     public $type = 'Ingredient';
     // Define relationships here (if any)
 
@@ -54,6 +59,15 @@ class Ingredient extends Model
     public function recipeProduct()
     {
         return $this->hasMany(RecipeProduct::class, 'ingredient_id', 'id');
+    }
+    public function inventory()
+    {
+        return $this->belongsTo(ProductInventory::class, 'id', 'ingredient_id');
+    }
+
+    public function unitTransfers()
+    {
+        return $this->hasMany(UnitTransfer::class, 'ingredient_id', 'id');
     }
 
 }

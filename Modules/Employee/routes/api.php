@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\EmployeeController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
  *--------------------------------------------------------------------------
@@ -14,6 +15,12 @@ use Modules\Employee\Http\Controllers\EmployeeController;
  *
 */
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('employee', EmployeeController::class)->names('employee');
+Route::middleware([
+    'api',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+
+    require __DIR__ . '/Api/auth.php';
+    require __DIR__ . '/Api/employee.php';
 });

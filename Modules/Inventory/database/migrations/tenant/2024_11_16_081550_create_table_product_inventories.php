@@ -26,12 +26,12 @@ return new class extends Migration
             $table->foreign('product_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_products');
-            $table->foreign('unit_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_unit');
-            $table->foreign('primary_vendor_unit_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_unit');
+            $table->foreign('unit_id')
+                  ->references('id')
+                  ->on('product_unit_transfer');
+            $table->foreign('primary_vendor_unit_id')
+                  ->references('id')
+                  ->on('product_unit_transfer');
             $table->timestamps();
             $table->softDeletes();
         });

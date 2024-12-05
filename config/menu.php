@@ -75,6 +75,36 @@ return [
             'name' => 'inventory',
             'url' => 'productInventory',
             'permission' => '',
+        ],
+        [
+            'name' => 'ingredientInventory',
+            'url' => 'ingredientInventory',
+            'permission' => '',
+        ],
+        [
+            'name' => 'po',
+            'url' => 'purchaseOrder',
+            'permission' => '',
+        ],
+        [
+            'name' => 'prep',
+            'url' => 'prep',
+            'permission' => '',
+        ],
+        [
+            'name' => 'rma',
+            'url' => 'rma',
+            'permission' => '',
+        ],
+		        [
+            'name' => 'waste',
+            'url' => 'waste',
+            'permission' => '',
+        ],
+        [
+            'name' => 'transfer',
+            'url' => 'transfer',
+            'permission' => '',
         ]]
     ],
     [
@@ -199,6 +229,11 @@ return [
                     [
                         'name' => 'payroll',
                         'url' => 'schedule/payroll',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'payroll_group',
+                        'url' => 'schedule/payroll-group',
                         'permission' => '',
                     ],
                 ]

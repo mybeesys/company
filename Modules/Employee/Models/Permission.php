@@ -3,7 +3,6 @@
 namespace Modules\Employee\Models;
 
 use Spatie\Permission\Models\Permission as SpatiePermission;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Permission extends SpatiePermission
 {

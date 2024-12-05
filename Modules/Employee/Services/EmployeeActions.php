@@ -4,12 +4,8 @@ namespace Modules\Employee\Services;
 
 use Carbon\Carbon;
 use File;
-use Modules\Employee\Models\AdministrativeUser;
-use Modules\Employee\Models\AdministrativeUserEstablishment;
-use Modules\Employee\Models\AllowanceDeduction;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
-use Modules\Employee\Models\EmployeeEstablishment;
-use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Wage;
 
 
@@ -19,8 +15,8 @@ class EmployeeActions
     public function __construct(protected $request)
     {
     }
-    
-    public function assignRolesWagesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
+
+    public function assignRolesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
     {
         $PosRepeaterData = $PosRepeaterData ? collect($PosRepeaterData) : null;
         $dashboardRepeaterData = $dashboardRepeaterData ? collect($dashboardRepeaterData) : null;
@@ -29,15 +25,8 @@ class EmployeeActions
 
         $processRepeaterData = function ($repeaterData, $roleKey, $employee) {
             $repeaterData->each(function ($repData) use ($employee, $roleKey) {
-                $wage_rate = $repData['wage'] ?? 0;
-                $wage_type = $repData['wage_type'] ?? null;
                 $establishment_id = isset($repData['establishment']) ? ($repData['establishment'] === 'all' ? null : $repData['establishment']) : null;
-
-                $employee->allRoles()->attach($repData[$roleKey], [
-                    'rate' => $wage_rate,
-                    'wage_type' => $wage_type,
-                    'establishment_id' => $establishment_id,
-                ]);
+                $employee->allRoles()->attach($repData[$roleKey], ['establishment_id' => $establishment_id]);
             });
         };
 
@@ -50,6 +39,15 @@ class EmployeeActions
         }
     }
 
+
+    public function assignEmployeeWage($wage_amount, $wage_type, $employee_id)
+    {
+        Wage::updateOrCreate(['employee_id' => $employee_id], [
+            'rate' => $wage_amount,
+            'wage_type' => $wage_type
+        ]);
+    }
+
     public function storeImage($image, $oldImage = null)
     {
         $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldImage);
@@ -57,7 +55,6 @@ class EmployeeActions
         if (File::exists($oldPath)) {
             File::delete($oldPath);
         }
-
         $imageName = 'profile_pictures/' . time() . '.' . $image->extension();
         $image->storeAs('', $imageName, 'public');
         return $imageName;
@@ -69,19 +66,24 @@ class EmployeeActions
 
         $employee = Employee::create($this->request->merge([
             'image' => $imageName,
-            'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d')
+            'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
+            'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
         ])->all());
 
-        $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
+        $this->assignRolesEstablishments($this->request->get('pos_role_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
+
+        $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
     }
 
     public function update($employee)
     {
-        $this->assignRolesWagesEstablishments($this->request->get('role_wage_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
+        $this->assignRolesEstablishments($this->request->get('pos_role_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
 
-        !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
+        !empty($this->request->get('allowance_repeater')) ? $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id) : PayrollAdjustment::where('type', 'allowance')->where('employee_id', $employee->id)->delete();
+
+        $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
         $imageName = $this->request->has('image') ? $this->storeImage($this->request->image, $employee->image) : null;
 
@@ -90,9 +92,11 @@ class EmployeeActions
             'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
         ]);
 
-        $data = $imageName ? array_merge($this->request, [
-            'image' => $imageName,
-        ]) : $this->request;
+        if ($imageName) {
+            $data = $data->merge([
+                'image' => $imageName,
+            ]);
+        }
 
         return $employee->update($data->toArray());
     }
@@ -103,22 +107,22 @@ class EmployeeActions
         foreach ($allowances as $allowance) {
             if (isset($allowance['allowance_id'])) {
                 $ids[] = $allowance['allowance_id'];
-                AllowanceDeduction::find($allowance['allowance_id'])->update([
+                PayrollAdjustment::find($allowance['allowance_id'])->update([
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'allowance_type_id' => $allowance['allowance_type'],
-                    'applicable_date' => $allowance['applicable_date']
+                    'adjustment_type_id' => $allowance['adjustment_type'],
+                    'applicable_date' => $allowance['applicable_date'] . '-01'
                 ]);
             } else {
-                $ids[] = AllowanceDeduction::create([
+                $ids[] = PayrollAdjustment::create([
                     'employee_id' => $employee_id,
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
-                    'allowance_type_id' => $allowance['allowance_type'],
-                    'applicable_date' => $allowance['applicable_date']
+                    'adjustment_type_id' => $allowance['adjustment_type'],
+                    'applicable_date' => $allowance['applicable_date'] . '-01'
                 ])->id;
             }
-            AllowanceDeduction::where('type', 'allowance')->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();
+            PayrollAdjustment::allowance()->always()->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();
         }
     }
 }

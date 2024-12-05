@@ -7,7 +7,6 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Passport\Passport;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Events\TenancyBootstrapped;
@@ -105,7 +104,6 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
-        Passport::loadKeysFrom(storage_path('/'));
 
         \Event::listen(TenancyBootstrapped::class, function () {
             $tenant = tenancy()->tenant;
