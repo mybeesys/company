@@ -15,10 +15,13 @@
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
     <script>
         $(document).ready(function() {
+            let saveButton = $(`#add_employee_form_button`);
             datePicker('#employment_start_date', new Date());
+            datePicker('#employment_end_date');
             permissionSetRepeater();
             roleRepeater();
-            allowanceRepeater("{{ route('allowance_types.store') }}", "{{ session()->get('locale') }}");
+            initElements();
+            allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");

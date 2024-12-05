@@ -38,11 +38,16 @@ return [
     'serviceFee' => 'Service Fees',
 
     'employees_working_hours' => 'Employees working hours',
+
+    'payroll_group' => 'Payroll groups',
+    'employees_working_hours' => 'Employees working hours' ,
+
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
     'ingredient' => 'Ingredient',
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
+
     'inventory' => 'Product',
     'inventory_module' => 'Invenetory',
     'sales' => 'Sales',
@@ -51,6 +56,16 @@ return [
     'purchases'=>'Purchases',
     'suppliers'=>'Suppliers',
 
+
+
+    'inventory' =>'Product',
+    'inventory_module' => 'Invenetory',
+    'po' => 'PO',
+    'prep' => 'Prep',
+    'rma' => 'RMA',
+    'ingredientInventory' => 'Ingredients',
+	 'waste' => 'Waste',
+    'transfer' => 'Transfer'
 
 
 ];

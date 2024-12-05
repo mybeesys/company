@@ -2,7 +2,6 @@
 
 namespace Modules\Employee\Models;
 
-use Awobaz\Compoships\Compoships;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -15,13 +14,8 @@ class Role extends SpatieRole
         return $query->whereNotNull('department')->pluck('department');
     }
 
-    public function wage()
-    {
-        return $this->hasOne(Wage::class);
-    }
-
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_est_roles_wages')->using(EmployeeRoles::class)->withTimestamps()->withPivot('employee_id', 'wage_type', 'rate');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('employee_id');
     }
 }

@@ -25,6 +25,7 @@ const ProductComponent = ({translations , dir}) => {
   const [currentObject, setcurrentObject] = useState(product);
   const [productMatrix, setProductMatrix] = useState(product.attributeMatrix);
   const [units, setUnits] = useState([]);
+  const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(product.unitTransfer);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
@@ -94,7 +95,16 @@ const ProductComponent = ({translations , dir}) => {
       let recipe1 = recipe.filter((object) => object.id != -100);
       r["recipe"] = [...recipe1];
       let transfer = unitTransfer.filter((object) => object.id != -100);
-      r["transfer"] = [...transfer];
+
+      if(!!productUnit){
+        if(!!!productUnit.id)
+          transfer.push({ id: 0 , unit1: productUnit.unit1 , unit2: -100 , transfer: -100 , primary :-100});
+        else
+          transfer.push(productUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});  
+      }
+         
+      const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
+      r["transfer"] = [...sortedItems];
 
       const response = await axios.post(producturl, r, {
         headers: {
@@ -142,8 +152,6 @@ const ProductComponent = ({translations , dir}) => {
     window.location.href = categoryurl;
   }
 
-  
-
 
   const getName = (name_en, name_ar) => {
     if (dir == 'ltr')
@@ -180,13 +188,19 @@ const ProductComponent = ({translations , dir}) => {
     const attribute =response.data.attribute;
     setAttributesTree(attribute);
 
-    const units =response.data.units;
-    const unitsResult = units.map(e => { return { label: getName(e.data.name_en, e.data.name_ar), value: e.data.id } });
+    const units =response.data.unitTransfer;
+    const unitsResult = units.map(e => { return { label: e.unit1 , value: e.id } });
     setUnits(unitsResult);
 
+    let mainUnit = units.find(function (element) {
+      return element.unit2 == null;
+    });
+
+    setProductUnit(mainUnit)
     
     const unitTransfers =response.data.unitTransfer;
-    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.map(e => { return { id : e.id ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
+    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.filter(e=> e.unit2 != null).map(e => {
+          return { id : e.id ,  transfer : e.transfer , unit1: e.unit1 , unit2: e.unit2 , primary: e.primary , newid : e.newid }}):[];
     unitTransfersResult.push({id: -100 , unit1 : null , unit2: null , primary : false , transfer:null , newid : null});
     setUnitTransfers(unitTransfersResult);
     
@@ -346,6 +360,11 @@ const ProductComponent = ({translations , dir}) => {
     return true;
   }
 
+  const handleMainUnit = (value) =>{
+   setProductUnit(value);
+  }
+  
+
   return (
     <div>
        <SweetAlert2 />
@@ -461,6 +480,8 @@ const ProductComponent = ({translations , dir}) => {
                   unitTransfer={unitTransfer}
                   unitTree={units}
                   parentHandle={parentHandleTransfer}
+                  handleMainUnit={handleMainUnit}
+                  productUnit ={productUnit}
                   dir={dir} />
                   : <></>
               }

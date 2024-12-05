@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\AuthenticateJWT;
 use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingController;
@@ -22,7 +21,7 @@ Route::middleware([
     Route::get('accounting-dashboard', [AccountingDashboardController::class, 'index'])->name('accounting-dashboard');
 
 
-    Route::middleware(AuthenticateJWT::class)->group(function () {
+    Route::middleware(['auth'])->group(function () {
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');

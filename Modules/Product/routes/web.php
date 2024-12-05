@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AuthenticateJWT;
 use Modules\Product\Http\Controllers\ProductController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -46,9 +45,9 @@ use Modules\Product\Http\Controllers\VendorController;
 */    
 Route::middleware([
     'web',
+    'auth',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    AuthenticateJWT::class
 ])->group( function () {
     Route::resource('product', ProductController::class)->names('product');
     Route::resource('category', CategoryController::class)->names('category');
@@ -110,7 +109,10 @@ Route::middleware([
     Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
     Route::get('units', [UnitController::class, 'units'])->name('units');    
     Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
+    Route::get('searchUnitTransfers', [UnitTransferController::class, 'searchUnitTransfers'])->name('searchUnitTransfers');
 
     Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
     Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
+    Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
+	Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
 });

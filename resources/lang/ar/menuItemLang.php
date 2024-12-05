@@ -35,6 +35,7 @@ return [
     'time_worked' => 'ساعات العمل',
     'payroll' => 'كشوف المرتبات',
     'costCenter'=>'مراكز التكلفة',
+    'payroll_group' => 'مجموعات كشوف المرتبات',
 
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',
@@ -44,11 +45,20 @@ return [
     'linkedCombo' => 'كومبو',
     'inventory' =>'المنتجات',
     'inventory_module' => 'المستودع',
+
     'sales'=>'المبيعات',
     'clients'=>'العملاء',
     'invoices' => 'فواتيير المبيعات',
     'purchases'=>'المشتريات',
     'suppliers'=>'الموردين',
+
+
+    'po' => 'طلبات الشراء',
+    'prep' => 'التحضيرات',
+    'rma' => 'RMA',
+    'ingredientInventory' => 'المكونات',
+	 'waste' => 'الاتلاف',
+    'transfer' => 'التحويلات'
 
 
 ];

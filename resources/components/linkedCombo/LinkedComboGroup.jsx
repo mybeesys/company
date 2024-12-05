@@ -10,6 +10,7 @@ const LinkedComboGroup = ({dir, translations, currentObject, products, onComboCh
         translations={translations}
         dir={dir}
         header={true}
+        addNewRow={true}
         type= {"productCombo"}
         title={translations.groups}
         currentNodes={[...currentObject.combos]}

@@ -3,9 +3,7 @@
 namespace Modules\Employee\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Employee\Database\Factories\ShiftFactory;
 
 class Shift extends BaseScheduleModel
 {

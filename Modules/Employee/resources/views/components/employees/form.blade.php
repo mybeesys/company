@@ -9,7 +9,6 @@
 ])
 @php
     $wageTypes = [
-        ['id' => 'hourly', 'name' => __('employee::general.hourly')],
         ['id' => 'monthly', 'name' => __('employee::general.monthly')],
         ['id' => 'fixed', 'name' => __('employee::general.fixed')],
     ];
@@ -32,10 +31,21 @@
                 <input type="hidden" name="pos_is_active" value="0">
                 <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
                     :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
-                    label="{{ __('employee::general.deactivate/activate') }}" checked="{{ $employee?->pos_is_active }}" />
+                    label="{{ __('employee::general.deactivate/activate') }}"
+                    checked="{{ $employee?->pos_is_active }}" />
             </x-form.switch-div>
         </x-form.form-card>
-        <x-form.form-card class="h-100">
+        <x-form.form-card class="h-100" :title="__('employee::fields.wage')">
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-10">
+                <x-form.input-div class="w-100 min-w-150px">
+                    <x-form.input :errors="$errors" type="number" :placeholder="__('employee::fields.wage')" :disabled=$disabled required
+                        name="wage_amount" :value="$employee?->wage?->rate" />
+                </x-form.input-div>
+                <x-form.input-div class="w-100 min-w-150px">
+                    <x-form.select name="wage_type" :disabled=$disabled required :options=$wageTypes :errors="$errors"
+                        :value="$employee?->wage?->wage_type" placeholder="{{ __('employee::fields.wage_type') }}" />
+                </x-form.input-div>
+            </div>
         </x-form.form-card>
     </div>
     <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
@@ -55,7 +65,6 @@
                                 value="{{ $employee?->name_en }}" name="name_en" :label="__('employee::fields.name_en')" />
                         </x-form.input-div>
                     </div>
-
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
                             <x-form.input type="email" required :errors=$errors :disabled=$disabled
@@ -69,30 +78,32 @@
                                 :label="__('employee::fields.phone_number')" />
                         </x-form.input-div>
                     </div>
-
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
                             <x-form.date-picker name="employment_start_date" :errors=$errors required
                                 :disabled=$disabled value="{{ $employee?->employment_start_date }}"
                                 :label="__('employee::fields.employment_start_date')" />
                         </x-form.input-div>
-                        @if ($employee)
-                            <x-form.input-div class="mb-10 w-100 px-2">
-                                <x-form.date-picker name="employment_end_date" :errors=$errors :disabled=$disabled
-                                    value="{{ $employee?->employment_end_date }}" :label="__('employee::fields.employment_end_date')" />
-                            </x-form.input-div>
-                        @endif
-
+                        <x-form.input-div class="mb-10 w-100 px-2">
+                            <x-form.date-picker name="employment_end_date" :errors=$errors :disabled=$disabled
+                                value="{{ $employee?->employment_end_date }}" :label="__('employee::fields.employment_end_date')" />
+                        </x-form.input-div>
+                    </div>
+                    <div class="d-flex flex-wrap">
+                        <x-form.input-div class="w-100 w-md-50 px-2" :row="false">
+                            <x-form.select :label="__('employee::fields.default_establishment')" name="establishment_id" data_allow_clear="false"
+                                :disabled=$disabled :options="$establishments" :errors="$errors" required
+                                :value="$employee?->establishment_id" />
+                        </x-form.input-div>
                     </div>
                 </x-form.form-card>
-
                 <x-form.form-card :title="__('employee::general.pos')">
                     <div class="d-flex flex-wrap">
                         <x-form.input-div class="mb-10 w-100 px-2">
-                            <label for="PIN" class="form-label">@lang('employee::fields.employee_access_pin')</label>
+                            <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                             <div class="input-group">
-                                <x-form.input :errors=$errors type="number" placeholder="PIN" name="PIN"
-                                    :disabled=$disabled value="{{ $employee?->PIN }}" required>
+                                <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
+                                    :disabled=$disabled value="{{ $employee?->pin }}" required>
                                     <button type="button" id="generate_pin" @disabled($disabled)
                                         class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                 </x-form.input>
@@ -100,11 +111,11 @@
                         </x-form.input-div>
                     </div>
                     <div class="mb-5 ">
-                        <x-employee::employees.role-wage-repeater :posRoles=$posRoles :employee=$employee :wageTypes=$wageTypes
+                        <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                             :disabled=$disabled :establishments=$establishments />
                     </div>
-                    <div>
-                        <x-employee::employees.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
+                    <div class="employee-adjustments">
+                        <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
                     </div>
                 </x-form.form-card>
             </div>
@@ -138,8 +149,8 @@
         </div>
         <div class="d-flex flex-wrap">
             <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.dashboard-role-repeater :dashboardRoles=$dashboardRoles :disabled=$disabled :wageTypes=$wageTypes
-                    :establishments=$establishments :emsUser=$employee />
+                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles
+                    :disabled=$disabled :establishments=$establishments :emsUser=$employee />
             </x-form.input-div>
         </div>
     </x-form.form-card>

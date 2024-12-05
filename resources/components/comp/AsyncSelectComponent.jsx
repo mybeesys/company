@@ -1,38 +1,70 @@
 import { useEffect, useState } from "react";
 import AsyncSelect from 'react-select/async';
-import { getName } from "../lang/Utils";
+import { getName, getRowName } from "../lang/Utils";
 
 
 const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, searchUrl }) => {
     const [selectedOption, setSelectedOption] = useState(null); // State to store the selected value
     const [options, setOptions] = useState([]); // State to store the options
 
+    const customStyles = {
+        menu: (provided) => ({
+          ...provided,
+          maxHeight: 200, // Limit the height of the dropdown
+          position: 'absolute', // Enable vertical scrolling if content exceeds max height
+          zIndex: 9999,
+        }),
+      };
+      
+
     useEffect(() => {
         fetchOptions();
-    }, []);
+    }, [currentObject]);
 
     const fetchOptions = async () => {
-        let optionsData = [];
-        // Replace this with your API call
-        if (!!currentObject)
-            optionsData = [{
-                value: currentObject.id,  // Option value
-                label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
-            }];
+        let url = searchUrl.includes('?') ? `/${searchUrl}&key=` : `/${searchUrl}?key=`;
+        axios
+            .get(url)
+            .then((response) => {
+                // Format the response data as needed by react-select
+                let options = response.data.map(item => ({
+                    label: getRowName(item, dir),  // The text shown in the select options
+                    value: item.id,    // The value of the selected option
+                }));
+                if(!!currentObject && !!currentObject.id && !!!options.find(x=>x.value == currentObject.id))
+                    options.push({
+                        value: currentObject.id,  // Option value
+                        label: getRowName(currentObject, dir) // Option label
+                    });
+                setOptions(options);
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+                reject([]); // Reject the Promise with an empty array in case of an error
+            });
+        // let optionsData = [];
+        // // Replace this with your API call
+        // if (!!currentObject)
+        //     optionsData = [{
+        //         value: currentObject.id,  // Option value
+        //         label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+        //     }];
 
-        setOptions(optionsData); // Set the options in state
+        // setOptions(optionsData); // Set the options in state
     };
 
     const filterUnits = async (inputValue, resolve) => {
+        let url = searchUrl.includes('?') ? `/${searchUrl}&key=${inputValue}` : `/${searchUrl}?key=${inputValue}`;
         axios
-            .get(`/${searchUrl}?key=${inputValue}`)
+            .get(url)
             .then((response) => {
                 // Format the response data as needed by react-select
                 const options = response.data.map(item => ({
-                    label: getName(item.name_en, item.name_ar, dir),  // The text shown in the select options
+                    label: getRowName(item, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
                 }));
-                resolve(options); // Resolve the Promise with the formatted options
+                if(!!resolve)
+                    resolve(options); // Resolve the Promise with the formatted options
                 setOptions(options);
             })
             .catch((error) => {
@@ -44,11 +76,12 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
     const setCurrentValue = () => {
         // Example of fetching the current value, this can be an API call or logic
         if (!!currentObject)
-            // Set the current value of the Select component
             setSelectedOption({
                 value: currentObject.id,  // Option value
-                label: getName(currentObject.name_en, currentObject.name_ar, dir) // Option label
+                label: getRowName(currentObject, dir) // Option label
             });
+        else
+            setSelectedOption(null);
     };
 
     useEffect(() => {
@@ -70,11 +103,20 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
             cacheOptions
             loadOptions={promiseOptions}
             options={options}
+            defaultOptions={options}
             value={selectedOption}
+            styles={{
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 9999, // Ensure it’s above other elements
+                }),
+              }}
+            menuPortalTarget={document.body}
             onChange={(e) => onBasicChange(field, {
                 id: e.value,
                 name_er: e.label,
-                name_en: e.label
+                name_en: e.label,
+                name : e.label
             })} />
     );
 }

@@ -13,6 +13,7 @@ use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Services\ShiftService;
 use Modules\Establishment\Models\Establishment;
 
 class ShiftController extends Controller
@@ -34,11 +35,9 @@ class ShiftController extends Controller
 
     public function getShift(Request $request)
     {
-        $employee_id = $request->employee_id;
-        $employee = Employee::with(['allRoles'])->findOrFail($employee_id);
-        $roles = $employee->allRoles->pluck('id', 'name')->toArray();
-        $day_times = ShiftTable::getStartEndDayTime();
-        return response()->json(['data' => ['roles' => $roles, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
+        $establishments = Establishment::all()->pluck('id', 'name')->toArray();
+        $day_times = ShiftService::getStartEndDayTime();
+        return response()->json(['data' => ['establishments' => $establishments, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
     }
 
 
@@ -63,7 +62,7 @@ class ShiftController extends Controller
                     'endTime' => $endTime,
                     'employee_id' => $employee_id,
                     'schedule_id' => $schedule_id,
-                    'role_id' => $item['role'],
+                    'establishment_id' => $item['establishment'],
                     'break_duration' => $break_duration
                 ])->id;
             }

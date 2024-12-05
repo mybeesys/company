@@ -3,9 +3,9 @@ import EditRowCompnent from "../../comp/EditRowCompnent";
 import ProductInventoryBasicInfo from "./ProductInventoryBasicInfo";
 import ProductInventoryVendor from "./ProductInventoryVendor";
 
-const ProductInventoryDetail = ({ dir, translations }) => {
+const ProductInventoryDetail = ({ dir, translations, p_type }) => {
     const rootElement = document.getElementById('root');
-    let prodcutInventory = JSON.parse(rootElement.getAttribute('productInventory'));
+    let prodcutInventory = JSON.parse(rootElement.getAttribute(`${p_type}Inventory`));
     const [currentObject, setcurrentObject] = useState(prodcutInventory);
 
     const onBasicChange = (key, value) => {
@@ -21,6 +21,7 @@ const ProductInventoryDetail = ({ dir, translations }) => {
                 key: 'basicInfo', 
                 visible: true, 
                 comp : <ProductInventoryBasicInfo
+                        p_type={p_type}
                         currentObject={currentObject}
                         translations={translations}
                         dir={dir}
@@ -31,6 +32,7 @@ const ProductInventoryDetail = ({ dir, translations }) => {
                 key: 'vendor', 
                 visible: false , 
                 comp : <ProductInventoryVendor
+                    p_type={p_type}
                     currentObject={currentObject}
                     translations={translations}
                     dir={dir}
@@ -40,7 +42,7 @@ const ProductInventoryDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="productInventory"
+          apiUrl={`${p_type}Inventory`}
         />
     );
 }

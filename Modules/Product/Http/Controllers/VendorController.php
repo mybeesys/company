@@ -24,6 +24,7 @@ class VendorController extends Controller
         $key = $request->query('key', '');
         $vendors = Vendor::where('name_ar', 'like', '%' . $key . '%')
                             ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take(10)
                             ->get();
         return response()->json($vendors);
     }

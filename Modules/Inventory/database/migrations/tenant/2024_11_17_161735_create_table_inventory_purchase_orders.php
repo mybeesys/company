@@ -11,44 +11,40 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_purchase_orders', function (Blueprint $table) {
+        Schema::create('inventory_Operations', function (Blueprint $table) {
             $table->id();
             $table->string('no');
-            $table->unsignedBigInteger('vendor_id');
-            $table->tinyInteger('po_status');
-            $table->tinyInteger('invoice_status');
-            $table->dateTime('po_date');
+            $table->tinyInteger('op_type');
+            $table->tinyInteger('op_status');
+            $table->dateTime('op_date');
             $table->string('notes')->nullable();
-            $table->decimal('tax')->nullable();
-            $table->decimal('misc_amount')->nullable();
-            $table->decimal('shipping_amount')->nullable();
             $table->decimal('total');
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('vendor_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_vendors');
         });
-        Schema::create('inventory_purchase_order_items', function (Blueprint $table) {
+        Schema::create('inventory_Operation_items', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('ingredient_id');
-            $table->boolean('taxed');
+            $table->unsignedBigInteger('operation_id');
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->unsignedBigInteger('unit_id');
             $table->decimal('qty');
             $table->decimal('cost');
             $table->decimal('total');
             $table->timestamps();
             $table->softDeletes();
+            $table->foreign('operation_id')              // Foreign key constraint
+            ->references('id')                    // References the id on the categories table
+            ->on('inventory_Operations');
             $table->foreign('product_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_products');
             $table->foreign('ingredient_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_ingredients');
-            $table->foreign('unit_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_unit');
+            $table->foreign('unit_id')
+            ->references('id')
+            ->on('product_unit_transfer');
         });
     }
 

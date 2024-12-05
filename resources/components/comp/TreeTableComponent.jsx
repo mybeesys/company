@@ -4,8 +4,10 @@ import SweetAlert2 from 'react-sweetalert2';
 import DeleteModal from '../product/DeleteModal';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
+import { getName, getRowName, toDate } from '../lang/Utils';
+import { Calendar } from 'primereact/calendar';
 
-const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete }) => {
+const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow }) => {
     const rootElement = document.getElementById('root');
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -134,25 +136,29 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         setEditingRow({});
     }
 
-    const renderCell = (node, key, autoFocus, options, type, editable, required, index, customCell) => {
-        if (!!customCell && !!!node.data.empty) {
-            return customCell(node.data, key, node.key == currentKey, editable);
+    const renderCell = (node, col, index) => {
+        if (!!col.customCell && !!!node.data.empty) {
+            return col.customCell(node.data, col.key, node.key == currentKey, col.editable, refreshTree);
         }
-        if (type == "Text")
-            return renderTextCell(node, key, autoFocus);
-        else if (type == "Number")
-            return renderNumberCell(node, key, autoFocus);
-        else if (type == "Decimal")
-            return renderDecimalCell(node, key, autoFocus);
-        else if (type == "Check")
-            return renderCheckCell(node, key, autoFocus);
-        else if (type == "DropDown")
-            return renderDropDownCell(node, key, autoFocus, options);
+        if (col.type == "Text")
+            return renderTextCell(node, col, index);
+        else if (col.type == "Number")
+            return renderNumberCell(node, col, index);
+        else if (col.type == "Decimal")
+            return renderDecimalCell(node, col, index);
+        else if (col.type == "Check")
+            return renderCheckCell(node, col, index);
+        else if (col.type == "DropDown")
+            return renderDropDownCell(node, col, index);
+        else if (col.type == "AsyncDropDown")
+            return renderAsyncDropDownCell(node, col, index)
+        else if (col.type == "Date")
+            return renderDateCell(node, col, index)
     }
 
-    const renderTextCell = (node, key, autoFocus) => {
+    const renderTextCell = (node, col, index) => {
         const indent = (node.key).toString().split('-').length;
-        if (key == 'name_en' && !!node.data.empty) {
+        if (col.key == 'name_en' && !!node.data.empty) {
             if (!!canAddInline)
                 return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
@@ -160,81 +166,100 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
             return (
                 node.key == currentKey ?
                     <input type="text" class={`form-control text-editor text-indent-${indent}`} style={{ width: `${100 - (10 * indent)}%!important` }}
-                        defaultValue={node.data[key]}
-                        onChange={(e) => handleEditorChange(e.target.value, key)}
-                        autoFocus={!!autoFocus}
+                        defaultValue={node.data[col.key]}
+                        onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                        autoFocus={!!col.autoFocus}
                         onKeyDown={(e) => e.stopPropagation()}
-                        required />
+                        required={!!col.required} />
                     :
-                    <span>{node.data[key]}</span>);
+                    <span>{node.data[col.key]}</span>);
         }
 
     }
 
-    const renderNumberCell = (node, key, autoFocus) => {
+    const renderNumberCell = (node, col, index) => {
         const indent = (node.key).toString().split('-').length;
         return (
             node.key == currentKey ?
                 <input type="number" min="0" class={`form-control text-editor number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]}
+                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required />
+                    required ={!!col.required} />
                 :
-                <span>{node.data[key]}</span>);
+                <span>{node.data[col.key]}</span>);
     }
 
-    const renderDecimalCell = (node, key, autoFocus) => {
+    const renderDecimalCell = (node, col, index) => {
         const indent = (node.key).toString().split('-').length;
         return (
             node.key == currentKey ?
                 <input type="number" min="0" step=".01" class={`form-control text-editor number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]}
+                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required />
+                    required={!!col.required} />
                 :
-                <span>{node.data[key]}</span>);
+                <span>{node.data[col.key]}</span>);
     }
 
-    const renderCheckCell = (node, key, autoFocus) => {
+    const renderDateCell = (node, col, index) => {
+        const indent = (node.key).toString().split('-').length;
+        return (
+            node.key == currentKey ?
+                <Calendar type="number" min="0" step=".01" class={`form-control text-editor number-indent-${indent}`}
+                    defaultValue={toDate(node.data[col.key], 'D') }
+                    onChange={(e) => {
+                        let value = !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}` : null;
+                        handleEditorChange(value, col.key)
+                    }}
+                    autoFocus={!!col.autoFocus}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    style={{ width: '100%' }}
+                    required={!!col.required}
+                    value={toDate(editingRow[col.key], 'D') } />
+                :
+                <span>{!!node.data[col.key] ? `${new Date(node.data[col.key]).getFullYear()}-${(new Date(node.data[col.key]).getMonth()+1).toString().padStart(2, '0')}-${new Date(node.data[col.key]).getDate().toString().padStart(2, '0')}` : null}</span>);
+    }
+
+    const renderCheckCell = (node, col, index) => {
         return (
             node.key == currentKey ?
                 <div>
-                    <input type="checkbox" checked={editingRow[key] == 1 ? true : false}
-                        class="form-check-input" data-kt-check={node.data[key]}
+                    <input type="checkbox" checked={editingRow[col.key] == 1 ? true : false}
+                        class="form-check-input" data-kt-check={node.data[col.key]}
                         data-kt-check-target=".widget-10-check"
                         onChange={(e) => {
-                            handleEditorChange(e.target.checked ? 1 : 0, key)
+                            handleEditorChange(e.target.checked ? 1 : 0, col.key)
                         }
                         }
                     />
                 </div>
                 :
                 <div>
-                    <input type="checkbox" defaultChecked={false} checked={node.data[key]}
-                        class="form-check-input" data-kt-check={node.data[key]}
+                    <input type="checkbox" defaultChecked={false} checked={node.data[col.key]}
+                        class="form-check-input" data-kt-check={node.data[col.key]}
                         data-kt-check-target=".widget-10-check" disabled />
                 </div>
         )
     }
 
-    const renderDropDownCell = (node, key, autoFocus, options) => {
-        const val = options.find(x => x.value == node.data[key])
+    const renderDropDownCell = (node, col, index) => {
+        const val = col.options.find(x => x.value == node.data[col.key])
         const indent = (node.key).toString().split('-').length;
         return (
             node.key == currentKey ?
                 <select class={`form-control number-indent-${indent}`}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
+                    defaultValue={node.data[col.key]}
+                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                    autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
-                    required>
+                    required={!!col.required}>
                     {options.map((option) => (
                         <option value={option.value}>{option.name}</option>
                     ))
@@ -242,6 +267,31 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 </select>
                 :
                 <span>{!!val ? val.name : ''}</span>);
+    }
+
+    const renderAsyncDropDownCell = (node, col, index)=>{//key, autoFocus, options, editable, required, firstCell) => {
+        const indent = (node.key).toString().split('-').length;
+        if ((index==0) && !!node.data.empty) {
+            return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+        }
+        else {
+            return  node.key == currentKey && !!col.editable ?
+                <AsyncSelectComponent
+                    field={col.key}
+                    dir={dir}
+                    searchUrl={col.searchUrl}
+                    currentObject={editingRow[col.key]}
+                    onBasicChange={(field, val) => {
+                        handleEditorChange(val, col.key);
+                        if(!!col.onChangeValue){
+                            col.onChangeValue(editingRow, col.key, val, (row)=>{
+                                setEditingRow({...row});
+                            });
+                        }
+                    }} />
+                :
+                <span>{!!node.data[col.key] ? getRowName(node.data[col.key], dir) : ''}</span>;
+        }
     }
 
 
@@ -321,7 +371,8 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
             (!!!node.data.empty && node.data.empty != 'Y') ?
                 <div className="flex flex-wrap gap-2">
 
-                    {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) ?
+                    {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) &&
+                     (!!!canEditRow || canEditRow(data)) ?
                         <a href="#" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
@@ -371,12 +422,9 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                     {cols.map((col, index) =>
                         <Column
-                            header={translations[col.key]}
+                            header={!!col.title ? translations[col.title] : translations[col.key]} 
                             body={(node) => (
-                                renderCell(node,
-                                    col.key, col.autoFocus, col.options, col.type,
-                                    col.editable, col.required, index,
-                                    col.customCell)
+                                renderCell(node, col, index)
                             )} />
                     )}
                     <Column body={(node) => (actionTemplate(node))} />
