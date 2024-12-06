@@ -11,7 +11,9 @@ use Modules\Accounting\database\seeders\AccountingDatabaseSeeder;
 use Modules\Establishment\database\seeders\EstablishmentDatabaseSeeder;
 // use Modules\UserManagement\database\seeders\UserManagementDatabaseSeeder;
 use Modules\Employee\database\seeders\EmployeeDatabaseSeeder;
+use Modules\General\Database\Seeders\CountrySeeder;
 use Modules\General\Database\Seeders\GeneralDatabaseSeeder;
+use Modules\General\Models\Country;
 use Modules\Product\database\seeders\DiningTypeSeeder;
 use Modules\Product\database\seeders\ProductDatabaseSeeder;
 
@@ -34,6 +36,7 @@ class TenantDatabaseSeeder extends Seeder
                 DiningTypeSeeder::class,
                 AccountingDatabaseSeeder::class,
                 GeneralDatabaseSeeder::class,
+                CountrySeeder::class,
             ]);
     }
 }
