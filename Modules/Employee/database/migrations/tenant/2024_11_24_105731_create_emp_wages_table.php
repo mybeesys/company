@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('emp_wages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
-            $table->foreignId('establishment_id')->nullable()->constrained('establishment_establishments')->nullOnDelete();
             $table->string('wage_type', 50)->nullable();
             $table->decimal('rate', 10, 2)->nullable();
             $table->date('effective_date')->nullable();

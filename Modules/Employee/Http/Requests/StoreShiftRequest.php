@@ -21,7 +21,7 @@ class StoreShiftRequest extends FormRequest
             'shift_repeater.*.startTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.endTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.end_status' => ['required', 'in:clockout,break'],
-            'shift_repeater.*.establishment' => ['integer', 'exists:establishment_establishments,id'],
+            'shift_repeater.*.establishment' => ['integer', 'exists:est_establishments,id'],
             'shift_id' => ['nullable', 'integer', 'exists:sch_shifts,id'],
         ];
     }

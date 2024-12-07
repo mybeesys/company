@@ -37,7 +37,7 @@ trait EmployeeValidateTrait
             'employment_end_date' => ['nullable', 'date'],
             'image' => ['image', 'max:3072'],
             'pos_is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
-            'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:establishment_establishments,id'],
+            'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:est_establishments,id'],
 
             'pos_role_repeater' => ['nullable', 'array'],
             'pos_role_repeater.*.posRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],

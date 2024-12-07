@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('emp_time_cards', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
-            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->foreignId('establishment_id')->nullable()->constrained('est_establishments')->nullOnDelete();
             $table->timestamp('clock_in_time')->nullable();
             $table->timestamp('clock_out_time')->nullable();
             $table->decimal('hours_worked', 5, 2)->nullable();

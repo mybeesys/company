@@ -25,7 +25,7 @@ class CreatePayrollRequest extends FormRequest
             'employee_ids' => ['required', 'array', 'min:1'],
             'employee_ids.*' => ['integer', 'exists:emp_employees,id'],
             'establishment_ids' => ['required', 'array', 'min:1'],
-            'establishment_ids.*' => ['integer', 'exists:establishment_establishments,id'],
+            'establishment_ids.*' => ['integer', 'exists:est_establishments,id'],
             'date' => ['required', 'date', 'date_format:Y-m'],
         ];
     }

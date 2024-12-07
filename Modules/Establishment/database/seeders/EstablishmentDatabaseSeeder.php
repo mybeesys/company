@@ -14,10 +14,6 @@ class EstablishmentDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Brand::firstOrCreate([]);
-        Division::firstOrCreate([
-            'divisionName' => 'test'
-        ]);
         Establishment::firstOrCreate(['name' => 'es1']);
         Establishment::firstOrCreate(['name' => 'es2']);
     }
