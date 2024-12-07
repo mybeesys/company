@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('emp_employee_establishments_roles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
-            $table->foreignId('establishment_id')->nullable()->constrained('establishment_establishments')->nullOnDelete();
+            $table->foreignId('establishment_id')->nullable()->constrained('est_establishments')->nullOnDelete();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->timestamps();
             $table->unique(['establishment_id', 'employee_id', 'role_id'], 'est_emp_role_unique');

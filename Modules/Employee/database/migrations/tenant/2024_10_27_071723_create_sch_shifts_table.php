@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('schedule_id')->nullable()->constrained('sch_schedules')->nullOnDelete();
             $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
-            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->foreignId('establishment_id')->nullable()->constrained('est_establishments')->nullOnDelete();
             $table->dateTime('startTime')->nullable();
             $table->dateTime('endTime')->nullable();
+            $table->string('type')->nullable();
             $table->integer('break_duration')->nullable();
             $table->foreignId('over_time_rule_id')->nullable()->constrained('sch_time_sheet_rules')->nullOnDelete();
             $table->foreignId('break_rule_id')->nullable()->constrained('sch_time_sheet_rules')->nullOnDelete();

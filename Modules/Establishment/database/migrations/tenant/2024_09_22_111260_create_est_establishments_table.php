@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('establishment_establishments', function (Blueprint $table) {
+        Schema::create('est_establishments', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('address')->nullable();
@@ -20,8 +20,6 @@ return new class extends Migration
             $table->string('timezone')->nullable();
             $table->string('currency')->nullable();
             $table->string('language')->nullable();
-            $table->string('orderNumbering')->nullable();
-            $table->foreignId('division_id')->nullable()->constrained('establishment_divisions')->nullOnDelete();     
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('establishments');
+        Schema::dropIfExists('est_establishments');
     }
 };

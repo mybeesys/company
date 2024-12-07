@@ -30,7 +30,7 @@ class LoginRequest extends FormRequest
             'pin' => ['required', 'exists:emp_employees,pin'],
             'clock_in_time' => ['required', 'date_format:Y-m-d H:i:s'],
             'date' => ['required', 'date_format:Y-m-d'],
-            'establishment_id' => ['required', 'exists:establishment_establishments,id']
+            'establishment_id' => ['required', 'exists:est_establishments,id']
         ];
     }
 

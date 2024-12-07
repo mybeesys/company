@@ -19,7 +19,7 @@ class EmployeeDatabaseSeeder extends Seeder
             'name' => 'آدمن',
             'name_en' => 'admin',
             'password' => Hash::make('12345678'),
-            'pin' => Crypt::encryptString(13245),
+            'pin' => 99913,
             'ems_access' => true,
             'pos_is_active' => true
         ]);

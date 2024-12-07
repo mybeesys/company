@@ -12,7 +12,7 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'establishment_id' => ['nullable', 'exists:establishment_establishments,id']
+            'establishment_id' => ['nullable', 'exists:est_establishments,id']
         ]);
         $employees = Employee::with(['posRoles', 'defaultEstablishment', 'wage', 'allowances', 'deductions'])
             ->when($request->query('establishment_id'), function ($query) use ($request) {

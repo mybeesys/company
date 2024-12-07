@@ -170,10 +170,16 @@ return [
 
     [
         'name' => 'establishments_module',
-        'url' => 'dashboard',
+        'url' => '',
         'permission' => '',
         'icon' => 'fas fa-building',
-        'subMenu' => []
+        'subMenu' => [
+            [
+                'name' => 'establishments',
+                'url' => 'establishment',
+                'permission' => '',
+            ],
+        ]
     ],
 
 

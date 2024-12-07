@@ -11,7 +11,7 @@ class Establishment extends Model
 {
     use HasFactory;
 
-    protected $table = 'establishment_establishments';
+    protected $table = 'est_establishments';
     /**
      * The attributes that are mass assignable.
      */

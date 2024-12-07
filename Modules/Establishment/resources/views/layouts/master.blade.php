@@ -1,29 +1,24 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@extends('layouts.app')
+@section('css')
+    <style>
+        @if (session()->get('locale') == 'ar')
+            input[type="number"] {
+                text-align: right;
+            }
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <title>Establishment Module - {{ config('app.name', 'Laravel') }}</title>
-
-    <meta name="description" content="{{ $description ?? '' }}">
-    <meta name="keywords" content="{{ $keywords ?? '' }}">
-    <meta name="author" content="{{ $author ?? '' }}">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    {{-- Vite CSS --}}
-    {{-- {{ module_vite('build-establishment', 'resources/assets/sass/app.scss') }} --}}
-</head>
-
-<body>
+            input[type="number"]::-webkit-input-placeholder,
+            input[type="email"]::-webkit-input-placeholder {
+                text-align: right;
+            }
+        @endif
+    </style>
+    <link rel="stylesheet" href="{{ url('css/monthSelectPlugin.css') }}">
+@endsection
+@section('content')
     @yield('content')
+@endsection
 
-    {{-- Vite JS --}}
-    {{-- {{ module_vite('build-establishment', 'resources/assets/js/app.js') }} --}}
-</body>
+@section('script')
+    <script src="{{ url('modules/employee/js/messages.js') }}"></script>
+    <script src="{{ url('js/monthSelectPlugin.js') }}"></script>
+@endsection

@@ -24,7 +24,7 @@ class StorePayrollRequest extends FormRequest
             'employee_ids' => ['required', 'array'],
             'employee_ids.*' => ['required', 'exists:emp_employees,id'],
             'establishment_ids' => ['required', 'array'],
-            'establishment_ids.*' => ['required', 'exists:establishment_establishments,id'],
+            'establishment_ids.*' => ['required', 'exists:est_establishments,id'],
             'date' => ['required', 'date_format:Y-m'],
             'payroll_group_name' => ['required', 'string', 'max:30'],
             'payroll_group_state' => ['required', 'in:final,draft'],

@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('sch_payroll_groups', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('establishment_id')->nullable()->constrained('establishment_establishments')->nullOnDelete();
             $table->string('name')->nullable();
             $table->string('date')->nullable();
             $table->string('state')->default('draft');
             $table->string('payment_status')->default('due');
             $table->decimal('gross_total', 12, 2);
+            $table->decimal('net_total', 12, 2)->default(0);
             $table->foreignId('created_by')->nullable()->constrained('emp_employees')->nullOnDelete();
             $table->timestamps();
         });

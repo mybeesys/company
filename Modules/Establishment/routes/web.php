@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +16,14 @@ use Modules\Establishment\Http\Controllers\EstablishmentController;
 |
 */
 
-Route::group([], function () {
-    Route::resource('establishment', EstablishmentController::class)->names('establishment');
+Route::middleware([
+    'web',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+
+    Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments')->group(function () {
+        Route::get('', 'index');
+    });
+
 });
