@@ -13,10 +13,10 @@ class AccountingDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $response = Http::get('http://restcountries.com/v3.1/all');
+            $filePath = base_path('Modules/Accounting/database/data/countries.json');
 
-        if ($response->successful()) {
-            $countriesData = $response->json();
+            if (file_exists($filePath)) {
+                $countriesData = json_decode(file_get_contents($filePath), true);
 
             foreach ($countriesData as $country) {
                 $nameEn = $country['name']['common'] ?? null;
