@@ -22,8 +22,8 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments')->group(function () {
-        Route::get('', 'index');
+    Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () {
+        Route::get('', 'index')->name('index');
     });
 
 });

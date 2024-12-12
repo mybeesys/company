@@ -18,8 +18,6 @@
             let saveButton = $(`#add_employee_form_button`);
             datePicker('#employment_start_date', new Date());
             datePicker('#employment_end_date');
-            permissionSetRepeater();
-            roleRepeater();
             initElements();
             allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
             administrativeUser(false, 'add_employee_form');

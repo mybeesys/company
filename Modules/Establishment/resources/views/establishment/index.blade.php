@@ -4,11 +4,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="establishment" url="establishment/create" module="establishment">
-                <x-slot:export>
-                    <x-tables.export-menu id="establishment" />
-                </x-slot:export>
-            </x-tables.table-header>
+            <x-tables.table-header model="establishment" url="establishment/create" module="establishment" :search="false" />
         </x-cards.card-header>
 
         <x-cards.card-body class="table-responsive">
