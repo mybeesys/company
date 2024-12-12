@@ -14,8 +14,7 @@ class EstablishmentController extends Controller
      */
     public function index(Request $request)
     {
-        $establishments = Establishment::with('permissions:id,name')->
-            select('id', 'name', 'address', 'city', 'region', 'contact_details', 'is_active');
+        $establishments = Establishment::select('id', 'name', 'address', 'city', 'region', 'contact_details', 'is_active');
         if ($request->ajax()) {
 
             return EstablishmentTable::getEstablishmentTable($establishments);
