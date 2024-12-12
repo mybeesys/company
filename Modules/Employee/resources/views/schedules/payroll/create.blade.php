@@ -86,9 +86,9 @@
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
             })
-            allowanceDeductionRepeater('allowance', "{{ route('adjustment_types.store') }}",
+            adjustmentRepeater('allowance', "{{ route('adjustment_types.store') }}",
                 "{{ session()->get('locale') }}");
-            allowanceDeductionRepeater('deduction', "{{ route('adjustment_types.store') }}",
+            adjustmentRepeater('deduction', "{{ route('adjustment_types.store') }}",
                 "{{ session()->get('locale') }}");
 
             lock();
@@ -295,7 +295,7 @@
         }
 
 
-        function allowanceDeductionRepeater(type, addAllowanceTypeUrl, lang) {
+        function adjustmentRepeater(type, addAllowanceTypeUrl, lang) {
             const customOptions = new Map();
 
             function initializeSelect2(element) {

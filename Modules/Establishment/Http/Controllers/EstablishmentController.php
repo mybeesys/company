@@ -14,21 +14,16 @@ class EstablishmentController extends Controller
      */
     public function index(Request $request)
     {
-        $employees = Establishment::with('permissions:id,name')->
-            select('id', 'name', 'name_en', 'phone_number', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
+        $establishments = Establishment::with('permissions:id,name')->
+            select('id', 'name', 'address', 'city', 'region', 'contact_details', 'is_active');
         if ($request->ajax()) {
 
-            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
-                $request->deleted_records == 'only_deleted_records'
-                    ? $employees->onlyTrashed()
-                    : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
-            }
-            return EstablishmentTable::getEstablishmentTable();
+            return EstablishmentTable::getEstablishmentTable($establishments);
         }
-        $employees = $employees->get();
+        $establishments = $establishments->get();
         $columns = EstablishmentTable::getEstablishmentColumns();
 
-        return view('establishment::establishment.index');
+        return view('establishment::establishment.index', compact('columns'));
     }
 
     /**

@@ -21,6 +21,7 @@ class EmployeeResource extends JsonResource
             'employment_end_date' => $this->employment_end_date,
             'establishment' => $this->defaultEstablishment?->name,
             'active' => $this->pos_is_active,
+            'pin' => $this->pin,
             'ems_access' => $this->ems_access,
             'PosRoles' => $this->posRoles,
             'wage' => $this->wage?->rate,
