@@ -207,7 +207,7 @@
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
                             </li>
-                            <li class="nav-item" role="presentation" @if ($contact->business_type != 'customer') hidden @endif>
+                            <li class="nav-item" role="presentation" >
                                 <a id="shipping_info_tab" class="nav-link justify-content-center text-active-gray-800"
                                     data-bs-toggle="tab" role="tab" href="#shipping_info" aria-selected="false"
                                     tabindex="-1">
@@ -215,7 +215,7 @@
 
                                 </a>
                             </li>
-                            <li class="nav-item" role="presentation" @if ($contact->business_type != 'customer') hidden @endif>
+                            <li class="nav-item" role="presentation" >
                                 <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800"
                                     data-bs-toggle="tab" role="tab" href="#attachments" aria-selected="false"
                                     tabindex="-1">
@@ -231,7 +231,7 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item" role="presentation" @if ($contact->business_type != 'customer') hidden @endif>
+                            <li class="nav-item" role="presentation">
                                 <a id="financial_information_tab"
                                     class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#financial_information" aria-selected="false" tabindex="-1">
@@ -256,9 +256,9 @@
                     <div class="tab-content ">
                         <div id="shipping_info" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="shipping_info_tab">
-                            @if ($contact->business_type == 'customer')
+
                                 @include('clientsandsuppliers::Client.edit.shippingCard')
-                            @endif
+
 
                         </div>
                     </div>
@@ -266,9 +266,9 @@
                     <div class="tab-content">
                         <div id="attachments" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="attachments_tab">
-                            @if ($contact->business_type == 'customer')
+
                                 @include('clientsandsuppliers::Client.edit.bankAccountCard')
-                            @endif
+
                         </div>
                     </div>
                     <div class="tab-content">
@@ -282,9 +282,9 @@
                     <div class="tab-content">
                         <div id="financial_information" class="card-body p-0 tab-pane fade show " role="tabpanel"
                             aria-labelledby="financial_information_tab">
-                            @if ($contact->business_type == 'customer')
+
                                 @include('clientsandsuppliers::Client.edit.financial_information')
-                            @endif
+                           
                         </div>
                     </div>
 

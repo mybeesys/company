@@ -1,0 +1,718 @@
+@extends('layouts.app')
+
+@section('title', __('purchases::lang.Create a sales invoice'))
+@section('css')
+    <style>
+        .dropend .dropdown-toggle::after {
+            border-left: 0;
+            border-right: 0;
+        }
+
+        .custom-width {
+            min-width: 60%;
+            width: 60%;
+        }
+
+        .custom-height {
+            height: 35px;
+            width: 60%;
+        }
+
+        .custom-input {
+            height: 35px;
+        }
+
+        .custom-header {
+            background-color: #f1f1f4 !important;
+            min-height: 50px !important;
+        }
+
+        .me-3 {
+            margin-right: 0 !important;
+        }
+
+        .table.gy-4 td {
+            padding-left: 2px;
+        }
+
+        #discount_type+.select2-container {
+            width: max-content !important;
+        }
+    </style>
+
+
+@stop
+@section('content')
+    <form id="sell_save" method="POST" action="{{ route('store-purchases-invoice') }}">
+        @csrf
+
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        <h1> @lang('purchases::lang.Create a sales invoice')</h1>
+
+                    </div>
+                </div>
+                <div class="col-6" style="justify-content: end;display: flex;">
+                    <div class="btn-group dropend">
+
+                        <button type="button" style="background: transparent;border-radius: 6px;"
+                            class="btn  dropdown-toggle px-0" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
+                            style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
+                            <li class="mb-5" style="text-align: justify;">
+                                <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
+                            </li>
+                            <li>
+                                <div class="form-check form-switch my-3"
+                                    style="display: flex; justify-content: space-between; gap: 37px;">
+                                    <input class="form-check-input" type="checkbox" id="toggleCost_center">
+                                    <label class="form-check-label ml-4" for="toggleCost_center">@lang('accounting::lang.Enable Cost Center')</label>
+                                </div>
+                            </li>
+
+
+
+
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="separator d-flex flex-center my-3">
+            <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+        </div>
+
+        <div class="">
+            <div class="row">
+                <div class="col-sm">
+
+                    {{-- invoice information --}}
+                    @include('purchases::purchases.create.invoice-info')
+
+                </div>
+                <div class="col-6">
+
+                    @include('purchases::purchases.create.client-info')
+
+                </div>
+
+                <div class="separator d-flex flex-center my-6">
+                    <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+                </div>
+
+                @include('purchases::purchases.create.line-items')
+
+
+            </div>
+
+            @include('purchases::purchases.create.Tab-nav')
+
+            <div class="separator d-flex flex-center my-6">
+                <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="btn-group dropend">
+                        <button type="button" style="border-radius: 6px;" class="btn btn-primary dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            @lang('messages.save')
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
+                            style="width: max-content; padding: 10px;">
+                            <li class="" style="text-align: justify;">
+                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
+                                    data-status="final">@lang('messages.save&add')</a>
+                            </li>
+                            <li class="" style="text-align: justify;">
+                                <a class="dropdown-item" href="#" data-action="save_print"
+                                    data-status="final">@lang('messages.save&print')</a>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    <input type="hidden" name="status" value="draft" />
+                    <button type="submit" style="border-radius: 6px;" class="btn btn-bg-dark text-white ">
+                        @lang('messages.savedraft')
+                    </button>
+                </div>
+                <div class="col-sm " style="justify-items: end">
+                    <div class="card-body p-0 d-flex flex-column">
+
+                        <div class="card-p p-0 bg-body flex-grow-1" style="padding: 0px !important">
+
+                            <div class="d-flex flex-column flex-grow-1 ">
+
+                                <div class="d-flex flex-wrap">
+
+
+
+                                    <div class="border border-gray-300 border-dashed rounded min-w-125px  px-4 me-6 "
+                                        style="    height: max-content;padding: 6px;">
+                                        <div class="d-flex align-items-center">
+
+                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.remaining_balance')</span>
+                                            <div class="fs-2 fw-bold counted" data-kt-countup="true"
+                                                data-kt-countup-value="4500" data-kt-countup-prefix="$"
+                                                data-kt-initialized="1" id="remaining_balance" style="color: red;">
+                                                0.00</div><span
+                                                class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-300 border-dashed rounded min-w-125px  px-4 me-6 "
+                                        style="    height: max-content;padding: 6px;">
+                                        <div class="d-flex align-items-center">
+
+                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.balance')</span>
+                                            <div class="fs-2 fw-bold counted" data-kt-countup="true"
+                                                data-kt-countup-value="4500" data-kt-countup-prefix="$"
+                                                data-kt-initialized="1" id="balance" style="color: #2cd32c;">
+                                                0.00</div><span
+                                                class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
+
+                                        </div>
+                                    </div>
+
+
+
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+
+    @include('purchases::purchases.create.add-client')
+
+
+
+
+@stop
+
+@section('script')
+    {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
+    <script>
+        $("#addClientForm").on("submit", function(e) {
+            e.preventDefault();
+
+            let formData = $(this).serialize();
+
+            $.ajax({
+                url: "/client-save",
+                method: "POST",
+                data: formData,
+                success: function(response) {
+                    $("#addClientModal").modal("hide");
+
+                    $("#addClientForm")[0].reset();
+
+                    $("#client_id")
+                        .append(
+                            `<option value="${response.id}" data-name="${response.name}"
+                    data-mobile_number="${response.mobile_number}" data-email="${response.email}"
+                    data-tax_number="${response.tax_number}" selected>${response.name}</option>`
+                        )
+                        .trigger("change");
+
+                        console.log(response);
+
+                    alert(response);
+                },
+                error: function(xhr) {
+                    // alert("@lang('sales::fields.client_add_error')");
+                    console.error(xhr.responseText);
+                },
+            });
+        });
+
+
+        $("#client_id").on("change", function() {
+            var selectedOption = $(this).find(":selected");
+
+            var clientName = selectedOption.data("name") || '--';
+            var mobileNumber = selectedOption.data("mobile_number") || '-';
+            var email = selectedOption.data("email") || "-";
+            var taxNumber = selectedOption.data("tax_number") || "-";
+            var billing_address = selectedOption.data("billing_address") || "-";
+            var billing_street_name = selectedOption.data("billing_street_name") || "-";
+            var billing_city = selectedOption.data("billing_city") || "-";
+
+
+            console.log(billing_address);
+
+            $("#client_name").text(clientName);
+            if (billing_street_name != '-' || billing_city != '-') {
+                $("#billing_address").text(billing_address);
+                $("#dev-billing_address").show();
+            } else {
+                $("#dev-billing_address").hide();
+            }
+
+
+            if (mobileNumber != '-') {
+                $("#mobile_number").text(mobileNumber);
+                $("#dev-mobile_number").show();
+            } else {
+                $("#dev-mobile_number").hide();
+            }
+            if (email != '-') {
+                $("#email").text(email);
+                $("#dev-email").show();
+            } else {
+                $("#dev-email").hide();
+            }
+            if (taxNumber != '-') {
+                $("#tax_number").text(taxNumber);
+                $("#dev-tax_number").show();
+            } else {
+                $("#dev-tax_number").hide();
+            }
+            // $("#tax_number").text(taxNumber);
+        });
+
+
+        $('#billing_country').select2();
+        $('#shipping_status').select2();
+        $('#cost_center').select2();
+        $('#invoice_type').select2({
+            width: 'resolve'
+        });
+        $('#account_id').select2();
+        $('#payment_type').select2({
+            width: 'resolve'
+        });
+
+        $('#client_id').select2({
+            width: 'resolve'
+        });
+        $('#storehouse').select2({
+            width: 'resolve'
+        });
+        $('#tax_vat').select2({
+            width: 'resolve'
+        });
+        // $('#products').select2();
+        $('#payment_terms').select2({
+            width: 'resolve'
+        });
+
+        $('#cost_center').select2({
+            width: 'resolve'
+        });
+
+
+
+        $('#toggledescrption').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('.product-description').show();
+            } else {
+                $('.product-description').hide();
+            }
+        });
+
+        $('#toggleCost_center').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#dev-costCenter').show();
+            } else {
+                $('#dev-costCenter').hide();
+            }
+        });
+
+
+        $('#addNewAccountBtn').on('click', function() {
+            $('#addClientModal').modal('show');
+        });
+
+
+        $(document).on('click', '.dropdown-item', function(e) {
+            e.preventDefault();
+            let action = $(this).data('action');
+
+            if (action === 'save_add') {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'action',
+                    value: 'save_add'
+                }).appendTo('#sell_save');
+            } else if (action === 'save_print') {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'action',
+                    value: 'save_print'
+                }).appendTo('#sell_save');
+            }
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'status',
+                value: 'final'
+            }).appendTo('#sell_save');
+            $('#sell_save').submit();
+        });
+
+
+        $(document).ready(function() {
+            $("#dev-mobile_number").hide();
+            $("#dev-billing_address").hide();
+            $("#dev-email").hide();
+            $("#dev-tax_number").hide();
+
+
+
+
+            $('#products').select2({
+                tags: true,
+                language: {
+                    noResults: function() {
+                        return `
+                    <button id="add-new-product" class="btn btn-link">
+                        @lang('sales::lang.new_product')
+                    </button>
+                `;
+                    },
+                },
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+            });
+
+
+            // $('[name$="[products_id]"]').on('change', function() {
+            //     var selectedOption = $(this).val();
+
+            //     if (selectedOption == 'new-product') {
+            //         $('#addProductModal').modal('show');
+            //     }
+            // });
+
+            let salesRowIndex = 0;
+
+            $('#addSalesRow').on('click', function() {
+                salesRowIndex++;
+
+                const newSalesRow = `
+    <tr>
+        <td>
+            <select id="products-${salesRowIndex}" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][products_id]">
+                                <option value="">@lang('sales::lang.select_products')</option>
+                   @foreach ($products as $product)
+                    <option value="{{ $product->id }}" data-price="{{ $product->price }}">
+                        @if (app()->getLocale() == 'ar')
+                            {{ $product->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
+                        @else
+                            {{ $product->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+        </td>
+        <td class="product-description" style="display:none">
+            <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
+        </td>
+        <td><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="1" min="1" style="width: 80px;"></td>
+        <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
+        <td style="white-space: nowrap;">
+            <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
+            <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
+                <option value="fixed">@get_format_currency()</option>
+                <option value="percent">%</option>
+            </select>
+        </td>
+        <td class="d-flex justify-content-center">
+                            <div class="form-check">
+                                <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]"
+                                    class="form-check-input  my-2">
+                                </div>
+
+                        </td>
+        <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
+        <td>
+            <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
+                <option value="">@lang('sales::lang.tax_vat.E')</option>
+                <option value="15">@lang('sales::lang.tax_vat.S')</option>
+                <option value="0">@lang('sales::lang.tax_vat.Z')</option>
+            </select>
+        </td>
+        <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
+        <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
+        <td>
+            <button type="button" class="btn btn-icon btn-danger delete-sales-row">
+                <i class="ki-outline ki-trash fs-2"></i>
+            </button>
+        </td>
+    </tr>
+    `;
+
+                $('#salesTable tbody').append(newSalesRow);
+
+                $('#salesTable tbody tr:last').find('.select-2').select2();
+
+                updateSalesTotals();
+
+                console.log('salesRowIndex ' + salesRowIndex);
+            });
+
+
+            $(document).on('click', '.delete-sales-row', function() {
+                $(this).closest('tr').remove();
+            });
+
+
+            function updateSalesTotals() {
+                let totalBeforeVat = 0;
+                let totalVat = 0;
+                let totalAfterVat = 0;
+
+                $('#salesTable tbody tr').each(function(index) {
+                    const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+                    const unitPriceOriginal = parseFloat($(this).find(
+                        `[name="products[${index}][unit_price]"]`).val()) || 0;
+                    const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`)
+                        .val()) || 0;
+                    const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+                    const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
+                    const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(
+                        ':checked');
+
+                    let unitPrice = unitPriceOriginal;
+
+                    if (isInclusive && taxType === '15') {
+                        unitPrice = unitPriceOriginal / 1.15;
+                    }
+
+                    let discountAmount = 0;
+                    if (discountType === 'percent') {
+                        discountAmount = (qty * unitPrice) * (discountValue / 100);
+                    } else {
+                        discountAmount = discountValue;
+                    }
+
+                    const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
+
+                    let vatAmount = 0;
+                    if (taxType === '15') {
+                        vatAmount = totalBeforeDiscount * 0.15;
+                    } else if (taxType === '0') {
+                        vatAmount = 0;
+                    }
+
+                    const totalRow = totalBeforeDiscount + vatAmount;
+
+                    $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
+                    $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
+                    $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
+
+                    totalBeforeVat += totalBeforeDiscount;
+                    totalVat += vatAmount;
+                    totalAfterVat += totalRow;
+                });
+
+                const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
+                const discountType = $('#invoiced_discount_type').val();
+
+                let totalDiscountAmount = 0;
+                if (discountType === 'percent') {
+                    totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
+                } else {
+                    totalDiscountAmount = invoiceDiscount;
+                }
+
+                const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
+                const finalTotalAfterVat = totalAfterDiscount + totalVat;
+
+                $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
+                $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
+                $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
+                $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
+                $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
+                $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
+                $('#totalVat').text(totalVat.toFixed(2));
+                $('#input-totalVat').val(totalVat.toFixed(2));
+                $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
+                $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
+                $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+
+
+            }
+
+            $(document).on('change', '[name*="[inclusive]"]', function() {
+                updateSalesTotals();
+            });
+
+
+            $('#salesTable').on('change', '[name$="[products_id]"]', function() {
+                const selectedOption = $(this).find('option:selected');
+                const selectedProductId = selectedOption.val();
+                const price = parseFloat(selectedOption.data('price')) || 0;
+                const currentRow = $(this).closest('tr');
+                const rowIndex = currentRow.index();
+                console.log('rowIndex  ' + rowIndex);
+
+                let productFound = false;
+
+                $('#salesTable tbody tr').each(function() {
+                    const productId = $(this).find('[name$="[products_id]"]').val();
+
+                    if (productId === selectedProductId && this !== currentRow[0]) {
+                        productFound = true;
+
+                        const qtyField = $(this).find('[name*="[qty]"]');
+                        const currentQty = parseFloat(qtyField.val()) || 0;
+                        qtyField.val(currentQty + 1);
+
+                        // updateSalesTotals();
+
+                        currentRow.remove();
+                        resetRowIndexes();
+                        updateSalesTotals();
+                    }
+                });
+                console.log('productFound  ' + productFound);
+
+                if (!productFound) {
+                    resetRowIndexes();
+
+                    console.log('price  ' + price);
+
+                    currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(
+                        2));
+                    currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(
+                        1);
+
+
+
+
+                    updateSalesTotals();
+                }
+            });
+
+            function resetRowIndexes() {
+                $('#salesTable tbody tr').each(function(index) {
+                    $(this).find('input, select, textarea').each(function() {
+                        const name = $(this).attr('name');
+                        if (name) {
+                            const newName = name.replace(/\[\d+\]/, `[${index}]`);
+                            $(this).attr('name', newName);
+                        }
+                    });
+                });
+            }
+
+
+
+            $('#invoice_discount, #invoiced_discount_type').on('input change', function() {
+                updateSalesTotals();
+            });
+
+            $(document).on('input change', '[name="paid_amount"]', function() {
+                const totalAfterVat = parseFloat($('#totalAfterVat').text());
+                const paidAmount = parseFloat($(this).val());
+
+                if (!isNaN(totalAfterVat) && !isNaN(paidAmount)) {
+                    const remainingBalance = paidAmount - totalAfterVat;
+                    const balance = Math.abs(totalAfterVat - paidAmount);
+
+                    if (paidAmount === totalAfterVat) {
+                        $('#balance').text('0.00');
+                        $('#remaining_balance').text('0.00');
+                    } else if (paidAmount > totalAfterVat) {
+                        $('#remaining_balance').text(remainingBalance.toFixed(2));
+                        $('#balance').text('0.00');
+                    } else if (paidAmount < totalAfterVat) {
+                        $('#balance').text(balance.toFixed(2));
+                        $('#remaining_balance').text('0.00');
+                    }
+                } else {
+                    $('#remaining_balance').text('0.00');
+                    $('#balance').text('0.00');
+                }
+            });
+
+
+
+
+            $(document).on('input change', '#salesTable tbody [name^="products"]', function() {
+                updateSalesTotals();
+            });
+
+            $("#payment_type").change(function() {
+                if ($(this).val() === "card") {
+                    $("#card").show();
+                } else {
+                    $("#card").hide();
+                }
+                if ($(this).val() === "bank_check") {
+                    $("#bank_check").show();
+                } else {
+                    $("#bank_check").hide();
+                }
+                if ($(this).val() === "bank_transfer") {
+                    $("#bank_transfer").show();
+                } else {
+                    $("#bank_transfer").hide();
+                }
+
+            });
+
+
+            $("#invoice_type").change(function() {
+                if ($(this).val() === "due") {
+                    $(".pay-pament_on").hide();
+                    $(".pay-payment_type").hide();
+                    $(".pay-paid_amount").hide();
+                    $(".pay-additionalNotes").hide();
+
+                    $("#card").hide();
+                    $("#bank_check").hide();
+                    $("#bank_transfer").hide();
+
+                } else {
+                    $(".pay-pament_on").show();
+                    $(".pay-payment_type").show();
+                    $(".pay-paid_amount").show();
+                    $(".pay-additionalNotes").show();
+                }
+
+            });
+
+
+            document.getElementById('kt_modal_upload_attachments').addEventListener('click', function() {
+                document.getElementById('fileInput').click();
+            });
+
+
+            document.getElementById('fileInput').addEventListener('change', function(event) {
+                const files = event.target.files;
+                const uploadInstructions = document.getElementById('uploadInstructions');
+
+
+                if (files.length > 0) {
+                    let fileNames = [];
+                    for (let i = 0; i < files.length; i++) {
+                        fileNames.push(files[i].name);
+                    }
+
+                    uploadInstructions.textContent = fileNames.join(', ');
+                } else {
+
+                    uploadInstructions.textContent = 'Upload file';
+                }
+            });
+
+        });
+    </script>
+@stop

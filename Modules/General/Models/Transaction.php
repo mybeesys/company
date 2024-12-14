@@ -33,6 +33,23 @@ class Transaction extends Model
         ];
     }
 
+
+
+    public static function getsPurchasesColumns()
+    {
+        return [
+
+            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
+            ["class" => "text-start min-w-150px  ", "name" => "supplier"],
+            ["class" => "text-start min-w-150px", "name" => "transaction_date"],
+            ["class" => "text-start min-w-150px ", "name" => "due_date"],
+            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
+            // ["class" => "text-start min-w-150px  ", "name" => "discount"],
+            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+        ];
+    }
+
     public static function getSellsTable($transactions)
     {
         return DataTables::of($transactions)

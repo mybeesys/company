@@ -127,6 +127,7 @@ class ClientController extends Controller
                         'country' => $request->billing_country,
                     ]);
                 }
+                DB::commit();
                 return response()->json($contact);
             }
             $attachment_name = null;

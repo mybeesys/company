@@ -136,8 +136,14 @@ return [
                 'url' => 'suppliers',
                 'permission' => '',
             ],
+            [
+                'name' => 'purchase_invoices',
+                'url' => 'purchase-invoices',
+                'permission' => '',
+            ],
         ]
     ],
+
     [
         'name' => 'accounting_module',
         'url' => 'dashboard',

@@ -33,7 +33,7 @@ class SellController extends Controller
         }
 
         $columns = Transaction::getsSellsColumns();
-        return view('sales::sell.index', compact('columns','transaction'));
+        return view('sales::sell.index', compact('columns', 'transaction'));
     }
 
     /**
@@ -64,6 +64,7 @@ class SellController extends Controller
         try {
 
 
+            DB::beginTransaction();
             $ref_no =  SalesUtile::generateReferenceNumber('sell');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
@@ -89,8 +90,9 @@ class SellController extends Controller
 
             ]);
 
+            $products = json_decode(json_encode($request->products));
 
-            foreach ($request->products as $product) {
+            foreach ($products as $product) {
                 $discount_type = $product->discount ? $product->discount_type : null;
                 TransactionSellLine::create([
                     'transaction_id' => $transaction->id,
@@ -105,7 +107,11 @@ class SellController extends Controller
                     'tax_value' => $product->vat_value,
                 ]);
             }
+            DB::commit();
+            return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         }
     }
 

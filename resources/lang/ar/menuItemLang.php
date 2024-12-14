@@ -58,7 +58,9 @@ return [
     'rma' => 'RMA',
     'ingredientInventory' => 'المكونات',
 	 'waste' => 'الاتلاف',
-    'transfer' => 'التحويلات'
+    'transfer' => 'التحويلات',
+
+    'purchase_invoices'=>'فواتير الشراء',
 
 
 ];

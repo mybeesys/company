@@ -7,6 +7,7 @@
             </div>
             <div class="modal-body">
                 <form id="addClientForm">
+                    @csrf
                     <div class="container">
                         <div class="row">
                             <div class="col-sm">
@@ -29,6 +30,8 @@
                                                 type="text">
                                         </div>
 
+
+                                        <input  type="hidden" name="business_type" value="customer"/>
 
                                         <div class="d-flex align-items-center mb-5">
                                             <label class="fs-6 fw-semibold mb-2 me-3 "
@@ -54,7 +57,7 @@
                                             <label class="fs-6 fw-semibold mb-2 me-3 "
                                                 style="width: 150px;">@lang('clientsandsuppliers::fields.tax_number')</label>
                                             <input class="form-control form-control-solid custom-height"
-                                                name="tax_number" placeholder="@lang('clientsandsuppliers::fields.tax_number')" 
+                                                name="tax_number" placeholder="@lang('clientsandsuppliers::fields.tax_number')"
                                                 type="text">
                                         </div>
 

@@ -86,6 +86,7 @@ return [
 
     'no_invoice' => 'You do not have any sales invoices.',
     'select_products' => 'Search by name or SKU',
+    'Payment vouchers'=>'Payment vouchers',
 
 
 

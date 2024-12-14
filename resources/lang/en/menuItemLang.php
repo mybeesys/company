@@ -65,7 +65,9 @@ return [
     'rma' => 'RMA',
     'ingredientInventory' => 'Ingredients',
 	 'waste' => 'Waste',
-    'transfer' => 'Transfer'
+    'transfer' => 'Transfer',
+    'purchase_invoices'=>'Purchase Invoices',
+
 
 
 ];
