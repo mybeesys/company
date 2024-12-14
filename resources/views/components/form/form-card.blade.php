@@ -7,16 +7,19 @@
     'id' => '',
     'collapsible' => false,
     'class' => '',
+    'headerDiv' => true,
 ])
 
 <x-cards.card class="{{ $class }}">
-    <x-cards.card-header :class=$headerClass :id=$id :collapsible=$collapsible>
-        <div class="card-title">
-            <h2>{{ $title }}</h2>
-            {{ $titleSlot }}
-        </div>
-        {{ $header }}
-    </x-cards.card-header>
+    @if ($headerDiv)
+        <x-cards.card-header :class=$headerClass :id=$id :collapsible=$collapsible>
+            <div class="card-title">
+                <h2>{{ $title }}</h2>
+                {{ $titleSlot }}
+            </div>
+            {{ $header }}
+        </x-cards.card-header>
+    @endif
     <div id="{{ $id }}" @class(['collapse' => $collapsible])>
         <x-cards.card-body :class="$bodyClass">
             {{ $slot }}

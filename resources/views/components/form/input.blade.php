@@ -32,6 +32,7 @@
     {{ $attribute }} @class([
         'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),
+        'form-control-solid',
         $class,
     ]) @required($required) @checked($checked) @disabled($disabled)/>
 {{ $datalist }}
