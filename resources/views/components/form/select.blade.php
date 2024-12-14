@@ -27,6 +27,7 @@
 {{ $slot }}
 <select @class([
     'form-select d-flex',
+    'form-select-solid',
     $class,
     'is-invalid' => $errors->first($dotNotationName),
 ]) data-placeholder="{{ $placeholder }}" data-kt-repeater="{{ $name }}"
