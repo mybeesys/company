@@ -6,5 +6,6 @@
     "Inventory": true,
     "ClientsAndSuppliers": true,
     "Sales": true,
-    "General": true
+    "General": true,
+    "Purchases": true
 }

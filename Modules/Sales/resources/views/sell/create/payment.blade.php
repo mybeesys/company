@@ -1,5 +1,5 @@
 <div class="row row-cols-lg-12 my-1 g-10">
-    <div class="col-4">
+    {{-- <div class="col-4">
         <div class="fv-row ">
 
             <label class="fs-6 fw-semibold mb-2 ">@lang('sales::lang.invoice_type') </label>
@@ -9,9 +9,9 @@
                 <option value="due">@lang('sales::lang.due')</option>
             </select>
         </div>
-    </div>
+    </div> --}}
 
-    <div class="col-4">
+    {{-- <div class="col-4">
         <div class="fv-row ">
 
             <label class="fs-6 fw-semibold mb-2 required">@lang('accounting::lang.cost_center') </label>
@@ -35,7 +35,7 @@
 
             </select>
         </div>
-    </div>
+    </div> --}}
 
     <div class="col-4">
         <div class="fv-row ">
@@ -47,7 +47,7 @@
             <select required class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
                 name="account_id" id="account_id">
 
-                <option value=""></option>
+
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}">
                         @if (app()->getLocale() == 'ar')
@@ -63,6 +63,15 @@
         </div>
     </div>
 
+    <div class="col-4 pay-paid_amount">
+        <div class="d-flex flex-column " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+            <label class="fs-6 fw-semibold mb-2">@lang('sales::lang.paid_amount')</label>
+
+            <input class="form-control form-control-solid no-spin" name="paid_amount" required value=""
+                placeholder="0.00" id="paid_amount" type="number">
+        </div>
+    </div>
+
     <div class="col-4 pay-pament_on">
         <div class="fv-row  fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
 
@@ -73,7 +82,7 @@
                 type="datetime-local">
         </div>
     </div>
-    <div class="col-4 pay-payment_type">
+    {{-- <div class="col-4 pay-payment_type">
         <div class="fv-row ">
 
             <label class="fs-6 fw-semibold mb-2 required">@lang('sales::lang.payment_type') </label>
@@ -83,21 +92,14 @@
                 @endforeach
             </select>
         </div>
-    </div>
-
-    <div class="col-4 pay-paid_amount">
-        <div class="d-flex flex-column " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
-            <label class="fs-6 fw-semibold mb-2">@lang('sales::lang.paid_amount')</label>
-
-            <input class="form-control form-control-solid no-spin" name="paid_amount" required value=""
-                placeholder="0.00" id="paid_amount" type="number">
-        </div>
-    </div>
+    </div> --}}
 
 
-    @include('sales::sell.create.card-payment')
-    @include('sales::sell.create.check')
-    @include('sales::sell.create.bank_transfer')
+
+
+    {{-- @include('sales::sell.create.card-payment') --}}
+    {{-- @include('sales::sell.create.check') --}}
+    {{-- @include('sales::sell.create.bank_transfer') --}}
 
 
     <div class="col-4 pay-additionalNotes">

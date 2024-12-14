@@ -27,7 +27,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="bankInfo_country_bank">
                             <option value="">@lang('clientsandsuppliers::fields.country_bank')</option>
                             @foreach ($countries as $country)
-                                <option @if ($contact->bankAccountInformation?->country_bank == $country->id) selected @endif value="{{ $country->id }}">{{ $country->name_en . ' - ' . $country->name_ar }}
+                                <option @if ($contact?->bankAccountInformation?->country_bank == $country->id) selected @endif value="{{ $country->id }}">{{ $country?->name_en . ' - ' . $country?->name_ar }}
                                 </option>
                             @endforeach
                         </select>
@@ -55,7 +55,7 @@
                 <div class="col-sm">
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_bank_name"
-                            placeholder="@lang('clientsandsuppliers::fields.bank_name')" value="{{ $contact->bankAccountInformation->bank_name }}"
+                            placeholder="@lang('clientsandsuppliers::fields.bank_name')" value="{{ $contact?->bankAccountInformation?->bank_name }}"
                             id="bank_name" type="text">
                     </div>
 
@@ -64,7 +64,7 @@
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_bank_account_name"
                             placeholder="@lang('clientsandsuppliers::fields.bank_account_name')"
-                            value="{{ $contact->bankAccountInformation->bank_account_name }}" id="bank_account_name"
+                            value="{{ $contact->bankAccountInformation?->bank_account_name }}" id="bank_account_name"
                             type="text">
                     </div>
                 </div>
@@ -76,7 +76,7 @@
                 <div class="col-12">
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_iban_number"
-                            placeholder="@lang('clientsandsuppliers::fields.iban_number')" value="{{ $contact->bankAccountInformation->iban_number }}"
+                            placeholder="@lang('clientsandsuppliers::fields.iban_number')" value="{{ $contact->bankAccountInformation?->iban_number }}"
                             id="bankInfo_iban_number" type="text">
                     </div>
 
@@ -85,7 +85,7 @@
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_bank_account_number"
                             placeholder="@lang('clientsandsuppliers::fields.bank_account_number')"
-                            value="{{ $contact->bankAccountInformation->bank_account_number }}"
+                            value="{{ $contact->bankAccountInformation?->bank_account_number }}"
                             id="bankInfo_bank_account_number" type="text">
                     </div>
                 </div>
@@ -94,7 +94,7 @@
                 <div class="col-sm">
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_swift_code"
-                            placeholder="@lang('clientsandsuppliers::fields.swift_code')" value="{{ $contact->bankAccountInformation->swift_code }}"
+                            placeholder="@lang('clientsandsuppliers::fields.swift_code')" value="{{ $contact->bankAccountInformation?->swift_code }}"
                             id="bankInfo_swift_code" type="text">
                     </div>
 
@@ -102,13 +102,13 @@
                 <div class="col-sm">
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
                         <input class="form-control form-control-solid custom-input" name="bankInfo_bank_address"
-                            placeholder="@lang('clientsandsuppliers::fields.bank_address')" value="{{ $contact->bankAccountInformation->bank_address }}"
+                            placeholder="@lang('clientsandsuppliers::fields.bank_address')" value="{{ $contact->bankAccountInformation?->bank_address }}"
                             id="bankInfo_bank_address" type="text">
                     </div>
                 </div>
             </div>
 
-            @if ($contact->bankAccountInformation->customInformation)
+            @if ($contact->bankAccountInformation)
                 @foreach ($contact->bankAccountInformation->customInformation as $key => $custom)
                     <div class="row">
                         <div class="col-sm">

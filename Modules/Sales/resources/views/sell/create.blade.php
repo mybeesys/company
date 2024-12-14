@@ -207,6 +207,38 @@
 @section('script')
     {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
     <script>
+        $("#addClientForm").on("submit", function(e) {
+            e.preventDefault();
+
+            let formData = $(this).serialize();
+
+            $.ajax({
+                url: "/client-save",
+                method: "POST",
+                data: formData,
+                success: function(response) {
+                    $("#addClientModal").modal("hide");
+
+                    $("#addClientForm")[0].reset();
+
+                    $("#client_id")
+                        .append(
+                            `<option value="${response.id}" data-name="${response.name}"
+                    data-mobile_number="${response.mobile_number}" data-email="${response.email}"
+                    data-tax_number="${response.tax_number}" selected>${response.name}</option>`
+                        )
+                        .trigger("change");
+
+                    // alert("@lang('sales::fields.client_added_success')");
+                },
+                error: function(xhr) {
+                    // alert("@lang('sales::fields.client_add_error')");
+                    console.error(xhr.responseText);
+                },
+            });
+        });
+
+
         $("#client_id").on("change", function() {
             var selectedOption = $(this).find(":selected");
 
@@ -263,8 +295,12 @@
             width: 'resolve'
         });
 
-        $('#client_id').select2({   width: 'resolve'});
-        $('#storehouse').select2({   width: 'resolve'});
+        $('#client_id').select2({
+            width: 'resolve'
+        });
+        $('#storehouse').select2({
+            width: 'resolve'
+        });
         $('#tax_vat').select2({
             width: 'resolve'
         });

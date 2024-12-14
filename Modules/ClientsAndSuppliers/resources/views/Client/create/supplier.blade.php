@@ -172,19 +172,19 @@
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
                             </li>
-                            {{-- <li class="nav-item" role="presentation">
+                            <li class="nav-item" role="presentation">
                                 <a id="shipping_info_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#shipping_info" aria-selected="false" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.shipping_addresses')
 
                                 </a>
-                            </li> --}}
-                            {{-- <li class="nav-item" role="presentation">
+                            </li>
+                            <li class="nav-item" role="presentation">
                                 <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#attachments" aria-selected="false" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.bank_account_information')
                                 </a>
-                            </li> --}}
+                            </li>
 
                             <li class="nav-item" role="presentation">
                                 <a id="clientContactsCard_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
@@ -193,12 +193,12 @@
                                 </a>
                             </li>
 
-                            {{-- <li class="nav-item" role="presentation">
+                            <li class="nav-item" role="presentation">
                                 <a id="financial_information_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#financial_information" aria-selected="false" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.financial_information')
                                 </a>
-                            </li> --}}
+                            </li>
 
                         </ul>
                         <!--end::Tab nav-->
@@ -214,21 +214,21 @@
                         </div>
                     </div>
 
-                    {{-- <div class="tab-content ">
+                    <div class="tab-content ">
                         <div id="shipping_info" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="shipping_info_tab">
 
                             @include('clientsandsuppliers::Client.create.shippingCard')
 
                         </div>
-                    </div> --}}
+                    </div>
 
-                    {{-- <div class="tab-content">
+                    <div class="tab-content">
                         <div id="attachments" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="attachments_tab">
                             @include('clientsandsuppliers::Client.create.bankAccountCard')
 
                         </div>
-                    </div> --}}
+                    </div>
                     <div class="tab-content">
                         <div id="clientContactsCard" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="clientContactsCard_tab">
                             @include('clientsandsuppliers::Client.create.clientContactsCard')
@@ -237,12 +237,12 @@
                     </div>
 
 
-                    {{-- <div class="tab-content">
+                    <div class="tab-content">
                         <div id="financial_information" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="financial_information_tab">
                             @include('clientsandsuppliers::Client.create.financial_information')
 
                         </div>
-                    </div> --}}
+                    </div>
 
 
 
