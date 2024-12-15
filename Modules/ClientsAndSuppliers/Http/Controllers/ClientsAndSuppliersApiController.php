@@ -364,6 +364,10 @@ class ClientsAndSuppliersApiController extends Controller
 
     public function destroy($id)
     {
+        $contact = Contact::findOrFail($id);
+        if (!$contact) {
+            return response()->json('reach non existent customer / supplier', 404);
+        }
         $count = Transaction::where('contact_id', $id)
             ->count();
 
