@@ -2,7 +2,7 @@
     <div class="container">
         <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">
-                @if ($contact->business_type != 'customer') 
+                @if ($contact->business_type != 'customer')
                 @lang('clientsandsuppliers::fields.supplier_name')
 
                 @else

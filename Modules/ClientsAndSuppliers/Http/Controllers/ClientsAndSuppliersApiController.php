@@ -3,81 +3,29 @@
 namespace Modules\ClientsAndSuppliers\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-
-use Carbon\Exceptions\Exception;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use Modules\Accounting\Models\AccountingAccount;
-use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\General\Models\Country;
-use Modules\Sales\Utils\SalesUtile;
+use Modules\ClientsAndSuppliers\Transformers\ContactResource;
+use Modules\General\Models\Transaction;
 
-class ClientController extends Controller
+class ClientsAndSuppliersApiController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function clients()
     {
-        //    return $contacts =  Contact::select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status')->get();
-
-        $business_type = Route::currentRouteName();
-
-        $businessType = $business_type  == 'clients'  ? 'customer' : 'supplier';
-        $create_url = $business_type  == 'clients'  ? 'client-create' : 'supplier-create';
-        if ($request->ajax()) {
-            $contacts =  Contact::where('business_type', $businessType)->select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status');
-
-            return  Contact::getContactsTable($contacts);
-        }
-        $columns = Contact::getContactsColumns();
-
-        return view('clientsandsuppliers::Client.index', compact('columns', 'create_url', 'business_type'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // dd(env('DB_CONNECTION')) ;
-        $countries = Country::all();//DB::connection('mysql')->table('countries')->get();
-        $payment_terms = SalesUtile::paymentTerms();
-        $accounts =  AccountingAccount::forDropdown();
-
-
-        $parents_account = AccountingAccount::all();
-        $account_main_types = AccountingUtil::account_type();
-        $account_category = AccountingUtil::account_category();
-        $create_page = Route::currentRouteName();
-
-        if ($create_page == 'supplier-create')
-            return view('clientsandsuppliers::Client.create.supplier', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
-
-
-        return view('clientsandsuppliers::Client.create.create', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
+        $contacts =  Contact::where('business_type', 'customer')->get();
+        return ContactResource::collection($contacts);
     }
 
 
-
-    public function edit($id)
+    public function suppliers()
     {
-        // $countries = DB::connection('mysql')->table('countries')->get();
-        $countries = Country::all();
-        $payment_terms = SalesUtile::paymentTerms();
-        $accounts =  AccountingAccount::forDropdown();
-
-        $contact =  Contact::find($id);
-
-        $parents_account = AccountingAccount::all();
-        $account_main_types = AccountingUtil::account_type();
-        $account_category = AccountingUtil::account_category();
-
-
-
-        return view('clientsandsuppliers::Client.edit.edit', compact('countries', 'contact', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
+        $contacts =  Contact::where('business_type', 'supplier')->get();
+        return ContactResource::collection($contacts);
     }
 
     /**
@@ -85,51 +33,12 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-
-
+        $request->validate([
+            'client_name' => ['required']
+        ]);
         try {
             DB::beginTransaction();
 
-            if ($request->ajax()) {
-                $attachment_name = null;
-                if ($request->hasFile('attachment')) {
-                    $attachment = $request->file('attachment');
-                    $attachment_name = $attachment->store('/customers');
-                }
-
-                $contact = Contact::create([
-                    'name' => $request->client_name,
-                    'business_type' => $request->business_type,
-                    'phone_number' => $request->phone_number,
-                    'mobile_number' => $request->mobile_number,
-                    'website' => $request->website,
-                    'email' => $request->email,
-                    'point_of_sale_client' => $request->has('point_of_sale_client')  ? 1 : 0,
-                    'tax_number' => $request->tax_number,
-                    'commercial_register' => $request->commercial_register,
-                    'payment_terms' => $request->payment_terms,
-                    'account_id' => $request->account_id,
-                    'file_path' => $attachment_name,
-                    'status' => 'active',
-
-                ]);
-
-                if (
-                    $request->billing_street_name || $request->billing_city || $request->billing_state
-                    || $request->billing_postal_code || $request->building_number || $request->billing_country
-                ) {
-                    $billingAddress =  $contact->billingAddress()->create([
-                        'street_name' => $request->billing_street_name,
-                        'city' => $request->billing_city,
-                        'state' => $request->billing_state,
-                        'postal_code' => $request->billing_postal_code,
-                        'building_number' => $request->building_number,
-                        'country' => $request->billing_country,
-                    ]);
-                }
-                DB::commit();
-                return response()->json($contact);
-            }
             $attachment_name = null;
             if ($request->hasFile('attachment')) {
                 $attachment = $request->file('attachment');
@@ -262,12 +171,10 @@ class ClientController extends Controller
 
 
             DB::commit();
-            if ($request->business_type == 'customer')
-                return redirect()->route('clients')->with('success', __('messages.add_successfully'));
-            return redirect()->route('suppliers')->with('success', __('messages.add_successfully'));
+            return response()->json(new ContactResource($contact), 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->route('clients')->with('error', __('messages.something_went_wrong'));
+            return response()->json('something went wrong', 500);
         }
     }
 
@@ -276,33 +183,11 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-
         $contact = Contact::find($id);
         if (!$contact) {
-            return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
+            return response()->json('reach non existent customer / supplier', 404);
         }
-        $country_bank = null;
-        $country_billingAddress = null;
-        $country_shippingAddress = null;
-
-        if (!empty($contact->bankAccountInformation) && !empty($contact->bankAccountInformation->country_bank)) {
-            $country_bank = Country::find($contact->bankAccountInformation->country_bank);
-        }
-
-        if (!empty($contact->billingAddress) && !empty($contact->billingAddress->country)) {
-            $country_billingAddress =Country::find($contact->billingAddress->country);
-        }
-
-        if (!empty($contact->shippingAddress) && !empty($contact->shippingAddress->country)) {
-            $country_shippingAddress =Country::find($contact->shippingAddress->country);
-        }
-
-        $previous = Contact::where('id', '<', $id)->where('business_type', $contact->business_type)->orderBy('id', 'desc')->first();
-
-        $next = Contact::where('id', '>', $id)->where('business_type', $contact->business_type)->orderBy('id', 'asc')->first();
-        $clients = Contact::where('business_type', $contact->business_type)->get();
-
-        return view('clientsandsuppliers::Client.show.show', compact('contact', 'clients', 'previous', 'next', 'country_bank', 'country_billingAddress', 'country_shippingAddress'));
+        return response()->json(new ContactResource($contact), 200);
     }
 
 
@@ -312,7 +197,10 @@ class ClientController extends Controller
      */
     public function update(Request $request)
     {
-        // return $request;
+        $contact = Contact::find($request->id);
+        if (!$contact) {
+            return response()->json('reach non existent customer / supplier', 404);
+        }
         try {
             $attachment_name = null;
             if ($request->hasFile('attachment')) {
@@ -320,7 +208,7 @@ class ClientController extends Controller
                 $attachment_name = $attachment->store('/customers');
             }
 
-            $contact = Contact::find($request->id);
+
             DB::beginTransaction();
             $contact->update([
                 'name' => $request->client_name,
@@ -453,21 +341,47 @@ class ClientController extends Controller
 
 
             DB::commit();
-            if ($request->business_type == 'customer')
-            return redirect()->route('clients')->with('success', __('messages.updated_successfully'));
-        return redirect()->route('suppliers')->with('success', __('messages.updated_successfully'));
-
+            return response()->json(new ContactResource($contact), 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->route('clients')->with('error', __('messages.something_went_wrong'));
+            return response()->json('something went wrong', 500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
+    public function updateStatus($id)
+    {
+        $contact = Contact::find($id);
+        if (!$contact) {
+            return response()->json('reach non existent customer / supplier', 404);
+        }
+
+        $contact->status = $contact->status == 'active' ? 'inactive' : 'active';
+        $contact->save();
+
+        return response()->json(new ContactResource($contact), 200);
+    }
+
     public function destroy($id)
     {
-        //
+        $count = Transaction::where('contact_id', $id)
+            ->count();
+
+        $contact = Contact::findOrFail($id);
+        if (!$contact) {
+            return response()->json('reach non existent customer / supplier', 404);
+        }
+
+        if ($count == 0) {
+            if (!$contact->is_default) {
+                $contact->delete();
+            }
+            return response()->json('deleted successfully', 200);
+        } else {
+
+            if ($contact->business_type == 'customer')
+                return response()->json('you cannot delete this client', 200);
+            return response()->json('you cannot delete this supplier', 200);
+        }
     }
 }
