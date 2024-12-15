@@ -7,7 +7,8 @@
     </span>
     <input @class([
         'form-control',
-        'is-invalid' => $errors->first($name)
+        'form-control-solid',
+        'is-invalid' => $errors->first($name),
     ]) value="{{ $value ? $value : old($name) }}" id="{{ $name }}_input"
         name="{{ $name }}" type="text" data-td-target="#{{ $name }}" />
     @if ($errors->first($name))

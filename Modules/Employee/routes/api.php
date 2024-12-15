@@ -24,4 +24,5 @@ Route::middleware([
     require __DIR__ . '/Api/auth.php';
     require __DIR__ . '/Api/employee.php';
     require __DIR__ . '/Api/schedule.php';
+    require __DIR__ . '/Api/role.php';
 });

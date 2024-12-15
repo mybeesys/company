@@ -22,5 +22,50 @@
         let dataTable;
         const table = $('#kt_establishment_table');
         const dataUrl = '{{ route('establishments.index') }}';
+        $(document).ready(function() {
+            initDatatable();
+        });
+
+        function initDatatable() {
+            dataTable = $(table).DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: dataUrl,
+                info: false,
+                columns: [{
+                        data: 'id',
+                        name: 'id',
+                    },
+                    {
+                        data: 'name',
+                        name: 'name'
+                    },
+                    {
+                        data: 'address',
+                        name: 'address'
+                    },
+                    {
+                        data: 'contact_details',
+                        name: 'contact_details'
+                    },
+                    {
+                        data: 'is_active',
+                        name: 'is_active'
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                order: [],
+                scrollX: true,
+                pageLength: 10,
+                drawCallback: function() {
+                    KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
+                }
+            });
+        };
     </script>
 @endsection

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\Api\EmployeeController;
 use Modules\Employee\Http\Controllers\Api\TimeSheetRuleController;
 
 

@@ -24,6 +24,10 @@ Route::middleware([
 
     Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () {
         Route::get('', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::get('/store', 'store')->name('store');
+        Route::get('/create/validate', 'createLiveValidation')->name('create.validation');
+        Route::get('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
 
 });

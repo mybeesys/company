@@ -4,6 +4,7 @@ namespace Modules\Employee\Transformers\Collections;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Modules\Employee\Transformers\AdjustmentResource;
 
 class AdjustmentCollection extends ResourceCollection
 {

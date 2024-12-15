@@ -30,7 +30,7 @@ class EstablishmentController extends Controller
      */
     public function create()
     {
-        return view('establishment::create');
+        return view('establishment::establishment.create');
     }
 
     /**
