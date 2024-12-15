@@ -23,14 +23,13 @@ class EmployeeResource extends JsonResource
             'active' => $this->pos_is_active,
             'pin' => $this->pin,
             'ems_access' => $this->ems_access,
-            'PosRoles' => $this->posRoles,
             'wage' => $this->wage?->rate,
             'allowances' => AdjustmentResource::collection($this->allowances),
             'deductions' => AdjustmentResource::collection($this->deductions),
             'image' => $this->image,
             'email' => $this->email,
-            'created_at' => $this->created_at->format('d/m/Y H:i'),
-            'updated_at' => $this->updated_at->format('d/m/Y H:i')
+            'posRoles' => PosRoleResource::collection($this->posRoles),
+            'posPermissions' => PosPermissionResource::collection($this->permissions()->where('type', 'pos')->get()),
         ];
     }
 }

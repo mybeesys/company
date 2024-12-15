@@ -1,28 +1,22 @@
-@extends('employee::layouts.master')
+@extends('establishment::layouts.master')
 
-@section('title', __('employee::general.add_employee'))
+@section('title', __('establishment::general.add_establishment'))
 
 @section('content')
-    <form id="add_employee_form" class="form d-flex flex-column gap-2" method="POST" enctype="multipart/form-data"
-        action="{{ route('employees.store') }}">
+    <form id="add_establishment_form" class="form d-flex flex-column gap-2" method="POST" enctype="multipart/form-data"
+        action="{{ route('establishments.store') }}">
         @csrf
-        <x-employee::employees.form :dashboardRoles=$dashboardRoles :posRoles=$posRoles :establishments=$establishments :allowances_types="$allowances_types" formId="add_employee_form"/>
+        <x-establishment::establishments.form formId="add_establishment_form"/>
     </form>
 @endsection
 
 @section('script')
     @parent
-    <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
+    {{-- <script src="{{ url('modules/establishment/js/create-edit-establishment.js') }}"></script> --}}
     <script>
         $(document).ready(function() {
-            let saveButton = $(`#add_employee_form_button`);
-            datePicker('#employment_start_date', new Date());
-            datePicker('#employment_end_date');
-            initElements();
-            allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}", "{{ session()->get('locale') }}");
-            administrativeUser(false, 'add_employee_form');
-            employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
-                "{{ route('employees.generate.pin') }}");
+            let saveButton = $(`#add_establishment_form_button`);
+            // establishmentForm('add_establishment_form', "{{ route('establishments.create.validation') }}");
         });
     </script>
 @endsection

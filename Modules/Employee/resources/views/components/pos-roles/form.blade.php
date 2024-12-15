@@ -8,7 +8,7 @@
                     value="{{ $role?->name }}" name="name" :label="__('employee::fields.name')" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input :errors=$errors placeholder="{{ __('employee::fields.department') }}" name="department"
+                <x-form.input :errors=$errors value="{{ $role?->department }}" placeholder="{{ __('employee::fields.department') }}" name="department"
                     :label="__('employee::fields.department')" :disabled=$disabled>
                     <x-slot:datalist>
                         <datalist id="departmentlist">
@@ -28,7 +28,7 @@
             <x-form.switch-div class="my-auto">
                 <input type="hidden" name="is_active" value="0">
                 <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
-                    labelClass="form-check-label" name="is_active" :disabled=$disabled
+                    :disabled=$disabled labelClass="form-check-label" name="is_active"
                     label="{{ __('employee::general.deactivate/activate') }}"
                     checked="{{ $role?->is_active }}" />
             </x-form.switch-div>

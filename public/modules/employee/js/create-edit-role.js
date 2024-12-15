@@ -27,7 +27,7 @@ function rolePermissionsForm(all = true) {
         if (selectAllCheckbox.is(':checked')) {
             const dataId = $('input[type="checkbox"][value="all"]').data('id');
             const selectAllPermissionId = dataId;
-            $('input[type="checkbox"][value!="all"]').prop('disabled', true);
+            $('input[type="checkbox"][value!="all"][name!="is_active"]').prop('disabled', true);
             selectAllCheckbox.val(selectAllPermissionId);
         }
     });

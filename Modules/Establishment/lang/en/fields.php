@@ -76,4 +76,5 @@ return [
     'delete' => 'Delete',
     'address' => 'Address',
     'contact_details' => 'Contact details',
+    'required' => 'required'
 ];

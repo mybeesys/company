@@ -4,11 +4,11 @@ namespace Modules\Employee\Transformers\Collections;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Modules\Employee\Transformers\WageResource;
+use Modules\Employee\Transformers\PosPermissionResource;
 
-class WageCollection extends ResourceCollection
+class PosPermissionCollection extends ResourceCollection
 {
-    public $collects = WageResource::class;
+    public $collects = PosPermissionResource::class;
 
     /**
      * Transform the resource collection into an array.
