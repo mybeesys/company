@@ -35,7 +35,7 @@
 <div class="tab-content  " >
     <div id="client_contacts" class="card-body p-0 tab-pane fade show active" role="tabpanel"
         aria-labelledby="client_contacts_tab">
-        @if ($contact->clientContacts)
+        @if (count($contact->clientContacts)!=0)
             @include('clientsandsuppliers::Client.show.clientContactsCard')
         @else
             @include('clientsandsuppliers::Client.empty-data')

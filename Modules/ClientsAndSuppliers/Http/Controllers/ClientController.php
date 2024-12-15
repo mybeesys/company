@@ -312,7 +312,7 @@ class ClientController extends Controller
      */
     public function update(Request $request)
     {
-        return $request;
+        // return $request;
         try {
             $attachment_name = null;
             if ($request->hasFile('attachment')) {

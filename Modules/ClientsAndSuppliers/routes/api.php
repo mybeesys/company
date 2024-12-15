@@ -22,7 +22,7 @@ Route::middleware([
     'api',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-    'auth-central',
+    // 'auth-central',
 ])->group(function () {
     Route::get('clients', [ClientsAndSuppliersApiController::class, 'clients'])->name('clients');
     Route::get('suppliers', [ClientsAndSuppliersApiController::class, 'suppliers'])->name('suppliers');
