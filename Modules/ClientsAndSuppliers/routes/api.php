@@ -31,4 +31,5 @@ Route::middleware([
     Route::post('contact-update', [ClientsAndSuppliersApiController::class, 'update'])->name('contact-update');
     Route::get('contact-update-status/{id}', [ClientsAndSuppliersApiController::class, 'updateStatus'])->name('contact-update-status');
     Route::get('contact-destroy/{id}', [ClientsAndSuppliersApiController::class, 'destroy'])->name('contact-destroy');
+    Route::get('countries', [ClientsAndSuppliersApiController::class, 'countries'])->name('countries');
 });

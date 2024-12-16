@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\Transformers\ContactResource;
+use Modules\ClientsAndSuppliers\Transformers\CountriesResource;
+use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 
 class ClientsAndSuppliersApiController extends Controller
@@ -193,5 +195,12 @@ class ClientsAndSuppliersApiController extends Controller
                 return response()->json(['message' => 'you cannot delete this client'], 200);
             return response()->json(['message' => 'you cannot delete this supplier'], 200);
         }
+    }
+
+    public function countries()
+    {
+
+        $countries = Country::all();
+        return CountriesResource::collection($countries);
     }
 }
