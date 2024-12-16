@@ -80,22 +80,26 @@
             </div>
 
             @if ($contact->business_type == 'customer')
-                        @if ($contact->shippingAddress->customInformation)
-                @foreach ($contact->shippingAddress->customInformation as $key => $custom)
-                    <div class="row">
-                        <div class="col-sm">
-                            <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid"><input
-                                    class="form-control form-control-solid custom-input" name="shipping_customLable[]"
-                                    placeholder="@lang('clientsandsuppliers::fields.customLable')" value="{{ $custom->lable }}" type="text"></div>
-                        </div>
-                        <div class="col-sm">
-                            <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid"><input
-                                    class="form-control form-control-solid custom-input" name="shipping_customValue[]"
-                                    placeholder="@lang('clientsandsuppliers::fields.customValue')" value="{{ $custom->value }}" type="text"></div>
-                        </div>
-                    </div>
-                @endforeach
-            @endif
+                @if ($contact->shippingAddress)
+                    @if ($contact->shippingAddress->customInformation)
+                        @foreach ($contact->shippingAddress->customInformation as $key => $custom)
+                            <div class="row">
+                                <div class="col-sm">
+                                    <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
+                                        <input class="form-control form-control-solid custom-input"
+                                            name="shipping_customLable[]" placeholder="@lang('clientsandsuppliers::fields.customLable')"
+                                            value="{{ $custom->lable }}" type="text"></div>
+                                </div>
+                                <div class="col-sm">
+                                    <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
+                                        <input class="form-control form-control-solid custom-input"
+                                            name="shipping_customValue[]" placeholder="@lang('clientsandsuppliers::fields.customValue')"
+                                            value="{{ $custom->value }}" type="text"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                @endif
             @endif
 
 
