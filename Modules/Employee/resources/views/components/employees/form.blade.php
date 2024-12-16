@@ -15,7 +15,7 @@
 @endphp
 
 {{-- employee section --}}
-<div class="d-flex">
+<div class="d-flex flex-column flex-md-row">
     <div class="d-flex flex-column flex-lg-row">
         <div class="d-flex flex-column gap-7 gap-lg-10 w-100 w-lg-300px mb-7 me-lg-10">
             <x-form.form-card :title="__('employee::fields.employee_image')" bodyClass="text-center">

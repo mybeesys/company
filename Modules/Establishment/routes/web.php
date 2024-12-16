@@ -24,10 +24,16 @@ Route::middleware([
 
     Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () {
         Route::get('', 'index')->name('index');
+        Route::get('/{establishment}/edit', 'edit')->name('edit');
         Route::get('/create', 'create')->name('create');
-        Route::get('/store', 'store')->name('store');
-        Route::get('/create/validate', 'createLiveValidation')->name('create.validation');
-        Route::get('/update/validate', 'updateLiveValidation')->name('update.validation');
+        Route::post('/store', 'store')->name('store');
+        Route::patch('/{establishment}', 'update')->name('update');
+        Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
+
+        Route::post('/restore/{establishment}', 'restore')->name('restore');
+        Route::delete('/{establishment}', 'softDelete')->name('delete');
+        Route::delete('/force-delete/{establishment}', 'forceDelete')->name('forceDelete');
+        
     });
 
 });

@@ -23,7 +23,12 @@
     $dotNotationName = str_replace(['[', ']'], ['.', ''], $name);
 @endphp
 @if ($label)
-    <label @class(['form-label', 'required' => $required, $labelClass])>{{ $label }}</label>
+    <label @class([
+        'form-label',
+        'required' => $required,
+        $labelClass,
+        'w-100',
+    ])>{{ $label }}</label>
 @endif
 @includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])
 {{ $slot }}
@@ -34,7 +39,8 @@
         'is-invalid' => $errors->first($dotNotationName),
         'form-control-solid',
         $class,
-    ]) @required($required) @checked($checked) @disabled($disabled)/>
+    ]) @required($required) @checked($checked)
+    @disabled($disabled) />
 {{ $datalist }}
 @if ($errors->first($dotNotationName))
     <div class="invalid-feedback">{{ $errors->first($dotNotationName) }}</div>

@@ -1,0 +1,26 @@
+@php
+    $filters = [
+        [
+            'label' => __('establishment::general.deleted_records'),
+            'name' => 'deleted_records',
+            'options' => [
+                ['id' => 'with_deleted_records', 'name' => __('establishment::general.with_deleted_records')],
+                ['id' => 'only_deleted_records', 'name' => __('establishment::general.only_deleted_records')],
+            ],
+        ],
+        [
+            'label' => __('establishment::fields.status'),
+            'name' => 'status',
+            'options' => [
+                ['id' => '1', 'name' => __('establishment::fields.active')],
+                ['id' => '0', 'name' => __('establishment::fields.inActive')],
+            ],
+        ],
+    ];
+@endphp
+@foreach ($filters as $filter)
+    <div class="mb-10">
+        <label class="form-label fs-6 fw-semibold">{{ $filter['label'] }}</label>
+        <x-form.select :options="$filter['options']" name="{{ $filter['name'] }}" />
+    </div>
+@endforeach
