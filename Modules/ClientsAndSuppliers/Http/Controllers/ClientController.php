@@ -332,7 +332,6 @@ class ClientController extends Controller
                 'tax_number' => $request->tax_number,
                 'commercial_register' => $request->commercial_register,
                 'file_path' => $attachment_name,
-                'status' => 'active',
                 'payment_terms' => $request->payment_terms,
                 'account_id' => $request->account_id,
 
@@ -357,6 +356,7 @@ class ClientController extends Controller
                 $request->billing_street_name || $request->billing_city || $request->billing_state
                 || $request->billing_postal_code || $request->building_number || $request->billing_country
             ) {
+                $contact->billingAddress()->delete();
                 $billingAddress =  $contact->billingAddress()->create([
                     'street_name' => $request->billing_street_name,
                     'city' => $request->billing_city,
@@ -385,6 +385,7 @@ class ClientController extends Controller
                 $request->shipping_street_name || $request->shipping_city || $request->shipping_state
                 || $request->shipping_postal_code || $request->shipping_country
             ) {
+                $contact->shippingAddress()->delete();
                 $shippingAddress =  $contact->shippingAddress()->create([
                     'street_name' => $request->shipping_street_name,
                     'city' => $request->shipping_city,
@@ -412,6 +413,7 @@ class ClientController extends Controller
                 || $request->bankInfo_currency || $request->bankInfo_iban_number || $request->bankInfo_bank_account_number
                 || $request->bankInfo_swift_code || $request->bankInfo_bank_address
             ) {
+                $contact->bankAccountInformation()->delete();
                 $bankAccountInformation = $contact->bankAccountInformation()->create([
                     'bank_name' => $request->bankInfo_bank_name,
                     'bank_account_name' => $request->bankInfo_bank_account_name,
@@ -422,6 +424,7 @@ class ClientController extends Controller
                     'swift_code' => $request->bankInfo_swift_code,
                     'bank_address' => $request->bankInfo_bank_address,
                 ]);
+
                 $bankAccountInformation->customInformation()->delete();
 
                 if ($request->bankInfo_customLable) {
@@ -453,7 +456,7 @@ class ClientController extends Controller
 
 
             DB::commit();
-            if ($request->business_type == 'customer')
+            if ($contact->business_type == 'customer')
             return redirect()->route('clients')->with('success', __('messages.updated_successfully'));
         return redirect()->route('suppliers')->with('success', __('messages.updated_successfully'));
 

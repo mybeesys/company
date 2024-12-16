@@ -20,7 +20,7 @@ class BillingAddressResource extends JsonResource
             'postal_code' => $this->postal_code,
             'building_number' => $this->building_number,
             'country' => $this->country,
-            'custom_info' => CustomInfoResource::collection($this->customInformation),
+            // 'custom_info' => CustomInfoResource::collection($this->customInformation),
 
         ];
     }
