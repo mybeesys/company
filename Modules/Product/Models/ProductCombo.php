@@ -26,7 +26,8 @@ class ProductCombo extends Model
         'name_en',
         'barcode',
         'combo_saving',
-        'quantity'
+        'quantity',
+        'price'
     ];
 
     public function items()

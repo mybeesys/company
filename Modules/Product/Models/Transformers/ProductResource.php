@@ -18,6 +18,8 @@ class ProductResource extends JsonResource
             'order' => $this->order,
             'price' => $this->price,
             'modifiers' => ProductModifierResource::collection($this->modifiers),
+            'attributes' => ProductAttributeResource::collection($this->attributes),
+            'combos' => ComboResource::collection($this->combos),
             //'image' => isset($this->image) ? base64_encode(file_get_contents(storage_path($this->image, 'public'))): null
         ];
     }

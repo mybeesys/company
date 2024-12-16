@@ -96,4 +96,9 @@ class Product extends Model
     {
         return $this->hasMany(UnitTransfer::class, 'product_id', 'id');
     }
+
+    public function attributes()
+    {
+        return $this->hasMany(Product_Attribute::class, 'product_id', 'id');
+    }
 }

@@ -18,7 +18,10 @@ class ProductController extends Controller
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');
             }]);
-        }])->get();
+            }])->with(['attributes' => function ($query) {
+                $query->with('attribute1');
+                $query->with('attribute2');
+            }])->get();
         return new ProductCollection($products);
     }
 
@@ -28,8 +31,15 @@ class ProductController extends Controller
         $products = Product::where('id', $id)->with(['modifiers' => function ($query) {
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');
-            }]);
-        }])->get();
+                }]);
+            }])->with(['attributes' => function ($query) {
+                $query->with('attribute1');
+                $query->with('attribute2');
+            }])->with(['combos' => function ($query) {
+                $query->with(['items' => function ($query) {
+                    $query->with('product');
+                }]);
+            }])->get();
         return new ProductCollection($products);
     }
 
