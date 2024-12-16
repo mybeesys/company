@@ -66,4 +66,9 @@ class ProductInventory extends Model
         return $this->belongsTo(UnitTransfer::class, 'primary_vendor_unit_id', 'id');
     }
 
+    public function total()
+    {
+        return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
+    }
+
 }

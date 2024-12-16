@@ -22,46 +22,8 @@ class ProductController extends Controller
     public function all(){
         $products = Product::all();
         return response()->json($products);
-    }
+     }
 
-       public function searchProducts(Request $request)
-    {
-        $query = $request->query('query');  // Get 'query' parameter
-        $key = $request->query('key', '');
-        $products = Product::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
-                            ->get();
-        $products = $products->map(function ($product) {
-            $product->item_type = 'p'; // Set the value of 'item_type'
-            return $product;
-        });
-        return response()->json($products);
-    }
-
-    public function searchPrepProducts(Request $request)
-    {
-        $query = $request->query('query');  // Get 'query' parameter
-        $key = $request->query('key', '');
-        $products = Product::where(function ($query) use($key) {
-                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
-                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
-                            })
-                            ->whereIn('id', function ($query) {
-                                $query->select('product_id')
-                                    ->from('product_recipe_products');
-                            })
-                            ->take(10)
-                            ->get();
-        $products = $products->map(function ($product) {
-            $product->item_type = 'p'; // Set the value of 'item_type'
-            return $product;
-        });
-        return response()->json($products);
-    }
-
-
-   
     public function listRecipe($id, Request $request)
     {
         $key = $request->query('with_ingredient', '');
@@ -82,7 +44,6 @@ class ProductController extends Controller
         return response()->json($recipes);
     }
     
-    
     public function index()
     {
         return view('product::product.index' ); 
@@ -99,6 +60,7 @@ class ProductController extends Controller
         $product->set_price = 0;
         $product->use_upcharge = 0;
         $product->combos = [];
+        $product->linkedCombos = [];
         return view('product::product.create', compact('product'));
     }
 
@@ -569,5 +531,40 @@ class ProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+    public function searchProducts(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $products = Product::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take(10)
+                            ->get();
+        $products = $products->map(function ($product) {
+            $product->item_type = 'p'; // Set the value of 'item_type'
+            return $product;
+        });
+        return response()->json($products);
+    }
+
+    public function searchPrepProducts(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $products = Product::where(function ($query) use($key) {
+                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
+                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
+                            })
+                            ->whereIn('id', function ($query) {
+                                $query->select('product_id')
+                                    ->from('product_recipe_products');
+                            })
+                            ->take(10)
+                            ->get();
+        $products = $products->map(function ($product) {
+            $product->item_type = 'p'; // Set the value of 'item_type'
+            return $product;
+        });
+        return response()->json($products);
     }
 }

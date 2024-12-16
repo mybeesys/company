@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_Op_transfer', function (Blueprint $table) {
+        Schema::create('inventory_warhouses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('operation_id');
-            $table->unsignedBigInteger('establishment_id');
-            $table->foreign('establishment_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('establishment_establishments');
+            $table->string('name_ar');
+            $table->string('name_en');  
+            $table->integer('order');
             $table->softDeletes();
             $table->timestamps();
         });

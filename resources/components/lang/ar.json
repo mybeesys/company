@@ -215,5 +215,8 @@
   "wasteInfo" : "معلومات الأتلاف",
   "op_status" : "الحالية",
   "transfers" : "التحويلات",
-  "establishment" : "المنشآة"
+  "establishment" : "المنشآة",
+  "warehouses" : "المستودعات",
+  "warehouse" : "مستودع",
+  "image" : "الصورة"
 }

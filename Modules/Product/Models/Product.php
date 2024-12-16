@@ -28,7 +28,7 @@ class Product extends Model
         'category_id',
         'subcategory_id',
         'description_ar',
-        'description_en',
+        'description_en',  
         'active',
         'sold_by_weight',
         'track_serial_number',
@@ -63,7 +63,7 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'category_id', 'id');
     }
 
-
+    
     public function subcategory()
     {
         return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
@@ -92,7 +92,6 @@ class Product extends Model
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'product_id');
     }
-
     public function unitTransfers()
     {
         return $this->hasMany(UnitTransfer::class, 'product_id', 'id');

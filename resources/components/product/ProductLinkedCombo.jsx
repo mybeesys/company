@@ -1,8 +1,10 @@
 import { useState } from "react";
 import TreeTableComponentLocal from "../comp/TreeTableComponentLocal";
 import ProductComboUpchargeModal from "./ProductComboUpchargeModal";
+import Select from "react-select";
+import makeAnimated from 'react-select/animated';
 
-
+const animatedComponents = makeAnimated();
 const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos, products, onComboChange }) => {
 
     const [showUpchargeDialog, setShowUpchargeDialog] = useState(false);
@@ -70,18 +72,16 @@ const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos,
     return (
         <div class="card-body" dir={dir}>
             <div class="form-group">
-                <div class="row">
-                    <div class="col-4">
-                        <label class="col-form-label col-12" >
-                            <div class="row">
-                                <div class="col-2">
-                                    <input type="checkbox" class="form-check-input" id="linked_combo" checked={product.linked_combo == 0 ? false : true}
-                                        onChange={(e) => onComboChange('linked_combo', e.target.checked ? 1 : 0)}
-                                    />
-                                </div>
-                                <div class="col-8">{translations.linkedCombo}</div>
-                            </div>
-                        </label>
+                <div class="row pt-3">
+                    <div class="d-flex  align-items-center ">
+                        <label class="fs-6 fw-semibold mb-2 me-3 "
+                            style={{width: "150px"}}>{translations.linkedCombo}</label>
+                        <div class="form-check">
+                            <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
+                                class="form-check-input my-2"
+                                id="active" checked={!!product.linked_combo == 0 ? false : true}
+                                onChange={(e) => onComboChange('linked_combo', e.target.checked ? 1 : 0)}/>
+                        </div>
                     </div>
                 </div>
                 {!!product.linked_combo ?
@@ -89,18 +89,20 @@ const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos,
                         <div class="row">
                             <div class="col-6">
                                 <label for="promot_upsell" class="col-form-label">{translations.promptForUpsell}</label>
-                                <select class="form-control selectpicker" value={product.promot_upsell}
-                                    onChange={(e) => onBasicChange('promot_upsell', e.target.value)} 
-                                    style={{marginBottom:"10px"}}>
-                                    {pormpts.map((pormpt) => (
-                                        <option key={pormpt.value} value={pormpt.value}>
-                                            {pormpt.label}
-                                        </option>
-                                    ))}
-                                  
-                                </select>
+                                <Select
+                                    id="promot_upsell"
+                                    isMulti={false}
+                                    options={pormpts}
+                                    closeMenuOnSelect={true}
+                                    components={animatedComponents}
+                                    value={pormpts[!!product.promot_upsell? product.promot_upsell : 0]}
+                                    onChange={(val) => onComboChange('promot_upsell', val.value, val)} 
+                                    menuPortalTarget={document.body} 
+                                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                                />
                             </div>
                         </div>
+                        <div class="row pt-3">
                         <ProductComboUpchargeModal
                             visible={showUpchargeDialog}
                             onClose={onClose}
@@ -129,6 +131,7 @@ const ProductLinkedCombo = ({ translations, dir, pormpts, product, linkedCombos,
                             onUpdate={(nodes) => onComboChange("linkedCombos", nodes)}
                             onDelete={null}
                         />
+                        </div>
                     </>
                     :
                     <></>

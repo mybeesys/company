@@ -183,8 +183,10 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
             return renderDecimalCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
         else if (col.type == "Check")
             return renderCheckCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
-        else if (col.type == "DropDown")
+        else if (col.type == "DropDown"){
             return renderDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
+            
+        }
         else if (col.type == "AsyncDropDown")
             return renderAsyncDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
         else if (col.type == "MultiDropDown")
@@ -200,7 +202,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         else {
             return (
                 node.key == currentKey && !!col.editable ?
-                    <input type="text" class={`form-control text-editor text-indent-${indent}`} style={{ width: `${100 - (10 * indent)}%!important` }}
+                    <input type="text" class={`form-control form-control-solid custom-height text-indent-${indent}`} style={{ width: `${100 - (10 * indent)}%!important` }}
                         defaultValue={node.data[col.key]}
                         onChange={(e) => handleEditorChange(e.target.value, col.key)}
                         autoFocus={!!col.autoFocus}
@@ -219,7 +221,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         const indent = (node.key).toString().split('-').length;
         return (
             node.key == currentKey && !!col.editable ?
-                <input type="number" min="0" class={`form-control text-editor number-indent-${indent}`}
+                <input type="number" min="0" class={`form-control form-control-solid custom-height number-indent-${indent}`}
                     defaultValue={node.data[col.key]}
                     onChange={(e) => handleEditorChange(e.target.value, col.key)}
                     autoFocus={!!col.autoFocus}
@@ -283,18 +285,29 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
         }
         else {
             return  node.key == currentKey && !!col.editable ?
-                 <select class={`form-control number-indent-${indent}`}
-                    defaultValue={node.data[col.key]}
-                    onChange={(e) => handleEditorChange(e.target.value, col.key)}
-                    autoFocus={!!col.autoFocus}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    style={{ width: '100%' }}
-                    required={!!col.required}>
-                    {col.options.map((option) => (
-                        <option value={option.value}>{option.label}</option>
-                    ))
-                    }
-                </select>
+                //  <select class={`form-control number-indent-${indent}`}
+                //     defaultValue={node.data[col.key]}
+                //     onChange={(e) => handleEditorChange(e.target.value, col.key)}
+                //     autoFocus={!!col.autoFocus}
+                //     onKeyDown={(e) => e.stopPropagation()}
+                //     style={{ width: '100%' }}
+                //     required={!!col.required}>
+                //     {col.options.map((option) => (
+                //         <option value={option.value}>{option.label}</option>
+                //     ))
+                //     }
+                //     </select>
+                <Select
+                    id="col.key"
+                    isMulti={false}
+                    options={col.options}
+                    closeMenuOnSelect={true}
+                    components={animatedComponents}
+                    defaultValue={val}
+                    onChange={(val) => handleEditorChange(val.value, col.key)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                />
                 :
                 <span>{!!val ? val.label : ''}</span>;
         }

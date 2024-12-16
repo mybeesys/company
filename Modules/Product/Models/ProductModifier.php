@@ -38,7 +38,7 @@ class ProductModifier extends Model
 
     public function modifiers()
     {
-        return $this->belongsTo(modifierclass::class, 'modifier_id', 'id');
+        return $this->belongsTo(ModifierClass::class, 'modifier_id', 'id');
     }
     public function products()
     {

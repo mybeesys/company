@@ -17,9 +17,12 @@ class ProductInventoryController extends Controller
         $productInventories = Product::with(['inventory' => function ($query) {
             $query->with('vendor');
             $query->with('unit');
-        }])->get();
+        }])
+        ->leftJoin('product_inventory_totals', 'product_inventory_totals.id', '=', 'product_products.id')
+        ->get();
         foreach ($productInventories as $productInventory) {
             $productInventory->addToFillable('inventory');
+            $productInventory->addToFillable('qty');
         }
         $tree = $TreeBuilder->buildTree($productInventories ,null, 'productInventory', null, null, null);
         return response()->json($tree);

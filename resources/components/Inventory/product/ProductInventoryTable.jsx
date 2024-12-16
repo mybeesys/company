@@ -56,7 +56,8 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                     : <></>
                 );
             },
-          }
+          },
+          {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'}
         ]}
       />
     </div>

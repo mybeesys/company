@@ -32,46 +32,46 @@ const ProductCombo = ({translations, dir, product, products, onComboChange}) => 
     return (
         <div class="card-body" dir={dir}>
             <div class="form-group">
-                <div class="row">
-                    <div class="col-4">
-                        <label class="col-form-label col-12" >
-                            <div class="row">
-                                <div class="col-2">
-                                    <input type="checkbox" class="form-check-input" id="group_combo" checked={product.group_combo == 0 ? false : true}
-                                        onChange={(e) => onComboChange('group_combo', e.target.checked ? 1 : 0)}
-                                    />
-                                </div>
-                                <div class="col-8">{translations.groupCombo}</div>
-                            </div>
-                        </label>
+                <div class="row pt-3">
+                    <div class="d-flex  align-items-center ">
+                        <label class="fs-6 fw-semibold mb-2 me-3 "
+                            style={{ width: "150px" }}>{translations.groupCombo}</label>
+                        <div class="form-check">
+                            <input type="checkbox" style={{ border: "1px solid #9f9f9f" }}
+                                class="form-check-input my-2"
+                                id="active" checked={!!product.group_combo == 0 ? false : true}
+                                onChange={(e) => onComboChange('group_combo', e.target.checked ? 1 : 0)} />
+                        </div>
                     </div>
                 </div>
                 {!!product.group_combo ?
                 <>
                 <div class="row">
                     <div class="col-6">
-                        <label class="col-form-label col-6" >
-                            <div class="row">
-                                <div class="col-2">
-                                    <input type="checkbox" class="form-check-input" id="set_price" checked={product.set_price == 0 ? false : true}
-                                        onChange={(e) => onComboChange('set_price', e.target.checked ? 1 : 0)}
-                                    />
-                                </div>
-                                <div class="col-8">{translations.setPriceInCombo}</div>
+                        <div class="d-flex  align-items-center ">
+                            <label class="fs-6 fw-semibold mb-2 me-3 "
+                                style={{ width: "150px" }}>{translations.setPriceInCombo}</label>
+                            <div class="form-check">
+                                <input type="checkbox" style={{ border: "1px solid #9f9f9f" }}
+                                    class="form-check-input my-2"
+                                    id="active" checked={!!product.set_price == 0 ? false : true}
+                                    onChange={(e) => onComboChange('set_price', e.target.checked ? 1 : 0)} />
                             </div>
-                        </label>
+                        </div>
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-6">
-                        <label class="col-form-label col-6" >
-                            <div class="row">
-                                <div class="col-2">
-                                    <input type="checkbox" class="form-check-input" id="use_upcharge" checked={product.use_upcharge == 0 ? false : true}
-                                        onChange={(e) => onComboChange('use_upcharge', e.target.checked ? 1 : 0)}
-                                    />
-                                </div>
-                                <div class="col-8">{translations.useUpCharge}</div>
+                    <div class="d-flex  align-items-center ">
+                            <label class="fs-6 fw-semibold mb-2 me-3 "
+                                style={{ width: "150px" }}>{translations.useUpCharge}</label>
+                            <div class="form-check">
+                                <input type="checkbox" style={{ border: "1px solid #9f9f9f" }}
+                                    class="form-check-input my-2"
+                                    id="active" checked={!!product.use_upcharge == 0 ? false : true}
+                                    onChange={(e) => onComboChange('use_upcharge', e.target.checked ? 1 : 0)} />
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </div>
                 <ProductComboUpchargeModal

@@ -35,9 +35,9 @@ class PurchaseOrderReportController extends Controller
         return $pdf->stream();
     }
 
-    public function purchase_order_pdf($id)
+    public function purchase_order_pdf()
     {
-        $inventoryOperation  = InventoryOperation::find($id);
+        $inventoryOperation  = InventoryOperation::find(10);
         if($inventoryOperation->hasDetail()){
             $inventoryOperation->detail->addToFillable();
             foreach ($inventoryOperation->detail->getFillable() as $key) {

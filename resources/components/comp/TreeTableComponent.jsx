@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 import DeleteModal from '../product/DeleteModal';
@@ -8,6 +8,9 @@ import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 
 const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow }) => {
+
+    const formRef = useRef(null);
+
     const rootElement = document.getElementById('root');
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -25,6 +28,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         fetchData().catch(console.error);
 
     }, []);
+
+    const triggerSubmit = () => {
+        handleSubmit(formRef.current);
+    };
 
     const editRow = (data, key) => {
         if (!!!editUrl) {
@@ -46,10 +53,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         setIsDeleteModalVisible(true);
     }
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const form = event.currentTarget;
+    const handleSubmit = async (form) => {
+        //event.preventDefault();
+        //event.stopPropagation();
+        //const form = event.currentTarget;
         if (form.checkValidity() === false) {
 
             setValidated(true);
@@ -372,13 +379,12 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <div className="flex flex-wrap gap-2">
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) &&
-                     (!!!canEditRow || canEditRow(data)) ?
+                     (!!!canEditRow) ?
                         <a href="#" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
                             else {
-                                let btnSubmit = document.getElementById("btnSubmit");
-                                btnSubmit.click();
+                                triggerSubmit();
                             }
                         }
                         } title="Edit" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
@@ -390,7 +396,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                     {!!canDelete ? <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a> : <></>}
-                    <button id="btnSubmit" type="submit" style={{ display: "none" }}></button>
+                    
                 </div> : <></>
         );
     };
@@ -419,6 +425,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 </div>
             </div>
             <div class="card-body">
+                <form id="treeFormLocal" ref={formRef} noValidate validated={true} class="needs-validation">
                 <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                     {cols.map((col, index) =>
                         <Column
@@ -429,6 +436,8 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                     )}
                     <Column body={(node) => (actionTemplate(node))} />
                 </TreeTable>
+                <button id="btnSubmit" onClick={triggerSubmit} style={{ display: "none" }}></button>
+                </form>
             </div>
 
         </div>

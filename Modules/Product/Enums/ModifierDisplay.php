@@ -6,6 +6,16 @@ enum ModifierDisplay: string
     case nameOnly = '0';
     case nameAndPrice = '1';
 
+    public  static function getEnumNameByValue(string $value): ?string
+    {
+        foreach (self::cases() as $case) {
+            if ($case->value === $value) {
+                return $case->name;
+            }
+        }
+        return null; // Return null if value is not found
+    }
+
     public static function values(): array
     {
         return array_map(fn($case) => $case->value, self::cases());

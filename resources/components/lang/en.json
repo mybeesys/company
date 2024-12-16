@@ -216,5 +216,8 @@
   "wasteInfo" : "Waste Info",
   "op_status" : "Status",
   "transfers" : "Transfers",
-  "establishment" : "Establishment"
+  "establishment" : "Establishment",
+  "warehouses" : "Warehouses",
+  "warehouse" : "Warehouse",
+  "image" : "Image"
 }

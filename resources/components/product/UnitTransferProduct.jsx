@@ -21,7 +21,8 @@ const UnitTransferProduct = ({translations , unitTransfer, unitTree, parentHandl
     const [validated, setValidated] = useState(false);
 
     React.useEffect(() => {
-  }, []);
+        setNodes(unitTransfer);
+  }, [unitTransfer]);
 
       
 const cancelEdit = (node) => {
@@ -103,7 +104,7 @@ const renderDecimalCell = (node, key, autoFocus) => {
     const indent = node.id;
     return (
         node.id == currentKey ?
-            <input type="number" min="0" step=".01" class={`form-control text-editor number-indent-${indent}`}
+            <input type="number" min="0" step=".01" class={`form-control form-control-solid custom-height number-indent-${indent}`}
                 defaultValue={node[key]}
                 onChange={(e) => handleEditorChange(e.target.value, key , node)}
                 autoFocus={!!autoFocus}
@@ -134,16 +135,17 @@ const renderDropDownCell = (node, key, autoFocus) => {
 const renderTextCell = (node, key, autoFocus) =>{
   if (node.id == -100) {
     return <a href='#' onClick={e => addInline(node)}>{`${translations.Add}`}</a>
-  }else
-  return (
-    node.id == currentKey ?  
-      <input type="text" class='form-control text-editor'
-      defaultValue={node[key]}
-      onChange={(e) => handleEditorChange(e.target.value, key)}
-      autoFocus = {!!autoFocus}
-      onKeyDown={(e) => e.stopPropagation()} required />
-  : 
-      <span>{node[key]}</span>);
+  }
+  else
+    return (
+        node.id == currentKey ?  
+        <input type="text" class='form-control form-control-solid custom-height'
+        defaultValue={node[key]}
+        onChange={(e) => handleEditorChange(e.target.value, key)}
+        autoFocus = {!!autoFocus}
+        onKeyDown={(e) => e.stopPropagation()} required />
+        : 
+        <span>{node[key]}</span>);
 }
 
 const renderCheckCell = (node, key, autoFocus) => {
@@ -201,7 +203,7 @@ const handleChange =(value) =>
             <div class="row">
             <div class="col-6">
               <label for="name_ar" class="col-form-label">{translations.Unit}</label>
-              <input type="text" class="form-control" id="name_ar" value={!!mainUnit ? mainUnit.unit1 : ''}
+              <input type="text" class="form-control form-control-solid custom-height" id="name_ar" value={!!mainUnit ? mainUnit.unit1 : ''}
                 onChange={(e) => handleChange(e.target.value)} required></input>
             </div>
             </div>

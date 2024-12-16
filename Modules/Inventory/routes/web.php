@@ -10,6 +10,7 @@ use Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderReportController;
 use Modules\Inventory\Http\Controllers\RMAController;
 use Modules\Inventory\Http\Controllers\TransferController;
+use Modules\Inventory\Http\Controllers\WarehouseController;
 use Modules\Inventory\Http\Controllers\WasteController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -51,5 +52,7 @@ Route::middleware([
     Route::get('/purchaseOrder/{id}/recieve', [PurchaseOrderController::class, 'recieve'])->name('purchaseOrder.recieve');
     Route::post('/inventoryOperation/store/{type}', [InventoryOperationController::class, 'store'])->name('inventoryOperationStore');
     Route::get('searchEstablishments', [TransferController::class, 'searchEstablishments'])->name('searchEstablishments');
+    Route::get('warehouselist', [WarehouseController::class, 'getWarehouselist'])->name('warehouselist');
+    Route::resource('warehouse', WarehouseController::class)->names('warehouse');
     
 });
