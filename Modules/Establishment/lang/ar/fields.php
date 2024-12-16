@@ -76,5 +76,8 @@ return [
     'delete' => 'حذف',
     'address' => 'العنوان',
     'contact_details' => 'معلومات التواصل',    
-    'required' => 'مطلوب'
+    'required' => 'مطلوب',
+    'establishment' => 'الفرع',
+    'show' => 'عرض',
+    'restore' => 'استعادة',    
 ];

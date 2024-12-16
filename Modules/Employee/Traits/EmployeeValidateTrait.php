@@ -24,6 +24,7 @@ trait EmployeeValidateTrait
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', Rule::unique('emp_employees', 'email')->ignore($employee->email, 'email')],
             'pin' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'pin')->ignore($employee->pin, 'pin')],
             'password' => ['nullable', Password::default()],
+            'image_old' => [Rule::requiredIf($notAjaxValidate), 'boolean']
         ];
     }
 

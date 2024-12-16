@@ -62,7 +62,7 @@ class EmployeeActions
 
     public function store()
     {
-        $imageName = $this->request->has('image') ? $this->storeImage($this->request->image) : null;
+        $imageName = $this->request->has('image') ? $this->storeImage($this->request['image']) : null;
 
         $employee = Employee::create($this->request->merge([
             'image' => $imageName,
@@ -85,19 +85,23 @@ class EmployeeActions
 
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
-        $imageName = $this->request->has('image') ? $this->storeImage($this->request->image, $employee->image) : null;
+        $imageName = $this->request->has('image') ? $this->storeImage($this->request['image'], $employee->image) : null;
 
         $data = $this->request->merge([
             'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
-            'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
+            'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null,
         ]);
 
         if ($imageName) {
             $data = $data->merge([
                 'image' => $imageName,
             ]);
+        } else if (!$this->request->get('image_old')) {
+            $data = $data->merge([
+                'image' => null,
+            ]);
         }
-
+        // dd($data);
         return $employee->update($data->toArray());
     }
 

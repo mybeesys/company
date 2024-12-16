@@ -12,12 +12,12 @@
 
 @section('script')
     @parent
-    {{-- <script src="{{ url('modules/establishment/js/create-edit-establishment.js') }}"></script> --}}
+    <script src="{{ url('modules/establishment/js/create-edit-establishment.js') }}"></script>
     <script>
         $(document).ready(function() {
             let saveButton = $(`#edit_establishment_form_button`);
-            establishmentForm('edit_establishment_form', "{{ route('establishments.update.validation') }}",
-                "{{ route('establishments.generate.pin') }}");
+            establishmentForm('edit_establishment_form', "{{ route('establishments.create.validation') }}");
+            handleImageInput('imageInput', 'logo');
         });
     </script>
 @endsection

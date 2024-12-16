@@ -4,18 +4,19 @@ namespace Modules\Establishment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Models\PayrollGroup;
 use Modules\Employee\Models\Role;
 
 class Establishment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'est_establishments';
     /**
      * The attributes that are mass assignable.
      */
-    protected $guarded = [];
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
     public function posRoles()
     {
