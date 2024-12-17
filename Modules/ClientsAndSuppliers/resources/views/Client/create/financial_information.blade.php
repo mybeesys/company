@@ -24,6 +24,7 @@
                 <select
                 class="form-select select-2  form-select-solid kt_ecommerce_select2_account mb-5"
                 name="account_id">
+                <option value="">@lang('clientsandsuppliers::fields.select_account')</option>
 
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}"
