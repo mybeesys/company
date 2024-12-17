@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Models\ProductInventory;
+use Modules\Inventory\Models\ProductInventoryTotal;
 
 class Product extends Model
 {
@@ -100,5 +101,10 @@ class Product extends Model
     public function attributes()
     {
         return $this->hasMany(Product_Attribute::class, 'product_id', 'id');
+    }
+
+    public function total()
+    {
+        return $this->belongsTo(ProductInventoryTotal::class, 'id', 'id');
     }
 }

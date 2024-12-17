@@ -21,7 +21,13 @@ class ProductController extends Controller
             }])->with(['attributes' => function ($query) {
                 $query->with('attribute1');
                 $query->with('attribute2');
-            }])->get();
+            }])->with(['combos' => function ($query) {
+                $query->with(['items' => function ($query) {
+                    $query->with('product');
+                }]);
+            }])->with(['unitTransfers' => function ($query) {
+                    $query->whereNull('unit2');
+            }])->with('category')->with('subcategory')->with('total')->get();
         return new ProductCollection($products);
     }
 
@@ -39,7 +45,9 @@ class ProductController extends Controller
                 $query->with(['items' => function ($query) {
                     $query->with('product');
                 }]);
-            }])->get();
+            }])->with(['unitTransfers' => function ($query) {
+                $query->whereNull('unit2');
+            }])->with('category')->with('subcategory')->with('total')->get();
         return new ProductCollection($products);
     }
 

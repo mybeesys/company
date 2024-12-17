@@ -14,8 +14,6 @@ class ProductInventoryTotal extends Model
 {
     use HasFactory;
 
-    use SoftDeletes;
-
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
     protected $table = 'product_inventory_totals';

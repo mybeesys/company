@@ -225,47 +225,47 @@ class ProductController extends Controller
                 {
                     $ids=[];
                     $insertedIds=[];
-                foreach ( $oldUnites  as $old)
-                {
-                    $newid = [];
-                    $newid['oldId'] = $old['id'];
-                    $newid['newId'] = $old['id'];
-                    $ids[] = $newid ;
-                }
-                foreach ($request["transfer"] as $transfer) 
-                {
-                    if($transfer['id'] <= 0)
+                    foreach ($oldUnites  as $old)
                     {
-                    $newid = [];
-                    $inserted = [];
-                    $tran = [];
-                    $newid['oldId'] =  $transfer['id'];
-                    $tran['product_id'] =  $validated['id'];
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
-                    $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                    $id = UnitTransfer::create($tran)->id;
-                    $inserted['id'] = $id;
-                    $inserted['unit2'] = $transfer['unit2'];
-                    $newid['newId'] =  $id;
-                    $ids[] = $newid ;
-                    $insertedIds[] = $inserted;
+                        $newid = [];
+                        $newid['oldId'] = $old['id'];
+                        $newid['newId'] = $old['id'];
+                        $ids[] = $newid ;
                     }
-                }
-                foreach ($insertedIds as $transfer) 
-                {
-                   foreach($ids as $updateId)
-                   {
-                    if($transfer['unit2'] == $updateId['oldId'] )
+                    foreach ($request["transfer"] as $transfer) 
                     {
-                       $updateObject = UnitTransfer::find($transfer['id']);
-                       $updateObject->unit2 =  $updateId['newId'];
-                       $updateObject->save();
+                        if($transfer['id'] <= 0)
+                        {
+                            $newid = [];
+                            $inserted = [];
+                            $tran = [];
+                            $newid['oldId'] =  $transfer['id'];
+                            $tran['product_id'] =  $validated['id'];
+                            $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                            $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                            $tran['unit1'] = $transfer['unit1'];
+                            $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                            $id = UnitTransfer::create($tran)->id;
+                            $inserted['id'] = $id;
+                            $inserted['unit2'] = $transfer['unit2'];
+                            $newid['newId'] =  $id;
+                            $ids[] = $newid ;
+                            $insertedIds[] = $inserted;
+                        }
                     }
-                   } 
-                }    
-            }
+                    foreach ($insertedIds as $transfer) 
+                    {
+                        foreach($ids as $updateId)
+                        {
+                            if($transfer['unit2'] == $updateId['oldId'] )
+                            {
+                                $updateObject = UnitTransfer::find($transfer['id']);
+                                $updateObject->unit2 =  $updateId['newId'];
+                                $updateObject->save();
+                            }
+                        } 
+                    }    
+                }
             if(isset($request["combos"]))
             {
                 ProductCombo::where('product_id', '=', $product->id)->delete();
@@ -347,15 +347,15 @@ class ProductController extends Controller
             }
             if(isset($request["transfer"]))
             {
-                    $ids=[];
-                    $insertedIds=[];
+                $ids=[];
+                $insertedIds=[];
                 foreach ($request["transfer"] as $transfer) 
                 {
                     $newid = [];
                     $inserted = [];
                     $tran = [];
                     $newid['oldId'] =  $transfer['id'];
-                    $tran['product_id'] =  $validated['id'];
+                    $tran['product_id'] =  $product->id;
                     $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
                     $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];

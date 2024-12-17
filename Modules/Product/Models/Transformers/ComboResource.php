@@ -14,7 +14,7 @@ class ComboResource extends JsonResource
             'name_en' => $this->name_en,
             'quantity' => $this->quantity,
             'price' => $this->price,
-            'items' => ProductComboItemResource::collection($this->items),
+            'items' => GeneralResource::collection($this->items),
         ];
     }
 }
