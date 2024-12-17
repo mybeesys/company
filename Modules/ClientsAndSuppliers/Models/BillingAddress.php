@@ -4,6 +4,8 @@ namespace Modules\ClientsAndSuppliers\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\General\Models\Country;
+
 // use Modules\ClientsAndSuppliers\Database\Factories\BillingAddressFactory;
 
 class BillingAddress extends Model
@@ -20,5 +22,9 @@ class BillingAddress extends Model
 
     public function customInformation(){
         return $this->hasMany(ContactCustomInformation::class,'contact_id')->where('table_name','billing_addresses');
+    }
+
+    public function country_(){
+        return $this->belongsTo(Country::class,'country');
     }
 }

@@ -79,7 +79,26 @@
 
         </div>
 
+        <div class=" align-items-center mb-5" id="div-Delegates" style="display: none">
+            <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::lang.Delegates')</label>
+            <select class="form-select select-2 form-select-solid  Delegates" name="Delegates" id="Delegates"
+                style="width: 60%!important">
+                <option value=""></option>
 
+                {{-- @foreach ($cost_centers as $cost_center)
+                    <option value="{{ $cost_center->id }}">
+                        @if (app()->getLocale() == 'ar')
+                            {{ $cost_center->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-7">
+                                {{ $cost_center->account_center_number }}</span>
+                        @else
+                            {{ $cost_center->name_en }} - <span
+                                class="fw-semibold mx-2 text-muted fs-7">{{ $cost_center->account_center_number }}</span>
+                        @endif
+                    </option>
+                @endforeach --}}
+
+            </select>
+        </div>
 
 
 

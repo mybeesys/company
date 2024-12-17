@@ -49,6 +49,7 @@ return [
     'tooltip_custom_fields'=>'الحقول المخصصة تضيف معلومات إضافية - عنوان الحقل المخصص - مثل اسم الدولة وقيمة مثل السعودية.',
     'Point of sale client'=>'عميل نقطة بيع',
     'financial_information'=>'المعلومات المالية',
+    'select_account'=>'تحديد الحساب',
 
 
 

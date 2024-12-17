@@ -54,33 +54,7 @@
 
                     </div>
                 </div>
-                <div class="col-6" style="justify-content: end;display: flex;">
-                    <div class="btn-group dropend">
-
-                        <button type="button" style="background: transparent;border-radius: 6px;"
-                            class="btn  dropdown-toggle px-0" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
-                            style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
-                            <li class="mb-5" style="text-align: justify;">
-                                <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
-                            </li>
-                            <li>
-                                <div class="form-check form-switch my-3"
-                                    style="display: flex; justify-content: space-between; gap: 37px;">
-                                    <input class="form-check-input" type="checkbox" id="toggleCost_center">
-                                    <label class="form-check-label ml-4" for="toggleCost_center">@lang('accounting::lang.Enable Cost Center')</label>
-                                </div>
-                            </li>
-
-
-
-
-                        </ul>
-                    </div>
-
-                </div>
+                @include('general::invoice-setting.setting')
             </div>
         </div>
         <div class="separator d-flex flex-center my-3">
@@ -229,7 +203,7 @@
                         )
                         .trigger("change");
 
-                        console.log(response);
+                    console.log(response);
 
                     alert(response);
                 },
@@ -289,6 +263,9 @@
         $('#billing_country').select2();
         $('#shipping_status').select2();
         $('#cost_center').select2();
+        $('#Delegates').select2({
+            width: 'resolve'
+        });
         $('#invoice_type').select2({
             width: 'resolve'
         });
@@ -330,6 +307,24 @@
                 $('#dev-costCenter').show();
             } else {
                 $('#dev-costCenter').hide();
+            }
+        });
+
+
+        $('#toggleStorehouse').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#div-storehouse').show();
+            } else {
+                $('#div-storehouse').hide();
+            }
+        });
+
+
+        $('#toggleDelegates').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#div-Delegates').show();
+            } else {
+                $('#div-Delegates').hide();
             }
         });
 
@@ -472,82 +467,241 @@
             });
 
 
+            // function updateSalesTotals() {
+            //     let totalBeforeVat = 0;
+            //     let totalVat = 0;
+            //     let totalAfterVat = 0;
+
+            //     $('#salesTable tbody tr').each(function(index) {
+            //         const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+            //         const unitPriceOriginal = parseFloat($(this).find(
+            //             `[name="products[${index}][unit_price]"]`).val()) || 0;
+            //         const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`)
+            //             .val()) || 0;
+            //         const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+            //         const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
+            //         const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(
+            //             ':checked');
+
+            //         let unitPrice = unitPriceOriginal;
+
+            //         if (isInclusive && taxType === '15') {
+            //             unitPrice = unitPriceOriginal / 1.15;
+            //         }
+
+            //         let discountAmount = 0;
+            //         if (discountType === 'percent') {
+            //             discountAmount = (qty * unitPrice) * (discountValue / 100);
+            //         } else {
+            //             discountAmount = discountValue;
+            //         }
+
+            //         const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
+
+            //         let vatAmount = 0;
+            //         if (taxType === '15') {
+            //             vatAmount = totalBeforeDiscount * 0.15;
+            //         } else if (taxType === '0') {
+            //             vatAmount = 0;
+            //         }
+
+            //         const totalRow = totalBeforeDiscount + vatAmount;
+
+            //         $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
+            //         $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
+            //         $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
+
+            //         totalBeforeVat += totalBeforeDiscount;
+            //         totalVat += vatAmount;
+            //         totalAfterVat += totalRow;
+            //     });
+
+            //     const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
+            //     const discountType = $('#invoiced_discount_type').val();
+
+            //     let totalDiscountAmount = 0;
+            //     if (discountType === 'percent') {
+            //         totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
+            //     } else {
+            //         totalDiscountAmount = invoiceDiscount;
+            //     }
+
+            //     const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
+            //     const finalTotalAfterVat = totalAfterDiscount + totalVat;
+
+            //     $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
+            //     $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
+            //     $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
+            //     $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
+            //     $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
+            //     $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
+            //     $('#totalVat').text(totalVat.toFixed(2));
+            //     $('#input-totalVat').val(totalVat.toFixed(2));
+            //     $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
+            //     $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
+            //     $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+
+
+            // }
+
+            // function updateSalesTotals() {
+            //     let totalBeforeVat = 0;
+            //     let totalVat = 0;
+            //     let totalAfterVat = 0;
+
+            //     $('#salesTable tbody tr').each(function(index) {
+            //         const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+            //         const unitPriceOriginal = parseFloat($(this).find(
+            //             `[name="products[${index}][unit_price]"]`).val()) || 0;
+            //         const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`)
+            //             .val()) || 0;
+            //         const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+            //         const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
+            //         const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(
+            //             ':checked');
+
+            //         let unitPrice = unitPriceOriginal;
+
+            //         if (isInclusive && taxType === '15') {
+            //             unitPrice = unitPriceOriginal / 1.15;
+            //         }
+
+            //         let discountAmount = 0;
+            //         if (discountType === 'percent') {
+            //             discountAmount = (qty * unitPrice) * (discountValue / 100);
+            //         } else {
+            //             discountAmount = discountValue;
+            //         }
+
+            //         const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
+
+            //         let vatAmount = 0;
+            //         if (taxType === '15') {
+            //             vatAmount = totalBeforeDiscount * 0.15;
+            //         } else if (taxType === '0') {
+            //             vatAmount = 0;
+            //         }
+
+            //         const totalRow = totalBeforeDiscount + vatAmount;
+
+            //         $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
+            //         $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
+            //         $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
+
+            //         totalBeforeVat += totalBeforeDiscount;
+            //         totalVat += vatAmount;
+            //         totalAfterVat += totalRow;
+            //     });
+
+            //     const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
+            //     const discountType = $('#invoiced_discount_type').val();
+
+            //     let totalDiscountAmount = 0;
+            //     if (discountType === 'percent') {
+            //         totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
+            //     } else {
+            //         totalDiscountAmount = invoiceDiscount;
+            //     }
+
+            //     const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
+
+            //     // تعديل: حساب الضريبة على المبلغ بعد الخصم
+            //     totalVat = totalAfterDiscount * 0.15; // إعادة حساب الضريبة بناءً على المبلغ بعد الخصم
+            //     const finalTotalAfterVat = totalAfterDiscount + totalVat;
+
+            //     $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
+            //     $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
+            //     $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
+            //     $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
+            //     $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
+            //     $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
+            //     $('#totalVat').text(totalVat.toFixed(2));
+            //     $('#input-totalVat').val(totalVat.toFixed(2));
+            //     $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
+            //     $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
+            //     $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+            // }2
+
             function updateSalesTotals() {
-                let totalBeforeVat = 0;
-                let totalVat = 0;
-                let totalAfterVat = 0;
+    let totalBeforeVat = 0;
+    let totalVat = 0;
+    let totalAfterVat = 0;
 
-                $('#salesTable tbody tr').each(function(index) {
-                    const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
-                    const unitPriceOriginal = parseFloat($(this).find(
-                        `[name="products[${index}][unit_price]"]`).val()) || 0;
-                    const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`)
-                        .val()) || 0;
-                    const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
-                    const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
-                    const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(
-                        ':checked');
+    $('#salesTable tbody tr').each(function (index) {
+        const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+        const unitPriceOriginal = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
+        const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
+        const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+        const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
+        const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(':checked');
 
-                    let unitPrice = unitPriceOriginal;
+        let unitPrice = unitPriceOriginal;
 
-                    if (isInclusive && taxType === '15') {
-                        unitPrice = unitPriceOriginal / 1.15;
-                    }
+        if (isInclusive && taxType === '15') {
+            unitPrice = unitPriceOriginal / 1.15;
+        }
 
-                    let discountAmount = 0;
-                    if (discountType === 'percent') {
-                        discountAmount = (qty * unitPrice) * (discountValue / 100);
-                    } else {
-                        discountAmount = discountValue;
-                    }
+        let discountAmount = 0;
+        if (discountType === 'percent') {
+            discountAmount = (qty * unitPrice) * (discountValue / 100);
+        } else {
+            discountAmount = discountValue;
+        }
 
-                    const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
+        const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
 
-                    let vatAmount = 0;
-                    if (taxType === '15') {
-                        vatAmount = totalBeforeDiscount * 0.15;
-                    } else if (taxType === '0') {
-                        vatAmount = 0;
-                    }
-
-                    const totalRow = totalBeforeDiscount + vatAmount;
-
-                    $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
-                    $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
-                    $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
-
-                    totalBeforeVat += totalBeforeDiscount;
-                    totalVat += vatAmount;
-                    totalAfterVat += totalRow;
-                });
-
-                const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
-                const discountType = $('#invoiced_discount_type').val();
-
-                let totalDiscountAmount = 0;
-                if (discountType === 'percent') {
-                    totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
-                } else {
-                    totalDiscountAmount = invoiceDiscount;
-                }
-
-                const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
-                const finalTotalAfterVat = totalAfterDiscount + totalVat;
-
-                $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
-                $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
-                $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
-                $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
-                $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
-                $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
-                $('#totalVat').text(totalVat.toFixed(2));
-                $('#input-totalVat').val(totalVat.toFixed(2));
-                $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
-                $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
-                $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
-
-
+        let vatAmount = 0;
+        if (taxType === '15') {
+            if (isInclusive) {
+                vatAmount = totalBeforeDiscount * (15 / 115); // استخراج الضريبة من السعر الشامل
+            } else {
+                vatAmount = totalBeforeDiscount * 0.15; // إضافة الضريبة على السعر غير الشامل
             }
+        } else if (taxType === '0') {
+            vatAmount = 0;
+        }
+
+        const totalRow = totalBeforeDiscount + vatAmount;
+
+        $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
+        $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
+        $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
+
+        totalBeforeVat += totalBeforeDiscount;
+        totalVat += vatAmount;
+        totalAfterVat += totalRow;
+    });
+
+    const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
+    const discountType = $('#invoiced_discount_type').val();
+
+    let totalDiscountAmount = 0;
+    if (discountType === 'percent') {
+        totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
+    } else {
+        totalDiscountAmount = invoiceDiscount;
+    }
+
+    const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
+
+    if (totalVat > 0) {
+        totalVat = totalAfterDiscount * (totalVat / totalBeforeVat);
+    }
+    const finalTotalAfterVat = totalAfterDiscount + totalVat;
+
+    $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
+    $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
+    $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
+    $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
+    $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
+    $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
+    $('#totalVat').text(totalVat.toFixed(2));
+    $('#input-totalVat').val(totalVat.toFixed(2));
+    $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
+    $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
+    $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+}
+
 
             $(document).on('change', '[name*="[inclusive]"]', function() {
                 updateSalesTotals();

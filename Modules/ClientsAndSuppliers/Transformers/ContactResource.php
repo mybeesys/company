@@ -18,14 +18,24 @@ class ContactResource extends JsonResource
             'mobile_number' => $this->mobile_number,
             'phone_number' => $this->phone_number,
             // 'website' => $this->website,
-            // 'point_of_sale_client' => $this->point_of_sale_client,
+            'point_of_sale_client' => $this->point_of_sale_client,
             // 'payment_terms' => $this->payment_terms,
             'email' => $this->email,
             // 'commercial_register' => $this->commercial_register,
             'tax_number' => $this->tax_number,
             'status' => $this->status,
             // 'bank_account_info' => new BankAccountInformationResource($this->bankAccountInformation),
-            'billing_address' => new BillingAddressResource($this->billingAddress),
+            // 'billing_address' => new BillingAddressResource($this->billingAddress),
+
+
+            'street_name' => $this->billingAddress?->street_name ?? '',
+            'city' => $this->billingAddress?->city ?? '',
+            'state' => $this->billingAddress?->state ?? '',
+            'postal_code' => $this->billingAddress?->postal_code ?? '',
+            'building_number' => $this->billingAddress?->building_number ?? '',
+            'country' => $this->billingAddress?->country_->name_en . ' - ' . $this->billingAddress?->country_->name_ar ?? '',
+
+
             // 'shipping_address' => new ShippingAddressResource($this->shippingAddress),
             // 'client_contact' => ClientContactResource::collection($this->clientContacts),
             // 'custom_info' => CustomInfoResource::collection($this->customInformation),
