@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,9 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::statement("CREATE 
-VIEW product_inventory_totals AS
-    SELECT 
+        DB::statement("CREATE 
+                VIEW product_inventory_totals AS
+                    SELECT 
         pp.id AS id,
         ((((COALESCE(po.qty, 0) - COALESCE(rma.qty, 0)) - COALESCE(waste.qty, 0)) - COALESCE(prep.qty, 0)) + COALESCE(prep1.qty, 0)) AS qty
     FROM
@@ -69,6 +70,6 @@ VIEW product_inventory_totals AS
      */
     public function down(): void
     {
-        Schema::statement("DROP VIEW product_inventory_totals");
+        DB::statement("DROP VIEW product_inventory_totals");
     }
 };
