@@ -86,6 +86,10 @@ return [
     'no_invoice' => 'ليس لديك أي فواتير مبيعات',
     'select_products' => 'بحث بالاسم أو SKU',
     'Payment vouchers' => 'سندات الدفع',
+    'toggleDelegates' => 'تفعيل المندوبين',
+    'toggleStorehouse' => 'تفعيل المستودعات',
+    'Delegates' => 'المندوبين',
+
 
 
 
