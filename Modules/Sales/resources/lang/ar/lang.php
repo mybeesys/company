@@ -89,6 +89,8 @@ return [
     'toggleDelegates' => 'تفعيل المندوبين',
     'toggleStorehouse' => 'تفعيل المستودعات',
     'Delegates' => 'المندوبين',
+    'payment_account_note' => 'الحساب الذي تم التحصيل عليه',
+    'payment_account_select'=>'اختر الحساب الذي تم فيه التحصيل',
 
 
 

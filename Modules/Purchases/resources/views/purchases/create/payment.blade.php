@@ -40,13 +40,17 @@
     <div class="col-4">
         <div class="fv-row ">
 
-            <label class="fs-6 fw-semibold mb-2 ">@lang('accounting::lang.account') </label>
+            <label class="fs-6 fw-semibold mb-2 ">@lang('accounting::lang.account')
+                <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.payment_account_note')">
+                    <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                </span> </label>
 
 
 
             <select  class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
                 name="account_id" id="account_id">
 
+                <option value="">@lang('sales::lang.payment_account_select')</option>
 
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}">
@@ -77,7 +81,7 @@
 
             <label class="fs-6 fw-semibold mb-2 ">@lang('sales::lang.pament_on')</label>
 
-            <input class="form-control form-control-solid" name="pament_on" 
+            <input class="form-control form-control-solid" name="pament_on"
                 value="{{ now()->format('Y-m-d\TH:i') }}" placeholder="@lang('sales::lang.pament_on')" id="pament_on"
                 type="datetime-local">
         </div>

@@ -37,7 +37,7 @@ return [
     'payment_info' => 'Payment Information',
     'shipping_info' => 'Shipping Information',
     'Additional notes and attachments' => 'Additional notes and attachments',
-    'attachments'=>'Attachments',
+    'attachments' => 'Attachments',
 
     'pament_on' => 'Payment Date',
     'payment_type' => 'Payment Type',
@@ -86,10 +86,12 @@ return [
 
     'no_invoice' => 'You do not have any sales invoices.',
     'select_products' => 'Search by name or SKU',
-    'Payment vouchers'=>'Payment vouchers',
-    'toggleDelegates'=>'Enable Delegates',
-    'toggleStorehouse'=>'Enable Storehouse',
+    'Payment vouchers' => 'Payment vouchers',
+    'toggleDelegates' => 'Enable Delegates',
+    'toggleStorehouse' => 'Enable Storehouse',
     'Delegates' => 'Delegates',
+    'payment_account_note' => 'The account to which the payment was credited',
+    'payment_account_select'=>'Select account to which the payment was credited',
 
 
 
