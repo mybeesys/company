@@ -40,14 +40,18 @@
     <div class="col-4">
         <div class="fv-row ">
 
-            <label class="fs-6 fw-semibold mb-2 required">@lang('accounting::lang.account') </label>
+            <label class="fs-6 fw-semibold mb-2 ">@lang('accounting::lang.account')
+                <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.payment_account_note')">
+                    <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                </span>
+            </label>
 
 
 
-            <select required class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
-                name="account_id" id="account_id">
+            <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account " name="account_id"
+                id="account_id">
 
-
+                <option value="">@lang('sales::lang.payment_account_select')</option>
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}">
                         @if (app()->getLocale() == 'ar')
@@ -67,19 +71,18 @@
         <div class="d-flex flex-column " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
             <label class="fs-6 fw-semibold mb-2">@lang('sales::lang.paid_amount')</label>
 
-            <input class="form-control form-control-solid no-spin" name="paid_amount" required value=""
-                placeholder="0.00" id="paid_amount" type="number">
+            <input class="form-control form-control-solid no-spin" name="paid_amount" value="" placeholder="0.00"
+                id="paid_amount" type="number">
         </div>
     </div>
 
     <div class="col-4 pay-pament_on">
         <div class="fv-row  fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
 
-            <label class="fs-6 fw-semibold mb-2 required">@lang('sales::lang.pament_on')</label>
+            <label class="fs-6 fw-semibold mb-2 ">@lang('sales::lang.pament_on')</label>
 
-            <input class="form-control form-control-solid" name="pament_on" required
-                value="{{ now()->format('Y-m-d\TH:i') }}" placeholder="@lang('sales::lang.pament_on')" id="pament_on"
-                type="datetime-local">
+            <input class="form-control form-control-solid" name="pament_on" value="{{ now()->format('Y-m-d\TH:i') }}"
+                placeholder="@lang('sales::lang.pament_on')" id="pament_on" type="datetime-local">
         </div>
     </div>
     {{-- <div class="col-4 pay-payment_type">

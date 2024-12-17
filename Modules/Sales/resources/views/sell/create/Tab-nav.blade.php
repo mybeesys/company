@@ -9,18 +9,19 @@
 
             </a>
         </li>
+        <li class="nav-item" role="presentation" id="li-payment_info" style="display: none">
+            <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
+                data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
+                @lang('sales::lang.Payment vouchers')
+            </a>
+        </li>
         <li class="nav-item" role="presentation">
             <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800 " data-bs-toggle="tab"
                 role="tab" href="#attachments" aria-selected="false" tabindex="-1">
                 @lang('sales::lang.attachments')
             </a>
         </li>
-        <li class="nav-item" role="presentation">
-            <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
-                data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
-                @lang('sales::lang.Payment vouchers')
-            </a>
-        </li>
+
 
     </ul>
     <!--end::Tab nav-->
@@ -36,15 +37,6 @@
 
     </div>
 </div>
-
-<div class="tab-content">
-    <div id="attachments" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="attachments_tab">
-
-        @include('sales::sell.create.attachments')
-
-    </div>
-</div>
-
 <div class="tab-content">
     <div id="payment_info" class="card-body p-0 tab-pane fade show " role="tabpanel"
         aria-labelledby="payment_info_tab">
@@ -54,3 +46,12 @@
 
     </div>
 </div>
+<div class="tab-content">
+    <div id="attachments" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="attachments_tab">
+
+        @include('sales::sell.create.attachments')
+
+    </div>
+</div>
+
+

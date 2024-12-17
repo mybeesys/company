@@ -82,7 +82,7 @@
                             <textarea class="form-control form-control-solid" rows="1" name="products[0][description]"></textarea>
                         </td>
                         <td><input type="number" step="any" class="form-control qty-field" name="products[0][qty]"
-                                placeholder="1" min="1" style="width: 80px;"></td>
+                                placeholder="0" min="1" style="width: 80px;"></td>
                         <td><input type="number" step="any" class="form-control unit_price-field no-spin"
                                 name="products[0][unit_price]" placeholder="0.0"
                                 style="width: 100px;-moz-appearance: textfield !important">
@@ -113,8 +113,8 @@
                         <td>
                             <select id="tax_vat" required class="form-select form-select-solid select-2"
                                 name="products[0][tax_vat]" style="width: 200px;">
-                                <option value="">@lang('sales::lang.tax_vat.E')</option>
                                 <option value="15">@lang('sales::lang.tax_vat.S')</option>
+                                <option value="">@lang('sales::lang.tax_vat.E')</option>
                                 <option value="0">@lang('sales::lang.tax_vat.Z')</option>
                             </select>
                         </td>
