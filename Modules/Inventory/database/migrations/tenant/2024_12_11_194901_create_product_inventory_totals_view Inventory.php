@@ -23,8 +23,8 @@ return new class extends Migration
             SUM(ioi.qty) AS qty,
                 ioi.product_id AS product_id
         FROM
-            (inventory_operation_items ioi
-        JOIN inventory_operations io1 ON ((io1.id = ioi.operation_id)))
+            (inventory_Operation_items ioi
+        JOIN inventory_Operations io1 ON ((io1.id = ioi.operation_id)))
         WHERE
             (io1.op_type = 2)
         GROUP BY ioi.product_id) rma ON ((rma.product_id = pp.id)))
@@ -32,9 +32,9 @@ return new class extends Migration
             SUM(iopi.recievd_qty) AS qty,
                 ioi.product_id AS product_id
         FROM
-            ((inventory_operation_items ioi
-        JOIN inventory_op_purchaseorder_items iopi ON ((iopi.operation_item_id = ioi.id)))
-        JOIN inventory_operations io1 ON ((io1.id = ioi.operation_id)))
+            ((inventory_Operation_items ioi
+        JOIN inventory_Op_purchaseOrder_items iopi ON ((iopi.operation_item_id = ioi.id)))
+        JOIN inventory_Operations io1 ON ((io1.id = ioi.operation_id)))
         WHERE
             (io1.op_type = 0)
         GROUP BY ioi.product_id) po ON ((po.product_id = pp.id)))
@@ -42,8 +42,8 @@ return new class extends Migration
             SUM(ioi.qty) AS qty,
                 ioi.product_id AS product_id
         FROM
-            (inventory_operation_items ioi
-        JOIN inventory_operations io1 ON ((io1.id = ioi.operation_id)))
+            (inventory_Operation_items ioi
+        JOIN inventory_Operations io1 ON ((io1.id = ioi.operation_id)))
         WHERE
             (io1.op_type = 3)
         GROUP BY ioi.product_id) waste ON ((waste.product_id = pp.id)))
@@ -51,9 +51,9 @@ return new class extends Migration
             (SUM(ioi.qty) * SUM(iop.times)) AS qty,
                 ioi.product_id AS product_id
         FROM
-            ((inventory_operation_items ioi
-        JOIN inventory_operations io1 ON ((io1.id = ioi.operation_id)))
-        JOIN inventory_op_preps iop ON ((iop.operation_id = io1.id)))
+            ((inventory_Operation_items ioi
+        JOIN inventory_Operations io1 ON ((io1.id = ioi.operation_id)))
+        JOIN inventory_Op_preps iop ON ((iop.operation_id = io1.id)))
         WHERE
             (io1.op_type = 1)
         GROUP BY ioi.product_id) prep ON ((prep.product_id = pp.id)))
@@ -61,7 +61,7 @@ return new class extends Migration
             iop.product_id AS product_id,
                 SUM(iop.times) AS qty
         FROM
-            inventory_op_preps iop
+            inventory_Op_preps iop
         GROUP BY iop.product_id) prep1 ON ((prep1.product_id = pp.id)))");
     }
 
