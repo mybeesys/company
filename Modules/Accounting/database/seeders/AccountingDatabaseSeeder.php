@@ -2,9 +2,11 @@
 
 namespace Modules\Accounting\database\seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 use Modules\General\Models\Country;
+use Modules\General\Models\Tax;
 
 class AccountingDatabaseSeeder extends Seeder
 {
@@ -54,5 +56,39 @@ class AccountingDatabaseSeeder extends Seeder
         } else {
             $this->command->error('Failed to fetch countries data');
         }
+
+        $taxes = [
+            [
+                'name' => 'ضريبة القيمة المضافة (S 15.0%)',
+                'amount' => 15.0,
+                'for_tax_group' => 0,
+                'is_tax_group' => 0,
+                'created_by' => 0,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name' => 'الضريبة الصفرية (Z 0.0%)',
+                'amount' => 0,
+                'for_tax_group' => 0,
+                'is_tax_group' => 0,
+                'created_by' => 0,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name' => 'معفاة من الضريبة (E 0.0%)',
+                'amount' => 0,
+                'for_tax_group' => 0,
+                'is_tax_group' => 0,
+                'created_by' => 0,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+        ];
+
+
+        Tax::insert($taxes);
+
     }
 }
