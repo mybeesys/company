@@ -178,6 +178,7 @@
   "groupComboAndLinkedComboSelected":"One Combo Should be Selected",
   "transfer": "=",
   "primary":"Primary",
+  "newUnit" : "New Unit",
   "inventoryUOM":"Inventory UOM",
   "threshold" : "Low Stock Alert",
   "defaultPrice" : "Default Price",
@@ -219,5 +220,6 @@
   "establishment" : "Establishment",
   "warehouses" : "Warehouses",
   "warehouse" : "Warehouse",
-  "image" : "Image"
+  "image" : "Image",
+  "noDefaultUnit" : "Unit Required"
 }

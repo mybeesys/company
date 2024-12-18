@@ -10,6 +10,7 @@ import { Button } from 'primereact/button';
 import ProductCombo from './ProductCombo';
 import ProductLinkedCombo from './ProductLinkedCombo';
 import UnitTransferProduct from './UnitTransferProduct';
+import ProductWarhouse from './ProductWarhouse';
 
 
 const ProductComponent1 = ({ translations, dir }) => {
@@ -71,10 +72,12 @@ const ProductComponent1 = ({ translations, dir }) => {
       form.classList.add('was-validated');
       return;
     }
+    if (!validProduct()) return;
     else {
       saveChanges();
     }
   }
+
   const onComboChange = (key, value) => {
     currentObject[key] = value;
     setcurrentObject({ ...currentObject });
@@ -82,9 +85,17 @@ const ProductComponent1 = ({ translations, dir }) => {
       message: "Done"
     }
   }
+
+  const onWarehouseChange = (key, value) => {
+    currentObject[key] = value;
+    setcurrentObject({ ...currentObject });
+    return {
+      message: "Done"
+    }
+  }
+
   const saveChanges = async () => {
     try {
-      if (!validCombo()) return;
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
@@ -321,32 +332,34 @@ const ProductComponent1 = ({ translations, dir }) => {
     setcurrentModifiers([...currentModifiers]);
   }
 
-  const validCombo = () => {
+  const validProduct = () => {
+    let errorMessage = null;
+    let valid = true;
+    if(!!!productUnit || !!!productUnit.unit1){
+      valid = false;
+      errorMessage = translations.noDefaultUnit;
+      document.getElementById("Unit_tab").click();
+    }
     if (!!currentObject.set_price &&
       !!currentObject.combos && !!currentObject.combos.length) {
       const totalPrice = currentObject.combos.reduce((sum, item) => sum + (!!item.price ? parseFloat(item.price) : 0), 0);
       if (totalPrice != currentObject.price) {
-        setShowAlert(true);
-        Swal.fire({
-          show: showAlert,
-          title: 'Error',
-          text: translations.ComboPriceError,
-          icon: "error",
-          timer: 4000,
-          showCancelButton: false,
-          showConfirmButton: false,
-        }).then(() => {
-          setShowAlert(false); // Reset the state after alert is dismissed
-        });
-        return false;
+        valid = false;
+        errorMessage = translations.ComboPriceError;
+        document.getElementById("groupCombo_tab").click();
       }
     }
     if (!!currentObject.group_combo && !!currentObject.linked_combo && currentObject.group_combo == currentObject.linked_combo) {
+      valid = false;
+      errorMessage = translations.groupComboAndLinkedComboSelected;
+      document.getElementById("linkedCombo_tab").click();
+    }
+    if(!valid){
       setShowAlert(true);
       Swal.fire({
         show: showAlert,
         title: 'Error',
-        text: translations.groupComboAndLinkedComboSelected,
+        text: errorMessage,
         icon: "error",
         timer: 4000,
         showCancelButton: false,
@@ -503,8 +516,11 @@ const ProductComponent1 = ({ translations, dir }) => {
               </div>
               <div class="tab-content">
                 <div id="inventory" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="inventory_tab">
-                
-
+                      <ProductWarhouse
+                        translations={translations}
+                        dir={dir}
+                        currentObject={currentObject}
+                        onBasicChange={onWarehouseChange}/>
                 </div>
               </div>
               <div class="tab-content">

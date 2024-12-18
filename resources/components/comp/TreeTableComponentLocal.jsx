@@ -122,8 +122,8 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
     }
 
     const handleDelete = (row) => {
-        const message = onDelete(row);
-        if (message != "Done") {
+        const response = onDelete(row);
+        if (response.message  != "Done") {
             setShowAlert(true);
             Swal.fire({
                 show: showAlert,

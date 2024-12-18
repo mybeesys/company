@@ -73,7 +73,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
     if (key == "category_id") {
       r['category'] = option;
       const subCategories = await fetchSubCategoryOptions(value);
-      r['subcategory_id'] = subCategories.length > 0 ? subCategories[0].id : null;
+      r['subcategory_id'] = subCategories.length > 0 ? subCategories[0].value : null;
       r['subcategory'] = subCategories.length > 0 ? subCategories[0] : null;
       setSubCategoryOptions(subCategories);
     }

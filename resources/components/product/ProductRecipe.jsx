@@ -150,7 +150,7 @@ const ProductRecipe = ({ translations, productRecipe, product, ingredientTree, p
             <label for="recipe_yield" class="col-form-label">{translations.recipe_yield}</label>
             <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" id="recipe_yield" value={!!currentObject.recipe_yield ? currentObject.recipe_yield : ''}
               onChange={(e) => onChangeProduct('recipe_yield', e.target.value)}
-              required></input>
+              ></input>
           </div>
         </div>
           <div class="d-flex  align-items-center pt-3">

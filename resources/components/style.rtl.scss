@@ -242,7 +242,9 @@ body {
  margin: 10px !important;
  float: left !important;
 }
-
+.p-datatable .p-datatable-tbody>tr>td {
+  text-align: right!important;
+}
 
 .product__item__text {
   padding-top: 20px;

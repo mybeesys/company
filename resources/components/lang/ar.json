@@ -178,7 +178,7 @@
   "groupComboAndLinkedComboSelected":"يجب اختيار نوع واحد من الكومبو",
   "transfer": "=",
   "primary":"أساسي",
-
+  "newUnit" : "الوحدة الجديدة",
   "inventoryUOM":"وحدة قياس المستودع",
   "threshold" : "Low Stock Alert",
   "defaultPrice" : "السعر الافتراضي",
@@ -218,5 +218,6 @@
   "establishment" : "المنشآة",
   "warehouses" : "المستودعات",
   "warehouse" : "مستودع",
-  "image" : "الصورة"
+  "image" : "الصورة",
+  "noDefaultUnit" : "الوحدة مطلوبة"
 }
