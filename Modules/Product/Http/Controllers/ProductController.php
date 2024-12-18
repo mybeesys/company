@@ -13,12 +13,46 @@ use Modules\Product\Models\ProductCombo;
 use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
-use Modules\Product\Models\Unit;
+use Illuminate\Support\Facades\DB;
+use Modules\Inventory\Models\Warehouse;
+use Modules\Inventory\Models\WarhouseProduct;
 use Modules\Product\Models\UnitTransfer;
 use stdClass;
 
 class ProductController extends Controller
 {
+    protected $requetsValidator = [
+        'name_ar' => 'required|string|max:255',
+        'name_en' => 'required|string',
+        'order' => 'required|numeric',
+        'category_id' => 'required|numeric',
+        'subcategory_id' => 'required|numeric',
+        'active' => 'nullable|boolean',
+        'SKU'=> 'nullable|string',
+        'barcode'=> 'nullable|string',
+        'cost'=> 'required|numeric',
+        'price'=> 'required|numeric',
+        'description_ar'=> 'nullable|string',
+        'description_en'=> 'nullable|string',
+        'class'=> 'nullable|string',
+        'id' => 'nullable|numeric',
+        'method' => 'nullable|string',
+        'sold_by_weight' => 'nullable|boolean',
+        'track_serial_number' => 'nullable|boolean',
+        'image_file' =>'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image' =>'nullable|string',
+        'color' => 'nullable|string',
+        'commissions' => 'nullable|numeric',
+        'recipe_yield' => 'nullable|numeric',
+        'prep_recipe' => 'nullable|boolean',
+        'group_combo' => 'nullable|boolean',
+        'set_price' => 'nullable|boolean',
+        'use_upcharge' => 'nullable|boolean',
+        'linked_combo' => 'nullable|boolean',
+        'promot_upsell' => 'nullable|numeric'
+    ];
+
+
     public function all(){
         $products = Product::all();
         return response()->json($products);
@@ -61,6 +95,7 @@ class ProductController extends Controller
         $product->use_upcharge = 0;
         $product->combos = [];
         $product->linkedCombos = [];
+        $product->warhouses = [];
         return view('product::product.create', compact('product'));
     }
 
@@ -69,36 +104,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name_ar' => 'required|string|max:255',
-            'name_en' => 'required|string',
-            'order' => 'required|numeric',
-            'category_id' => 'required|numeric',
-            'subcategory_id' => 'required|numeric',
-            'active' => 'nullable|boolean',
-            'SKU'=> 'nullable|string',
-            'barcode'=> 'nullable|string',
-            'cost'=> 'required|numeric',
-            'price'=> 'required|numeric',
-            'description_ar'=> 'nullable|string',
-            'description_en'=> 'nullable|string',
-            'class'=> 'nullable|string',
-            'id' => 'nullable|numeric',
-            'method' => 'nullable|string',
-            'sold_by_weight' => 'nullable|boolean',
-            'track_serial_number' => 'nullable|boolean',
-            'image_file' =>'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image' =>'nullable|string',
-            'color' => 'nullable|string',
-            'commissions' => 'nullable|numeric',
-            'recipe_yield' => 'nullable|numeric',
-            'prep_recipe' => 'nullable|boolean',
-            'group_combo' => 'nullable|boolean',
-            'set_price' => 'nullable|boolean',
-            'use_upcharge' => 'nullable|boolean',
-            'linked_combo' => 'nullable|boolean',
-            'promot_upsell' => 'nullable|numeric'
-        ]);
+        $validated = $request->validate($this->requetsValidator);
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
@@ -108,46 +114,57 @@ class ProductController extends Controller
         }
         else if(isset($validated['id']))
         {
-            $product = Product::find($validated['id']); 
-            $product->name_ar = $validated['name_ar'];
-            $product->name_en = $validated['name_en'];
-            $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
-            $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
-            $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
-            $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
-            $product->category_id = $validated['category_id'];
-            $product->subcategory_id = $validated['subcategory_id'];
-            $product->active = $validated['active'];
-            $product->sold_by_weight = $validated['sold_by_weight'];
-            $product->track_serial_number = $validated['track_serial_number'];
-            $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
-            $product->price = $validated['price'];
-            $product->cost = $validated['cost'];
-            $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
-            $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
-            $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
-            $product->group_combo = $validated['group_combo'];
-            $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
-            $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
-            $product->linked_combo = $validated['linked_combo'];
-            $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
-            if ($request->hasFile('image_file')) 
-            {
-                $tenant = tenancy()->tenant;
-                $tenantId = $tenant->id;
-                // Get the uploaded file
-                $file = $request->file('image_file');
-        
-                // Define the path based on the tenant's ID
-                $filePath =  '/product/images';
-        
-                // Store the file
-                $fileExtension = $file->getClientOriginalExtension();
-                $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
-        
-                // Optionally save the file path to the database
-                $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
-            }
+            $this->saveProduct($validated, $request);
+        }
+        else
+        {    
+            $this->createProduct($validated, $request);
+        }
+        return response()->json(["message"=>"Done"]);
+    }
+
+    protected function saveProduct($validated, $request){
+        $product = Product::find($validated['id']); 
+        $product->name_ar = $validated['name_ar'];
+        $product->name_en = $validated['name_en'];
+        $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
+        $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
+        $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
+        $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
+        $product->category_id = $validated['category_id'];
+        $product->subcategory_id = $validated['subcategory_id'];
+        $product->active = $validated['active'];
+        $product->sold_by_weight = $validated['sold_by_weight'];
+        $product->track_serial_number = $validated['track_serial_number'];
+        $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
+        $product->price = $validated['price'];
+        $product->cost = $validated['cost'];
+        $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
+        $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
+        $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
+        $product->group_combo = $validated['group_combo'];
+        $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
+        $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
+        $product->linked_combo = $validated['linked_combo'];
+        $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
+        if ($request->hasFile('image_file')) 
+        {
+            $tenant = tenancy()->tenant;
+            $tenantId = $tenant->id;
+            // Get the uploaded file
+            $file = $request->file('image_file');
+    
+            // Define the path based on the tenant's ID
+            $filePath =  '/product/images';
+    
+            // Store the file
+            $fileExtension = $file->getClientOriginalExtension();
+            $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
+    
+            // Optionally save the file path to the database
+            $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
+        }
+       // DB::transaction(function () use ($product, $request) {
             $product->save();
             if(isset($request["modifiers"]))
             {
@@ -173,8 +190,8 @@ class ProductController extends Controller
                     }
                 }
             } 
-           
-                $oldRecipe = RecipeProduct::where('product_id' , $validated['id'])->get();
+            
+                $oldRecipe = RecipeProduct::where('product_id' , $product->id)->get();
                 foreach ($oldRecipe as $recipe)
                 {
                     $recipe->delete();
@@ -185,7 +202,7 @@ class ProductController extends Controller
                 foreach ($request["recipe"] as $recipe) 
                 {
                     $rec = [];
-                    $rec['product_id'] =  $validated['id'];
+                    $rec['product_id'] =  $product->id;
                     $rec['quantity'] = $recipe['quantity'];
                     $recipeIngredient = explode("-",$recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
@@ -194,8 +211,8 @@ class ProductController extends Controller
                     RecipeProduct::create($rec);
                 }
             }  
-          
-                $oldAttributes = Product_Attribute::where('product_id' , $validated['id'])->get();
+            
+                $oldAttributes = Product_Attribute::where('product_id' , $product->id)->get();
                 foreach ( $oldAttributes as $oldAttribute)
                 {
                     $oldAttribute->delete();
@@ -206,7 +223,7 @@ class ProductController extends Controller
                 foreach ($request["attributeMatrix"] as $attribute) 
                 {
                     $att = [];
-                    $att['product_id'] =  $validated['id'];
+                    $att['product_id'] =  $product->id;
                     $att['attribute_id1'] = $attribute['attribute1']['id'];
                     $att['attribute_id2'] = isset($attribute['attribute2'])? $attribute['attribute2']['id']: null;
                     $att['name_ar'] = $attribute['name_ar'];
@@ -218,60 +235,66 @@ class ProductController extends Controller
                     Product_Attribute::create($att);
                 }
             }
-          
-                $oldUnites = UnitTransfer::where('product_id' , $validated['id'])->get();
             
-                if(isset($request["transfer"]))
-                {
-                    $ids=[];
-                    $insertedIds=[];
-                    foreach ($oldUnites  as $old)
+            $oldUnites = UnitTransfer::where('product_id' , $product->id)->get();
+        
+            if(isset($request["transfer"])){
+                $ids=[];
+                $insertedIds=[];
+                $updatedTransfers = [];
+                $requestIds = array_map(function($item) {
+                    return $item["id"];
+                }, $request["transfer"]);
+                UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();  
+                foreach ($oldUnites  as $old){
+                    $newid = [];
+                    $newid['oldId'] = $old['id'];
+                    $newid['newId'] = $old['id'];
+                    $ids[] = $newid ;
+                }
+                foreach ($request["transfer"] as $transfer){
+                    if($transfer['id'] <= 0)
                     {
                         $newid = [];
-                        $newid['oldId'] = $old['id'];
-                        $newid['newId'] = $old['id'];
+                        $inserted = [];
+                        $tran = [];
+                        $newid['oldId'] =  $transfer['id'];
+                        $tran['product_id'] =  $product->id;
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                        $tran['unit1'] = $transfer['unit1'];
+                        $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $id = UnitTransfer::create($tran)->id;
+                        $inserted['id'] = $id;
+                        $inserted['unit2'] = $transfer['unit2'];
+                        $newid['newId'] =  $id;
                         $ids[] = $newid ;
+                        $insertedIds[] = $inserted;
                     }
-                    foreach ($request["transfer"] as $transfer) 
-                    {
-                        if($transfer['id'] <= 0)
-                        {
-                            $newid = [];
-                            $inserted = [];
-                            $tran = [];
-                            $newid['oldId'] =  $transfer['id'];
-                            $tran['product_id'] =  $validated['id'];
-                            $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                            $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
-                            $tran['unit1'] = $transfer['unit1'];
-                            $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                            $id = UnitTransfer::create($tran)->id;
-                            $inserted['id'] = $id;
-                            $inserted['unit2'] = $transfer['unit2'];
-                            $newid['newId'] =  $id;
-                            $ids[] = $newid ;
-                            $insertedIds[] = $inserted;
-                        }
+                    else if(!isset($transfer['unit2'])){
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer->save();
                     }
-                    foreach ($insertedIds as $transfer) 
-                    {
-                        foreach($ids as $updateId)
-                        {
-                            if($transfer['unit2'] == $updateId['oldId'] )
-                            {
-                                $updateObject = UnitTransfer::find($transfer['id']);
-                                $updateObject->unit2 =  $updateId['newId'];
-                                $updateObject->save();
-                            }
-                        } 
-                    }    
                 }
+                foreach ($insertedIds as $transfer){
+                    foreach($ids as $updateId)
+                    {
+                        if($transfer['unit2'] == $updateId['oldId'] )
+                        {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
+                    } 
+                }  
+            }
             if(isset($request["combos"]))
             {
                 ProductCombo::where('product_id', '=', $product->id)->delete();
                 foreach ($request["combos"] as $combo) {
                     $productCombo = new ProductCombo();
-                    $productCombo->product_id = $validated['id'];
+                    $productCombo->product_id = $product->id;
                     $productCombo->name_ar = $combo["name_ar"];
                     $productCombo->name_en = $combo["name_en"];
                     $productCombo->combo_saving = $combo["combo_saving"];
@@ -315,9 +338,23 @@ class ProductController extends Controller
                     }
                 }
             }
-        }
-        else
-        {    
+            if(isset($request["warhouses"]))
+            {
+                WarhouseProduct::where('product_id', '=', $product->id)->delete();
+                foreach ($request["warhouses"] as $newWarehouse) {
+                    
+                    $warehouse = new WarhouseProduct();
+                    $wh = $newWarehouse['warhouse'];
+                    $warehouse->product_id = $product->id;
+                    $warehouse->warhouse_id = $wh["id"];
+                    $warehouse->save();
+                }
+            }
+        //});
+    }
+
+    protected function createProduct($validated, $request){
+        DB::transaction(function () use ($validated, $request) {
             $product= Product::create($validated);
             if(isset($request["modifiers"]))
             { 
@@ -369,15 +406,15 @@ class ProductController extends Controller
                 }
                 foreach ($insertedIds as $transfer) 
                 {
-                   foreach($ids as $updateId)
-                   {
+                    foreach($ids as $updateId)
+                    {
                     if($transfer['unit2'] == $updateId['oldId'] )
                     {
-                       $updateObject = UnitTransfer::find($transfer['id']);
-                       $updateObject->unit2 =  $updateId['newId'];
-                       $updateObject->save();
+                        $updateObject = UnitTransfer::find($transfer['id']);
+                        $updateObject->unit2 =  $updateId['newId'];
+                        $updateObject->save();
                     }
-                   } 
+                    } 
                 }   
             } 
             if ($request->hasFile('image_file')) {
@@ -404,8 +441,8 @@ class ProductController extends Controller
             }
             if(isset($request["recipe"]))
             {
-               $order = 0 ;
-               foreach ($request["recipe"] as $recipe) 
+                $order = 0 ;
+                foreach ($request["recipe"] as $recipe) 
                 {
                     $rec = [];
                     $rec['product_id'] =  $validated['id'];
@@ -467,9 +504,10 @@ class ProductController extends Controller
                     }
                 }
             }
-        }
-        return response()->json(["message"=>"Done"]);
+        });
     }
+
+
     /**
      * Show the specified resource.
      */
@@ -480,7 +518,6 @@ class ProductController extends Controller
         if ($item) {
             return response()->json($item);
         }
-
         return response()->json(['error' => 'Item not found'], 404);
     }
 
@@ -489,7 +526,9 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::find($id);
+        $product  = Product::with(['warhouses' => function ($query) {
+            $query->with('warhouse');
+        }])->find($id);
         $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
         foreach ($product->combos as $d) {
@@ -517,21 +556,6 @@ class ProductController extends Controller
         return view('product::product.edit', compact('product'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
     public function searchProducts(Request $request)
     {
         $query = $request->query('query');  // Get 'query' parameter

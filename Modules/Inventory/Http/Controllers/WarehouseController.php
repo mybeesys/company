@@ -95,4 +95,16 @@ class WarehouseController extends Controller
     {
         return view('warehouse::edit');
     }
+
+    public function searchWarhouse(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $warhouses = Warehouse::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take(10)
+                            ->get();
+        return response()->json($warhouses);
+    }
+
 }

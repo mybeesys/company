@@ -9,5 +9,7 @@ class TreeData
     public $parentKey1;
     public $type1;
     public $empty;
+    public $category_id;
+    public $subcategory_id;
 }
 ?>

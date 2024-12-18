@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
+use Modules\Inventory\Models\Warehouse;
+use Modules\Inventory\Models\WarhouseProduct;
 
 class Product extends Model
 {
@@ -67,7 +69,7 @@ class Product extends Model
     
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
     }
 
     public function serial_numbers()
@@ -82,6 +84,10 @@ class Product extends Model
     public function combos()
     {
         return $this->hasMany(ProductCombo::class, 'product_id', 'id');
+    }
+    public function warhouses()
+    {
+        return $this->hasMany(WarhouseProduct::class, 'product_id', 'id');
     }
 
     public function linkedCombos()

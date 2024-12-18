@@ -54,5 +54,6 @@ Route::middleware([
     Route::get('searchEstablishments', [TransferController::class, 'searchEstablishments'])->name('searchEstablishments');
     Route::get('warehouselist', [WarehouseController::class, 'getWarehouselist'])->name('warehouselist');
     Route::resource('warehouse', WarehouseController::class)->names('warehouse');
+    Route::get('searchWarhouse', [WarehouseController::class, 'searchWarhouse'])->name('searchWarhouse');
     
 });
