@@ -8,8 +8,10 @@ class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
+        $category["id"] = $this->category["id"];
         $category["name_ar"] = $this->category["name_ar"];
         $category["name_en"] = $this->category["name_en"];
+        $subcategory["id"] = $this->subcategory["id"];
         $subcategory["name_ar"] = $this->subcategory["name_ar"];
         $subcategory["name_en"] = $this->subcategory["name_en"];
         return [
