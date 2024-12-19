@@ -11,10 +11,11 @@ class AdjustmentAction
     public static function processPayrollAdjustment($adjustment_repeater, Employee $employee, string $date, $type)
     {
         if ($adjustment_repeater) {
+            $ids = [];
             foreach ($adjustment_repeater as $adjustment) {
-                if (isset($adjustment["{$type}_id"])) {
-                    $ids[] = $adjustment["{$type}_id"];
-                    PayrollAdjustment::where('id', $adjustment["{$type}_id"])->update([
+                if (isset($adjustment["id"])) {
+                    $ids[] = $adjustment["id"];
+                    PayrollAdjustment::where('id', $adjustment["id"])->update([
                         'adjustment_type_id' => $adjustment['adjustment_type'],
                         'amount' => $adjustment['amount'],
                         'amount_type' => $adjustment['amount_type'],

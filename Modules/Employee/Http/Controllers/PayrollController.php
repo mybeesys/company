@@ -47,17 +47,17 @@ class PayrollController extends Controller
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
 
-        // $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
-        // $lock = Cache::lock($lockKey, 30);
+        $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
+        $lock = Cache::lock($lockKey, 30);
 
         if ($request->ajax()) {
             return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
-        // if (!$lock->get()) {
-        //     return to_route('schedules.payrolls.index')
-        //         ->with('error', __('employee::responses.payroll_creation_in_progress'));
-        // }
+        if (!$lock->get()) {
+            return to_route('schedules.payrolls.index')
+                ->with('error', __('employee::responses.payroll_creation_in_progress'));
+        }
 
         $payroll_group = PayrollGroup::with(['payrolls'])
             ->where('date', $date)

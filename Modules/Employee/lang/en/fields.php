@@ -171,4 +171,5 @@ return [
     'basic_wage' => 'Basic wage',
     'total_allowances' => 'Total allowances',
     'total_deductions' => 'Total deductions',
+    'payroll_group' => 'Payroll group',
 ];

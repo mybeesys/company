@@ -20,4 +20,5 @@ return [
     'payroll_creation_in_progress' => 'Payroll processing is already being conducted for the same date and establishment. Please wait 20 seconds and try again',
     'logged_in_successfully' => 'Logged in successfully.',
     'incorrect_credential' => 'The provided credentials do not match our records',
+    'payroll_group_confirmed' => 'Payroll group has been successfully confirmed',
 ];

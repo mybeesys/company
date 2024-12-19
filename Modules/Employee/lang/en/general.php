@@ -142,5 +142,9 @@ return [
     'edit_allowances' => 'Edit allowances',
     'edit_deductions' => 'edit deductions',
     'payroll_group_search' => 'search for payroll group',
+    'this_payroll_group' => 'This payroll group',
+    'confirm_payroll_group' => 'Confirm payroll group',
+    'payroll_group_confirm_confirmation'=>'Are you sure you want to confirm this payroll group?',
+    'confirm' => 'Confirm'
 
 ];
