@@ -15,6 +15,7 @@ class ProductAttributeResource extends JsonResource
         $attribute2["name_ar"] = $this->attribute2["name_ar"];
         $attribute2["name_en"] = $this->attribute2["name_en"];
         return [
+            'id' => $this->id,
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
             'price' => $this->price,
