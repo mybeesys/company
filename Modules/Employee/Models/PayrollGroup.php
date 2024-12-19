@@ -3,7 +3,6 @@
 namespace Modules\Employee\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Establishment\Models\Establishment;
 
 class PayrollGroup extends BaseScheduleModel
 {
@@ -18,4 +17,10 @@ class PayrollGroup extends BaseScheduleModel
     {
         return $this->hasMany(Payroll::class);
     }
+
+    public function employees()
+    {
+        return $this->hasManyThrough(Employee::class, Payroll::class, 'payroll_group_id', 'id', 'id', 'employee_id');
+    }
+    
 }

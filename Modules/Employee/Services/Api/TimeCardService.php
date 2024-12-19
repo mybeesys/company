@@ -25,7 +25,7 @@ class TimeCardService
             }
             $conflict = $this->clockInConflictCheck($employee_id, $establishment_id, $clock_in_time, $date);
             if($conflict){
-                return ['status' => false, 'message' => __('employee::ApiResponses.timecards_conflict'), 'status_code' => 409]; 
+                return ['status' => false, 'message' => __('employee::ApiResponses.timecards_conflict'), 'status_code' => 409];
             }
 
             $timecard_id = TimeCard::create([
@@ -54,6 +54,11 @@ class TimeCardService
     {
         $timecard = TimeCard::find($timecard_id);
         $clock_in_time = Carbon::parse($timecard->clock_in_time);
+
+        if($clock_in_time->gte($clock_out_time)){
+            return ['message' => __('employee::ApiResponses.clock_in_greater_than_clock_out'), 'status_code' => 409];
+        }
+
         $regular_hours = $this->timeSheetRuleService->getRegularWorkHours(true);
         $maximum_overtime = $this->timeSheetRuleService->getMaximumOvertime(true);
 
@@ -78,6 +83,11 @@ class TimeCardService
             'hours_worked' => $hours_worked,
             'overtime_hours' => $overtime_hours
         ]);
-        return $updated;
+
+        if($updated){
+            return ['message' => __('employee::ApiResponses.logged_out'), 'status_code' => 200];
+        }else{
+            return ['message' => __('employee::ApiResponses.server_error'), 'status_code' => 500];
+        }
     }
 }

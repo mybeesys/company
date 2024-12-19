@@ -36,7 +36,7 @@ class AuthController extends Controller
         } else {
             if ($timeCard['status_code'] == 409) {
                 return response()->json([
-                    'error' => $timeCard['message'],
+                    'message' => $timeCard['message'],
                 ], $timeCard['status_code']);
             } else {
                 return response()->json(['error' => $timeCard['message']], $timeCard['status_code']);
@@ -47,10 +47,6 @@ class AuthController extends Controller
     public function destroy(LogoutRequest $request)
     {
         $updated = $this->timeCardService->storeClockOutTimeCard($request->validated('timecard_id'), Carbon::parse($request->validated('clock_out_time')));
-        if ($updated) {
-            return response()->json(['message' => __('employee::ApiResponses.logged_out')], 200);
-        } else {
-            return response()->json(['error' => __('employee::ApiResponses.server_error')], 500);
-        }
+        return response()->json(['message' => $updated['message']], $updated['status_code']);
     }
 }

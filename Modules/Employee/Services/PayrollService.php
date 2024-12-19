@@ -101,7 +101,7 @@ class PayrollService
 
         $allowances_cache = collect(Cache::get("allowance_{$employee->id}_{$date}"));
         $common_html = "<div class='add-allowances-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
-        $html = "";
+                
         if ($allowances_cache->isNotEmpty() && (request()->firstEnter === "false")) {
             foreach ($allowances_cache as $key => $allowance) {
                 $element = " data-allowance-id-{$key}='{$allowance['id']}' 
@@ -109,12 +109,12 @@ class PayrollService
                 data-am-type-{$key}='{$allowance['amount_type']}' 
                 data-allowance-type-{$key}='{$allowance['adjustment_type']}'";
 
-                $html .= "{$common_html}{$element}";
+                $common_html .= "{$element}";
 
                 $allowances_array[$allowance['adjustment_type_name']] = "<div>{$allowance['amount']}</div>";
             }
             $sum = $allowances_cache->sum('amount');
-            $html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}</div>";
         } else {
             $allowances = $allowances->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
 
@@ -131,15 +131,15 @@ class PayrollService
                     data-am-type-{$key}='{$allowance['amount_type']}' 
                     data-allowance-type-{$key}='{$allowance['adjustment_type']}'";
 
-                    $html .= "{$common_html}{$element}";
+                    $common_html .= "{$element}";
 
                     $allowances_array[$allowance->adjustmentType->name] = "<div>{$allowance->amount}</div>";
                 }
             }
             $sum = $allowances?->sum('amount') ?? 0;
-            $html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}</div>";
         }
-        return [$allowances_array, $html, $sum, $ids];
+        return [$allowances_array, $common_html, $sum, $ids];
     }
 
     private function getDeductions(Employee $employee, $date)
@@ -151,7 +151,6 @@ class PayrollService
         $deductions_cache = collect(Cache::get("deduction_{$employee->id}_{$date}"));
         $ids = $deductions->pluck('id')->toArray();
         $common_html = "<div class='add-deductions-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
-        $html = "";
 
         if ($deductions_cache->isNotEmpty() && (request()->firstEnter === "false")) {
             foreach ($deductions_cache as $key => $deduction) {
@@ -162,10 +161,10 @@ class PayrollService
 
                 $deductions_array[$deduction['adjustment_type_name']] = "<div>{$deduction['amount']}</div>";
 
-                $html .= "{$common_html}{$element}";
+                $common_html .= "{$element}";
             }
             $sum = $deductions_cache->sum('amount');
-            $html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}</div>";
 
         } else {
             $deductions = $deductions->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
@@ -185,13 +184,13 @@ class PayrollService
                     data-deduction-type-{$key}='{$deduction['adjustment_type']}'";
 
                     $deductions_array[$deduction['adjustment_type_name']] = "<div>{$deduction['amount']}</div>";
-                    $html .= "{$common_html}{$element}";
+                    $common_html .= "{$element}";
                 }
             }
             $sum = $deductions?->sum('amount') ?? 0;
-            $html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}</div>";
         }
-        return [$deductions_array, $html, $sum, $ids];
+        return [$deductions_array, $common_html, $sum, $ids];
     }
 
 

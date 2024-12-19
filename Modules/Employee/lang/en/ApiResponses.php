@@ -24,5 +24,6 @@ return [
     'server_error' => 'Server error',
     'employee_has_previous_clock_in' => 'The employee has already logged in without logging out',
     'logged_out' => 'Logged out successfully',
-    'timecards_conflict' => 'There is an overlap in the working hours for this employee.' 
+    'timecards_conflict' => 'There is an overlap in the working hours for this employee.',
+    'clock_in_greater_than_clock_out' => 'Clock out time can\'t be lower than clock in time'
 ];

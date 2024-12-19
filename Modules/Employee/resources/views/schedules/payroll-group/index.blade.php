@@ -2,6 +2,19 @@
 
 @section('title', __('menuItemLang.shift_schedule'))
 
+@section('css')
+    <style>
+        .confirm-btn:hover span,
+        .confirm-btn:active span {
+            color: #007bff;
+        }
+
+        .confirm-btn span {
+            color: #99a1b7;
+        }
+    </style>
+@endsection
+
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
@@ -30,6 +43,43 @@
 
         $(document).ready(function() {
             initDatatable();
+
+        });
+        $(document).on('click', '.delete-btn', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            let deleteUrl = `{{ url('/schedule/payroll-group/${id}') }}`;
+
+            showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(
+                    ':name', '{{ __('employee::general.this_payroll_group') }}'),
+                "{{ __('employee::general.delete') }}",
+                "{{ __('employee::general.cancel') }}", undefined,
+                true, "warning").then(function(t) {
+                if (t.isConfirmed) {
+                    ajaxRequest(deleteUrl, 'DELETE').done(function() {
+                        dataTable.ajax.reload();
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.confirm-btn', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            let confirmUrl = `{{ url('/schedule/payroll-group/confirm/${id}') }}`;
+
+            showAlert(`{{ __('employee::general.payroll_group_confirm_confirmation') }}`.replace(
+                    ':name', '{{ __('employee::general.this_payroll_group') }}'),
+                "{{ __('employee::general.confirm') }}",
+                "{{ __('employee::general.cancel') }}", undefined,
+                true, "warning").then(function(t) {
+                if (t.isConfirmed) {
+                    ajaxRequest(confirmUrl, 'POST').done(function() {
+                        dataTable.destroy();
+                        initDatatable();
+                    });
+                }
+            });
         });
 
         function initDatatable() {
