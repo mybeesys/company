@@ -15,6 +15,7 @@ class ProductModifierResource extends JsonResource
         $modifierClass["name_en"] = $this->modifiers["name_en"];
         $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
         return [
+            'id' => $this->id,
             'default' => $this->default,
             'required' => $this->required,
             'free_quantity' => $this->free_quantity,
