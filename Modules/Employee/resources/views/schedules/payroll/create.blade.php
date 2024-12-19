@@ -15,7 +15,7 @@
                             <span>@lang('employee::fields.establishment'): {{ implode(',', $establishments) }} </span>
                         </div>
                         <x-form.input-div class="w-100 min-w-200px">
-                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}" required
                                 value="{{ $payroll_group?->name }}" name="payroll_group_name" />
                         </x-form.input-div>
                         <x-form.input-div class="w-100 min-w-200px">

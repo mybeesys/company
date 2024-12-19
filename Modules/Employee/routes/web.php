@@ -131,6 +131,8 @@ Route::middleware([
                 Route::get('', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::delete('/{payrollGroup}', 'destroy')->name('delete');
+                Route::post('/confirm/{payrollGroup}', 'confirmPayrollGroup')->name('confirm');
             });
 
             Route::controller(PayrollController::class)->name('payrolls.')->prefix('/payroll')->group(function () {

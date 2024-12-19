@@ -142,4 +142,8 @@ return [
     'edit_allowances' => 'تعديل البدلات',
     'edit_deductions' => 'تعديل الحسومات',
     'payroll_group_search' => 'ابحث عن مجموعة كشف راتب',
+    'this_payroll_group' => 'مجموعة كشف الروتب هذه',
+    'confirm_payroll_group' => 'تثبيت مجموعة كشف الرواتب',
+    'payroll_group_confirm_confirmation' => 'هل أنت متأكد من تثبيت مجموعة كشف الرواتب هذه؟',
+    'confirm' => 'تثبيت'
 ];

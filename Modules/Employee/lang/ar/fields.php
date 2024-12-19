@@ -172,4 +172,5 @@ return [
     'basic_wage' => 'الراتب الأساسي',
     'total_allowances' => 'إجمالي البدلات',
     'total_deductions' => 'إجمالي الحسومات',
+    'payroll_group' => 'مجموعة كشف الرواتب',
 ];

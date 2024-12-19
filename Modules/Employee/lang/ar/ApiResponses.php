@@ -24,4 +24,5 @@ return [
     'employee_has_previous_clock_in' => 'الموظف قام بتسجيل الدخول مسبقاً ولم يسجل الخروج', 
     'logged_out' => 'تم تسجيل الخروج بنجاح',
     'timecards_conflict' => 'يوجد تداخل في أوقات الدوام لهذا الموظف',
+    'clock_in_greater_than_clock_out' => 'لا يمكن لوقت الخروج أن يكون قبل وفت الدخول'
 ];
