@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth-central' => CentralAppAuthenticate::class
         ]);
-        $middleware->web(prepend: [
+        $middleware->web(append: [
             LocalizationMiddleware::class,
         ]);
         $middleware->api(prepend: [
