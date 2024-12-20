@@ -4,11 +4,13 @@ import { Button } from 'primereact/button';
 
 const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations }) => {
 
-  const handleClose = () => {
+  const handleClose = (e) => {
+    e.preventDefault();
     onClose();
   }
 
-  const handleDelete = async () => {
+  const handleDelete = async (e) => {
+    e.preventDefault();
     onDelete(row);
   }
 
@@ -18,7 +20,6 @@ const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations }) => 
         <Modal.Header>
           <Modal.Title>{translations.Delete}</Modal.Title>
         </Modal.Header>
-        <form class="needs-validation">
           <Modal.Body>
             <div class="container">
               <p>{translations.Doyouwanttodelete + " " + row.name_ar + " - " + row.name_en}</p>
@@ -26,11 +27,10 @@ const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations }) => 
           </Modal.Body>
 
           <Modal.Footer>
-            <Button variant="secondary" className="btn btn-flex btn-outline btn-color-gray-700 btn-active-color-primary bg-body h-40px fs-7 fw-bold"
-              onClick={e => handleClose()}>{translations.Close}</Button>
-            <Button onClick={e => handleDelete()} variant="primary" className="btn btn-danger">{translations.Delete}</Button>
+            <button variant="secondary" class="btn btn-flex btn-outline btn-color-gray-700 btn-active-color-primary bg-body h-40px fs-7 fw-bold"
+              onClick={e => handleClose(e)}>{translations.Close}</button>
+            <button onClick={e => handleDelete(e)} class="btn btn-danger">{translations.Delete}</button>
           </Modal.Footer>
-        </form>
       </Modal.Dialog>
     </div>
   );

@@ -27,7 +27,13 @@ class RecipeProduct extends Model
         'product_id',
         'quantity',
         'order',
-        'item_type'
+        'item_type',
+        'unit_transfer_id'
+    ];
+
+    protected $relatedModels = [
+        'p' => \Modules\Product\Models\Product::class,
+        'i' => \Modules\Product\Models\Ingredient::class
     ];
 
 
@@ -46,6 +52,28 @@ class RecipeProduct extends Model
     public function products()
     {
         return $this->belongsTo(Product::class, 'item_id', 'id');
+    }
+
+    public function unitTransfer()
+    {
+        return $this->belongsTo(UnitTransfer::class, 'unit_transfer_id', 'id');
+    }
+
+    public function detail()
+    {
+
+        $relatedModel = $this->relatedModels[$this->item_type] ?? null;
+        
+        if(!$relatedModel)
+            return null;
+
+        if ($relatedModel) {
+            return $this->belongsTo($relatedModel, 'item_id', 'id');//->with('vendor');
+        }
+
+        //return $this->belongsTo($currentRelatedModel, 'operation_id', 'id');
+        // Return null if no valid model is found
+        //throw ex;
     }
 
 }

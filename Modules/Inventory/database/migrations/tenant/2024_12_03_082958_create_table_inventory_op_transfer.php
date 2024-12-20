@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('establishment_id');
             $table->foreign('establishment_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+            ->on('establishment_establishments');
             $table->softDeletes();
             $table->timestamps();
         });

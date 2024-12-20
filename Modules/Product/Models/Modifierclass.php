@@ -37,8 +37,8 @@ class ModifierClass extends Model
         return $this->hasMany(Modifier::class, 'class_id', 'id');
     }
 
-    // protected static function newFactory(): ModifierclassFactory
-    // {
-    //     // return ModifierclassFactory::new();
-    // }
+    public function products()
+    {
+        return $this->hasMany(ProductModifier::class, 'modifier_id', 'id');
+    }
 }

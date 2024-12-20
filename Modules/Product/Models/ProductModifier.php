@@ -44,9 +44,4 @@ class ProductModifier extends Model
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
-
-    // protected static function newFactory(): ProductModifierFactory
-    // {
-    //     // return ProductModifierFactory::new();
-    // }
 }

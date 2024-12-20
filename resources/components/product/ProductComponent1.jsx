@@ -6,7 +6,6 @@ import ProductModifier from './ProductModifier';
 import ProductRecipe from './ProductRecipe';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
-import { Button } from 'primereact/button';
 import ProductCombo from './ProductCombo';
 import ProductLinkedCombo from './ProductLinkedCombo';
 import UnitTransferProduct from './UnitTransferProduct';
@@ -18,14 +17,9 @@ const ProductComponent1 = ({ translations, dir }) => {
   const producturl = JSON.parse(rootElement.getAttribute('product-url'));
   const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
   const modifierClassUrl = JSON.parse(rootElement.getAttribute('listModifier-url'));
-  let getProductMatrix = JSON.parse(rootElement.getAttribute('getProductMatrix-url'));
-  let listAttributeUrl = JSON.parse(rootElement.getAttribute('listAttribute-url'));
-  let listRecipeUrl = JSON.parse(rootElement.getAttribute('listRecipe-url'));
-  let ingredientProductUrl = JSON.parse(rootElement.getAttribute('ingredientProductUrl-url'));
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([{data:{}}, {data:{}}]);
   const [currentObject, setcurrentObject] = useState(product);
-  const [productMatrix, setProductMatrix] = useState(!!product.attributeMatrix?product.attributeMatrix : [{}] );
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(product.unitTransfer);
@@ -42,7 +36,6 @@ const ProductComponent1 = ({ translations, dir }) => {
     { key: 'advancedInfo', visible: false },
   ]);
   const [menu, setMenu] = useState(defaultMenu);
-  const [recipe, setRecipe] = useState([]);
   const [ingredientTree, setIngredientTree] = useState([]);
   const [categories, setCategories] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -78,20 +71,14 @@ const ProductComponent1 = ({ translations, dir }) => {
     }
   }
 
-  const onComboChange = (key, value) => {
+  const onProductFieldChange = (key, value) => {
     currentObject[key] = value;
+    console.log(currentObject[key] );
     setcurrentObject({ ...currentObject });
     return {
       message: "Done"
     }
-  }
-
-  const onWarehouseChange = (key, value) => {
-    currentObject[key] = value;
-    setcurrentObject({ ...currentObject });
-    return {
-      message: "Done"
-    }
+    
   }
 
   const saveChanges = async () => {
@@ -101,12 +88,7 @@ const ProductComponent1 = ({ translations, dir }) => {
       r["active"] ? r["active"] = 1 : r["active"] = 0;
       r["track_serial_number"] ? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
       r["sold_by_weight"] ? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
-      r["prep_recipe"] ? r["prep_recipe"] = 1 : r["prep_recipe"] = 0;
       r["modifiers"] = [...currentModifiers];
-      var matrixResult = productMatrix.filter((object) => object.deleted != 1);
-      r["attributeMatrix"] = [...matrixResult];
-      let recipe1 = recipe.filter((object) => object.id != -100);
-      r["recipe"] = [...recipe1];
       let transfer = unitTransfer.filter((object) => object.id != -100);
 
       if (!!productUnit) {
@@ -156,7 +138,6 @@ const ProductComponent1 = ({ translations, dir }) => {
       });
       console.error('There was an error adding the product!', error);
     }
-
     setSubmitdisableButton(false);
   }
 
@@ -190,12 +171,6 @@ const ProductComponent1 = ({ translations, dir }) => {
 
     const ingredient = response.data.ingredient.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id + e.type, cost: e.cost } });
     setIngredientTree(ingredient);
-    const recipe = response.data.recipe.map(e => { return { id: e.newid, quantity: e.quantity, cost: null, newid: e.newid } });
-    recipe.push({ id: -100, quantity: null, cost: null, newid: null });
-    setRecipe(recipe);
-
-    const matrix = response.data.matrix;
-    setProductMatrix(matrix);
 
     const attribute = response.data.attribute;
     setAttributesTree(attribute);
@@ -221,10 +196,8 @@ const ProductComponent1 = ({ translations, dir }) => {
       "productForComboLOV": products,
       "linkedComboPromptLOV": linkedComboPrompts,
       "linkedComboLOV": linkedCombos,
-      "recipe": recipe,
       "ingredient": ingredient,
       "attribute": attribute,
-      "matrix": matrix
     });
   }
 
@@ -249,42 +222,38 @@ const ProductComponent1 = ({ translations, dir }) => {
     setUnitTransfers([...result]);
   }
 
-  const handleGenerateMatrix = (newMatrix) => {
-    setProductMatrix([...newMatrix]);
-  }
+  // const handleActiveDeactiveMatrix = (id) => {
+  //   var editedMatrix = [...productMatrix];
+  //   var index = 0;
+  //   for (let i = 0; i < editedMatrix.length; i++) {
+  //     if (editedMatrix[i].id == id) {
+  //       break;
+  //     }
+  //     index = index + 1;
+  //   }
+  //   if (editedMatrix[index]['deleted'] == 1)
+  //     editedMatrix[index]['deleted'] = 0;
+  //   else
+  //     editedMatrix[index]['deleted'] = 1;
 
-  const handleActiveDeactiveMatrix = (id) => {
-    var editedMatrix = [...productMatrix];
-    var index = 0;
-    for (let i = 0; i < editedMatrix.length; i++) {
-      if (editedMatrix[i].id == id) {
-        break;
-      }
-      index = index + 1;
-    }
-    if (editedMatrix[index]['deleted'] == 1)
-      editedMatrix[index]['deleted'] = 0;
-    else
-      editedMatrix[index]['deleted'] = 1;
+  //   setProductMatrix([...editedMatrix]);
+  // }
 
-    setProductMatrix([...editedMatrix]);
-  }
+  // const handleProdMatrixChange = (currentKey, editingRow) => {
+  //   var editedMatrix = [...productMatrix];
+  //   var index = 0;
 
-  const handleProdMatrixChange = (currentKey, editingRow) => {
-    var editedMatrix = [...productMatrix];
-    var index = 0;
-
-    for (let i = 0; i < editedMatrix.length; i++) {
-      if (editedMatrix[i].id == currentKey) {
-        break;
-      }
-      index = index + 1;
-    }
-    for (var key in editingRow) {
-      editedMatrix[index][key] = editingRow[key];
-    }
-    setProductMatrix([...editedMatrix]);
-  }
+  //   for (let i = 0; i < editedMatrix.length; i++) {
+  //     if (editedMatrix[i].id == currentKey) {
+  //       break;
+  //     }
+  //     index = index + 1;
+  //   }
+  //   for (var key in editingRow) {
+  //     editedMatrix[index][key] = editingRow[key];
+  //   }
+  //   setProductMatrix([...editedMatrix]);
+  // }
 
   const handleModifierChange = (modifierId, key, value) => {
     let modifier = {
@@ -456,11 +425,10 @@ const ProductComponent1 = ({ translations, dir }) => {
                       parentHandlechanges={parentHandlechanges}
                       product={currentObject}
                       saveChanges={saveChanges}
-                      productMatrix={productMatrix}
                       AttributesTree={AttributesTree}
-                      onChange={handleProdMatrixChange}
-                      onActiveDeactiveMatrix={handleActiveDeactiveMatrix}
-                      onGenerate={handleGenerateMatrix}
+                      onChange={onProductFieldChange}
+                      //onActiveDeactiveMatrix={handleActiveDeactiveMatrix}
+                      //onGenerate={handleGenerateMatrix}
                       />}
                 </div>
               </div>
@@ -482,10 +450,9 @@ const ProductComponent1 = ({ translations, dir }) => {
                 <ProductRecipe
                     translations={translations}
                     product={currentObject}
-                    productRecipe={recipe}
+                    productRecipe={currentObject.recipe}
                     ingredientTree={ingredientTree}
-                    parentHandleRecipe={parentHandleRecipe}
-                    handleChange={parentHandlechanges}
+                    onBasicChange={onProductFieldChange}
                     dir={dir} />
 
                 </div>
@@ -495,7 +462,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                   <ProductCombo
                       translations={translations}
                       product={currentObject}
-                      onComboChange={onComboChange}
+                      onComboChange={onProductFieldChange}
                       products={productLOVs.productForComboLOV}
                       dir={dir} />
 
@@ -506,7 +473,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                   <ProductLinkedCombo
                       translations={translations}
                       product={currentObject}
-                      onComboChange={onComboChange}
+                      onComboChange={onProductFieldChange}
                       pormpts={productLOVs.linkedComboPromptLOV}
                       linkedCombos={productLOVs.linkedComboLOV}
                       products={productLOVs.productForComboLOV}
@@ -520,7 +487,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                         translations={translations}
                         dir={dir}
                         currentObject={currentObject}
-                        onBasicChange={onWarehouseChange}/>
+                        onBasicChange={onProductFieldChange}/>
                 </div>
               </div>
               <div class="tab-content">

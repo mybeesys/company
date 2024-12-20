@@ -66,7 +66,8 @@ class ProductController extends Controller
             $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
             foreach ($recipes as $recipe) {
                 $recipe->products = $recipe->products;
-                $recipe->products->unitTransfers = $recipe->products->unitTransfers;
+                if(isset($recipe->products))
+                    $recipe->products->unitTransfers = $recipe->products->unitTransfers;
             }
         }
         else
@@ -207,6 +208,7 @@ class ProductController extends Controller
                     $recipeIngredient = explode("-",$recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
+                    $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
                     $rec['order'] =  $order++;
                     RecipeProduct::create($rec);
                 }
@@ -218,9 +220,9 @@ class ProductController extends Controller
                     $oldAttribute->delete();
                 }
                 
-                if(isset($request["attributeMatrix"]))
+                if(isset($request["attributes"]))
                 {
-                foreach ($request["attributeMatrix"] as $attribute) 
+                foreach ($request["attributes"] as $attribute) 
                 {
                     $att = [];
                     $att['product_id'] =  $product->id;
@@ -338,9 +340,9 @@ class ProductController extends Controller
                     }
                 }
             }
+            WarhouseProduct::where('product_id', '=', $product->id)->delete();
             if(isset($request["warhouses"]))
             {
-                WarhouseProduct::where('product_id', '=', $product->id)->delete();
                 foreach ($request["warhouses"] as $newWarehouse) {
                     
                     $warehouse = new WarhouseProduct();
@@ -365,9 +367,9 @@ class ProductController extends Controller
                     ProductModifier::create($modifier);
                 }
             }
-            if(isset($request["attributeMatrix"]))
+            if(isset($request["attributes"]))
             {
-                foreach ($request["attributeMatrix"] as $attribute) 
+                foreach ($request["attributes"] as $attribute) 
                 {
                     $att = [];
                     $att['product_id'] =  $product->id;
@@ -528,7 +530,24 @@ class ProductController extends Controller
     {
         $product  = Product::with(['warhouses' => function ($query) {
             $query->with('warhouse');
+        }])->with(['recipe' => function ($query) {
+            $query->with('unitTransfer');
+        }])->with(['attributes' => function ($query) {
+            $query->with('attribute1');
+            $query->with('attribute2');
         }])->find($id);
+        foreach ( $product->recipe as $rec) 
+        {
+            $rec->newid = $rec->item_id."-".$rec->item_type;
+            $rec->cost = $rec->detail->cost;
+        }
+        foreach ( $product->attributes as $attr) 
+        {
+            $attr->attribute1Name_en = $attr->attribute1->name_en;
+            $attr->attribute1Name_ar = $attr->attribute1->name_ar;
+            $attr->attribute2Name_en = $attr->attribute2->name_en;
+            $attr->attribute2Name_ar = $attr->attribute2->name_ar;
+        }
         $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
         foreach ($product->combos as $d) {

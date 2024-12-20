@@ -69,7 +69,7 @@ class Product extends Model
     
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
     }
 
     public function serial_numbers()
@@ -81,6 +81,12 @@ class Product extends Model
     {
         return $this->hasMany(ProductModifier::class, 'product_id', 'id');
     }
+
+    public function recipe()
+    {
+        return $this->hasMany(RecipeProduct::class, 'product_id', 'id');
+    }
+    
     public function combos()
     {
         return $this->hasMany(ProductCombo::class, 'product_id', 'id');

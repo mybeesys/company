@@ -3,7 +3,7 @@ import AsyncSelect from 'react-select/async';
 import { getName, getRowName } from "../lang/Utils";
 
 
-const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, searchUrl }) => {
+const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, searchUrl, isMulti }) => {
     const [selectedOption, setSelectedOption] = useState(null); // State to store the selected value
     const [options, setOptions] = useState([]); // State to store the options
 
@@ -19,7 +19,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
 
     useEffect(() => {
         fetchOptions();
-    }, [currentObject]);
+    }, [currentObject, searchUrl]);
 
     const fetchOptions = async () => {
         let url = searchUrl.includes('?') ? `/${searchUrl}&key=` : `/${searchUrl}?key=`;
@@ -102,6 +102,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
         <AsyncSelect
             cacheOptions
             loadOptions={promiseOptions}
+            isMulti={!!isMulti}
             options={options}
             defaultOptions={options}
             value={selectedOption}

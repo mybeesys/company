@@ -1,6 +1,6 @@
 import { useState } from "react";
+import TreeTableComponentLocal from "../comp/TreeTableComponentLocal";
 import ProductComboUpchargeModal from "./ProductComboUpchargeModal";
-import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
 
 
 const ProductCombo = ({translations, dir, product, products, onComboChange}) => {
@@ -81,10 +81,10 @@ const ProductCombo = ({translations, dir, product, products, onComboChange}) => 
                     combo = {currentCombo}
                     dir={dir}
                 />
-                <TreeTableEditorLocal
+                <TreeTableComponentLocal
                     translations={translations}
                     dir={dir}
-                    header={false}
+                    header={true}
                     addNewRow={true}
                     type= {"productCombo"}
                     title={translations.productCombos}

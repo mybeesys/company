@@ -1,13 +1,20 @@
-import TreeTableComponentLocal from "../comp/TreeTableComponentLocal";
+import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
 
 const ProductWarhouse = ({ translations, dir, currentObject, onBasicChange }) => {
 
 
+    const handleDelete = (row) =>{
+        let index = currentObject.warhouses.findIndex(x=>x.id == row.id);
+        currentObject.warhouses.splice(index, 1); // Removes 1 element at index 2
+        onBasicChange("warhouses", currentObject.warhouses);
+        return { message : 'Done'};
+    }
+
     return (
-        <TreeTableComponentLocal
+        <TreeTableEditorLocal
             translations={translations}
             dir={dir}
-            header={true}
+            header={false}
             addNewRow={true}
             type={"warehouses"}
             title={translations.warhouses}
@@ -21,7 +28,7 @@ const ProductWarhouse = ({ translations, dir, currentObject, onBasicChange }) =>
             ]}
             actions={[]}
             onUpdate={(nodes) => onBasicChange("warhouses", nodes)}
-            onDelete={(nodes) => onBasicChange("warhouses", nodes)} />
+            onDelete={handleDelete} />
     )
 }
 

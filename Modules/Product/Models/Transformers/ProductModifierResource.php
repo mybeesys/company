@@ -13,7 +13,16 @@ class ProductModifierResource extends JsonResource
     {
         $modifierClass["name_ar"] = $this->modifiers["name_ar"];
         $modifierClass["name_en"] = $this->modifiers["name_en"];
-        $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
+        if(isset($this->modifiers)){
+            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
+        }
+        if(isset($this->products)){
+            $modifierClass["product"] = [];
+            $modifierClass["product"]["id"] = $this->products["id"];
+            $modifierClass["product"]["name_ar"] = $this->products["name_ar"];
+            $modifierClass["product"]["name_en"] = $this->products["name_en"];
+        }
+        
         return [
             'id' => $this->id,
             'default' => $this->default,

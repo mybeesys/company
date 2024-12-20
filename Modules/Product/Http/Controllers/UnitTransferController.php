@@ -29,9 +29,18 @@ class UnitTransferController extends Controller
     {
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
+        $units =[];
+        if ($request->has('id')) {
+            
+            $recipeIngredient = explode("-",$request['id']);
+            
+            if($recipeIngredient[1] == 'p')
+                $request['product_id'] = $recipeIngredient[0];
+            else
+                $request['ingredient_id'] = $recipeIngredient[0];
+        }
         $porduct_id = $request->query('product_id', '');
         $ingredient_id = $request->query('ingredient_id', '');
-        $units =[];
         if ($request->has('product_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
                             ->where('product_id', '=', $porduct_id)

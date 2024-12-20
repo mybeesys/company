@@ -4,7 +4,7 @@ namespace Modules\Product\Models\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ModifierClassResource extends JsonResource
+class AttributeResource extends JsonResource
 {
     public function toArray($request)
     {
@@ -12,7 +12,7 @@ class ModifierClassResource extends JsonResource
             'id' => $this->id,
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
-            'products' => ProductModifierResource::collection($this->products)
+            'products' => ProductAttributeResource::collection($this->products)
         ];
     }
 }

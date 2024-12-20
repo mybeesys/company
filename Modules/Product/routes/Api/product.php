@@ -12,3 +12,9 @@ Route::controller(ProductController::class)->group(function(){
 Route::controller(ProductController::class)->group(function(){
     Route::get('/products/{id?}', 'product');
 });
+Route::controller(ProductController::class)->group(function(){
+    Route::get('/modifiers', 'modifiers');
+});
+Route::controller(ProductController::class)->group(function(){
+    Route::get('/attributes', 'attributes');
+});

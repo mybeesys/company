@@ -118,7 +118,7 @@ const CustomMenuTime = ({ translations, customMenuDates, onDateTimeChange }) => 
                                                 <div class="col-4"><span>{renderDateCell(customMenuDates, 'to_date', toDate(customMenuDates.from_date, 'D'), null)}</span></div>
                                                 <div class="col-1"/>
                                                 <div class="col-3">
-                                                    <a href='#' onClick={(e) => SetEditMode(!editMode)}>
+                                                    <a href='javascript:void(0)' onClick={(e) => SetEditMode(!editMode)}>
                                                         {translations.editEffectiveDateTime}
                                                     </a>
                                                 </div>    
@@ -128,9 +128,8 @@ const CustomMenuTime = ({ translations, customMenuDates, onDateTimeChange }) => 
                                         value={customMenuDates.times} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                                             <Column header={translations.day} style={{ width: '20%' }} body={(node) => (renderDayCell(node, 'day_no', true))} sortable expander></Column>
                                             <Column header="" style={{ width: '20%' }} body={(node) => (renderTimeCell(node, 'from_time'))} sortable></Column>
-                                            <Column header="" style={{ width: '10%' }} body={(node) => (renderTimeCell(node, 'to_time'))} sortable></Column>
+                                            <Column header="" style={{ width: '20%' }} body={(node) => (renderTimeCell(node, 'to_time'))} sortable></Column>
                                             <Column header="" style={{ width: '10%' }} body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
-                                           
                                         </TreeTable>
                                     </form>
                                 </div>

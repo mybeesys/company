@@ -5,6 +5,7 @@ namespace Modules\Product\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Attribute;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Product_Attribute;
 
@@ -106,22 +107,7 @@ class AttributeController extends Controller
         return response()->json(["message"=>"Done"]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        $item = Modifier::find($id);
-
-        if ($item) {
-            return response()->json($item);
-        }
-
-        return response()->json(['error' => 'Item not found'], 404);
-    }
+    
 
     /**
      * Show the form for editing the specified resource.
