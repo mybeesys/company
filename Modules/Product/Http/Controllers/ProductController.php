@@ -296,7 +296,6 @@ class ProductController extends Controller
                         {
                             $updateObject = UnitTransfer::find($transfer['id']);
                             $updateObject->unit2 =  $updateId['newId'];
-                            $updateObject->unit1 =  $transfer['unit1'];
                             $updateObject->save();
                         }
                     } 
