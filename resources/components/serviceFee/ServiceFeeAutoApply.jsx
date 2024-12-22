@@ -26,22 +26,11 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="trending__product">
-                            <div class="row border-bottom">
-                                <div class="col-lg-8 col-md-8 col-sm-8">
-                                    <div class="section-title">
-                                        <h4>{translations.servic_fee_auto_apply}</h4>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-4 col-sm-4">
-                                    <div class="btn__all">
-                                    </div>
-                                </div>
-                            </div>
                             <div class="container">
                                 <div class="row">
                                     <div class="col-6">
                                         <label for="name_ar" class="col-form-label">{translations.auto_apply_type}</label>
-                                        <select class="form-control selectpicker" value={currentObject.auto_apply_type}
+                                        <select class="form-control form-control-solid custom-height selectpicker" value={currentObject.auto_apply_type}
                                             onChange={(e) => onBasicChange('auto_apply_type', e.target.value)} >
                                              <option value="-1" disabled selected={!!!currentObject.auto_apply_type}></option>
                                             {autoApplyTypes.map((autoApplyType) => (
@@ -98,7 +87,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                         <div class="row">
                                             <div class="col-12">
                                                 <label for="credit_type" class="col-form-label">{translations.creditType}</label>
-                                                <select class="form-control selectpicker" value={currentObject.credit_type}
+                                                <select class="form-control form-control-solid custom-height selectpicker" value={currentObject.credit_type}
                                                     onChange={(e) => onBasicChange('credit_type', e.target.value)} >
                                                     {creditCardTypes.map((creditCardType) => (
                                                         <option key={creditCardType.value} value={creditCardType.value}>
@@ -125,7 +114,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                         currentObject.auto_apply_type == 1 ? 
                                         <div class="col-6">
                                             <label for="guestCount" class="col-form-label">{translations.guestCountValue}</label>
-                                            <input type="number" class="form-control" id="guestCount" value={currentObject.guestCount}
+                                            <input type="number" class="form-control form-control-solid custom-height" id="guestCount" value={currentObject.guestCount}
                                                 onChange={(e) => onBasicChange('guestCount', e.target.value)} required></input>
                                         </div>
                                         :

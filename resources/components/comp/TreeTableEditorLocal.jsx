@@ -11,7 +11,7 @@ import MultiDropDown from './MultiDropDown';
 
 const animatedComponents = makeAnimated();
 const TreeTableEditorLocal = ({ translations, dir, header, cols, 
-                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete, addNewRow}) => {
+                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete, addNewRow, rowTitle}) => {
 
     const formRef = useRef(null);
 
@@ -62,7 +62,7 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
             Swal.fire({
                 show: showAlert,
                 title: 'Error',
-                text: translations[message],
+                text: translations[response.message],
                 icon: "error",
                 timer: 2000,
                 showCancelButton: false,
@@ -115,7 +115,7 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
 
     const renderCell = (node, col, index) => {//key, autoFocus, options, type, editable, required, index, customCell) => {
         if(!!col.customCell && !!!node.data.empty){
-            return col.customCell(node.data, col.key, node.key == currentKey, col.editable, handleEditorChange);
+            return col.customCell(node.data, col.key, col.editable, handleEditorChange);
         }
         let firstCell = index == "0" ? true: false; 
         if (col.type == "Text")
@@ -406,7 +406,7 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
                     </a> :<></>}
                     {actions.map(action => 
                         <a href="javascript:void(0);" onClick={() => action.execute(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
-                            <i class={`ki-outline ${action.icon} fs-2`}></i>
+                            {action.customRender ? action.customRender(node.data) : <i class={`ki-outline ${action.icon} fs-2`}></i>}
                         </a>
                      )}
                 </div> : <></>
@@ -429,6 +429,7 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
                         onClose={handleClose}
                         onDelete={handleDelete}
                         row={currentNode}
+                        rowTitle = {rowTitle}
                         translations={translations}
                     />
                 </div>

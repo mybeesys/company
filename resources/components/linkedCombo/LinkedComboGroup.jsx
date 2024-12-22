@@ -1,15 +1,15 @@
 
-import TreeTableComponentLocal from '../comp/TreeTableComponentLocal';
+import TreeTableEditorLocal from '../comp/TreeTableEditorLocal';
 
 
 const LinkedComboGroup = ({dir, translations, currentObject, products, onComboChange}) => {
   
   return (
     <div>
-       <TreeTableComponentLocal
+       <TreeTableEditorLocal
         translations={translations}
         dir={dir}
-        header={true}
+        header={false}
         addNewRow={true}
         type= {"productCombo"}
         title={translations.groups}

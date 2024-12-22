@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { Button } from 'primereact/button';
 
-const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations }) => {
+const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations, rowTitle }) => {
 
   const handleClose = (e) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ const DeleteModalLocal = ({ visible, onClose, onDelete, row, translations }) => 
         </Modal.Header>
           <Modal.Body>
             <div class="container">
-              <p>{translations.Doyouwanttodelete + " " + row.name_ar + " - " + row.name_en}</p>
+              <p>{`${translations.Doyouwanttodelete} ${!!!rowTitle ? row.name_ar + " - " + row.name_en : row[rowTitle]}`}</p>
             </div>
           </Modal.Body>
 

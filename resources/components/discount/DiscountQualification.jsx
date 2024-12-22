@@ -10,9 +10,8 @@ const DiscountQualification = ({ translations, discountQualifications, discountQ
         <div class="card-body" dir={dir}>
             <div class="form-group">
                 <div class="row">
-                    <div class="col-6">
-                        <label for="qualification" class="col-form-label">{translations.discount_qualification}</label>
-                        <select id="qualification" class="form-control selectpicker" value={currentObject.qualification} 
+                    <div class="col-6 pt-3">
+                        <select id="qualification" class="form-control form-control-solid custom-height selectpicker" value={currentObject.qualification} 
                             onChange={(e) => {
                                 
                                 onBasicChange('qualification', e.target.value);
@@ -27,12 +26,14 @@ const DiscountQualification = ({ translations, discountQualifications, discountQ
                             ))}
                         </select>
                     </div>
+                </div>
+                <div class ="row">
                     {!!!currentObject.qualification ? <></> 
                     :
-                    currentObject.qualification== "1" ? 
+                    currentObject.qualification== "1" ?
                     <div class="col-6">
                         <label for="qualification_type" class="col-form-label">{translations.discount_qualification_type}</label>
-                        <select id="qualification_type" class="form-control selectpicker" value={currentObject.qualification_type} 
+                        <select id="qualification_type" class="form-control form-control-solid custom-height selectpicker" value={currentObject.qualification_type} 
                             onChange={(e) => {
                                 onBasicChange('qualification_type', e.target.value)
                                 onItemSelectionChange([]);
@@ -89,12 +90,12 @@ const DiscountQualification = ({ translations, discountQualifications, discountQ
                 <div class="row">
                     <div class="col-6">
                         <label for="required_product_count" class="col-form-label">{translations.discount_product_count}</label>
-                        <input type="text" class="form-control" id="required_product_count" value={currentObject.required_product_count}
+                        <input type="text" class="form-control form-control-solid custom-height" id="required_product_count" value={currentObject.required_product_count}
                             onChange={(e) => onBasicChange('required_product_count', e.target.value)}></input>
                     </div>
                     <div class="col-6">
                         <label for="minimum_amount" class="col-form-label">{translations.discount_minimum_amount}</label>
-                        <input type="text" class="form-control" id="minimum_amount" value={currentObject.minimum_amount}
+                        <input type="text" class="form-control form-control-solid custom-height" id="minimum_amount" value={currentObject.minimum_amount}
                             onChange={(e) => onBasicChange('minimum_amount', e.target.value)}></input>
                     </div>
                 </div>

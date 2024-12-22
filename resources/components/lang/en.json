@@ -43,8 +43,8 @@
   "attr_set2_value": "Attributes List Value 2",
   "attr_set1": "Attributes List 1",
   "attr_set1_value": "Attributes List Value 1",
-  "attr_value1": "Attr1",
-  "attr_value2": "Attr2",
+  "attr_value1": "Attr 1",
+  "attr_value2": "Attr 2",
   "generateMatrix": "Generate Matrix",
   "required": "Required",
   "default": "Default",
@@ -221,5 +221,6 @@
   "warehouses" : "Warehouses",
   "warehouse" : "Warehouse",
   "image" : "Image",
-  "noDefaultUnit" : "Unit Required"
+  "noDefaultUnit" : "Unit Required",
+  "relatedUnitTransfer" : "Unit Related to Other"
 }

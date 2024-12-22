@@ -280,6 +280,14 @@ class ProductController extends Controller
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer->save();
                     }
+                    else{
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer['unit2'] = $transfer['unit2'];
+                        $updatedTransfer['primary'] = $transfer['primary'];
+                        $updatedTransfer['transfer'] = $transfer['transfer'];
+                        $updatedTransfer->save();
+                    }
                 }
                 foreach ($insertedIds as $transfer){
                     foreach($ids as $updateId)
@@ -288,6 +296,7 @@ class ProductController extends Controller
                         {
                             $updateObject = UnitTransfer::find($transfer['id']);
                             $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->unit1 =  $transfer['unit1'];
                             $updateObject->save();
                         }
                     } 

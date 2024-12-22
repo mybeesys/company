@@ -95,18 +95,18 @@ class IngredientController extends Controller
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
             
             $ingredient= Ingredient::create($validated);
-
+        
             if(isset($request["transfer"]))
             {
-                    $ids=[];
-                    $insertedIds=[];
+                $ids=[];
+                $insertedIds=[];
                 foreach ($request["transfer"] as $transfer) 
                 {
                     $newid = [];
                     $inserted = [];
                     $tran = [];
                     $newid['oldId'] =  $transfer['id'];
-                    $tran['ingredient_id'] =  $validated['id'];
+                    $tran['ingredient_id'] =  $ingredient->id;
                     $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
                     $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
@@ -120,19 +120,21 @@ class IngredientController extends Controller
                 }
                 foreach ($insertedIds as $transfer) 
                 {
-                   foreach($ids as $updateId)
-                   {
+                    foreach($ids as $updateId)
+                    {
                     if($transfer['unit2'] == $updateId['oldId'] )
                     {
-                       $updateObject = UnitTransfer::find($transfer['id']);
-                       $updateObject->unit2 =  $updateId['newId'];
-                       $updateObject->save();
+                        $updateObject = UnitTransfer::find($transfer['id']);
+                        $updateObject->unit2 =  $updateId['newId'];
+                        $updateObject->save();
                     }
-                   } 
+                    } 
                 }   
             } 
             
-        } else {
+            
+        }
+         else {
             $ingredient = Ingredient::where([
                 ['id', '!=', $validated['id']],
                 ['name_ar', '=', $validated['name_ar']]])->first();
@@ -158,51 +160,65 @@ class IngredientController extends Controller
           
             $oldUnites = UnitTransfer::where('ingredient_id' , $validated['id'])->get();
             
-            if(isset($request["transfer"]))
-            {
+            if(isset($request["transfer"])){
                 $ids=[];
                 $insertedIds=[];
-            foreach ( $oldUnites  as $old)
-            {
-                $newid = [];
-                $newid['oldId'] = $old['id'];
-                $newid['newId'] = $old['id'];
-                $ids[] = $newid ;
-            }
-            foreach ($request["transfer"] as $transfer) 
-            {
-                if($transfer['id'] <= 0)
-                {
-                $newid = [];
-                $inserted = [];
-                $tran = [];
-                $newid['oldId'] =  $transfer['id'];
-                $tran['ingredient_id'] =  $validated['id'];
-                $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
-                $tran['unit1'] = $transfer['unit1'];
-                $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                $id = UnitTransfer::create($tran)->id;
-                $inserted['id'] = $id;
-                $inserted['unit2'] = $transfer['unit2'];
-                $newid['newId'] =  $id;
-                $ids[] = $newid ;
-                $insertedIds[] = $inserted;
+                $updatedTransfers = [];
+                $requestIds = array_map(function($item) {
+                    return $item["id"];
+                }, $request["transfer"]);
+                UnitTransfer::where('ingredient_id', '=',  $validated['id'])->whereNotIn('id', $requestIds)->delete();  
+                foreach ($oldUnites  as $old){
+                    $newid = [];
+                    $newid['oldId'] = $old['id'];
+                    $newid['newId'] = $old['id'];
+                    $ids[] = $newid ;
                 }
-            }
-            foreach ($insertedIds as $transfer) 
-            {
-               foreach($ids as $updateId)
-               {
-                if($transfer['unit2'] == $updateId['oldId'] )
-                {
-                   $updateObject = UnitTransfer::find($transfer['id']);
-                   $updateObject->unit2 =  $updateId['newId'];
-                   $updateObject->save();
+                foreach ($request["transfer"] as $transfer){
+                    if($transfer['id'] <= 0)
+                    {
+                        $newid = [];
+                        $inserted = [];
+                        $tran = [];
+                        $newid['oldId'] =  $transfer['id'];
+                        $tran['ingredient_id'] =  $validated['id'];
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                        $tran['unit1'] = $transfer['unit1'];
+                        $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $id = UnitTransfer::create($tran)->id;
+                        $inserted['id'] = $id;
+                        $inserted['unit2'] = $transfer['unit2'];
+                        $newid['newId'] =  $id;
+                        $ids[] = $newid ;
+                        $insertedIds[] = $inserted;
+                    }
+                    else if(!isset($transfer['unit2'])){
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer->save();
+                    }
+                    else{
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer['unit2'] = $transfer['unit2'];
+                        $updatedTransfer['primary'] = $transfer['primary'];
+                        $updatedTransfer['transfer'] = $transfer['transfer'];
+                        $updatedTransfer->save();
+                    }
                 }
-               } 
+                foreach ($insertedIds as $transfer){
+                    foreach($ids as $updateId)
+                    {
+                        if($transfer['unit2'] == $updateId['oldId'] )
+                        {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
+                    } 
+                }  
             }
-        }
             $Ingredient->save();
         }
         return response()->json(["message" => "Done"]);

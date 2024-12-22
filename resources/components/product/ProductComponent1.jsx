@@ -22,7 +22,7 @@ const ProductComponent1 = ({ translations, dir }) => {
   const [currentObject, setcurrentObject] = useState(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
-  const [unitTransfer, setUnitTransfers] = useState(product.unitTransfer);
+  const [unitTransfer, setUnitTransfers] = useState(!!product.unitTransfer ? product.unitTransfer : []);
   const [currentTab, setCurrentTab] = useState(1);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
@@ -89,7 +89,7 @@ const ProductComponent1 = ({ translations, dir }) => {
       r["track_serial_number"] ? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
       r["sold_by_weight"] ? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
       r["modifiers"] = [...currentModifiers];
-      let transfer = unitTransfer.filter((object) => object.id != -100);
+      let transfer = [...unitTransfer];
 
       if (!!productUnit) {
         if (!!!productUnit.id)
@@ -189,7 +189,7 @@ const ProductComponent1 = ({ translations, dir }) => {
     const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.filter(e => e.unit2 != null).map(e => {
       return { id: e.id, transfer: e.transfer, unit1: e.unit1, unit2: e.unit2, primary: e.primary, newid: e.newid }
     }) : [];
-    unitTransfersResult.push({ id: -100, unit1: null, unit2: null, primary: false, transfer: null, newid: null });
+    //unitTransfersResult.push({ id: -100, unit1: null, unit2: null, primary: false, transfer: null, newid: null });
     setUnitTransfers(unitTransfersResult);
 
     setProductLOVs({

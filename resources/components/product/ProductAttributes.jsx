@@ -4,7 +4,8 @@ import { Dropdown, Form } from 'react-bootstrap';
 import ConfirmationModal from './ConfirmationModal';
 import SweetAlert2 from 'react-sweetalert2';
 import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
-const ProductAttribute = ({ translations, onChange, onActiveDeactiveMatrix, product, AttributesTree }) => {
+import { colors } from 'laravel-mix/src/Log';
+const ProductAttribute = ({ translations, onChange, product, AttributesTree }) => {
   const rootElement = document.getElementById('root');
   let dir = rootElement.getAttribute('dir');
   const [Attributes1, setAttributes1] = useState([]);
@@ -166,10 +167,30 @@ const ProductAttribute = ({ translations, onChange, onActiveDeactiveMatrix, prod
 
   const handleDelete = (row) =>{
     let index = product.attributes.findIndex(x=>x.id == row.id);
-    currentObject.attributes.splice(index, 1); // Removes 1 element at index 2
-    onBasicChange("attributes", currentObject.attributes);
+    if (product.attributes[index]['deleted'] == 1)
+      product.attributes[index]['deleted'] = 0;
+    else
+      product.attributes[index]['deleted'] = 1;
+    onChange("attributes", product.attributes);
     return { message : 'Done'};
 }
+
+// const handleActiveDeactiveMatrix = (id) => {
+  //   var editedMatrix = [...productMatrix];
+  //   var index = 0;
+  //   for (let i = 0; i < editedMatrix.length; i++) {
+  //     if (editedMatrix[i].id == id) {
+  //       break;
+  //     }
+  //     index = index + 1;
+  //   }
+  //   if (editedMatrix[index]['deleted'] == 1)
+  //     editedMatrix[index]['deleted'] = 0;
+  //   else
+  //     editedMatrix[index]['deleted'] = 1;
+
+  //   setProductMatrix([...editedMatrix]);
+  // }
 
   return (
     <>
@@ -302,23 +323,37 @@ const ProductAttribute = ({ translations, onChange, onActiveDeactiveMatrix, prod
             cols={[
               {
                 key: dir == "rtl" ? "attribute1Name_ar" : "attribute1Name_en",
-                title: "attr_value1", autoFocus: false, type: "Text", width: '20%',
-                editable: false
+                title: "attr_value1", autoFocus: false, type: "Text", width: '10%',
+                editable: false,
+                customCell : (data, key) => {
+                  return (
+                    <span style={data.deleted == 1? {color:"#DCDCDC"}: {color:"black"}}>{data[key]}</span>
+                  )
+                }
               },
               {
                 key: dir == "rtl" ? "attribute2Name_ar" : "attribute2Name_en",
-                title: "attr_value2", autoFocus: false, type: "Text", width: '20%',
-                editable: false
+                title: "attr_value2", autoFocus: false, type: "Text", width: '10%',
+                editable: false,
+                customCell : (data, key) => {
+                  return (
+                    <span style={data.deleted == 1? {color:"#DCDCDC"}: {color:"black"}}>{data[key]}</span>
+                  )
+                }
               },
-              { key: "name_ar", autoFocus: true, type: "Text", width: '20%', editable: true, required: true },
-              { key: "name_en", autoFocus: true, type: "Text", width: '20%', editable: true, required: true },
-              { key: "price", autoFocus: true, type: "Decimal", width: '20%', editable: true, required: true },
-              { key: "barcode", autoFocus: true, type: "Text", width: '20%', editable: true, required: false },
-              { key: "SKU", autoFocus: true, type: "Text", width: '20%', editable: true, required: false },
+              { key: "name_ar", autoFocus: true, type: "Text", width: '15%', editable: true, required: true },
+              { key: "name_en", autoFocus: true, type: "Text", width: '15%', editable: true, required: true },
+              { key: "price", autoFocus: true, type: "Decimal", width: '15%', editable: true, required: true },
+              { key: "barcode", autoFocus: true, type: "Text", width: '15%', editable: true, required: false },
+              { key: "SKU", autoFocus: true, type: "Text", width: '10%', editable: true, required: false },
             ]}
-            actions={[]}
+            actions = {[
+              {
+                execute: (data)=>handleDelete(data),
+                customRender : (data) => data.deleted == 1 ? <i class={`ki-outline ki-plus fs-2`}/> : <i class={`ki-outline ki-trash fs-2`}/>}
+              ]}
             onUpdate={(nodes) => onChange('attributes', nodes)}
-            onDelete={handleDelete} />
+            onDelete={null} />
         </div>
       </div>
     </>

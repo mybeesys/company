@@ -16,7 +16,7 @@ const LinkedComboDetail = ({dir, translations}) => {
   const [currentObject, setcurrentObject] = useState(linkedCombo);
   const [showAlert, setShowAlert] = useState(false);
   const [productsForCombo, setProductsForCombo] = useState([]);
-
+  const [currentTab, setCurrentTab] = useState(1);
   const getName = (name_en, name_ar) => {
     if (dir == 'ltr')
         return name_en;
@@ -125,51 +125,56 @@ const LinkedComboDetail = ({dir, translations}) => {
   return (
     <div>
       <SweetAlert2 />
-      <div class="row" style={{ padding: "5px" }}>
-        <div class="col-9"></div>
-        <div class="col-2">
-          <button class="btn btn-primary" onClick={clickSubmit} disabled={disableSubmitButton}>
-            {translations.savechanges}
-          </button>
-        </div>
-        <div class="col-1">
-          <button class="btn btn-flex" onClick={cancel} >{translations.cancel}</button>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-3">
-          <div class="card mb-5 mb-xl-8" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: "12px" }}>
-            {menu.map((m, index) => (
-              <div className="row product-side-menu">
-                <div class="col-12">
-                  <label class="col-form-label col-12">
-                    <div class="row">
-                      <div class="col-2">
-                        <input type="checkbox" class="form-check-input" checked={m.visible}
-                          onChange={(e) => handleChange(index, e.target.checked)} />
-                      </div>
-                      <div class="col-10">{translations[m.key]}</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            ))}
+      <div class="container">
+        <div class="row">
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+              <h1>{`${translations.Add} ${translations.linkedCombo}`}</h1>
+
+            </div>
+          </div>
+          <div class="col-6" style={{ "justify-content": "end", "display": "flex" }}>
+            <div class="flex-center" style={{ "display": "flex" }}>
+              <button onClick={clickSubmit} disabled={disableSubmitButton} class="btn btn-primary mx-2"
+                style={{ "width": "12rem" }}>{translations.savechanges}</button>
+            </div>
           </div>
         </div>
-        <div class="col-9">
-          <div className="card mb-5 mb-xl-8">
-            <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
-              {
-                menu[0].visible ?
+      </div>
+
+
+      <div class="separator d-flex flex-center my-6">
+        <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+      </div>
+      <div class="row">
+      <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
+        <div class="container">
+          <div class="row">
+            <div class="col-5">
                   <LinkedComboBasicInfo
                     translations={translations}
                     currentObject={currentObject}
                     onBasicChange = {onBasicChange}
                     dir ={dir}/>
-                  : <></>
-              }
-              {
-                menu[1].visible ?
+                  </div>
+            <div class="col-7">
+              <div class="card-toolbar ">
+                <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
+                  {menu.map((m, index) => 
+                    { return index == 0 ? <></>:
+                    <li class="nav-item" role="presentation">
+                      <a id={`${m.key}_tab`} onClick={(e)=>setCurrentTab(index)} class={`nav-link justify-content-center text-active-gray-800 ${currentTab==index ? 'active' : ''}`}
+                        data-bs-toggle="tab" role="tab" href={`#${m.key}`} aria-selected="true">
+                        {translations[m.key]}
+                      </a>
+                    </li>}
+                  
+                  )}
+                </ul>
+              </div>
+              <div class="tab-content">
+                <div id="discount_qualification" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                  aria-labelledby="discount_qualification_tab">
                   <LinkedComboGroup
                     translations={translations}
                     dir ={dir}
@@ -177,12 +182,13 @@ const LinkedComboDetail = ({dir, translations}) => {
                     onComboChange = {onComboChange}
                     products={productsForCombo}
                   />
-                  : <></>
-              }
-              <input type="submit" id="btnMainSubmit" hidden></input>
-            </form>
+                  </div>
+              </div>
           </div>
+        <input type="submit" id="btnMainSubmit" hidden></input>
         </div>
+        </div>
+      </form>
       </div>
     </div>
   );
