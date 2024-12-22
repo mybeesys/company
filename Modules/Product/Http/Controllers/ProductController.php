@@ -97,6 +97,8 @@ class ProductController extends Controller
         $product->combos = [];
         $product->linkedCombos = [];
         $product->warhouses = [];
+        $product->recipe = [];
+        $product->attributes = [];
         return view('product::product.create', compact('product'));
     }
 
