@@ -20,9 +20,9 @@
             @foreach ($permissions->chunk(3) as $permissionChunk)
                 <tr>
                     @foreach ($permissionChunk as $permission)
-                        <td>{{ session()->get('locale') == 'ar' ? $permission->name_ar : $permission->modifiedName }}
+                        <td>{{ session('locale') == 'ar' ? $permission->name_ar : $permission->modifiedName }}
                             <x-form.field-hint
-                                hint="{{ session()->get('locale') == 'ar' ? $permission->description_ar : $permission->description }}" />
+                                hint="{{ session('locale') == 'ar' ? $permission->description_ar : $permission->description }}" />
                         </td>
                         <td>
                             <x-form.input-div class="form-check form-check-custom form-check-solid">

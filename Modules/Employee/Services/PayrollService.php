@@ -85,7 +85,7 @@ class PayrollService
 
     private function getEmployeeName(Employee $employee)
     {
-        return session()->get('locale') === 'ar' ? $employee->name : $employee->name_en;
+        return session('locale') === 'ar' ? $employee->name : $employee->name_en;
     }
 
     private function getAllowances(Employee $employee, $date)

@@ -260,7 +260,7 @@ input.no-spin {
                     <!--begin::Content wrapper-->
                     <div class="d-flex flex-column flex-column-fluid">
                         @yield('content-head')
-                        <div id="kt_app_content" class="app-content flex-column-fluid">
+                        <div id="kt_app_content" class="app-content flex-column-fluid pt-2">
                             <!--begin::Content container-->
                             <div id="kt_app_content_container" class="app-container container-fluid">
                                 @yield('content')

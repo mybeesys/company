@@ -87,9 +87,9 @@
                 minimumResultsForSearch: -1,
             })
             adjustmentRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session()->get('locale') }}");
+                "{{ session('locale') }}");
             adjustmentRepeater('deduction', "{{ route('adjustment_types.store') }}",
-                "{{ session()->get('locale') }}");
+                "{{ session('locale') }}");
 
             lock();
 

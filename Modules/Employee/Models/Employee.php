@@ -107,7 +107,7 @@ class Employee extends Authenticatable
 
     public function getTranslatedNameAttribute()
     {
-        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
+        $name = session('locale') === 'ar' ? 'name' : 'name_en';
         return $this->$name;
     }
 

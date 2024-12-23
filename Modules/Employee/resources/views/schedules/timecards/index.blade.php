@@ -35,7 +35,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3, 4], '#kt_timecard_table', "{{ session()->get('locale') }}", []);
+            exportButtons([0, 1, 2, 3, 4], '#kt_timecard_table', "{{ session('locale') }}", []);
             handleSearchDatatable();
             handleFormFiltersDatatable();
             $('#date').flatpickr();

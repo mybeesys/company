@@ -184,40 +184,4 @@
         </div>
     </div>
 </div>
-
-
-{{-- console access management (optional) --}}
-{{-- <div class="mb-5 mt-5">
-    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_management_access" :collapsible=!$disabled
-        headerClass="active-management-fields">
-        <x-slot:header>
-            <div class="card-toolbar justify-content-end">
-                <x-form.switch-div class="form-check-custom">
-                    <input type="hidden" name="ems_access" value="0">
-                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1"
-                        type="checkbox" :disabled=$disabled name="ems_access" />
-                </x-form.switch-div>
-            </div>
-        </x-slot:header>
-        <div class="d-flex flex-wrap">
-            <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input :errors=$errors :disabled=$disabled
-                    placeholder="{{ __('employee::fields.user_name') }} ({{ __('employee::fields.required') }})"
-                    value="{{ $employee?->user_name }}" name="user_name" :label="__('employee::fields.user_name')" />
-            </x-form.input-div>
-            <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input type="password" :errors=$errors placeholder="{{ __('employee::fields.password') }}"
-                    name="password" :label="__('employee::fields.password')" :disabled=$disabled />
-            </x-form.input-div>
-
-        </div>
-        <div class="d-flex flex-wrap">
-            <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles
-                    :disabled=$disabled :establishments=$establishments :emsUser=$employee />
-            </x-form.input-div>
-        </div>
-    </x-form.form-card>
-</div> --}}
-
 <x-form.form-buttons :disabled=$disabled cancelUrl="{{ url('/employee') }}" :id=$formId />

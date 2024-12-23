@@ -15,6 +15,7 @@
     'form_control' => true,
     'disabled' => false,
     'readonly' => false,
+    'labelWidth' => false
 ])
 
 @php
@@ -27,7 +28,7 @@
         'form-label',
         'required' => $required,
         $labelClass,
-        'w-100',
+        'w-100' => !$labelWidth,
     ])>{{ $label }}</label>
 @endif
 @includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])

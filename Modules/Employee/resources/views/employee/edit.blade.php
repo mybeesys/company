@@ -21,7 +21,7 @@
             datePicker('#employment_end_date');
             permissionSetRepeater();
             allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session()->get('locale') }}");
+                "{{ session('locale') }}");
             roleRepeater();
             initElements();
             administrativeUser({{ $employee->ems_access }});

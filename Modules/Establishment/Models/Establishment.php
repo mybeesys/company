@@ -27,4 +27,21 @@ class Establishment extends Model
     {
         $this->belongsToMany(PayrollGroup::class, 'sch_establishment_payroll_groups');
     }
+
+    public function main()
+    {
+        return $this->belongsTo(Establishment::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Establishment::class, 'parent_id');
+    }
+
+    public function getAllDescendants()
+    {
+        return $this->children->flatMap(function ($child) {
+            return [$child, ...$child->getAllDescendants()];
+        });
+    }
 }

@@ -3,6 +3,7 @@
 
 return [
     'add_establishment' => 'إضافة فرع',
+    'edit_establishment' => 'تعديل فرع',
     'establishment_details' => 'معلومات الفرع',
     'click_to_upload' => 'انقر لرفع الملف',
     'image_hint' => 'يتم قيول الصور من نوع *.png, *.jpgو *.jpeg',
@@ -14,4 +15,8 @@ return [
     'with_deleted_records' => 'مع السجلات المحذوفة',
     'only_deleted_records' => 'السجلات المحذوفة فقط',
     'deleted_records' => 'السجلات المحذوفة',
+    'company_settings' => 'إعدادات الشركة',
+    'company_details' => 'تفاصيل الشركة',
+    'establishments_table' => 'جدول الأفرع',
+    'establishments_tree' => 'شجرة الأفرع',
 ];
