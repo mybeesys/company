@@ -26,7 +26,8 @@ return [
     'invoice_discount' => 'Discount on invoice',
     'amount' => 'Total including VAT',
     'actions' => 'Actions',
-   
+    'payment_status' => 'Payment status',
+
 
 
 

@@ -10,13 +10,6 @@ class TransactionPayments extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = [];
+    protected $guarded = ['id'];
 
-    // protected static function newFactory(): TransactionPaymentsFactory
-    // {
-    //     // return TransactionPaymentsFactory::new();
-    // }
 }

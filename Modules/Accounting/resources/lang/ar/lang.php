@@ -130,6 +130,7 @@ return [
     'main_cost_center' => 'فرعي من مركز التكلفة',
     'amount'=>'المبلغ',
     'parent_account'=>'الحساب الاب',
+    'sell'=>'فاتورة مبيعات',
 
 
 

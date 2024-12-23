@@ -5,6 +5,9 @@ namespace Modules\Accounting\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Employee\Models\Employee;
+use Modules\General\Models\Transaction;
+
 // use Modules\Accounting\Database\Factories\AccountingAccountsTransactionFactory;
 
 class AccountingAccountsTransaction extends Model
@@ -24,14 +27,14 @@ class AccountingAccountsTransaction extends Model
         return $this->belongsTo(AccountingAccTransMapping::class, 'acc_trans_mapping_id');
     }
 
-    // public function transaction()
-    // {
-    //     return $this->belongsTo(Transaction::class, 'transaction_id');
-    // }
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'transaction_id');
+    }
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(Employee::class, 'created_by');
     }
 
 

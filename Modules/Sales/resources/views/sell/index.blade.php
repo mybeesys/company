@@ -112,6 +112,10 @@
                         name: 'due_date'
                     },
                     {
+                        data: 'payment_status',
+                        name: 'payment_status'
+                    },
+                    {
                         data: 'total_before_tax',
                         name: 'total_before_tax'
                     },
@@ -119,10 +123,7 @@
                     //     data: 'tax_amount',
                     //     name: 'tax_amount'
                     // },
-                    // {
-                    //     data: 'discount_amount',
-                    //     name: 'discount_amount'
-                    // },
+
                     {
                         data: 'final_total',
                         name: 'final_total'

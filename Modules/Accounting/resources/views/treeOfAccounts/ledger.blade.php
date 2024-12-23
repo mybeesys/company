@@ -281,7 +281,14 @@
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex justify-content-start flex-column">
                                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                                    @if ($transactions->sub_type =='journal_entry')
                                                     {{ $transactions->accTransMapping->ref_no }}</a>
+
+                                                    @else
+                                                    {{ $transactions->transaction->ref_no }}</a>
+
+
+                                                    @endif
 
                                             </div>
                                         </div>

@@ -13,6 +13,7 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
 
@@ -62,6 +63,7 @@ class PurchasesController extends Controller
     {
 
         try {
+            $transactionUtil =new TransactionUtils();
 // return $request;
             DB::beginTransaction();
             $ref_no =  SalesUtile::generateReferenceNumber('purchases');
@@ -106,6 +108,13 @@ class PurchasesController extends Controller
                     'tax_value' => $product->vat_value,
                 ]);
             }
+
+        if ($request->paid_amount) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
+
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
             DB::commit();
             return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {

@@ -25,13 +25,39 @@ class AccountingUtil
             amount, -1*amount)) as balance";
     }
 
+
+    public function saveAccountTransaction($type, $transactionPayment, $transaction)
+    {
+        $account_transaction_data = [
+            'amount' => $transactionPayment->amount,
+            'accounting_account_id' => $transactionPayment->account_id,
+            'type' => 'debit',
+            'sub_type' => $type,
+            'operation_date' => $transactionPayment->paid_on,
+            'created_by' => $transactionPayment->created_by,
+            'transaction_id' => $transactionPayment->transaction_id,
+            'transaction_payment_id' => $transactionPayment->id,
+        ];
+        //If change return then set type as debit
+        if ($transaction->transaction_type == 'sell' &&  $transactionPayment->is_return == 1) {
+            $account_transaction_data['type'] = 'debit';
+        }
+
+        if ($transaction->transaction_type == 'purchases') {
+            $account_transaction_data['type'] = 'credit';
+        }
+        AccountingAccountsTransaction::create($account_transaction_data);
+        return true;
+    }
+
+
     public static function default_accounting_account_types()
     {
         return  $account_sub_types = [
             [
                 'name_en' => 'Current Assets',
                 'name_ar' => 'الأصول المتداولة',
-                'gl_code' => '1.1',
+                'gl_code' => '11',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
@@ -40,7 +66,7 @@ class AccountingUtil
             [
                 'name_en' => 'Fixed Assets',
                 'name_ar' => 'الأصول الثابتة',
-                'gl_code' => '1.2',
+                'gl_code' => '12',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
@@ -49,7 +75,7 @@ class AccountingUtil
             [
                 'name_en' => 'Current Liabilities',
                 'name_ar' => 'الخصوم المتداولة',
-                'gl_code' => '2.1',
+                'gl_code' => '21',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
@@ -58,7 +84,7 @@ class AccountingUtil
             [
                 'name_en' => 'Long-Term Liabilities',
                 'name_ar' => 'الخصوم طويلة الأجل',
-                'gl_code' => '2.2',
+                'gl_code' => '22',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
@@ -67,7 +93,7 @@ class AccountingUtil
             [
                 'name_en' => 'Paid-In Capital',
                 'name_ar' => 'رأس المال المدفوع',
-                'gl_code' => '3.1',
+                'gl_code' => '31',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
@@ -76,7 +102,7 @@ class AccountingUtil
             [
                 'name_en' => 'Retained Earnings',
                 'name_ar' => 'الأرباح المحتجزة',
-                'gl_code' => '3.2',
+                'gl_code' => '32',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
@@ -85,7 +111,7 @@ class AccountingUtil
             [
                 'name_en' => 'Sales',
                 'name_ar' => 'المبيعات',
-                'gl_code' => '4.1',
+                'gl_code' => '41',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
@@ -94,7 +120,7 @@ class AccountingUtil
             [
                 'name_en' => 'Services',
                 'name_ar' => 'الخدمات',
-                'gl_code' => '4.2',
+                'gl_code' => '42',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
@@ -103,7 +129,7 @@ class AccountingUtil
             [
                 'name_en' => 'Operating Expenses',
                 'name_ar' => 'المصاريف التشغيلية',
-                'gl_code' => '5.1',
+                'gl_code' => '51',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
@@ -112,7 +138,7 @@ class AccountingUtil
             [
                 'name_en' => 'Non-Operating Expenses',
                 'name_ar' => 'المصاريف غير التشغيلية',
-                'gl_code' => '5.2',
+                'gl_code' => '52',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
@@ -142,7 +168,7 @@ class AccountingUtil
                 'account_primary_type' => 'asset',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
-                'gl_code' => '1.1.1',
+                'gl_code' => '111',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -154,7 +180,7 @@ class AccountingUtil
                 'account_primary_type' => 'asset',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
-                'gl_code' => '1.1.2',
+                'gl_code' => '112',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -166,7 +192,7 @@ class AccountingUtil
                 'account_primary_type' => 'asset',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
-                'gl_code' => '1.1.3',
+                'gl_code' => '113',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -178,7 +204,7 @@ class AccountingUtil
                 'account_primary_type' => 'asset',
                 'account_sub_type_id' => $fixed_assets_id,
                 'detail_type_id' => null,
-                'gl_code' => '1.2.1',
+                'gl_code' => '121',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -190,7 +216,7 @@ class AccountingUtil
                 'account_primary_type' => 'asset',
                 'account_sub_type_id' => $fixed_assets_id,
                 'detail_type_id' => null,
-                'gl_code' => '1.2.2',
+                'gl_code' => '122',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -202,7 +228,7 @@ class AccountingUtil
                 'account_primary_type' => 'liabilities',
                 'account_sub_type_id' => $current_liabilities_id,
                 'detail_type_id' => null,
-                'gl_code' => '2.1.1',
+                'gl_code' => '211',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -214,7 +240,7 @@ class AccountingUtil
                 'account_primary_type' => 'liabilities',
                 'account_sub_type_id' => $current_liabilities_id,
                 'detail_type_id' => null,
-                'gl_code' => '2.1.2',
+                'gl_code' => '212',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -226,7 +252,7 @@ class AccountingUtil
                 'account_primary_type' => 'liabilities',
                 'account_sub_type_id' => $long_term_liabilities_id,
                 'detail_type_id' => null,
-                'gl_code' => '2.2.1',
+                'gl_code' => '221',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -238,7 +264,7 @@ class AccountingUtil
                 'account_primary_type' => 'liabilities',
                 'account_sub_type_id' => $long_term_liabilities_id,
                 'detail_type_id' => null,
-                'gl_code' => '2.2.2',
+                'gl_code' => '222',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -250,7 +276,7 @@ class AccountingUtil
                 'account_primary_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '5.1.1',
+                'gl_code' => '511',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -262,7 +288,7 @@ class AccountingUtil
                 'account_primary_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '5.1.2',
+                'gl_code' => '512',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -274,7 +300,7 @@ class AccountingUtil
                 'account_primary_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '5.1.3',
+                'gl_code' => '513',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -286,7 +312,7 @@ class AccountingUtil
                 'account_primary_type' => 'expenses',
                 'account_sub_type_id' => $non_operating_expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '5.2.1',
+                'gl_code' => '521',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -298,7 +324,7 @@ class AccountingUtil
                 'account_primary_type' => 'expenses',
                 'account_sub_type_id' => $non_operating_expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '5.2.2',
+                'gl_code' => '522',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -306,6 +332,40 @@ class AccountingUtil
             ]
         ];
     }
+
+    // public static function next_GLC($parent_account_id)
+    // {
+
+
+
+    //     // parent_account_id
+    //     $last_parent_account = AccountingAccount::where([['parent_account_id', '=', $parent_account_id]])->latest()->first();
+
+
+    //     if ($last_parent_account) {
+
+
+    //         $last_code = $last_parent_account ? substr($last_parent_account->gl_code, -strlen($last_parent_account->gl_code)) : "00";
+
+    //         $lastDotPosition = strrpos($last_code, '.');
+
+
+    //         $numberAfterLastDot = substr($last_code, $lastDotPosition + 1);
+
+    //         $removedNumberString = substr($last_code, 0, $lastDotPosition);
+    //         $next_code = $removedNumberString . '.' . $numberAfterLastDot + 1;
+    //         return $next_code;
+    //     }
+
+    //     $parent_account = AccountingAccount::find($parent_account_id);
+    //     $last_code = substr($parent_account->gl_code, -strlen($parent_account->gl_code));
+
+
+    //     $next_code = $last_code . '.1';
+
+
+    //     return $next_code;
+    // }
 
     public static function next_GLC($parent_account_id)
     {
@@ -321,26 +381,19 @@ class AccountingUtil
 
             $last_code = $last_parent_account ? substr($last_parent_account->gl_code, -strlen($last_parent_account->gl_code)) : "00";
 
-            $lastDotPosition = strrpos($last_code, '.');
-
-
-            $numberAfterLastDot = substr($last_code, $lastDotPosition + 1);
-
-            $removedNumberString = substr($last_code, 0, $lastDotPosition);
-            $next_code = $removedNumberString . '.' . $numberAfterLastDot + 1;
+            $next_code = str_pad((int)$last_code + 1, strlen($last_parent_account->gl_code), "0", STR_PAD_LEFT);
             return $next_code;
         }
 
         $parent_account = AccountingAccount::find($parent_account_id);
         $last_code = substr($parent_account->gl_code, -strlen($parent_account->gl_code));
 
-
-        $next_code = $last_code . '.1';
+        //  $nextNumeric = substr($last_code, -1) + 1;
+        $next_code = $last_code . '01';
 
 
         return $next_code;
     }
-
 
     public static function account_type()
     {
@@ -385,22 +438,22 @@ class AccountingUtil
         $currentYear = date('Y');
 
 
-            if ($AAT) {
-                // $AAT =$AAT->accTransMapping;
-                $last_ref_no = $AAT->ref_no;
+        if ($AAT) {
+            // $AAT =$AAT->accTransMapping;
+            $last_ref_no = $AAT->ref_no;
 
 
-                list($year, $number) = explode('/', $last_ref_no);
+            list($year, $number) = explode('/', $last_ref_no);
 
-                if ($year == $currentYear) {
-                    $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                    $new_ref_no = $currentYear . '/' . $newNumber;
-                } else {
-                    $new_ref_no = $currentYear . '/0001';
-                }
-
-                return $new_ref_no;
+            if ($year == $currentYear) {
+                $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+                $new_ref_no = $currentYear . '/' . $newNumber;
+            } else {
+                $new_ref_no = $currentYear . '/0001';
             }
+
+            return $new_ref_no;
+        }
 
 
         return  $new_ref_no = $currentYear . '/0001';
