@@ -15,8 +15,9 @@ class Transaction extends Model
 
     protected $guarded = ['id'];
 
-    public function client(){
-        return $this->belongsTo(Contact::class,'contact_id');
+    public function client()
+    {
+        return $this->belongsTo(Contact::class, 'contact_id');
     }
     public static function getsSellsColumns()
     {
@@ -26,6 +27,7 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
+            ["class" => "text-start min-w-80px ", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
@@ -43,6 +45,7 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px  ", "name" => "supplier"],
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
+            ["class" => "text-start min-w-80px ", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
@@ -83,6 +86,21 @@ class Transaction extends Model
             ->editColumn('final_total', function ($row) {
                 return  $row->final_total ?? '0.00';
             })
+            ->editColumn('payment_status', function ($row) {
+                if ($row->payment_status == 'paid') {
+                    return    '<span class="badge badge-light-info px-3 py-3 fs-base">
+
+               ' . __('general::lang.paid') . ' </span>';
+                } else if ($row->payment_status == 'due') {
+                    return    '<span class="badge badge-light-danger px-3 py-3 fs-base">
+
+               ' . __('general::lang.due') . ' </span>';
+                } else if ($row->payment_status == 'partial') {
+                    return    '<span class="badge badge-light-success px-3 py-3 fs-base">
+
+           ' . __('general::lang.partial') . ' </span>';
+                }
+            })
 
 
 
@@ -108,9 +126,9 @@ class Transaction extends Model
                     // </div>';
 
 
-                //     $actions .= '<div class="menu-item px-3">
-                //     <a href="' . url("/client-destroy/{$row->id}") . '" class="menu-link px-3">' . __('employee::fields.delete') . '</a>
-                // </div>';
+                    //     $actions .= '<div class="menu-item px-3">
+                    //     <a href="' . url("/client-destroy/{$row->id}") . '" class="menu-link px-3">' . __('employee::fields.delete') . '</a>
+                    // </div>';
 
                     // $actions .= '<div class="menu-item px-3">
                     //                 <a class="menu-link px-3 delete-btn" href="' . url("/client-destroy/{$row->id}") . '" data-id="' . $row->id . '"  data-ref_no="' . $row->name . '">'. __('employee::fields.delete') . '</a>
@@ -121,8 +139,7 @@ class Transaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'client', 'id'])
+            ->rawColumns(['actions','payment_status', 'client', 'id'])
             ->make(true);
     }
-
 }

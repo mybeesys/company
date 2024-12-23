@@ -50,7 +50,7 @@ class AccountingAccount extends Model
         where('status','active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
 
         if (!empty($q)) {
-            $query->where('accounting_accounts.name_ar', 'like', "%{$q}%")->orWhere('accounting_accounts.name_en', 'like', "%{$q}%");
+            $query->where('accounting_accounts.name_ar', 'like', "%{$q}%")->orWhere('accounting_accounts.name_en', 'like', "%{$q}%")->orWhere('accounting_accounts.gl_gode', 'like', "%{$q}%");
         }
         return $query->get();
     }

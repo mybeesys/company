@@ -238,8 +238,9 @@ class TreeAccountsController extends Controller
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
             ->findorFail($account_id);
 
-        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
-            ->where('accounting_account_id', $account->id)->paginate(10);
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy','transaction'])
+        // ->leftjoin('transactions as T', 'accounting_accounts_transactions.transaction_id', '=', 'T.id')
+        ->where('accounting_account_id', $account->id)->paginate(10);
 
         $current_bal = AccountingAccount::leftjoin(
             'accounting_accounts_transactions as AAT',
