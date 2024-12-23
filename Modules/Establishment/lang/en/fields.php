@@ -80,4 +80,8 @@ return [
     'establishment' => 'establishment',
     'show' => 'Show',
     'restore' => 'Restore',
+    'zipcode' => 'Zipcode',
+    'name_en' => 'Name in english',
+    'main_establishment' => 'Main establishment',
+    'is_main_establishment' => 'Is this main establishment',
 ];

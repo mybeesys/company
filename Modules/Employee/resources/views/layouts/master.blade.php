@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('css')
     <style>
-        @if (session()->get('locale') == 'ar')
+        @if (session('locale') == 'ar')
             input[type="number"] {
                 text-align: right;
             }

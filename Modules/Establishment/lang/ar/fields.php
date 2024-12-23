@@ -79,5 +79,10 @@ return [
     'required' => 'مطلوب',
     'establishment' => 'الفرع',
     'show' => 'عرض',
-    'restore' => 'استعادة',    
+    'restore' => 'استعادة',
+    'country_state' => 'الولاية',
+    'zipcode' => 'الرمز البريدي',
+    'name_en' => 'الإسم بالإنجليزي',
+    'main_establishment' => 'الفرع الرئيسي التابع له',
+    'is_main_establishment' => 'هل الفرع رئيسي',
 ];

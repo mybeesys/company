@@ -16,7 +16,7 @@ class PayrollAdjustmentType extends BaseEmployeeModel
 
     public function getTranslatedNameAttribute()
     {
-        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
+        $name = session('locale') === 'ar' ? 'name' : 'name_en';
         return ($this->$name ?? $this->name_en) ?? $this->name;
     }
 

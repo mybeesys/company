@@ -181,6 +181,10 @@ return [
         'icon' => 'fas fa-building',
         'subMenu' => [
             [
+                'name' => 'company_settings',
+                'url' => 'company/setting',
+            ],
+            [
                 'name' => 'establishments',
                 'url' => 'establishment',
                 'permission' => '',

@@ -16,7 +16,7 @@ class ShiftTable
     protected $establishment_id;
     public function __construct(protected $table_type, protected $request)
     {
-        $this->lang = session()->get('locale');
+        $this->lang = session('locale');
         $this->establishment_id = $this->request->get('filter_establishment') ?? Establishment::first()->id;
     }
 

@@ -70,7 +70,7 @@
                                 <div class="d-flex pt-10">
                                     <div class="w-100 text-gray-700 fw-bold fs-4 d-flex">
                                         <div class="ps-11 w-100">
-                                            {{ session()->get('locale') == 'ar' ? $name_ar : $name_en }}
+                                            {{ session('locale') == 'ar' ? $name_ar : $name_en }}
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between w-100 pe-5 gap-11">

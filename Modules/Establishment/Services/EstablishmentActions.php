@@ -25,6 +25,7 @@ class EstablishmentActions
         return $logoName;
     }
 
+
     public function store()
     {
         $logoName = $this->request->has('logo') ? $this->storeImage($this->request['logo']) : null;
