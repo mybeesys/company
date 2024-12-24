@@ -23,7 +23,7 @@ class CompanyController extends Controller
         $countries = $countries->map(function ($country) {
             return [
                 'id' => $country->id,
-                'name' => $country->{get_name_by_lang()},
+                'name' => session('locale') == 'ar' ? $country->name_ar : $country->name_en,
             ];
         });
         return view('establishment::company.settings.index', compact('company', 'countries'));
