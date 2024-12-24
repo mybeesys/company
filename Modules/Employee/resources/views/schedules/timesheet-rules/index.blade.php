@@ -40,7 +40,7 @@
                             @endif
                             <x-form.input :errors="$errors" required="{{ $setting['type'] !== 'checkbox' }}"
                                 :type="$inputType" :placeholder="__('employee::fields.' . ($setting['placeholder'] ?? ''))" :name="$setting['name']" :class="$isCheckbox ? 'form-check-input mx-5 my-2' : 'py-2'"
-                                :form_control="!$isCheckbox"
+                                :form_control="!$isCheckbox" :solid="$isCheckbox"
                                 checked="{{ array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : false }}"
                                 value="{{ $isCheckbox ? '1' : (array_key_exists($setting['name'], $stored_settings) ? $stored_settings[$setting['name']] : '') }}" />
                         @endif

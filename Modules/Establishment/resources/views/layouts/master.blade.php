@@ -19,6 +19,6 @@
 @endsection
 
 @section('script')
-    <script src="{{ url('modules/employee/js/messages.js') }}"></script>
+    <script src="{{ url('modules/establishment/js/messages.js') }}"></script>
     <script src="{{ url('js/monthSelectPlugin.js') }}"></script>
 @endsection

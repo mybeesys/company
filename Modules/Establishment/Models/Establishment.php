@@ -2,6 +2,7 @@
 
 namespace Modules\Establishment\Models;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -43,5 +44,10 @@ class Establishment extends Model
         return $this->children->flatMap(function ($child) {
             return [$child, ...$child->getAllDescendants()];
         });
+    }
+
+    public function scopeActive(Builder $query)
+    {
+        $query->where('is_active', true);
     }
 }

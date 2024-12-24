@@ -18,8 +18,7 @@ class EstablishmentController extends Controller
      */
     public function index(Request $request)
     {
-        // dd($this->getLevels());
-        $establishments = Establishment::select('id', 'name', 'address', 'is_main', 'parent_id', 'city', 'region', 'contact_details', 'is_active', 'deleted_at');
+        $establishments = Establishment::select('id', 'name', 'name_en', 'address', 'is_main', 'parent_id', 'city', 'region', 'contact_details', 'is_active', 'deleted_at');
         if ($request->ajax()) {
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
@@ -45,7 +44,7 @@ class EstablishmentController extends Controller
      */
     public function create()
     {
-        $establishments = Establishment::where('is_main', true)->get(['id', 'name', 'name_en']);
+        $establishments = Establishment::where('is_main', true)->active()->get(['id', 'name', 'name_en']);
         return view('establishment::establishment.create', compact('establishments'));
     }
 
@@ -98,7 +97,7 @@ class EstablishmentController extends Controller
     public function edit(int $id)
     {
         $establishment = Establishment::with('children')->findOrFail($id);
-        $establishments = Establishment::where('is_main', true)->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
+        $establishments = Establishment::where('is_main', true)->active()->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
         return view('establishment::establishment.edit', compact('establishment', 'establishments'));
     }
 

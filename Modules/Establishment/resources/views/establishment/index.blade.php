@@ -2,7 +2,6 @@
 
 @section('title', __('menuItemLang.establishments'))
 @section('content')
-    {{-- @dd($establishments) --}}
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
             <li class="nav-item">
@@ -24,13 +23,10 @@
                     <button class="btn btn-flex btn-primary h-30px fs-7 fw-bold"
                         id="collapse_all">@lang('accounting::lang.collapse_all')</button>
                 </div>
-                @php
-                    $name = session('locale') === 'ar' ? 'name' : 'name_en';
-                @endphp
                 <div id="est_tree">
                     <ul>
                         @foreach ($establishments as $establishment)
-                            <x-establishment::establishments.tree :establishment=$establishment :name=$name />
+                            <x-establishment::establishments.tree :establishment=$establishment :name="get_name_by_lang()" />
                         @endforeach
                     </ul>
                 </div>
@@ -120,6 +116,22 @@
                     {
                         data: 'name',
                         name: 'name'
+                    },
+                    {
+                        data: 'name_en',
+                        name: 'name_en'
+                    },
+                    {
+                        data: 'is_main',
+                        name: 'is_main'
+                    },
+                    {
+                        data: 'parent_id',
+                        name: 'parent_id'
+                    },
+                    {
+                        data: 'city',
+                        name: 'city'
                     },
                     {
                         data: 'address',

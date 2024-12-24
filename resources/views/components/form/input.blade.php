@@ -15,7 +15,8 @@
     'form_control' => true,
     'disabled' => false,
     'readonly' => false,
-    'labelWidth' => false
+    'labelWidth' => false,
+    'solid' => true
 ])
 
 @php
@@ -38,7 +39,7 @@
     {{ $attribute }} @class([
         'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),
-        'form-control-solid',
+        'form-control-solid' => $solid,
         $class,
     ]) @required($required) @checked($checked)
     @disabled($disabled) />

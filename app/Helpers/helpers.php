@@ -26,3 +26,11 @@ if (!function_exists('convertToDecimalFormatHelper')) {
         return $minutes ? $totalMinutes : round($totalMinutes / 60, 2);
     }
 }
+
+if (!function_exists('get_name_by_lang')) {
+    function get_name_by_lang()
+    {
+        $name = session('locale') === 'ar' ? 'name' : 'name_en';
+        return $name;
+    }
+}

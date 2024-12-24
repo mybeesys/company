@@ -27,7 +27,7 @@
             </x-form.input-div>
             <x-form.switch-div class="my-auto">
                 <input type="hidden" name="is_active" value="0">
-                <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
+                <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1" type="checkbox"
                     :disabled=$disabled labelClass="form-check-label" name="is_active"
                     label="{{ __('employee::general.deactivate/activate') }}"
                     checked="{{ $role?->is_active }}" />

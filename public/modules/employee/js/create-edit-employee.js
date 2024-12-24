@@ -297,7 +297,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 Lang.get('general.cancel'), undefined,
                 true, "warning").then(function (t) {
                     if (!t.isConfirmed) {
-                        $(this).prop('checked', true);
+                        $('#pos_is_active').prop('checked', true);
                     }
                 });
         }

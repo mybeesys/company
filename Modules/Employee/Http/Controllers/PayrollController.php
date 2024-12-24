@@ -35,7 +35,7 @@ class PayrollController extends Controller
 
             return PayrollTable::getIndexPayrollTable($payrolls);
         }
-        $establishments = Establishment::select('name', 'id')->get();
+        $establishments = Establishment::active()->select('name', 'id')->get();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
         $columns = PayrollTable::getIndexPayrollColumns();
         return view('employee::schedules.payroll.index', compact('columns', 'establishments', 'employees'));
@@ -75,7 +75,7 @@ class PayrollController extends Controller
 
         $allowances_types = PayrollAdjustmentType::where('type', 'allowance')->get();
         $deductions_types = PayrollAdjustmentType::where('type', 'deduction')->get();
-        $establishments = Establishment::whereIn('id', $establishmentIds)->pluck('name')->toArray();
+        $establishments = Establishment::whereIn('id', $establishmentIds)->pluck(get_name_by_lang())->toArray();
         $roles = Role::all();
 
         return view('employee::schedules.payroll.create', compact(
