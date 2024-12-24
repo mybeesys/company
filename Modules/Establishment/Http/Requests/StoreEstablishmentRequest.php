@@ -21,7 +21,7 @@ class StoreEstablishmentRequest extends FormRequest
             'contact_details' => ['nullable', 'digits_between:10,15'],
             'logo' => ['nullable', 'image', 'max:3072'],
             'is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
-            'parent_id' => ['nullable', Rule::exists('est_establishments', 'id')->where('is_main', true)],
+            'parent_id' => ['nullable', Rule::exists('est_establishments', 'id')->where('is_main', true)->where('is_active', true)],
             'is_main' => ['nullable', 'in:0,1'],
             'logo_old' => [Rule::requiredIf($notAjaxValidate), 'boolean']
         ];

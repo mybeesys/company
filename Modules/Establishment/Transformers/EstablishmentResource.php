@@ -14,7 +14,16 @@ class EstablishmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name
+            'name' => $this->name,
+            'name_en' => $this->name_en,
+            'is_main' => $this->is_main,
+            'parent_id' => $this->parent_id,
+            'address' => $this->address,
+            'city' => $this->city,
+            'region' => $this->region,
+            'phone_number' => $this->contact_details,
+            'logo' => $this->logo,
+            'is_active' => $this->is_active
         ];
     }
 }

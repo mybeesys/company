@@ -49,7 +49,7 @@ class EmployeeTable
                     }
 
                     $actions .= '<div class="menu-item px-3">
-                                    <a class="menu-link px-3 delete-btn" data-id="' . $row->id . '" data-deleted="' . $row->deleted_at . '" data-name="' . (session('locale') == 'ar' ? $row->name : $row->name_en) . '">' . ($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')) . '</a>
+                                    <a class="menu-link px-3 delete-btn" data-id="' . $row->id . '" data-deleted="' . $row->deleted_at . '" data-name="' . ($row->{get_name_by_lang()}) . '">' . ($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')) . '</a>
                                 </div>';
 
                     $row->deleted_at ? $actions .=

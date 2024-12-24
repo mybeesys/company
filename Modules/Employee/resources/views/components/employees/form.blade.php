@@ -31,7 +31,7 @@
                 </x-slot>
                 <x-form.switch-div>
                     <input type="hidden" name="pos_is_active" value="0">
-                    <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
+                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1" type="checkbox"
                         :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
                         label="{{ __('employee::general.deactivate/activate') }}"
                         checked="{{ $employee?->pos_is_active }}" />

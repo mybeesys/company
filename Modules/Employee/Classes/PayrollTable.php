@@ -64,7 +64,7 @@ class PayrollTable
                         </div>";
             })
             ->addColumn('employee', function ($row) {
-                return session('locale') === 'ar' ? $row?->employee?->name : $row?->employee?->name_en;
+                return $row?->employee?->{get_name_by_lang()};
             })
             ->addColumn('date', function ($row) {
                 return $row?->payrollGroup?->date;

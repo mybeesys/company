@@ -26,7 +26,7 @@ class EmployeeController extends Controller
 
     public function __construct()
     {
-        $this->establishments = Establishment::all()->select('id', 'name');
+        $this->establishments = Establishment::active()->get(['id', 'name']);
         $this->dashboardRoles = Role::where('type', 'ems')->get(['id', 'name']);
         $this->posRoles = Role::where('type', 'pos')->get(['id', 'name']);
         $this->allowances_types = PayrollAdjustmentType::allowance()->get();
