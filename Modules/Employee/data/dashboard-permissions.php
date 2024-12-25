@@ -2,6 +2,7 @@
 
 return [
     [
+        // module.model.permission
         'name' => 'employees.all.show',
         'name_ar' => '',
         'description' => '',
@@ -36,6 +37,24 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
+    [
+        'name' => 'employees.employees.show',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.employees.print',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
     [
         'name' => 'employees.employee.create',
         'name_ar' => 'موظف',
@@ -64,48 +83,244 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
-        'name' => 'employees.employees.show',
-        'name_ar' => 'الموظفون',
+        'name' => 'employees.pos_roles.show',
+        'name_ar' => 'أدوار نقاط البيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.employees.print',
-        'name_ar' => 'الموظفون',
+        'name' => 'employees.pos_roles.print',
+        'name_ar' => 'أدوار نقاط البيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.pos_role.create',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.create',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.show',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.show',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.edit',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.edit',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.delete',
+        'name_ar' => 'دور نقطة بيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.pos_role.delete',
+        'name_ar' => 'دور نقطة بيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.dashboard_roles.show',
+        'name_ar' => 'أدوار لوحة التحكم',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.delete',
-        'name_ar' => 'دور',
+        'name' => 'employees.dashboard_roles.print',
+        'name_ar' => 'أدوار لوحة التحكم',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+    [
+        'name' => 'employees.dashboard_role.create',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.show',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.edit',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.delete',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.time_sheet_rules.show',
+        'name_ar' => 'إعدادات الجدولة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.time_sheet_rules.edit',
+        'name_ar' => 'إعدادات الجدولة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.shifts.show',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.shifts.edit',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.shifts.print',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.timecards.show',
+        'name_ar' => 'أوقات الدوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecards.print',
+        'name_ar' => 'أوقات الدوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.timecard.print',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.create',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.edit',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.delete',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payrolls.show',
+        'name_ar' => 'كشوف المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls.print',
+        'name_ar' => 'كشوف المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payroll.create',
+        'name_ar' => 'كشف راتب',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payroll.print',
+        'name_ar' => 'كشف راتب',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payrolls_groups.print',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_groups.edit',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_groups.delete',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
     [
         'name' => 'products.all.show',
         'name_ar' => '',

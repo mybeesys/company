@@ -35,7 +35,7 @@ class PayrollController extends Controller
 
             return PayrollTable::getIndexPayrollTable($payrolls);
         }
-        $establishments = Establishment::active()->select('name', 'id')->get();
+        $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
         $columns = PayrollTable::getIndexPayrollColumns();
         return view('employee::schedules.payroll.index', compact('columns', 'establishments', 'employees'));

@@ -74,14 +74,15 @@
             font-weight: bold !important;
         }
 
-input.no-spin::-webkit-inner-spin-button,
-input.no-spin::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
+        input.no-spin::-webkit-inner-spin-button,
+        input.no-spin::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-input.no-spin {
-    -moz-appearance: textfield; }
+        input.no-spin {
+            -moz-appearance: textfield;
+        }
 
         .form-check:not(.form-switch) .form-check-input[type=checkbox] {
 
@@ -2837,10 +2838,6 @@ input.no-spin {
     <!--end::Modal - Invite Friend-->
     <!--end::Modals-->
     <!--begin::Javascript-->
-    <script>
-        window.csrfToken = '{{ csrf_token() }}';
-        var hostUrl = "/assets/";
-    </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
     <script src="{{ url('/js/general.js') }}"></script>
     <script src="{{ url('/js/date-picker.js') }}"></script>
@@ -2872,13 +2869,30 @@ input.no-spin {
     <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    /*
     <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" /> */
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
     <script>
+        window.csrfToken = '{{ csrf_token() }}';
+        var hostUrl = "/assets/";
+        const $loadingEl = $(`
+        <div class="page-loader opacity-75">
+            <span class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </span>
+        </div>
+    `);
+
+        // Append it to the body
+        $("body").append($loadingEl);
+
+        KTApp.showPageLoading();
+
+        $(window).on("load", function() {
+            $loadingEl.remove();
+        });
         toastr.options = {
             "closeButton": false,
             "debug": false,
