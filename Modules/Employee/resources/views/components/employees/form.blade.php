@@ -31,8 +31,8 @@
                 </x-slot>
                 <x-form.switch-div>
                     <input type="hidden" name="pos_is_active" value="0">
-                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1" type="checkbox"
-                        :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
+                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
+                        type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
                         label="{{ __('employee::general.deactivate/activate') }}"
                         checked="{{ $employee?->pos_is_active }}" />
                 </x-form.switch-div>
@@ -170,10 +170,10 @@
                         <div class="d-flex flex-wrap align-items-center gap-3 mt-7">
                             <x-form.input-div class="w-100 min-w-150px">
                                 <x-form.input :errors="$errors" type="number" :placeholder="__('employee::fields.wage')" :disabled=$disabled
-                                    required name="wage_amount" :value="$employee?->wage?->rate" />
+                                    name="wage_amount" :value="$employee?->wage?->rate" />
                             </x-form.input-div>
                             <x-form.input-div class="w-100 min-w-150px">
-                                <x-form.select name="wage_type" :disabled=$disabled required :options=$wageTypes
+                                <x-form.select name="wage_type" :disabled=$disabled :options=$wageTypes
                                     :errors="$errors" :value="$employee?->wage?->wage_type"
                                     placeholder="{{ __('employee::fields.wage_type') }}" />
                             </x-form.input-div>

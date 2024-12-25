@@ -11,6 +11,7 @@ class DashboardRoleService
         return Permission::where('type', 'ems')
             ->get(['id', 'name', 'name_ar', 'description', 'description_ar'])
             ->groupBy(function ($item) {
+                //Group by module name
                 return explode(".", $item->name)[0];
             })
             ->map(function ($permissions) {

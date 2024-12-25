@@ -214,7 +214,7 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
 
 function permissionSetRepeater() {
     $('#dashboard_role_repeater').repeater({
-        initEmpty: false,
+        initEmpty: true,
         show: function () {
             $(this).slideDown();
 
@@ -229,14 +229,7 @@ function permissionSetRepeater() {
             });
         },
         hide: function (deleteElement) {
-            if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
-                $(this).slideUp(deleteElement);
-            } else {
-                showAlert(Lang.get('responses.empty_repeater_warning'),
-                    Lang.get('general.ok'),
-                    undefined, undefined,
-                    false, "error");
-            }
+            $(this).slideUp(deleteElement);
         }
     });
 }

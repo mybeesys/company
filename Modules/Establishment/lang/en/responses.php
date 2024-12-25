@@ -8,4 +8,5 @@ return [
     'updated_successfully' => 'The :name has been updated successfully',
     'deleted_successfully' => 'The :name has been deleted successfully',
     'operation_success' => 'Operation done successfully',
+    'no_company_found' => 'No company were found, please contact the customer service',
 ];

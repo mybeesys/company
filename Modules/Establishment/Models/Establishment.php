@@ -50,4 +50,9 @@ class Establishment extends Model
     {
         $query->where('is_active', true);
     }
+
+    public function scopeNotMain(Builder $query)
+    {
+        $query->where('is_main', false);
+    }
 }
