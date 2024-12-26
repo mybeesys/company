@@ -109,6 +109,6 @@ class Product extends Model
     }
     public function total()
     {
-        return $this->belongsTo(ProductInventoryTotal::class, 'id', 'id');
+        return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
     }
 }
