@@ -21,4 +21,5 @@ return [
     'logged_in_successfully' => 'تم تسجيل الدخول بنجاح',
     'incorrect_credential' => 'البيانات المدخلة لا تتطابق مع سجلاتنا',
     'payroll_group_confirmed' => 'تم تثبيت مجموعة كشف الرواتب بنجاح',
+    'no_employees_for_this_establishment' => 'هذا الفرع لا يحتوي على موظفين',
 ];
