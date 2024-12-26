@@ -123,9 +123,6 @@ function addTableTypeButtons() {
                         <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-hours" href="#">${Lang.get('fields.hours')}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-wage" href="#">${Lang.get('fields.wage_forecasting')}</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-breaks" href="#">${Lang.get('fields.breaks')}</a>
                     </li>
                 </ul>

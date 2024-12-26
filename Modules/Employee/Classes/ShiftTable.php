@@ -45,11 +45,6 @@ class ShiftTable
             return $row;
         };
         return [
-            ['class' => 'd-none table-wages-footer total-wage', 'th' => $generateRow(__('employee::fields.total_wages'))],
-            ['class' => 'd-none table-wages-footer forecasted-sales', 'th' => $generateRow(__('employee::fields.forecasted_sales'))],
-            ['class' => 'd-none table-wages-footer mean-sales', 'th' => $generateRow(__('employee::fields.mean_sales'))],
-            ['class' => 'd-none table-wages-footer forecasted-labor-cost', 'th' => $generateRow(__('employee::fields.forecasted_labor_cost'))],
-            ['class' => 'd-none table-wages-footer mean-labor-cost', 'th' => $generateRow(__('employee::fields.mean_labor_cost'))],
             ['class' => 'd-none table-breaks-footer', 'th' => $generateRow(__('employee::fields.breaks_total'))],
             ['class' => 'd-none table-hours-footer', 'th' => $generateRow(__('employee::fields.total_hours'))],
         ];
