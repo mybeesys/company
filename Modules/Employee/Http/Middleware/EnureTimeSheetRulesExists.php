@@ -13,7 +13,8 @@ class EnureTimeSheetRulesExists
      */
     public function handle(Request $request, Closure $next)
     {
-        $settings_count = count(include base_path('Modules/Employee/data/timesheet-rules.php'));
+        $settings = collect(include base_path('Modules/Employee/data/timesheet-rules.php'));
+        $settings_count = $settings->where('type', '!==', 'checkbox')->count();
         $stored_settings_count = TimeSheetRule::all()->count();
         if($settings_count > $stored_settings_count){
             return to_route('schedules.timesheet-rules.index')->with('error', __('employee::responses.please_set_time_sheet_rules_first'));

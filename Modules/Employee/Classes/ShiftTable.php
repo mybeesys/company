@@ -39,7 +39,7 @@ class ShiftTable
             $row = [
                 ['class' => 'border text-end px-5', 'colspan' => '3', 'text' => $text],
             ];
-            for ($i = 0; $i < 11; $i++) {
+            for ($i = 0; $i < 12; $i++) {
                 $row[] = ['class' => '', 'colspan' => '1', 'text' => ''];
             }
             return $row;
