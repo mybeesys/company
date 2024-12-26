@@ -40,7 +40,7 @@ class ProductController extends Controller
                 }]);
             }])->with(['unitTransfers' => function ($query) {
                     $query->whereNull('unit2');
-            }])->with('category')->with('subcategory')->with('tax')->with('total')->get();
+            }])->with('category')->with('Subcategory')->with('tax')->with('total')->get();
         return new ProductCollection($products);
     }
 
