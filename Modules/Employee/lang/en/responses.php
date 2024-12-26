@@ -21,4 +21,5 @@ return [
     'logged_in_successfully' => 'Logged in successfully.',
     'incorrect_credential' => 'The provided credentials do not match our records',
     'payroll_group_confirmed' => 'Payroll group has been successfully confirmed',
+    'no_employees_for_this_establishment' => 'This establishment does not have any employee',
 ];

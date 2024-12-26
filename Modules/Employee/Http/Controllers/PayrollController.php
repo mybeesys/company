@@ -46,6 +46,11 @@ class PayrollController extends Controller
         $employeeIds = collect($request->validated('employee_ids'));
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
+        
+        if(Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()){
+            return redirect()->back()->with('error', __('employee::responses.no_employees_for_this_establishment'));
+        }
+
 
         $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
         $lock = Cache::lock($lockKey, 30);

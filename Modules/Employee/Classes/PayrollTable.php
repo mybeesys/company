@@ -40,6 +40,7 @@ class PayrollTable
         $establishmentChanges = request('establishment_changes', []);
 
         $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
+        
         $carbonMonth = Carbon::createFromFormat('Y-m', $date);
         $payrollData = $employees->map(function ($employee) use ($carbonMonth, $date, $establishmentChanges) {
             if (isset($establishmentChanges[$employee->id])) {
