@@ -60,7 +60,7 @@
             addShiftModal("{{ url('/schedule/shift/get-shift') }}");
             shiftRepeater();
             exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_shift_table',
-                "{{ session()->get('locale') }}", [5], [11], 'A2');
+                "{{ session('locale') }}", [5], [11], 'A2');
             handleFilters(tableUrl);
 
 

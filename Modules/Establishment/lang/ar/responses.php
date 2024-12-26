@@ -8,4 +8,5 @@ return [
     'updated_successfully' => 'تم تعديل :name بنجاح',
     'deleted_successfully' => 'تم حذف :name بنجاح',
     'operation_success' => 'تمت العملية بنجاح',
+    'no_company_found' => 'لم يتم إيجاد شركة، الرجاء التواصل مع خدمة العملاء',
 ];

@@ -40,6 +40,7 @@ class PayrollTable
         $establishmentChanges = request('establishment_changes', []);
 
         $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
+        
         $carbonMonth = Carbon::createFromFormat('Y-m', $date);
         $payrollData = $employees->map(function ($employee) use ($carbonMonth, $date, $establishmentChanges) {
             if (isset($establishmentChanges[$employee->id])) {
@@ -64,7 +65,7 @@ class PayrollTable
                         </div>";
             })
             ->addColumn('employee', function ($row) {
-                return session()->get('locale') === 'ar' ? $row?->employee?->name : $row?->employee?->name_en;
+                return $row?->employee?->{get_name_by_lang()};
             })
             ->addColumn('date', function ($row) {
                 return $row?->payrollGroup?->date;

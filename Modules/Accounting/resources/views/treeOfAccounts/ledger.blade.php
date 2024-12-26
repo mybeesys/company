@@ -265,37 +265,54 @@
                         <thead>
                             <tr class="fw-bold  text-muted bg-light">
                                 <th class="min-w-125px ">@lang('accounting::lang.transaction_number')</th>
-                                <th class="min-w-80px">@lang('accounting::lang.operation_date')</th>
+                                <th class="min-w-100px">@lang('accounting::lang.operation_date')</th>
                                 <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
                                 <th class="min-w-125px">@lang('accounting::lang.cost_center')</th>
                                 <th class="min-w-200px">@lang('accounting::lang.added_by')</th>
                                 <th class="min-w-150px">@lang('accounting::lang.debit')</th>
                                 <th class="min-w-150px">@lang('accounting::lang.credit')</th>
+                                <th class="min-w-150px">@lang('accounting::lang.balance')</th>
 
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $balance = 0;
+                                $total_debit = 0;
+                                $total_credit = 0;
+                            @endphp
                             @foreach ($account_transactions as $transactions)
+                                @php
+                                    if ($transactions->type == 'debit') {
+                                        $balance += $transactions->amount;
+                                        $total_debit += $transactions->amount;
+                                    } elseif ($transactions->type == 'credit') {
+                                        $balance -= $transactions->amount;
+                                        $total_credit += $transactions->amount;
+                                    }
+                                @endphp
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex justify-content-start flex-column">
                                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                                    {{ $transactions->accTransMapping->ref_no }}</a>
-
+                                                    @if ($transactions->sub_type == 'journal_entry')
+                                                        {{ $transactions->accTransMapping->ref_no }}
+                                                    @else
+                                                        {{ $transactions->transaction->ref_no }}
+                                                    @endif
+                                                </a>
                                             </div>
                                         </div>
                                     </td>
-
                                     <td>
-                                        <a
-                                            class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">{{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}</a>
+                                        <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
+                                            {{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}
+                                        </a>
                                     </td>
-
                                     <td>
                                         <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
                                     </td>
-
                                     <td>
                                         <span class="text-muted fw-semibold text-muted d-block fs-7">
                                             @if ($transactions->costCenter)
@@ -307,37 +324,57 @@
                                     </td>
                                     <td>
                                         <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                            {{ $transactions->createdBy->name }}</a>
-
+                                            {{ $transactions->createdBy->name }}
+                                        </a>
                                     </td>
-
                                     <td>
-
                                         @if ($transactions->type == 'debit')
                                             <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                                {{ $transactions->amount }}</a>
+                                                {{ number_format($transactions->amount, 2) }}
+                                            </a>
                                         @else
                                             <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
                                                 --
                                             </span>
                                         @endif
-
                                     </td>
                                     <td>
-                                        <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                            @if ($transactions->type == 'credit')
-                                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                                    {{ $transactions->amount }}</a>
-                                            @else
-                                                <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                                    --
-                                                </span>
-                                            @endif
-                                        </span>
+                                        @if ($transactions->type == 'credit')
+                                            <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                                {{ number_format($transactions->amount, 2) }}
+                                            </a>
+                                        @else
+                                            <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
+                                                --
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ number_format($balance, 2) }}
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class=" text-center fw-bold fs-4">صافي الحركة</td>
+                                <td colspan="1" class=" fw-bold fs-5">
+                                 @format_currency($total_debit)
+                                </td>
+                                <td  class=" fw-bold fs-5">
+                                    @format_currency( $total_credit)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" class="text-center fw-bold fs-4">الرصيد الختامي</td>
+                                <td colspan="2" class=" fw-bold fs-5">
+                                    @format_currency($balance)
+                                </td>
+                            </tr>
+                        </tfoot>
+
 
                     </table>
 

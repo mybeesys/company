@@ -2,7 +2,6 @@
 
 namespace Modules\Employee\Services;
 
-use App\Helpers\TimeHelper;
 use Modules\Employee\Models\TimeSheetRule;
 
 class TimeSheetRuleService
@@ -10,13 +9,13 @@ class TimeSheetRuleService
     public function getPaidBreakDuration(bool $minutes): float
     {
         $paidBreak = TimeSheetRule::firstWhere('rule_name', 'duration_of_paid_break')?->rule_value ?? "00:00";
-        return TimeHelper::convertToDecimalFormatHelper($paidBreak, $minutes);
+        return convertToDecimalFormatHelper($paidBreak, $minutes);
     }
 
     public function getRegularWorkHours(bool $minutes): float
     {
         $regularWorkHours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value ?? "08:00";
-        return TimeHelper::convertToDecimalFormatHelper($regularWorkHours, $minutes);
+        return convertToDecimalFormatHelper($regularWorkHours, $minutes);
     }
 
     public function getOvertimeRateMultiplier()
@@ -27,13 +26,13 @@ class TimeSheetRuleService
     public function getMaximumOvertime($minutes)
     {
         $maximum_overtime_hours_per_day = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? "00:00";
-        return TimeHelper::convertToDecimalFormatHelper($maximum_overtime_hours_per_day, $minutes);
+        return convertToDecimalFormatHelper($maximum_overtime_hours_per_day, $minutes);
     }
 
     public function getMinutesToQualifyForPaidBreak($minutes)
     {
         $hours_to_qualify_to_paid_break = TimeSheetRule::firstWhere('rule_name', 'work_time_to_qualify_for_paid_break')?->rule_value ?? 0;
-        return TimeHelper::convertToDecimalFormatHelper($hours_to_qualify_to_paid_break, $minutes);    
+        return convertToDecimalFormatHelper($hours_to_qualify_to_paid_break, $minutes);    
     }
 
     public function getOffDays($carbonMonth)

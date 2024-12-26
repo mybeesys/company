@@ -9,7 +9,7 @@
 ])
 @php
     $wageTypes = [
-        ['id' => 'monthly', 'name' => __('employee::general.monthly')],
+        ['id' => 'variable', 'name' => __('employee::general.by_working_time')],
         ['id' => 'fixed', 'name' => __('employee::general.fixed')],
     ];
 @endphp
@@ -31,8 +31,8 @@
                 </x-slot>
                 <x-form.switch-div>
                     <input type="hidden" name="pos_is_active" value="0">
-                    <x-form.input :errors=$errors class="form-check-input" value="1" type="checkbox"
-                        :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
+                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
+                        type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
                         label="{{ __('employee::general.deactivate/activate') }}"
                         checked="{{ $employee?->pos_is_active }}" />
                 </x-form.switch-div>
@@ -126,9 +126,6 @@
                             <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                                 :disabled=$disabled :establishments=$establishments />
                         </div>
-                        <div class="employee-adjustments">
-                            <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
-                        </div>
                     </x-form.form-card>
                 </div>
                 <div class="tab-pane fade" id="dashboard_access_tab" role="tabpanel">
@@ -170,13 +167,19 @@
                         <div class="d-flex flex-wrap align-items-center gap-3 mt-7">
                             <x-form.input-div class="w-100 min-w-150px">
                                 <x-form.input :errors="$errors" type="number" :placeholder="__('employee::fields.wage')" :disabled=$disabled
-                                    required name="wage_amount" :value="$employee?->wage?->rate" />
+                                    name="wage_amount" :value="$employee?->wage?->rate" />
                             </x-form.input-div>
                             <x-form.input-div class="w-100 min-w-150px">
-                                <x-form.select name="wage_type" :disabled=$disabled required :options=$wageTypes
+                                <x-form.select name="wage_type" :disabled=$disabled :options=$wageTypes
                                     :errors="$errors" :value="$employee?->wage?->wage_type"
                                     placeholder="{{ __('employee::fields.wage_type') }}" />
                             </x-form.input-div>
+                        </div>
+                        <div class="employee-adjustments mt-10">
+                            <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
+                        </div>
+                        <div class="mt-10">
+                            <h3>@lang('employee::fields.total_wage'):</h3>
                         </div>
                     </x-form.form-card>
                 </div>
@@ -184,40 +187,4 @@
         </div>
     </div>
 </div>
-
-
-{{-- console access management (optional) --}}
-{{-- <div class="mb-5 mt-5">
-    <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_management_access" :collapsible=!$disabled
-        headerClass="active-management-fields">
-        <x-slot:header>
-            <div class="card-toolbar justify-content-end">
-                <x-form.switch-div class="form-check-custom">
-                    <input type="hidden" name="ems_access" value="0">
-                    <x-form.input :errors=$errors class="form-check-input h-20px w-30px" value="1"
-                        type="checkbox" :disabled=$disabled name="ems_access" />
-                </x-form.switch-div>
-            </div>
-        </x-slot:header>
-        <div class="d-flex flex-wrap">
-            <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input :errors=$errors :disabled=$disabled
-                    placeholder="{{ __('employee::fields.user_name') }} ({{ __('employee::fields.required') }})"
-                    value="{{ $employee?->user_name }}" name="user_name" :label="__('employee::fields.user_name')" />
-            </x-form.input-div>
-            <x-form.input-div class="mb-10 w-100 px-2">
-                <x-form.input type="password" :errors=$errors placeholder="{{ __('employee::fields.password') }}"
-                    name="password" :label="__('employee::fields.password')" :disabled=$disabled />
-            </x-form.input-div>
-
-        </div>
-        <div class="d-flex flex-wrap">
-            <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
-                <x-employee::employees.repeaters.dashboard-role-repeater :dashboardRoles=$dashboardRoles
-                    :disabled=$disabled :establishments=$establishments :emsUser=$employee />
-            </x-form.input-div>
-        </div>
-    </x-form.form-card>
-</div> --}}
-
 <x-form.form-buttons :disabled=$disabled cancelUrl="{{ url('/employee') }}" :id=$formId />

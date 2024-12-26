@@ -2,8 +2,8 @@
 
 namespace Modules\Employee\Services;
 
-use App\Helpers\TimeHelper;
 use Carbon\Carbon;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 
@@ -14,7 +14,7 @@ class ShiftService
 
     public function __construct(protected $table_type, protected $request, protected $establishment_id)
     {
-        $this->lang = session()->get('locale');
+        $this->lang = session('locale');
     }
 
     public static function getStartEndDayTime()
@@ -23,7 +23,7 @@ class ShiftService
         $startOfDay = TimeSheetRule::firstWhere('rule_name', 'day_start_on_time')?->rule_value;
 
         if ($workingHours && $startOfDay) {
-            $totalMinutes = TimeHelper::convertToDecimalFormatHelper($workingHours, minutes: true);
+            $totalMinutes = convertToDecimalFormatHelper($workingHours, minutes: true);
 
             $startOfDayTime = Carbon::parse($startOfDay);
             return [
@@ -69,7 +69,7 @@ class ShiftService
         $divElement = match ($this->table_type) {
             'default' => $first_time->format('H:i') . ' - ' . $second_time->format('H:i'),
             'hours' => $first_time->diffInMinutes($second_time),
-            'breaks' => $break_duration ? $second_time->copy()->addMinutes($break_duration)->format('H:i') . '-' . $second_time->format('H:i') . ' (' . ($this->request->format === 'hours_minutes' ? TimeHelper::convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)) . ')' : '-',
+            'breaks' => $break_duration ? $second_time->copy()->addMinutes($break_duration)->format('H:i') . '-' . $second_time->format('H:i') . ' (' . ($this->request->format === 'hours_minutes' ? convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)) . ')' : '-',
             'wage' => '-',
             default => '',
         };
@@ -112,7 +112,7 @@ class ShiftService
             if (!(str_contains($divElement[0], '-'))) {
 
                 if ($this->request->format === 'hours_minutes') {
-                    return $shiftHtml .= "<div> " . (is_numeric($element) ? TimeHelper::convertToHoursMinutesHelper($element) : $element) . " </div>";
+                    return $shiftHtml .= "<div> " . (is_numeric($element) ? convertToHoursMinutesHelper($element) : $element) . " </div>";
                 }
                 return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
             } else {
@@ -128,6 +128,7 @@ class ShiftService
                 }, $divElement));
             }
         }
+        return null;
     }
 
     public function getEssentialColumns($employee)
@@ -136,7 +137,8 @@ class ShiftService
             'id' => $employee->id,
             'employee' => $this->lang === 'ar' ? $employee->name : $employee->name_en,
             'total_hours' => round($employee->timecards->sum('hours_worked'), 2),
-            'total_wage' => $employee->wage->rate,
+            'basic_wage' => $employee->wage?->rate,
+            'total_wage' => $employee->wage?->rate + PayrollAdjustment::where('employee_id', $employee->id)->always()->get()->sum('amount'),
             'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
             'establishment' => $employee?->defaultEstablishment?->name,
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
@@ -153,15 +155,15 @@ class ShiftService
         $brake_duration = TimeSheetRule::firstWhere('rule_name', 'duration_of_paid_break')?->rule_value;
 
         if ($brake_time && $brake_duration) {
-            $brake_start_time = $day_working_time['start_of_day']->copy()->addMinutes(TimeHelper::convertToDecimalFormatHelper($brake_time, minutes: true));
+            $brake_start_time = $day_working_time['start_of_day']->copy()->addMinutes(convertToDecimalFormatHelper($brake_time, minutes: true));
             Shift::updateOrCreate(['type' => 'general_break'], [
                 'startTime' => $day_working_time['start_of_day']->format('Y-m-d H:i:s'),
                 'endTime' => $brake_start_time->copy()->format('Y-m-d H:i:s'),
-                'break_duration' => intval(TimeHelper::convertToDecimalFormatHelper($brake_duration, minutes: true))
+                'break_duration' => intval(convertToDecimalFormatHelper($brake_duration, minutes: true))
             ]);
 
             Shift::updateOrCreate(['type' => 'general_working_hours'], [
-                'startTime' => $brake_start_time->copy()->addMinutes(TimeHelper::convertToDecimalFormatHelper($brake_duration, minutes: true))->format('Y-m-d H:i:s'),
+                'startTime' => $brake_start_time->copy()->addMinutes(convertToDecimalFormatHelper($brake_duration, minutes: true))->format('Y-m-d H:i:s'),
                 'endTime' => $day_working_time['end_of_day']->format('Y-m-d H:i:s'),
                 'break_duration' => null
             ]);

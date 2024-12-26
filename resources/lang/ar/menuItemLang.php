@@ -36,6 +36,7 @@ return [
     'payroll' => 'كشوف المرتبات',
     'costCenter'=>'مراكز التكلفة',
     'payroll_group' => 'مجموعات كشوف المرتبات',
+    'company_settings' => 'إعدادات الشركة',
 
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',

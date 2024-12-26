@@ -1,6 +1,6 @@
 <div class=" align-items-center  mb-5" id="div-storehouse" style="display: none">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::fields.storehouse')</label>
-    <select id="storehouse" class="form-select select-2 form-select-solid" required
+    <select id="storehouse" class="form-select select-2 form-select-solid" 
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="storehouse">
         @foreach ($clients as $client)
             <option value="{{ $client->id }}" data-name="{{ $client->name }}"
@@ -8,7 +8,7 @@
                 data-tax_number="{{ $client->tax_number }}"
                 data-billing_address="{{ $client->billingAddress?->city . ' - ' . $client->billingAddress?->street_name }}"
                 data-billing_city="{{ $client->billingAddress?->city }}"
-                data-billing_street_name="{{  $client->billingAddress?->street_name }}">
+                data-billing_street_name="{{ $client->billingAddress?->street_name }}">
                 {{ $client->name }}
             </option>
         @endforeach
@@ -17,8 +17,24 @@
 </div>
 
 
+<div class=" align-items-center  mb-5" id="div-cash_account" >
+    <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('accounting::lang.account')</label>
 
+    <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account " style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"
+        id="cash_account">
 
+        <option value="">@lang('sales::lang.payment_account_select')</option>
+        @foreach ($accounts as $account)
+            <option value="{{ $account->id }}">
+                @if (app()->getLocale() == 'ar')
+                    {{ $account->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                @else
+                    {{ $account->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                @endif
+            </option>
+        @endforeach
+    </select>
+</div>
 
 <div class="d-flex align-items-center  mb-5">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::fields.client')</label>
@@ -31,7 +47,7 @@
                 data-tax_number="{{ $client->tax_number }}"
                 data-billing_address="{{ $client->billingAddress?->city . ' - ' . $client->billingAddress?->street_name }}"
                 data-billing_city="{{ $client->billingAddress?->city }}"
-                data-billing_street_name="{{  $client->billingAddress?->street_name }}">
+                data-billing_street_name="{{ $client->billingAddress?->street_name }}">
                 {{ $client->name }}
             </option>
         @endforeach
@@ -51,7 +67,7 @@
     <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;" id="billing_address">--</label>
 </div>
 
-<div class=" mb-5 " id="dev-mobile_number" >
+<div class=" mb-5 " id="dev-mobile_number">
     <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.mobile_number')</label>
     <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;" id="mobile_number">--</label>
 </div>

@@ -107,12 +107,31 @@ class Employee extends Authenticatable
 
     public function getTranslatedNameAttribute()
     {
-        $name = session()->get('locale') === 'ar' ? 'name' : 'name_en';
-        return $this->$name;
+        return $this->{get_name_by_lang()};
     }
 
     public function ScopeActive(Builder $query)
     {
         $query->where('pos_is_active', true);
+    }
+
+    public function hasDashboardPermission($permission)
+    {
+        $permission_sections = explode('.', $permission);
+        $module = $permission_sections[0];
+        $permission_action = $permission_sections[2];
+        
+        $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
+
+        return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+    }
+
+    public function hasDashboardPermissionViaRoles($permission, $module, $permission_action)
+    {
+        $permissionRoles = Permission::firstWhere('name', $permission)?->roles->pluck('name');
+        $allPermissionRoles = Permission::where('name', "$module.all.$permission_action")->where('type', 'ems')->first()?->roles->pluck('name');
+
+        return ($permissionRoles && $this->dashboardRoles->pluck('name')->intersect($permissionRoles)->isNotEmpty()) ||
+            $allPermissionRoles && $this->dashboardRoles->pluck('name')->intersect($allPermissionRoles)->isNotEmpty();
     }
 }

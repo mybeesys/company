@@ -2,6 +2,7 @@
 
 namespace Modules\Establishment\Models;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,5 +27,32 @@ class Establishment extends Model
     public function payrollGroups()
     {
         $this->belongsToMany(PayrollGroup::class, 'sch_establishment_payroll_groups');
+    }
+
+    public function main()
+    {
+        return $this->belongsTo(Establishment::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Establishment::class, 'parent_id');
+    }
+
+    public function getAllDescendants()
+    {
+        return $this->children->flatMap(function ($child) {
+            return [$child, ...$child->getAllDescendants()];
+        });
+    }
+
+    public function scopeActive(Builder $query)
+    {
+        $query->where('is_active', true);
+    }
+
+    public function scopeNotMain(Builder $query)
+    {
+        $query->where('is_main', false);
     }
 }

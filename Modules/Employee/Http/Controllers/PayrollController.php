@@ -35,7 +35,7 @@ class PayrollController extends Controller
 
             return PayrollTable::getIndexPayrollTable($payrolls);
         }
-        $establishments = Establishment::select('name', 'id')->get();
+        $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
         $columns = PayrollTable::getIndexPayrollColumns();
         return view('employee::schedules.payroll.index', compact('columns', 'establishments', 'employees'));
@@ -46,6 +46,11 @@ class PayrollController extends Controller
         $employeeIds = collect($request->validated('employee_ids'));
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
+        
+        if(Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()){
+            return redirect()->back()->with('error', __('employee::responses.no_employees_for_this_establishment'));
+        }
+
 
         $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
         $lock = Cache::lock($lockKey, 30);
@@ -75,7 +80,7 @@ class PayrollController extends Controller
 
         $allowances_types = PayrollAdjustmentType::where('type', 'allowance')->get();
         $deductions_types = PayrollAdjustmentType::where('type', 'deduction')->get();
-        $establishments = Establishment::whereIn('id', $establishmentIds)->pluck('name')->toArray();
+        $establishments = Establishment::whereIn('id', $establishmentIds)->pluck(get_name_by_lang())->toArray();
         $roles = Role::all();
 
         return view('employee::schedules.payroll.create', compact(

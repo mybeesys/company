@@ -132,6 +132,8 @@ return [
     'main_cost_center' => 'Main Cost Center',
     'amount'=>'Amount',
     'parent_account'=>'Parent Account',
+    'sell'=>'Sales invoice',
+
 
 
 

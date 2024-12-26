@@ -284,10 +284,10 @@
                                     @foreach ($accounts as $account)
                                         <option value="{{ $account->id }}">
                                             @if (app()->getLocale() == 'ar')
-                                                {{ $account->name_ar }} - <span
+                                               {{ $account->gl_code }} - {{ $account->name_ar }} - <span
                                                     class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
                                             @else
-                                                {{ $account->name_en }} - <span
+                                               {{ $account->gl_code }} - {{ $account->name_en }} -  <span
                                                     class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
                                             @endif
                                         </option>

@@ -56,6 +56,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap"
         rel="stylesheet">
     <style>
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.75);
+            /* Semi-transparent white background */
+            z-index: 9999;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
@@ -74,14 +93,15 @@
             font-weight: bold !important;
         }
 
-input.no-spin::-webkit-inner-spin-button,
-input.no-spin::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
+        input.no-spin::-webkit-inner-spin-button,
+        input.no-spin::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-input.no-spin {
-    -moz-appearance: textfield; }
+        input.no-spin {
+            -moz-appearance: textfield;
+        }
 
         .form-check:not(.form-switch) .form-check-input[type=checkbox] {
 
@@ -170,6 +190,11 @@ input.no-spin {
         style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div id="initial-loader" class="page-loader">
+        <span class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </span>
     </div>
     <!--begin::Theme mode setup on page load-->
     <script>
@@ -260,7 +285,7 @@ input.no-spin {
                     <!--begin::Content wrapper-->
                     <div class="d-flex flex-column flex-column-fluid">
                         @yield('content-head')
-                        <div id="kt_app_content" class="app-content flex-column-fluid">
+                        <div id="kt_app_content" class="app-content flex-column-fluid pt-2">
                             <!--begin::Content container-->
                             <div id="kt_app_content_container" class="app-container container-fluid">
                                 @yield('content')
@@ -2837,10 +2862,6 @@ input.no-spin {
     <!--end::Modal - Invite Friend-->
     <!--end::Modals-->
     <!--begin::Javascript-->
-    <script>
-        window.csrfToken = '{{ csrf_token() }}';
-        var hostUrl = "/assets/";
-    </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
     <script src="{{ url('/js/general.js') }}"></script>
     <script src="{{ url('/js/date-picker.js') }}"></script>
@@ -2872,13 +2893,18 @@ input.no-spin {
     <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
     <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    /*
     <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" /> */
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
     <script>
+        window.csrfToken = '{{ csrf_token() }}';
+        var hostUrl = "/assets/";
+        const loader = document.getElementById("initial-loader");
+        $(window).on("load", function() {
+            loader.remove();
+        });
         toastr.options = {
             "closeButton": false,
             "debug": false,

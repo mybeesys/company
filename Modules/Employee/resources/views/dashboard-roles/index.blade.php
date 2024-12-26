@@ -5,11 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee">
-                <x-slot:export>
-                    <x-tables.export-menu id="dashboard_role" />
-                </x-slot:export>
-            </x-tables.table-header>
+            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee" />
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
             <x-tables.table :columns=$columns model="dashboard_role" module="employee" />
@@ -30,7 +26,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session()->get('locale') }}", [], [0]);
+            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session('locale') }}", [], [0]);
             handleSearchDatatable();
         });
 

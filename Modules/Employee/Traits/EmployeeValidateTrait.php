@@ -44,8 +44,8 @@ trait EmployeeValidateTrait
             'pos_role_repeater.*.posRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'pos_role_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
 
-            'wage_amount' => [Rule::requiredIf($notAjaxValidate), 'decimal:0,2', 'numeric'],
-            'wage_type' => [Rule::requiredIf($notAjaxValidate), 'in:monthly,fixed'],
+            'wage_amount' => ['nullable', 'decimal:0,2', 'numeric'],
+            'wage_type' => ['required_with:wage_amount', 'nullable', 'in:variable,fixed'],
 
             'allowance_repeater' => ['nullable', 'array'],
             'allowance_repeater.*.amount_type' => [Rule::requiredIf($notAjaxValidate), 'in:fixed,percent'],
@@ -54,8 +54,8 @@ trait EmployeeValidateTrait
             'allowance_repeater.*.applicable_date' => [Rule::requiredIf($notAjaxValidate), 'date_format:Y-m'],
 
             'ems_access' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
-            'dashboard_role_repeater' => ['required_if_accepted:ems_access', 'array'],
-            'dashboard_role_repeater.*.dashboardRole' => ['required_if_accepted:ems_access', 'nullable', 'exists:roles,id'],
+            'dashboard_role_repeater' => ['nullable', 'array'],
+            'dashboard_role_repeater.*.dashboardRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
             'user_name' => ['required_if_accepted:ems_access', 'nullable', 'string', 'max:50'],
 
         ];

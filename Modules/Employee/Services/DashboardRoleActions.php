@@ -29,6 +29,7 @@ class DashboardRoleActions
         } else {
             $filteredPermissions = null;
         }
+        //Check if the permissions is for individual employee or role
         $role ? $dashboardRole->permissions()->sync($filteredPermissions) : $dashboardRole->syncPermissions($filteredPermissions);
     }
 

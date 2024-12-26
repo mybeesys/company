@@ -277,6 +277,10 @@
         $('#client_id').select2({
             width: 'resolve'
         });
+        $('#cash_account').select2({
+            width: 'resolve'
+        });
+
         $('#storehouse').select2({
             width: 'resolve'
         });
@@ -757,6 +761,7 @@
 
                     $("#li-payment_info").show();
 
+                    $("#div-cash_account").hide();
 
                     $("#card").hide();
                     $("#bank_check").hide();
@@ -767,6 +772,7 @@
                     // $(".pay-payment_type").show();
                     // $(".pay-paid_amount").show();
                     // $(".pay-additionalNotes").show();
+                    $("#div-cash_account").show();
 
                     $("#li-payment_info").hide();
                 }

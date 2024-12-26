@@ -1344,10 +1344,10 @@
                     <span class="menu-title position-relative">@lang('lang.Language')
                         <span
                             class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0">
-                            {{ session()->get('locale') == 'ar' ? 'العربية' : 'English' }}
+                            {{ session('locale') == 'ar' ? 'العربية' : 'English' }}
 
                             <img class="w-15px h-15px rounded-1 ms-2"
-                                src="/assets/media/flags/{{ session()->get('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
+                                src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
                                 alt="" />
                         </span>
                     </span>
@@ -1357,7 +1357,7 @@
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
                         <a href="{{ route('set_locale', ['locale' => 'en']) }}"
-                            class="menu-link d-flex px-5 {{ session()->get('locale') == 'en' ? 'active' : '' }}">
+                            class="menu-link d-flex px-5 {{ session('locale') == 'en' ? 'active' : '' }}">
                             <span class="symbol symbol-20px me-4">
                                 <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
                             </span>English</a>
@@ -1366,7 +1366,7 @@
                     <!--begin::Menu item-->
                     <div class="menu-item px-3">
                         <a href="{{ route('set_locale', ['locale' => 'ar']) }}"
-                            class="menu-link d-flex px-5 {{ session()->get('locale') == 'ar' ? 'active' : '' }}">
+                            class="menu-link d-flex px-5 {{ session('locale') == 'ar' ? 'active' : '' }}">
                             <span class="symbol symbol-20px me-4">
                                 <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
                             </span>العربية</a>

@@ -54,7 +54,7 @@
 
                     </div>
                 </div>
-                 @include('general::invoice-setting.setting')
+                @include('general::invoice-setting.setting')
             </div>
         </div>
         <div class="separator d-flex flex-center my-3">
@@ -269,6 +269,9 @@
         });
         $('#account_id').select2();
         $('#payment_type').select2({
+            width: 'resolve'
+        });
+        $('#cash_account').select2({
             width: 'resolve'
         });
 
@@ -544,7 +547,13 @@
                 $('#input-totalVat').val(adjustedVat.toFixed(2));
                 $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
                 $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
-                $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+                if ($('#invoice_type').val() === "due") {
+
+                    $("#paid_amount").val(0);
+                } else {
+                    $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+
+                }
             }
 
             $(document).on('change', '[name*="[inclusive]"]', function() {
@@ -675,7 +684,9 @@
                     // $(".pay-additionalNotes").hide();
 
                     $("#li-payment_info").show();
+                    $("#paid_amount").val(0);
 
+                    $("#div-cash_account").hide();
 
                     $("#card").hide();
                     $("#bank_check").hide();
@@ -688,6 +699,8 @@
                     // $(".pay-additionalNotes").show();
 
                     $("#li-payment_info").hide();
+                    $("#div-cash_account").show();
+
                 }
 
             });

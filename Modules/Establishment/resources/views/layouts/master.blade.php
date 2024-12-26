@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('css')
     <style>
-        @if (session()->get('locale') == 'ar')
+        @if (session('locale') == 'ar')
             input[type="number"] {
                 text-align: right;
             }
@@ -19,6 +19,6 @@
 @endsection
 
 @section('script')
-    <script src="{{ url('modules/employee/js/messages.js') }}"></script>
+    <script src="{{ url('modules/establishment/js/messages.js') }}"></script>
     <script src="{{ url('js/monthSelectPlugin.js') }}"></script>
 @endsection

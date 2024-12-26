@@ -87,9 +87,9 @@
                 minimumResultsForSearch: -1,
             })
             adjustmentRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session()->get('locale') }}");
+                "{{ session('locale') }}");
             adjustmentRepeater('deduction', "{{ route('adjustment_types.store') }}",
-                "{{ session()->get('locale') }}");
+                "{{ session('locale') }}");
 
             lock();
 
@@ -594,6 +594,7 @@
                   
                 Object.keys(firstRow.allowances_array || {}).forEach(key => {                    
                     columns.push({
+                        name: `allowances_array.${key}`,
                         data: `allowances_array.${key}`,
                         className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
                         render: function(data) {                            
@@ -602,11 +603,13 @@
                     });
                 });
                 columns.push({
+                    name: 'total_allowances',
                     data: 'total_allowances',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
                 Object.keys(firstRow.deductions_array || {}).forEach(key => {
                     columns.push({
+                        name: `deductions_array.${key}`,
                         data: `deductions_array.${key}`,
                         className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
                         render: function(data) {
@@ -616,15 +619,18 @@
                 });
 
                 columns.push({
+                    name: 'total_deductions',
                     data: 'total_deductions',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
             }
             columns.push({
+                name: 'total_wage_before_tax',
                 data: 'total_wage_before_tax',
                 className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
             });
             columns.push({
+                name: 'total_wage',
                 data: 'total_wage',
                 className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
             });

@@ -27,7 +27,7 @@ class TimeCardTable
                         </div>";
             })
             ->addColumn('employee', function($row){
-                return session()->get('locale') === 'ar' ? $row->employee->name : $row->employee->name_en;
+                return $row->employee->{get_name_by_lang()};
             })
             ->editColumn('clock_in_time', function ($row){
                 return Carbon::parse($row->clock_in_time)->format('H:i');

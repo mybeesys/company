@@ -15,6 +15,8 @@
     'form_control' => true,
     'disabled' => false,
     'readonly' => false,
+    'labelWidth' => false,
+    'solid' => true
 ])
 
 @php
@@ -27,7 +29,7 @@
         'form-label',
         'required' => $required,
         $labelClass,
-        'w-100',
+        'w-100' => !$labelWidth,
     ])>{{ $label }}</label>
 @endif
 @includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])
@@ -37,7 +39,7 @@
     {{ $attribute }} @class([
         'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),
-        'form-control-solid',
+        'form-control-solid' => $solid,
         $class,
     ]) @required($required) @checked($checked)
     @disabled($disabled) />

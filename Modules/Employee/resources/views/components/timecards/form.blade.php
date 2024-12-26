@@ -4,7 +4,7 @@
         <div class="d-flex flex-wrap">
             <x-form.input-div class="mb-10 w-100 px-2">
                 <x-form.select name="employee_id" :options="$employees" :data_allow_clear=false :label="__('employee::fields.employee')" required
-                    optionName="{{ session()->get('locale') == 'ar' ? 'name' : 'name_en' }}" :errors="$errors"
+                    :optionName="get_name_by_lang()" :errors="$errors"
                     placeholder="{{ __('employee::general.select_option') }}" value="{{ $timecard?->employee_id }}" />
             </x-form.input-div>
             <x-form.input-div class="mb-10 w-100 px-2">

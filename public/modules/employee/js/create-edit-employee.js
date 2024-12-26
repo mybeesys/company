@@ -213,8 +213,11 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
 }
 
 function permissionSetRepeater() {
+    const hasInitialValues = $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== undefined &&
+        $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== '';
+
     $('#dashboard_role_repeater').repeater({
-        initEmpty: false,
+        initEmpty: !hasInitialValues,
         show: function () {
             $(this).slideDown();
 
@@ -229,14 +232,7 @@ function permissionSetRepeater() {
             });
         },
         hide: function (deleteElement) {
-            if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
-                $(this).slideUp(deleteElement);
-            } else {
-                showAlert(Lang.get('responses.empty_repeater_warning'),
-                    Lang.get('general.ok'),
-                    undefined, undefined,
-                    false, "error");
-            }
+            $(this).slideUp(deleteElement);
         }
     });
 }
@@ -297,7 +293,7 @@ function employeeForm(id, validationUrl, generatePinUrl) {
                 Lang.get('general.cancel'), undefined,
                 true, "warning").then(function (t) {
                     if (!t.isConfirmed) {
-                        $(this).prop('checked', true);
+                        $('#pos_is_active').prop('checked', true);
                     }
                 });
         }

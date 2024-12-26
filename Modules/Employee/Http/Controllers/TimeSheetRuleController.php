@@ -2,11 +2,9 @@
 
 namespace Modules\Employee\Http\Controllers;
 
-use App\Helpers\TimeHelper;
 use App\Http\Controllers\Controller;
 use DB;
 use Modules\Employee\Http\Requests\StoreTimesheetRuleRequest;
-use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 use Modules\Employee\Services\ShiftService;
 

@@ -32,6 +32,7 @@ class EstablishmentActions
         Establishment::create($this->request->merge([
             'logo' => $logoName,
         ])->all());
+
     }
 
     public function update($establishment)
@@ -41,6 +42,19 @@ class EstablishmentActions
             : null;
 
         $data = $this->request;
+
+        if ($establishment->parent_id) {
+            $data['is_active'] = $this->activateBasedOnParent(Establishment::findOrFail($establishment->parent_id)) ? $data['is_active'] : false;
+        }
+        if ($establishment->children()->exists()) {
+            if (!$data['is_active']) {
+                $this->activateDeactivateChildren($establishment, false);
+            } else {
+                $this->activateDeactivateChildren($establishment, true);
+            }
+
+            $data['is_main'] = true;
+        }
 
         if ($logoName) {
             $data = $data->merge([
@@ -52,4 +66,22 @@ class EstablishmentActions
         return $establishment->update($data->toArray());
     }
 
+    public function activateBasedOnParent($establishment)
+    {
+        if (!$establishment->is_active) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public function activateDeactivateChildren($establishment, $status)
+    {
+        $establishment->children->each(function ($child) use ($status) {
+            $child->update([
+                'is_active' => $status
+            ]);
+            $this->activateDeactivateChildren($child, $status);
+        });
+    }
 }
