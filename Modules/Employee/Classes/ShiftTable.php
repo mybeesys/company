@@ -17,7 +17,7 @@ class ShiftTable
     public function __construct(protected $table_type, protected $request)
     {
         $this->lang = session('locale');
-        $this->establishment_id = $this->request->get('filter_establishment') ?? Establishment::first()->id;
+        $this->establishment_id = $this->request->get('establishment_filter') ?? Establishment::active()->notMain()->first()->id;
     }
 
     public static function getShiftColumns()
@@ -66,7 +66,6 @@ class ShiftTable
 
         $shiftService = new ShiftService($this->table_type, $this->request, $this->establishment_id);
         $employeeData = $shiftService->getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
-
         return DataTables::of($employeeData)->rawColumns($employeeData->first() ? array_keys($employeeData->first()) : [])->make(true);
     }
 }

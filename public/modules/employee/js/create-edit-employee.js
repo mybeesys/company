@@ -213,8 +213,11 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
 }
 
 function permissionSetRepeater() {
+    const hasInitialValues = $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== undefined &&
+        $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== '';
+
     $('#dashboard_role_repeater').repeater({
-        initEmpty: true,
+        initEmpty: !hasInitialValues,
         show: function () {
             $(this).slideDown();
 

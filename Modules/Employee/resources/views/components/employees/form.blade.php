@@ -9,7 +9,7 @@
 ])
 @php
     $wageTypes = [
-        ['id' => 'monthly', 'name' => __('employee::general.monthly')],
+        ['id' => 'variable', 'name' => __('employee::general.by_working_time')],
         ['id' => 'fixed', 'name' => __('employee::general.fixed')],
     ];
 @endphp
@@ -126,9 +126,6 @@
                             <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                                 :disabled=$disabled :establishments=$establishments />
                         </div>
-                        <div class="employee-adjustments">
-                            <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
-                        </div>
                     </x-form.form-card>
                 </div>
                 <div class="tab-pane fade" id="dashboard_access_tab" role="tabpanel">
@@ -177,6 +174,12 @@
                                     :errors="$errors" :value="$employee?->wage?->wage_type"
                                     placeholder="{{ __('employee::fields.wage_type') }}" />
                             </x-form.input-div>
+                        </div>
+                        <div class="employee-adjustments mt-10">
+                            <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
+                        </div>
+                        <div class="mt-10">
+                            <h3>@lang('employee::fields.total_wage'):</h3>
                         </div>
                     </x-form.form-card>
                 </div>
