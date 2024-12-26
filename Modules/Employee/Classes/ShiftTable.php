@@ -26,6 +26,7 @@ class ShiftTable
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "basic_wage"],
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
             ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],

@@ -36,6 +36,11 @@ function initTable(tableUrl, startDate, endDate) {
             className: 'text-start px-3 py-2 border text-gray-800 fs-6'
         },
         {
+            data: 'basic_wage',
+            name: 'basic_wage',
+            className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        },
+        {
             data: 'total_wage',
             name: 'total_wage',
             className: 'text-start px-3 py-2 border text-gray-800 fs-6'
