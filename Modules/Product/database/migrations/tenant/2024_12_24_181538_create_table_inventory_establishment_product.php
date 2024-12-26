@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::dropIfExists('inventory_warhouse_products');
+        Schema::dropIfExists('product_establishment_products');
         Schema::create('product_establishment_products', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('establishment_id');
