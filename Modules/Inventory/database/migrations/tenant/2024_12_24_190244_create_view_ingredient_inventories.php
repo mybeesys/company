@@ -64,7 +64,7 @@ return new class extends Migration
 					FROM
 					inventory_Operation_items ioi
 					INNER JOIN inventory_Operations io1 ON io1.id = ioi.operation_id
-					INNER JOIN inventory_op_transfer iot ON iot.operation_id = io1.id
+					INNER JOIN inventory_Op_transfer iot ON iot.operation_id = io1.id
 					WHERE io1.op_type = 4 /*transfer out*/
 					GROUP BY ioi.ingredient_id, io1.establishment_id
                     UNION ALL SELECT
@@ -74,7 +74,7 @@ return new class extends Migration
 					FROM
 					inventory_Operation_items ioi
 					INNER JOIN inventory_Operations io1 ON io1.id = ioi.operation_id
-					INNER JOIN inventory_op_transfer iot ON iot.operation_id = io1.id
+					INNER JOIN inventory_Op_transfer iot ON iot.operation_id = io1.id
 					WHERE io1.op_type = 4 /*transfer in*/
 					GROUP BY ioi.ingredient_id, iot.establishment_id
                     ) op ON op.ingredient_id = pii.id
