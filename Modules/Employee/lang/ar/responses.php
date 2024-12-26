@@ -22,4 +22,5 @@ return [
     'incorrect_credential' => 'البيانات المدخلة لا تتطابق مع سجلاتنا',
     'payroll_group_confirmed' => 'تم تثبيت مجموعة كشف الرواتب بنجاح',
     'no_employees_for_this_establishment' => 'هذا الفرع لا يحتوي على موظفين',
+    'please_set_time_sheet_rules_first' => 'قم بإدخال إعدادات الجدولة أولاً',
 ];
