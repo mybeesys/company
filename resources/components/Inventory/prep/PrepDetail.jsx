@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import BasicInfoComponent from "../../comp/BasicInfoComponent";
-import TreeTableComponentLocal from "../../comp/TreeTableComponentLocal";
-import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
+import TreeTableEditorLocal from "../../comp/TreeTableEditorLocal";
+import SweetAlert2 from 'react-sweetalert2';
+import { getName } from "../../lang/Utils";
 
 const PrepDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
     let prep = JSON.parse(rootElement.getAttribute('prep'));
     const [currentObject, setcurrentObject] = useState(prep);
-    
+    const [showAlert, setShowAlert] = useState(false);
+
     useEffect(() => {
         
     }, [currentObject]);
@@ -19,15 +21,15 @@ const PrepDetail = ({ dir, translations }) => {
         setcurrentObject({...r});
         return {message:"Done"};
     }
-    
 
     const onProductChange = (key, val) =>{
         currentObject[key] = val;
         if(key!='product'){
+            onBasicChange(key, val);
             return;
         }
         setcurrentObject({...currentObject});
-        axios.get(`../listRecipebyProduct/${val.id}?with_ingredient='Y'`).then(response => {
+        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient='Y'`).then(response => {
             let items = response.data.map(obj => {
                 const { quantity, products, ...rest } = obj;
                 return { 
@@ -43,8 +45,41 @@ const PrepDetail = ({ dir, translations }) => {
         });
         return {message:"Done"};
     }
+
+    const getErrorMessage = (data)=>{
+        let res =''
+        for (let index = 0; index < data.length; index++) {
+            const element = data[index];
+            res+=`<div>${getName(element.name_en, element.name_ar, dir)} : ${element.qty}</div>`;
+        }
+        return res;
+    }
+
+    const handleQuantityError = (data) => {
+        setShowAlert(true);
+        Swal.fire({
+        show: showAlert,
+        title: 'Error',
+        html: `<div>${translations.notEnoughQuantity}</div>${getErrorMessage(data)}`,
+        icon: "error",
+        timer: 4000,
+        showCancelButton: false,
+        showConfirmButton: false,
+        }).then(() => {
+        setShowAlert(false); // Reset the state after alert is dismissed
+        });
+    }
+
+    const validateObject = (data) =>{
+        if(!!!data.establishment) return `${translations.establishment} ${translations.required}`;
+        if(!!!data.product || data.product.length ==0) return `${translations.product} ${translations.required}`;
+        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit).length >0) return translations['item_unit_error'];
+        return 'Success';
+    }
     
     return (
+        <>
+        <SweetAlert2 />
         <EditRowCompnent
          defaultMenu={[
             { 
@@ -57,6 +92,7 @@ const PrepDetail = ({ dir, translations }) => {
                         onBasicChange={onProductChange}
                         fields={
                             [
+                                {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
                                 {key:"product" , title:"product", searchUrl:"searchPrepProducts", type:"Async", required : true},
                                 {key:"times" , title:"times1",  type:"Number", required : true, newRow:true},
                             ]
@@ -67,10 +103,10 @@ const PrepDetail = ({ dir, translations }) => {
                 key: 'items', 
                 visible: true, 
                 comp : 
-                <TreeTableComponentLocal
+                <TreeTableEditorLocal
                 translations={translations}
                 dir={dir}
-                header={true}
+                header={false}
                 type= {"items"}
                 title={translations.items}
                 currentNodes={[...currentObject.items]}
@@ -117,13 +153,11 @@ const PrepDetail = ({ dir, translations }) => {
           dir={dir}
           apiUrl="inventoryOperation/store/1"
           afterSubmitUrl="../../prep"
-          validateObject = {(obj)=>{
-                if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit).length >0)
-                    return translations['item_unit_error'];
-                else
-                    return 'Success' 
-          }}
+          validateObject = {validateObject}
+          type="prp"
+          handleError={handleQuantityError}
         />
+        </>
     );
 }
 

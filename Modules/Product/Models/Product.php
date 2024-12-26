@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
-use Modules\Inventory\Models\Warehouse;
-use Modules\Inventory\Models\WarhouseProduct;
 
 class Product extends Model
 {
@@ -30,6 +29,7 @@ class Product extends Model
         'price',
         'category_id',
         'subcategory_id',
+        'tax_id',
         'description_ar',
         'description_en',  
         'active',
@@ -59,48 +59,42 @@ class Product extends Model
     public $type = 'product';
     public $parentKey = 'subcategory_id';
 
-
-
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
     }
-
-    
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class, 'tax_id', 'id');
+    }
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
     }
-
     public function serial_numbers()
     {
         return $this->hasMany(SerialNumber::class, 'product_id', 'id');
     }
-
     public function modifiers()
     {
         return $this->hasMany(ProductModifier::class, 'product_id', 'id');
     }
-
     public function recipe()
     {
         return $this->hasMany(RecipeProduct::class, 'product_id', 'id');
     }
-    
     public function combos()
     {
         return $this->hasMany(ProductCombo::class, 'product_id', 'id');
     }
-    public function warhouses()
+    public function establishments()
     {
-        return $this->hasMany(WarhouseProduct::class, 'product_id', 'id');
+        return $this->hasMany(EstablishmentProduct::class, 'product_id', 'id');
     }
-
     public function linkedCombos()
     {
         return $this->hasMany(ProductLinkedComboItem::class, 'product_id', 'id');
     }
-
     public function inventory()
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'product_id');
@@ -109,12 +103,10 @@ class Product extends Model
     {
         return $this->hasMany(UnitTransfer::class, 'product_id', 'id');
     }
-
     public function attributes()
     {
         return $this->hasMany(Product_Attribute::class, 'product_id', 'id');
     }
-
     public function total()
     {
         return $this->belongsTo(ProductInventoryTotal::class, 'id', 'id');

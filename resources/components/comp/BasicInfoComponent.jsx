@@ -28,7 +28,7 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
                         <label for={field.key} class="col-form-label">{translations[field.title]}</label>
                     </div>
                     <div class="col-12">
-                        <Calendar value={toDate(currentObject[field.key], 'D') } 
+                        <Calendar class="col-12" value={toDate(currentObject[field.key], 'D') } 
                         onChange={(e) => onBasicChange(field.key, 
                             !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}` 
                             : null)}
@@ -42,8 +42,9 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
             return (
                 <>
                     <label for={field.key} class="col-form-label">{translations[field.title]}</label>
-                    <input type="number" min="0" step=".01" class="form-control" id={field.key} 
-                    value={!!currentObject[field.key] ? formatDecimal(currentObject[field.key]) : ''}
+                    <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" id={field.key} 
+                    value={!!currentObject[field.key] ?     
+                        (!!!field.readOnly ? currentObject[field.key] : formatDecimal(currentObject[field.key])) : ''}
                         onChange={(e) => onBasicChange(field.key, e.target.value)}
                         required={!!field.required}
                         readOnly={!!field.readOnly}/>
@@ -54,7 +55,7 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
             return (
                 <>
                     <label for={field.key} class="col-form-label">{translations[field.title]}</label>
-                    <input type="number" min="0" class="form-control" id={field.key} 
+                    <input type="number" min="0" class="form-control form-control-solid custom-height" id={field.key} 
                     value={currentObject[field.key]}
                         onChange={(e) => onBasicChange(field.key, e.target.value)}
                         required={!!field.required}
@@ -66,7 +67,7 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
             return (
                 <>
                     <label for={field.key} class="col-form-label">{translations[field.title]}</label>
-                    <input type="text" class="form-control" id={field.key} value={currentObject[field.key]}
+                    <input type="text" class="fform-control form-control-solid custom-height" id={field.key} value={currentObject[field.key]}
                         onChange={(e) => onBasicChange(field.key, e.target.value)} 
                         required={!!field.required}
                         readOnly={!!field.readOnly}/>
@@ -77,7 +78,7 @@ const BasicInfoComponent = ({ fields, translations, currentObject, onBasicChange
             return (
                 <>
                     <label for={field.key} class="col-form-label">{translations[field.title]}</label>
-                    <textarea class="form-control" id={field.key} value={currentObject[field.key]}
+                    <textarea class="form-control form-control-solid custom-height" id={field.key} value={currentObject[field.key]}
                         onChange={(e) => onBasicChange(field.key, e.target.value)} 
                         required={!!field.required}
                         readOnly={!!field.readOnly}/>

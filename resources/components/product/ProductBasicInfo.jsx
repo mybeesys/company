@@ -9,14 +9,38 @@ const animatedComponents = makeAnimated();
 const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
   const rootElement = document.getElementById('root');
   const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
+  const listTaxurl = JSON.parse(rootElement.getAttribute('listTax-url'));
   const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
   let imageurl = rootElement.getAttribute('image-url');
   let dir = rootElement.getAttribute('dir');
   const [currentObject, setcurrentObject] = useState(product);
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const [taxOptions, setTaxOptions] = useState([]);
   const [subcategoryOption, setSubCategoryOptions] = useState([]);
 
-
+  const fetchTaxOptions = async () => {
+    try {
+      let response = await axios.get(listTaxurl);
+      const taxes = response.data.map(tax => ({
+        label: getRowName (tax, dir),  // The text shown in the select options
+        value: tax.id,    // The value of the selected option
+      }));
+      if (response.data.length > 0) {
+        if (!!!currentObject.tax_id){
+          currentObject['tax_id'] = response.data[0].id;
+          currentObject['tax'] = taxes[0];
+        }
+        else{
+          currentObject['tax'] = taxes.find(x=>x.value == currentObject.tax_id);
+        }
+      }
+      setTaxOptions(taxes);
+      setcurrentObject({ ...currentObject });
+      parentHandlechanges({ ...currentObject });
+    } catch (error) {
+      console.error("Error fetching options:", error);
+    }
+  };
 
   const fetchCategoryOptions = async () => {
     try {
@@ -69,7 +93,9 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   const handleChange = async (key, value, option) => {
     let r = { ...currentObject };
     r[key] = value;
-
+    if (key == "tax_id") {
+      r['tax'] = option;
+    }
     if (key == "category_id") {
       r['category'] = option;
       const subCategories = await fetchSubCategoryOptions(value);
@@ -84,7 +110,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
     fetchCategoryOptions(); // Trigger the fetch
-
+    fetchTaxOptions();
   }, []);
 
   return (
@@ -130,6 +156,24 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
                     components={animatedComponents}
                     value={currentObject.subcategory}
                     onChange={val => handleChange('subcategory_id', val.value, val)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                />
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="row">
+            <div class="col-6">
+              <label for="name_ar" class="col-form-label">{translations.category}</label>
+              <Select
+                    id="tax_id"
+                    isMulti={false}
+                    options={taxOptions}
+                    closeMenuOnSelect={true}
+                    components={animatedComponents}
+                    value={currentObject.tax}
+                    onChange={val => handleChange('tax_id', val.value, val)}
                     menuPortalTarget={document.body} 
                     styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                 />

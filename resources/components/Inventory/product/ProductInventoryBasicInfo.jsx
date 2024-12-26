@@ -9,9 +9,9 @@ const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange,
         <div class="card-body" dir={dir}>
             <div class="form-group">
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-12">
                         <label for="threshold" class="col-form-label">{translations.threshold}</label>
-                        <input type="number" min="0" step=".01" class="form-control" id="threshold" value={!!currentObject.threshold ? currentObject.threshold : ''}
+                        <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" id="threshold" value={!!currentObject.threshold ? currentObject.threshold : ''}
                             onChange={(e) => onBasicChange('threshold', e.target.value)}
                             required />
                     </div>
@@ -19,7 +19,7 @@ const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange,
             </div>
             <div class="form-group">
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-12">
                         <label for="unit_id" class="col-form-label">{translations.inventoryUOM}</label>
                         <AsyncSelectComponent
                             field="unit"

@@ -8,16 +8,14 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\Product_Attribute;
 use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\ProductCombo;
 use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Illuminate\Support\Facades\DB;
-use Modules\Inventory\Models\Warehouse;
-use Modules\Inventory\Models\WarhouseProduct;
+use Modules\Product\Models\EstablishmentProduct;
+use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\UnitTransfer;
-use stdClass;
 
 class ProductController extends Controller
 {
@@ -27,6 +25,7 @@ class ProductController extends Controller
         'order' => 'required|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
+        'tax_id' => 'required|numeric',
         'active' => 'nullable|boolean',
         'SKU'=> 'nullable|string',
         'barcode'=> 'nullable|string',
@@ -64,19 +63,35 @@ class ProductController extends Controller
         $recipes = null;
         if(isset($key) && $key='Y'){
             $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+            $resRecipes = [];
             foreach ($recipes as $recipe) {
-                $recipe->products = $recipe->products;
-                if(isset($recipe->products))
-                    $recipe->products->unitTransfers = $recipe->products->unitTransfers;
+                $newItem = $recipe->toArray();
+                if($recipe->item_type == 'p'){
+                    $newItem["product_id"] = $recipe->item_id.'-p';
+                    $prod = $recipe->products->toArray();
+                    $prod["id"] =  $recipe->item_id.'-p';
+                    if(isset($recipe->products))
+                    $prod["unitTransfers"] = $recipe->products->unitTransfers;
+                    $newItem["products"] =$prod;
+                }
+                if($recipe->item_type == 'i'){
+                    $newItem["product_id"] = $recipe->item_id.'-i';
+                    $ingr = $recipe->ingredients->toArray();
+                    $ingr["id"] =  $recipe->item_id.'-i';
+                    $ingr["unitTransfers"] = $recipe->ingredients->unitTransfers;
+                    $newItem["products"] =$ingr;
+                }
+                $resRecipes [] =$newItem;
             }
         }
-        else
-            $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
-        foreach ( $recipes as $rec) 
-        {
-            $rec->newid = $rec->item_id."-".$rec->item_type;
+        else{
+            $resRecipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+            foreach ( $resRecipes as $rec) 
+            {
+                $rec->newid = $rec->item_id."-".$rec->item_type;
+            }
         }
-        return response()->json($recipes);
+        return response()->json($resRecipes);
     }
     
     public function index()
@@ -96,7 +111,7 @@ class ProductController extends Controller
         $product->use_upcharge = 0;
         $product->combos = [];
         $product->linkedCombos = [];
-        $product->warhouses = [];
+        $product->establishments = [];
         $product->recipe = [];
         $product->attributes = [];
         return view('product::product.create', compact('product'));
@@ -136,6 +151,7 @@ class ProductController extends Controller
         $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
         $product->category_id = $validated['category_id'];
         $product->subcategory_id = $validated['subcategory_id'];
+        $product->tax_id = $validated['tax_id'];
         $product->active = $validated['active'];
         $product->sold_by_weight = $validated['sold_by_weight'];
         $product->track_serial_number = $validated['track_serial_number'];
@@ -350,16 +366,16 @@ class ProductController extends Controller
                     }
                 }
             }
-            WarhouseProduct::where('product_id', '=', $product->id)->delete();
-            if(isset($request["warhouses"]))
+            EstablishmentProduct::where('product_id', '=', $product->id)->delete();
+            if(isset($request["establishments"]))
             {
-                foreach ($request["warhouses"] as $newWarehouse) {
+                foreach ($request["establishments"] as $newEstablishment) {
                     
-                    $warehouse = new WarhouseProduct();
-                    $wh = $newWarehouse['warhouse'];
-                    $warehouse->product_id = $product->id;
-                    $warehouse->warhouse_id = $wh["id"];
-                    $warehouse->save();
+                    $establishment = new EstablishmentProduct();
+                    $wh = $newEstablishment['establishment'];
+                    $establishment->product_id = $product->id;
+                    $establishment->establishment_id = $wh["id"];
+                    $establishment->save();
                 }
             }
         //});
@@ -516,6 +532,17 @@ class ProductController extends Controller
                     }
                 }
             }
+            if(isset($request["establishments"]))
+            {
+                foreach ($request["establishments"] as $newEstablishment) {
+                    
+                    $establishment = new EstablishmentProduct();
+                    $wh = $newEstablishment['establishment'];
+                    $establishment->product_id = $product->id;
+                    $establishment->establishment_id = $wh["id"];
+                    $establishment->save();
+                }
+            }
         });
     }
 
@@ -538,8 +565,8 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with(['warhouses' => function ($query) {
-            $query->with('warhouse');
+        $product  = Product::with(['establishments' => function ($query) {
+            $query->with('establishment');
         }])->with(['recipe' => function ($query) {
             $query->with('unitTransfer');
         }])->with(['attributes' => function ($query) {
@@ -593,11 +620,22 @@ class ProductController extends Controller
                             ->orWhere('name_en', 'like', '%' . $key . '%')
                             ->take(10)
                             ->get();
+        $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take(10)
+                            ->get();
         $products = $products->map(function ($product) {
-            $product->item_type = 'p'; // Set the value of 'item_type'
-            return $product;
+            $newProduct = $product->toArray();
+            $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
+            return $newProduct;
         });
-        return response()->json($products);
+        $ingredients = $ingredients->map(function ($ingredient) {
+            $newIngredient = $ingredient->toArray();
+            $newIngredient["id"] = $ingredient["id"].'-i'; // Set the value of 'item_type'
+            return $newIngredient;
+        });
+        $result = array_merge($ingredients->toArray() , $products->toArray());
+        return response()->json($result);
     }
 
     public function searchPrepProducts(Request $request)

@@ -5,6 +5,7 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
+use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\TreeBuilder;
 
@@ -14,14 +15,25 @@ class IngredientInventoryController extends Controller
     public function getIngredientInventories()
     {
         $TreeBuilder = new TreeBuilder();
-        $ingredientInventories = Ingredient::with(['inventory' => function ($query) {
-            $query->with('vendor');
-            $query->with('unit');
-        }])->get();
-        foreach ($ingredientInventories as $ingredientInventory) {
-            $ingredientInventory->addToFillable('inventory');
+        $establishments = Establishment::all();
+        foreach ($establishments as $establishment) {
+            $ingredientInventories = Ingredient::with(['inventory' => function ($query) {
+                    $query->with('vendor');
+                    $query->with('unit');
+                }])->Join('ingredient_inventories', function ($join) use($establishment) {
+                    $join->on('ingredient_inventories.ingredient_id', '=', 'product_ingredients.id')
+                         ->where('establishment_id', '=', $establishment->id); // Constant condition
+                })
+                ->get();
+            $children =[];
+            foreach ($ingredientInventories as $ingredientInventory) {
+                $ingredientInventory->addToFillable('inventory');
+                $ingredientInventory->addToFillable('qty');
+                $children[] = $ingredientInventory;
+            }
+            $establishment->children = $children;
         }
-        $tree = $TreeBuilder->buildTree($ingredientInventories ,null, 'ingredientInventory', null, null, null);
+        $tree = $TreeBuilder->buildTree($establishments ,null, 'ingredientInventory', null, null, null);
         return response()->json($tree);
     }
  

@@ -1,10 +1,14 @@
 import TreeTableComponent from '../../comp/TreeTableComponent';
-import { getName } from '../../lang/Utils';
+import { getName, getRowName } from '../../lang/Utils';
 
 
 const ProductInventoryTable = ({ dir, translations, p_type }) => {
   const rootElement = document.getElementById('root');
   const urlList = JSON.parse(rootElement.getAttribute('list-url'));
+  
+  const canEditRow=(data)=>{
+    return data.type == "product" || data.type == "Ingredient";
+  }
 
   return (
     <div>
@@ -15,21 +19,20 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
         editUrl={`${p_type}Inventory/%/edit`}
         addUrl={null}
         canAddInline={false}
+        canEditRow={canEditRow}
         title={`${p_type}s`}
+        expander
         cols={[
           {
             key: "name", autoFocus: true, options: [], type: "Text", width: '16%',
             customCell: (data, key, editMode, editable) => {
               return  (<>
-                  <div class="row">
-                    <span>{getName(data.name_en, data.name_ar, dir)}</span>
-                  </div>
-                  <div class="row">
-                    <span>{`${translations.barcode}: ${!!!data.barcode? '' : data.barcode}`}</span>
-                  </div>
+                    <span>{getRowName(data, dir)}</span>
+
                 </>);
             },
           },
+          {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'},
           { key: "vendor", autoFocus: false, options: [], type: "Text", width: '30%',
             customCell: (data, key, editMode, editable) => {
               return  (
@@ -56,8 +59,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                     : <></>
                 );
             },
-          },
-          {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'}
+          }
         ]}
       />
     </div>

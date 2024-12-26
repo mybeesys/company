@@ -19,6 +19,7 @@
   "CategoryList": "Category List",
   "ProductList": "Product List",
   "Add": "Add",
+  "Edit" : "Edit",
   "Delete": "Delete",
   "Close": "Close",
   "Doyouwanttodelete": "Do you want to delete ",
@@ -209,6 +210,7 @@
   "times1" : "Times",
   "approved" : "Approved",
   "rmas" : "RMAs",
+  "rma" : "RMA",
   "rmaInfo" : "RMA Info",
   "recievd_qty" : "Recievd qty",
   "item_unit_error" : "All Items Must have unit",
@@ -218,9 +220,12 @@
   "op_status" : "Status",
   "transfers" : "Transfers",
   "establishment" : "Establishment",
-  "warehouses" : "Warehouses",
-  "warehouse" : "Warehouse",
+  "establishments" : "Establishments",
   "image" : "Image",
   "noDefaultUnit" : "Unit Required",
-  "relatedUnitTransfer" : "Unit Related to Other"
+  "relatedUnitTransfer" : "Unit Related to Other",
+  "from": "from",
+  "to": "to",
+  "inventoryTransfer": "Transfer",
+  "notEnoughQuantity" : "Not Available Quantity"
 }

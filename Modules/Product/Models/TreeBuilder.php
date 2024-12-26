@@ -20,6 +20,9 @@ class TreeBuilder
         foreach($item->getFillable() as $key) {
               $treeObject->data->$key = $item->$key;
         }
+        if(isset($item->name)){
+          $treeObject->data->name = $item->name;
+        }
         $treeObject->data->id = $item->id;
         $treeObject->data->type = $item->type;
         $treeObject->data->parentKey = $item->parentKey;

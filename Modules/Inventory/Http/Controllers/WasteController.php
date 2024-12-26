@@ -32,7 +32,7 @@ class WasteController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::find($id);
+        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
         if($inventoryOperation->hasDetail()){
             $inventoryOperation->detail->addToFillable();
             foreach ($inventoryOperation->detail->getFillable() as $key) {
@@ -41,11 +41,27 @@ class WasteController extends Controller
             }
         }
         $inventoryOperation->addToFillable('op_status_name');
+        $inventoryOperation->addToFillable('establishment');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
+        $resInventoryOperation = $inventoryOperation->toArray();
+        $resInventoryOperation["items"] = [];
         foreach ($inventoryOperation->items as $item) {
-            $item->product = $item->product;
-            $item->unit = $item->unit;
+            $newItem = $item->toArray();
+            if(isset($item->product_id)){
+                $newItem["product_id"] = $item->product_id.'-p';
+                $prod = $item->product->toArray();
+                $prod["id"] =  $item->product_id.'-p';
+                $newItem["product"] =$prod;
+            }
+            if(isset($item->ingredient_id)){
+                $newItem["product_id"] = $item->ingredient_id.'-i';
+                $ingr = $item->ingredient->toArray();
+                $ingr["id"] =  $item->ingredient_id.'-i';
+                $newItem["product"] =$ingr;
+            }
+            $newItem["unit"] = $item->unit->toArray();
+            $resInventoryOperation["items"][] =$newItem;
         }
-        return view('inventory::waste.edit', compact('inventoryOperation'));
+        return view('inventory::waste.edit', compact('resInventoryOperation'));
     }
 }

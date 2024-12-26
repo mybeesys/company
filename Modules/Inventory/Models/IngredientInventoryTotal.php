@@ -10,13 +10,13 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
 
-class ProductInventoryTotal extends Model
+class IngredientInventoryTotal extends Model
 {
     use HasFactory;
 
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
-    protected $table = 'product_inventories';
+    protected $table = 'ingredient_inventories';
 
     // Specify the primary key if it is not 'id'
     protected $primaryKey = 'id';

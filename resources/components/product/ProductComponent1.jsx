@@ -9,7 +9,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import ProductCombo from './ProductCombo';
 import ProductLinkedCombo from './ProductLinkedCombo';
 import UnitTransferProduct from './UnitTransferProduct';
-import ProductWarhouse from './ProductWarhouse';
+import ProductEstablishment from './ProductEstablishment';
 
 
 const ProductComponent1 = ({ translations, dir }) => {
@@ -483,7 +483,7 @@ const ProductComponent1 = ({ translations, dir }) => {
               </div>
               <div class="tab-content">
                 <div id="inventory" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="inventory_tab">
-                      <ProductWarhouse
+                      <ProductEstablishment
                         translations={translations}
                         dir={dir}
                         currentObject={currentObject}

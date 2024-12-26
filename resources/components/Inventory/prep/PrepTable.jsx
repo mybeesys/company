@@ -66,6 +66,7 @@ const PrepTable = ({ dir, translations }) => {
         title="preps"
         cols={[
           {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
+          {key : "establishment", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "product", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},

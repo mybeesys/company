@@ -1,22 +1,22 @@
 <?php
 
-namespace Modules\Inventory\Models;
+namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Product\Models\Ingredient;
+use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\UnitTransfer;
-use Modules\Product\Models\Vendor;
 
-class ProductInventoryTotal extends Model
+class EstablishmentProduct extends Model
 {
     use HasFactory;
 
+    use SoftDeletes;
+
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
-    protected $table = 'product_inventories';
+    protected $table = 'product_establishment_products';
 
     // Specify the primary key if it is not 'id'
     protected $primaryKey = 'id';
@@ -24,13 +24,27 @@ class ProductInventoryTotal extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'product_id',
-        'establishment_id',
-        'qty'
+        'establishment_id'
     ];
 
     public function getFillable(){
         return $this->fillable;
     }
 
-    public $type = 'productInventoryTotal';
+    public function addToFillable($key){
+        return array_push($this->fillable, $key);
+    }
+
+    public $type = 'establishmentProduct';
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id', 'id');
+    }
+
 }

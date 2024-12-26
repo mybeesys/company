@@ -20,7 +20,14 @@ class ProductController extends Controller
 {
     public function products(Request $request)
     {
-        $products = Product::with(['modifiers' => function ($query) {
+        // $request->validate([
+        //     'establishment_id' => ['required', 'numeric']
+        // ]);
+        $establishment_id = $request->query('establishment_id', '');
+        $products = Product::whereHas('establishments', function ($query)use($establishment_id) {
+            $query->where('establishment_id', $establishment_id); // Example condition on EntityTwo
+        })
+            ->with(['modifiers' => function ($query) {
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');
             }]);
@@ -33,7 +40,7 @@ class ProductController extends Controller
                 }]);
             }])->with(['unitTransfers' => function ($query) {
                     $query->whereNull('unit2');
-            }])->with('category')->with('subcategory')->with('total')->get();
+            }])->with('category')->with('subcategory')->with('tax')->with('total')->get();
         return new ProductCollection($products);
     }
 
@@ -53,7 +60,7 @@ class ProductController extends Controller
                 }]);
             }])->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
-            }])->with('category')->with('subcategory')->with('total')->get();
+            }])->with('category')->with('subcategory')->with('tax')->with('total')->get();
         return new ProductCollection($products);
     }
 

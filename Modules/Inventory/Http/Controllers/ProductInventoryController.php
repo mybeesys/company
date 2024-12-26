@@ -5,6 +5,8 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
+use Modules\Establishment\Models\Establishment;
+use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 
@@ -14,17 +16,25 @@ class ProductInventoryController extends Controller
     public function getProductInventories()
     {
         $TreeBuilder = new TreeBuilder();
-        $productInventories = Product::with(['inventory' => function ($query) {
-            $query->with('vendor');
-            $query->with('unit');
-        }])
-        ->leftJoin('product_inventory_totals', 'product_inventory_totals.id', '=', 'product_products.id')
-        ->get();
-        foreach ($productInventories as $productInventory) {
-            $productInventory->addToFillable('inventory');
-            $productInventory->addToFillable('qty');
+        $establishments = Establishment::all();
+        foreach ($establishments as $establishment) {
+            $productInventories = Product::with(['inventory' => function ($query) {
+                    $query->with('vendor');
+                    $query->with('unit');
+                }])->Join('product_inventories', function ($join) use($establishment) {
+                    $join->on('product_inventories.product_id', '=', 'product_products.id')
+                         ->where('establishment_id', '=', $establishment->id); // Constant condition
+                })
+                ->get();
+            $children =[];
+            foreach ($productInventories as $productInventory) {
+                $productInventory->addToFillable('inventory');
+                $productInventory->addToFillable('qty');
+                $children[] = $productInventory;
+            }
+            $establishment->children = $children;
         }
-        $tree = $TreeBuilder->buildTree($productInventories ,null, 'productInventory', null, null, null);
+        $tree = $TreeBuilder->buildTree($establishments ,null, 'productInventory', null, null, null);
         return response()->json($tree);
     }
  
@@ -114,10 +124,11 @@ class ProductInventoryController extends Controller
         }])->find($id);
         if($product->inventory == null){
             $product->inventory = new ProductInventory();
-            
         }
         $productInventory = $product->inventory;
         $productInventory->product_id = $id;
+        $productInventory->name_ar = $product->name_ar;
+        $productInventory->name_en = $product->name_en;
         return view('inventory::productInventory.edit', compact('productInventory'));
     }
 

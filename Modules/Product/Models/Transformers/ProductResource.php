@@ -14,6 +14,8 @@ class ProductResource extends JsonResource
         $subcategory["id"] = $this->subcategory["id"];
         $subcategory["name_ar"] = $this->subcategory["name_ar"];
         $subcategory["name_en"] = $this->subcategory["name_en"];
+        $tax["id"] = $this->tax["id"];
+        $tax["name"] = $this->tax["name"];
         return [
             'id' => $this->id,
             'type' => isset($this->combos) && count($this->combos) >0 ? 'combo' : (isset($this->attributes) && count($this->attributes) > 0 ? 'variant' : 'single'),
@@ -25,6 +27,7 @@ class ProductResource extends JsonResource
             'color' => $this->color,
             'order' => $this->order,
             'price' => $this->price,
+            'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
             'inventory' => isset($this->total) ? $this->total->qty : null,

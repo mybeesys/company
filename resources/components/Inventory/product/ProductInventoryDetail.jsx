@@ -2,6 +2,7 @@ import { useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import ProductInventoryBasicInfo from "./ProductInventoryBasicInfo";
 import ProductInventoryVendor from "./ProductInventoryVendor";
+import { getName } from "../../lang/Utils";
 
 const ProductInventoryDetail = ({ dir, translations, p_type }) => {
     const rootElement = document.getElementById('root');
@@ -43,6 +44,7 @@ const ProductInventoryDetail = ({ dir, translations, p_type }) => {
           translations={translations}
           dir={dir}
           apiUrl={`${p_type}Inventory`}
+          type={getName(currentObject.name_en, currentObject.name_ar, dir)}
         />
     );
 }

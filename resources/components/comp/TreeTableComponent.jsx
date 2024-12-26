@@ -7,7 +7,7 @@ import { Column } from 'primereact/column';
 import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 
-const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow }) => {
+const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow, expander }) => {
 
     const formRef = useRef(null);
 
@@ -379,7 +379,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <div className="flex flex-wrap gap-2">
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) &&
-                     (!!!canEditRow) ?
+                     (!!!canEditRow || canEditRow(node.data)) ?
                         <a href="#" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
@@ -432,7 +432,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                             header={!!col.title ? translations[col.title] : translations[col.key]} 
                             body={(node) => (
                                 renderCell(node, col, index)
-                            )} />
+                            )} expander={index == 0 && !!expander} />
                     )}
                     <Column body={(node) => (actionTemplate(node))} />
                 </TreeTable>
