@@ -45,7 +45,7 @@ trait EmployeeValidateTrait
             'pos_role_repeater.*.establishment' => [Rule::requiredIf($notAjaxValidate), new EmployeeEstablishmentRule],
 
             'wage_amount' => ['nullable', 'decimal:0,2', 'numeric'],
-            'wage_type' => ['required_with:wage_amount', 'nullable', 'in:monthly,fixed'],
+            'wage_type' => ['required_with:wage_amount', 'nullable', 'in:variable,fixed'],
 
             'allowance_repeater' => ['nullable', 'array'],
             'allowance_repeater.*.amount_type' => [Rule::requiredIf($notAjaxValidate), 'in:fixed,percent'],

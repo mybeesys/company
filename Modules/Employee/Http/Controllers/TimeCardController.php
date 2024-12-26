@@ -46,7 +46,7 @@ class TimeCardController extends Controller
         $maximum_regular_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value ?? '08:00';
         $maximum_overtime_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? '02:00';
         $employees = Employee::get(['id', 'name', 'name_en']);
-        $establishments = Establishment::get()->select('id', 'name');
+        $establishments = Establishment::active()->notMain()->get()->select('id', 'name');
         return view('employee::schedules.timecards.create', compact('employees', 'establishments', 'maximum_regular_hours', 'maximum_overtime_hours'));
     }
 
@@ -71,7 +71,7 @@ class TimeCardController extends Controller
         $maximum_regular_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_regular_hours_per_day')?->rule_value ?? '08:00';
         $maximum_overtime_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? '02:00';
         $employees = Employee::get(['id', 'name', 'name_en']);
-        $establishments = Establishment::get()->select('id', 'name');
+        $establishments = Establishment::active()->notMain()->get()->select('id', 'name');
         return view('employee::schedules.timecards.edit', compact('employees', 'timecard', 'establishments', 'maximum_regular_hours', 'maximum_overtime_hours'));
     }
 

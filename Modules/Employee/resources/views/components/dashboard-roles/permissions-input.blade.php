@@ -1,5 +1,5 @@
 @props(['modules', 'disabled' => false, 'rolePermissions' => null])
-<div class="table-responsive">
+<div class="table-responsive w-75 mx-auto">
     <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 mh-400px"
         id="dashboard-permissions-table">
         <thead>

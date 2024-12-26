@@ -25,7 +25,7 @@ class ShiftController extends Controller
             return $table->getShiftTable();
         }
         $roles = Role::get(['id', 'name']);
-        $establishments = Establishment::get(['id', 'name']);
+        $establishments = Establishment::active()->notMain()->get(['id', 'name']);
         $timeSheet_rules = TimeSheetRule::all();
         $columns = ShiftTable::getShiftColumns();
         $footers = ShiftTable::getShiftFooters();

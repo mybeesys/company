@@ -298,6 +298,20 @@ return [
 
 
     [
+        'name' => 'employees.payrolls_groups.show',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_group.show',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
         'name' => 'employees.payrolls_groups.print',
         'name_ar' => 'مجموعات كشوفات المرتبات',
         'description' => '',
@@ -305,14 +319,14 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.payrolls_groups.edit',
+        'name' => 'employees.payrolls_group.edit',
         'name_ar' => 'مجموعات كشوفات المرتبات',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.payrolls_groups.delete',
+        'name' => 'employees.payrolls_group.delete',
         'name_ar' => 'مجموعات كشوفات المرتبات',
         'description' => '',
         'description_ar' => '',

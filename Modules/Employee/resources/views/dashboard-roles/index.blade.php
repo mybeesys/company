@@ -5,11 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee">
-                <x-slot:export>
-                    <x-tables.export-menu id="dashboard_role" />
-                </x-slot:export>
-            </x-tables.table-header>
+            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee" />
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
             <x-tables.table :columns=$columns model="dashboard_role" module="employee" />

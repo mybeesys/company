@@ -56,6 +56,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap"
         rel="stylesheet">
     <style>
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.75);
+            /* Semi-transparent white background */
+            z-index: 9999;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
@@ -171,6 +190,11 @@
         style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div id="initial-loader" class="page-loader">
+        <span class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </span>
     </div>
     <!--begin::Theme mode setup on page load-->
     <script>
@@ -2877,21 +2901,9 @@
     <script>
         window.csrfToken = '{{ csrf_token() }}';
         var hostUrl = "/assets/";
-        const $loadingEl = $(`
-        <div class="page-loader opacity-75">
-            <span class="spinner-border text-warning" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </span>
-        </div>
-    `);
-
-        // Append it to the body
-        $("body").append($loadingEl);
-
-        KTApp.showPageLoading();
-
+        const loader = document.getElementById("initial-loader");
         $(window).on("load", function() {
-            $loadingEl.remove();
+            loader.remove();
         });
         toastr.options = {
             "closeButton": false,

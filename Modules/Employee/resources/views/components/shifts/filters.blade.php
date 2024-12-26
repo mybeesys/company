@@ -12,7 +12,7 @@
         [
             'name' => 'establishment_filter',
             'selected' => $establishments->first()->id,
-            'options' => $establishments->toArray()
+            'options' => $establishments->toArray(),
         ],
         [
             'name' => 'role_filter',
