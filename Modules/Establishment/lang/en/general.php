@@ -19,7 +19,7 @@ return [
     'company_details' => 'Company details',
     'establishments_table' => 'Establishments table',
     'establishments_tree' => 'Establishment tree',
-    'est_has_children_note' => 'You cannot disable this option if the branch has subordinate branches',
+    'est_has_children_note' => 'You cannot enable or disable this option if the branch has sub-branches linked to it or if the branch has been used in the system',
     'main_est_note' => 'When the "Main Branch" option is enabled, you will no longer be able to use this branch in any of the system options. However,Instead you can use its subordinate branches',
     'disable_enable_main_est' => 'When a main branch is disabled/enabled, all its subordinate branches will automatically be disabled/enabled as well',
     'deactivate' => 'Deactivate',

@@ -30,7 +30,7 @@
                     value="{{ $establishment?->contact_details }}" name="contact_details" />
             </x-form.input-div>
             @php
-                if ($establishment?->children()->exists()) {
+                if ($establishment?->hasAnyRelation()) {
                     $disabled = true;
                 } else {
                     $disabled = false;

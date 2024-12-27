@@ -8,7 +8,6 @@ use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\ShiftTable;
 use Modules\Employee\Http\Requests\StoreShiftRequest;
-use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\Shift;
