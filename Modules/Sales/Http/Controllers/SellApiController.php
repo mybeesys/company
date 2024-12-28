@@ -3,6 +3,7 @@
 namespace Modules\Sales\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class SellApiController extends Controller
             'type' => 'sell',
             'invoice_type' => $request->payment_status,
             'due_date' => null,
-            'transaction_date' => $request->date,
+            'transaction_date' =>Carbon::createFromFormat('d/m/Y H:i', $request->date)->format('Y-m-d H:i:s'),
             'contact_id' => $request->customer_id,
             // 'cost_center' => $request->cost_center ?? null,
             'discount_amount' => $request->discount_amount,
