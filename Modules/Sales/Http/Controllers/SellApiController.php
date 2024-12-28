@@ -37,7 +37,7 @@ class SellApiController extends Controller
     {
         // return $request;
 
-        try {
+        // try {
 
 
         $transactionUtil = new TransactionUtils();
@@ -96,10 +96,10 @@ class SellApiController extends Controller
         DB::commit();
         return response()->json(['message' => 'added'], 200);
 
-        } catch (Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'something went wrong'], 500);
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json(['message' => 'something went wrong'], 500);
+        // }
     }
 
 
