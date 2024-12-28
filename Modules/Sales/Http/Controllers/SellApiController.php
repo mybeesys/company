@@ -72,7 +72,7 @@ class SellApiController extends Controller
 
 
         // $products = json_decode(json_encode($request->products));
-return $request->products;
+
         foreach ($request->products as $product) {
             TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
