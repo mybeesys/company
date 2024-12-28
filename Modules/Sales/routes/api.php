@@ -8,9 +8,9 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 
 Route::middleware([
-    // 'api',
-    // InitializeTenancyByDomain::class,
-    // PreventAccessFromCentralDomains::class,
+    'api',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
     // 'auth-central',
 ])->group(function () {
     Route::get('sales-invoices', [SellApiController::class, 'index'])->name('sales-invoices');
