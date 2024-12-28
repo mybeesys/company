@@ -6,7 +6,6 @@ use Hash;
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\Role;
 use Modules\Establishment\Models\Establishment;
 
 class EmployeeDatabaseSeeder extends Seeder

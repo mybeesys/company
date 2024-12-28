@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Employee\Policies;
+namespace Modules\Establishment\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class TimeSheetRulePolicy
+class CompanyPolicy
 {
     use HandlesAuthorization;
 
@@ -13,7 +13,7 @@ class TimeSheetRulePolicy
      */
     public function viewAny(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.show');
+        return auth()->user()->hasDashboardPermission('establishments.company.show');
     }
 
     /**
@@ -21,6 +21,7 @@ class TimeSheetRulePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.update');
+        return auth()->user()->hasDashboardPermission('establishments.company.update');
     }
+
 }

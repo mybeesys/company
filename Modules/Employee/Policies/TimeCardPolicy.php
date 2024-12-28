@@ -24,6 +24,11 @@ class TimeCardPolicy
         return auth()->user()->hasDashboardPermission('employees.timecard.show');
     }
 
+    public function print()
+    {
+        return auth()->user()->hasDashboardPermission('employees.timecards.print');
+    }
+
     /**
      * Determine whether the user can create models.
      */
@@ -37,7 +42,7 @@ class TimeCardPolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecard.edit');
+        return auth()->user()->hasDashboardPermission('employees.timecard.update');
     }
 
     /**

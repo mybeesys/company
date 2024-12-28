@@ -7,6 +7,7 @@ use Cache;
 use DB;
 use Illuminate\Http\Request;
 use Log;
+use Modules\Employee\Classes\PayrollGroupTable;
 use Modules\Employee\Classes\PayrollTable;
 use Modules\Employee\Http\Requests\CreatePayrollRequest;
 use Modules\Employee\Http\Requests\StorePayrollRequest;
@@ -14,9 +15,9 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\PayrollGroup;
-use Modules\Employee\Models\Role;
 use Modules\Employee\Services\PayrollAction;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Models\Role;
 
 class PayrollController extends Controller
 {
@@ -37,8 +38,11 @@ class PayrollController extends Controller
         }
         $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
-        $columns = PayrollTable::getIndexPayrollColumns();
-        return view('employee::schedules.payroll.index', compact('columns', 'establishments', 'employees'));
+        $payroll_columns = PayrollTable::getIndexPayrollColumns();
+
+        $payroll_group_columns = PayrollGroupTable::getPayrollGroupColumns();
+
+        return view('employee::schedules.payroll.index', compact('payroll_columns', 'establishments', 'employees', 'payroll_group_columns'));
     }
 
     public function create(CreatePayrollRequest $request)

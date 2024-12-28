@@ -24,7 +24,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.all.edit',
+        'name' => 'employees.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -70,7 +70,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.employee.edit',
+        'name' => 'employees.employee.update',
         'name_ar' => 'موظف',
         'description' => '',
         'description_ar' => '',
@@ -115,7 +115,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.pos_role.edit',
+        'name' => 'employees.pos_role.update',
         'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
@@ -168,7 +168,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.dashboard_role.edit',
+        'name' => 'employees.dashboard_role.update',
         'name_ar' => 'دور لوحة تحكم',
         'description' => '',
         'description_ar' => '',
@@ -190,7 +190,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.time_sheet_rules.edit',
+        'name' => 'employees.time_sheet_rules.update',
         'name_ar' => 'إعدادات الجدولة',
         'description' => '',
         'description_ar' => '',
@@ -205,7 +205,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.shifts.edit',
+        'name' => 'employees.shifts.update',
         'name_ar' => 'جداول العمل',
         'description' => '',
         'description_ar' => '',
@@ -250,7 +250,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.timecard.edit',
+        'name' => 'employees.timecard.update',
         'name_ar' => 'وقت دوام',
         'description' => '',
         'description_ar' => '',
@@ -306,7 +306,7 @@ return [
     ],
     [
         'name' => 'employees.payrolls_group.show',
-        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -319,15 +319,15 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.payrolls_group.edit',
-        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'name' => 'employees.payrolls_group.update',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
         'name' => 'employees.payrolls_group.delete',
-        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -357,7 +357,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'products.all.edit',
+        'name' => 'products.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -392,7 +392,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'inventory.all.edit',
+        'name' => 'inventory.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -427,7 +427,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'accounting.all.edit',
+        'name' => 'accounting.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -440,6 +440,8 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
         'name' => 'establishments.all.show',
         'name_ar' => '',
@@ -462,7 +464,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.all.edit',
+        'name' => 'establishments.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -475,6 +477,16 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
+    [
+        'name' => 'establishments.establishments.show',
+        'name_ar' => 'فرع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
     [
         'name' => 'establishments.establishment.create',
         'name_ar' => 'فرع',
@@ -490,7 +502,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.establishment.edit',
+        'name' => 'establishments.establishment.update',
         'name_ar' => 'فرع',
         'description' => '',
         'description_ar' => '',
@@ -503,41 +515,23 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
-        'name' => 'schedules.all.show',
-        'name_ar' => '',
+        'name' => 'establishments.company.show',
+        'name_ar' => 'الشركة',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'schedules.all.print',
-        'name_ar' => '',
+        'name' => 'establishments.company.update',
+        'name_ar' => 'الشركة',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
-    [
-        'name' => 'schedules.all.create',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'schedules.all.edit',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'schedules.all.delete',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
+
     [
         'name' => 'reports.all.show',
         'name_ar' => '',
@@ -560,7 +554,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'reports.all.edit',
+        'name' => 'reports.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -595,7 +589,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'crm.all.edit',
+        'name' => 'crm.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',

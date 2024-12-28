@@ -4,62 +4,62 @@ return [
         'name' => 'dashboard',
         'url' => 'dashboard',
         'icon' => 'fas fa-home',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => []
     ],
     [
         'name' => 'product_module',
         'url' => 'category',
         'icon' => 'fas fa-shopping-cart',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => [
             [
 
                 'name' => 'products',
                 'url' => 'category',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'modifiers',
                 'url' => 'modifier',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'attribute',
                 'url' => 'attribute',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'customMenu',
                 'url' => 'customMenu',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'serviceFee',
                 'url' => 'serviceFee',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'discount',
                 'url' => 'discount',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'linkedCombo',
                 'url' => 'linkedCombo',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
             [
                 'name' => 'ingredient',
                 'url' => 'ingredient',
-                'permission_model' => '',
+                'permission' => '',
 
             ],
 
@@ -69,43 +69,43 @@ return [
     [
         'name' => 'inventory_module',
         'url' => 'productInventory',
-        'permission_model' => '',
+        'permission' => '',
         'icon' => 'fas fa-building',
         'subMenu' => [
             [
                 'name' => 'inventory',
                 'url' => 'productInventory',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'ingredientInventory',
                 'url' => 'ingredientInventory',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'po',
                 'url' => 'purchaseOrder',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'rma',
                 'url' => 'rma',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'transfer',
                 'url' => 'transfer',
-                'permission_model' => '',
+                'permission' => '',
             ]
         ]
     ],
@@ -113,17 +113,17 @@ return [
         'name' => 'sales',
         'url' => '#',
         'icon' => 'fas fa-dollar-sign',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => [
             [
                 'name' => 'clients',
                 'url' => 'clients',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'invoices',
                 'url' => 'invoices',
-                'permission_model' => '',
+                'permission' => '',
             ],
         ]
     ],
@@ -131,17 +131,17 @@ return [
         'name' => 'purchases',
         'url' => '#',
         'icon' => 'fas fa-shopping-cart',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => [
             [
                 'name' => 'suppliers',
                 'url' => 'suppliers',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
-                'permission_model' => '',
+                'permission' => '',
             ],
         ]
     ],
@@ -150,27 +150,27 @@ return [
         'name' => 'accounting_module',
         'url' => 'dashboard',
         'icon' => 'fas fa-calculator',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => [
             [
                 'name' => 'accounting_dashboard',
                 'url' => 'accounting-dashboard',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'journalEntry',
                 'url' => 'journal-entry-index',
-                'permission_model' => '',
+                'permission' => '',
             ],
             [
                 'name' => 'costCenter',
                 'url' => 'cost-center-index',
-                'permission_model' => '',
+                'permission' => '',
             ],
 
         ]
@@ -179,18 +179,18 @@ return [
     [
         'name' => 'establishments_module',
         'url' => '',
-        'permission_model' => '',
+        'permission' => '',
         'icon' => 'fas fa-building',
         'subMenu' => [
             [
                 'name' => 'company_settings',
                 'url' => 'company/setting',
-                'permission_model' => '',
+                'permission' => 'establishments.company.show',
             ],
             [
                 'name' => 'establishments',
                 'url' => 'establishment',
-                'permission_model' => '',
+                'permission' => 'establishments.establishments.show',
             ],
         ]
     ],
@@ -200,7 +200,7 @@ return [
         'name' => 'crm',
         'url' => '/',
         'icon' => 'fas fa-cogs',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => []
     ],
     [
@@ -208,52 +208,47 @@ return [
         'name' => 'employees_management_module',
         'url' => '',
         'icon' => 'fas fa-id-card',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => [
             [
                 'name' => 'employees',
                 'url' => 'employee',
-                'permission_model' => \Modules\Employee\Models\Employee::class,
+                'permission' => 'employees.employees.show',
             ],
             [
                 'name' => 'pos_roles',
                 'url' => 'pos-role',
-                'permission_model' => \Modules\Employee\Models\Role::class,
+                'permission' => 'employees.pos_roles.show',
             ],
             [
                 'name' => 'dashboard_roles',
                 'url' => 'dashboard-role',
-                'permission_model' => \Modules\Employee\Models\Role::class,
+                'permission' => 'employees.dashboard_roles.show',
             ],
             [
                 'name' => 'schedules',
                 'url' => 'schedule',
-                'permission_model' => '',
+                'permission' => '',
                 'subMenu' => [
                     [
                         'name' => 'timesheet_rule',
                         'url' => 'schedule/timesheet-rule',
-                        'permission_model' => \Modules\Employee\Models\TimeSheetRule::class,
+                        'permission' => 'employees.time_sheet_rules.show',
                     ],
                     [
                         'name' => 'shift_schedule',
                         'url' => 'schedule/shift',
-                        'permission_model' => \Modules\Employee\Models\Shift::class,
+                        'permission' => 'employees.shifts.show',
                     ],
                     [
                         'name' => 'employees_working_hours',
                         'url' => 'schedule/timecard',
-                        'permission_model' => \Modules\Employee\Models\TimeCard::class,
+                        'permission' => 'employees.timecards.show',
                     ],
                     [
                         'name' => 'payroll',
                         'url' => 'schedule/payroll',
-                        'permission_model' => \Modules\Employee\Models\Payroll::class,
-                    ],
-                    [
-                        'name' => 'payroll_group',
-                        'url' => 'schedule/payroll-group',
-                        'permission_model' => \Modules\Employee\Models\PayrollGroup::class,
+                        'permission' => ['employees.payrolls.show', 'employees.payrolls_groups.show'],
                     ],
                 ]
             ],
@@ -263,7 +258,7 @@ return [
         'name' => 'reports_module',
         'url' => '/',
         'icon' => 'fas fa-bar-chart',
-        'permission_model' => '',
+        'permission' => '',
         'subMenu' => []
     ],
 ];

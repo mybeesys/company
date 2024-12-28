@@ -34,7 +34,7 @@ class PayrollGroupPolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_group.edit');
+        return auth()->user()->hasDashboardPermission('employees.payrolls_group.update');
     }
 
     /**
