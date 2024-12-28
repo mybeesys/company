@@ -26,6 +26,6 @@ class ShiftPolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.shift.update');
+        return auth()->user()->hasDashboardPermission('employees.shifts.update');
     }
 }

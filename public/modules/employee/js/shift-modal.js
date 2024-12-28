@@ -18,88 +18,90 @@ function addShiftForm(storeShiftUrl) {
 }
 
 function addShiftModal(getShiftUrl) {
-    $(document).on('click', '.add-schedule-shift-button', function (e) {
-        e.preventDefault();
-        employeeId = $(this).data('employee-id');
-        const employeeName = $(this).data('employee-name');
+    if (hasPermissionToUpdate) {
+        $(document).on('click', '.add-schedule-shift-button', function (e) {
+            e.preventDefault();
+            employeeId = $(this).data('employee-id');
+            const employeeName = $(this).data('employee-name');
 
-        date = $(this).data('date');
-        const data = $(this).data();
-        const scheduleShiftIds = [];
-        const startTimes = [];
-        const endTimes = [];
-        const establishmentId = [];
-        const breakDuration = [];
+            date = $(this).data('date');
+            const data = $(this).data();
+            const scheduleShiftIds = [];
+            const startTimes = [];
+            const endTimes = [];
+            const establishmentId = [];
+            const breakDuration = [];
 
-        ajaxRequest(getShiftUrl, 'GET', {
-            employee_id: employeeId,
-        }, false, true).done(function (response) {
-            establishmentsValues = response.data.establishments;
+            ajaxRequest(getShiftUrl, 'GET', {
+                employee_id: employeeId,
+            }, false, true).done(function (response) {
+                establishmentsValues = response.data.establishments;
 
-            let startDayTime = response.data.start_of_day;
-            let endDayTime = response.data.end_of_day;
+                let startDayTime = response.data.start_of_day;
+                let endDayTime = response.data.end_of_day;
 
-            if (startDayTime && endDayTime) {
-                $('.work-time-hint').html(
-                    Lang.get('general.day_times_hint', { start: startDayTime, end: endDayTime })
-                );
-            }
+                if (startDayTime && endDayTime) {
+                    $('.work-time-hint').html(
+                        Lang.get('general.day_times_hint', { start: startDayTime, end: endDayTime })
+                    );
+                }
 
-            $('[data-repeater-create]').on('click', function () {
-                const newRow = $('select[name*="[establishment]"]').last();
+                $('[data-repeater-create]').on('click', function () {
+                    const newRow = $('select[name*="[establishment]"]').last();
 
-                $.each(establishmentsValues, function (establishmentName, establishmentId) {
-                    if (newRow.find(`option[value="${establishmentId}"]`).length ===
-                        0) {
-                        newRow.append(new Option(establishmentName, establishmentId));
+                    $.each(establishmentsValues, function (establishmentName, establishmentId) {
+                        if (newRow.find(`option[value="${establishmentId}"]`).length ===
+                            0) {
+                            newRow.append(new Option(establishmentName, establishmentId));
+                        }
+                    });
+                });
+
+                $('.work-time-modal-title').html(employeeName + ' | ' + date);
+
+                const sortedKeys = Object.keys(data).sort((a, b) => {
+                    const numA = parseInt(a.split('-')[1] || 0, 10); // Extract number after "-"
+                    const numB = parseInt(b.split('-')[1] || 0, 10);
+                    return numA - numB;
+                });
+
+                for (const key of sortedKeys) {
+                    if (key.startsWith('scheduleShiftId')) {
+                        scheduleShiftIds.push(data[key]);
+                    } else if (key.startsWith('startTime')) {
+                        startTimes.push(data[key]);
+                    } else if (key.startsWith('endTime')) {
+                        endTimes.push(data[key]);
+                    } else if (key.startsWith('establishmentId')) {
+                        establishmentId.push(data[key]);
+                    } else if (key.startsWith('breakDuration')) {
+                        breakDuration.push(data[key]);
+                    }
+                }
+
+                const repeaterList = $('[data-repeater-list="shift_repeater"]');
+                repeaterList.empty();
+                scheduleShiftIds.forEach((shiftId, index) => {
+
+                    $('[data-repeater-create]').trigger('click');
+                    const newItem = repeaterList.find('[data-repeater-item]').last();
+                    newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
+                    newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
+                    newItem.find('select[name*="[establishment]"]').val(establishmentId[index]).trigger('change');
+                    newItem.find('input[name*="[shift_id]"]').val(shiftId);
+                    if (breakDuration[index]) {
+                        newItem.find('select[name*="[end_status]"]').val('break').trigger(
+                            'change');
                     }
                 });
+
+                setTimeout(() => {
+                    $('#shift_add').modal('toggle');
+                }, 300);
             });
 
-            $('.work-time-modal-title').html(employeeName + ' | ' + date);
-
-            const sortedKeys = Object.keys(data).sort((a, b) => {
-                const numA = parseInt(a.split('-')[1] || 0, 10); // Extract number after "-"
-                const numB = parseInt(b.split('-')[1] || 0, 10);
-                return numA - numB;
-            });
-
-            for (const key of sortedKeys) {
-                if (key.startsWith('scheduleShiftId')) {
-                    scheduleShiftIds.push(data[key]);
-                } else if (key.startsWith('startTime')) {
-                    startTimes.push(data[key]);
-                } else if (key.startsWith('endTime')) {
-                    endTimes.push(data[key]);
-                } else if (key.startsWith('establishmentId')) {
-                    establishmentId.push(data[key]);
-                } else if (key.startsWith('breakDuration')) {
-                    breakDuration.push(data[key]);
-                }
-            }
-
-            const repeaterList = $('[data-repeater-list="shift_repeater"]');
-            repeaterList.empty();
-            scheduleShiftIds.forEach((shiftId, index) => {
-
-                $('[data-repeater-create]').trigger('click');
-                const newItem = repeaterList.find('[data-repeater-item]').last();
-                newItem.find('input[name*="[startTime]"]').val(startTimes[index] || '');
-                newItem.find('input[name*="[endTime]"]').val(endTimes[index] || '');
-                newItem.find('select[name*="[establishment]"]').val(establishmentId[index]).trigger('change');
-                newItem.find('input[name*="[shift_id]"]').val(shiftId);
-                if (breakDuration[index]) {
-                    newItem.find('select[name*="[end_status]"]').val('break').trigger(
-                        'change');
-                }
-            });
-
-            setTimeout(() => {
-                $('#shift_add').modal('toggle');
-            }, 300);
         });
-
-    });
+    }
 }
 
 function copyShifts() {
