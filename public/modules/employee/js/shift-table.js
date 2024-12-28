@@ -64,13 +64,13 @@ function initTable(tableUrl, startDate, endDate) {
             className: 'mb-5',
             columns: ':lt(6)'
         },
-        {
+        ...(hasPermissionToUpdate ? [{
             text: Lang.get('general.copy_shifts'),
             className: 'mb-5 copy-shifts-btn mw-275px',
             action: function (e, dt, node, config) {
                 copyShifts();
             }
-        }
+        }] : [])
         ],
         "footerCallback": tableFooter()
     });

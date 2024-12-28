@@ -136,7 +136,7 @@ Route::middleware([
 
                 Route::get('/get-shift', 'getShift')->name('getShift');
 
-                Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts');
+                Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts')->can('update', Shift::class);
             });
 
             Route::controller(PayrollGroupController::class)->middleware([EnureTimeSheetRulesExists::class])->name('payrolls-groups.')->prefix('/payroll-group')->group(function () {
