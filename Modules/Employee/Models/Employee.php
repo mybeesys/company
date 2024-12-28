@@ -118,13 +118,16 @@ class Employee extends Authenticatable
 
     public function hasDashboardPermission($permission)
     {
-        $permission_sections = explode('.', $permission);
-        $module = $permission_sections[0];
-        $permission_action = $permission_sections[2];
-        
-        $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
+        if ($permission) {
+            $permission_sections = explode('.', $permission);
+            $module = $permission_sections[0];
+            $permission_action = $permission_sections[2];
 
-        return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+            $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
+
+            return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+        }
+        return false;
     }
 
     public function hasDashboardPermissionViaRoles($permission, $module, $permission_action)
