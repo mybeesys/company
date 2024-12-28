@@ -16,6 +16,7 @@ use Modules\Product\Models\Transformers\Collections\PAttributeCollection;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Product\Models\TreeBuilder;
 
+
 class ProductController extends Controller
 {
     public function products(Request $request)
@@ -39,7 +40,7 @@ class ProductController extends Controller
 
     public function product($id)
     {
-        
+
         $products = Product::where('id', $id)->with(['modifiers' => function ($query) {
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');
@@ -68,7 +69,7 @@ class ProductController extends Controller
             $newItem["type"] = "category";
             return $newItem;
         }, $categories->toArray());
-        
+
         $subCategories = Subcategory::all();
         $mappedSubcategories = array_map(function ($item) {
             $newItem["id"] = $item["id"];

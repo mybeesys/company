@@ -10,12 +10,15 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellController extends Controller
@@ -43,17 +46,20 @@ class SellController extends Controller
     public function create()
     {
         $clients = Contact::where('business_type', 'customer')->get();
-        // $taxes = Tax::all();
+        $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
-        // $countries = DB::connection('mysql')->table('countries')->get();
+        $establishments = Establishment::where('is_main',0)->get();
         $countries = Country::all();
 
-        $products = Product::where('active', 1)->take(25)->get();
-        return view('sales::sell.create', compact('clients', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+
+        $products = Product::with(['unitTransfers' => function ($query) {
+            $query->whereNull('unit2');
+        }])->get();
+        return view('sales::sell.create', compact('clients', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**

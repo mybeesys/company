@@ -133,6 +133,8 @@ return [
     'amount'=>'Amount',
     'parent_account'=>'Parent Account',
     'sell'=>'Sales invoice',
+    'is_main'=>'Is the center main?',
+
 
 
 

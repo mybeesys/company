@@ -1,7 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\General\Http\Controllers\GeneralController;
+use Modules\General\Http\Controllers\TaxController;
+use Modules\Sales\Http\Controllers\SellController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +17,17 @@ use Modules\General\Http\Controllers\GeneralController;
 |
 */
 
-Route::group([], function () {
-    Route::resource('general', GeneralController::class)->names('general');
+Route::middleware([
+    'web',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+
+    Route::middleware(['auth'])->group(function () {
+
+        Route::get('taxes', [TaxController::class, 'index'])->name('taxes');
+        Route::post('store-tax', [TaxController::class, 'store'])->name('store-tax');
+        Route::post('update-tax', [TaxController::class, 'update'])->name('update-tax');
+        Route::get('delete-tax/{id}', [TaxController::class, 'destroy'])->name('delete-tax');
+    });
 });

@@ -34,10 +34,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                                                                                                                                                            background: #beebff2e !important;
-                                                                                                                                                                                                                                                                                                                            border-radius: 13px !important;
-                                                                                                                                                                                                                                                                                                                            box-shadow: none !important;
-                                                                                                                                                                                                                                                                                                                        } */
+                                                                                                                                                                                                                                                                                                                                        background: #beebff2e !important;
+                                                                                                                                                                                                                                                                                                                                        border-radius: 13px !important;
+                                                                                                                                                                                                                                                                                                                                        box-shadow: none !important;
+                                                                                                                                                                                                                                                                                                                                    } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -119,7 +119,8 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-left" role="menu" style=" width: max-content;padding: 10px;"
                         style="padding: 8px 15px;">
-                        <li class="mb-5" style="text-align: justify; border-bottom: 1px solid #00000029;
+                        <li class="mb-5"
+                            style="text-align: justify; border-bottom: 1px solid #00000029;
                         ">
                             <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
                         </li>
@@ -205,12 +206,16 @@
             sessionStorage.setItem('_costCenter_name_en', costCenter.name_en);
             sessionStorage.setItem('costCenter_id', costCenter.id);
             sessionStorage.setItem('_costCenter_id', costCenter.id);
+            sessionStorage.setItem('costCenter_is_main', costCenter.is_main);
+            sessionStorage.setItem('_costCenter_is_main', costCenter.is_main);
 
         }
         var locale = '{{ session()->get('locale') }}';
 
         $(document).ready(function() {
-
+            // $('#costCenter_is_main').on('change', function() {
+            //     sessionStorage.setItem('_costCenter_is_main', $(this).prop('checked'));
+            // });
             $(document).on('shown.bs.modal', '#kt_modal_create_cost_center', function() {
                 var value = sessionStorage.getItem('_costCenter_id');
 
@@ -229,6 +234,8 @@
                 $('#name_ar').val(sessionStorage.getItem('_costCenter_name_ar'));
                 $('#name_en').val(sessionStorage.getItem('_costCenter_name_en'));
                 $('#costCenter_id').val(sessionStorage.getItem('costCenter_id'));
+                $('#costCenter_is_main').prop('checked', sessionStorage.getItem('_costCenter_is_main') ==
+                    1);
 
             });
 

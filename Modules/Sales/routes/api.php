@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Sales\Http\Controllers\SalesController;
+use Modules\Sales\Http\Controllers\SellApiController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-/*
- *--------------------------------------------------------------------------
- * API Routes
- *--------------------------------------------------------------------------
- *
- * Here is where you can register API routes for your application. These
- * routes are loaded by the RouteServiceProvider within a group which
- * is assigned the "api" middleware group. Enjoy building your API!
- *
-*/
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('sales', SalesController::class)->names('sales');
+
+Route::middleware([
+    // 'api',
+    // InitializeTenancyByDomain::class,
+    // PreventAccessFromCentralDomains::class,
+    // 'auth-central',
+])->group(function () {
+    Route::get('sales-invoices', [SellApiController::class, 'index'])->name('sales-invoices');
+    Route::post('stor-sales-invoice', [SellApiController::class, 'store'])->name('stor-sales-invoice');
+
 });

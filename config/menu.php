@@ -71,41 +71,43 @@ return [
         'url' => 'productInventory',
         'permission' => '',
         'icon' => 'fas fa-building',
-        'subMenu' => [ [
-            'name' => 'inventory',
-            'url' => 'productInventory',
-            'permission' => '',
-        ],
-        [
-            'name' => 'ingredientInventory',
-            'url' => 'ingredientInventory',
-            'permission' => '',
-        ],
-        [
-            'name' => 'po',
-            'url' => 'purchaseOrder',
-            'permission' => '',
-        ],
-        [
-            'name' => 'prep',
-            'url' => 'prep',
-            'permission' => '',
-        ],
-        [
-            'name' => 'rma',
-            'url' => 'rma',
-            'permission' => '',
-        ],
-		        [
-            'name' => 'waste',
-            'url' => 'waste',
-            'permission' => '',
-        ],
-        [
-            'name' => 'transfer',
-            'url' => 'transfer',
-            'permission' => '',
-        ]]
+        'subMenu' => [
+            [
+                'name' => 'inventory',
+                'url' => 'productInventory',
+                'permission' => '',
+            ],
+            [
+                'name' => 'ingredientInventory',
+                'url' => 'ingredientInventory',
+                'permission' => '',
+            ],
+            [
+                'name' => 'po',
+                'url' => 'purchaseOrder',
+                'permission' => '',
+            ],
+            [
+                'name' => 'prep',
+                'url' => 'prep',
+                'permission' => '',
+            ],
+            [
+                'name' => 'rma',
+                'url' => 'rma',
+                'permission' => '',
+            ],
+            [
+                'name' => 'waste',
+                'url' => 'waste',
+                'permission' => '',
+            ],
+            [
+                'name' => 'transfer',
+                'url' => 'transfer',
+                'permission' => '',
+            ]
+        ]
     ],
     [
         'name' => 'sales',
@@ -262,5 +264,18 @@ return [
         'icon' => 'fas fa-bar-chart',
         'permission' => '',
         'subMenu' => []
+    ],
+    [
+        'name' => 'general_setting',
+        'url' => '/',
+        'icon' => 'fas fa-cog',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'taxes',
+                'url' => 'taxes',
+                'permission' => '',
+            ],
+        ]
     ],
 ];

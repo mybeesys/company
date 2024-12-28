@@ -49,7 +49,8 @@
                         <th class="min-w-150px product-description" style="display:none">@lang('sales::lang.description')
                         </th>
                         <th class="min-w-80px">@lang('sales::lang.qty')</th>
-                        <th class="min-w-120px">@lang('sales::lang.unit_price')</th>
+                        {{-- <th class="min-w-80px">@lang('sales::lang.unit_transfers')</th> --}}
+                        <th class="min-w-190px">@lang('sales::lang.unit_price')</th>
                         <th class="min-w-200px">@lang('sales::lang.discount')</th>
                         <th class="min-w-10px">@lang('sales::lang.inclusive')</th>
                         <th class="min-w-125px">@lang('sales::lang.total_before_vat')</th>
@@ -66,7 +67,8 @@
                                 name="products[0][products_id]" style="padding: 7px">
                                 <option value="">@lang('sales::lang.select_products')</option>
                                 @foreach ($products as $product)
-                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}">
+                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}"
+                                        data-units="{{ json_encode($product->unitTransfers) }}">
                                         @if (app()->getLocale() == 'ar')
                                             {{ $product->name_ar }} - <span
                                                 class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
@@ -81,8 +83,18 @@
                         <td class="product-description" style="display:none">
                             <textarea class="form-control form-control-solid" rows="1" name="products[0][description]"></textarea>
                         </td>
-                        <td><input type="number" step="any" class="form-control qty-field" name="products[0][qty]"
-                                placeholder="0" min="1" style="width: 80px;"></td>
+                        <td style="white-space: nowrap;"><input type="number" step="any"
+                                class="form-control qty-field" name="products[0][qty]" placeholder="0" min="1"
+                                style="width: 80px;display: inline-block;">
+
+
+                            <select id="unit" required
+                                class="form-select form-select-solid select-2 d-inline-block unit"
+                                name="products[0][unit]" style="width: 100px; display: inline-block;">
+                                <option value="">@lang('sales::lang.unit')</option>
+                            </select>
+                        </td>
+
                         <td><input type="number" step="any" class="form-control unit_price-field no-spin"
                                 name="products[0][unit_price]" placeholder="0.0"
                                 style="width: 100px;-moz-appearance: textfield !important">
@@ -113,9 +125,10 @@
                         <td>
                             <select id="tax_vat" required class="form-select form-select-solid select-2"
                                 name="products[0][tax_vat]" style="width: 200px;">
-                                <option value="15">@lang('sales::lang.tax_vat.S')</option>
-                                <option value="">@lang('sales::lang.tax_vat.E')</option>
-                                <option value="0">@lang('sales::lang.tax_vat.Z')</option>
+                                @foreach ($taxes as $tax)
+                                <option value="{{ $tax->amount }}">{{ $tax->name }}</option>
+
+                                @endforeach
                             </select>
                         </td>
                         <td><input type="number" step="any" readonly class="form-control vat_value-field"
