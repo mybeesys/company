@@ -22,7 +22,7 @@ class CostCenterConrollerController extends Controller
     public function index(Request $request)
     {
 
-    
+
         $costCenters = AccountingCostCenter::where('parent_id', 'null')->with('chiledCostCenter')->get();
         $includeInactive = $request->includeInactive == 0 ? 1 : 0;
         return view('accounting::costCenter.index', compact('costCenters', 'includeInactive'));
@@ -51,6 +51,7 @@ class CostCenterConrollerController extends Controller
                 'name_en' => $request->name_en,
                 'account_center_number' => $next_account_center_number,
                 'parent_id' => $request->parent_account_id,
+                'is_main' =>  $request->has('is_main')  ? 1 : 0,
 
             ]);
 
@@ -168,6 +169,8 @@ class CostCenterConrollerController extends Controller
             $costCenter->update([
                 'name_ar' => $request->name_ar,
                 'name_en' => $request->name_en,
+                'is_main' =>  $request->has('is_main')  ? 1 : 0,
+
             ]);
 
             DB::commit();

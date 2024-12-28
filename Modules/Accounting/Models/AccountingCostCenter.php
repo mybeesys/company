@@ -31,7 +31,7 @@ class AccountingCostCenter extends Model
         $parent_CostCenter_ids = AccountingCostCenter::where('parent_id', '<>', 'null')->get()->pluck('parent_id');
 
 
-        $query = AccountingCostCenter::where('active', 1)->whereNotIn('id', $parent_CostCenter_ids)->whereNotIn('id', $main_CostCenter_ids);
+        $query = AccountingCostCenter::where('active', 1)->where('is_main', 0)->whereNotIn('id', $parent_CostCenter_ids)->whereNotIn('id', $main_CostCenter_ids);
         return $query->get();
     }
 

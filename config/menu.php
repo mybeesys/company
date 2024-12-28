@@ -261,4 +261,17 @@ return [
         'permission' => '',
         'subMenu' => []
     ],
+    [
+        'name' => 'general_setting',
+        'url' => '/',
+        'icon' => 'fas fa-cog',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'taxes',
+                'url' => 'taxes',
+                'permission' => '',
+            ],
+        ]
+    ],
 ];

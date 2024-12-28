@@ -68,6 +68,9 @@ return [
 	 'waste' => 'Waste',
     'transfer' => 'Transfer',
     'purchase_invoices'=>'Purchase Invoices',
+    'general_setting'=>'Settings',
+    'taxes'=>'Taxes',
+
 
 
 

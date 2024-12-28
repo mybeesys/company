@@ -38,6 +38,10 @@
         #discount_type+.select2-container {
             width: max-content !important;
         }
+
+        #unit+.select2-container {
+            width: max-content !important;
+        }
     </style>
 
 
@@ -268,7 +272,11 @@
             width: 'resolve'
         });
         $('#account_id').select2();
+
         $('#payment_type').select2({
+            width: 'resolve'
+        });
+        $('#unit').select2({
             width: 'resolve'
         });
         $('#cash_account').select2({
@@ -420,7 +428,13 @@
         <td class="product-description" style="display:none">
             <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
         </td>
-        <td><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px;"></td>
+        <td style="white-space: nowrap;"><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px; display: inline-block;">
+            <select id="unit" required
+                                class="form-select form-select-solid select-2 d-inline-block unit"
+                                name="products[${salesRowIndex}][unit]" style="width: 100px; display: inline-block;">
+                                <option value="">@lang('sales::lang.unit')</option>
+                            </select>
+            </td>
         <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
         <td style="white-space: nowrap;">
             <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
@@ -439,10 +453,10 @@
         <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
         <td>
             <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
-               <option value="15">@lang('sales::lang.tax_vat.S')</option>
-                <option value="">@lang('sales::lang.tax_vat.E')</option>
+               @foreach ($taxes as $tax)
+                                <option value="{{ $tax->amount }}">{{ $tax->name }}</option>
 
-                <option value="0">@lang('sales::lang.tax_vat.Z')</option>
+                                @endforeach
             </select>
         </td>
         <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
@@ -471,105 +485,173 @@
 
 
             function updateSalesTotals() {
-                let totalBeforeVat = 0;
-                let totalVat = 0;
-                let totalAfterVat = 0;
-                let totalBeforeDiscountForVat = 0;
+    let totalBeforeVat = 0;
+    let totalVat = 0;
+    let totalAfterVat = 0;
+    let totalBeforeDiscountForVat = 0;
 
-                $('#salesTable tbody tr').each(function(index) {
-                    const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
-                    const unitPriceOriginal = parseFloat($(this).find(
-                        `[name="products[${index}][unit_price]"]`).val()) || 0;
-                    const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`)
-                        .val()) || 0;
-                    const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
-                    const taxType = $(this).find(`[name="products[${index}][tax_vat]"]`).val();
-                    const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(
-                        ':checked');
+    $('#salesTable tbody tr').each(function(index) {
+        const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+        const unitPriceOriginal = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
+        const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
+        const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0; // استرداد معدل الضريبة
+        const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(':checked');
 
-                    let unitPrice = unitPriceOriginal;
+        let unitPrice = unitPriceOriginal;
 
-                    if (isInclusive && taxType === '15') {
-                        unitPrice = unitPriceOriginal / 1.15;
-                    }
+        if (isInclusive && taxType > 0) {
+            unitPrice = unitPriceOriginal / (1 + taxType / 100); // حساب السعر قبل الضريبة
+        }
 
-                    let discountAmount = 0;
-                    if (discountType === 'percent') {
-                        discountAmount = (qty * unitPrice) * (discountValue / 100);
-                    } else {
-                        discountAmount = discountValue;
-                    }
+        let discountAmount = 0;
+        if (discountType === 'percent') {
+            discountAmount = (qty * unitPrice) * (discountValue / 100);
+        } else {
+            discountAmount = discountValue;
+        }
 
-                    const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
+        const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
 
-                    let vatAmount = 0;
-                    if (taxType === '15') {
-                        vatAmount = totalBeforeDiscount * 0.15;
-                        totalBeforeDiscountForVat +=
-                            totalBeforeDiscount;
-                    }
+        let vatAmount = 0;
+        if (taxType > 0) {
+            vatAmount = totalBeforeDiscount * (taxType / 100); // حساب الضريبة لكل صف
+            totalBeforeDiscountForVat += totalBeforeDiscount;
+        }
 
-                    const totalRow = totalBeforeDiscount + vatAmount;
+        const totalRow = totalBeforeDiscount + vatAmount;
 
-                    $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
-                    $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
-                    $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
+        $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
+        $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
+        $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
 
-                    totalBeforeVat += totalBeforeDiscount;
-                    totalVat += vatAmount;
-                    totalAfterVat += totalRow;
-                });
+        totalBeforeVat += totalBeforeDiscount;
+        totalVat += vatAmount;
+        totalAfterVat += totalRow;
+    });
 
-                const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
-                const discountType = $('#invoiced_discount_type').val();
+    const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
+    const discountType = $('#invoiced_discount_type').val();
 
-                let totalDiscountAmount = 0;
-                if (discountType === 'percent') {
-                    totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
-                } else {
-                    totalDiscountAmount = invoiceDiscount;
-                }
+    let totalDiscountAmount = 0;
+    if (discountType === 'percent') {
+        totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
+    } else {
+        totalDiscountAmount = invoiceDiscount;
+    }
 
-                const adjustedTotalForVat = totalBeforeDiscountForVat -
-                    totalDiscountAmount;
-                var adjustedVat = adjustedTotalForVat * 0.15;
+    const adjustedTotalForVat = totalBeforeDiscountForVat - totalDiscountAmount;
 
-                const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
-                const finalTotalAfterVat = totalAfterDiscount + adjustedVat;
-                adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
-                $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
-                $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
-                $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
-                $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
-                $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
-                $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
-                $('#totalVat').text(adjustedVat.toFixed(2));
-                $('#input-totalVat').val(adjustedVat.toFixed(2));
-                $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
-                $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
-                if ($('#invoice_type').val() === "due") {
+    // **حساب الضريبة المعدلة بجمع ضرائب كل صف بعد الخصم**
+    let adjustedVat = 0;
+    $('#salesTable tbody tr').each(function(index) {
+        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
+        const rowTotalBeforeDiscount = parseFloat($(this).find('.total_before_vat-field').val()) || 0;
 
-                    $("#paid_amount").val(0);
-                } else {
-                    $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+        if (taxType > 0) {
+            // توزيع الخصم الإجمالي على الصفوف وحساب الضريبة
+            const rowDiscountShare = (rowTotalBeforeDiscount / totalBeforeVat) * totalDiscountAmount;
+            const rowAdjustedTotal = rowTotalBeforeDiscount - rowDiscountShare;
+            adjustedVat += rowAdjustedTotal * (taxType / 100); // حساب الضريبة بعد الخصم
+        }
+    });
 
-                }
-            }
+    const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
+    const finalTotalAfterVat = totalAfterDiscount + adjustedVat;
+
+    adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
+
+    // تحديث القيم في الواجهة
+    $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
+    $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
+    $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
+    $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
+    $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
+    $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
+    $('#totalVat').text(adjustedVat.toFixed(2));
+    $('#input-totalVat').val(adjustedVat.toFixed(2));
+    $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
+    $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
+
+    if ($('#invoice_type').val() === "due") {
+        $("#paid_amount").val(0);
+    } else {
+        $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
+    }
+}
+
+
 
             $(document).on('change', '[name*="[inclusive]"]', function() {
                 updateSalesTotals();
             });
 
 
+            // $('#salesTable').on('change', '[name$="[products_id]"]', function() {
+            //     const selectedOption = $(this).find('option:selected');
+            //     const selectedProductId = selectedOption.val();
+            //     const price = parseFloat(selectedOption.data('price')) || 0;
+            //     const currentRow = $(this).closest('tr');
+            //     const rowIndex = currentRow.index();
+            //     console.log('rowIndex  ' + rowIndex);
+
+            //     let productFound = false;
+
+            //     $('#salesTable tbody tr').each(function() {
+            //         const productId = $(this).find('[name$="[products_id]"]').val();
+
+            //         if (productId === selectedProductId && this !== currentRow[0]) {
+            //             productFound = true;
+
+            //             const qtyField = $(this).find('[name*="[qty]"]');
+            //             const currentQty = parseFloat(qtyField.val()) || 0;
+            //             qtyField.val(currentQty + 1);
+
+            //             // updateSalesTotals();
+
+            //             currentRow.remove();
+            //             resetRowIndexes();
+            //             updateSalesTotals();
+            //         }
+            //     });
+            //     console.log('productFound  ' + productFound);
+
+            //     if (!productFound) {
+            //         resetRowIndexes();
+
+            //         console.log('price  ' + price);
+
+            //         currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(
+            //             2));
+            //         currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(
+            //             1);
+
+
+
+
+            //         updateSalesTotals();
+            //     }
+            // });
+
             $('#salesTable').on('change', '[name$="[products_id]"]', function() {
                 const selectedOption = $(this).find('option:selected');
                 const selectedProductId = selectedOption.val();
                 const price = parseFloat(selectedOption.data('price')) || 0;
+                const units = selectedOption.data('units') || [];
                 const currentRow = $(this).closest('tr');
                 const rowIndex = currentRow.index();
                 console.log('rowIndex  ' + rowIndex);
 
                 let productFound = false;
+
+                const unitSelect = currentRow.find(`[name="products[${rowIndex}][unit]"]`);
+                unitSelect.empty();
+                unitSelect.append(`<option value="">@lang('sales::lang.unit')</option>`);
+                units.forEach(unit => {
+                    unitSelect.append(
+                        `<option value="${unit.transfer}">${unit.name_ar || unit.unit1}</option>`
+                    );
+                });
 
                 $('#salesTable tbody tr').each(function() {
                     const productId = $(this).find('[name$="[products_id]"]').val();
@@ -581,13 +663,12 @@
                         const currentQty = parseFloat(qtyField.val()) || 0;
                         qtyField.val(currentQty + 1);
 
-                        // updateSalesTotals();
-
                         currentRow.remove();
                         resetRowIndexes();
                         updateSalesTotals();
                     }
                 });
+
                 console.log('productFound  ' + productFound);
 
                 if (!productFound) {
@@ -595,17 +676,15 @@
 
                     console.log('price  ' + price);
 
-                    currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(
-                        2));
-                    currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(
-                        1);
-
-
-
+                    currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(2));
+                    currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(1);
 
                     updateSalesTotals();
                 }
             });
+
+
+
 
             function resetRowIndexes() {
                 $('#salesTable tbody tr').each(function(index) {
