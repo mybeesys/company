@@ -7,11 +7,24 @@ use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 
-class Role extends SpatieRole
+class PosRole extends SpatieRole
 {
+    protected static function booted()
+    {
+        static::addGlobalScope('posRole', function (Builder $query) {
+            $query->where('type', 'pos');
+        });
+    }
+
+
     public function scopeDepartments(Builder $query)
     {
         return $query->whereNotNull('department')->pluck('department');
+    }
+
+    public function scopePosRole(Builder $query)
+    {
+        return $query->where('type', 'pos');
     }
 
     public function establishments()

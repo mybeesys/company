@@ -1,9 +1,10 @@
 <?php
 
-namespace Modules\Employee\Policies;
+namespace Modules\Establishment\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
-class EmployeePolicy
+
+class EstablishmentPolicy
 {
     use HandlesAuthorization;
 
@@ -12,7 +13,7 @@ class EmployeePolicy
      */
     public function viewAny(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employees.show');
+        return auth()->user()->hasDashboardPermission('establishments.establishments.show');
     }
 
     /**
@@ -20,12 +21,12 @@ class EmployeePolicy
      */
     public function view(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.show');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.show');
     }
 
     public function print()
     {
-        return auth()->user()->hasDashboardPermission('employees.employees.print');
+        return auth()->user()->hasDashboardPermission('establishments.establishments.print');
     }
 
     /**
@@ -33,7 +34,7 @@ class EmployeePolicy
      */
     public function create(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.create');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.create');
     }
 
     /**
@@ -41,7 +42,7 @@ class EmployeePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.update');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.update');
     }
 
     /**
@@ -49,7 +50,7 @@ class EmployeePolicy
      */
     public function delete(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.delete');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.delete');
     }
 
     /**
@@ -57,7 +58,7 @@ class EmployeePolicy
      */
     public function restore(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.update');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.update');
     }
 
     /**
@@ -65,6 +66,6 @@ class EmployeePolicy
      */
     public function forceDelete(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.delete');
+        return auth()->user()->hasDashboardPermission('establishments.establishment.delete');
     }
 }

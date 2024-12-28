@@ -17,9 +17,4 @@ class TimeCard extends BaseEmployeeModel
     {
         return $this->belongsTo(Employee::class);
     }
-
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
 }

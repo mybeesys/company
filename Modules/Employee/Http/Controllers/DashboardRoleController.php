@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Services\dashboardRoleActions;
 use Modules\Employee\Services\DashboardRoleService;
 
@@ -20,7 +20,7 @@ class DashboardRoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $dashboardRoles = Role::where('type', 'ems')->get(['id', 'name', 'is_active', 'rank']);
+            $dashboardRoles = DashboardRole::get(['id', 'name', 'is_active', 'rank']);
             return DashboardRoleTable::getDashboardRoleTable($dashboardRoles);
         }
         $columns = DashboardRoleTable::getDashboardRoleColumns();
@@ -61,7 +61,7 @@ class DashboardRoleController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show(Role $dashboardRole)
+    public function show(DashboardRole $dashboardRole)
     {
         $modules = DashboardRoleService::getModulesPermissions();
 
@@ -72,7 +72,7 @@ class DashboardRoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Role $dashboardRole)
+    public function edit(DashboardRole $dashboardRole)
     {
         $modules = DashboardRoleService::getModulesPermissions();
 
@@ -83,7 +83,7 @@ class DashboardRoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDashboardRoleRequest $request, Role $dashboardRole)
+    public function update(UpdateDashboardRoleRequest $request, DashboardRole $dashboardRole)
     {
         DB::transaction(function () use ($request, $dashboardRole) {
             $filteredRequest = $request->safe();
@@ -96,7 +96,7 @@ class DashboardRoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $dashboardRole)
+    public function destroy(DashboardRole $dashboardRole)
     {
         $delete = $dashboardRole->delete();
         if ($delete) {

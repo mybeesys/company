@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\LoginController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
@@ -14,10 +13,11 @@ use Modules\Employee\Http\Controllers\ShiftController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
 use Modules\Employee\Http\Middleware\EnureTimeSheetRulesExists;
+use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PayrollGroup;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
 use Modules\Employee\Models\TimeSheetRule;
@@ -68,21 +68,21 @@ Route::middleware([
         });
 
         Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () {
-            Route::patch('/{employee}/assign-pos-permissions', 'assignPosPermissionsToEmployee')->name('assign.employee');
-            Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions');
-            Route::patch('/{employee}/assign-dashboard-permissions', 'assignDashboardPermissionsToUser')->name('assign.user');
-            Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions');
+            Route::patch('/{employee}/assign-pos-permissions', 'assignPosPermissionsToEmployee')->name('assign.employee')->can('update', PosRole::class);
+            Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions')->can('view', PosRole::class);
+            Route::patch('/{employee}/assign-dashboard-permissions', 'assignDashboardPermissionsToUser')->name('assign.user')->can('update', DashboardRole::class);
+            Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions')->can('view', DashboardRole::class);
         });
 
 
         Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {
-            Route::get('', 'index')->name('index')->can('viewAny', Role::class);
-            Route::get('/show/{id}', 'show')->name('show')->can('show', Role::class);
-            Route::get('/create', 'create')->name('create')->can('create', Role::class);
-            Route::post('/store', 'store')->name('store')->can('create', Role::class);
-            Route::get('/{id}/edit', 'edit')->name('edit')->can('update', Role::class);
-            Route::patch('/{role}', 'update')->name('update')->can('update', Role::class);
-            Route::delete('/{role}', 'destroy')->name('delete')->can('delete', Role::class);
+            Route::get('', 'index')->name('index')->can('viewAny', PosRole::class);
+            Route::get('/show/{id}', 'show')->name('show')->can('show', PosRole::class);
+            Route::get('/create', 'create')->name('create')->can('create', PosRole::class);
+            Route::post('/store', 'store')->name('store')->can('create', PosRole::class);
+            Route::get('/{id}/edit', 'edit')->name('edit')->can('update', PosRole::class);
+            Route::patch('/{role}', 'update')->name('update')->can('update', PosRole::class);
+            Route::delete('/{role}', 'destroy')->name('delete')->can('delete', PosRole::class);
 
 
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
@@ -90,13 +90,13 @@ Route::middleware([
         });
 
         Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
-            Route::get('', 'index')->name('index')->can('viewAny', Role::class);
-            Route::get('/create', 'create')->name('create')->can('create', Role::class);
-            Route::get('/show/{dashboardRole}', 'show')->name('show')->can('show', Role::class);
-            Route::post('/store', 'store')->name('store')->can('create', Role::class);
-            Route::get('/{dashboardRole}/edit', 'edit')->name('edit')->can('update', Role::class);
-            Route::patch('/{dashboardRole}', 'update')->name('update')->can('update', Role::class);
-            Route::delete('/{dashboardRole}', 'destroy')->name('delete')->can('delete', Role::class);
+            Route::get('', 'index')->name('index')->can('viewAny', DashboardRole::class);
+            Route::get('/create', 'create')->name('create')->can('create', DashboardRole::class);
+            Route::get('/show/{dashboardRole}', 'show')->name('show')->can('show', DashboardRole::class);
+            Route::post('/store', 'store')->name('store')->can('create', DashboardRole::class);
+            Route::get('/{dashboardRole}/edit', 'edit')->name('edit')->can('update', DashboardRole::class);
+            Route::patch('/{dashboardRole}', 'update')->name('update')->can('update', DashboardRole::class);
+            Route::delete('/{dashboardRole}', 'destroy')->name('delete')->can('delete', DashboardRole::class);
 
 
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
@@ -149,7 +149,7 @@ Route::middleware([
             });
 
             Route::controller(PayrollController::class)->middleware([EnureTimeSheetRulesExists::class])->name('payrolls.')->prefix('/payroll')->group(function () {
-                Route::get('', 'index')->name('index')->can('viewAny', Payroll::class);
+                Route::get('', 'index')->name('index')->can('viewPayrolls');
                 Route::get('/save', 'create')->name('create')->can('create', Payroll::class);
                 Route::post('/store', 'store')->name('store')->can('create', Payroll::class);
 

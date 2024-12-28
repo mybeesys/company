@@ -42,7 +42,7 @@
                             </div>
                             <div class="w-100 pe-5 my-auto">
                                 <div class="d-flex justify-content-between w-100 gap-11">
-                                    @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                    @foreach (['show', 'print', 'create', 'update', 'delete'] as $action)
                                         <x-form.input-div
                                             class="form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
                                             :row="false">
@@ -75,7 +75,7 @@
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between w-100 pe-5 gap-11">
-                                        @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                        @foreach (['show', 'print', 'create', 'update', 'delete'] as $action)
                                             @php
                                                 $isAvailable = $permission->has($action) ? $permission[$action] : null;
                                             @endphp

@@ -12,6 +12,7 @@ use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Models\Role;
 
 class Employee extends Authenticatable
 {
@@ -67,12 +68,12 @@ class Employee extends Authenticatable
 
     public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'role_id', 'employee_id')->withTimestamps()->withPivot('establishment_id');
     }
 
     public function dashboardRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id')->where('type', 'ems');
+        return $this->belongsToMany(DashboardRole::class, 'emp_employee_establishments_roles', 'role_id', 'employee_id')->withPivot('establishment_id');
     }
 
     public function allRoles()

@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
-use Modules\Employee\Models\PayrollGroup;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
 
@@ -25,7 +24,7 @@ class Establishment extends Model
 
     public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id');
     }
 
     public function main()

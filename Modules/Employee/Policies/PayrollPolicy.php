@@ -24,6 +24,11 @@ class PayrollPolicy
         return auth()->user()->hasDashboardPermission('employees.payroll.show');
     }
 
+    public function print()
+    {
+        return auth()->user()->hasDashboardPermission('employees.payrolls.print');
+    }
+
     /**
      * Determine whether the user can create models.
      */
@@ -37,7 +42,7 @@ class PayrollPolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.edit');
+        return auth()->user()->hasDashboardPermission('employees.payroll.update');
     }
 
     /**

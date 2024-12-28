@@ -5,7 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="dashboard_role" url="dashboard-role/create" module="employee" />
+            <x-tables.table-header model="dashboard_role" :addButton="auth()->user()->hasDashboardPermission('employees.dashboard_role.create')" url="dashboard-role/create" module="employee" />
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
             <x-tables.table :columns=$columns model="dashboard_role" module="employee" />
