@@ -2,6 +2,7 @@
 
 namespace Modules\Employee\database\seeders;
 
+use DB;
 use Hash;
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;
@@ -29,6 +30,9 @@ class EmployeeDatabaseSeeder extends Seeder
 
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Permission::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         $permissions = array_merge($pos_permissions, $dashboard_permissions);
         foreach ($permissions as $permission) {
             Permission::updateOrCreate(
