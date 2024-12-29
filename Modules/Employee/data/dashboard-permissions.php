@@ -508,13 +508,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-    [
-        'name' => 'establishments.establishment.delete',
-        'name_ar' => 'فرع',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
 
 
     [
