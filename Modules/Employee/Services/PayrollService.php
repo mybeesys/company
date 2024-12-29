@@ -76,7 +76,7 @@ class PayrollService
     {
         $totalWage = 0;
         $totalWage += match ($basicWage->wage_type) {
-            'monthly' => $this->wageCalculationService->calculateMonthlyWage($timecards, $basicWage, $carbonMonth, $employee),
+            'variable' => $this->wageCalculationService->calculateMonthlyWage($timecards, $basicWage, $carbonMonth, $employee),
             'fixed' => $basicWage->rate,
             default => 0,
         };
