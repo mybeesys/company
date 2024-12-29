@@ -45,16 +45,7 @@ class EstablishmentTable
                 <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
                     $row->deleted_at ?? $actions .= '<div class="menu-item px-3">
                         <a href="' . url("/establishment/{$row->id}/edit") . '" class="menu-link px-3">' . __('establishment::fields.edit') . '</a>
-                    </div>';
-
-                    $actions .= '<div class="menu-item px-3">
-                                    <a class="menu-link px-3 delete-btn" data-id="' . $row->id . '" data-deleted="' . $row->deleted_at . '" data-name="' . $row->name . '">' . ($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')) . '</a>
-                                </div>';
-
-                    $row->deleted_at ? $actions .=
-                        '<div class="menu-item px-3">
-                            <a class="menu-link px-3 restore-btn" data-id="' . $row->id . '">' . __('establishment::fields.restore') . '</a>
-                        </div></div>' : $actions .= '</div>';
+                    </div></div>';
                     return $actions;
                 }
             )
