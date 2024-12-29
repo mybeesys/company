@@ -56,6 +56,7 @@
         let columns;
         let dataTable;
         let employeeId;
+        let establishment_ids;
         let date;
         let allowancesCount = 0;
         let deductionsCount = 0;
@@ -66,7 +67,7 @@
         $(document).ready(function() {
 
             let employee_ids = urlParams.get('employee_ids');
-            let establishment_ids = urlParams.get('establishment_ids');
+            establishment_ids = urlParams.get('establishment_ids');
             date = urlParams.get('date');
 
             const queryParams = new URLSearchParams({
@@ -116,9 +117,8 @@
 
         });
 
-        function lock(date, establishment_ids) {
+        function lock() {
             const lockKey = `payroll_creation_lock_${date}_(${establishment_ids})`;
-
             const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
 
             function extendLock() {

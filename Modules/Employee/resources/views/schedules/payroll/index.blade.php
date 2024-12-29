@@ -7,14 +7,14 @@
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
             @can('viewAny', \Modules\Employee\Models\Payroll::class)
                 <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
+                    <a class="nav-link nav-link-payroll justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
                         href="#payroll_table_tab">@lang('menuItemLang.payroll')</a>
                 </li>
             @endcan
             @can('viewAny', \Modules\Employee\Models\PayrollGroup::class)
                 <li class="nav-item">
                     <a @class([
-                        'nav-link justify-content-center text-active-gray-800',
+                        'nav-link nav-link-payroll-group justify-content-center text-active-gray-800',
                         'active' => !auth()->user()->hasDashboardPermission('employees.payrolls.show'),
                     ]) data-bs-toggle="tab" href="#payroll_group_tab">@lang('menuItemLang.payroll_group')</a>
                 </li>
@@ -269,6 +269,14 @@
                     });
                 }
             });
+        });
+
+        $(document).on('click', '.nav-link-payroll-group', function() {
+            payroll_group_dataTable.ajax.reload();
+        });
+
+        $(document).on('click', '.nav-link-payroll', function() {
+            payroll_dataTable.ajax.reload();
         });
 
         $(document).on('click', '.confirm-btn', function(e) {
