@@ -469,7 +469,7 @@
                     '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.basic_wage')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due_before_tax')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due')</th>'
                 );
 
                 // Dynamic Allowances Header
@@ -482,9 +482,9 @@
                     `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
                 );
 
-                mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
-                );
+                // mainHeaderRow.append(
+                //     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
+                // );
                 mainHeaderRow.append(
                     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
                 );
@@ -624,11 +624,6 @@
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
             }
-            columns.push({
-                name: 'total_wage_before_tax',
-                data: 'total_wage_before_tax',
-                className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
-            });
             columns.push({
                 name: 'total_wage',
                 data: 'total_wage',

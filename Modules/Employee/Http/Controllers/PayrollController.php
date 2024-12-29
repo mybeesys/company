@@ -32,7 +32,10 @@ class PayrollController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $payrolls = Payroll::with('employee', 'payrollGroup');
+            $payrolls = Payroll::with('employee', 'payrollGroup', 'adjustments', 'adjustments.adjustmentType');
+            if ($request->has('date_filter') && !empty($request->date_filter)) {
+                $payrolls->whereRelation('payrollGroup', 'date', $request->date_filter);
+            }
 
             return PayrollTable::getIndexPayrollTable($payrolls);
         }
@@ -44,14 +47,18 @@ class PayrollController extends Controller
 
         return view('employee::schedules.payroll.index', compact('payroll_columns', 'establishments', 'employees', 'payroll_group_columns'));
     }
+    public function getColumns()
+    {
+        return response()->json(PayrollTable::getIndexPayrollColumns());
+    }
 
     public function create(CreatePayrollRequest $request)
     {
         $employeeIds = collect($request->validated('employee_ids'));
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
-        
-        if(Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()){
+
+        if (Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()) {
             return redirect()->back()->with('error', __('employee::responses.no_employees_for_this_establishment'));
         }
 

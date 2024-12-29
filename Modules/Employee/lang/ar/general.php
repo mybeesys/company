@@ -147,4 +147,5 @@ return [
     'payroll_group_confirm_confirmation' => 'هل أنت متأكد من تثبيت مجموعة كشف الرواتب هذه؟',
     'confirm' => 'تثبيت',
     'by_working_time' => 'حسب الدوام',
+    'month' => 'الشهر',
 ];

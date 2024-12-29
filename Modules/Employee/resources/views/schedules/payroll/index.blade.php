@@ -2,6 +2,15 @@
 
 @section('title', __('menuItemLang.shift_schedule'))
 
+@section('css')
+    @parent
+    <style>
+        div {
+            scrollbar-width: auto;
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
@@ -26,6 +35,11 @@
                     <x-cards.card>
                         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                             <x-tables.table-header model="payroll" module="employee" :addButton="auth()->user()->hasDashboardPermission('employees.payroll.create')">
+                                <x-slot:filters>
+                                    <x-tables.filters-dropdown>
+                                        <x-employee::payroll.filters />
+                                    </x-tables.filters-dropdown>
+                                </x-slot:filters>
                                 @can('print', \Modules\Employee\Models\Payroll::class)
                                     <x-slot:export>
                                         <x-tables.export-menu id="payroll" />
@@ -34,7 +48,8 @@
                             </x-tables.table-header>
                         </x-cards.card-header>
                         <x-cards.card-body class="table-responsive">
-                            <x-tables.table :columns=$payroll_columns model="payroll" :idColumn=true module="employee" />
+                            <x-tables.table :columns=[] :actionColumn="false" :idColumn="false" model="payroll" :idColumn=true
+                                module="employee" />
                         </x-cards.card-body>
                     </x-cards.card>
                 </div>
@@ -82,7 +97,7 @@
 
         $(document).ready(function() {
             initPayrollGroupDatatable();
-
+            handleFormFiltersDatatable()
             initDatatable();
             addPayrollModal();
             $('[name="employee"]').select2({});
@@ -97,6 +112,19 @@
                         altFormat: "F Y", // Displayed format, e.g., "January 2024"
                     })
                 ]
+            });
+            $('#date_filter').flatpickr({
+                plugins: [
+                    monthSelectPlugin({
+                        shorthand: true, // Displays the month in shorthand format (e.g., "Jan", "Feb")
+                        dateFormat: "Y-m", // Format the value as "YYYY-MM"
+                        altFormat: "F Y", // Displayed format, e.g., "January 2024"
+                    })
+                ]
+            });
+
+            $('[name="status"]').select2({
+                minimumResultsForSearch: -1
             });
             $('#add_payroll_modal_form').on('submit', function(e) {
                 e.preventDefault();
@@ -154,104 +182,190 @@
             })
         }
 
-        function initDatatable() {
-            payroll_dataTable = $(payroll_table).DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: payroll_dataUrl,
-                info: false,
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'employee',
-                        name: 'employee',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'payroll_group_name',
-                        name: 'payroll_group_name',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'date',
-                        name: 'date',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'regular_worked_hours',
-                        name: 'regular_worked_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'overtime_hours',
-                        name: 'overtime_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_hours',
-                        name: 'total_hours',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_worked_days',
-                        name: 'total_worked_days',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'basic_total_wage',
-                        name: 'basic_total_wage',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'wage_due_before_tax',
-                        name: 'wage_due_before_tax',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'taxes_withheld',
-                        name: 'taxes_withheld',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'allowances',
-                        name: 'allowances',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'deductions',
-                        name: 'deductions',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_wage_before_tax',
-                        name: 'total_wage_before_tax',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'total_wage',
-                        name: 'total_wage',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                order: [],
-                scrollX: true,
-                pageLength: 10,
-                drawCallback: function() {
-                    KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
-                }
+        function handleFormFiltersDatatable() {
+            const filters = $('[data-kt-filter="filter"]');
+            const resetButton = $('[data-kt-filter="reset"]');
+            const date_filter = $('[name="date_filter"]');
+
+            filters.on('click', function(e) {
+                const dateFilterValue = date_filter.val();
+
+                payroll_dataTable.ajax.url('{{ route('schedules.payrolls.index') }}?' + $.param({
+                    date_filter: dateFilterValue
+                })).load();
+            });
+
+            resetButton.on('click', function(e) {
+                date_filter.val(null).trigger('change');
+                payroll_dataTable.search('').columns().search('').ajax.url(payroll_dataUrl)
+                    .load();
             });
         };
 
+        // function initDatatable() {
+        //     payroll_dataTable = $(payroll_table).DataTable({
+        //         processing: true,
+        //         serverSide: true,
+        //         ajax: payroll_dataUrl,
+        //         info: false,
+        //         columns: [{
+        //                 data: 'id',
+        //                 name: 'id',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'employee',
+        //                 name: 'employee',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'payroll_group_name',
+        //                 name: 'payroll_group_name',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'date',
+        //                 name: 'date',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'regular_worked_hours',
+        //                 name: 'regular_worked_hours',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'overtime_hours',
+        //                 name: 'overtime_hours',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'total_hours',
+        //                 name: 'total_hours',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'total_worked_days',
+        //                 name: 'total_worked_days',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'basic_total_wage',
+        //                 name: 'basic_total_wage',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             // {
+        //             //     data: 'wage_due_before_tax',
+        //             //     name: 'wage_due_before_tax',
+        //             //     className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             // },
+        //             // {
+        //             //     data: 'taxes_withheld',
+        //             //     name: 'taxes_withheld',
+        //             //     className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             // },
+        //             {
+        //                 data: 'allowances',
+        //                 name: 'allowances',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'deductions',
+        //                 name: 'deductions',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             // {
+        //             //     data: 'total_wage_before_tax',
+        //             //     name: 'total_wage_before_tax',
+        //             //     className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             // },
+        //             {
+        //                 data: 'total_wage',
+        //                 name: 'total_wage',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        //             },
+        //             {
+        //                 data: 'actions',
+        //                 name: 'actions',
+        //                 className: 'text-start px-3 py-2 border text-gray-800 fs-6',
+        //                 orderable: false,
+        //                 searchable: false
+        //             }
+        //         ],
+        //         order: [],
+        //         scrollX: true,
+        //         pageLength: 10,
+        //         drawCallback: function() {
+        //             KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
+        //         }
+        //     });
+        // };
+        function initDatatable() {
+            fetch("{{ route('schedules.payrolls.get-columns') }}")
+                .then(response => response.json())
+                .then(columns => {
+                    let headerGroups = {
+                        'main': "{{ __('employee::fields.main_info') }}",
+                        'allowances': "{{ __('employee::fields.allowances') }}",
+                        'deductions': "{{ __('employee::fields.deductions') }}"
+                    };
+                    console.log(columns);
+
+                    let mainColCount = columns.filter(col => col.group === 'main').length;
+                    let allowanceColCount = columns.filter(col => col.group === 'allowances').length;
+                    allowanceColCount = allowanceColCount == 0 ? 1 : allowanceColCount;
+                    let deductionColCount = columns.filter(col => col.group === 'deductions').length;
+
+                    deductionColCount = deductionColCount == 0 ? 1 : deductionColCount;
+
+                    // Create the header structure before initializing DataTable
+                    const $table = $(payroll_table);
+                    const $thead = $table.find('thead');
+                    if ($thead.length === 0) {
+                        $table.prepend('<thead></thead>');
+                        $thead = $table.find('thead');
+                    }
+
+                    // Create group header row
+                    const groupHeaderHtml = `
+                <tr>
+                    
+                    ${mainColCount > 0 ? `<th colspan="${mainColCount - 2}" class="text-center border"></th>` : ''}
+                    ${allowanceColCount > 0 ? `<th colspan="${allowanceColCount}" class="text-center border">${headerGroups.allowances}</th>` : ''}
+                    ${deductionColCount > 0 ? `<th colspan="${deductionColCount}" class="text-center border">${headerGroups.deductions}</th>` : ''}
+                    <th colspan="2" class="text-center border"></th>
+                    
+                </tr>
+            `;
+                    const columnHeaderHtml = `
+                <tr>
+                    ${columns.map(col => `<th class="${col.class}">${col.translated_name}</th>`).join('')}
+                </tr>
+            `;
+
+                    $thead.empty().append(groupHeaderHtml).append(columnHeaderHtml);
+
+                    payroll_dataTable = $(payroll_table).DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: payroll_dataUrl,
+                        info: false,
+                        columns: [
+                            ...columns.map(col => ({
+                                data: col.name,
+                                name: col.name,
+                                title: col.translated_name,
+                                className: col.class
+                            })),
+                        ],
+                        order: [],
+                        scrollX: true,
+                        pageLength: 10,
+                        drawCallback: function() {
+                            KTMenu.createInstances();
+                        },
+                    });
+                });
+        }
 
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
@@ -332,11 +446,6 @@
                     {
                         data: 'gross_total',
                         name: 'gross_total',
-                        className: 'text-start px-3 py-2 border text-gray-800 fs-6'
-                    },
-                    {
-                        data: 'net_total',
-                        name: 'net_total',
                         className: 'text-start px-3 py-2 border text-gray-800 fs-6'
                     },
                     {

@@ -173,4 +173,6 @@ return [
     'total_allowances' => 'إجمالي البدلات',
     'total_deductions' => 'إجمالي الحسومات',
     'payroll_group' => 'مجموعة كشف الرواتب',
+    'total_wage_due' => 'الراتب المستحق الكلي',
+    'wage_due' => 'الراتب المستحق',
 ];
