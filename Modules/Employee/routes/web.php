@@ -61,6 +61,10 @@ Route::middleware([
             Route::delete('/force-delete/{employee}', 'forceDelete')->name('forceDelete')->can('delete', Employee::class);
             Route::post('/restore/{employee}', 'restore')->name('restore')->can('update', Employee::class);
 
+            Route::get('/{employee}/print', function (Employee $employee) {
+                return view('employee::employee.print', compact('employee'))->render();
+            })->can('print', Employee::class);
+
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
 

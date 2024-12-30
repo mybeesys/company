@@ -70,6 +70,13 @@ return [
         'type' => 'ems',
     ],
     [
+        'name' => 'employees.employee.print',
+        'name_ar' => 'موظف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
         'name' => 'employees.employee.update',
         'name_ar' => 'موظف',
         'description' => '',

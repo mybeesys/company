@@ -174,4 +174,9 @@ return [
     'payroll_group' => 'Payroll group',
     'total_wage_due' => 'Total due wage',
     'wage_due' => 'Wage due',
+    'print' => 'Print',
+    'pos_role' => 'Pos role',
+    'dashboard_roles' => 'Dashboard roles',
+    'variable' => 'Variable',
+    'allowance' => 'Allowance',
 ];
