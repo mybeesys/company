@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models\Transformers;
 
+use App\Helpers\TaxHelper;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductTaxResource extends JsonResource
@@ -18,6 +19,7 @@ class ProductTaxResource extends JsonResource
             'id' => $this->id,
             'name' => $this->tax->name,
             'amount' => $this->tax->amount,
+            'value' => TaxHelper::getTax($this->product->price, $this->tax->amount),
             'product_id' => $this->product->id
         ];
     }
