@@ -186,6 +186,7 @@
   "defaultQuantity" : "Default Quantity",
   "date": "Date",
   "tax" : "Tax",
+  "taxes" : "Taxes",
   "subTotal" : "Sub Total",
   "miscAmount" : "Misc. Amount",
   "shippingAmount" : "Shipping Amount",
@@ -227,5 +228,11 @@
   "from": "from",
   "to": "to",
   "inventoryTransfer": "Transfer",
-  "notEnoughQuantity" : "Not Available Quantity"
+  "notEnoughQuantity" : "Not Available Quantity",
+  "PRODUCT_USED_INVENTORY" : "Product used in Inventory",
+  "PRODUCT_USED_COMBO" : "Product used in Combo",
+  "PRODUCT_USED_RECIPE" : "Product used in recipe",
+  "PRODUCT_USED_PREP" : "Product used in prep",
+  "INGREDIENT_USED_INVENTORY" : "Ingredient used in Inventory",
+  "INGREDIENT_USED_RECIPE" : "Ingredient used in recipe"
 }

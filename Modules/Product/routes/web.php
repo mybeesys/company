@@ -117,5 +117,5 @@ Route::middleware([
     Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
     Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
     Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
-    Route::get('taxes', [GeneralController::class, 'taxes'])->name('taxes');
+    Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
 });

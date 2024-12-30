@@ -162,8 +162,8 @@
   "recipe_yield":"كمية إنتاج الوصفة",
   "groupCombo" : "كومبو",
   "productCombos" : "Group Combo Sets",
-  "productCombo" : "Combo Set",
-  "combo_saving" :"Saving",
+  "productCombo" : "مجموعة",
+  "combo_saving" :"توفيري",
   "setPriceInCombo" : "التسعير على مستوى الكومبو",
   "useUpCharge" : "Use Upcharge Price",
   "ComboPriceError" : "مجاميع أسعار الكومبو غير متطابقة مع سعر المنتج",
@@ -186,6 +186,7 @@
   "defaultQuantity" : "الكمية الافتراضية",
   "date": "التاريخ",
   "tax" : "الضريبة",
+  "taxes" : "الضرائب",
   "subTotal" : "مجموع المواد",
   "miscAmount" : "قيم مضافة",
   "shippingAmount" : "قيمة الشحن",
@@ -227,5 +228,11 @@
   "from": "من",
   "to": "إلى",
   "inventoryTransfer": "تحويل",
-  "notEnoughQuantity" : "الكمية غير متوفرة"
+  "notEnoughQuantity" : "الكمية غير متوفرة",
+  "PRODUCT_USED_INVENTORY" : "المنتج مستخدم في المستودع",
+  "PRODUCT_USED_COMBO" : "المنتج مستخدم في كومبو",
+  "PRODUCT_USED_RECIPE" : "المنتج مستخدم في الوصفات",
+  "PRODUCT_USED_PREP" : "المنتج مستخدم في تحضيرة",
+  "INGREDIENT_USED_INVENTORY" : "المكون مستخدم في المستودع",
+  "INGREDIENT_USED_RECIPE" : "المكون مستخدم في الوصفات"
 }

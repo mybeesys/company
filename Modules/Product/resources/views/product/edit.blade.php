@@ -43,7 +43,7 @@
 	      product-url="{{ json_encode(route('product.store'))}}"
         product="{{json_encode($product)}}"
         listCategory-url ="{{json_encode(route('minicategorylist'))}}"
-        listTax-url ="{{json_encode(route('taxes'))}}"
+        listTax-url ="{{json_encode(route('taxList'))}}"
         listSubCategory-url="{{json_encode(route('minisubcategorylist'))}}"
         listAttribute-url="{{json_encode(route('attributeClassList'))}}"
         getProductMatrix-url ="{{json_encode(route('getProductMatrix'))}}"

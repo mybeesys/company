@@ -5,9 +5,11 @@ namespace Modules\Product\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
@@ -63,6 +65,17 @@ class IngredientController extends Controller
         return view('product::ingredient.create', compact('ingredient'));
     }
 
+    private function validateInUse($ingredient_id){
+        $product = InventoryOperationItem::where([['ingredient_id', '=', $ingredient_id]])->first();
+        if($product != null)
+            return response()->json(["message"=>"INGREDIENT_USED_INVENTORY"]);
+        $product = RecipeProduct::where([['item_id', '=', $ingredient_id],
+                                        ['item_type', '=', 'i']])->first();
+        if($product != null)
+            return response()->json(["message"=>"INGREDIENT_USED_RECIPE"]);
+        return null;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -81,6 +94,9 @@ class IngredientController extends Controller
         ]);
 
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
+            $validateUsing = $this->validateInUse($validated['id']);
+            if($validateUsing != null)
+                return $validateUsing;
             $serviceFee = Ingredient::find($validated['id']);
             $serviceFee->delete();
             return response()->json(["message" => "Done"]);

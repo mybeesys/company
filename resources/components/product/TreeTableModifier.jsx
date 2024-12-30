@@ -16,7 +16,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
-    
+    const [expandedKeys, setExpandedKeys] = useState([]);
+
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -40,20 +41,38 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const handleClose = () => {
         setIsDeleteModalVisible(false);
     }
+    
 
     const refreshTree = () => {
         try {
             const response = axios.get(urlList).then(response => {
                 let result = response.data;
                 setNodes(result);
+                setExpandedKeys(getExpandedKeys(result));
             });
         } catch (error) {
             console.error('There was an error get the product!', error);
         }
     }
+    
+    // Generate the expandedKeys object to expand all nodes by default
+    const getExpandedKeys = (nodes) => {
+        let expandedKeys = {};
+        const expandAll = (nodes) => {
+        nodes.forEach((node) => {
+            expandedKeys[node.key] = true; // Mark this node as expanded
+            if (node.children) {
+            expandAll(node.children); // Recursively expand children
+            }
+        });
+        };
+        expandAll(nodes);
+        return expandedKeys;
+    };
 
     useEffect(() => {
         refreshTree();
+        
     }, []);
 
   
@@ -213,10 +232,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const renderTextCell = (node, key, autoFocus) => {
         const indent = (node.key).toString().split('-').length;
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`Add New ${node.data.type}`}</a>
+            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`Add New ${node.data.type}`}</a>
         }
         else if (key == 'name_ar' && !!node.data.empty && !!node.data.type1) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type1, node.data.parentKey1, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type1}`}</a>
+            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type1, node.data.parentKey1, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type1}`}</a>
         }
         else {
             return (
@@ -299,7 +318,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 <div className="flex flex-wrap gap-2">
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) ?
-                        <a href="#" onClick={() => {
+                        <a href="javascript:void(0);" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
                             else {
@@ -310,10 +329,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         } title="Edit" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                             <i class={(currentKey != '-1' && node.key == currentKey) ? "ki-outline ki-check fs-2" : "ki-outline ki-pencil fs-2"}></i>
                         </a> : <></>}
-                        {currentKey != '-1' ? <a href="#" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                        {currentKey != '-1' ? <a href="javascript:void(0);" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-cross fs-2"></i>
                             </a> : null}
-                    <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    <a href="javascript:void(0);" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a>
                     <button id="btnSubmit" type="submit" style={{display:"none"}}></button>
@@ -337,7 +356,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                    <a href="#" class="btn btn-primary" 
+                    <a href="javascript:void(0);" class="btn btn-primary" 
                                   onClick={() => openAddCategory()}>{translations.Add}</a>
                         <DeleteModal
                             visible={isDeleteModalVisible}
@@ -352,7 +371,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             </div>
             <div class="card-body">
             <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
-                <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
+                <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
                     <Column header={translations.name_en} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
                     <Column header={translations.name_ar} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                     <Column header={translations.price} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>

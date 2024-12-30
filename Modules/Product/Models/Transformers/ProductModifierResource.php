@@ -9,6 +9,14 @@ use Modules\Product\Models\ModifierClass;
 
 class ProductModifierResource extends JsonResource
 {
+    protected $extra;
+
+    public function __construct($resource, $extra = null)
+    {
+        parent::__construct($resource);
+        $this->extra = $extra;
+    }
+
     public function toArray($request)
     {
         $modifierClass["name_ar"] = $this->modifiers["name_ar"];
@@ -16,7 +24,7 @@ class ProductModifierResource extends JsonResource
         if(isset($this->modifiers)){
             $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
         }
-        if(isset($this->products)){
+        if($this->extra['withProduct'] == 'Y' && isset($this->products)){
             $modifierClass["product"] = [];
             $modifierClass["product"]["id"] = $this->products["id"];
             $modifierClass["product"]["name_ar"] = $this->products["name_ar"];
@@ -33,6 +41,7 @@ class ProductModifierResource extends JsonResource
             'max_modifiers' => $this->max_modifiers,
             'button_display' => ButtonDisplay::getEnumNameByValue($this->modifier_display),
             'modifier_display' => ModifierDisplay::getEnumNameByValue($this->button_display),
+            'product_id' => $this->products["id"],
             'modifier' => $modifierClass,
         ];
     }

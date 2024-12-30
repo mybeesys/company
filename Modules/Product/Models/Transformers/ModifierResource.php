@@ -17,6 +17,7 @@ class ModifierResource extends JsonResource
             'color' => $this->color,
             'order' => $this->order,
             'price' => $this->price,
+            'class_id' => $this->class_id,
         ];
     }
 }

@@ -12,14 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::dropIfExists('inventory_warhouse_products');
-        Schema::dropIfExists('product_establishment_products');
         Schema::create('product_establishment_products', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('product_id');
             $table->foreign('establishment_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+            ->on('establishment_establishments');
             $table->foreign('product_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_products');

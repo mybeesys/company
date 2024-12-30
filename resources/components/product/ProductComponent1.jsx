@@ -30,7 +30,7 @@ const ProductComponent1 = ({ translations, dir }) => {
     { key: 'modifiers', visible: false },
     { key: 'recipe', visible: false },
     { key: 'groupCombo', visible: false },
-    { key: 'linkedCombo', visible: false },
+    //{ key: 'linkedCombo', visible: false },
     { key: 'inventory', visible: false },
     { key: 'Unit', visible: false },
     { key: 'advancedInfo', visible: false },

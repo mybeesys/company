@@ -69,7 +69,7 @@ class Product extends Model
     }
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
     }
     public function serial_numbers()
     {
@@ -107,8 +107,26 @@ class Product extends Model
     {
         return $this->hasMany(Product_Attribute::class, 'product_id', 'id');
     }
+    public function taxes()
+    {
+        return $this->hasMany(ProductTax::class, 'product_id', 'id');
+    }
     public function total()
     {
         return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            // Generate a unique random number
+            do {
+                $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
+            } while (self::where('SKU', $SKU)->exists());
+
+            $model->SKU = $SKU;
+        });
     }
 }

@@ -13,8 +13,11 @@ use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Illuminate\Support\Facades\DB;
+use Modules\Inventory\Models\InventoryOperationItem;
+use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\ProductTax;
 use Modules\Product\Models\UnitTransfer;
 
 class ProductController extends Controller
@@ -25,7 +28,6 @@ class ProductController extends Controller
         'order' => 'required|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
-        'tax_id' => 'required|numeric',
         'active' => 'nullable|boolean',
         'SKU'=> 'nullable|string',
         'barcode'=> 'nullable|string',
@@ -114,7 +116,26 @@ class ProductController extends Controller
         $product->establishments = [];
         $product->recipe = [];
         $product->attributes = [];
+        $product->taxIds = [];
+        $product->active = 1;
         return view('product::product.create', compact('product'));
+    }
+
+    private function validateInUse($product_id){
+        $product = InventoryOperationItem::where([['product_id', '=', $product_id]])->first();
+        if($product != null)
+            return response()->json(["message"=>"PRODUCT_USED_INVENTORY"]);
+        $product = ProductComboItem::where([['item_id', '=', $product_id]])->first();
+        if($product != null)
+            return response()->json(["message"=>"PRODUCT_USED_COMBO"]);
+        $product = RecipeProduct::where([['item_id', '=', $product_id],
+                                        ['item_type', '=', 'p']])->first();
+        if($product != null)
+            return response()->json(["message"=>"PRODUCT_USED_RECIPE"]);
+        $product = Prep::where([['product_id', '=', $product_id]])->first();
+        if($product != null)
+            return response()->json(["message"=>"PRODUCT_USED_PREP"]);
+        return null;
     }
 
     /**
@@ -126,7 +147,10 @@ class ProductController extends Controller
 
         if(isset($validated['method']) && ($validated['method'] =="delete"))
         {
-            $product = Product::find($validated['id']); 
+            $validateUsing = $this->validateInUse($validated['id']);
+            if($validateUsing != null)
+                return $validateUsing;
+            $product = Product::find($validated['id']);
             $product->delete();
             return response()->json(["message"=>"Done"]);
         }
@@ -151,7 +175,6 @@ class ProductController extends Controller
         $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
         $product->category_id = $validated['category_id'];
         $product->subcategory_id = $validated['subcategory_id'];
-        $product->tax_id = $validated['tax_id'];
         $product->active = $validated['active'];
         $product->sold_by_weight = $validated['sold_by_weight'];
         $product->track_serial_number = $validated['track_serial_number'];
@@ -209,14 +232,13 @@ class ProductController extends Controller
                     }
                 }
             } 
-            
-                $oldRecipe = RecipeProduct::where('product_id' , $product->id)->get();
-                foreach ($oldRecipe as $recipe)
-                {
-                    $recipe->delete();
-                }
-                if(isset($request["recipe"]))
-                {
+            $oldRecipe = RecipeProduct::where('product_id' , $product->id)->get();
+            foreach ($oldRecipe as $recipe)
+            {
+                $recipe->delete();
+            }
+            if(isset($request["recipe"]))
+            {
                 $order = 0 ;
                 foreach ($request["recipe"] as $recipe) 
                 {
@@ -232,14 +254,14 @@ class ProductController extends Controller
                 }
             }  
             
-                $oldAttributes = Product_Attribute::where('product_id' , $product->id)->get();
-                foreach ( $oldAttributes as $oldAttribute)
-                {
-                    $oldAttribute->delete();
-                }
-                
-                if(isset($request["attributes"]))
-                {
+            $oldAttributes = Product_Attribute::where('product_id' , $product->id)->get();
+            foreach ( $oldAttributes as $oldAttribute)
+            {
+                $oldAttribute->delete();
+            }
+            
+            if(isset($request["attributes"]))
+            {
                 foreach ($request["attributes"] as $attribute) 
                 {
                     $att = [];
@@ -317,9 +339,9 @@ class ProductController extends Controller
                     } 
                 }  
             }
+            ProductCombo::where('product_id', '=', $product->id)->delete();
             if(isset($request["combos"]))
             {
-                ProductCombo::where('product_id', '=', $product->id)->delete();
                 foreach ($request["combos"] as $combo) {
                     $productCombo = new ProductCombo();
                     $productCombo->product_id = $product->id;
@@ -376,6 +398,17 @@ class ProductController extends Controller
                     $establishment->product_id = $product->id;
                     $establishment->establishment_id = $wh["id"];
                     $establishment->save();
+                }
+            }
+            ProductTax::where('product_id', '=', $product->id)->delete();
+            if(isset($request["taxIds"]))
+            {
+                foreach ($request["taxIds"] as $newTax) {
+                    
+                    $tax = new ProductTax();
+                    $tax->product_id = $product->id;
+                    $tax->tax_id = $newTax;
+                    $tax->save();
                 }
             }
         //});
@@ -543,6 +576,16 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
+            if(isset($request["taxIds"]))
+            {
+                foreach ($request["taxIds"] as $newTax) {
+                    
+                    $tax = new ProductTax();
+                    $tax->product_id = $product->id;
+                    $tax->tax_id = $newTax;
+                    $tax->save();
+                }
+            }
         });
     }
 
@@ -572,6 +615,8 @@ class ProductController extends Controller
         }])->with(['attributes' => function ($query) {
             $query->with('attribute1');
             $query->with('attribute2');
+        }])->with(['taxes' => function ($query) {
+            $query->with('tax');
         }])->find($id);
         foreach ( $product->recipe as $rec) 
         {
@@ -587,6 +632,9 @@ class ProductController extends Controller
         }
         $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
+        $product->taxIds = array_map(function($item) {
+            return $item["tax_id"];
+        }, $product->taxes->toArray());
         foreach ($product->combos as $d) {
            $d->products = array_map(function($item) {
                return $item["item_id"];

@@ -18,8 +18,7 @@ const PurchaseOrderTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['prep']}: ${data.no} ${translations[resp.data.op_status_name]}`,
-            text: translations.technicalerror ,
+            title: `${data.no} ${translations[resp.data.op_status_name]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,

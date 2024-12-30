@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import ReactDOM from 'react-dom/client';
+import { InputSwitch } from 'primereact/inputswitch';
 import axios from 'axios';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 import { getRowName } from '../lang/Utils';
+import MultiDropDown from '../comp/MultiDropDown';
 
 const animatedComponents = makeAnimated();
 const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
@@ -93,9 +94,6 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   const handleChange = async (key, value, option) => {
     let r = { ...currentObject };
     r[key] = value;
-    if (key == "tax_id") {
-      r['tax'] = option;
-    }
     if (key == "category_id") {
       r['category'] = option;
       const subCategories = await fetchSubCategoryOptions(value);
@@ -116,6 +114,18 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   return (
     <>
       <div class="card-body" dir={dir} style={{display: visible ? 'block' : 'none'}}>
+        <div class="d-flex  align-items-center pt-3">
+            <label class="fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "150px"}}>{translations.active}</label>
+            <div class="form-check form-switch">
+                {/* <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
+                    class="form-check-input" role="switch"
+                    id="active" checked={!!currentObject.active ? currentObject.active : false}
+                    onChange={(e) => handleChange('active', e.target.checked)}/> */}
+                <InputSwitch checked={!!currentObject.active ? !!currentObject.active : false} 
+                  onChange={(e) => handleChange('active', e.value)} />
+            </div>
+        </div>  
         <div class="form-group">
           <div class="row">
             <div class="col-6">
@@ -164,20 +174,18 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
         </div>
         <div class="form-group">
           <div class="row">
-            <div class="col-6">
-              <label for="name_ar" class="col-form-label">{translations.category}</label>
-              <Select
-                    id="tax_id"
-                    isMulti={false}
-                    options={taxOptions}
-                    closeMenuOnSelect={true}
-                    components={animatedComponents}
-                    value={currentObject.tax}
-                    onChange={val => handleChange('tax_id', val.value, val)}
-                    menuPortalTarget={document.body} 
-                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
-                />
-            </div>
+            <div class="col-12">
+              <label for="name_ar" class="col-form-label">{translations.taxes}</label>
+              <MultiDropDown
+                key = "taxIds"
+                options={taxOptions}
+                value={taxOptions.filter((x) => currentObject.taxIds.includes(x.value))}
+                onChange={(newVal) => {
+                  const updatedValues = newVal.map((item) => item.value); // Extract values
+                  handleChange('taxIds', updatedValues);
+                }}
+              />
+          </div>
           </div>
         </div>
         <div class="form-group">
@@ -217,7 +225,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
             <div class="col-6">
               <label for="SKU" class="col-form-label">{translations.SKU}</label>
               <input type="text" class="form-control form-control-solid custom-height" id="SKU" value={!!currentObject.SKU ? currentObject.SKU : ''}
-                onChange={(e) => handleChange('SKU', e.target.value)}
+                readOnly
                 ></input>
             </div>
             <div class="col-6">
@@ -244,17 +252,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
             </div>
           </div>
         </div>
-        <div class="d-flex  align-items-center ">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.active}</label>
-            <div class="form-check">
-                <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input my-2"
-                    id="active" checked={!!currentObject.active ? currentObject.active : false}
-                    onChange={(e) => handleChange('active', e.target.checked)}/>
-            </div>
-        </div>
-        <div class="d-flex  align-items-center ">
+        {/* <div class="d-flex  align-items-center ">
             <label class="fs-6 fw-semibold mb-2 me-3 "
                 style={{width: "150px"}}>{translations.SoldByWeight}</label>
             <div class="form-check">
@@ -273,7 +271,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
                     onChange={(e) => handleChange('track_serial_number', e.target.checked)}
                   />
             </div>
-        </div>
+        </div> */}
         <div class="form-group" style={{ paddingtop: '5px' }}>
         </div>
 
