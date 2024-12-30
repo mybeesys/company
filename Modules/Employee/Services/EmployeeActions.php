@@ -22,11 +22,28 @@ class EmployeeActions
         $dashboardRepeaterData = $dashboardRepeaterData ? collect($dashboardRepeaterData) : null;
 
         $employee->allRoles()->detach();
-
         $processRepeaterData = function ($repeaterData, $roleKey, $employee) {
-            $repeaterData->each(function ($repData) use ($employee, $roleKey) {
-                $establishment_id = isset($repData['establishment']) ? ($repData['establishment'] === 'all' ? null : $repData['establishment']) : null;
-                $employee->allRoles()->attach($repData[$roleKey], ['establishment_id' => $establishment_id]);
+
+            $uniqueRepeaterData = $repeaterData->groupBy($roleKey)->map(function ($group) use ($roleKey) {
+
+                $mergedEstablishments = $group->pluck('establishment')->flatten()->unique()->values()->all();
+
+                return [
+                    $roleKey => $group->first()[$roleKey],
+                    'establishment' => $mergedEstablishments
+                ];
+            })->values();
+
+            $uniqueRepeaterData->each(function ($repData) use ($employee, $roleKey) {
+
+                if (isset($repData['establishment']) && is_array($repData['establishment'])) {
+                    foreach ($repData['establishment'] as $establishmentId) {
+                        $employee->allRoles()->attach($repData[$roleKey], ['establishment_id' => $establishmentId]);
+                    }
+                } else {
+                    $establishmentId = $repData['establishment'] ?? null;
+                    $employee->allRoles()->attach($repData[$roleKey], ['establishment_id' => $establishmentId]);
+                }
             });
         };
 

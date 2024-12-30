@@ -172,4 +172,6 @@ return [
     'total_allowances' => 'Total allowances',
     'total_deductions' => 'Total deductions',
     'payroll_group' => 'Payroll group',
+    'total_wage_due' => 'Total due wage',
+    'wage_due' => 'Wage due',
 ];

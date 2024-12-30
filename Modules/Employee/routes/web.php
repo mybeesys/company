@@ -152,6 +152,7 @@ Route::middleware([
                 Route::get('', 'index')->name('index')->can('viewPayrolls');
                 Route::get('/save', 'create')->name('create')->can('create', Payroll::class);
                 Route::post('/store', 'store')->name('store')->can('create', Payroll::class);
+                Route::get('/payroll-columns', 'getColumns')->name('get-columns');
 
                 Route::post('/extend-lock', 'extendLock')->name('extendLock');
             });

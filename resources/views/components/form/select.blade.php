@@ -37,9 +37,9 @@
         <option value="{{ $default_selection_value }}">{{ $default_selection }}</option>
     @endif
     @if ($options)
-        @foreach ($options as $option)
-            <option value="{{ $option['id'] }}" @selected($option['id'] == old($name, $value))>{{ $option["{$optionName}"] }}</option>
-        @endforeach
+    @foreach ($options as $option)
+    <option value="{{ $option['id'] }}" @if(is_array(old($name, $value))) {{ in_array($option['id'], old($name, $value) ?? []) ? 'selected' : '' }} @else @selected($option['id'] == old($name, $value)) @endif>{{ $option["{$optionName}"] }}</option>
+    @endforeach
     @endif
 </select>
 @if ($errors->first($dotNotationName))

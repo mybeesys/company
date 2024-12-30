@@ -17,7 +17,7 @@ class PayrollService
     public function calculateEmployeePayroll(Employee $employee, Carbon $carbonMonth)
     {
         $establishment_id = $employee->establishment_id;
-        $establishments = Establishment::get(['id', 'name']);
+        $establishments = Establishment::active()->notMain()->get(['id', 'name']);
 
         $monthStartDate = $carbonMonth->copy()->startOfMonth()->format('Y-m-d');
         $monthEndDate = $carbonMonth->copy()->endOfMonth()->format('Y-m-d');
@@ -58,7 +58,7 @@ class PayrollService
             'deductions' => $deductions_value,
             'allowances_ids' => $allowances_ids,
             'deductions_ids' => $deductions_ids,
-            'total_wage_before_tax' => $total_wage_before_tax,
+            // 'total_wage_before_tax' => $total_wage_before_tax,
             'total_wage' => $total_wage_before_tax
         ];
 
@@ -68,7 +68,7 @@ class PayrollService
     {
         return Employee::with(['allowances', 'deductions', 'timecards', 'wage', 'shifts', 'defaultEstablishment'])
             ->whereIn('id', $employeeIds)
-            ->whereIn('establishment_id', [$establishmentIds])
+            ->whereIn('establishment_id', $establishmentIds)
             ->get();
     }
 

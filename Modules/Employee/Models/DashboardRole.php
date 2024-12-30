@@ -26,9 +26,4 @@ class DashboardRole extends SpatieRole
     {
         return $query->where('type', 'ems');
     }
-
-    public function establishments()
-    {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('employee_id');
-    }
 }
