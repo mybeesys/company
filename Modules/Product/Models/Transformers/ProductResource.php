@@ -37,7 +37,8 @@ class ProductResource extends JsonResource
             })),
             'attributes' => ProductAttributeResource::collection($this->attributes),
             'combos' => ComboResource::collection($this->combos),
-            'units' => UnitTransferResource::collection($this->unitTransfers),
+            'units' => isset($this->unitTransfersUnit) && count($this->unitTransfersUnit) >0 ?
+                        $this->unitTransfers[0] : null,
             'image' => $this->image,
             'image1' => isset($this->image) ? base64_encode(file_get_contents(public_path($this->image))): null
         ];
