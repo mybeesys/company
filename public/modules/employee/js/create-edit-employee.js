@@ -1,14 +1,17 @@
 function roleRepeater() {
     const hasInitialValues = $('select[name="pos_role_repeater[0][posRole]"]').val() !== undefined &&
         $('select[name="pos_role_repeater[0][posRole]"]').val() !== '';
-
+        
     $('#pos_role_repeater').repeater({
         initEmpty: !hasInitialValues,
         show: function () {
-            $(this).slideDown();
+            setTimeout(() => {
+                $(this).slideDown();
+            }, 1);
             $(this).find('select[name^="pos_role_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
+
         },
         ready: function () {
             $('select[name^="pos_role_repeater"]').select2({

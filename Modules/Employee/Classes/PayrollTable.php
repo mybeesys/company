@@ -16,57 +16,6 @@ class PayrollTable
     {
     }
 
-    // public static function getIndexPayrollColumns()
-    // {
-    //     $baseColumns = [
-    //         ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "employee", "translated_name" => __('employee::fields.employee')],
-    //         ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "payroll_group_name", "translated_name" => __('employee::fields.payroll_group_name')],
-    //         ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "date", "translated_name" => __('employee::fields.date')],
-    //         ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "regular_worked_hours", "translated_name" => __('employee::fields.regular_worked_hours')],
-    //         ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "overtime_hours", "translated_name" => __('employee::fields.overtime_hours')],
-    //         ["class" => "text-start min-w-125px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_hours", "translated_name" => __('employee::fields.total_hours')],
-    //         ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_worked_days", "translated_name" => __('employee::fields.total_worked_days')],
-    //         ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "basic_total_wage", "translated_name" => __('employee::fields.basic_total_wage')],
-    //     ];
-
-    //     $adjustmentTypes = PayrollAdjustment::with('adjustmentType')->get()->groupBy('type');
-    //     foreach ($adjustmentTypes->get('allowance', []) as $allowance) {
-    //         $baseColumns[] = [
-    //             "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-    //             "name" => "allowance_{$allowance->id}",
-    //             "translated_name" => $allowance->adjustmentType->{get_name_by_lang()},
-    //         ];
-    //     }
-
-    //     $baseColumns[] = [
-    //         "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-    //         "name" => "allowances",
-    //         "translated_name" => __('employee::fields.total_allowances'),
-    //     ];
-
-    //     // Add columns for each deduction type
-    //     foreach ($adjustmentTypes->get('deduction', []) as $deduction) {
-    //         $baseColumns[] = [
-    //             "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-    //             "name" => "deduction_{$deduction->id}",
-    //             "translated_name" => $allowance->adjustmentType->{get_name_by_lang()},
-    //         ];
-    //     }
-
-    //     $baseColumns[] = [
-    //         "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-    //         "name" => "deductions",
-    //         "translated_name" => __('employee::fields.total_deductions'),
-    //     ];
-
-    //     // Add remaining columns
-    //     $baseColumns = array_merge($baseColumns, [
-    //         ["class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6", "name" => "total_wage_due"],
-    //     ]);
-
-    //     return $baseColumns;
-    // }
-
     public static function getIndexPayrollColumns()
     {
         $baseColumns = [

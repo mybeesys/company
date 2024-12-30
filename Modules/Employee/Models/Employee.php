@@ -68,17 +68,17 @@ class Employee extends Authenticatable
 
     public function posRoles()
     {
-        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'role_id', 'employee_id')->withTimestamps()->withPivot('establishment_id');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withTimestamps()->withPivot('establishment_id');
     }
 
     public function dashboardRoles()
     {
-        return $this->belongsToMany(DashboardRole::class, 'emp_employee_establishments_roles', 'role_id', 'employee_id')->withPivot('establishment_id');
+        return $this->belongsToMany(DashboardRole::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withPivot('establishment_id');
     }
 
     public function allRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withPivot('establishment_id');
     }
 
     public function wage()
