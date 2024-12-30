@@ -179,7 +179,7 @@
                             <x-employee::employees.repeaters.allowance-repeater :allowances_types="$allowances_types" :allowances="$employee?->allowances" />
                         </div>
                         <div class="mt-10">
-                            <h3>@lang('employee::fields.total_wage'):</h3>
+                            <h3 id="total-wage-span">@lang('employee::fields.total_wage'):</h3>
                         </div>
                     </x-form.form-card>
                 </div>

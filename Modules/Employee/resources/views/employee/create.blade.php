@@ -29,7 +29,6 @@
                 "{{ route('employees.generate.pin') }}");
 
             handleImageInput('imageInput');
-
         });
     </script>
 @endsection

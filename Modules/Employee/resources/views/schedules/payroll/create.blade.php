@@ -15,8 +15,8 @@
                             <span>@lang('employee::fields.establishment'): {{ implode(',', $establishments) }} </span>
                         </div>
                         <x-form.input-div class="w-100 min-w-200px">
-                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}" required
-                                value="{{ $payroll_group?->name }}" name="payroll_group_name" />
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
+                                required value="{{ $payroll_group?->name }}" name="payroll_group_name" />
                         </x-form.input-div>
                         <x-form.input-div class="w-100 min-w-200px">
                             <x-form.select name="payroll_group_state" :options="[
@@ -27,9 +27,6 @@
                                 placeholder="{{ __('employee::fields.status') }}" />
                         </x-form.input-div>
                     </x-slot:elements>
-                    <x-slot:export>
-                        <x-tables.export-menu id="shift" />
-                    </x-slot:export>
                 </x-tables.table-header>
             </x-cards.card-header>
             <x-cards.card-body class="table-responsive">
@@ -451,7 +448,7 @@
                     const firstRow = response.data[0];
                     allowancesCount = firstRow.allowances_array ? Object.keys(firstRow.allowances_array).length : 0;
                     deductionsCount = firstRow.deductions_array ? Object.keys(firstRow.deductions_array).length : 0;
-                }                
+                }
 
                 // Update the table header (thead)
                 const tableHead = $('#kt_createPayroll_table thead');
@@ -493,22 +490,14 @@
 
                 // Create the second row (sub-headers)
                 const subHeaderRow = $('<tr></tr>');
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.regular_worked_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.overtime_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_worked_days')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
-                );
-                                
+                subHeaderRow.append(`
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.regular_worked_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.overtime_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_worked_days')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>
+                    `);
+
                 // Add dynamic allowance sub-headers
                 if (allowancesCount > 0) {
                     Object.keys(response.data[0].allowances_array).forEach(key => {
@@ -591,13 +580,13 @@
             // Add dynamic allowance and deduction columns
             if (data.length > 0) {
                 const firstRow = data[0];
-                  
-                Object.keys(firstRow.allowances_array || {}).forEach(key => {                    
+
+                Object.keys(firstRow.allowances_array || {}).forEach(key => {
                     columns.push({
                         name: `allowances_array.${key}`,
                         data: `allowances_array.${key}`,
                         className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
-                        render: function(data) {                            
+                        render: function(data) {
                             return decodeHTML(data); // Decode and render as raw HTML
                         }
                     });
@@ -629,7 +618,7 @@
                 data: 'total_wage',
                 className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
             });
-            
+
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,

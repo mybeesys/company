@@ -19,15 +19,15 @@ class PayrollTable
     public static function getIndexPayrollColumns()
     {
         $baseColumns = [
-            ["class" => "text-start min-w-50px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "id", "translated_name" => __('employee::fields.id'), "group" => "main"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "employee", "translated_name" => __('employee::fields.employee'), "group" => "main"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "payroll_group_name", "translated_name" => __('employee::fields.payroll_group_name'), "group" => "main"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "date", "translated_name" => __('employee::fields.date'), "group" => "main"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "regular_worked_hours", "translated_name" => __('employee::fields.regular_worked_hours'), "group" => "main"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "overtime_hours", "translated_name" => __('employee::fields.overtime_hours'), "group" => "main"],
-            ["class" => "text-start min-w-125px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_hours", "translated_name" => __('employee::fields.total_hours'), "group" => "main"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_worked_days", "translated_name" => __('employee::fields.total_worked_days'), "group" => "main"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "basic_total_wage", "translated_name" => __('employee::fields.basic_total_wage'), "group" => "main"],
+            ["class" => "text-start min-w-50px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "id", "group" => "main"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "employee", "group" => "main"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "payroll_group_name", "group" => "main"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "date", "group" => "main"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "regular_worked_hours", "group" => "main"],
+            ["class" => "text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "overtime_hours", "group" => "main"],
+            ["class" => "text-start min-w-125px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_hours", "group" => "main"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "total_worked_days", "group" => "main"],
+            ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "basic_total_wage", "group" => "main"],
         ];
 
         $adjustmentTypes = PayrollAdjustment::with('adjustmentType')->get()->groupBy('type');
@@ -84,7 +84,6 @@ class PayrollTable
     {
 
         $establishmentChanges = request('establishment_changes', []);
-
         $employees = $this->payrollService->fetchEmployees($employeeIds, $establishmentIds);
 
         $carbonMonth = Carbon::createFromFormat('Y-m', $date);

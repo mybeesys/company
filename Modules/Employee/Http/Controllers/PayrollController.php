@@ -70,10 +70,10 @@ class PayrollController extends Controller
             return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
-        if (!$lock->get()) {
-            return to_route('schedules.payrolls.index')
-                ->with('error', __('employee::responses.payroll_creation_in_progress'));
-        }
+        // if (!$lock->get()) {
+        //     return to_route('schedules.payrolls.index')
+        //         ->with('error', __('employee::responses.payroll_creation_in_progress'));
+        // }
 
         $payroll_group = PayrollGroup::with(['payrolls'])
             ->where('date', $date)

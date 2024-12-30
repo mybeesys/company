@@ -206,13 +206,8 @@
             fetch("{{ route('schedules.payrolls.get-columns') }}")
                 .then(response => response.json())
                 .then(columns => {
-                    let headerGroups = {
-                        'main': "{{ __('employee::fields.main_info') }}",
-                        'allowances': "{{ __('employee::fields.allowances') }}",
-                        'deductions': "{{ __('employee::fields.deductions') }}"
-                    };
                     console.log(columns);
-
+                    
                     let mainColCount = columns.filter(col => col.group === 'main').length;
                     let allowanceColCount = columns.filter(col => col.group === 'allowances').length;
                     allowanceColCount = allowanceColCount == 0 ? 1 : allowanceColCount;
@@ -221,33 +216,48 @@
                     deductionColCount = deductionColCount == 0 ? 1 : deductionColCount;
 
                     // Create the header structure before initializing DataTable
-                    const $table = $(payroll_table);
-                    const $thead = $table.find('thead');
-                    if ($thead.length === 0) {
-                        $table.prepend('<thead></thead>');
-                        $thead = $table.find('thead');
-                    }
+                    const $thead = payroll_table.find('thead');
+                    $thead.empty();
 
+                    const mainHeaderRow = $('<tr></tr>');
+
+                    mainHeaderRow.append(
+                        `<th rowspan="2" class="text-start min-w-50px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.id')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.employee')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.payroll_group_name')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.date')</th>
+                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.regular_worked_hours')</th>
+                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.overtime_hours')</th>
+                        <th rowspan="2" class="text-start min-w-125px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.total_hours')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.total_worked_days')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.basic_total_wage')</th>
+                        `
+                    );
+                                        
                     // Create group header row
-                    const groupHeaderHtml = `
-                <tr>
-                    
-                    ${mainColCount > 0 ? `<th colspan="${mainColCount - 2}" class="text-center border"></th>` : ''}
-                    ${allowanceColCount > 0 ? `<th colspan="${allowanceColCount}" class="text-center border">${headerGroups.allowances}</th>` : ''}
-                    ${deductionColCount > 0 ? `<th colspan="${deductionColCount}" class="text-center border">${headerGroups.deductions}</th>` : ''}
-                    <th colspan="2" class="text-center border"></th>
-                    
-                </tr>
-            `;
-                    const columnHeaderHtml = `
-                <tr>
-                    ${columns.map(col => `<th class="${col.class}">${col.translated_name}</th>`).join('')}
-                </tr>
-            `;
+                    mainHeaderRow.append(`  
+                    <th colspan="${allowanceColCount}" class="text-center border">@lang('employee::fields.allowances')</th> 
+                    <th colspan="${deductionColCount}" class="text-center border">@lang('employee::fields.deductions')</th>                    
+            `);
+                    mainHeaderRow.append(`
+                    <th rowspan="2" class="text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6">@lang('employee::fields.total_wage_due')</th>
+                    <th rowspan="2" class="text-center align-middle min-w-125px border">@lang('employee::fields.actions')</th>
+            `);
 
-                    $thead.empty().append(groupHeaderHtml).append(columnHeaderHtml);
+                    $thead.append(mainHeaderRow);
 
-                    payroll_dataTable = $(payroll_table).DataTable({
+                    const subHeaderRow = $('<tr></tr>');
+
+                    const filteredColumns = columns.filter(col => col.group !== 'main');
+
+                    const subHeader = filteredColumns.map(col =>
+                        `<th class="${col.class}">${col.translated_name}</th>`).join('');
+
+                    subHeaderRow.append(subHeader);
+
+                    $thead.append(subHeaderRow);
+
+                    payroll_dataTable = payroll_table.DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: payroll_dataUrl,
@@ -256,7 +266,6 @@
                             ...columns.map(col => ({
                                 data: col.name,
                                 name: col.name,
-                                title: col.translated_name,
                                 className: col.class
                             })),
                         ],

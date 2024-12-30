@@ -29,6 +29,7 @@
                 "{{ route('employees.generate.pin') }}");
 
             handleImageInput('imageInput', 'image');
+            updateTotalWage();
         });
     </script>
 @endsection

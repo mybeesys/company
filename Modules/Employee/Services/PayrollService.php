@@ -68,7 +68,7 @@ class PayrollService
     {
         return Employee::with(['allowances', 'deductions', 'timecards', 'wage', 'shifts', 'defaultEstablishment'])
             ->whereIn('id', $employeeIds)
-            ->whereIn('establishment_id', [$establishmentIds])
+            ->whereIn('establishment_id', $establishmentIds)
             ->get();
     }
 

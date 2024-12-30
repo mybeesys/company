@@ -1,7 +1,7 @@
 function roleRepeater() {
     const hasInitialValues = $('select[name="pos_role_repeater[0][posRole]"]').val() !== undefined &&
         $('select[name="pos_role_repeater[0][posRole]"]').val() !== '';
-        
+
     $('#pos_role_repeater').repeater({
         initEmpty: !hasInitialValues,
         show: function () {
@@ -11,7 +11,6 @@ function roleRepeater() {
             $(this).find('select[name^="pos_role_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
-
         },
         ready: function () {
             $('select[name^="pos_role_repeater"]').select2({
@@ -33,6 +32,36 @@ function initElements() {
         minimumResultsForSearch: -1,
     });
 }
+function updateTotalWage() {
+    let baseWage = parseFloat($('input[name="wage_amount"]').val()) || 0;
+    let percentageTotal = 0;
+    let fixedTotal = 0;
+
+    // First calculate all percentages
+    $('input[name^="allowance_repeater"][name$="[amount]"]').each(function () {
+        const allowanceAmount = parseFloat($(this).closest('.d-flex').find('input[name$="[amount]"]').val()) || 0;
+        const amountType = $(this).closest('.d-flex').find('select[name$="[amount_type]"]').val();
+
+        if (amountType === 'percent') {
+            percentageTotal += allowanceAmount / 100;
+        } else {
+            fixedTotal += allowanceAmount;
+        }
+    });
+
+    // Calculate final total
+    let totalWage = baseWage + (baseWage * percentageTotal) + fixedTotal;
+
+    $('#total-wage-span').text(`${Lang.get('fields.total_wage')}: ${totalWage.toFixed(2)}`);
+}
+
+$(document).on('change', 'select[name^="allowance_repeater"][name$="[amount_type]"]', function () {
+    updateTotalWage();
+});
+
+$(document).on('keyup', 'input[name="wage_amount"], input[name^="allowance_repeater"][name$="[amount]"]', function () {
+    updateTotalWage();
+});
 
 function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
     const customOptions = new Map();
@@ -305,6 +334,13 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
         let input = $(this);
         validateField(input, validationUrl, saveButton);
+        console.log($('[name="wage_amount"]').val());
+
+        if ($('[name="wage_amount"]').val()) {
+            $('[name="wage_type"]').attr('required', 'required');
+        } else {
+            $('[name="wage_type"]').removeAttr('required');
+        }
     });
 
     $('#generate_pin').on('click', function (e) {
