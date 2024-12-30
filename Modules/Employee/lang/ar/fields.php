@@ -175,4 +175,9 @@ return [
     'payroll_group' => 'مجموعة كشف الرواتب',
     'total_wage_due' => 'الراتب المستحق الكلي',
     'wage_due' => 'الراتب المستحق',
+    'print' => 'طباعة',
+    'pos_role' => 'دور نقطة البيع',
+    'dashboard_roles' => 'أدوار لوحة التحكم',
+    'variable' => 'متغير',
+    'allowance' => 'البدل',
 ];

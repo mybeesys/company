@@ -67,9 +67,12 @@ class EmployeeTable
                         if (auth()->user()->hasDashboardPermission('employees.employee.show')) {
                             $actions .= '<div class="menu-item px-3">
                             <a href="' . url("/employee/show/{$row->id}") . '" class="menu-link px-3 show-btn" data-id="' . $row->id . '">' . __('employee::fields.show') . '</a>
-                            </div></div>';
+                            </div>';
                         }
                     }
+                    $actions .= '<div class="menu-item px-3">
+                            <a href="#" class="menu-link px-3 print-btn" data-id="' . $row->id . '">' . __('employee::fields.print') . '</a>
+                            </div></div>';
                     return $actions;
                 }
             )

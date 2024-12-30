@@ -23,9 +23,14 @@ class EmployeePolicy
         return auth()->user()->hasDashboardPermission('employees.employee.show');
     }
 
-    public function print()
+    public function printAll()
     {
         return auth()->user()->hasDashboardPermission('employees.employees.print');
+    }
+
+    public function print()
+    {
+        return auth()->user()->hasDashboardPermission('employees.employee.print');
     }
 
     /**
