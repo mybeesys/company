@@ -38,6 +38,15 @@
                             value="">
                     </div>
 
+
+                    <div class="d-flex  align-items-center ">
+                        <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('accounting::lang.is_main')</label>
+                        <div class="form-check">
+                        <input type="checkbox" style="border: 1px solid #9f9f9f;" id="is_main" name="is_main"
+                            class="form-check-input  my-2">
+                        </div>
+                    </div>
+
                     <input type="text" id="parent_account_id_" hidden class="form-control form-control-solid"
                         name="parent_account_id" value="">
                     <div class="text-center">

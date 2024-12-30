@@ -37,7 +37,7 @@ class PosRolePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_role.edit');
+        return auth()->user()->hasDashboardPermission('employees.pos_role.update');
     }
 
     /**

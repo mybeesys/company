@@ -54,6 +54,8 @@ class EstablishmentActions
             }
 
             $data['is_main'] = true;
+        } elseif ($establishment->hasAnyRelation() && !$establishment->children()->exists()) {
+            $data['is_main'] = false;
         }
 
         if ($logoName) {

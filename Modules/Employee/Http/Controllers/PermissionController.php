@@ -21,7 +21,7 @@ class PermissionController extends Controller
             'pos_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
         ]);
         $permissions = new PosRoleActions(collect($validated));
-        $permissions->storeUpdateRolePermissions($employee);
+        $permissions->storeUpdateRolePermissions($employee, false);
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 

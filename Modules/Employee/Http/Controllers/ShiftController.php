@@ -8,13 +8,12 @@ use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\ShiftTable;
 use Modules\Employee\Http\Requests\StoreShiftRequest;
-use Modules\Employee\Models\Employee;
-use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 use Modules\Employee\Services\ShiftService;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Models\Role;
 
 class ShiftController extends Controller
 {

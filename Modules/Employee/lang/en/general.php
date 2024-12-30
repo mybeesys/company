@@ -147,5 +147,6 @@ return [
     'payroll_group_confirm_confirmation'=>'Are you sure you want to confirm this payroll group?',
     'confirm' => 'Confirm',
     'by_working_time' => 'Depending on working time',
+    'month' => 'Month',
 
 ];

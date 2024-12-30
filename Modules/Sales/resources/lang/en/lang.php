@@ -92,6 +92,7 @@ return [
     'Delegates' => 'Delegates',
     'payment_account_note' => 'The account to which the payment was credited',
     'payment_account_select'=>'Select account to which the payment was credited',
+    'unit' => 'unit',
 
 
 

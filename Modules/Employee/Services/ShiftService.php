@@ -128,7 +128,7 @@ class ShiftService
                 }, $divElement));
             }
         }
-        return null;
+        return '';
     }
 
     public function getEssentialColumns($employee)

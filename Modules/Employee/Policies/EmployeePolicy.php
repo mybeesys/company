@@ -41,7 +41,7 @@ class EmployeePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.edit');
+        return auth()->user()->hasDashboardPermission('employees.employee.update');
     }
 
     /**
@@ -57,7 +57,7 @@ class EmployeePolicy
      */
     public function restore(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.employee.edit');
+        return auth()->user()->hasDashboardPermission('employees.employee.update');
     }
 
     /**

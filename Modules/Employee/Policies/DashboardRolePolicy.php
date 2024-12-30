@@ -37,7 +37,7 @@ class DashboardRolePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.dashboard_role.edit');
+        return auth()->user()->hasDashboardPermission('employees.dashboard_role.update');
     }
 
     /**

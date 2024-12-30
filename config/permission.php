@@ -1,6 +1,6 @@
 <?php
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\Role;
+use Spatie\Permission\Models\Role;
 
 return [
 

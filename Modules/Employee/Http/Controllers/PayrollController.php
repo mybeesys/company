@@ -7,6 +7,7 @@ use Cache;
 use DB;
 use Illuminate\Http\Request;
 use Log;
+use Modules\Employee\Classes\PayrollGroupTable;
 use Modules\Employee\Classes\PayrollTable;
 use Modules\Employee\Http\Requests\CreatePayrollRequest;
 use Modules\Employee\Http\Requests\StorePayrollRequest;
@@ -14,9 +15,9 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\PayrollGroup;
-use Modules\Employee\Models\Role;
 use Modules\Employee\Services\PayrollAction;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Models\Role;
 
 class PayrollController extends Controller
 {
@@ -31,14 +32,24 @@ class PayrollController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $payrolls = Payroll::with('employee', 'payrollGroup');
+            $payrolls = Payroll::with('employee', 'payrollGroup', 'adjustments', 'adjustments.adjustmentType');
+            if ($request->has('date_filter') && !empty($request->date_filter)) {
+                $payrolls->whereRelation('payrollGroup', 'date', $request->date_filter);
+            }
 
             return PayrollTable::getIndexPayrollTable($payrolls);
         }
         $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
-        $columns = PayrollTable::getIndexPayrollColumns();
-        return view('employee::schedules.payroll.index', compact('columns', 'establishments', 'employees'));
+        $payroll_columns = PayrollTable::getIndexPayrollColumns();
+
+        $payroll_group_columns = PayrollGroupTable::getPayrollGroupColumns();
+
+        return view('employee::schedules.payroll.index', compact('payroll_columns', 'establishments', 'employees', 'payroll_group_columns'));
+    }
+    public function getColumns()
+    {
+        return response()->json(PayrollTable::getIndexPayrollColumns());
     }
 
     public function create(CreatePayrollRequest $request)
@@ -46,8 +57,8 @@ class PayrollController extends Controller
         $employeeIds = collect($request->validated('employee_ids'));
         $establishmentIds = $request->validated('establishment_ids');
         $date = $request->validated('date');
-        
-        if(Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()){
+
+        if (Employee::whereIn('establishment_id', $establishmentIds)->active()->get()->isEmpty()) {
             return redirect()->back()->with('error', __('employee::responses.no_employees_for_this_establishment'));
         }
 
@@ -59,10 +70,10 @@ class PayrollController extends Controller
             return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
-        if (!$lock->get()) {
-            return to_route('schedules.payrolls.index')
-                ->with('error', __('employee::responses.payroll_creation_in_progress'));
-        }
+        // if (!$lock->get()) {
+        //     return to_route('schedules.payrolls.index')
+        //         ->with('error', __('employee::responses.payroll_creation_in_progress'));
+        // }
 
         $payroll_group = PayrollGroup::with(['payrolls'])
             ->where('date', $date)

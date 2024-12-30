@@ -21,6 +21,6 @@ class TimeSheetRulePolicy
      */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.edit');
+        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.update');
     }
 }

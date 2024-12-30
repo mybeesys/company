@@ -12,6 +12,7 @@ use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Models\Role;
 
 class Employee extends Authenticatable
 {
@@ -67,17 +68,17 @@ class Employee extends Authenticatable
 
     public function posRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('establishment_id')->where('type', 'pos');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withTimestamps()->withPivot('establishment_id');
     }
 
     public function dashboardRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id')->where('type', 'ems');
+        return $this->belongsToMany(DashboardRole::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withPivot('establishment_id');
     }
 
     public function allRoles()
     {
-        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles')->withPivot('establishment_id');
+        return $this->belongsToMany(Role::class, 'emp_employee_establishments_roles', 'employee_id', 'role_id')->withPivot('establishment_id');
     }
 
     public function wage()
@@ -117,13 +118,16 @@ class Employee extends Authenticatable
 
     public function hasDashboardPermission($permission)
     {
-        $permission_sections = explode('.', $permission);
-        $module = $permission_sections[0];
-        $permission_action = $permission_sections[2];
-        
-        $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
+        if ($permission) {
+            $permission_sections = explode('.', $permission);
+            $module = $permission_sections[0];
+            $permission_action = $permission_sections[2];
 
-        return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+            $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
+
+            return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+        }
+        return false;
     }
 
     public function hasDashboardPermissionViaRoles($permission, $module, $permission_action)
