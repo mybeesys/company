@@ -16,6 +16,12 @@ class ProductResource extends JsonResource
         $subcategory["name_ar"] = $this->subcategory["name_ar"];
         $subcategory["name_en"] = $this->subcategory["name_en"];
         $subcategory["product_id"] = $this->id;
+        $unit = null;
+        if(count($this->unitTransfers) > 0){
+            $unit["id"] = $this->unitTransfers[0]->id; 
+            $unit["name"] = $this->unitTransfers[0]->unit1;
+            $unit["product_id"] = $this->unitTransfers[0]->product_id;
+        }
         $extraData =['withProduct' => 'N', 'parent_id' => $this->id];
         return [
             'id' => $this->id,
@@ -37,8 +43,7 @@ class ProductResource extends JsonResource
             })),
             'attributes' => ProductAttributeResource::collection($this->attributes),
             'combos' => ComboResource::collection($this->combos),
-            'units' => isset($this->unitTransfersUnit) && count($this->unitTransfersUnit) >0 ?
-                        $this->unitTransfers[0] : null,
+            'unit' => $unit,//UnitTransferResource::collection($this->unitTransfers),
             'image' => $this->image,
             'image1' => isset($this->image) ? base64_encode(file_get_contents(public_path($this->image))): null
         ];
