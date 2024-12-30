@@ -11,7 +11,7 @@ class UnitTransferResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->unit1,
-            'parent_id' => $this->product_id
+            'product_id' => $this->product_id
         ];
     }
 }

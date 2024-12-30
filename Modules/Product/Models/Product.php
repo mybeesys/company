@@ -63,13 +63,9 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
     }
-    public function tax()
-    {
-        return $this->belongsTo(Tax::class, 'tax_id', 'id');
-    }
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(subcategory::class, 'subcategory_id', 'id');
     }
     public function serial_numbers()
     {

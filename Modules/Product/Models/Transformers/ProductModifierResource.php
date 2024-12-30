@@ -19,6 +19,7 @@ class ProductModifierResource extends JsonResource
 
     public function toArray($request)
     {
+        $modifierClass["id"] = $this->modifiers["id"];
         $modifierClass["name_ar"] = $this->modifiers["name_ar"];
         $modifierClass["name_en"] = $this->modifiers["name_en"];
         if(isset($this->modifiers)){
