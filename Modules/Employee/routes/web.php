@@ -81,7 +81,7 @@ Route::middleware([
 
         Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', PosRole::class);
-            Route::get('/show/{id}', 'show')->name('show')->can('show', PosRole::class);
+            Route::get('/show/{id}', 'show')->name('show')->can('view', PosRole::class);
             Route::get('/create', 'create')->name('create')->can('create', PosRole::class);
             Route::post('/store', 'store')->name('store')->can('create', PosRole::class);
             Route::get('/{id}/edit', 'edit')->name('edit')->can('update', PosRole::class);
@@ -96,7 +96,7 @@ Route::middleware([
         Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', DashboardRole::class);
             Route::get('/create', 'create')->name('create')->can('create', DashboardRole::class);
-            Route::get('/show/{dashboardRole}', 'show')->name('show')->can('show', DashboardRole::class);
+            Route::get('/show/{dashboardRole}', 'show')->name('show')->can('view', DashboardRole::class);
             Route::post('/store', 'store')->name('store')->can('create', DashboardRole::class);
             Route::get('/{dashboardRole}/edit', 'edit')->name('edit')->can('update', DashboardRole::class);
             Route::patch('/{dashboardRole}', 'update')->name('update')->can('update', DashboardRole::class);
@@ -107,8 +107,18 @@ Route::middleware([
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
 
-        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/allowance-type')->group(function () {
+        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () {
+            Route::get('', 'index')->name('index');
+            
             Route::post('/store', 'store')->name('store');
+        });
+
+        Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
+            Route::get('', 'index')->name('index');
+
+
+            Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-allowance');
+            Route::post('/store-payroll-deduction', 'storeDeduction')->name('store-deduction');
         });
 
         Route::name('schedules.')->prefix('schedule')->group(function () {
@@ -161,10 +171,6 @@ Route::middleware([
                 Route::post('/extend-lock', 'extendLock')->name('extendLock');
             });
 
-            Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
-                Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-payroll-allowance');
-                Route::post('/store-payroll-deduction', 'storeDeduction')->name('store-payroll-deduction');
-            });
         });
     });
 

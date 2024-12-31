@@ -21,7 +21,7 @@
         </div>
     </x-form.form-card>
 
-    <x-employee::dashboard-roles.permissions-input :modules=$modules :rolePermissions=$rolePermissions />
+    <x-employee::dashboard-roles.permissions-input :modules=$modules :rolePermissions=$rolePermissions :disabled=$disabled />
 
     <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" :disabled=$disabled :id=$formId />
 </div>

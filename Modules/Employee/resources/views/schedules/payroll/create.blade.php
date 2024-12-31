@@ -77,8 +77,8 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}", dataUrl);
-            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}", dataUrl)
+            addAllowancesForm("{{ route('adjustments.store-allowance') }}", dataUrl);
+            addDeductionForm("{{ route('adjustments.store-deduction') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({

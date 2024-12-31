@@ -26,7 +26,6 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3], '#kt_dashboard_role_table', "{{ session('locale') }}", [], [0]);
             handleSearchDatatable();
         });
 

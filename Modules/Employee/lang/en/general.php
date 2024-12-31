@@ -148,5 +148,9 @@ return [
     'confirm' => 'Confirm',
     'by_working_time' => 'Depending on working time',
     'month' => 'Month',
-
+    'add_adjustment' => 'Add allowance or deduction',
+    'add_adjustment_type' => 'Add allowance or deduction type',
+    'adjustment_search' => 'Search for allowance or deduction',
+    'adjustment_type_search' => 'Search for allowance or deduction type',
+    'adjustments_types' => 'Allowances and deductions types',
 ];

@@ -4,6 +4,7 @@ namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Classes\AdjustmentTypeTable;
 use Modules\Employee\Models\PayrollAdjustmentType;
 
 class PayrollAdjustmentTypeController extends Controller
@@ -11,17 +12,12 @@ class PayrollAdjustmentTypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('employee::index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('employee::create');
+        if ($request->ajax()) {
+            $adjustments_types = PayrollAdjustmentType::select('id', 'name', 'name_en', 'type');
+            return AdjustmentTypeTable::getAdjustmentTypeTable($adjustments_types);
+        }
     }
 
     /**
@@ -44,22 +40,6 @@ class PayrollAdjustmentTypeController extends Controller
             'id' => $allowanceType->id,
             'message' => __('employee::responses.created_successfully', ['name' => __("employee::fields.new_{$type}_type")])
         ]);
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('employee::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('employee::edit');
     }
 
     /**
