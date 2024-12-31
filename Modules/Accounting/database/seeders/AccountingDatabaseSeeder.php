@@ -92,7 +92,7 @@ class AccountingDatabaseSeeder extends Seeder
 
 
 
-        Tax::insert($taxes);
+        // Tax::insert($taxes);
         foreach ($taxes as $tax) {
             $exists = Tax::where('name', $tax['name'])->exists();
 
