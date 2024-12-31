@@ -130,10 +130,14 @@ return [
     'Include inactive' => 'Include inactive',
     'unInclude inactive' => 'Uninclude inactive',
     'main_cost_center' => 'Main Cost Center',
-    'amount'=>'Amount',
-    'parent_account'=>'Parent Account',
-    'sell'=>'Sales invoice',
-    'is_main'=>'Is the center main?',
+    'amount' => 'Amount',
+    'parent_account' => 'Parent Account',
+    'sell' => 'Sales invoice',
+    'is_main' => 'Is the center main?',
+    'Closing balance' => 'Closing balance',
+    'main_cost_center_note' => 'Sub-centers can be added under this center and it cannot be used in financial transactions',
+    'sub_cost_center_note' => 'No sub-centers can be added under this center and it can be used in financial transactions',
+
 
 
 

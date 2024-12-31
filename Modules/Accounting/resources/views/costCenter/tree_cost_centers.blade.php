@@ -20,6 +20,7 @@
                 @foreach ($costCenters as $costCenter)
                     @if ($includeInactive && $costCenter->active == 0)
                         <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif>
+
                             ({{ $costCenter->account_center_number }})
                             - @if (app()->getLocale() == 'ar')
                                 {{ $costCenter->name_ar }}
@@ -32,6 +33,8 @@
                             @else
                                 <span><i class="fas fa-times text-danger" style="font-size: 14px;"></i></span>
                             @endif
+
+
                             <span class="tree-actions">
                                 <div class="btn-group dropend">
 
@@ -40,11 +43,13 @@
                                         class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-cog"></i>
                                     </button>
+
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
-                                        <li><a class="ledger-link" href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
-                                            style="margin: 2px;">
+                                        <li><a class="ledger-link"
+                                                href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
+                                                style="margin: 2px;">
                                                 <i class="fas fa-file-alt"></i><span
                                                     style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
                                         </li>
@@ -56,12 +61,14 @@
                                                     @lang('messages.edit')
                                             </a>
                                         </li>
-                                        <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
-                                                data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
-                                                data-bs-target="#kt_modal_create_cost_center">
-                                                <i class="fas fa-plus"></i><span
-                                                    style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
-                                            </a></li>
+                                        @if ($costCenter->is_main)
+                                            <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                                    data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
+                                                    data-bs-target="#kt_modal_create_cost_center">
+                                                    <i class="fas fa-plus"></i><span
+                                                        style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
+                                                </a></li>
+                                        @endif
 
                                         <li>
                                             @if ($costCenter->active)
@@ -133,12 +140,14 @@
                                                     @lang('messages.edit')
                                             </a>
                                         </li>
-                                        <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
-                                                data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
-                                                data-bs-target="#kt_modal_create_cost_center">
-                                                <i class="fas fa-plus"></i><span
-                                                    style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
-                                            </a></li>
+                                        @if ($costCenter->is_main)
+                                            <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                                    data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
+                                                    data-bs-target="#kt_modal_create_cost_center">
+                                                    <i class="fas fa-plus"></i><span
+                                                        style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
+                                                </a></li>
+                                        @endif
 
                                         <li>
                                             @if ($costCenter->active)

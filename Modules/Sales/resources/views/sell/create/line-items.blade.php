@@ -126,8 +126,13 @@
                             <select id="tax_vat" required class="form-select form-select-solid select-2"
                                 name="products[0][tax_vat]" style="width: 200px;">
                                 @foreach ($taxes as $tax)
-                                <option value="{{ $tax->amount }}">{{ $tax->name }}</option>
-
+                                    <option value="{{ $tax->amount }}">
+                                        @if (app()->getLocale() == 'en')
+                                            {{ $tax->name_en }}
+                                        @else
+                                            {{ $tax->name }}
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
                         </td>

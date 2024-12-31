@@ -59,7 +59,8 @@ class AccountingDatabaseSeeder extends Seeder
 
         $taxes = [
             [
-                'name' => 'ضريبة القيمة المضافة (S 15.0%)',
+                'name' => 'ضريبة القيمة المضافة (15.0%)',
+                'name_en' => 'VAT (15.0%)',
                 'amount' => 15.0,
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
@@ -68,7 +69,8 @@ class AccountingDatabaseSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ],
             [
-                'name' => 'الضريبة الصفرية (Z 0.0%)',
+                'name' => 'الضريبة الصفرية (0.0%)',
+                'name_en' => 'Zero Tax (0.0%)',
                 'amount' => 0,
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
@@ -77,7 +79,8 @@ class AccountingDatabaseSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ],
             [
-                'name' => 'معفاة من الضريبة (E 0.0%)',
+                'name' => 'معفاة من الضريبة (0.0%)',
+                'name_en' => 'Tax Exempt (0.0%)',
                 'amount' => 0,
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
@@ -88,7 +91,15 @@ class AccountingDatabaseSeeder extends Seeder
         ];
 
 
+
         Tax::insert($taxes);
+        foreach ($taxes as $tax) {
+            $exists = Tax::where('name', $tax['name'])->exists();
+
+            if (!$exists) {
+                Tax::insert($tax);
+            }
+        }
 
     }
 }

@@ -24,16 +24,15 @@ class TaxController extends Controller
         }
 
         $columns = Tax::getsTaxesColumns();
-        return view('general::tax.index', compact('columns'));
+        $teaxes = Tax::where('is_tax_group', 0)->get();
+
+        return view('general::tax.index', compact('columns', 'teaxes'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        return view('general::invoice-setting.setting');
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -43,13 +42,36 @@ class TaxController extends Controller
 
         try {
             DB::beginTransaction();
-            Tax::create([
-                'name' => $request->tax_name,
-                'amount' => $request->tax_amount,
-                'for_tax_group' => 0,
-                'is_tax_group' => 0,
-                'created_by'=>Auth::user()->id,
-            ]);
+            if ($request->group_tax_checkbox != 'on') {
+                Tax::create([
+                    'name' => $request->tax_name . ' (' . $request->tax_amount . '%)',
+                    'name_en' => '(' . $request->tax_amount . '%) ' . $request->tax_name_en,
+                    'amount' => $request->tax_amount,
+                    'for_tax_group' => 0,
+                    'is_tax_group' => 0,
+                    'created_by' => Auth::user()->id,
+                ]);
+            } else {
+                $sub_tax_ids = $request->input('group_tax');
+
+                $sub_taxes = Tax::whereIn('id', $sub_tax_ids)->get();
+                $amount = 0;
+                foreach ($sub_taxes as $sub_tax) {
+                    $amount += $sub_tax->amount;
+                }
+                $input['amount'] = $amount;
+                $input['is_tax_group'] = 1;
+
+                $tax_rate =    Tax::create([
+                    'name' => $request->tax_name . ' (' . $amount . '%)',
+                    'name_en' => '(' . $amount . '%) ' . $request->tax_name_en,
+                    'amount' => $amount,
+                    'for_tax_group' => 0,
+                    'is_tax_group' => 1,
+                    'created_by' => Auth::user()->id,
+                ]);
+                $tax_rate->sub_taxes()->sync($sub_tax_ids);
+            }
 
             DB::commit();
             return redirect()->route('taxes')->with('success', __('messages.add_successfully'));
@@ -82,11 +104,29 @@ class TaxController extends Controller
     {
         try {
             DB::beginTransaction();
-           $tax = Tax::find($request->id);
-           $tax->update([
-                'name' => $request->tax_name,
-                'amount' => $request->tax_amount,
-            ]);
+            $tax = Tax::find($request->id);
+            if ($request->group_tax_checkbox) {
+                $sub_tax_ids = $request->input('group_tax');
+
+                $sub_taxes = Tax::whereIn('id', $sub_tax_ids)->get();
+                $amount = 0;
+                foreach ($sub_taxes as $sub_tax) {
+                    $amount += $sub_tax->amount;
+                }
+
+                $tax_rate = Tax::find($request->id);
+                $tax_rate->name = preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $amount . '%)';
+                $tax_rate->name_en = '(' . $amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en);
+                $tax_rate->amount = $amount;
+                $tax_rate->save();
+                $tax_rate->sub_taxes()->sync($sub_tax_ids);
+            } else {
+                $tax->update([
+                    'name' => preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $request->tax_amount . '%)',
+                    'name_en' => '(' . $request->tax_amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en),
+                    'amount' => $request->tax_amount,
+                ]);
+            }
 
             DB::commit();
             return redirect()->route('taxes')->with('success', __('messages.updated_successfully'));
@@ -103,7 +143,7 @@ class TaxController extends Controller
     {
         try {
             DB::beginTransaction();
-           $tax = Tax::find($id)->delete();
+            $tax = Tax::find($id)->delete();
 
             DB::commit();
             return redirect()->route('taxes')->with('success', __('messages.deleted_successfully'));

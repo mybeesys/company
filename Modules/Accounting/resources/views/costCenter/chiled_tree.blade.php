@@ -40,11 +40,13 @@
                                          @lang('messages.edit')
                                  </a>
                              </li>
-                             <li><a class="btn-xs btn-default text-primary" style="margin: 2px;" data-bs-toggle="modal"
-                                     onclick="setCostCenter({{ $child_costCenter }})"
-                                     data-bs-target="#kt_modal_create_cost_center">
-                                     <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
-                                 </a></li>
+                             @if ($child_costCenter->is_main)
+                                 <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                         data-bs-toggle="modal" onclick="setCostCenter({{ $child_costCenter }})"
+                                         data-bs-target="#kt_modal_create_cost_center">
+                                         <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
+                                     </a></li>
+                             @endif
 
                              <li>
                                  @if ($child_costCenter->active)
@@ -80,6 +82,7 @@
                      ({{ $child_costCenter->account_center_number }})
                      - @if (app()->getLocale() == 'ar')
                          {{ $child_costCenter->name_ar }}
+                         
                      @else
                          {{ $child_costCenter->name_en }}
                      @endif
@@ -93,10 +96,12 @@
                  <span class="tree-actions">
                      <div class="btn-group dropend">
 
+
                          <button type="button"
                              style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
                              class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                              <i class="fas fa-cog"></i>
+
                          </button>
                          <ul class="dropdown-menu dropdown-menu-left"
                              @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
@@ -115,11 +120,13 @@
                                          @lang('messages.edit')
                                  </a>
                              </li>
-                             <li><a class="btn-xs btn-default text-primary" style="margin: 2px;" data-bs-toggle="modal"
-                                     onclick="setCostCenter({{ $child_costCenter }})"
-                                     data-bs-target="#kt_modal_create_cost_center">
-                                     <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
-                                 </a></li>
+                             @if ($child_costCenter->is_main)
+                                 <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                         data-bs-toggle="modal" onclick="setCostCenter({{ $child_costCenter }})"
+                                         data-bs-target="#kt_modal_create_cost_center">
+                                         <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
+                                     </a></li>
+                             @endif
 
                              <li>
                                  @if ($child_costCenter->active)

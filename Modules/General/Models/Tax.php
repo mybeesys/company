@@ -19,7 +19,9 @@ class Tax extends Model
         return [
 
             ["class" => "text-start min-w-150px ", "name" => "tax_name"],
+            ["class" => "text-start min-w-150px ", "name" => "tax_name_en"],
             ["class" => "text-start min-w-150px  ", "name" => "tax_amount"],
+            ["class" => "text-start min-w-150px  ", "name" => "create_group_tax"],
 
         ];
     }
@@ -37,15 +39,30 @@ class Tax extends Model
                 return $row->name;
             })
 
+            ->editColumn('name_en', function ($row) {
+                return $row->name_en;
+            })
+
             ->editColumn('amount', function ($row) {
                 return  $row->amount ?? '--';
             })
+
+            ->editColumn('is_tax_group', function ($row) {
+                return  $row->is_tax_group ? __('general::fields.create_group_tax') : '--';
+            })
+
+
+
+            ->editColumn('sub_taxes', function ($row) {
+                return  $row->sub_taxes ?? '--';
+            })
+
 
 
             ->addColumn(
                 'actions',
                 function ($row) {
-                    if ($row->name == 'ضريبة القيمة المضافة (S 15.0%)' || $row->name == 'الضريبة الصفرية (Z 0.0%)' || $row->name == 'معفاة من الضريبة (E 0.0%)') {
+                    if ($row->name == 'ضريبة القيمة المضافة (15.0%)' || $row->name == 'الضريبة الصفرية (0.0%)' || $row->name == 'معفاة من الضريبة (0.0%)') {
                         return    '<span class="badge badge-light-success px-3 py-3 fs-base">
 
                         ' . __('general::lang.default tax') . ' </span>';
@@ -77,5 +94,11 @@ class Tax extends Model
 
             ->rawColumns(['actions', 'id'])
             ->make(true);
+    }
+
+
+    public function sub_taxes()
+    {
+        return $this->belongsToMany(Tax::class, 'group_sub_taxes', 'group_tax_id', 'tax_id');
     }
 }

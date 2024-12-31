@@ -38,7 +38,7 @@ class SellApiController extends Controller
     {
         // return $request;
 
-        // try {
+        try {
 
 
         $transactionUtil = new TransactionUtils();
@@ -76,7 +76,7 @@ class SellApiController extends Controller
         foreach ($products as $product) {
             TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
-                'product_id' => $product->products_id,
+                'product_id' => $product->product_id,
                 'qyt' => $product->quantity,
                 'unit_price_before_discount' => $product->unit_price_before_discount,
                 'unit_price' => $product->price_without_tax,
@@ -95,12 +95,12 @@ class SellApiController extends Controller
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
         DB::commit();
-        return response()->json(['message' => 'added'], 200);
+        return response()->json(['message' => 'Added successfully'], 200);
 
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     return response()->json(['message' => 'something went wrong'], 500);
-        // }
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'something went wrong'], 500);
+        }
     }
 
 
