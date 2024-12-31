@@ -23,7 +23,7 @@
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     <h1>
 
-                        @lang('accounting::lang.ledger') - {{app()->getLocale() == 'ar'?$account->name_ar: $account->name_en }}
+                        @lang('accounting::lang.ledger') - {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
 
                     </h1>
                 </div>
@@ -202,51 +202,52 @@
                 </span>
             </h3>
             @if (count($account_transactions) > 0)
-            <div class="card-toolbar">
-                <div class="btn-group dropend">
+                <div class="card-toolbar">
+                    <div class="btn-group dropend">
 
-                    <button type="button" style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
-                        class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-left" role="menu" style=" width: max-content;padding: 10px;"
-                        style="padding: 8px 15px;">
-                        <li class="mb-5"
-                            style="text-align: justify; border-bottom: 1px solid #00000029; padding:0.8rem;
+                        <button type="button" style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
+                            class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
+                            style=" width: max-content;padding: 10px;" style="padding: 8px 15px;">
+                            <li class="mb-5"
+                                style="text-align: justify; border-bottom: 1px solid #00000029; padding:0.8rem;
                             ">
-                            <span class="card-label fw-bold fs-6 mb-1 ">@lang('messages.settings')</span>
-                        </li>
+                                <span class="card-label fw-bold fs-6 mb-1 ">@lang('messages.settings')</span>
+                            </li>
 
 
 
-                        <li>
+                            <li>
 
-                            <div class="menu-item-custom ">
-                                <a href= "{{ url('/print-ledger', $account->id) }}" class="btn">@lang('accounting::fields.print')</a>
-                            </div>
-                        </li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/print-ledger', $account->id) }}"
+                                        class="btn">@lang('accounting::fields.print')</a>
+                                </div>
+                            </li>
 
-                        <li>
-                            <div class="menu-item-custom ">
-                                <a href= "{{ url('/ledger-export-pdf', $account->id) }}"
-                                    class="btn">@lang('general.export_as_pdf')</a>
-                            </div>
-                        </li>
-
-
-                        <li>
-                            <div class="menu-item-custom ">
-                                <a href= "{{ url('/ledger-export-excel', $account->id) }}"
-                                    class="btn">@lang('general.export_as_excel')</a>
-                            </div>
-                        </li>
+                            <li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/ledger-export-pdf', $account->id) }}"
+                                        class="btn">@lang('general.export_as_pdf')</a>
+                                </div>
+                            </li>
 
 
+                            <li>
+                                <div class="menu-item-custom ">
+                                    <a href= "{{ url('/ledger-export-excel', $account->id) }}"
+                                        class="btn">@lang('general.export_as_excel')</a>
+                                </div>
+                            </li>
 
-                    </ul>
+
+
+                        </ul>
+                    </div>
                 </div>
-            </div>
-@endif
+            @endif
 
         </div>
 
@@ -329,7 +330,7 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'debit')
-                                            <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #17c653">
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -340,7 +341,7 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'credit')
-                                            <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #e90909">
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -350,8 +351,16 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                            {{ number_format($balance, 2) }}
+                                        <a class=" fw-bold text-hover-primary mb-1 fs-6"
+                                            @if ($balance < 0) style="color: #e90909"@else style="color: #17c653" @endif>
+
+
+                                            @if ($balance < 0)
+                                                {{ number_format(abs($balance), 2) }} (-)
+                                            @else
+                                                {{ number_format($balance, 2) }}
+                                            @endif
+
                                         </a>
                                     </td>
                                 </tr>
@@ -359,16 +368,13 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="5" class=" text-center fw-bold fs-4">صافي الحركة</td>
-                                <td colspan="1" class=" fw-bold fs-5">
-                                 @format_currency($total_debit)
+                                <td colspan="5" class=" text-center fw-bold fs-4">@lang('accounting::lang.Closing balance')</td>
+                                <td colspan="1" class=" fw-bold fs-5" style="color: #17c653">
+                                    @format_currency($total_debit)
                                 </td>
-                                <td  class=" fw-bold fs-5">
-                                    @format_currency( $total_credit)
+                                <td class=" fw-bold fs-5" style="color: #e90909">
+                                    @format_currency($total_credit)
                                 </td>
-                            </tr>
-                            <tr>
-                                <td colspan="7" class="text-center fw-bold fs-4">الرصيد الختامي</td>
                                 <td colspan="2" class=" fw-bold fs-5">
                                     @format_currency($balance)
                                 </td>

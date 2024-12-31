@@ -62,7 +62,8 @@ return [
     'transfer' => 'التحويلات',
 
     'purchase_invoices'=>'فواتير الشراء',
-    'general_setting'=>'إعدادات',
+    'general_setting'=>'الإعدادات العامة',
+    'setting'=>'إعدادات',
     'taxes'=>'الضرائب',
 
 
