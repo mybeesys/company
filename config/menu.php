@@ -226,6 +226,11 @@ return [
                 'permission' => 'employees.dashboard_roles.show',
             ],
             [
+                'name' => 'adjustments',
+                'url' => 'adjustment',
+                'permission' => 'employees.allowances_deductions.show',
+            ],
+            [
                 'name' => 'schedules',
                 'url' => 'schedule',
                 'permission' => '',

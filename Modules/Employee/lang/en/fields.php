@@ -179,4 +179,7 @@ return [
     'dashboard_roles' => 'Dashboard roles',
     'variable' => 'Variable',
     'allowance' => 'Allowance',
+    'deduction' => 'Deduction',
+    'adjustment_type_name' => 'Adjustment name',
+    'apply_once' => 'Apply once',
 ];

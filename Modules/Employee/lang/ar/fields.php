@@ -179,5 +179,8 @@ return [
     'pos_role' => 'دور نقطة البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'variable' => 'متغير',
-    'allowance' => 'البدل',
+    'allowance' => 'بدل',
+    'deduction' => 'حسم',
+    'adjustment_type_name' => 'اسم الإضافة',
+    'apply_once' => 'تطبيق لمرة واحدة',
 ];

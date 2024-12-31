@@ -37,6 +37,8 @@ return [
     'costCenter' => 'Cost Centers',
     'serviceFee' => 'Service Fees',
     'company_settings' => 'Company settings',
+    'adjustments' => 'Allowances and deductions',
+
 
     'employees_working_hours' => 'Employees working hours',
 
@@ -68,6 +70,7 @@ return [
 	 'waste' => 'Waste',
     'transfer' => 'Transfer',
     'purchase_invoices'=>'Purchase Invoices',
+
 
 
 
