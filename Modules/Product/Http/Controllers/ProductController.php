@@ -144,9 +144,9 @@ class ProductController extends Controller
         if(isset($product['SKU']))
             $uniqueFields [] = 'SKU';
         if($id !=null)
-            $query = Product::whereRaw('1 = 1');
+            $query = Product::where('id', '!=', $id);
         else
-            $query = Product::where('1', '=', '1');
+            $query = Product::whereRaw('1 = 1');
         $query = $query->where(function($subQuery) use($uniqueFields, $product) {
             for ($i = 0; $i < count($uniqueFields); $i++) {
                 $subQuery = $subQuery->orWhere($uniqueFields[$i], '=', $product[$uniqueFields[$i]]);
