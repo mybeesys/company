@@ -34,6 +34,7 @@
   "ModifiersList": "قائمة المتغيرات",
   "AddNewmodifier": "إضافة متغير جديد",
   "AddNewmodifierClass": "إضافة صف متغيرات جديد",
+  "modifierClass" : "تصنيف متغير",
   "ORDER_EXIST": "الترتيب مكرر",
   "NAME_AR_EXIST": "الاسم العربي مكرر",
   "NAME_EN_EXIST": "الاسم الانكليزي مكرر",

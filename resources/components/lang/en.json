@@ -29,6 +29,7 @@
   "recipe": "Recipe",
   "modifiers": "Modifiers",
   "modifierClasses" : "Modifier Classes",
+  "modifierClass" : "Modifier Class",
   "printInfo": "Display/Print Options",
   "savechanges": "Save Changes",
   "cancel": "Cancel",
