@@ -87,7 +87,7 @@ class SellController extends Controller
             'discount_amount' => $request->invoice_discount,
             'discount_type' => $invoiced_discount_type,
             'total_before_tax' => $request->totalBeforeVat,
-            'total_after_discount' => $request->totalAfterDiscount,
+            'totalAfterDiscount' => $request->totalAfterDiscount,
             'tax_amount' => $request->totalVat,
             'final_total' => $request->totalAfterVat,
             'created_by' => Auth::user()->id,
@@ -115,6 +115,7 @@ class SellController extends Controller
                 'unit_price_inc_tax' => $product->total_after_vat,
                 'tax_id' => $product->tax_vat,
                 'tax_value' => $product->vat_value,
+                'total_before_vat'=>$product->total_before_vat,
             ]);
         }
         // return $request->paid_amount;

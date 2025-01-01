@@ -117,13 +117,11 @@
                 const table = $('#kt_tax_table').DataTable();
                 const data = table.row(row).data();
 
-                // استخراج البيانات المخفية من الجدول
                 let selectedTaxes = [];
 
                 if (data && data.sub_taxes) {
                     let subTaxes = data.sub_taxes;
 
-                    // إذا كانت sub_taxes سلسلة نصية، تحويلها إلى JSON
                     if (typeof subTaxes === 'string') {
                         try {
                             subTaxes = JSON.parse(subTaxes);
@@ -133,9 +131,8 @@
                         }
                     }
 
-                    // التحقق من أن subTaxes أصبحت مصفوفة
                     if (Array.isArray(subTaxes)) {
-                        selectedTaxes = subTaxes.map((tax) => tax.id); // استخراج IDs الضرائب المختارة
+                        selectedTaxes = subTaxes.map((tax) => tax.id);
                     } else {
                         console.error('sub_taxes is not an array:', subTaxes);
                     }
@@ -143,13 +140,11 @@
 
                 console.log('Selected Taxes:', selectedTaxes);
 
-                // تحديث قائمة الضرائب في عنصر select
                 const taxListContainer = $('#tax-list-container-edit');
                 taxListContainer.find('option').each(function() {
                     const option = $(this);
                     const taxId = parseInt(option.val());
 
-                    // إذا كانت الضريبة موجودة في القائمة المختارة، قم بتحديدها
                     if (selectedTaxes.includes(taxId)) {
                         option.prop('selected', true);
                     } else {
@@ -157,7 +152,6 @@
                     }
                 });
 
-                // تحديث Select2 إذا كنت تستخدمه
                 if (taxListContainer.hasClass('select2-hidden-accessible')) {
                     taxListContainer.trigger('change');
                 }
@@ -189,7 +183,6 @@
 
 
 
-                // عرض النافذة المنبثقة
                 $('#kt_modal_edit_tax').modal('show');
             });
 

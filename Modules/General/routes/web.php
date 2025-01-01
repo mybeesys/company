@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\General\Http\Controllers\GeneralController;
 use Modules\General\Http\Controllers\TaxController;
+use Modules\General\Http\Controllers\TransactionController;
 use Modules\Sales\Http\Controllers\SellController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -30,6 +31,10 @@ Route::middleware([
         Route::post('store-tax', [TaxController::class, 'store'])->name('store-tax');
         Route::post('update-tax', [TaxController::class, 'update'])->name('update-tax');
         Route::get('delete-tax/{id}', [TaxController::class, 'destroy'])->name('delete-tax');
+
+
+
+        Route::get('transaction-show/{id}', [TransactionController::class, 'show'])->name('transaction-show');
 
 
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
