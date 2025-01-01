@@ -28,6 +28,7 @@ class ProductController extends Controller
         'order' => 'required|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
+        'tax_id' => 'nullable|numeric',
         'active' => 'nullable|boolean',
         'SKU'=> 'nullable|string',
         'barcode'=> 'nullable|string',
