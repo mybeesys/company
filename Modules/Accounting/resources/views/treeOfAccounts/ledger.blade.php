@@ -296,7 +296,9 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex justify-content-start flex-column">
-                                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
+                                                {{-- href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" --}}
+                                                    @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
                                                     @if ($transactions->sub_type == 'journal_entry')
                                                         {{ $transactions->accTransMapping->ref_no }}
                                                     @else
