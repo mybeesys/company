@@ -123,6 +123,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
             });
             return;
         }
+        setEditingRow({});
         setCurrentKey('-1');
         refreshTree();
     }
