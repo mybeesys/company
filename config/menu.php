@@ -226,6 +226,11 @@ return [
                 'permission' => 'employees.dashboard_roles.show',
             ],
             [
+                'name' => 'adjustments',
+                'url' => 'adjustment',
+                'permission' => 'employees.allowances_deductions.show',
+            ],
+            [
                 'name' => 'schedules',
                 'url' => 'schedule',
                 'permission' => '',
@@ -262,16 +267,17 @@ return [
         'subMenu' => []
     ],
     [
-        'name' => 'general_setting',
-        'url' => '/',
+        'name' => 'setting',
+        'url' => 'general-setting',
         'icon' => 'fas fa-cog',
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'taxes',
-                'url' => 'taxes',
+                'name' => 'general_setting',
+                'url' => 'general-setting',
                 'permission' => '',
             ],
         ]
+
     ],
 ];

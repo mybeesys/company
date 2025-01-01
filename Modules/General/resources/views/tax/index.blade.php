@@ -110,27 +110,126 @@
                 $('#kt_modal_create_add_tax').modal('show');
             });
 
-
             $('#kt_tax_table').on('click', '.open-tax-modal', function(event) {
                 event.preventDefault();
 
                 const row = $(this).closest('tr');
+                const table = $('#kt_tax_table').DataTable();
+                const data = table.row(row).data();
 
-                const id = row.find('td:nth-child(1)').text()
-                    .trim();
+                // استخراج البيانات المخفية من الجدول
+                let selectedTaxes = [];
 
-                const taxName = row.find('td:nth-child(2)').text()
-                    .trim();
-                const taxAmount = row.find('td:nth-child(3)').text()
-                    .trim();
+                if (data && data.sub_taxes) {
+                    let subTaxes = data.sub_taxes;
 
+                    // إذا كانت sub_taxes سلسلة نصية، تحويلها إلى JSON
+                    if (typeof subTaxes === 'string') {
+                        try {
+                            subTaxes = JSON.parse(subTaxes);
+                        } catch (e) {
+                            console.error('Failed to parse sub_taxes:', e);
+                            subTaxes = [];
+                        }
+                    }
 
-                $('#kt_modal_edit_tax input[name="tax_name"]').val(taxName);
+                    // التحقق من أن subTaxes أصبحت مصفوفة
+                    if (Array.isArray(subTaxes)) {
+                        selectedTaxes = subTaxes.map((tax) => tax.id); // استخراج IDs الضرائب المختارة
+                    } else {
+                        console.error('sub_taxes is not an array:', subTaxes);
+                    }
+                }
+
+                console.log('Selected Taxes:', selectedTaxes);
+
+                // تحديث قائمة الضرائب في عنصر select
+                const taxListContainer = $('#tax-list-container-edit');
+                taxListContainer.find('option').each(function() {
+                    const option = $(this);
+                    const taxId = parseInt(option.val());
+
+                    // إذا كانت الضريبة موجودة في القائمة المختارة، قم بتحديدها
+                    if (selectedTaxes.includes(taxId)) {
+                        option.prop('selected', true);
+                    } else {
+                        option.prop('selected', false);
+                    }
+                });
+
+                // تحديث Select2 إذا كنت تستخدمه
+                if (taxListContainer.hasClass('select2-hidden-accessible')) {
+                    taxListContainer.trigger('change');
+                }
+
+                const id = row.find('td:nth-child(1)').text().trim();
+                const taxName = row.find('td:nth-child(2)').text().trim();
+                const taxNameEn = row.find('td:nth-child(3)').text().trim();
+                const taxAmount = row.find('td:nth-child(4)').text().trim();
+                const isGroup = row.find('td:nth-child(5)').text().trim();
+                const taxAmountContainer = $('#tax-amount-container-edit');
+                const groupTaxContainer = $('#group-tax-container-edit');
+                let group_tax_checkbox = 0;
+                if (isGroup == 'Compound tax' || isGroup == 'ضريبة مُركبة') {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                    group_tax_checkbox = 1;
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                    group_tax_checkbox = 0;
+                }
+
+                $('#kt_modal_edit_tax input[name="tax_name"]').val(taxName.replace(/\([^)]*\)\s*/g, ''));
+                $('#kt_modal_edit_tax input[name="tax_name_en"]').val(taxNameEn.replace(/\([^)]*\)\s*/g,
+                    ''));
                 $('#kt_modal_edit_tax input[name="tax_amount"]').val(taxAmount);
                 $('#kt_modal_edit_tax input[name="id"]').val(id);
+                $('#kt_modal_edit_tax input[name="group_tax_checkbox"]').val(group_tax_checkbox);
 
+
+
+                // عرض النافذة المنبثقة
                 $('#kt_modal_edit_tax').modal('show');
             });
+
+
+
+            $('select[multiple]').select2({
+                placeholder: "اختر",
+                allowClear: false,
+                closeOnSelect: false
+            });
+
+            $('#group_tax_checkbox').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                const taxAmountContainer = $('#tax-amount-container');
+                const groupTaxContainer = $('#group-tax-container');
+
+                if (isChecked) {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                }
+            });
+
+
+            $('#group_tax_checkbox_edit').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                const taxAmountContainer = $('#tax-amount-container-edit');
+                const groupTaxContainer = $('#group-tax-container-edit');
+
+                if (isChecked) {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                }
+            });
+
 
         });
 
@@ -154,9 +253,25 @@
                         name: 'name'
                     },
                     {
+                        data: 'name_en',
+                        name: 'name_en'
+                    },
+                    {
                         data: 'amount',
                         name: 'amount'
                     },
+                    {
+                        data: 'is_tax_group',
+                        name: 'is_tax_group',
+                        // visible: false
+                    },
+                    {
+                        data: 'sub_taxes',
+                        name: 'sub_taxes',
+                        visible: false
+                    },
+
+
                     {
                         data: 'actions',
                         name: 'actions',

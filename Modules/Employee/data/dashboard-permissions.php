@@ -70,6 +70,13 @@ return [
         'type' => 'ems',
     ],
     [
+        'name' => 'employees.employee.print',
+        'name_ar' => 'موظف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
         'name' => 'employees.employee.update',
         'name_ar' => 'موظف',
         'description' => '',
@@ -328,6 +335,37 @@ return [
     [
         'name' => 'employees.payrolls_group.delete',
         'name_ar' => 'مجموعة كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.allowances_deductions.show',
+        'name_ar' => 'البدلات والحسومات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.allowance_deduction.create',
+        'name_ar' => 'بدل أو حسم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.allowance_deduction.update',
+        'name_ar' => 'بدل أو حسم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.allowance_deduction.delete',
+        'name_ar' => 'بدل أو حسم',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',

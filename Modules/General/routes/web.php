@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\General\Http\Controllers\GeneralController;
 use Modules\General\Http\Controllers\TaxController;
 use Modules\Sales\Http\Controllers\SellController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -29,5 +30,10 @@ Route::middleware([
         Route::post('store-tax', [TaxController::class, 'store'])->name('store-tax');
         Route::post('update-tax', [TaxController::class, 'update'])->name('update-tax');
         Route::get('delete-tax/{id}', [TaxController::class, 'destroy'])->name('delete-tax');
+
+
+        Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
+
+
     });
 });

@@ -92,7 +92,7 @@
                                         @endforeach
                                     </div>
                                 </div>
-                                <div class="separator my-5"></div>
+                                <div class="separator my-5 border-2"></div>
                             @endforeach
                         </div>
                     </td>

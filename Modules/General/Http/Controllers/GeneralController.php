@@ -15,6 +15,19 @@ class GeneralController extends Controller
         return view('general::index');
     }
 
+
+    public function setting()
+    {
+        $cards = [
+            [
+                'name' => __('menuItemLang.taxes'),
+                'route' => 'taxes',
+                'icon' => 'fa-percent',
+            ],
+        ];
+        return view('general::settings.index', compact('cards'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */

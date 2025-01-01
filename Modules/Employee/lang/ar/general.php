@@ -148,4 +148,9 @@ return [
     'confirm' => 'تثبيت',
     'by_working_time' => 'حسب الدوام',
     'month' => 'الشهر',
+    'add_adjustment' => 'إضافة بدل أو حسم',
+    'add_adjustment_type' => 'إضافة نوع بدل أو حسم',
+    'adjustment_search' => 'بحث عن بدل أول حسم',
+    'adjustment_type_search' => 'بحث عن نوع بدل أول حسم',
+    'adjustments_types' => 'أنواع البدلات والحسومات',
 ];

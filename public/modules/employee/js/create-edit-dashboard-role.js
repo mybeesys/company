@@ -10,11 +10,11 @@ function dashboardRolePermissionsForm() {
         $(`input[name^="dashboard_permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).not(':disabled').prop('checked', isChecked);
 
         const dependenciesMap = {
-            delete: { enable: ['edit', 'create', 'print', 'show', 'delete'], disable: [] },
-            edit: { enable: ['create', 'print', 'show', 'edit'], disable: ['delete'] },
-            create: { enable: ['print', 'show', 'create'], disable: ['delete', 'edit'] },
-            print: { enable: ['show', 'print'], disable: ['delete', 'edit', 'create'] },
-            show: { enable: ['show'], disable: ['delete', 'edit', 'create', 'print'] }
+            delete: { enable: ['update', 'create', 'print', 'show', 'delete'], disable: [] },
+            update: { enable: ['create', 'print', 'show', 'update'], disable: ['delete'] },
+            create: { enable: ['print', 'show', 'create'], disable: ['delete', 'update'] },
+            print: { enable: ['show', 'print'], disable: ['delete', 'update', 'create'] },
+            show: { enable: ['show'], disable: ['delete', 'update', 'create', 'print'] }
         };
 
         let { enable, disable } = dependenciesMap[action] || { enable: [], disable: [] };
@@ -30,11 +30,11 @@ function dashboardRolePermissionsForm() {
         let action = name.split('.')[2].replace(']', '');
 
         const dependenciesMap = {
-            delete: { enable: ['edit', 'create', 'print', 'show', 'delete'], disable: [] },
-            edit: { enable: ['create', 'print', 'show', 'edit'], disable: ['delete'] },
-            create: { enable: ['print', 'show', 'create'], disable: ['delete', 'edit'] },
-            print: { enable: ['show', 'print'], disable: ['delete', 'edit', 'create'] },
-            show: { enable: ['show'], disable: ['delete', 'edit', 'create', 'print'] }
+            delete: { enable: ['update', 'create', 'print', 'show', 'delete'], disable: [] },
+            update: { enable: ['create', 'print', 'show', 'update'], disable: ['delete'] },
+            create: { enable: ['print', 'show', 'create'], disable: ['delete', 'update'] },
+            print: { enable: ['show', 'print'], disable: ['delete', 'update', 'create'] },
+            show: { enable: ['show'], disable: ['delete', 'update', 'create', 'print'] }
         };
 
         let { enable, disable } = dependenciesMap[action] || { enable: [], disable: [] };
@@ -50,15 +50,15 @@ function dashboardRolePermissionsForm() {
         let action = name.split('.')[2].replace(']', '');
 
         if (action === 'delete') {
-            toggleDependencies($(this), moduleName, ['edit', 'create', 'print', 'show', 'delete'], [], permissionName);
-        } else if (action === 'edit') {
-            toggleDependencies($(this), moduleName, ['create', 'print', 'show', 'edit'], ['delete'], permissionName);
+            toggleDependencies($(this), moduleName, ['update', 'create', 'print', 'show', 'delete'], [], permissionName);
+        } else if (action === 'update') {
+            toggleDependencies($(this), moduleName, ['create', 'print', 'show', 'update'], ['delete'], permissionName);
         } else if (action === 'create') {
-            toggleDependencies($(this), moduleName, ['print', 'show', 'create'], ['delete', 'edit'], permissionName);
+            toggleDependencies($(this), moduleName, ['print', 'show', 'create'], ['delete', 'update'], permissionName);
         } else if (action === 'print') {
-            toggleDependencies($(this), moduleName, ['show', 'print'], ['delete', 'edit', 'create'], permissionName);
+            toggleDependencies($(this), moduleName, ['show', 'print'], ['delete', 'update', 'create'], permissionName);
         } else if (action === 'show') {
-            toggleDependencies($(this), moduleName, ['show'], ['delete', 'edit', 'create', 'print'], permissionName);
+            toggleDependencies($(this), moduleName, ['show'], ['delete', 'update', 'create', 'print'], permissionName);
         }
     });
 
@@ -89,7 +89,7 @@ function dashboardRolePermissionsForm() {
     function toggleDependencies($checkbox, moduleName, dependencies, uncheckDependencies, permissionName) {
         let isChecked = $checkbox.is(':checked');
 
-        const actions = ['show', 'print', 'create', 'edit', 'delete'];
+        const actions = ['show', 'print', 'create', 'update', 'delete'];
 
         dependencies.forEach(function (dependency) {
             let childCheckbox = $(`input[name="dashboard_permissions[${moduleName}.${permissionName}.${dependency}]"]`).not(':disabled');
@@ -120,7 +120,7 @@ function dashboardRolePermissionsForm() {
     }
     // Function to manage 'select all' checkbox state based on child checkboxes
     function handleSelectAll(moduleName) {
-        ['show', 'print', 'create', 'edit', 'delete'].forEach(function (action) {
+        ['show', 'print', 'create', 'update', 'delete'].forEach(function (action) {
             let allChecked = true;
             $(`input[name^="dashboard_permissions[${moduleName}"]`).each(function () {
                 if ($(this).attr('name').includes(action) && !$(this).is(':checked')) {

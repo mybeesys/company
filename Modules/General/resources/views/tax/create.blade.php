@@ -31,14 +31,48 @@
 
                     <div class="fv-row mb-5 fv-plugins-icon-container">
                         <label class="fs-6 fw-semibold form-label mt-3">
-                            <span class="required">@lang('general::fields.tax_amount')</span>
+                            <span class="required">@lang('general::fields.tax_name_en')</span>
                         </label>
-                        <input type="number" class="form-control form-control-solid" required name="tax_amount"
+                        <input type="text" class="form-control form-control-solid" required name="tax_name_en"
                             value="">
                     </div>
 
-                    <input type="text" id="parent_account_id" hidden class="form-control form-control-solid"
-                        name="parent_account_id" value="null">
+                    <div class="d-flex mb-3 align-items-center">
+                        <label class="fs-6 fw-semibold me-3" style="width: 150px;">
+                            @lang('general::lang.create_group_tax')
+                        </label>
+                        <div class="form-check">
+                            <input type="checkbox" style="border: 1px solid #9f9f9f;" id="group_tax_checkbox" name="group_tax_checkbox"
+                                class="form-check-input my-2">
+                        </div>
+                    </div>
+
+                    <div id="tax-amount-container" class="fv-row mb-5 fv-plugins-icon-container">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('general::fields.tax_amount')</span>
+                        </label>
+                        <input type="number" class="form-control form-control-solid"  name="tax_amount" value="">
+                    </div>
+
+                    <div id="group-tax-container" class="fv-row mb-5 fv-plugins-icon-container" style="display: none;">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('menuItemLang.taxes')</span>
+                        </label>
+                        <select class="form-select d-flex form-select-solid" data-placeholder="@lang('messages.select')" name="group_tax[]"
+                            multiple>
+                            @foreach ($teaxes as $tax)
+                                <option value="{{ $tax->id }}">
+                                    @if (session()->get('locale') == 'ar')
+                                        {{ $tax->name }}
+                                    @else
+                                        {{ $tax->name_en }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">
                             @lang('messages.cancel')

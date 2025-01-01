@@ -28,6 +28,8 @@ class EmployeeDatabaseSeeder extends Seeder
             'pos_is_active' => true
         ]);
 
+        $establishment = Establishment::active()->notMain()->first();
+        
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
