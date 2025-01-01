@@ -185,7 +185,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
     const renderTextCell = (node, key, autoFocus) => {
         const indent = (node.key).toString().split('-').length;
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type}`}</a>
+            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
             return (

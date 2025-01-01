@@ -235,10 +235,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             indent = 2;
         }
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`Add New ${node.data.type}`}</a>
+            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else if (key == 'name_ar' && !!node.data.empty && !!node.data.type1) {
-            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type1, node.data.parentKey1, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type1}`}</a>
+            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type1, node.data.parentKey1, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type1]}`}</a>
         }
         else {
             return (
