@@ -18,7 +18,7 @@ const ProductComponent1 = ({ translations, dir }) => {
   const categoryurl = JSON.parse(rootElement.getAttribute('category-url'));
   const modifierClassUrl = JSON.parse(rootElement.getAttribute('listModifier-url'));
   let product = JSON.parse(rootElement.getAttribute('product'));
-  const [AttributesTree, setAttributesTree] = useState([{data:{}}, {data:{}}]);
+  const [AttributesTree, setAttributesTree] = useState([{ data: {} }, { data: {} }]);
   const [currentObject, setcurrentObject] = useState(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
@@ -73,12 +73,36 @@ const ProductComponent1 = ({ translations, dir }) => {
 
   const onProductFieldChange = (key, value) => {
     currentObject[key] = value;
-    console.log(currentObject[key] );
+    console.log(currentObject[key]);
     setcurrentObject({ ...currentObject });
     return {
       message: "Done"
     }
-    
+
+  }
+
+  const getErrorMessage = (data) => {
+    let res = ''
+    for (let index = 0; index < data.length; index++) {
+      const element = data[index];
+      res += `<div>${translations[element]}</div>`;
+    }
+    return res;
+  }
+
+  const handleUniqueError = (data) => {
+    setShowAlert(true);
+    Swal.fire({
+      show: showAlert,
+      title: 'Error',
+      html: `<div>${translations.exist}</div>${getErrorMessage(data)}`,
+      icon: "error",
+      timer: 4000,
+      showCancelButton: false,
+      showConfirmButton: false,
+    }).then(() => {
+      setShowAlert(false); // Reset the state after alert is dismissed
+    });
   }
 
   const saveChanges = async () => {
@@ -108,6 +132,9 @@ const ProductComponent1 = ({ translations, dir }) => {
       });
       if (response.data.message == "Done") {
         window.location.href = categoryurl;
+      }
+      else if (response.data.message == "UNIQUE") {
+        handleUniqueError(response.data.data);
       }
       else {
         setShowAlert(true);
@@ -304,7 +331,7 @@ const ProductComponent1 = ({ translations, dir }) => {
   const validProduct = () => {
     let errorMessage = null;
     let valid = true;
-    if(!!!productUnit || !!!productUnit.unit1){
+    if (!!!productUnit || !!!productUnit.unit1) {
       valid = false;
       errorMessage = translations.noDefaultUnit;
       document.getElementById("Unit_tab").click();
@@ -323,7 +350,7 @@ const ProductComponent1 = ({ translations, dir }) => {
       errorMessage = translations.groupComboAndLinkedComboSelected;
       document.getElementById("linkedCombo_tab").click();
     }
-    if(!valid){
+    if (!valid) {
       setShowAlert(true);
       Swal.fire({
         show: showAlert,
@@ -350,127 +377,128 @@ const ProductComponent1 = ({ translations, dir }) => {
     <div>
       <SweetAlert2 />
       <div class="container">
-            <div class="row">
-                <div class="col-6">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1>{`${translations.Add} ${translations.product}`}</h1>
+        <div class="row">
+          <div class="col-6">
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+              <h1>{`${translations.Add} ${translations.product}`}</h1>
 
-                    </div>
-                </div>
-                <div class="col-6" style={{"justify-content": "end", "display": "flex"}}>
-                    <div class="flex-center" style={{"display": "flex"}}>
-                        <button onClick={clickSubmit} disabled={disableSubmitButton} class="btn btn-primary mx-2"
-                            style={{"width": "12rem"}}>{translations.savechanges}</button>
-
-                    </div>
-
-                </div>
             </div>
+          </div>
+          <div class="col-6" style={{ "justify-content": "end", "display": "flex" }}>
+            <div class="flex-center" style={{ "display": "flex" }}>
+              <button onClick={clickSubmit} disabled={disableSubmitButton} class="btn btn-primary mx-2"
+                style={{ "width": "12rem" }}>{translations.savechanges}</button>
+
+            </div>
+
+          </div>
         </div>
+      </div>
 
 
-        <div class="separator d-flex flex-center my-6">
-            <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
-        </div>
+      <div class="separator d-flex flex-center my-6">
+        <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+      </div>
       <div class="row">
-      <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
-        <div class="container">
-          <div class="row">
-            <div class="col-sm">
+        <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
+          <div class="container">
+            <div class="row">
+              <div class="col-sm">
 
-              <div class="card" data-section="contact" style={{"border": "0", "box-shadow": "none"}}>
-                <div class="container">
-                  <ProductBasicInfo 
-                  visible={menu[0].visible} 
-                  translations={translations} 
-                  parentHandlechanges={parentHandlechanges} 
-                  product={currentObject} 
-                  saveChanges={saveChanges} 
-                  category ={categories}/>
+                <div class="card" data-section="contact" style={{ "border": "0", "box-shadow": "none" }}>
+                  <div class="container">
+                    <ProductBasicInfo
+                      visible={menu[0].visible}
+                      translations={translations}
+                      parentHandlechanges={parentHandlechanges}
+                      product={currentObject}
+                      saveChanges={saveChanges}
+                      category={categories} />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col-7">
+              <div class="col-7">
 
-              <div class="card-toolbar ">
-                <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
-                  {menu.map((m, index) => 
-                    { return index == 0 ? <></>:
-                    <li class="nav-item" role="presentation">
-                      <a id={`${m.key}_tab`} onClick={(e)=>setCurrentTab(index)} class={`nav-link justify-content-center text-active-gray-800 ${currentTab==index ? 'active' : ''}`}
-                        data-bs-toggle="tab" role="tab" href={`#${m.key}`} aria-selected="true">
-                        {translations[m.key]}
-                      </a>
-                    </li>}
-                  
-                  )}
-                </ul>
-              </div>
-              <div class="tab-content">
-                <div id="printInfo" class="card-body p-0 tab-pane fade show active" role="tabpanel"
-                  aria-labelledby="printInfo_tab">
-                  <ProductDisplay 
-                    translations={translations} 
-                    parentHandlechanges={parentHandlechanges} 
-                    product={currentObject} 
-                    saveChanges={saveChanges}/>
+                <div class="card-toolbar ">
+                  <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
+                    {menu.map((m, index) => {
+                      return index == 0 ? <></> :
+                        <li class="nav-item" role="presentation">
+                          <a id={`${m.key}_tab`} onClick={(e) => setCurrentTab(index)} class={`nav-link justify-content-center text-active-gray-800 ${currentTab == index ? 'active' : ''}`}
+                            data-bs-toggle="tab" role="tab" href={`#${m.key}`} aria-selected="true">
+                            {translations[m.key]}
+                          </a>
+                        </li>
+                    }
+
+                    )}
+                  </ul>
                 </div>
-              </div>
+                <div class="tab-content">
+                  <div id="printInfo" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                    aria-labelledby="printInfo_tab">
+                    <ProductDisplay
+                      translations={translations}
+                      parentHandlechanges={parentHandlechanges}
+                      product={currentObject}
+                      saveChanges={saveChanges} />
+                  </div>
+                </div>
 
-              <div class="tab-content ">
-                <div id="advancedInfo" class="card-body p-0 tab-pane fade show" role="tabpanel"
-                  aria-labelledby="advancedInfo_tab">
-                     {<ProductAttributes 
+                <div class="tab-content ">
+                  <div id="advancedInfo" class="card-body p-0 tab-pane fade show" role="tabpanel"
+                    aria-labelledby="advancedInfo_tab">
+                    {<ProductAttributes
                       translations={translations}
                       parentHandlechanges={parentHandlechanges}
                       product={currentObject}
                       saveChanges={saveChanges}
                       AttributesTree={AttributesTree}
                       onChange={onProductFieldChange}
-                      //onActiveDeactiveMatrix={handleActiveDeactiveMatrix}
-                      //onGenerate={handleGenerateMatrix}
-                      />}
+                    //onActiveDeactiveMatrix={handleActiveDeactiveMatrix}
+                    //onGenerate={handleGenerateMatrix}
+                    />}
+                  </div>
                 </div>
-              </div>
-              <div class="tab-content">
-                <div id="modifiers" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="modifiers_tab">
-                <ProductModifier
-                    translations={translations}
-                    productId={currentObject.id}
-                    productModifiers={currentModifiers}
-                    urlList={modifierClassUrl}
-                    onChange={handleModifierChange}
-                    onSelectAll={handleSelectAll} />
+                <div class="tab-content">
+                  <div id="modifiers" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="modifiers_tab">
+                    <ProductModifier
+                      translations={translations}
+                      productId={currentObject.id}
+                      productModifiers={currentModifiers}
+                      urlList={modifierClassUrl}
+                      onChange={handleModifierChange}
+                      onSelectAll={handleSelectAll} />
+                  </div>
                 </div>
-              </div>
 
 
-              <div class="tab-content">
-                <div id="recipe" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="recipe_tab">
-                <ProductRecipe
-                    translations={translations}
-                    product={currentObject}
-                    productRecipe={currentObject.recipe}
-                    ingredientTree={ingredientTree}
-                    onBasicChange={onProductFieldChange}
-                    dir={dir} />
+                <div class="tab-content">
+                  <div id="recipe" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="recipe_tab">
+                    <ProductRecipe
+                      translations={translations}
+                      product={currentObject}
+                      productRecipe={currentObject.recipe}
+                      ingredientTree={ingredientTree}
+                      onBasicChange={onProductFieldChange}
+                      dir={dir} />
 
+                  </div>
                 </div>
-              </div>
-              <div class="tab-content">
-                <div id="groupCombo" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="groupCombo_tab">
-                  <ProductCombo
+                <div class="tab-content">
+                  <div id="groupCombo" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="groupCombo_tab">
+                    <ProductCombo
                       translations={translations}
                       product={currentObject}
                       onComboChange={onProductFieldChange}
                       products={productLOVs.productForComboLOV}
                       dir={dir} />
 
+                  </div>
                 </div>
-              </div>
-              <div class="tab-content">
-                <div id="linkedCombo" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="linkedCombo_tab">
-                  <ProductLinkedCombo
+                <div class="tab-content">
+                  <div id="linkedCombo" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="linkedCombo_tab">
+                    <ProductLinkedCombo
                       translations={translations}
                       product={currentObject}
                       onComboChange={onProductFieldChange}
@@ -479,36 +507,36 @@ const ProductComponent1 = ({ translations, dir }) => {
                       products={productLOVs.productForComboLOV}
                       dir={dir} />
 
+                  </div>
                 </div>
-              </div>
-              <div class="tab-content">
-                <div id="inventory" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="inventory_tab">
-                      <ProductEstablishment
-                        translations={translations}
-                        dir={dir}
-                        currentObject={currentObject}
-                        onBasicChange={onProductFieldChange}/>
+                <div class="tab-content">
+                  <div id="inventory" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="inventory_tab">
+                    <ProductEstablishment
+                      translations={translations}
+                      dir={dir}
+                      currentObject={currentObject}
+                      onBasicChange={onProductFieldChange} />
+                  </div>
                 </div>
-              </div>
-              <div class="tab-content">
-                <div id="Unit" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="Unit_tab">
-                  <UnitTransferProduct
-                    translations={translations}
-                    product={currentObject}
-                    unitTransfer={unitTransfer}
-                    unitTree={units}
-                    parentHandle={parentHandleTransfer}
-                    handleMainUnit={handleMainUnit}
-                    productUnit ={productUnit}
-                    dir={dir} />
+                <div class="tab-content">
+                  <div id="Unit" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="Unit_tab">
+                    <UnitTransferProduct
+                      translations={translations}
+                      product={currentObject}
+                      unitTransfer={unitTransfer}
+                      unitTree={units}
+                      parentHandle={parentHandleTransfer}
+                      handleMainUnit={handleMainUnit}
+                      productUnit={productUnit}
+                      dir={dir} />
 
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <input type="submit" id="btnMainSubmit" hidden></input>
-              </form>
+          <input type="submit" id="btnMainSubmit" hidden></input>
+        </form>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models\Transformers;
 
+use App\Helpers\TaxHelper;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
@@ -22,6 +23,12 @@ class ProductResource extends JsonResource
             $unit["name"] = $this->unitTransfers[0]->unit1;
             $unit["product_id"] = $this->unitTransfers[0]->product_id;
         }
+        $tax = null;
+        if(isset($this->tax)){
+            $tax["id"] = $this->tax["id"];
+            $tax["name"] = $this->tax["name"];
+            $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
+        }
         $extraData =['withProduct' => 'N', 'parent_id' => $this->id];
         return [
             'id' => $this->id,
@@ -34,7 +41,8 @@ class ProductResource extends JsonResource
             'color' => $this->color,
             'order' => $this->order,
             'price' => $this->price,
-            'taxex' => ProductTaxResource::collection($this->taxes),
+            'pricewithTax' => $this->price + ($tax!=null ? $tax["value"] : 0),
+            'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
             'inventory' => isset($this->total) ? $this->total->qty : 0,

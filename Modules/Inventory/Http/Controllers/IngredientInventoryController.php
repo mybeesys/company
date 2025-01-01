@@ -11,29 +11,77 @@ use Modules\Product\Models\TreeBuilder;
 
 class IngredientInventoryController extends Controller
 {
-
-    public function getIngredientInventories()
-    {
-        $TreeBuilder = new TreeBuilder();
-        $establishments = Establishment::all();
-        foreach ($establishments as $establishment) {
-            $ingredientInventories = Ingredient::with(['inventory' => function ($query) {
-                    $query->with('vendor');
-                    $query->with('unit');
-                }])->Join('ingredient_inventories', function ($join) use($establishment) {
-                    $join->on('ingredient_inventories.ingredient_id', '=', 'product_ingredients.id')
-                         ->where('establishment_id', '=', $establishment->id); // Constant condition
-                })
-                ->get();
+    protected function fillIngredient($establishment, $key){
+        if($establishment["is_main"] == 1){
             $children =[];
-            foreach ($ingredientInventories as $ingredientInventory) {
-                $ingredientInventory->addToFillable('inventory');
-                $ingredientInventory->addToFillable('qty');
-                $children[] = $ingredientInventory;
+            foreach ($establishment["children"] as $childEstablishment) {
+                $est =  $this->fillIngredient($childEstablishment, $key);
+                $children [] = $est;
             }
-            $establishment->children = $children;
+            $establishment["children"] = $children;
+            return $establishment;
         }
-        $tree = $TreeBuilder->buildTree($establishments ,null, 'ingredientInventory', null, null, null);
+        $ingredientInventories = [];
+        if($key != null){
+            $ingredientInventories = Ingredient::where('name_ar', 'like', '%' . $key . '%')
+                                        ->orWhere('name_en', 'like', '%' . $key . '%')
+                                        ->with(['inventory' => function ($query) {
+                                            $query->with('vendor');
+                                            $query->with('unit');
+                                        }]);
+        }
+        else{
+            $ingredientInventories = Ingredient::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }]);
+        }
+        $ingredientInventories = $ingredientInventories->Join('ingredient_inventories', function ($join) use($establishment) {
+            $join->on('ingredient_inventories.ingredient_id', '=', 'product_ingredients.id')
+                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+        })->get();
+        $children =[];
+        foreach ($ingredientInventories as $ingredientInventory) {
+            $ingredientInventory->addToFillable('inventory');
+            $ingredientInventory->addToFillable('qty');
+            $children[] = $ingredientInventory->toArray();
+        }
+        $establishment["children"] = $children;
+        return $establishment;
+    }
+
+    public function getIngredientInventories(Request $request)
+    {
+        $by = $request->query('by');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $establishments = [];
+        $TreeBuilder = new TreeBuilder();
+        if($by == 0){
+            $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
+                $query->where('is_main', 1)
+                    ->orWhere(function ($subQuery) use ($key) {
+                        $subQuery->where('is_main', 0)
+                                ->where('name', 'LIKE', "%{$key}%");
+                    });
+            }])
+            ->get();
+        }
+        else{
+            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+        }
+        $establishmentArray = $establishments->toArray();
+        $details = [];
+        foreach ($establishmentArray as $establishment) {
+            if($by == 1){
+                $est = $this->fillIngredient($establishment, $key);
+                $details [] = $est;
+            } 
+            else{
+                $est = $this->fillIngredient($establishment, null);
+                $details [] = $est;
+            }   
+        }
+        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'ingredientInventory', null, null, null);
         return response()->json($tree);
     }
  

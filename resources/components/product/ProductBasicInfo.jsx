@@ -94,6 +94,9 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   const handleChange = async (key, value, option) => {
     let r = { ...currentObject };
     r[key] = value;
+    if (key == "tax_id") {
+      r['tax'] = option;
+    }
     if (key == "category_id") {
       r['category'] = option;
       const subCategories = await fetchSubCategoryOptions(value);
@@ -176,15 +179,17 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
           <div class="row">
             <div class="col-12">
               <label for="name_ar" class="col-form-label">{translations.taxes}</label>
-              <MultiDropDown
-                key = "taxIds"
-                options={taxOptions}
-                value={taxOptions.filter((x) => currentObject.taxIds.includes(x.value))}
-                onChange={(newVal) => {
-                  const updatedValues = newVal.map((item) => item.value); // Extract values
-                  handleChange('taxIds', updatedValues);
-                }}
-              />
+              <Select
+                    id="tax_id"
+                    isMulti={false}
+                    options={taxOptions}
+                    closeMenuOnSelect={true}
+                    components={animatedComponents}
+                    value={currentObject.tax}
+                    onChange={val => handleChange('tax_id', val.value, val)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                />
           </div>
           </div>
         </div>
@@ -223,9 +228,12 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
         <div class="form-group">
           <div class="row">
             <div class="col-6">
-              <label for="SKU" class="col-form-label">{translations.SKU}</label>
-              <input type="text" class="form-control form-control-solid custom-height" id="SKU" value={!!currentObject.SKU ? currentObject.SKU : ''}
-                readOnly
+              <label for="SKU" class="col-form-label" >{translations.SKU}</label>
+              <input type="text" class="form-control form-control-solid custom-height" id="SKU" 
+                value={!!currentObject.SKU ? currentObject.SKU : ''}
+                placeholder="00000"
+                pattern="^\d{5}$"
+                onChange={(e) => handleChange('SKU', e.target.value)}
                 ></input>
             </div>
             <div class="col-6">

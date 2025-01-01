@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->foreign('establishment_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
-            ->on('establishment_establishments');
+            ->on('est_establishments');
             $table->foreign('product_id')              // Foreign key constraint
             ->references('id')                    // References the id on the categories table
             ->on('product_products');

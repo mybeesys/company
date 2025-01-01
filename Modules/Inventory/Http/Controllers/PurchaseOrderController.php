@@ -3,17 +3,12 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Inventory\Enums\InventoryOperationStatus;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Inventory\Models\InventoryOperation;
 use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\PurchaseOrder;
-use Modules\Inventory\Models\PurchaseOrderItem;
-use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Vendor;
 
 class PurchaseOrderController extends Controller

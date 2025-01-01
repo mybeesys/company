@@ -64,6 +64,53 @@ class TreeBuilder
        $treeId = $treeId+1;
        return $Tree;
   }
+
+  public function buildTreeFromArray($list, $parentKey, $defaultType, $defaultParrentKey, $defaultType1, $defaultParrentKey1)
+  {
+      $Tree = [];
+      $treeId ="0";
+      $currentType = $defaultType;
+      $currentType1 = $defaultType1;
+      $currentParentKey = $defaultParrentKey;
+      $currentParentKey1 = $defaultParrentKey1;
+      foreach ($list as $item) {
+        $treeObject = new TreeObject();
+        $treeObject->key = $parentKey != null ? $parentKey . '-' . $treeId : $treeId;
+        $treeObject->data = new TreeData();
+        foreach ($item as $key => $value) {
+          $treeObject->data->$key = $value;
+        }
+        if(isset($item["name"])){
+          $treeObject->data->name = $item["name"];
+        }
+        $treeObject->data->id = $item["id"] ?? null;
+        $treeObject->data->type = $item["type"] ?? null;
+        $treeObject->data->parentKey = $item["parentKey"] ?? null;
+        $treeObject->data->parentKey1 = $item["parentKey1"] ?? null;
+        $currentType = $item["type"] ?? null;
+        $currentParentKey = $item["parentKey"] ?? null;
+        $currentTreeId = $treeId;
+        if(isset($item["children"])){
+            $treeObject->children  = $this->buildTreeFromArray( $item["children"] , $treeObject->key,
+             $item["childType"] ?? null, $item["childKey"] ?? null, $item["childType1"] ?? null
+             , $item["childKey1"] ?? null);
+        }
+        $treeId = $currentTreeId;
+        $Tree[] = $treeObject;
+        $treeId = $treeId+1;
+       }
+       $finalObject = new TreeObject();
+       $finalObject->key = $parentKey != null ? $parentKey . '-' . $treeId : $treeId;
+       $finalObject->data = new TreeData();
+       $finalObject->data->type = $currentType;
+       $finalObject->data->type1 = $currentType1;
+       $finalObject->data->empty = 'Y';
+       $finalObject->data->parentKey = $currentParentKey;
+       $finalObject->data->parentKey1 = $currentParentKey1;
+       $Tree[] = $finalObject;
+       $treeId = $treeId+1;
+       return $Tree;
+  }
 }
 
 

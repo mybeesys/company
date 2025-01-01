@@ -5,6 +5,7 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Product;
@@ -13,28 +14,77 @@ use Modules\Product\Models\TreeBuilder;
 class ProductInventoryController extends Controller
 {
 
-    public function getProductInventories()
-    {
-        $TreeBuilder = new TreeBuilder();
-        $establishments = Establishment::all();
-        foreach ($establishments as $establishment) {
-            $productInventories = Product::with(['inventory' => function ($query) {
-                    $query->with('vendor');
-                    $query->with('unit');
-                }])->Join('product_inventories', function ($join) use($establishment) {
-                    $join->on('product_inventories.product_id', '=', 'product_products.id')
-                         ->where('establishment_id', '=', $establishment->id); // Constant condition
-                })
-                ->get();
+    protected function fillProduct($establishment, $key){
+        if($establishment["is_main"] == 1){
             $children =[];
-            foreach ($productInventories as $productInventory) {
-                $productInventory->addToFillable('inventory');
-                $productInventory->addToFillable('qty');
-                $children[] = $productInventory;
+            foreach ($establishment["children"] as $childEstablishment) {
+                $est = $this->fillProduct($childEstablishment, $key);
+                $children [] = $est;
             }
-            $establishment->children = $children;
+            $establishment["children"] = $children;
+            return $establishment;
         }
-        $tree = $TreeBuilder->buildTree($establishments ,null, 'productInventory', null, null, null);
+        $productInventories = [];
+        if($key != null){
+            $productInventories = Product::where('name_ar', 'like', '%' . $key . '%')
+                                        ->orWhere('name_en', 'like', '%' . $key . '%')
+                                        ->with(['inventory' => function ($query) {
+                                            $query->with('vendor');
+                                            $query->with('unit');
+                                        }]);
+        }
+        else{
+            $productInventories = Product::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }]);
+        }
+        $productInventories = $productInventories->Join('product_inventories', function ($join) use($establishment) {
+            $join->on('product_inventories.product_id', '=', 'product_products.id')
+                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+        })->get();
+        $children =[];
+        foreach ($productInventories as $productInventory) {
+            $productInventory->addToFillable('inventory');
+            $productInventory->addToFillable('qty');
+            $children[] = $productInventory->toArray();
+        }
+        $establishment["children"] = $children;
+        return $establishment;
+    }
+
+    public function getProductInventories(Request $request)
+    {
+        $by = $request->query('by');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $establishments = [];
+        $TreeBuilder = new TreeBuilder();
+        if($by == 0){
+            $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
+                $query->where('is_main', 1)
+                    ->orWhere(function ($subQuery) use ($key) {
+                        $subQuery->where('is_main', 0)
+                                ->where('name', 'LIKE', "%{$key}%");
+                    });
+            }])
+            ->get();
+        }
+        else{
+            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+        }
+        $establishmentArray = $establishments->toArray();
+        $details = [];
+        foreach ($establishmentArray as $establishment) {
+            if($by == 1){
+                $est = $this->fillProduct($establishment, $key);
+                $details [] = $est;
+            } 
+            else{
+                $est = $this->fillProduct($establishment, null);
+                $details [] = $est;
+            }   
+        }
+        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'productInventory', null, null, null);
         return response()->json($tree);
     }
  

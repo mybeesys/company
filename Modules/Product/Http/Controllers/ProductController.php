@@ -28,6 +28,7 @@ class ProductController extends Controller
         'order' => 'required|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
+        'tax_id' => 'required|numeric',
         'active' => 'nullable|boolean',
         'SKU'=> 'nullable|string',
         'barcode'=> 'nullable|string',
@@ -116,7 +117,7 @@ class ProductController extends Controller
         $product->establishments = [];
         $product->recipe = [];
         $product->attributes = [];
-        $product->taxIds = [];
+        //$product->taxIds = [];
         $product->active = 1;
         return view('product::product.create', compact('product'));
     }
@@ -138,6 +139,35 @@ class ProductController extends Controller
         return null;
     }
 
+    private function validateProduct($id, $product){
+        $checkResult = [];
+        $uniqueFields = ['name_ar', 'name_en'];
+        if(isset($product['SKU']))
+            $uniqueFields [] = 'SKU';
+        if($id !=null)
+            $query = Product::where('id', '!=', $id);
+        else
+            $query = Product::where('1', '=', '1');
+        $query = $query->where(function($subQuery) use($uniqueFields, $product) {
+            for ($i = 0; $i < count($uniqueFields); $i++) {
+                $subQuery = $subQuery->orWhere($uniqueFields[$i], '=', $product[$uniqueFields[$i]]);
+            }
+        });
+        $products = $query->get();
+        for ($i = 0; $i < count($uniqueFields); $i++) {
+            $res = array_filter($products->toArray(), function($prod)use($product, $uniqueFields, $i) {
+                return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]]; // Keep only even numbers
+            });
+            if(count($res)>0)
+                $checkResult [] = $uniqueFields[$i];
+        }
+        if(count($checkResult)>0){
+            return ['message' => 'UNIQUE',
+            'data' => $checkResult];
+        } 
+        return $checkResult;
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -156,10 +186,16 @@ class ProductController extends Controller
         }
         else if(isset($validated['id']))
         {
+            $res = $this->validateProduct($validated['id'], $validated);
+            if(count($res) > 0)
+                return $res;
             $this->saveProduct($validated, $request);
         }
         else
-        {    
+        { 
+            $res = $this->validateProduct(null, $validated);
+            if(count($res) > 0)
+                return $res;
             $this->createProduct($validated, $request);
         }
         return response()->json(["message"=>"Done"]);
@@ -174,6 +210,7 @@ class ProductController extends Controller
         $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
         $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
         $product->category_id = $validated['category_id'];
+        $product->tax_id = $validated['tax_id'];
         $product->subcategory_id = $validated['subcategory_id'];
         $product->active = $validated['active'];
         $product->sold_by_weight = $validated['sold_by_weight'];
@@ -400,17 +437,17 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
-            ProductTax::where('product_id', '=', $product->id)->delete();
-            if(isset($request["taxIds"]))
-            {
-                foreach ($request["taxIds"] as $newTax) {
+            // ProductTax::where('product_id', '=', $product->id)->delete();
+            // if(isset($request["taxIds"]))
+            // {
+            //     foreach ($request["taxIds"] as $newTax) {
                     
-                    $tax = new ProductTax();
-                    $tax->product_id = $product->id;
-                    $tax->tax_id = $newTax;
-                    $tax->save();
-                }
-            }
+            //         $tax = new ProductTax();
+            //         $tax->product_id = $product->id;
+            //         $tax->tax_id = $newTax;
+            //         $tax->save();
+            //     }
+            // }
         //});
     }
 
@@ -576,16 +613,16 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
-            if(isset($request["taxIds"]))
-            {
-                foreach ($request["taxIds"] as $newTax) {
+            // if(isset($request["taxIds"]))
+            // {
+            //     foreach ($request["taxIds"] as $newTax) {
                     
-                    $tax = new ProductTax();
-                    $tax->product_id = $product->id;
-                    $tax->tax_id = $newTax;
-                    $tax->save();
-                }
-            }
+            //         $tax = new ProductTax();
+            //         $tax->product_id = $product->id;
+            //         $tax->tax_id = $newTax;
+            //         $tax->save();
+            //     }
+            // }
         });
     }
 
@@ -615,8 +652,6 @@ class ProductController extends Controller
         }])->with(['attributes' => function ($query) {
             $query->with('attribute1');
             $query->with('attribute2');
-        }])->with(['taxes' => function ($query) {
-            $query->with('tax');
         }])->find($id);
         foreach ( $product->recipe as $rec) 
         {
@@ -632,9 +667,9 @@ class ProductController extends Controller
         }
         $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
-        $product->taxIds = array_map(function($item) {
-            return $item["tax_id"];
-        }, $product->taxes->toArray());
+        // $product->taxIds = array_map(function($item) {
+        //     return $item["tax_id"];
+        // }, $product->taxes->toArray());
         foreach ($product->combos as $d) {
            $d->products = array_map(function($item) {
                return $item["item_id"];

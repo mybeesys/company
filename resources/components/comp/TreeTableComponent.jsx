@@ -19,7 +19,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
     const [currentKey, setCurrentKey] = useState('-1');
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
-
+    const [expandedKeys, setExpandedKeys] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -27,7 +27,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         }
         fetchData().catch(console.error);
 
-    }, []);
+    }, [urlList]);
 
     const triggerSubmit = () => {
         handleSubmit(formRef.current);
@@ -301,18 +301,47 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         }
     }
 
-
+    const clearAddRow = (nodesData) =>{
+        for (let index = 0; index < nodesData.length; index++) {
+            if(!!nodesData[index].children)
+                nodesData[index].children = clearAddRow(nodesData[index].children);
+            if(!!nodesData[index].data.empty && nodesData[index].data.empty == 'Y'){
+                nodesData.splice(index, 1);
+                break;
+            }
+        }
+        return nodesData;
+    }
 
     const refreshTree = () => {
         try {
             const response = axios.get(urlList).then(response => {
                 let result = response.data;
+                if(!!!canAddInline)
+                    result = clearAddRow(result);
+                console.log(result);
                 setNodes(result);
+                setExpandedKeys(getExpandedKeys(result));
             });
         } catch (error) {
             console.error('There was an error get the product!', error);
         }
     }
+
+    // Generate the expandedKeys object to expand all nodes by default
+    const getExpandedKeys = (nodes) => {
+        let expandedKeys = {};
+        const expandAll = (nodes) => {
+        nodes.forEach((node) => {
+            expandedKeys[node.key] = true; // Mark this node as expanded
+            if (node.children) {
+            expandAll(node.children); // Recursively expand children
+            }
+        });
+        };
+        expandAll(nodes);
+        return expandedKeys;
+    };
 
 
     const findNodeByKey = (nodes, key) => {
@@ -400,6 +429,9 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 </div> : <></>
         );
     };
+
+
+    
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
@@ -426,7 +458,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
             </div>
             <div class="card-body">
                 <form id="treeFormLocal" ref={formRef} noValidate validated={true} class="needs-validation">
-                <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
+                <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
                     {cols.map((col, index) =>
                         <Column
                             header={!!col.title ? translations[col.title] : translations[col.key]} 

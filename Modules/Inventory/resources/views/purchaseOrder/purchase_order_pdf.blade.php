@@ -82,7 +82,7 @@
                 <img src="data:image/jpeg;base64,{{ $image }}" alt="larrravel daily" width="200" />
             </td>
             <td class="w-half">
-                <h2>{{__('reports.no')}}: {{ $data->no }}</h2>
+                <h2>{{__('reports.no')}}: {{ $data['no'] }}</h2>
             </td>
         </tr>
     </table>
@@ -91,10 +91,10 @@
         <table class="w-full">
             <tr>
                 <td class="w-half">
-                    <div><h4>{{__('reports.to')}}: {{ $local =='ar' ? $data->vendor->name_ar : $data->vendor->name_en }}</h4></div>
+                    <div><h4>{{__('reports.to')}}: {{ $local =='ar' ? $data['vendor']->name_ar : $data['vendor']->name_en }}</h4></div>
                 </td>
                 <td class="w-half">
-                    <div><h4>{{__('reports.date')}}: {{ (new DateTime($data->op_date))->format('Y-m-d') }}</h4></div>
+                    <div><h4>{{__('reports.date')}}: {{ (new DateTime($data['op_date']))->format('Y-m-d') }}</h4></div>
                 </td>
             </tr>
         </table>
@@ -110,8 +110,9 @@
                 <th>{{__('reports.price')}}</th>
                 <th>{{__('reports.totalPrice')}}</th>
             </tr>
-            <tr class="items">
-                @foreach($data->items as $key =>$item)
+            
+                @foreach($data['items'] as $key =>$item)
+                    <tr class="items">
                     <td>
                         {{ $key +1 }}
                     </td>
@@ -130,28 +131,29 @@
                     <td>
                         {{ $item['total'] }}
                     </td>
+                    </tr>
                 @endforeach
-            </tr>
+           
         </table>
     </div>
  
     <div class="total">
-        {{__('reports.subTotal')}}: {{ $data->itemTotal }}
+        {{__('reports.subTotal')}}: {{ $data['itemTotal'] }}
     </div>
     <div class="total">
-        {{__('reports.tax')}}: {{ $data->tax }}
+        {{__('reports.tax')}}: {{ isset($data['tax']) ? $data['tax'] : 0}}
     </div>
     <div class="total">
-        {{__('reports.total')}}: {{ $data->itemTotal + (isset($data->tax) ? $data->tax : 0) }}
+        {{__('reports.total')}}: {{ $data['itemTotal'] + (isset($data['tax']) ? $data['tax'] : 0) }}
     </div>
     <div class="total">
-        {{__('reports.miscAmount')}}: {{ $data->misc_amount }}
+        {{__('reports.miscAmount')}}: {{ isset($data['misc_amount']) ? $data['misc_amount'] : 0 }}
     </div>
     <div class="total">
-        {{__('reports.shippingAmount')}}: {{ $data->shipping_amount }}
+        {{__('reports.shippingAmount')}}: {{ isset($data['shipping_amount']) ? $data['shipping_amount'] : 0 }}
     </div>
     <div class="total">
-        {{__('reports.grandTotal')}}: {{ $data->total }}
+        {{__('reports.grandTotal')}}: {{ isset($data['total']) ? $data['total'] : 0 }}
     </div>
  
     <div class="margin-top">

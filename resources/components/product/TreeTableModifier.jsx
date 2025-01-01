@@ -230,7 +230,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     }
 
     const renderTextCell = (node, key, autoFocus) => {
-        const indent = (node.key).toString().split('-').length;
+        let indent = (node.key).toString().split('-').length;
+        if(key == 'name_en'){
+            indent = 2;
+        }
         if (key == 'name_en' && !!node.data.empty) {
             return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`Add New ${node.data.type}`}</a>
         }

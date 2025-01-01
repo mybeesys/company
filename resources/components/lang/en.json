@@ -126,6 +126,7 @@
   "diningOptions": "Dining Options",
    "unitType":"Unit Type",
   "Ingredient": "Ingredients",
+  "ingredients": "Ingredients",
   "reorder_point":"Reorder Point",
   "reorder_quantity":"Reorder Quantity",
   "yield_percentage" : "Yield Percentage",
@@ -234,5 +235,7 @@
   "PRODUCT_USED_RECIPE" : "Product used in recipe",
   "PRODUCT_USED_PREP" : "Product used in prep",
   "INGREDIENT_USED_INVENTORY" : "Ingredient used in Inventory",
-  "INGREDIENT_USED_RECIPE" : "Ingredient used in recipe"
+  "INGREDIENT_USED_RECIPE" : "Ingredient used in recipe",
+  "search" : "Search",
+  "exist" : "Already Exist"
 }

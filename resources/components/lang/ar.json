@@ -126,6 +126,7 @@
   "diningOptions": "خيارات نوع الطعام",
   "unitType":"الوحدة",
   "Ingredient": "المكونات",
+  "ingredients": "المكونات",
   "reorder_point":"نقطة إعادة الترتيب",
   "reorder_quantity":"كمية إعادة الترتيب",
   "yield_percentage" : "نسبة العائد",
@@ -234,5 +235,7 @@
   "PRODUCT_USED_RECIPE" : "المنتج مستخدم في الوصفات",
   "PRODUCT_USED_PREP" : "المنتج مستخدم في تحضيرة",
   "INGREDIENT_USED_INVENTORY" : "المكون مستخدم في المستودع",
-  "INGREDIENT_USED_RECIPE" : "المكون مستخدم في الوصفات"
+  "INGREDIENT_USED_RECIPE" : "المكون مستخدم في الوصفات",
+  "search" : "بحث",
+  "exist" : "مكرر"
 }
