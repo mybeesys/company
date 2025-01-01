@@ -43,8 +43,8 @@ class ProductController extends Controller
                     $query->whereNull('unit2');
             }])->with('category')->with('subcategory')->with('tax')
             ->leftJoin('product_inventories', function ($join) use($establishment_id) {
-                $join->on('product_inventories.product_id', '=', 'product_products.id')
-                     ->where('establishment_id', '=', $establishment_id); // Constant condition
+                $join->on([['product_inventories.product_id', '=', 'product_products.id'],
+                     ['establishment_id', '=', $establishment_id]]); // Constant condition
             })->get();
         return new ProductCollection($products);
     }
