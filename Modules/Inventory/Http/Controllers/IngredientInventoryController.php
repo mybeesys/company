@@ -44,7 +44,9 @@ class IngredientInventoryController extends Controller
         foreach ($ingredientInventories as $ingredientInventory) {
             $ingredientInventory->addToFillable('inventory');
             $ingredientInventory->addToFillable('qty');
-            $children[] = $ingredientInventory->toArray();
+            $ingr = $ingredientInventory->toArray();
+            $ingr["type"] = "Ingredient";
+            $children[] = $ingr;
         }
         $establishment["children"] = $children;
         return $establishment;

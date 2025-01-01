@@ -45,7 +45,7 @@ class ProductResource extends JsonResource
             'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
-            'inventory' => isset($this->total) ? $this->total->qty : 0,
+            'inventory' => isset($this->qty) ? $this->qty : 0,
             'modifiers' => ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
                 return new ProductModifierResource($product, $extraData);
             })),

@@ -47,7 +47,9 @@ class ProductInventoryController extends Controller
         foreach ($productInventories as $productInventory) {
             $productInventory->addToFillable('inventory');
             $productInventory->addToFillable('qty');
-            $children[] = $productInventory->toArray();
+            $pp = $productInventory->toArray();
+            $pp["type"] = "product";
+            $children[] = $pp;
         }
         $establishment["children"] = $children;
         return $establishment;
