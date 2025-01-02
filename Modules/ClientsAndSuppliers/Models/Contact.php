@@ -47,9 +47,9 @@ class Contact extends Model
         return $this->hasMany(ContactCustomInformation::class, 'contact_id')->where('table_name', 'billing_addresses');
     }
 
-    public function  transactions()
+    public function  sales()
     {
-        return $this->hasMany(Transaction::class, 'contact_id');
+        return $this->hasMany(Transaction::class, 'contact_id')->where('type','sell');
     }
 
 
