@@ -17,6 +17,7 @@
     <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
 
     <script>
+        let adjustmentType_type = "allowance";
         $(document).ready(function() {
             let saveButton = $(`#add_employee_form_button`);
             datePicker('#employment_start_date', new Date());
@@ -24,7 +25,7 @@
             permissionSetRepeater();
             roleRepeater();
             initElements();
-            adjustmentRepeater('allowance', "{{ session('locale') }}", "{{ route('adjustment_types.store') }}");
+            adjustmentRepeater("{{ session('locale') }}", "{{ route('adjustment_types.store') }}");
             administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");

@@ -1,4 +1,4 @@
-function initializeSelect2(element, customOptions, repeater = true, lang, addAllowanceTypeUrl, type) {
+function initializeSelect2(element, customOptions, repeater = true, lang, addAllowanceTypeUrl) {
     const addNewOption = {
         id: 'add_new',
         text: lang === 'ar' ? 'إضافة خيار جديد' : 'Add New Option',
@@ -41,7 +41,7 @@ function initializeSelect2(element, customOptions, repeater = true, lang, addAll
                         if (e.which === 13) {
                             const newValue = $(this).val();
                             if (newValue.trim()) {
-                                handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, type, lang, repeater);
+                                handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, lang, repeater);
                                 isNewOptionHandled = true;
                             }
                         }
@@ -53,7 +53,7 @@ function initializeSelect2(element, customOptions, repeater = true, lang, addAll
                         if (!isNewOptionHandled) {
                             const newValue = $(this).val().trim();
                             if (newValue) {
-                                handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, type, lang, repeater);
+                                handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, lang, repeater);
                             } else {
                                 element.val(null).trigger('change');
                             }
@@ -63,12 +63,12 @@ function initializeSelect2(element, customOptions, repeater = true, lang, addAll
                 }, 0);
             }
         });
-    reorderOptions(repeater, type);
+    reorderOptions(repeater);
 }
 
-function reorderOptions(repeater, type) {
+function reorderOptions(repeater) {
     if (repeater) {
-        const allRepeaters = $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
+        const allRepeaters = $(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`);
         allRepeaters.each(function () {
             const currentElement = $(this);
 
@@ -91,12 +91,12 @@ function reorderOptions(repeater, type) {
     }
 }
 
-function handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, type, lang, repeater) {
+function handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, lang, repeater) {
     const name_lang = lang === 'ar' ? 'name' : 'name_en';
     ajaxRequest(addAllowanceTypeUrl, 'POST', {
         name: newValue,
         name_lang: name_lang,
-        type: type
+        type: adjustmentType_type
     })
         .done(function (response) {
             if (response.id) {
@@ -109,7 +109,7 @@ function handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, 
                 const newSelectOption = new Option(newOption.text, newOption.id, true, true);
                 element.append(newSelectOption);
 
-                reorderOptions(repeater, type);
+                reorderOptions(repeater, adjustmentType_type);
 
                 element.trigger('change');
                 element.select2('open');

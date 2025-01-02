@@ -55,6 +55,7 @@
         let dataTable;
         let employeeId;
         let establishment_ids;
+        let adjustmentType_type;
         let date;
         let allowancesCount = 0;
         let deductionsCount = 0;
@@ -85,8 +86,8 @@
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
             })
-            adjustmentRepeater('allowance');
             adjustmentRepeater('deduction');
+            adjustmentRepeater('allowance');
 
             lock();
 
@@ -231,7 +232,7 @@
                         .trigger('change');
                     newItem.find('input[name*="[id]"]').val(allowanceId);
                 });
-
+                adjustmentType_type = "allowance";
                 setTimeout(() => {
                     $('#payroll_allowance_modal').modal('toggle');
                 }, 300);
@@ -283,14 +284,14 @@
                         .trigger('change');
                     newItem.find('input[name*="[id]"]').val(deductionId);
                 });
-
+                adjustmentType_type = "deduction";
                 setTimeout(() => {
                     $('#payroll_deduction_modal').modal('toggle');
                 }, 300);
             });
         }
 
-        function adjustmentRepeater(type) {
+        function adjustmentRepeater(type) {            
             $(`#${type}_repeater`).repeater({
                 show: function() {
                     const $this = $(this);
@@ -316,7 +317,7 @@
                     initializeSelect2($this.find(
                             `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
                         ), customOptions, true, "{{ session('locale') }}",
-                        "{{ route('adjustment_types.store') }}", type);
+                        "{{ route('adjustment_types.store') }}");
                 },
 
                 hide: function(deleteElement) {

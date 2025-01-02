@@ -17,12 +17,13 @@
     <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
 
     <script>
+        let adjustmentType_type = "allowance";
         $(document).ready(function() {
             let saveButton = $(`#edit_employee_form_button`);
             datePicker('#employment_start_date', new Date());
             datePicker('#employment_end_date');
             permissionSetRepeater();
-            adjustmentRepeater('allowance', "{{ session('locale') }}", "{{ route('adjustment_types.store') }}");
+            adjustmentRepeater("{{ session('locale') }}", "{{ route('adjustment_types.store') }}");
             roleRepeater();
             initElements();
             administrativeUser({{ $employee->ems_access }});
@@ -32,6 +33,5 @@
             handleImageInput('imageInput', 'image');
             updateTotalWage();
         });
-
     </script>
 @endsection

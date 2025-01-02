@@ -37,13 +37,19 @@ class PayrollAdjustmentTypeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name_lang' => 'required|in:name_en,name',
+            'id' => 'nullable|exists:emp_payroll_adjustment_types,id',
+            'name_lang' => 'required_without:name_en|in:name_en,name',
             'name' => 'required|string|max:255',
-            'type' => 'nullable|in:allowance,deduction'
+            'name_en' => 'nullable|string|max:255',
+            'type' => 'nullable|in:allowance,deduction',
+            'adjustment_type_type' => 'nullable|in:allowance,deduction'
         ]);
-        $type = $request->type ?? 'allowance';
-        $allowanceType = PayrollAdjustmentType::create([
-            $request->name_lang => $request->name,
+
+        $type = $request->adjustment_type_type ?? $request->type ?? 'allowance';
+
+        $allowanceType = PayrollAdjustmentType::updateOrCreate(['id' => $request->id], [
+            $request->name_lang ?? 'name' => $request->name,
+            'name_en' => $request->name_en,
             'type' => $type
         ]);
 
@@ -53,19 +59,17 @@ class PayrollAdjustmentTypeController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function destroy(PayrollAdjustmentType $adjustmentType)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        try {
+            $adjustmentType->delete();
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::general.this_element')])]);
+        } catch (\Throwable $e) {
+            \Log::error('adjustment type deletion failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
     }
 }
