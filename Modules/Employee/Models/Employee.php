@@ -63,7 +63,7 @@ class Employee extends Authenticatable
 
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles')->withTimestamps()->withPivot('role_id');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles', 'employee_id', 'establishment_id')->withTimestamps()->withPivot('role_id');
     }
 
     public function posRoles()
