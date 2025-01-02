@@ -291,7 +291,7 @@
             });
         }
 
-        function adjustmentRepeater(type) {            
+        function adjustmentRepeater(type) {
             $(`#${type}_repeater`).repeater({
                 show: function() {
                     const $this = $(this);
@@ -417,7 +417,7 @@
             });
         }
 
-        function decodeHTML(html) {
+        function decodeHTML(html = 0) {
             var txt = document.createElement("textarea");
             txt.innerHTML = html;
             return txt.value;

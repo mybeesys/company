@@ -2,6 +2,7 @@
 
 namespace Modules\Employee\Services;
 
+use Carbon\Carbon;
 use Modules\Employee\Models\TimeSheetRule;
 
 class TimeSheetRuleService
@@ -20,7 +21,7 @@ class TimeSheetRuleService
 
     public function getOvertimeRateMultiplier()
     {
-        return floatval(TimeSheetRule::firstWhere('rule_name', 'overtime_rate_multiplier')?->rule_value) ?? 1;        
+        return floatval(TimeSheetRule::firstWhere('rule_name', 'overtime_rate_multiplier')?->rule_value) ?? 1;
     }
 
     public function getMaximumOvertime($minutes)
@@ -32,15 +33,39 @@ class TimeSheetRuleService
     public function getMinutesToQualifyForPaidBreak($minutes)
     {
         $hours_to_qualify_to_paid_break = TimeSheetRule::firstWhere('rule_name', 'work_time_to_qualify_for_paid_break')?->rule_value ?? 0;
-        return convertToDecimalFormatHelper($hours_to_qualify_to_paid_break, $minutes);    
+        return convertToDecimalFormatHelper($hours_to_qualify_to_paid_break, $minutes);
     }
 
-    public function getOffDays($carbonMonth)
+    public function getOffDaysDates(Carbon $month): array
+    {
+        $offDays = $this->getOffDays();
+        $dates = [];
+
+        $startOfMonth = $month->copy()->startOfMonth();
+        $endOfMonth = $month->copy()->endOfMonth();
+
+        $current = $startOfMonth;
+        while ($current->lte($endOfMonth)) {
+            if (in_array(strtolower($current->format('l')), $offDays)) {
+                $dates[] = $current->copy()->format('Y-m-d');
+            }
+            $current->addDay();
+        }
+
+        return $dates;
+    }
+
+    public function getOffDays()
+    {
+        return TimeSheetRule::firstWhere('rule_name', 'off_days')?->rule_value ?? [];
+    }
+
+    public function getOffDaysCount($carbonMonth)
     {
         $carbonMonth = $carbonMonth->startOfMonth();
         $off_days = TimeSheetRule::firstWhere('rule_name', 'off_days')?->rule_value ?? [];
         $totalOffDays = 0;
-    
+
         $daysInMonth = $carbonMonth->daysInMonth;
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $currentDay = strtolower($carbonMonth->copy()->day($day)->format('l')); // Get the day name (e.g., "Monday")
