@@ -2,24 +2,24 @@
     <!--begin::Tab nav-->
     <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
         <li class="nav-item" role="presentation">
-            <a id="client_contacts_tab" class="nav-link justify-content-center fs-3  text-active-gray-800 active"
-                data-bs-toggle="tab" role="tab" href="#client_contacts" aria-selected="true">
+            <a id="account_tab" class="nav-link justify-content-center fs-3  text-active-gray-800 active"
+                data-bs-toggle="tab" role="tab" href="#account" aria-selected="true">
                 @lang('clientsandsuppliers::fields.1')
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a id="Billing_tab" class="nav-link justify-content-center fs-3 text-active-gray-800"
-                data-bs-toggle="tab" role="tab" href="#Billing_tab" aria-selected="false" tabindex="-1">
+            <a id="Billing_tab" class="nav-link justify-content-center fs-3 text-active-gray-800" data-bs-toggle="tab"
+                role="tab" href="#Billing" aria-selected="false" tabindex="-1">
                 @lang('clientsandsuppliers::fields.2')
 
             </a>
         </li>
-        <li class="nav-item" role="presentation">
+        {{-- <li class="nav-item" role="presentation">
             <a id="shipping_addresses_tab" class="nav-link justify-content-center fs-3 text-active-gray-800"
                 data-bs-toggle="tab" role="tab" href="#shipping_addresses" aria-selected="false" tabindex="-1">
                 @lang('clientsandsuppliers::fields.3')
             </a>
-        </li>
+        </li> --}}
         {{-- <li class="nav-item" role="presentation">
             <a id="bank_account_information_tab"
                 class="nav-link justify-content-center text-active-gray-800 fs-3 text-hover-gray-800" data-bs-toggle="tab"
@@ -40,133 +40,110 @@
 </div>
 
 <div class="tab-content">
-    <div id="client_contacts" class="card-body p-0 tab-pane fade show active" role="tabpanel"
-        aria-labelledby="client_contacts_tab">
-            @include('clientsandsuppliers::Client.empty-data')
-
-
+    <div id="account" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+        aria-labelledby="account_tab">
+        @include('clientsandsuppliers::Client.empty-data')
     </div>
 </div>
 
 <div class="tab-content">
-    <div id="Billing" class="card-body p-0 tab-pane fade show" role="tabpanel"
-        aria-labelledby="Billing_tab">
+    <div id="Billing" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="Billing_tab">
 
-        @if (count($contact->transactions) == 0)
-        <div class="empty-content">
-            <img src="/assets/media/illustrations/empty-content.svg" class=" w-200px" alt="">
-            <span class="text-gray-500 fw-semibold fs-6" style="margin: 7px -34px;">
-                @lang('messages.no_account_transactions')</span>
-        </div>
-    @else
-        {{-- <div class="card-body py-3">
-            <div class="table-responsive">
-                <table class="table align-middle gs-0 gy-4">
-                    <thead>
-                        <tr class="fw-bold  text-muted bg-light">
-                            <th class="min-w-125px ">@lang('accounting::lang.transaction_number')</th>
-                            <th class="min-w-100px">@lang('accounting::lang.operation_date')</th>
-                            <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
-                            <th class="min-w-125px">@lang('accounting::lang.cost_center')</th>
-                            <th class="min-w-200px">@lang('accounting::lang.added_by')</th>
-                            <th class="min-w-150px">@lang('accounting::lang.debit')</th>
-                            <th class="min-w-150px">@lang('accounting::lang.credit')</th>
-                            <th class="min-w-150px">@lang('accounting::lang.balance')</th>
+        @if ($contact->sales->isEmpty())
+        @include('clientsandsuppliers::Client.empty-data')
 
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $balance = 0;
-                            $total_debit = 0;
-                            $total_credit = 0;
-                        @endphp
-                        @foreach ($contact->transactions as $transactions)
-                            @php
-                                if ($transactions->type == 'debit') {
-                                    $balance += $transactions->amount;
-                                    $total_debit += $transactions->amount;
-                                } elseif ($transactions->type == 'credit') {
-                                    $balance -= $transactions->amount;
-                                    $total_credit += $transactions->amount;
-                                }
-                            @endphp
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="d-flex justify-content-start flex-column">
-                                            <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
-                                                @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
-                                                @if ($transactions->sub_type == 'journal_entry')
-                                                    {{ $transactions->accTransMapping->ref_no }}
-                                                @else
-                                                    {{ $transactions->ref_no }}
-                                                @endif
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
-                                        {{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
-                                </td>
-                                <td>
-                                    <span class="text-muted fw-semibold text-muted d-block fs-7">
-                                        @if ($transactions->costCenter)
-                                            {{ $transactions?->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $transactions->costCenter->name_ar : $transactions->costCenter->name_en) }}
-                                        @else
-                                            --
-                                        @endif
-                                    </span>
-                                </td>
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $transactions->createdBy->name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    @if ($transactions->type == 'debit')
-                                        <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #17c653">
-                                            {{ number_format($transactions->amount, 2) }}
-                                        </a>
-                                    @else
-                                        <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                            --
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($transactions->type == 'credit')
-                                        <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #e90909">
-                                            {{ number_format($transactions->amount, 2) }}
-                                        </a>
-                                    @else
-                                        <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                            --
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a class=" fw-bold text-hover-primary mb-1 fs-6"
-                                        @if ($balance < 0) style="color: #e90909"@else style="color: #17c653" @endif>
+        @else
+            <div class="card-body py-3">
+                <div class="table-responsive">
+                    <table class="table align-middle gs-0 gy-4">
+                        <thead>
+                            <tr class="fw-bold  text-muted bg-light">
+                                <th class="min-w-125px ">@lang('sales::fields.ref_no')</th>
+                                <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
+                                <th class="min-w-125px">@lang('sales::fields.transaction_date')</th>
+                                <th class="min-w-125px">@lang('sales::fields.due_date')</th>
+                                <th class="min-w-100px">@lang('sales::fields.payment_status')</th>
+                                <th class="min-w-150px">@lang('sales::fields.total_before_vat')</th>
+                                <th class="min-w-100px">@lang('sales::fields.vat_value')</th>
+                                <th class="min-w-100px">@lang('sales::fields.discount')</th>
+                                <th class="min-w-150px">@lang('sales::fields.amount')</th>
 
-
-                                        @if ($balance < 0)
-                                            {{ number_format(abs($balance), 2) }} (-)
-                                        @else
-                                            {{ number_format($balance, 2) }}
-                                        @endif
-
-                                    </a>
-                                </td>
                             </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
+                        </thead>
+                        <tbody>
+                            @foreach ($contact->sales as $transactions)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="d-flex justify-content-start flex-column">
+                                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
+                                                    href="{{ url("/transaction-show/{$transactions->id}") }}">
+                                                    {{ $transactions->ref_no }}
+
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->type)</span>
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
+                                            {{ $transactions->transaction_date }}
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
+                                            {{ $transactions->due_date }}
+                                        </a>
+                                    </td>
+
+
+
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            @if ($transactions->payment_status == 'paid')
+                                                <span class="badge badge-light-info px-3 py-3 fs-base">
+                                                    @lang('general::lang.paid') </span>
+                                            @elseif ($transactions->payment_status == 'due')
+                                                <span class="badge badge-light-danger px-3 py-3 fs-base">
+
+                                                    @lang('general::lang.due') </span>
+                                            @elseif ($transactions->payment_status == 'partial')
+                                                <span class="badge badge-light-success px-3 py-3 fs-base">
+
+                                                    @lang('general::lang.partial') </span>
+                                            @endif
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $transactions->total_before_tax }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $transactions->tax_amount }}
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $transactions->discount_amount ?? '0.00' }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $transactions->final_total }}
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        {{-- <tfoot>
                         <tr>
                             <td colspan="5" class=" text-center fw-bold fs-4">@lang('accounting::lang.Closing balance')</td>
                             <td colspan="1" class=" fw-bold fs-5" style="color: #17c653">
@@ -179,40 +156,24 @@
                                 @format_currency($balance)
                             </td>
                         </tr>
-                    </tfoot>
+                    </tfoot> --}}
 
 
-                </table>
+                    </table>
 
+
+                </div>
 
             </div>
+            {{-- {{ $contact->transactions->appends(['account_id' => request('account_id')])->links('pagination::bootstrap-4') }} --}}
 
-        </div> --}}
-        {{-- {{ $contact->transactions->appends(['account_id' => request('account_id')])->links('pagination::bootstrap-4') }} --}}
-
-    @endif
-         </div>
+        @endif
+    </div>
 </div>
 
-<div class="tab-content">
+{{-- <div class="tab-content">
     <div id="shipping_addresses" class="card-body p-0 tab-pane fade show" role="tabpanel"
         aria-labelledby="shipping_addresses_tab">
-            @include('clientsandsuppliers::Client.empty-data')
-          </div>
-</div>
-
-<div class="tab-content">
-    <div id="bank_account_information" class="card-body p-0 tab-pane fade show" role="tabpanel"
-        aria-labelledby="bank_account_information_tab">
-            @include('clientsandsuppliers::Client.empty-data')
-
+        @include('clientsandsuppliers::Client.empty-data')
     </div>
-</div>
-
-<div class="tab-content">
-    <div id="bank_account_information1" class="card-body p-0 tab-pane fade show" role="tabpanel"
-        aria-labelledby="bank_account_information_tab1">
-            @include('clientsandsuppliers::Client.empty-data')
-
-    </div>
-</div>
+</div> --}}

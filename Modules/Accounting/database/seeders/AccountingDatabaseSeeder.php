@@ -15,10 +15,10 @@ class AccountingDatabaseSeeder extends Seeder
      */
     public function run()
     {
-            $filePath = base_path('Modules/Accounting/database/data/countries.json');
+        $filePath = base_path('Modules/Accounting/database/data/countries.json');
 
-            if (file_exists($filePath)) {
-                $countriesData = json_decode(file_get_contents($filePath), true);
+        if (file_exists($filePath)) {
+            $countriesData = json_decode(file_get_contents($filePath), true);
 
             foreach ($countriesData as $country) {
                 $nameEn = $country['name']['common'] ?? null;
@@ -65,6 +65,7 @@ class AccountingDatabaseSeeder extends Seeder
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
                 'created_by' => 0,
+                'default' => 1,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -75,6 +76,7 @@ class AccountingDatabaseSeeder extends Seeder
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
                 'created_by' => 0,
+                'default' => 0,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -85,6 +87,7 @@ class AccountingDatabaseSeeder extends Seeder
                 'for_tax_group' => 0,
                 'is_tax_group' => 0,
                 'created_by' => 0,
+                'default' => 0,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -100,6 +103,5 @@ class AccountingDatabaseSeeder extends Seeder
                 Tax::insert($tax);
             }
         }
-
     }
 }
