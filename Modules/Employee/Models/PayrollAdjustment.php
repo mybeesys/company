@@ -22,12 +22,12 @@ class PayrollAdjustment extends BaseEmployeeModel
 
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class)->withTrashed();
     }
 
     public function adjustmentType()
     {
-        return $this->belongsTo(PayrollAdjustmentType::class);
+        return $this->belongsTo(PayrollAdjustmentType::class)->withTrashed();
     }
 
     public function scopeAllowance(Builder $query)

@@ -28,6 +28,6 @@ class PosRole extends SpatieRole
 
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles', 'role_id', 'establishment_id')->withTimestamps()->withPivot('employee_id');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles', 'role_id', 'establishment_id')->withTimestamps()->withPivot('employee_id')->withTrashed();
     }
 }
