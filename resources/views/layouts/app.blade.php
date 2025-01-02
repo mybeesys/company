@@ -47,6 +47,10 @@
             width: 3rem;
             height: 3rem;
         }
+        
+        div {
+            scrollbar-width: auto;
+        }
     
         body {
             font-family: 'Cairo', sans-serif;

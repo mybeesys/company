@@ -139,7 +139,7 @@ class ShiftService
             'total_hours' => round($employee->timecards->sum('hours_worked'), 2),
             'basic_wage' => $employee->wage?->rate,
             'total_wage' => $employee->wage?->rate + PayrollAdjustment::where('employee_id', $employee->id)->always()->get()->sum('amount'),
-            'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
+            'role' => implode('<br>', $employee->allRoles->unique()->pluck('name')->toArray()),
             'establishment' => $employee?->defaultEstablishment?->name,
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
                             <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />

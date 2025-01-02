@@ -32,7 +32,7 @@ class AdjustmentTypeTable
                     $actions = '<div class="justify-content-center d-flex">';
                     if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.delete')) {
                         $actions .= '
-                            <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '">
+                            <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px adjustment-type-delete-btn me-1" data-id="' . $row->id . '">
                                 <i class="ki-outline ki-trash fs-3"></i>
                             </a>';
                     }
