@@ -23,7 +23,7 @@ class PayrollAction
         $net_total = 0;
 
         foreach ($employeeIds as $employeeId) {
-            $employee = Employee::find($employeeId);
+            $employee = Employee::firstWhere('id', $employeeId);
             $payrollData = Cache::get("payroll_table_{$date}_{$employeeId}");
             $allowance_key = "allowance_{$employeeId}_{$date}-01";
             $allowances_repeater = Cache::get($allowance_key);
@@ -50,15 +50,15 @@ class PayrollAction
                 'wage_due_before_tax' => $payrollData['wage_due_before_tax'],
                 'allowances' => $payrollData['allowances'],
                 'deductions' => $payrollData['deductions'],
-                'total_wage_before_tax' => $payrollData['total_wage_before_tax'],
+                // 'total_wage_before_tax' => $payrollData['total_wage'],
                 'total_wage' => $payrollData['total_wage'],
             ]);
-            $net_total += $payrollData['total_wage'];
-            $gross_total += $payrollData['total_wage_before_tax'];
+            // $net_total += $payrollData['total_wage'];
+            $gross_total += $payrollData['total_wage'];
         }
 
         $payroll_group->update([
-            'net_total' => $net_total,
+            // 'net_total' => $net_total,
             'gross_total' => $gross_total
         ]);
 
