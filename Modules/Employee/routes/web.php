@@ -109,7 +109,7 @@ Route::middleware([
         });
 
         Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
-            Route::get('', 'index')->name('index');
+            Route::get('', 'index')->name('index')->can('viewAny', PayrollAdjustment::class);
 
             Route::post('/store', 'store')->name('store')->can('create', PayrollAdjustment::class);
 
@@ -120,7 +120,8 @@ Route::middleware([
         });
 
         Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () {
-            Route::get('', 'index')->name('index');
+            Route::get('', 'index')->name('index')->can('viewAny', PayrollAdjustment::class);
+
             Route::delete('/{adjustmentType}', 'destroy')->name('delete')->can('delete', PayrollAdjustment::class);
 
             Route::get('get-types', 'getAdjustmentsTypes')->name('get-types');

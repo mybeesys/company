@@ -40,6 +40,7 @@
         </div>
     </div>
     <x-employee::adjustments.add-adjustment-modal :employees=$employees />
+    <x-employee::adjustments.add-adjustment-type-modal />
 @endsection
 
 @section('script')
@@ -56,12 +57,14 @@
         const adjustmentTypeTable = $('#kt_adjustment_type_table');
         const adjustmentDataUrl = '{{ route('adjustments.index') }}';
         const adjustmentTypeDataUrl = '{{ route('adjustment_types.index') }}';
+        let adjustmentType_type;
 
         $(document).ready(function() {
             if (!adjustmentTable.length) return;
             initAdjustmentDatatable();
             initAdjustmentTypeDatatable();
             addAllowanceForm();
+            addAllowanceTypeForm();
 
             $('#add_adjustment_button').on('click', function(e) {
                 e.preventDefault();
@@ -78,15 +81,27 @@
                 $('select[name="adjustment_type"]').val(null).trigger('change');
 
                 $('#add_adjustment_modal').modal('toggle');
-                setTimeout(() => {
-                    adjustmentRepeater('allowance', lang,
-                        "{{ route('adjustment_types.store') }}");
-                }, 100);
-            })
-
-            $('select[name="adjustment_type"], select[name="amount_type"], select[name="type"]').select2({
-                minimumResultsForSearch: -1,
             });
+
+            $('#add_adjustment_type_button').on('click', function(e) {
+                e.preventDefault();
+                $('#add_adjustment_type_modal_form input, select').each(function() {
+                    if ($(this).is(':checkbox, :radio')) {
+                        $(this).prop('checked', false);
+                    } else if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).val(null).trigger('change');
+                    } else {
+                        $(this).val(null);
+                    }
+                });
+                $('select[name="adjustment_type_type"]').val(null).trigger('change');
+                $('#add_adjustment_type_modal').modal('toggle');
+            });
+
+            $('select[name="adjustment_type"], select[name="adjustment_type_type"], select[name="amount_type"], select[name="type"]')
+                .select2({
+                    minimumResultsForSearch: -1,
+                });
             $('select[name="employee_id"]').select2({});
             $('#applicable_date').flatpickr({
                 plugins: [
@@ -108,6 +123,7 @@
 
             $('select[name="type"]').on('change', function() {
                 let type = $(this).val();
+                adjustmentType_type = type;
                 ajaxRequest("{{ route('adjustment_types.get-types') }}", "GET", {
                     type: type
                 }, false, false, false).done(function(response) {
@@ -131,19 +147,18 @@
                     } else {
                         $('select[name="adjustment_type"]').val(null).trigger('change');
                     }
-
                     $('select[name="adjustment_type"]').removeAttr('disabled');
                     $('select[name="adjustment_type"]').trigger('change');
                 })
-            })
+            });
+            newAdjustmentType(lang, "{{ route('adjustment_types.store') }}");
         });
 
 
-        function adjustmentRepeater(type, lang, addAllowanceTypeUrl) {
+        function newAdjustmentType(lang, addAllowanceTypeUrl) {
             const customOptions = new Map();
-
             initializeSelect2($('select[name="adjustment_type"]'), customOptions, false, lang,
-                addAllowanceTypeUrl, type);
+                addAllowanceTypeUrl);
             $(this).off('shown.bs.modal');
         }
 
@@ -170,7 +185,7 @@
             e.preventDefault();
             var id = $(this).data('id');
             let deleteUrl =
-                `{{ url('/adjustment/${id}') }}`;
+                `{{ url('/adjustment-type/${id}') }}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     '{{ __('employee::general.this_element') }}'),
@@ -179,10 +194,25 @@
                 true, "warning").then(function(t) {
                 if (t.isConfirmed) {
                     ajaxRequest(deleteUrl, 'DELETE').done(function() {
-                        adjustmentDataTable.ajax.reload();
+                        adjustmentTypeDataTable.ajax.reload();
                     });
                 }
             });
+        });
+
+        $(document).on('click', '.adjustment-type-edit-btn', function() {
+            var id = $(this).data('id');
+            var adjustmentTypeType = $(this).data('adjustmentTypeType');
+            var name = $(this).data('name');
+            var name_en = $(this).data('nameEn');
+
+            $('#add_adjustment_type_modal').modal('toggle');
+            $('#adjustment_type_id').val(id);
+            $('.modal-header h2').html("{{ __('employee::general.edit_adjustment') }}");
+            $('#amount').val(amount);
+            $('select[name="adjustment_type_type"]').val(adjustmentTypeType).trigger('change');
+            $('#name').val(name);
+            $('#name_en').val(name_en);
         });
 
         $(document).on('click', '.edit-btn', function() {
@@ -223,6 +253,7 @@
             $('#add_adjustment_modal_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
+                data.push({ name: "_token", value: window.csrfToken });
                 ajaxRequest("{{ route('adjustments.store') }}", "POST", data).fail(
                     function(data) {
                         $.each(data.responseJSON.errors, function(key, value) {
@@ -233,6 +264,25 @@
                     }).done(function() {
                     $('#add_adjustment_modal').modal('toggle');
                     adjustmentDataTable.ajax.reload();
+                });
+            });
+        }
+
+        function addAllowanceTypeForm() {
+            $('#add_adjustment_type_modal_form').on('submit', function(e) {
+                e.preventDefault();
+                let data = $(this).serializeArray();
+                data.push({ name: "_token", value: window.csrfToken });
+                ajaxRequest("{{ route('adjustment_types.store') }}", "POST", data).fail(
+                    function(data) {
+                        $.each(data.responseJSON.errors, function(key, value) {
+                            $(`[name='${key}']`).addClass('is-invalid');
+                            $(`[name='${key}']`).after('<div class="invalid-feedback">' + value +
+                                '</div>');
+                        });
+                    }).done(function() {
+                    $('#add_adjustment_type_modal').modal('toggle');
+                    adjustmentTypeDataTable.ajax.reload();
                 });
             });
         }

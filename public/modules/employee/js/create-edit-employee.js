@@ -63,26 +63,27 @@ $(document).on('keyup', 'input[name="wage_amount"], input[name^="allowance_repea
     updateTotalWage();
 });
 
-function adjustmentRepeater(type, lang, addAllowanceTypeUrl) {
+function adjustmentRepeater(lang, addAllowanceTypeUrl) {
+    
     $('.employee-adjustments').each(function () {
         const hasInitialValues = $(
-            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+            `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
             .val() !== undefined &&
-            $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+            $(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
                 .val() !== '';
 
-        $(`#${type}_repeater`).repeater({
+        $(`#${adjustmentType_type}_repeater`).repeater({
             initEmpty: !hasInitialValues,
             show: function () {
                 const $this = $(this);
                 $this.slideDown();
 
-                $this.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                $this.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
                     .select2({
                         minimumResultsForSearch: -1
                     });
 
-                $this.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                $this.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
                     .flatpickr({
                         plugins: [
                             monthSelectPlugin({
@@ -96,20 +97,19 @@ function adjustmentRepeater(type, lang, addAllowanceTypeUrl) {
                 const customOptions = new Map(); // Moved inside show function
 
                 initializeSelect2($this.find(
-                    `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                ), customOptions, true, lang,
-                    addAllowanceTypeUrl, type);
+                    `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`
+                ), customOptions, true, lang, addAllowanceTypeUrl);
             },
 
             ready: function () {
-                const $repeater = $(`#${type}_repeater`);
+                const $repeater = $(`#${adjustmentType_type}_repeater`);
 
-                $repeater.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
                     .select2({
                         minimumResultsForSearch: -1
                     });
 
-                $repeater.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                $repeater.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
                     .flatpickr({
                         plugins: [
                             monthSelectPlugin({
@@ -123,10 +123,10 @@ function adjustmentRepeater(type, lang, addAllowanceTypeUrl) {
                 const customOptions =
                     new Map(); // Also need to define it here for ready function
 
-                $repeater.find(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
                     .each(function () {
                         initializeSelect2($(this), customOptions, true, lang,
-                            addAllowanceTypeUrl, type);
+                            addAllowanceTypeUrl);
                     });
             },
 
