@@ -24,7 +24,7 @@ class Establishment extends Model
 
     public function posRoles()
     {
-        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'role_id', 'establishment_id')->withTimestamps()->withPivot('employee_id');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'establishment_id', 'role_id' )->withTimestamps()->withPivot('employee_id');
     }
 
     public function main()
