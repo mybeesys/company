@@ -35,7 +35,7 @@ class EmployeeDatabaseSeeder extends Seeder
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
 
-        $month_start = Carbon::createFromDate('2024', '01', '01');
+        $month_start = Carbon::createFromDate('2025', '01', '01');
         $end_month = $month_start->copy()->endOfMonth();
 
 
@@ -43,6 +43,15 @@ class EmployeeDatabaseSeeder extends Seeder
             TimeCard::create([
                 'establishment_id' => $establishment->id,
                 'employee_id' => 3,
+                'clock_in_time' => "{$date->format('y-m-d')} 08:00:00",
+                'clock_out_time' => "{$date->format('y-m-d')} 16:00:00",
+                'hours_worked' => 8,
+                'overtime_hours' => 0,
+                'date' => $date
+            ]);
+            TimeCard::create([
+                'establishment_id' => $establishment->id,
+                'employee_id' => 2,
                 'clock_in_time' => "{$date->format('y-m-d')} 09:00:00",
                 'clock_out_time' => "{$date->format('y-m-d')} 16:00:00",
                 'hours_worked' => 7,
