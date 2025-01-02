@@ -58,12 +58,12 @@ class Employee extends Authenticatable
 
     public function defaultEstablishment()
     {
-        return $this->belongsTo(Establishment::class, 'establishment_id');
+        return $this->belongsTo(Establishment::class, 'establishment_id')->withTrashed();
     }
 
     public function establishments()
     {
-        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles', 'employee_id', 'establishment_id')->withTimestamps()->withPivot('role_id');
+        return $this->belongsToMany(Establishment::class, 'emp_employee_establishments_roles', 'employee_id', 'establishment_id')->withTimestamps()->withPivot('role_id')->withTrashed();
     }
 
     public function posRoles()
@@ -98,12 +98,12 @@ class Employee extends Authenticatable
 
     public function allowances()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance')->withTrashed();
     }
 
     public function deductions()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction')->withTrashed();
     }
 
     public function getTranslatedNameAttribute()

@@ -22,7 +22,7 @@ class PayrollAdjustmentType extends BaseEmployeeModel
 
     public function adjustment()
     {
-        return $this->hasMany(PayrollAdjustment::class);
+        return $this->hasMany(PayrollAdjustment::class)->withTrashed();
     }
 
     public function scopeAllowance(Builder $query)
