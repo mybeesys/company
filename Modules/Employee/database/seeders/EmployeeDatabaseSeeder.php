@@ -2,11 +2,13 @@
 
 namespace Modules\Employee\database\seeders;
 
+use Carbon\Carbon;
 use DB;
 use Hash;
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
+use Modules\Employee\Models\TimeCard;
 use Modules\Establishment\Models\Establishment;
 
 class EmployeeDatabaseSeeder extends Seeder
@@ -29,9 +31,26 @@ class EmployeeDatabaseSeeder extends Seeder
         ]);
 
         $establishment = Establishment::active()->notMain()->first();
-        
+
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
+
+        $month_start = Carbon::createFromDate('2024', '01', '01');
+        $end_month = $month_start->copy()->endOfMonth();
+
+
+        for ($date = $month_start->copy(); $date->lte($end_month); $date->addDay()) {
+            TimeCard::create([
+                'establishment_id' => $establishment->id,
+                'employee_id' => 3,
+                'clock_in_time' => "{$date->format('y-m-d')} 09:00:00",
+                'clock_out_time' => "{$date->format('y-m-d')} 16:00:00",
+                'hours_worked' => 7,
+                'overtime_hours' => 0,
+                'date' => $date
+            ]);
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Permission::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
