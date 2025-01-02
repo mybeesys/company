@@ -10,6 +10,9 @@ return [
     'Invoice Status'=>'Invoice Status',
     'final'=>'Final',
 
+    'bill_payment'=>'Bill payments',
+    'Payments'=>'Payments',
+
 
 
 

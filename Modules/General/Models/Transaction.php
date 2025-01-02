@@ -26,6 +26,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionSellLine::class, 'transaction_id');
     }
 
+    public function payment()
+    {
+        return $this->hasMany(TransactionPayments::class, 'transaction_id');
+    }
+
 
     public static function getsSellsColumns()
     {
@@ -124,7 +129,7 @@ class Transaction extends Model
                 </div>';
                     if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
                         $actions .= '<div class="menu-item px-3">
-                        <a href="#" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
+                        <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
                     </div>';
                     }
                     // $actions .= '<div class="menu-item px-3">

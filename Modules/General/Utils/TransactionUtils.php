@@ -20,7 +20,6 @@ class TransactionUtils
             return true;
         }
 
-        $c = 0;
         $prefix_type = 'sell_payment';
         if ($transaction->type == 'purchase') {
             $prefix_type = 'purchase_payment';
@@ -35,13 +34,12 @@ class TransactionUtils
 
         $pament_on = $date->format('Y-m-d H:i:s');
 
-        if ($request->invoice_type == 'cash') {
+        if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
             $payment_amount = $request->paid_amount;
             $payment_method = 'cash';
         }
-
-        if ($request->invoice_type == 'due') {
+        if ($transaction->invoice_type == 'due') {
             $account_id = $request->account_id;
             $payment_amount = $request->paid_amount;
             $payment_method = 'due';

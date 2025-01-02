@@ -35,6 +35,9 @@ Route::middleware([
 
 
         Route::get('transaction-show/{id}', [TransactionController::class, 'show'])->name('transaction-show');
+        Route::get('transaction-show-payments/{id}', [TransactionController::class, 'showPayments'])->name('transaction-show-payments');
+        Route::post('add-payment', [TransactionController::class, 'addPayment'])->name('add-payment');
+
 
 
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
