@@ -4,7 +4,10 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
+use Modules\General\Utils\TransactionUtils;
 
 class TransactionController extends Controller
 {
@@ -42,12 +45,40 @@ class TransactionController extends Controller
         return view('general::transactions.show',compact('transaction'));
     }
 
+    public function showPayments($id)
+    {
+
+        $transactionUtil =new TransactionUtils();
+        $transaction = Transaction::find($id);
+        $accounts =  AccountingAccount::forDropdown();
+        $paid_amount = $transactionUtil->getTotalPaid($id);
+        $amount = $transaction->final_total - $paid_amount;
+        if ($amount < 0) {
+            $amount = 0;
+        }
+
+        return view('general::transactions.show-payments',compact('transaction','accounts','amount'));
+    }
+
+
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function addPayment(Request $request)
     {
-        return view('general::edit');
+
+
+        $transactionUtil= new TransactionUtils();
+
+        $transaction = Transaction::find($request->id);
+        if ($request->paid_amount) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
+
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
+
+        return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
     }
 
     /**

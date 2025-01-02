@@ -214,6 +214,7 @@
     </div>
 
 
+    @include('general::transactions.payment-rows')
 
 
 
