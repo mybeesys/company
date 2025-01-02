@@ -14,6 +14,8 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
+
     <script>
         $(document).ready(function() {
             let saveButton = $(`#add_employee_form_button`);
@@ -22,8 +24,7 @@
             permissionSetRepeater();
             roleRepeater();
             initElements();
-            allowanceRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session('locale') }}");
+            adjustmentRepeater('allowance', "{{ session('locale') }}", "{{ route('adjustment_types.store') }}");
             administrativeUser(false, 'add_employee_form');
             employeeForm('add_employee_form', "{{ route('employees.create.validation') }}",
                 "{{ route('employees.generate.pin') }}");

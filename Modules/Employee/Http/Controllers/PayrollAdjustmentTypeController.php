@@ -20,6 +20,17 @@ class PayrollAdjustmentTypeController extends Controller
         }
     }
 
+    public function getAdjustmentsTypes(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|in:allowance,deduction'
+        ]);
+        $adjustments_types = PayrollAdjustmentType::where('type', $request->type)->select('id', 'name', 'name_en')->get()->toArray();
+        return response()->json([
+            'data' => $adjustments_types
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

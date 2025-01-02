@@ -16,6 +16,7 @@ use Modules\Employee\Http\Middleware\EnureTimeSheetRulesExists;
 use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\PayrollGroup;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
@@ -107,18 +108,24 @@ Route::middleware([
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
 
-        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () {
-            Route::get('', 'index')->name('index');
-            
-            Route::post('/store', 'store')->name('store');
-        });
-
         Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
             Route::get('', 'index')->name('index');
 
+            Route::post('/store', 'store')->name('store')->can('create', PayrollAdjustment::class);
 
-            Route::post('/store-payroll-allowance', 'storeAllowance')->name('store-allowance');
-            Route::post('/store-payroll-deduction', 'storeDeduction')->name('store-deduction');
+            Route::delete('/{adjustment}', 'destroy')->name('delete')->can('delete', PayrollAdjustment::class);
+
+            Route::post('/store-payroll-allowance', 'storeAllowanceCache')->name('store-allowance-cache');
+            Route::post('/store-payroll-deduction', 'storeDeductionCache')->name('store-deduction-cache');
+        });
+
+        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::delete('/{adjustmentType}', 'destroy')->name('delete')->can('delete', PayrollAdjustment::class);
+
+            Route::get('get-types', 'getAdjustmentsTypes')->name('get-types');
+            Route::post('/store', 'store')->name('store');
+            Route::post('/{adjustmentType}', 'update')->name('update');
         });
 
         Route::name('schedules.')->prefix('schedule')->group(function () {

@@ -54,7 +54,16 @@ class AdjustmentTable
                     if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.update')) {
 
                         $actions .= '
-                            <a href="' . url("/adjustment/{$row->id}/edit") . '" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+                            <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" 
+                                data-adjustment-type="' . $row->adjustment_type_id . '"
+                                data-id="' . $row->id . '"
+                                data-employee-id="' . $row->employee_id . '"
+                                data-type="' . $row->type . '"
+                                data-amount="' . $row->amount . '"
+                                data-amount-type="' . $row->amount_type . '"
+                                data-applicable-date="' . $row->applicable_date . '"
+                                data-apply-once="' . $row->apply_once . '"
+                            >
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>';
                     }

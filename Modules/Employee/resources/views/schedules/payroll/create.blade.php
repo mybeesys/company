@@ -48,6 +48,7 @@
 
 @section('script')
     @parent
+    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
     <script>
         var urlParams = new URLSearchParams(window.location.search);
         let columns;
@@ -77,17 +78,15 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('adjustments.store-allowance') }}", dataUrl);
-            addDeductionForm("{{ route('adjustments.store-deduction') }}", dataUrl)
+            addAllowancesForm("{{ route('adjustments.store-allowance-cache') }}", dataUrl);
+            addDeductionForm("{{ route('adjustments.store-deduction-cache') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
             })
-            adjustmentRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session('locale') }}");
-            adjustmentRepeater('deduction', "{{ route('adjustment_types.store') }}",
-                "{{ session('locale') }}");
+            adjustmentRepeater('allowance');
+            adjustmentRepeater('deduction');
 
             lock();
 
@@ -291,120 +290,7 @@
             });
         }
 
-
-        function adjustmentRepeater(type, addAllowanceTypeUrl, lang) {
-            const customOptions = new Map();
-
-            function initializeSelect2(element) {
-                const addNewOption = {
-                    id: 'add_new',
-                    text: lang === 'ar' ? 'إضافة خيار جديد' : 'Add New Option',
-                    addNew: true
-                };
-                const allOptions = [addNewOption, ...Array.from(customOptions.values())];
-                const select2Config = {
-                    tags: false,
-                    data: allOptions,
-                    templateResult: function(option) {
-                        if (option.addNew) {
-                            return $(`
-                    <div class="add-new-option">
-                        <i class="fas fa-plus me-2"></i>
-                        <span>${option.text}</span>
-                    </div>
-                `);
-                        }
-                        return option.text;
-                    },
-                    templateSelection: function(option) {
-                        if (option.addNew) {
-                            return $(
-                                `<input type="text" class="select2-add-new-input" placeholder="${lang === 'ar' ? 'اكتب الخيار الجديد' : 'Type new option...'}"/>`
-                            );
-                        }
-                        return option.text;
-                    }
-                };
-                element.select2(select2Config)
-                    .on('select2:select', function(e) {
-                        const data = e.params.data;
-                        if (data.addNew) {
-                            setTimeout(() => {
-                                const input = $('.select2-add-new-input');
-                                input.focus();
-                                let isNewOptionHandled = false;
-
-                                input.on('keydown', function(e) {
-                                    if (e.which === 13) {
-                                        const newValue = $(this).val();
-                                        if (newValue.trim()) {
-                                            handleNewOption(element, newValue);
-                                            isNewOptionHandled = true;
-                                        }
-                                    }
-                                    if (e.which === 32) {
-                                        e.stopPropagation();
-                                    }
-                                });
-                                input.on('blur', function() {
-                                    if (!isNewOptionHandled) {
-                                        const newValue = $(this).val().trim();
-                                        if (newValue) {
-                                            handleNewOption(element, newValue);
-                                        } else {
-                                            element.val(null).trigger('change');
-                                        }
-                                    }
-                                    isNewOptionHandled = false;
-                                });
-                            }, 0);
-                        }
-                    });
-                reorderOptions();
-            }
-
-            function reorderOptions() {
-                const allRepeaters = $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
-                allRepeaters.each(function() {
-                    const currentElement = $(this);
-                    const addNewOption = currentElement.find('option[value="add_new"]');
-                    if (addNewOption.length) {
-                        addNewOption.detach();
-                        currentElement.append(addNewOption);
-                    }
-                });
-            }
-
-            function handleNewOption(element, newValue) {
-                const name_lang = lang === 'ar' ? 'name' : 'name_en';
-
-                ajaxRequest(addAllowanceTypeUrl, 'POST', {
-                        name: newValue,
-                        name_lang: name_lang,
-                        type: type
-                    })
-                    .done(function(response) {
-                        if (response.id) {
-                            const newOption = {
-                                id: response.id,
-                                text: newValue
-                            };
-                            customOptions.set(response.id, newOption);
-
-                            const newSelectOption = new Option(newOption.text, newOption.id, true, true);
-                            element.append(newSelectOption);
-
-                            reorderOptions();
-
-                            element.trigger('change');
-                            element.select2('open');
-                        }
-                    })
-                    .fail(function() {
-                        element.val(null).trigger('change');
-                    });
-            }
-
+        function adjustmentRepeater(type) {
             $(`#${type}_repeater`).repeater({
                 show: function() {
                     const $this = $(this);
@@ -425,10 +311,12 @@
                                 })
                             ]
                         });
+                    const customOptions = new Map();
 
                     initializeSelect2($this.find(
-                        `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                    ));
+                            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
+                        ), customOptions, true, "{{ session('locale') }}",
+                        "{{ route('adjustment_types.store') }}", type);
                 },
 
                 hide: function(deleteElement) {
