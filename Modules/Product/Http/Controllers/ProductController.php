@@ -235,6 +235,9 @@ class ProductController extends Controller
         }
         if ($request->hasFile('image_file')) 
         {
+            $filePath = public_path($product->image);
+            if (File::exists($product->image))
+                File::delete($product->image);
             $tenant = tenancy()->tenant;
             $tenantId = $tenant->id;
             // Get the uploaded file
