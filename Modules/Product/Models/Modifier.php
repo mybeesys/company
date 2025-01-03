@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\General\Models\Tax;
 
 class Modifier extends Model
 {
@@ -24,6 +25,7 @@ class Modifier extends Model
         'class_id',
         'price',
         'cost',
+        'tax_id',
         'PLU',
         'color',
         'image',
@@ -49,6 +51,11 @@ class Modifier extends Model
     public function products()
     {
         return $this->hasMany(ProductModifier::class, 'modifier_id', 'id');
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class, 'tax_id', 'id');
     }
 
     // protected static function newFactory(): ModifierFactory

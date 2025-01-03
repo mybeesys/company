@@ -4,7 +4,6 @@ import axios from 'axios';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 import { getRowName } from '../lang/Utils';
-import MultiDropDown from '../comp/MultiDropDown';
 
 const animatedComponents = makeAnimated();
 const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {

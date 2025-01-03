@@ -13,6 +13,7 @@ use Modules\Product\Models\ProductComboItem;
 use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
@@ -226,13 +227,19 @@ class ProductController extends Controller
         $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
         $product->linked_combo = $validated['linked_combo'] ?? 0;
         $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
+        if(isset($request["image_deleted"])){
+            $filePath = public_path($product->image);
+            if (File::exists($product->image))
+                File::delete($product->image);
+            $product->image = null;
+        }
         if ($request->hasFile('image_file')) 
         {
             $tenant = tenancy()->tenant;
             $tenantId = $tenant->id;
             // Get the uploaded file
             $file = $request->file('image_file');
-    
+            
             // Define the path based on the tenant's ID
             $filePath =  '/product/images';
     

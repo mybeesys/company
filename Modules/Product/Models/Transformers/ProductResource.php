@@ -53,7 +53,7 @@ class ProductResource extends JsonResource
             'combos' => ComboResource::collection($this->combos),
             'unit' => $unit,//UnitTransferResource::collection($this->unitTransfers),
             'image' => $this->image,
-            'image1' => isset($this->image) ? base64_encode(file_get_contents(public_path($this->image))): null
+            //'image1' => isset($this->image) ? base64_encode(file_get_contents(public_path($this->image))): null
         ];
     }
 }

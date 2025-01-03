@@ -5,7 +5,7 @@ import DeleteModal from './DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 
-
+const defaultObjectValue = {active:1};
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
@@ -96,10 +96,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
                 if(node.key == key){
-                    if(!!parentNode)
+                    if(!!parentNode){
+                        parentNode.children[parentNode.children.length-1].key = key;
                         parentNode.children.splice(index, 1);
-                    else
+
+                    }
+                    else{
+                        nodes[nodes.length-1].key = key;
                         nodes.splice(index, 1);
+                    }
                     break;
                 }
             }
@@ -215,6 +220,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         node.data.parentKey1 = null;
         node.data.type = type;
         node.data.parentKey = !!parentNode && parentNode.data.type == 'category' ? 'category_id' : parentKeyName;
+        for (const key in defaultObjectValue) {
+            node.data[key] = defaultObjectValue[key];
+        }
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
             data: { type: type, parentKey: parentKeyName, type1: type1, parentKey1: parentKeyName1, empty: 'Y' }
@@ -227,12 +235,13 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         }
         setCurrentKey(key);
         setNodes([...nodes]);
+        setEditingRow({ ...node.data });
     }
 
     const renderTextCell = (node, key, autoFocus) => {
         let indent = (node.key).toString().split('-').length;
         if(key == 'name_en'){
-            indent = 2;
+            indent = indent + 1;
         }
         if (key == 'name_en' && !!node.data.empty) {
             return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey, node.data.type1, node.data.parentKey1)}>{`${translations.Add} ${translations[node.data.type]}`}</a>

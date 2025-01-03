@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
@@ -117,24 +118,44 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if(isset($model->SKU) || $model->SKU!=null)
-                return;
-            // Generate a unique random number
-            do {
-                $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
-            } while (self::where('SKU', $SKU)->exists());
+            Log::info(Barcode::generateUPCA());
+            logger('This is a debug log message. '.Barcode::generateUPCA());
+            if($model->SKU == null){
+                // Generate a unique random number
+                do {
+                    $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
+                } while (self::where('SKU', $SKU)->exists());
 
-            $model->SKU = $SKU;
+                $model->SKU = $SKU;
+            }
+            if($model->barcode == null){
+                do {
+                    $barcode = Barcode::generateUPCA();
+                } while (self::where('barcode', $barcode)->exists());
+
+                $model->barcode = $barcode;
+            }
+
         });
         static::updating(function ($model) {
-            if(isset($model->SKU) || $model->SKU!=null)
-                return;
-            // Generate a unique random number
-            do {
-                $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
-            } while (self::where('SKU', $SKU)->exists());
+            Log::info(Barcode::generateUPCA());
+            logger('This is a debug log message. '.Barcode::generateUPCA());    
+            if($model->SKU == null){
+                // Generate a unique random number
+                do {
+                    $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
+                } while (self::where('SKU', $SKU)->exists());
 
-            $model->SKU = $SKU;
+                $model->SKU = $SKU;
+            }
+            Log::info(Barcode::generateUPCA());
+            if($model->barcode == null){
+                do {
+                    $barcode = Barcode::generateUPCA();
+                } while (self::where('barcode', $barcode)->exists());
+
+                $model->barcode = $barcode;
+            }
         });
     }
 }

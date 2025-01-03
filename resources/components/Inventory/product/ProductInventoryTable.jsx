@@ -28,11 +28,21 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
       }
   }
 
+  const print = () => {
+    if(!!searchText){
+      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${searchBy.value}&key=${searchText}&t=1`, '_blank');
+    }
+    else{
+      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${-1}&key=&t=1`, '_blank');
+    }
+    
+  }
+
   return (
     <div>
       <div class="form-group">
           <div class="row">
-            <div class="col-4">
+            <div class="col-3">
               <label for="name_ar" class="col-form-label">{translations.search}</label>
               <Select
                     id="search_id"
@@ -51,17 +61,23 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                     styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                 />
             </div>
-            <div class="col-4 pt-12">
+            <div class="col-3 pt-12">
               <input type="text" class="form-control form-control-solid custom-height" id="name_en" value={searchText}
                 onChange={(e) => setSearchText(e.target.value)} ></input>
             </div>
-            <div class="col-4 pt-12" style={{"justify-content": "start", "display": "flex"}}>
+            <div class="col-3 pt-12" style={{"justify-content": "start", "display": "flex"}}>
                 <div class="flex-center" style={{"display": "flex"}}>
                     <button onClick={search} class="btn btn-primary mx-2"
                         style={{"width": "12rem"}}>{translations.search}</button>
 
                 </div>
+            </div>
+            <div class="col-3 pt-12" style={{"justify-content": "end", "display": "flex"}}>
+                <div class="flex-center" style={{"display": "flex"}}>
+                    <button onClick={print} class="btn btn-primary mx-2"
+                        style={{"width": "12rem"}}>{translations.print}</button>
 
+                </div>
             </div>
           </div>
         </div>

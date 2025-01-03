@@ -59,6 +59,7 @@ class ProductInventoryController extends Controller
     {
         $by = $request->query('by');  // Get 'query' parameter
         $key = $request->query('key', '');
+        $useTree = $request->query('t', '');
         $establishments = [];
         $TreeBuilder = new TreeBuilder();
         if($by == 0){
@@ -86,8 +87,27 @@ class ProductInventoryController extends Controller
                 $details [] = $est;
             }   
         }
-        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'productInventory', null, null, null);
-        return response()->json($tree);
+        if(isset($useTree) && $useTree == '1'){
+            
+            return $details;
+        }
+        else{
+            $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'productInventory', null, null, null);
+            return response()->json($tree);
+        }
+    }
+
+    public function getِAllProductInventories()
+    {
+        $establishments = [];
+        $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+        $establishmentArray = $establishments->toArray();
+        $details = [];
+        foreach ($establishmentArray as $establishment) {
+            $est = $this->fillProduct($establishment, null);
+            $details [] = $est;
+        }
+        return $details;
     }
  
     public function getProductInventory($id)

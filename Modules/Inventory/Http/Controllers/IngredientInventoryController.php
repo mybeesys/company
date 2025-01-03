@@ -56,6 +56,7 @@ class IngredientInventoryController extends Controller
     {
         $by = $request->query('by');  // Get 'query' parameter
         $key = $request->query('key', '');
+        $useTree = $request->query('t', '');
         $establishments = [];
         $TreeBuilder = new TreeBuilder();
         if($by == 0){
@@ -83,8 +84,14 @@ class IngredientInventoryController extends Controller
                 $details [] = $est;
             }   
         }
-        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'ingredientInventory', null, null, null);
-        return response()->json($tree);
+        if(isset($useTree) && $useTree == '1'){
+            
+            return $details;
+        }
+        else{
+            $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'ingredientInventory', null, null, null);
+            return response()->json($tree);
+        }
     }
  
     public function getIngredientInventory($id)

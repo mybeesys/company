@@ -41,6 +41,8 @@
   "NAME_EN_EXIST": "English Name Already Exist",
   "CHILD_EXIST": "Related Modifier Already Exist",
   "AttributeList": "Attribute List",
+  "attributeClass": "Attribute Class",
+  "attribute" : "Attribute",
   "attr_set2": "Attributes List 2",
   "attr_set2_value": "Attributes List Value 2",
   "attr_set1": "Attributes List 1",

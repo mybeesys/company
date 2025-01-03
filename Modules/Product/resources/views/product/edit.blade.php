@@ -47,7 +47,8 @@
         listSubCategory-url="{{json_encode(route('minisubcategorylist'))}}"
         listAttribute-url="{{json_encode(route('attributeClassList'))}}"
         getProductMatrix-url ="{{json_encode(route('getProductMatrix'))}}"
-        image-url="{{!$product->image ?  '/assets/media/svg/files/blank-image.svg' : asset($product->image)}}"
+        image-url="{{!$product->image ?  null : asset($product->image)}}"
+        blank-url ='/assets/media/svg/files/blank-image.svg'
         listModifier-url="{{json_encode(route('modifierClassList'))}}"
         listRecipe-url="{{json_encode(route('listRecipebyProduct'))}}"
         ingredientProductUrl-url="{{json_encode(route('ingredientProductList'))}}"

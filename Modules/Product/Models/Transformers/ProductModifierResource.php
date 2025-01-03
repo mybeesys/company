@@ -5,7 +5,6 @@ namespace Modules\Product\Models\Transformers;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Product\Enums\ButtonDisplay;
 use Modules\Product\Enums\ModifierDisplay;
-use Modules\Product\Models\ModifierClass;
 
 class ProductModifierResource extends JsonResource
 {
@@ -19,9 +18,12 @@ class ProductModifierResource extends JsonResource
 
     public function toArray($request)
     {
-        $modifierClass["id"] = $this->modifiers["id"];
-        $modifierClass["name_ar"] = $this->modifiers["name_ar"];
-        $modifierClass["name_en"] = $this->modifiers["name_en"];
+        $modifierClass = null;
+        if(isset($this->modifiers)){
+            $modifierClass["id"] = $this->modifiers["id"];
+            $modifierClass["name_ar"] = $this->modifiers["name_ar"];
+            $modifierClass["name_en"] = $this->modifiers["name_en"];
+        }
         if(isset($this->modifiers)){
             $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
         }
@@ -31,7 +33,6 @@ class ProductModifierResource extends JsonResource
             $modifierClass["product"]["name_ar"] = $this->products["name_ar"];
             $modifierClass["product"]["name_en"] = $this->products["name_en"];
         }
-        
         return [
             'id' => $this->id,
             'default' => $this->default,

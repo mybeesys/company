@@ -17,19 +17,25 @@ return [
 
                 'name' => 'products',
                 'url' => 'category',
-                'permission' => '',
+                'permission' => 'products.product.show',
+
+            ],
+            [
+                'name' => 'ingredient',
+                'url' => 'ingredient',
+                'permission' => 'products.ingredient.show',
 
             ],
             [
                 'name' => 'modifiers',
                 'url' => 'modifier',
-                'permission' => '',
+                'permission' => 'products.modifier.show',
 
             ],
             [
                 'name' => 'attribute',
                 'url' => 'attribute',
-                'permission' => '',
+                'permission' => 'products.attribute.show',
 
             ],
             [
@@ -56,14 +62,6 @@ return [
                 'permission' => '',
 
             ],
-            [
-                'name' => 'ingredient',
-                'url' => 'ingredient',
-                'permission' => '',
-
-            ],
-
-
         ]
     ],
     [
@@ -75,37 +73,37 @@ return [
             [
                 'name' => 'inventory',
                 'url' => 'productInventory',
-                'permission' => '',
+                'permission' => 'inventory.product.show',
             ],
             [
                 'name' => 'ingredientInventory',
                 'url' => 'ingredientInventory',
-                'permission' => '',
+                'permission' => 'inventory.ingredient.show',
             ],
             [
                 'name' => 'po',
                 'url' => 'purchaseOrder',
-                'permission' => '',
+                'permission' => 'inventory.purchaseOrder.show',
             ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
-                'permission' => '',
+                'permission' => 'inventory.prep.show',
             ],
             [
                 'name' => 'rma',
                 'url' => 'rma',
-                'permission' => '',
+                'permission' => 'inventory.rma.show',
             ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
-                'permission' => '',
+                'permission' => 'inventory.waste.show',
             ],
             [
                 'name' => 'transfer',
                 'url' => 'transfer',
-                'permission' => '',
+                'permission' => 'inventory.transfer.show',
             ]
         ]
     ],

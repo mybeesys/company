@@ -5,7 +5,7 @@ import DeleteModal from '../product/DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 
-
+const defaultObjectValue = {active:1};
 const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -69,10 +69,14 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
                 if (node.key == key) {
-                    if (!!parentNode)
+                    if (!!parentNode){
+                        parentNode.children[parentNode.children.length-1].key = key;
                         parentNode.children.splice(index, 1);
-                    else
+                    }
+                    else{
+                        nodes[nodes.length-1].key = key;
                         nodes.splice(index, 1);
+                    }
                     break;
                 }
             }
@@ -169,6 +173,9 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
             parentKey = parentKey + '-' + seg[index];
         }
         node.data.empty = null;
+        for (const key in defaultObjectValue) {
+            node.data[key] = defaultObjectValue[key];
+        }
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
             data: { type: type, parentKey: parentKeyName,  empty: 'Y' }
@@ -181,12 +188,13 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
         }
         setCurrentKey(key);
         setNodes([...nodes]);
+        setEditingRow({ ...node.data });
     }
 
     const renderTextCell = (node, key, autoFocus) => {
         const indent = (node.key).toString().split('-').length;
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type}`}</a>
+            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
             return (

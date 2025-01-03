@@ -53,8 +53,12 @@ class ProductController extends Controller
     {
         
         $products = Product::where('id', $id)->with(['modifiers' => function ($query) {
+            $query->where('active', 1);
             $query->with(['modifiers' => function ($query) {
-                $query->with('children');
+                $query->with(['children' => function ($query) {
+                        $query->where('active', 1);
+                        $query->with('tax');
+                    }]);
                 }]);
             }])->with(['attributes' => function ($query) {
                 $query->with('attribute1');

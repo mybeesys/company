@@ -61,7 +61,7 @@ class IngredientController extends Controller
     public function create()
     {
         $ingredient  = new Ingredient();
-    
+        $ingredient->active = 1;
         return view('product::ingredient.create', compact('ingredient'));
     }
 
