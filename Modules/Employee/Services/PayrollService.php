@@ -23,8 +23,8 @@ class PayrollService
         $monthEndDate = $carbonMonth->copy()->endOfMonth()->format('Y-m-d');
 
         $basicWage = $employee->wage;
-        $timecards = $employee->timecards()->whereBetween('date', [$monthStartDate, $monthEndDate])->where('establishment_id', $establishment_id);
 
+        $timecards = $employee->timecards()->whereNotIn('date', $this->wageCalculationService->timeSheetRuleService->getOffDaysDates($carbonMonth))->whereBetween('date', [$monthStartDate, $monthEndDate])->where('establishment_id', $establishment_id);
         $total_hours = $timecards->sum('hours_worked');
         $overtime_hours = $timecards->sum('overtime_hours');
         $regular_worked_hours = $total_hours - $overtime_hours;
@@ -33,12 +33,12 @@ class PayrollService
             return [Carbon::parse($time->clock_in_time)->format('Y-m-d'), Carbon::parse($time->clock_out_time)->format('Y-m-d')];
         })->unique()->filter()->count();
 
-        $wage_due_before_tax = round($this->calculateWageDueBeforeTax($employee, $basicWage, $timecards, $carbonMonth), 2);
+        $wage_due_before_tax = round($this->calculateWageDue($employee, $basicWage, $timecards, $carbonMonth), 2);
 
         [$allowances_array, $total_allowances, $allowances_value, $allowances_ids] = $this->getAllowances($employee, $monthStartDate);
         [$deductions_array, $total_deductions, $deductions_value, $deductions_ids] = $this->getDeductions($employee, $monthStartDate);
 
-        
+
         $total_wage_before_tax = round($wage_due_before_tax + $allowances_value - $deductions_value, 2);
         return [
             'employee' => $this->getEmployeeName($employee),
@@ -69,10 +69,11 @@ class PayrollService
         return Employee::with(['allowances', 'deductions', 'timecards', 'wage', 'shifts', 'defaultEstablishment'])
             ->whereIn('id', $employeeIds)
             ->whereIn('establishment_id', $establishmentIds)
+            ->whereHas('wage')
             ->get();
     }
 
-    private function calculateWageDueBeforeTax(Employee $employee, $basicWage, $timecards, Carbon $carbonMonth)
+    private function calculateWageDue(Employee $employee, $basicWage, $timecards, Carbon $carbonMonth)
     {
         $totalWage = 0;
         $totalWage += match ($basicWage->wage_type) {
@@ -101,7 +102,7 @@ class PayrollService
 
         $allowances_cache = collect(Cache::get("allowance_{$employee->id}_{$date}"));
         $common_html = "<div class='add-allowances-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
-                
+
         if ($allowances_cache->isNotEmpty() && (request()->firstEnter === "false")) {
             foreach ($allowances_cache as $key => $allowance) {
                 $element = " data-allowance-id-{$key}='{$allowance['id']}' 
@@ -205,7 +206,7 @@ class PayrollService
             $html .= ">{$establishment->name}</option>";
         }
         $html .= "</select>";
-        
+
         return $html;
     }
 }

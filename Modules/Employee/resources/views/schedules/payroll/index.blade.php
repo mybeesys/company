@@ -2,15 +2,6 @@
 
 @section('title', __('menuItemLang.shift_schedule'))
 
-@section('css')
-    @parent
-    <style>
-        div {
-            scrollbar-width: auto;
-        }
-    </style>
-@endsection
-
 @section('content')
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">

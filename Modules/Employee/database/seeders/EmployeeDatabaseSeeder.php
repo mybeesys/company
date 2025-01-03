@@ -2,11 +2,13 @@
 
 namespace Modules\Employee\database\seeders;
 
+use Carbon\Carbon;
 use DB;
 use Hash;
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
+use Modules\Employee\Models\TimeCard;
 use Modules\Establishment\Models\Establishment;
 
 class EmployeeDatabaseSeeder extends Seeder
@@ -29,9 +31,10 @@ class EmployeeDatabaseSeeder extends Seeder
         ]);
 
         $establishment = Establishment::active()->notMain()->first();
-        
+
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Permission::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');

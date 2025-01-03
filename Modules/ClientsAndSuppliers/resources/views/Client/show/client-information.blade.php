@@ -3,11 +3,9 @@
         <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">
                 @if ($contact->business_type != 'customer')
-                @lang('clientsandsuppliers::fields.supplier_name')
-
+                    @lang('clientsandsuppliers::fields.supplier_name')
                 @else
-                @lang('clientsandsuppliers::fields.client_name')
-
+                    @lang('clientsandsuppliers::fields.client_name')
                 @endif
             </label>
             <label class="fs-4 fw-bold mb-2 me-3 " style="width: 150px;">
@@ -60,7 +58,8 @@
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('clientsandsuppliers::fields.Point of sale client')</label>
             <div class="form-check">
                 <label class="fs-6 fw-bold mb-2 me-3 " style="width: 200px;">
-                    {{ $contact->point_of_sale_client ?? '--' }}
+                    {{ $contact->point_of_sale_client == '1' ? __('messages.yes') : __('messages.no') }}
+
                 </label>
             </div>
         </div>

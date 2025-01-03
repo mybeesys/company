@@ -4,6 +4,7 @@ namespace Modules\ClientsAndSuppliers\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\General\Models\Transaction;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\ClientsAndSuppliers\Database\Factories\ContactFactory;
@@ -45,6 +46,12 @@ class Contact extends Model
     {
         return $this->hasMany(ContactCustomInformation::class, 'contact_id')->where('table_name', 'billing_addresses');
     }
+
+    public function  sales()
+    {
+        return $this->hasMany(Transaction::class, 'contact_id')->where('type','sell');
+    }
+
 
     public static function getContactsColumns()
     {
