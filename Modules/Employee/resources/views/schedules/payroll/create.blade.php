@@ -370,14 +370,12 @@
                     }, {});
 
 
-
                 // Find the maximum length of deductions_array (if needed)
                 const deductionsCount = response.data.reduce((max, row) => {
                     const currentCount = row.deductions_array ? Object.keys(row.deductions_array)
                         .length : 0;
                     return Math.max(max, currentCount);
                 }, 0);
-
 
                 const uniqueDeductions = response.data
                     .filter(row => row.deductions_array) // Filter rows with allowances_array
@@ -389,9 +387,6 @@
                         });
                         return acc;
                     }, {});
-                // }
-                console.log(response.data);
-
 
                 // Update the table header (thead)
                 const tableHead = $('#kt_createPayroll_table thead');
@@ -441,7 +436,6 @@
                     <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>
                     `);
 
-                console.log(uniqueAllowances);
 
                 // Add dynamic allowance sub-headers                
                 if (allowancesCount > 0) {
