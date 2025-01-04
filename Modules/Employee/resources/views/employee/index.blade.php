@@ -4,15 +4,17 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="employee" url="employee/create" module="employee">
+            <x-tables.table-header model="employee" url="employee/create" :addButton="auth()->user()->hasDashboardPermission('employees.employee.create')" module="employee">
                 <x-slot:filters>
                     <x-tables.filters-dropdown>
                         <x-employee::employees.filters />
                     </x-tables.filters-dropdown>
                 </x-slot:filters>
-                <x-slot:export>
-                    <x-tables.export-menu id="employee" />
-                </x-slot:export>
+                @can('printAll', \Modules\Employee\Models\Employee::class)
+                    <x-slot:export>
+                        <x-tables.export-menu id="employee" />
+                    </x-slot:export>
+                @endcan
             </x-tables.table-header>
         </x-cards.card-header>
 
@@ -20,7 +22,7 @@
             <x-tables.table :columns=$columns model="employee" module="employee" />
         </x-cards.card-body>
     </x-cards.card>
-
+    <div id="print-area" style="display: none;"></div>
     <x-employee::employees.edit-pos-employee-permissions-modal :permissions=$permissions />
     <x-employee::employees.edit-dashboard-employee-permissions-modal :modules=$modules />
 @endsection
@@ -39,6 +41,7 @@
         const dataUrl = '{{ route('employees.index') }}';
 
         $(document).ready(function() {
+
             if (!table.length) return;
             initDatatable();
             exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_employee_table', "{{ session('locale') }}", [1], [0]);
@@ -176,5 +179,33 @@
                     .load();
             });
         };
+
+        $(document).on('click', '.print-btn', function(event) {
+            event.preventDefault();
+
+            const printUrl = "{{ url('/employee/:employeeId/print') }}";
+            const employeeId = $(this).data('id');
+            const url = printUrl.replace(':employeeId', employeeId);
+
+            ajaxRequest(url, "GET", {}, false, false, false).done(function(response) {
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-9999px';
+                document.body.appendChild(iframe);
+
+                iframe.contentDocument.open();
+                iframe.contentDocument.write(response);
+                iframe.contentDocument.close();
+
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+            }).fail(function() {
+                console.error('Error fetching print view:', error);
+            });
+        });
     </script>
 @endsection

@@ -5,6 +5,7 @@ namespace Modules\Inventory\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Establishment\Models\Establishment;
 use Modules\Inventory\Enums\InventoryOperationStatus;
 use Modules\Inventory\Enums\InventoryOperationType;
 
@@ -33,6 +34,7 @@ class InventoryOperation extends Model
 
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
+        'establishment_id',
         'no',
         'op_type',
         'op_status',
@@ -111,5 +113,9 @@ class InventoryOperation extends Model
     public function items()
     {
         return $this->hasMany(InventoryOperationItem::class, 'operation_id', 'id');
+    }
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id', 'id');
     }
 }

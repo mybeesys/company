@@ -1,65 +1,138 @@
+import { useEffect, useState } from 'react';
 import TreeTableComponent from '../../comp/TreeTableComponent';
-import { getName } from '../../lang/Utils';
+import { getName, getRowName } from '../../lang/Utils';
+import makeAnimated from 'react-select/animated';
+import Select from "react-select";
 
-
+const animatedComponents = makeAnimated();
 const ProductInventoryTable = ({ dir, translations, p_type }) => {
   const rootElement = document.getElementById('root');
-  const urlList = JSON.parse(rootElement.getAttribute('list-url'));
+  const [urlList, setUrlList] = useState(JSON.parse(rootElement.getAttribute('list-url')));
+  const [searchBy, setSearchBy] = useState({label: translations.establishment, value: 0});
+  const [searchText, setSearchText] = useState();
+
+  const canEditRow=(data)=>{
+    return data.type == "product" || data.type == "Ingredient";
+  }
+
+  useEffect(() => {
+    setUrlList(urlList);
+  }, [urlList]);
+
+  const search = () =>{
+      if(!!searchText){
+        setUrlList(`${JSON.parse(rootElement.getAttribute('list-url'))}?by=${searchBy.value}&key=${searchText}`);
+      }
+      else{
+        setUrlList(`${JSON.parse(rootElement.getAttribute('list-url'))}?by=${-1}&key=`);
+      }
+  }
+
+  const print = () => {
+    if(!!searchText){
+      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${searchBy.value}&key=${searchText}&t=1`, '_blank');
+    }
+    else{
+      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${-1}&key=&t=1`, '_blank');
+    }
+    
+  }
 
   return (
     <div>
-      <TreeTableComponent
-        translations={translations}
-        dir={dir}
-        urlList={urlList}
-        editUrl={`${p_type}Inventory/%/edit`}
-        addUrl={null}
-        canAddInline={false}
-        title={`${p_type}s`}
-        cols={[
-          {
-            key: "name", autoFocus: true, options: [], type: "Text", width: '16%',
-            customCell: (data, key, editMode, editable) => {
-              return  (<>
-                  <div class="row">
-                    <span>{getName(data.name_en, data.name_ar, dir)}</span>
-                  </div>
-                  <div class="row">
-                    <span>{`${translations.barcode}: ${!!!data.barcode? '' : data.barcode}`}</span>
-                  </div>
-                </>);
+      <div class="form-group">
+          <div class="row">
+            <div class="col-3">
+              <label for="name_ar" class="col-form-label">{translations.search}</label>
+              <Select
+                    id="search_id"
+                    isMulti={false}
+                    options={
+                      [
+                        {label: translations.establishment, value: 0},
+                        {label: translations.product, value: 1},
+                      ]
+                    }
+                    closeMenuOnSelect={true}
+                    components={animatedComponents}
+                    value={searchBy}
+                    onChange={val => setSearchBy(val)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                />
+            </div>
+            <div class="col-3 pt-12">
+              <input type="text" class="form-control form-control-solid custom-height" id="name_en" value={searchText}
+                onChange={(e) => setSearchText(e.target.value)} ></input>
+            </div>
+            <div class="col-3 pt-12" style={{"justify-content": "start", "display": "flex"}}>
+                <div class="flex-center" style={{"display": "flex"}}>
+                    <button onClick={search} class="btn btn-primary mx-2"
+                        style={{"width": "12rem"}}>{translations.search}</button>
+
+                </div>
+            </div>
+            <div class="col-3 pt-12" style={{"justify-content": "end", "display": "flex"}}>
+                <div class="flex-center" style={{"display": "flex"}}>
+                    <button onClick={print} class="btn btn-primary mx-2"
+                        style={{"width": "12rem"}}>{translations.print}</button>
+
+                </div>
+            </div>
+          </div>
+        </div>
+        <div className="pt-3">
+        <TreeTableComponent
+          translations={translations}
+          dir={dir}
+          urlList={urlList}
+          editUrl={`${p_type}Inventory/%/edit`}
+          addUrl={null}
+          canAddInline={false}
+          canEditRow={canEditRow}
+          title={`${p_type}s`}
+          expander
+          cols={[
+            {
+              key: "name", autoFocus: true, options: [], type: "Text", width: '16%',
+              customCell: (data, key, editMode, editable) => {
+                return  (<>
+                      <span>{getRowName(data, dir)}</span>
+
+                  </>);
+              },
             },
-          },
-          { key: "vendor", autoFocus: false, options: [], type: "Text", width: '30%',
-            customCell: (data, key, editMode, editable) => {
-              return  (
-                    (!!data.inventory && !!data.inventory.vendor) ? 
-                    <span>{getName(data.inventory.vendor.name_en, data.inventory.vendor.name_ar, dir)}</span>
-                    : <></>
-                );
+            {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'},
+            { key: "vendor", autoFocus: false, options: [], type: "Text", width: '30%',
+              customCell: (data, key, editMode, editable) => {
+                return  (
+                      (!!data.inventory && !!data.inventory.vendor) ? 
+                      <span>{getName(data.inventory.vendor.name_en, data.inventory.vendor.name_ar, dir)}</span>
+                      : <></>
+                  );
+              },
             },
-          },
-          { key: "inventoryUOM", autoFocus: false, options: [], type: "Text", width: '30%',
-            customCell: (data, key, editMode, editable) => {
-              return  (
-                    (!!data.inventory && !!data.inventory.unit) ? 
-                    <span>{getName(data.inventory.unit.name_en, data.inventory.unit.name_ar, dir)}</span>
-                    : <></>
-                );
+            { key: "inventoryUOM", autoFocus: false, options: [], type: "Text", width: '30%',
+              customCell: (data, key, editMode, editable) => {
+                return  (
+                      (!!data.inventory && !!data.inventory.unit) ? 
+                      <span>{getName(data.inventory.unit.name_en, data.inventory.unit.name_ar, dir)}</span>
+                      : <></>
+                  );
+              },
             },
-          },
-          {key: "threshold", autoFocus: false, options: [], type: "Decimal", width: '16%',
-            customCell: (data, key, editMode, editable) => {
-              return  (
-                    (!!data.inventory) ? 
-                    <span>{data.inventory.threshold}</span>
-                    : <></>
-                );
-            },
-          },
-          {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'}
-        ]}
-      />
+            {key: "threshold", autoFocus: false, options: [], type: "Decimal", width: '16%',
+              customCell: (data, key, editMode, editable) => {
+                return  (
+                      (!!data.inventory) ? 
+                      <span>{data.inventory.threshold}</span>
+                      : <></>
+                  );
+              },
+            }
+          ]}
+        />
+        </div>
     </div>
   );
 };

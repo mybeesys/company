@@ -18,8 +18,7 @@ const PurchaseOrderTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['prep']}: ${data.no} ${translations[resp.data.op_status_name]}`,
-            text: translations.technicalerror ,
+            title: `${data.no} ${translations[resp.data.op_status_name]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,
@@ -43,9 +42,12 @@ const PurchaseOrderTable = ({ dir, translations }) => {
         changeStatus(data, 1, afterExecute);
       }});
     if(data.op_status != 4 && data.op_status!= 3)
-      actions.push({key:"recieveItems", action: (data)=>{    
-        window.location.href = `../purchaseOrder/${data.id}/recieve`;
-      }});
+      actions.push({
+        key:"recieveItems", 
+        action: (data)=>{    
+          window.location.href = `../purchaseOrder/${data.id}/recieve`;
+      }
+    });
     if(data.op_status != 4)
       actions.push({key:"finalized", action: (data, afterExecute)=>{
         changeStatus(data, 4, afterExecute);
@@ -87,6 +89,7 @@ const PurchaseOrderTable = ({ dir, translations }) => {
         title="purchaseOrders"
         cols={[
           {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
+          {key : "establishment", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "vendor", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},

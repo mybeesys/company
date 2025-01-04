@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import ReactDOM from 'react-dom/client';
+import { InputSwitch } from 'primereact/inputswitch';
 import axios from 'axios';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
@@ -9,14 +9,38 @@ const animatedComponents = makeAnimated();
 const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
   const rootElement = document.getElementById('root');
   const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
+  const listTaxurl = JSON.parse(rootElement.getAttribute('listTax-url'));
   const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
   let imageurl = rootElement.getAttribute('image-url');
   let dir = rootElement.getAttribute('dir');
   const [currentObject, setcurrentObject] = useState(product);
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const [taxOptions, setTaxOptions] = useState([]);
   const [subcategoryOption, setSubCategoryOptions] = useState([]);
 
-
+  const fetchTaxOptions = async () => {
+    try {
+      let response = await axios.get(listTaxurl);
+      const taxes = response.data.map(tax => ({
+        label: getRowName (tax, dir),  // The text shown in the select options
+        value: tax.id,    // The value of the selected option
+      }));
+      if (response.data.length > 0) {
+        if (!!!currentObject.tax_id){
+          currentObject['tax_id'] = response.data[0].id;
+          currentObject['tax'] = taxes[0];
+        }
+        else{
+          currentObject['tax'] = taxes.find(x=>x.value == currentObject.tax_id);
+        }
+      }
+      setTaxOptions(taxes);
+      setcurrentObject({ ...currentObject });
+      parentHandlechanges({ ...currentObject });
+    } catch (error) {
+      console.error("Error fetching options:", error);
+    }
+  };
 
   const fetchCategoryOptions = async () => {
     try {
@@ -69,7 +93,9 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   const handleChange = async (key, value, option) => {
     let r = { ...currentObject };
     r[key] = value;
-
+    if (key == "tax_id") {
+      r['tax'] = option;
+    }
     if (key == "category_id") {
       r['category'] = option;
       const subCategories = await fetchSubCategoryOptions(value);
@@ -84,12 +110,24 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
     fetchCategoryOptions(); // Trigger the fetch
-
+    fetchTaxOptions();
   }, []);
 
   return (
     <>
       <div class="card-body" dir={dir} style={{display: visible ? 'block' : 'none'}}>
+        <div class="d-flex  align-items-center pt-3">
+            <label class="fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "150px"}}>{translations.active}</label>
+            <div class="form-check form-switch">
+                {/* <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
+                    class="form-check-input" role="switch"
+                    id="active" checked={!!currentObject.active ? currentObject.active : false}
+                    onChange={(e) => handleChange('active', e.target.checked)}/> */}
+                <InputSwitch checked={!!currentObject.active ? !!currentObject.active : false} 
+                  onChange={(e) => handleChange('active', e.value)} />
+            </div>
+        </div>  
         <div class="form-group">
           <div class="row">
             <div class="col-6">
@@ -138,6 +176,24 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
         </div>
         <div class="form-group">
           <div class="row">
+            <div class="col-12">
+              <label for="name_ar" class="col-form-label">{translations.taxes}</label>
+              <Select
+                    id="tax_id"
+                    isMulti={false}
+                    options={taxOptions}
+                    closeMenuOnSelect={true}
+                    components={animatedComponents}
+                    value={currentObject.tax}
+                    onChange={val => handleChange('tax_id', val.value, val)}
+                    menuPortalTarget={document.body} 
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
+                />
+          </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="row">
             <div class="col-6">
               <label for="name_ar" class="col-form-label">{translations.deacription_ar}</label>
               <textarea type="text" class="form-control form-control-solid" id="description_ar" value={!!currentObject.description_ar ? currentObject.description_ar : ''}
@@ -171,8 +227,11 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
         <div class="form-group">
           <div class="row">
             <div class="col-6">
-              <label for="SKU" class="col-form-label">{translations.SKU}</label>
-              <input type="text" class="form-control form-control-solid custom-height" id="SKU" value={!!currentObject.SKU ? currentObject.SKU : ''}
+              <label for="SKU" class="col-form-label" >{translations.SKU}</label>
+              <input type="text" class="form-control form-control-solid custom-height" id="SKU" 
+                value={!!currentObject.SKU ? currentObject.SKU : ''}
+                placeholder="00000"
+                pattern="^\d{5}$"
                 onChange={(e) => handleChange('SKU', e.target.value)}
                 ></input>
             </div>
@@ -200,17 +259,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
             </div>
           </div>
         </div>
-        <div class="d-flex  align-items-center ">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.active}</label>
-            <div class="form-check">
-                <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input my-2"
-                    id="active" checked={!!currentObject.active ? currentObject.active : false}
-                    onChange={(e) => handleChange('active', e.target.checked)}/>
-            </div>
-        </div>
-        <div class="d-flex  align-items-center ">
+        {/* <div class="d-flex  align-items-center ">
             <label class="fs-6 fw-semibold mb-2 me-3 "
                 style={{width: "150px"}}>{translations.SoldByWeight}</label>
             <div class="form-check">
@@ -229,7 +278,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
                     onChange={(e) => handleChange('track_serial_number', e.target.checked)}
                   />
             </div>
-        </div>
+        </div> */}
         <div class="form-group" style={{ paddingtop: '5px' }}>
         </div>
 

@@ -14,9 +14,11 @@
                         <x-form.input class="form-control-solid" :label="__('employee::general.period')" name="periodDatePicker" />
                     </x-form.input-div>
                 </x-slot:elements>
-                <x-slot:export>
-                    <x-tables.export-menu id="shift" />
-                </x-slot:export>
+                @can('print', \Modules\Employee\Models\Shift::class)
+                    <x-slot:export>
+                        <x-tables.export-menu id="shift" />
+                    </x-slot:export>
+                @endcan
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">
@@ -51,6 +53,7 @@
         let filterFormat;
         let copyShiftFlatpickrInstance;
         let tableType;
+        let hasPermissionToUpdate = "{{ auth()->user()->hasDashboardPermission('employees.shifts.update') }}";
         const tableUrl = '{{ route('schedules.shifts.index') }}'
         const table = $('#kt_shift_table');
 

@@ -2,7 +2,7 @@ import React from 'react';
 import TreeTableModifier from './TreeTableModifier';
 
 
-const modifiertree = ({translations}) => {
+const modifiertree = ({translations, dir}) => {
     const rootElement = document.getElementById('root');
     const urlList = JSON.parse(rootElement.getAttribute('list-url'));
 
@@ -11,6 +11,7 @@ const modifiertree = ({translations}) => {
         <TreeTableModifier urlList = {urlList}
         rootElement ={rootElement}
         translations={translations}
+        dir={dir}
           />
       </div>
     );

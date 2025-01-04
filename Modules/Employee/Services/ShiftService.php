@@ -3,6 +3,7 @@
 namespace Modules\Employee\Services;
 
 use Carbon\Carbon;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 
@@ -127,6 +128,7 @@ class ShiftService
                 }, $divElement));
             }
         }
+        return '';
     }
 
     public function getEssentialColumns($employee)
@@ -135,8 +137,9 @@ class ShiftService
             'id' => $employee->id,
             'employee' => $this->lang === 'ar' ? $employee->name : $employee->name_en,
             'total_hours' => round($employee->timecards->sum('hours_worked'), 2),
-            'total_wage' => $employee->wage->rate,
-            'role' => implode('<br>', $employee->allRoles->pluck('name')->toArray()),
+            'basic_wage' => $employee->wage?->rate,
+            'total_wage' => $employee->wage?->rate + PayrollAdjustment::where('employee_id', $employee->id)->always()->get()->sum('amount'),
+            'role' => implode('<br>', $employee->allRoles->unique()->pluck('name')->toArray()),
             'establishment' => $employee?->defaultEstablishment?->name,
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
                             <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />

@@ -4,7 +4,7 @@ return [
     'no' => 'No',
     'date' => 'Date',
     'serial' => '#',
-    'itemDescription' => '÷tem Description',
+    'itemDescription' => 'Item Description',
     'qty' => 'Quantity',
     'unit' => 'Unit',
     'price' => 'Price',
@@ -16,4 +16,7 @@ return [
     'shippingAmount' => 'Shipping Amount',
     'grandTotal' => 'Grand Total',
     'buyerSig' => 'Buyer Signature',
+    'productInventory' => 'Inventory (Product)',
+    'ingredientInventory' => 'Inventory (Ingredient)',
+    'description' => 'Description'
 ];

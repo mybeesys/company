@@ -1,6 +1,7 @@
 @props(['modules', 'disabled' => false, 'rolePermissions' => null])
-<div class="table-responsive">
-    <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 mh-400px" id="dashboard-permissions-table">
+<div class="table-responsive w-75 mx-auto">
+    <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 mh-400px"
+        id="dashboard-permissions-table">
         <thead>
             <tr class="border-0 rounded-start rounded-end">
                 <th class="w-100 fs-6 fw-bold text-gray-800 p-0">
@@ -41,7 +42,7 @@
                             </div>
                             <div class="w-100 pe-5 my-auto">
                                 <div class="d-flex justify-content-between w-100 gap-11">
-                                    @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                    @foreach (['show', 'print', 'create', 'update', 'delete'] as $action)
                                         <x-form.input-div
                                             class="form-check form-check-custom form-check-solid {{ $loop->first ? 'ps-6' : ($loop->last ? 'pe-5' : '') }}"
                                             :row="false">
@@ -67,14 +68,14 @@
                                     $name_ar = explode('.', $key)[1];
                                     $name_en = explode('.', $key)[0];
                                 @endphp
-                                <div class="d-flex pt-10">
+                                <div @class(['d-flex', 'pt-10' => $loop->index === 1])>
                                     <div class="w-100 text-gray-700 fw-bold fs-4 d-flex">
                                         <div class="ps-11 w-100">
                                             {{ session('locale') == 'ar' ? $name_ar : $name_en }}
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between w-100 pe-5 gap-11">
-                                        @foreach (['show', 'print', 'create', 'edit', 'delete'] as $action)
+                                        @foreach (['show', 'print', 'create', 'update', 'delete'] as $action)
                                             @php
                                                 $isAvailable = $permission->has($action) ? $permission[$action] : null;
                                             @endphp
@@ -91,6 +92,7 @@
                                         @endforeach
                                     </div>
                                 </div>
+                                <div class="separator my-5 border-2"></div>
                             @endforeach
                         </div>
                     </td>

@@ -22,7 +22,7 @@ class PayrollGroupTable
             ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "state"],
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "payment_status"],
             ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "gross_total"],
-            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "net_total"],
+            // ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "net_total"],
         ];
     }
 

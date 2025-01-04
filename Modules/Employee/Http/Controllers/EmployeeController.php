@@ -9,10 +9,11 @@ use Log;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
+use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Models\PosRole;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
@@ -26,9 +27,9 @@ class EmployeeController extends Controller
 
     public function __construct()
     {
-        $this->establishments = Establishment::active()->get(['id', 'name']);
-        $this->dashboardRoles = Role::where('type', 'ems')->get(['id', 'name']);
-        $this->posRoles = Role::where('type', 'pos')->get(['id', 'name']);
+        $this->establishments = Establishment::active()->notMain()->get(['id', 'name']);
+        $this->dashboardRoles = DashboardRole::get(['id', 'name']);
+        $this->posRoles = PosRole::get(['id', 'name']);
         $this->allowances_types = PayrollAdjustmentType::allowance()->get();
     }
 

@@ -15,8 +15,8 @@
                             <span>@lang('employee::fields.establishment'): {{ implode(',', $establishments) }} </span>
                         </div>
                         <x-form.input-div class="w-100 min-w-200px">
-                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}" required
-                                value="{{ $payroll_group?->name }}" name="payroll_group_name" />
+                            <x-form.input :errors=$errors placeholder="{{ __('employee::fields.payroll_group_name') }}"
+                                required value="{{ $payroll_group?->name }}" name="payroll_group_name" />
                         </x-form.input-div>
                         <x-form.input-div class="w-100 min-w-200px">
                             <x-form.select name="payroll_group_state" :options="[
@@ -27,9 +27,6 @@
                                 placeholder="{{ __('employee::fields.status') }}" />
                         </x-form.input-div>
                     </x-slot:elements>
-                    <x-slot:export>
-                        <x-tables.export-menu id="shift" />
-                    </x-slot:export>
                 </x-tables.table-header>
             </x-cards.card-header>
             <x-cards.card-body class="table-responsive">
@@ -51,11 +48,14 @@
 
 @section('script')
     @parent
+    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
     <script>
         var urlParams = new URLSearchParams(window.location.search);
         let columns;
         let dataTable;
         let employeeId;
+        let establishment_ids;
+        let adjustmentType_type;
         let date;
         let allowancesCount = 0;
         let deductionsCount = 0;
@@ -66,7 +66,7 @@
         $(document).ready(function() {
 
             let employee_ids = urlParams.get('employee_ids');
-            let establishment_ids = urlParams.get('establishment_ids');
+            establishment_ids = urlParams.get('establishment_ids');
             date = urlParams.get('date');
 
             const queryParams = new URLSearchParams({
@@ -79,17 +79,15 @@
 
             payrollAllowanceModal();
             payrollDeductionModal();
-            addAllowancesForm("{{ route('schedules.adjustments.store-payroll-allowance') }}", dataUrl);
-            addDeductionForm("{{ route('schedules.adjustments.store-payroll-deduction') }}", dataUrl)
+            addAllowancesForm("{{ route('adjustments.store-allowance-cache') }}", dataUrl);
+            addDeductionForm("{{ route('adjustments.store-deduction-cache') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
             })
-            adjustmentRepeater('allowance', "{{ route('adjustment_types.store') }}",
-                "{{ session('locale') }}");
-            adjustmentRepeater('deduction', "{{ route('adjustment_types.store') }}",
-                "{{ session('locale') }}");
+            adjustmentRepeater('deduction');
+            adjustmentRepeater('allowance');
 
             lock();
 
@@ -116,9 +114,8 @@
 
         });
 
-        function lock(date, establishment_ids) {
+        function lock() {
             const lockKey = `payroll_creation_lock_${date}_(${establishment_ids})`;
-
             const extendLockUrl = '{{ route('schedules.payrolls.extendLock') }}';
 
             function extendLock() {
@@ -235,7 +232,7 @@
                         .trigger('change');
                     newItem.find('input[name*="[id]"]').val(allowanceId);
                 });
-
+                adjustmentType_type = "allowance";
                 setTimeout(() => {
                     $('#payroll_allowance_modal').modal('toggle');
                 }, 300);
@@ -287,127 +284,14 @@
                         .trigger('change');
                     newItem.find('input[name*="[id]"]').val(deductionId);
                 });
-
+                adjustmentType_type = "deduction";
                 setTimeout(() => {
                     $('#payroll_deduction_modal').modal('toggle');
                 }, 300);
             });
         }
 
-
-        function adjustmentRepeater(type, addAllowanceTypeUrl, lang) {
-            const customOptions = new Map();
-
-            function initializeSelect2(element) {
-                const addNewOption = {
-                    id: 'add_new',
-                    text: lang === 'ar' ? 'إضافة خيار جديد' : 'Add New Option',
-                    addNew: true
-                };
-                const allOptions = [addNewOption, ...Array.from(customOptions.values())];
-                const select2Config = {
-                    tags: false,
-                    data: allOptions,
-                    templateResult: function(option) {
-                        if (option.addNew) {
-                            return $(`
-                    <div class="add-new-option">
-                        <i class="fas fa-plus me-2"></i>
-                        <span>${option.text}</span>
-                    </div>
-                `);
-                        }
-                        return option.text;
-                    },
-                    templateSelection: function(option) {
-                        if (option.addNew) {
-                            return $(
-                                `<input type="text" class="select2-add-new-input" placeholder="${lang === 'ar' ? 'اكتب الخيار الجديد' : 'Type new option...'}"/>`
-                            );
-                        }
-                        return option.text;
-                    }
-                };
-                element.select2(select2Config)
-                    .on('select2:select', function(e) {
-                        const data = e.params.data;
-                        if (data.addNew) {
-                            setTimeout(() => {
-                                const input = $('.select2-add-new-input');
-                                input.focus();
-                                let isNewOptionHandled = false;
-
-                                input.on('keydown', function(e) {
-                                    if (e.which === 13) {
-                                        const newValue = $(this).val();
-                                        if (newValue.trim()) {
-                                            handleNewOption(element, newValue);
-                                            isNewOptionHandled = true;
-                                        }
-                                    }
-                                    if (e.which === 32) {
-                                        e.stopPropagation();
-                                    }
-                                });
-                                input.on('blur', function() {
-                                    if (!isNewOptionHandled) {
-                                        const newValue = $(this).val().trim();
-                                        if (newValue) {
-                                            handleNewOption(element, newValue);
-                                        } else {
-                                            element.val(null).trigger('change');
-                                        }
-                                    }
-                                    isNewOptionHandled = false;
-                                });
-                            }, 0);
-                        }
-                    });
-                reorderOptions();
-            }
-
-            function reorderOptions() {
-                const allRepeaters = $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
-                allRepeaters.each(function() {
-                    const currentElement = $(this);
-                    const addNewOption = currentElement.find('option[value="add_new"]');
-                    if (addNewOption.length) {
-                        addNewOption.detach();
-                        currentElement.append(addNewOption);
-                    }
-                });
-            }
-
-            function handleNewOption(element, newValue) {
-                const name_lang = lang === 'ar' ? 'name' : 'name_en';
-
-                ajaxRequest(addAllowanceTypeUrl, 'POST', {
-                        name: newValue,
-                        name_lang: name_lang,
-                        type: type
-                    })
-                    .done(function(response) {
-                        if (response.id) {
-                            const newOption = {
-                                id: response.id,
-                                text: newValue
-                            };
-                            customOptions.set(response.id, newOption);
-
-                            const newSelectOption = new Option(newOption.text, newOption.id, true, true);
-                            element.append(newSelectOption);
-
-                            reorderOptions();
-
-                            element.trigger('change');
-                            element.select2('open');
-                        }
-                    })
-                    .fail(function() {
-                        element.val(null).trigger('change');
-                    });
-            }
-
+        function adjustmentRepeater(type) {
             $(`#${type}_repeater`).repeater({
                 show: function() {
                     const $this = $(this);
@@ -428,10 +312,12 @@
                                 })
                             ]
                         });
+                    const customOptions = new Map();
 
                     initializeSelect2($this.find(
-                        `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                    ));
+                            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
+                        ), customOptions, true, "{{ session('locale') }}",
+                        "{{ route('adjustment_types.store') }}");
                 },
 
                 hide: function(deleteElement) {
@@ -445,13 +331,62 @@
             $.getJSON(dataUrl, {
                 firstEnter: firstEnter
             }, function(response) {
-                allowancesCount = 0;
-                deductionsCount = 0;
-                if (response.data.length > 0) {
-                    const firstRow = response.data[0];
-                    allowancesCount = firstRow.allowances_array ? Object.keys(firstRow.allowances_array).length : 0;
-                    deductionsCount = firstRow.deductions_array ? Object.keys(firstRow.deductions_array).length : 0;
-                }                
+                // let allowancesCount = 0;
+                // let dedctionsCount = 0;
+                // if (response.data.length > 0) {
+                const firstRow = response.data[1];
+
+                // const allAllowances = response.data
+                //     .filter(row => row.allowances_array) // Filter rows with allowances_array
+                //     .flatMap(row => Object.values(row.allowances_array)); // Combine all allowances
+
+                // Remove duplicates
+                // const uniqueAllowances = Array.from(new Set(allAllowances));
+
+
+                // const allDeductions = response.data
+                //     .filter(row => row.deductions_array) // Filter rows with allowances_array
+                //     .flatMap(row => Object.values(row.deductions_array)); // Combine all allowances
+
+                // // Remove duplicates
+                // const uniqueDeductions = Array.from(new Set(allDeductions));
+
+
+                const allowancesCount = response.data.reduce((max, row) => {
+                    const currentCount = row.allowances_array ? Object.keys(row.allowances_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+                const uniqueAllowances = response.data
+                    .filter(row => row.allowances_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.allowances_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
+
+
+                // Find the maximum length of deductions_array (if needed)
+                const deductionsCount = response.data.reduce((max, row) => {
+                    const currentCount = row.deductions_array ? Object.keys(row.deductions_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+                const uniqueDeductions = response.data
+                    .filter(row => row.deductions_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.deductions_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
 
                 // Update the table header (thead)
                 const tableHead = $('#kt_createPayroll_table thead');
@@ -469,7 +404,7 @@
                     '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.basic_wage')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due_before_tax')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due')</th>'
                 );
 
                 // Dynamic Allowances Header
@@ -482,9 +417,9 @@
                     `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
                 );
 
-                mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
-                );
+                // mainHeaderRow.append(
+                //     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
+                // );
                 mainHeaderRow.append(
                     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
                 );
@@ -493,25 +428,18 @@
 
                 // Create the second row (sub-headers)
                 const subHeaderRow = $('<tr></tr>');
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.regular_worked_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.overtime_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_hours')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_worked_days')</th>'
-                );
-                subHeaderRow.append(
-                    '<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
-                );
-                                
-                // Add dynamic allowance sub-headers
+                subHeaderRow.append(`
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.regular_worked_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.overtime_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_hours')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_worked_days')</th>
+                    <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>
+                    `);
+
+
+                // Add dynamic allowance sub-headers                
                 if (allowancesCount > 0) {
-                    Object.keys(response.data[0].allowances_array).forEach(key => {
+                    Object.keys(uniqueAllowances).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
@@ -522,7 +450,7 @@
                 );
                 // Add dynamic deduction sub-headers
                 if (deductionsCount > 0) {
-                    Object.keys(response.data[0].deductions_array).forEach(key => {
+                    Object.keys(uniqueDeductions).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
@@ -539,7 +467,7 @@
             });
         }
 
-        function decodeHTML(html) {
+        function decodeHTML(html = 0) {
             var txt = document.createElement("textarea");
             txt.innerHTML = html;
             return txt.value;
@@ -591,22 +519,25 @@
             // Add dynamic allowance and deduction columns
             if (data.length > 0) {
                 const firstRow = data[0];
-                  
-                Object.keys(firstRow.allowances_array || {}).forEach(key => {                    
+
+                Object.keys(firstRow.allowances_array || {}).forEach(key => {
                     columns.push({
+                        name: `allowances_array.${key}`,
                         data: `allowances_array.${key}`,
                         className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
-                        render: function(data) {                            
+                        render: function(data) {
                             return decodeHTML(data); // Decode and render as raw HTML
                         }
                     });
                 });
                 columns.push({
+                    name: 'total_allowances',
                     data: 'total_allowances',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
                 Object.keys(firstRow.deductions_array || {}).forEach(key => {
                     columns.push({
+                        name: `deductions_array.${key}`,
                         data: `deductions_array.${key}`,
                         className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6',
                         render: function(data) {
@@ -616,19 +547,17 @@
                 });
 
                 columns.push({
+                    name: 'total_deductions',
                     data: 'total_deductions',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
             }
             columns.push({
-                data: 'total_wage_before_tax',
-                className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
-            });
-            columns.push({
+                name: 'total_wage',
                 data: 'total_wage',
                 className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
             });
-            
+
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,

@@ -16,4 +16,7 @@ return [
     'shippingAmount' => 'قيمة الشحن',
     'grandTotal' => 'القيمة النهائية',
     'buyerSig' => 'توقيع البائع',
+    'productInventory' => 'جرد المستودع (منتجات)',
+    'ingredientInventory' => 'جرد المستودع (مواد)',
+    'description' => 'الوصف'
 ];

@@ -37,6 +37,8 @@ return [
     'costCenter'=>'مراكز التكلفة',
     'payroll_group' => 'مجموعات كشوف المرتبات',
     'company_settings' => 'إعدادات الشركة',
+    'adjustments' => 'البدلات والحسومات',
+
 
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',

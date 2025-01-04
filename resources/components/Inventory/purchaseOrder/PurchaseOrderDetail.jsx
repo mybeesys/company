@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import BasicInfoComponent from "../../comp/BasicInfoComponent";
-import TreeTableComponentLocal from "../../comp/TreeTableComponentLocal";
-import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
+import TreeTableEditorLocal from "../../comp/TreeTableEditorLocal";
+import SweetAlert2 from 'react-sweetalert2';
+import { getName } from "../../lang/Utils";
 
 const PurchaseOrderDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
     let purchaseOrder = JSON.parse(rootElement.getAttribute('purchaseOrder'));
+    console.log(purchaseOrder);
     const [currentObject, setcurrentObject] = useState(purchaseOrder);
-    
+    const [showAlert, setShowAlert] = useState(false);
+
     useEffect(() => {
         updateTotals(currentObject);
     }, [currentObject]);
@@ -32,6 +35,14 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
         setcurrentObject({...currentObject});
         return {message:"Done"};
     }
+
+    const validateObject = (data) =>{
+        if(!!!data.establishment) return `${translations.establishment} ${translations.required}`;
+        if(!!!data.vendor || data.vendor.length ==0) return `${translations.vendor} ${translations.required}`;
+        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit).length >0)
+            return translations['item_unit_error'];
+        return 'Success';
+    }
     
     return (
         <EditRowCompnent
@@ -46,7 +57,16 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                         onBasicChange={onBasicChange}
                         fields={
                             [
+                                {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
                                 {key:"vendor" , title:"vendor", searchUrl:"searchVendors", type:"Async", required : true},
+                                {key:"op_date" , title:"date", type:"Date", required : true, newRow: true},
+                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:4, newRow: true},
+                                {key:"tax" , title:"tax", type:"Decimal", size:4},
+                                {key:"total" , title:"total", type:"Decimal", readOnly: true, size:4},
+                                {key:"misc_amount" , title:"miscAmount", type:"Decimal", size:4, newRow: true},
+                                {key:"shipping_amount" , title:"shippingAmount", type:"Decimal", size:4},
+                                {key:"grand_total" , title:"grandTotal", type:"Decimal", readOnly: true, size:4}, 
+                                {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:8}
                             ]
                         }
                        />
@@ -55,7 +75,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                 key: 'items', 
                 visible: true, 
                 comp : 
-                <TreeTableComponentLocal
+                <TreeTableEditorLocal
                 translations={translations}
                 dir={dir}
                 header={true}
@@ -65,28 +85,29 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                 currentNodes={[...currentObject.items]}
                 defaultValue={{taxed : 0}}
                 cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', 
+                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'25%', 
                         editable:true, required:true,
-                        onChangeValue : (row, key, val, postExecute) => {
-                            axios.get(`${window.location.origin}/getProductInventory/${val.id}`)
+                        onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                            const result = val.id.split("-");
+                            axios.get(`${window.location.origin}/get${result[1] == 'p' ? 'Product' : 'Ingredient' }Inventory/${result[0]}`)
                             .then(response => {
                                 let prod = response.data;
-                                row.SKU = prod.SKU;
-                                row.item_type = 'p';
+                                nodes[rowKey].data.SKU = prod.SKU;
+                                nodes[rowKey].data.item_type = result[1];
                                 if(!!prod.inventory){
-                                    row.qty = prod.inventory.primary_vendor_default_quantity;
-                                    row.cost = prod.inventory.primary_vendor_default_price;
-                                    row.unit = prod.inventory.unit;
-                                    row.total = !!prod.inventory.primary_vendor_default_price && !!prod.inventory.primary_vendor_default_quantity 
+                                    nodes[rowKey].data.qty = prod.inventory.primary_vendor_default_quantity;
+                                    nodes[rowKey].data.cost = prod.inventory.primary_vendor_default_price;
+                                    nodes[rowKey].data.unit = prod.inventory.unit;
+                                    nodes[rowKey].data.total = !!prod.inventory.primary_vendor_default_price && !!prod.inventory.primary_vendor_default_quantity 
                                                         ? prod.inventory.primary_vendor_default_price * prod.inventory.primary_vendor_default_quantity : 0;
                                 }
                                 else{
-                                    row.qty = null;
-                                    row.cost = null;
-                                    row.unit = null;
-                                    row.total = null;
+                                    nodes[rowKey].data.qty = null;
+                                    nodes[rowKey].data.cost = null;
+                                    nodes[rowKey].data.unit = null;
+                                    nodes[rowKey].data.total = null;
                                 }
-                                postExecute(row);
+                                postExecute(nodes);
                             })
                             .catch(error => {
                               console.error('Error fetching translations', error);
@@ -101,49 +122,28 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                     {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:true,required:true,
                         searchUrl:"searchUnitTransfers",
                         relatedTo:{
-                            key: "product_id",
+                            key: "id",
                             relatedKey : "product.id"
                         }
                     },
                     {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
-                        onChangeValue : (row, key, val, postExecute) => {
-                            row.total = !!val && !!row.cost ? val * row.cost : null;
-                            postExecute(row);
+                        onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                            nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.cost ? val * nodes[rowKey].data.cost : null;
+                            postExecute(nodes);
                         }
                     },
                     {key : "cost", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
-                        onChangeValue : (row, key, val, postExecute) => {
-                            row.total = !!row.qty && !!val ? row.qty* val : null;
-                            postExecute(row);
+                        onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                            nodes[rowKey].data.total = !!nodes[rowKey].data.qty && !!val ? nodes[rowKey].data.qty* val : null;
+                            postExecute(nodes);
                         }
                     },
                     {key : "total", autoFocus: true, type :"Decimal", width:'15%', editable:true}
                 ]}
                 actions = {[]}
                 onUpdate={(nodes)=> onProductChange("items", nodes)}
-                onDelete={null}/>
-            },
-            { 
-                key: 'pOInfo', 
-                visible: true, 
-                comp : <BasicInfoComponent
-                        currentObject={currentObject}
-                        translations={translations}
-                        dir={dir}
-                        onBasicChange={onBasicChange}
-                        fields={
-                            [   
-                                {key:"op_date" , title:"date", type:"Date", required : true, newRow: true},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:4, newRow: true},
-                                {key:"tax" , title:"tax", type:"Decimal", size:4},
-                                {key:"total" , title:"total", type:"Decimal", readOnly: true, size:4},
-                                {key:"misc_amount" , title:"miscAmount", type:"Decimal", size:4, newRow: true},
-                                {key:"shipping_amount" , title:"shippingAmount", type:"Decimal", size:4},
-                                {key:"grand_total" , title:"grandTotal", type:"Decimal", readOnly: true, size:4}, 
-                                {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:8}
-                            ]
-                        }
-                       />
+                onDelete={null}
+                />
             }
           ]}
           currentObject={currentObject}
@@ -151,6 +151,8 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
           dir={dir}
           apiUrl="inventoryOperation/store/0"
           afterSubmitUrl="../../purchaseOrder"
+          type="purchaseOrder"
+          validateObject={validateObject}
         />
     );
 }

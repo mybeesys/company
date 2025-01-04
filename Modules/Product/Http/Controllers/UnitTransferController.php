@@ -33,7 +33,6 @@ class UnitTransferController extends Controller
         if ($request->has('id')) {
             
             $recipeIngredient = explode("-",$request['id']);
-            
             if($recipeIngredient[1] == 'p')
                 $request['product_id'] = $recipeIngredient[0];
             else

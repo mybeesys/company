@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import BasicInfoComponent from "../../comp/BasicInfoComponent";
-import TreeTableComponentLocal from "../../comp/TreeTableComponentLocal";
+import TreeTableEditorLocal from "../../comp/TreeTableEditorLocal";
 
 const PurchaseOrderReceive = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
@@ -35,31 +35,6 @@ const PurchaseOrderReceive = ({ dir, translations }) => {
         <EditRowCompnent
          defaultMenu={[
             { 
-                key: 'items', 
-                visible: true, 
-                comp : 
-                <TreeTableComponentLocal
-                translations={translations}
-                dir={dir}
-                header={true}
-                addNewRow={true}
-                type= {"items"}
-                title={translations.items}
-                currentNodes={[...currentObject.items]}
-                defaultValue={{taxed : 0}}
-                cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', editable:false},
-                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:false},
-                    {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:false} ,
-                    {key : "recievd_qty", autoFocus: true, type :"Decimal", width:'15%', editable:true} ,
-                    {key : "cost", autoFocus: true, type :"Decimal", width:'15%', editable:false},
-                    {key : "total", autoFocus: true, type :"Decimal", width:'15%', editable:false}
-                ]}
-                actions = {[]}
-                onUpdate={(nodes)=> onProductChange("items", nodes)}
-                onDelete={null}/>
-            },
-            { 
                 key: 'pOInfo', 
                 visible: true, 
                 comp : <BasicInfoComponent
@@ -79,6 +54,31 @@ const PurchaseOrderReceive = ({ dir, translations }) => {
                             ]
                         }
                        />
+            },
+            { 
+                key: 'items', 
+                visible: true, 
+                comp : 
+                <TreeTableEditorLocal
+                translations={translations}
+                dir={dir}
+                header={false}
+                addNewRow={false}
+                type= {"items"}
+                title={translations.items}
+                currentNodes={[...currentObject.items]}
+                defaultValue={{taxed : 0}}
+                cols={[
+                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', editable:false},
+                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:false},
+                    {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:false} ,
+                    {key : "recievd_qty", autoFocus: true, type :"Decimal", width:'15%', editable:true} ,
+                    {key : "cost", autoFocus: true, type :"Decimal", width:'15%', editable:false},
+                    {key : "total", autoFocus: true, type :"Decimal", width:'15%', editable:false}
+                ]}
+                actions = {[]}
+                onUpdate={(nodes)=> onProductChange("items", nodes)}
+                onDelete={null}/>
             }
           ]}
           currentObject={currentObject}
@@ -86,6 +86,7 @@ const PurchaseOrderReceive = ({ dir, translations }) => {
           dir={dir}
           apiUrl="updateRecive"
           afterSubmitUrl='../../purchaseOrder'
+          type="purchaseOrder"
         />
     );
 }

@@ -5,11 +5,13 @@ import axios from 'axios';
 
 const DeleteModal = ({ visible, onClose , onDelete, name, url , row ,translations}) => {
 
-  const handleClose = () => {
+  const handleClose = (e) => {
+    e.preventDefault();
     onClose();
    }
 
-   const handleDelete = async () => {
+   const handleDelete = async (e) => {
+    e.preventDefault();
     let r ={...row};
     r["method"] = "delete";
     const response = await axios.post(url, r);
@@ -23,7 +25,6 @@ const DeleteModal = ({ visible, onClose , onDelete, name, url , row ,translation
             <Modal.Header>
                 <Modal.Title>{translations.Delete}</Modal.Title>
             </Modal.Header>
-        <form class="needs-validation">
         <Modal.Body>
         <div class="container">
            <p>{translations.Doyouwanttodelete+" " +row.name_ar +" - "+row.name_en}</p>
@@ -31,11 +32,10 @@ const DeleteModal = ({ visible, onClose , onDelete, name, url , row ,translation
         </Modal.Body>
 
         <Modal.Footer>
-            <Button variant="secondary"  className="btn btn-flex btn-outline btn-color-gray-700 btn-active-color-primary bg-body h-40px fs-7 fw-bold"
-            onClick={e => handleClose()}>{translations.Close}</Button>
-            <Button onClick={e => handleDelete()} variant="primary" className="btn btn-danger">{translations.Delete}</Button>
+            <button variant="secondary"  className="btn btn-flex btn-outline btn-color-gray-700 btn-active-color-primary bg-body h-40px fs-7 fw-bold"
+            onClick={e => handleClose(e)}>{translations.Close}</button>
+            <button onClick={e => handleDelete(e)} variant="primary" className="btn btn-danger">{translations.Delete}</button>
         </Modal.Footer>
-        </form>	
         </Modal.Dialog>
    </div>
     );

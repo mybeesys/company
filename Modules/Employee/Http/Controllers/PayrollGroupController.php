@@ -20,8 +20,6 @@ class PayrollGroupController extends Controller
 
             return PayrollGroupTable::getPayrollGroupTable($payroll_groups);
         }
-        $columns = PayrollGroupTable::getPayrollGroupColumns();
-        return view('employee::schedules.payroll-group.index', compact('columns'));
     }
 
 

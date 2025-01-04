@@ -5,15 +5,17 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="timecard" url="schedule/timecard/create" module="employee" :search=false>
+            <x-tables.table-header model="timecard" url="schedule/timecard/create" :addButton="auth()->user()->hasDashboardPermission('employees.timecard.create')" module="employee" :search=false>
                 <x-slot:filters>
                     <x-tables.filters-dropdown>
                         <x-employee::timecards.filters />
                     </x-tables.filters-dropdown>
                 </x-slot:filters>
-                <x-slot:export>
-                    <x-tables.export-menu id="timecard" />
-                </x-slot:export>
+                @can('print', \Modules\Employee\Models\TimeCard::class)
+                    <x-slot:export>
+                        <x-tables.export-menu id="timecard" />
+                    </x-slot:export>
+                @endcan
             </x-tables.table-header>
         </x-cards.card-header>
         <x-cards.card-body class="table-responsive">

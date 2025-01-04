@@ -17,19 +17,25 @@ return [
 
                 'name' => 'products',
                 'url' => 'category',
-                'permission' => '',
+                'permission' => 'products.product.show',
+
+            ],
+            [
+                'name' => 'ingredient',
+                'url' => 'ingredient',
+                'permission' => 'products.ingredient.show',
 
             ],
             [
                 'name' => 'modifiers',
                 'url' => 'modifier',
-                'permission' => '',
+                'permission' => 'products.modifier.show',
 
             ],
             [
                 'name' => 'attribute',
                 'url' => 'attribute',
-                'permission' => '',
+                'permission' => 'products.attribute.show',
 
             ],
             [
@@ -56,14 +62,6 @@ return [
                 'permission' => '',
 
             ],
-            [
-                'name' => 'ingredient',
-                'url' => 'ingredient',
-                'permission' => '',
-
-            ],
-
-
         ]
     ],
     [
@@ -75,37 +73,37 @@ return [
             [
                 'name' => 'inventory',
                 'url' => 'productInventory',
-                'permission' => '',
+                'permission' => 'inventory.product.show',
             ],
             [
                 'name' => 'ingredientInventory',
                 'url' => 'ingredientInventory',
-                'permission' => '',
+                'permission' => 'inventory.ingredient.show',
             ],
             [
                 'name' => 'po',
                 'url' => 'purchaseOrder',
-                'permission' => '',
+                'permission' => 'inventory.purchaseOrder.show',
             ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
-                'permission' => '',
+                'permission' => 'inventory.prep.show',
             ],
             [
                 'name' => 'rma',
                 'url' => 'rma',
-                'permission' => '',
+                'permission' => 'inventory.rma.show',
             ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
-                'permission' => '',
+                'permission' => 'inventory.waste.show',
             ],
             [
                 'name' => 'transfer',
                 'url' => 'transfer',
-                'permission' => '',
+                'permission' => 'inventory.transfer.show',
             ]
         ]
     ],
@@ -191,11 +189,12 @@ return [
             [
                 'name' => 'company_settings',
                 'url' => 'company/setting',
+                'permission' => 'establishments.company.show',
             ],
             [
                 'name' => 'establishments',
                 'url' => 'establishment',
-                'permission' => '',
+                'permission' => 'establishments.establishments.show',
             ],
         ]
     ],
@@ -218,17 +217,22 @@ return [
             [
                 'name' => 'employees',
                 'url' => 'employee',
-                'permission' => '',
+                'permission' => 'employees.employees.show',
             ],
             [
                 'name' => 'pos_roles',
                 'url' => 'pos-role',
-                'permission' => '',
+                'permission' => 'employees.pos_roles.show',
             ],
             [
                 'name' => 'dashboard_roles',
                 'url' => 'dashboard-role',
-                'permission' => '',
+                'permission' => 'employees.dashboard_roles.show',
+            ],
+            [
+                'name' => 'adjustments',
+                'url' => 'adjustment',
+                'permission' => 'employees.allowances_deductions.show',
             ],
             [
                 'name' => 'schedules',
@@ -238,27 +242,22 @@ return [
                     [
                         'name' => 'timesheet_rule',
                         'url' => 'schedule/timesheet-rule',
-                        'permission' => '',
+                        'permission' => 'employees.time_sheet_rules.show',
                     ],
                     [
                         'name' => 'shift_schedule',
                         'url' => 'schedule/shift',
-                        'permission' => '',
+                        'permission' => 'employees.shifts.show',
                     ],
                     [
                         'name' => 'employees_working_hours',
                         'url' => 'schedule/timecard',
-                        'permission' => '',
+                        'permission' => 'employees.timecards.show',
                     ],
                     [
                         'name' => 'payroll',
                         'url' => 'schedule/payroll',
-                        'permission' => '',
-                    ],
-                    [
-                        'name' => 'payroll_group',
-                        'url' => 'schedule/payroll-group',
-                        'permission' => '',
+                        'permission' => ['employees.payrolls.show', 'employees.payrolls_groups.show'],
                     ],
                 ]
             ],

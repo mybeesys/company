@@ -6,6 +6,7 @@ use Modules\Inventory\Http\Controllers\IngredientInventoryController;
 use Modules\Inventory\Http\Controllers\InventoryOperationController;
 use Modules\Inventory\Http\Controllers\PrepController;
 use Modules\Inventory\Http\Controllers\ProductInventoryController;
+use Modules\Inventory\Http\Controllers\ProductInventoryReportController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderReportController;
 use Modules\Inventory\Http\Controllers\RMAController;
@@ -36,11 +37,14 @@ Route::middleware([
     Route::get('/purchaseOrderReport/{id}/generatePDF', [PurchaseOrderReportController::class, 'generatePDF'])->name('generatePDF');
     Route::get('/purchaseOrderReport/{id}/purchase_order_pdf', [PurchaseOrderReportController::class, 'purchase_order_pdf'])->name('purchaseOrder.purchase_order_pdf');
     Route::resource('purchaseOrderReport', PurchaseOrderReportController::class)->names('purchaseOrderReport');
+    Route::get('/productInventoryReport/{id}/productInventory_pdf', [ProductInventoryReportController::class, 'productInventory_pdf'])->name('productInventory.productInventory_pdf');
+    Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
     
     Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
     Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
     Route::resource('ingredientInventory', IngredientInventoryController::class)->names('ingredientInventory');
     Route::get('ingredientInventoryList', [IngredientInventoryController::class, 'getIngredientInventories'])->name('ingredientInventoryList');
+    Route::get('getIngredientInventory/{id}', [IngredientInventoryController::class, 'getIngredientInventory']);
     Route::resource('prep', PrepController::class)->names('prep');
     Route::resource('rma', RMAController::class)->names('rma');
     Route::resource('waste', WasteController::class)->names('waste');
@@ -51,9 +55,7 @@ Route::middleware([
     Route::post('/updateRecive', [PurchaseOrderController::class, 'updateRecive'])->name('updateRecive');
     Route::get('/purchaseOrder/{id}/recieve', [PurchaseOrderController::class, 'recieve'])->name('purchaseOrder.recieve');
     Route::post('/inventoryOperation/store/{type}', [InventoryOperationController::class, 'store'])->name('inventoryOperationStore');
-    Route::get('searchEstablishments', [TransferController::class, 'searchEstablishments'])->name('searchEstablishments');
     Route::get('warehouselist', [WarehouseController::class, 'getWarehouselist'])->name('warehouselist');
     Route::resource('warehouse', WarehouseController::class)->names('warehouse');
-    Route::get('searchWarhouse', [WarehouseController::class, 'searchWarhouse'])->name('searchWarhouse');
     
 });

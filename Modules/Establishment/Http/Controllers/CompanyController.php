@@ -16,7 +16,7 @@ class CompanyController extends Controller
     public function index(Request $request)
     {
         if (!get_company_id()) {
-            return;
+            return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
         }
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $countries = DB::connection('mysql')->table('countries')->get(['id', 'name_en', 'name_ar']);

@@ -15,8 +15,6 @@
 
 <head>
     <title>@yield('title') - MyBee</title>
-
-
     <meta charset="utf-8" />
     <meta name="description"
         content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -28,122 +26,121 @@
     <meta property="og:title" content="MyBee" />
     <meta property="og:url" content="https://keenthemes.com/metronic" />
     <meta property="og:site_name" content="Metronic by Keenthemes" />
-    <link rel="canonical" href="http://preview.keenthemes.comindex.html" />
-    <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!--begin::Fonts(mandatory for all pages)-->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
-    <!--end::Fonts-->
-    <!--begin::Vendor Stylesheets(used for this page only)-->
-    <link href="/assets/plugins/custom/fullcalendar/fullcalendar.bundle{{ $rtl_files }}.css" rel="stylesheet"
-        type="text/css" />
-    <link href="/assets/plugins/custom/datatables/datatables.bundle{{ $rtl_files }}.css" rel="stylesheet"
-        type="text/css" />
-    <!--end::Vendor Stylesheets-->
-    <!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
-    <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
-    <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
-
+    @include('layouts.css-references')
     @yield('css')
-
-    <script>
-        // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap"
-        rel="stylesheet">
     <style>
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.75);
+            /* Semi-transparent white background */
+            z-index: 9999;
+        }
+    
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        div {
+            scrollbar-width: auto;
+        }
+    
         body {
             font-family: 'Cairo', sans-serif;
             font-optical-sizing: 'auto';
             font-style: normal;
         }
-
+    
         .dropend .dropdown-toggle::after {
             border-left: 0;
             border-right: 0;
         }
-
+    
         tr:hover {
             background: #b4d4f8 !important;
             /* font-style: italic; */
-
+    
             font-weight: bold !important;
         }
-
-input.no-spin::-webkit-inner-spin-button,
-input.no-spin::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input.no-spin {
-    -moz-appearance: textfield; }
-
+    
+        input.no-spin::-webkit-inner-spin-button,
+        input.no-spin::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    
+        input.no-spin {
+            -moz-appearance: textfield;
+        }
+    
         .form-check:not(.form-switch) .form-check-input[type=checkbox] {
-
+    
             border: 1px solid #9b94949e !important;
         }
-
+    
         .form-control.form-control-solid {
             border-color: #9b94949e !important;
         }
-
+    
         .select2-container .select2-selection--single {
             height: 43.2px !important;
         }
-
+    
         .link-underline {
             text-decoration: underline !important;
             cursor: pointer !important;
             color: #007bff !important;
         }
-
+    
         .link-underline:hover {
             color: #0056b3 !important;
             text-decoration: underline !important;
         }
-
+    
         .menu-item-custom:hover {
             transition: color 0.2s ease;
             background-color: var(--bs-primary-light);
             color: var(--bs-primary);
         }
-
+    
         .menu-item-custom {
             display: block;
             border-radius: 11px;
         }
-
+    
         .menu-item-custom a {
             padding: 0.65rem 1rem;
             transition: none;
             outline: none !important;
         }
-
+    
         .select2-container .select2-selection--single .select2-selection__clear {
             position: absolute !important;
         }
-
-
+    
+    
         @if ($local == 'ar')
             .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
                 left: 1.25rem;
                 right: auto;
             }
-
+    
             .select2-selection__rendered {
                 padding-left: 0px !important;
             }
-
+    
             .select2-container .select2-selection--single .select2-selection__clear {
                 right: auto;
                 left: 3.5rem;
             }
-
+    
             .select2-selection__choice__display {
                 margin-right: 20px;
             }
@@ -152,11 +149,12 @@ input.no-spin {
                 padding-right: 0px !important;
             }
         @endif
-
+    
         .select2-container .select2-selection--single {
             height: auto;
         }
     </style>
+
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -170,6 +168,11 @@ input.no-spin {
         style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div id="initial-loader" class="page-loader">
+        <span class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </span>
     </div>
     <!--begin::Theme mode setup on page load-->
     <script>
@@ -2834,80 +2837,10 @@ input.no-spin {
         </div>
         <!--end::Modal dialog-->
     </div>
-    <!--end::Modal - Invite Friend-->
-    <!--end::Modals-->
-    <!--begin::Javascript-->
-    <script>
-        window.csrfToken = '{{ csrf_token() }}';
-        var hostUrl = "/assets/";
-    </script>
-    <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-    <script src="{{ url('/js/general.js') }}"></script>
-    <script src="{{ url('/js/date-picker.js') }}"></script>
-    <script src="/assets/plugins/global/plugins.bundle.js"></script>
-    <script src="/assets/js/scripts.bundle.js"></script>
-    <script src="/assets/js/dataTables.js"></script>
-    <script src="/assets/js/dataTables.bootstrap4.js"></script>
-    <!--end::Global Javascript Bundle-->
-    <!--begin::Vendors Javascript(used for this page only)-->
-    <script src="/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/radar.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/continentsLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/usaLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZonesLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
-    <script src="/assets/plugins/custom/datatables/datatables.bundle.js"></script>
-    <!--end::Vendors Javascript-->
 
-    <!--begin::Custom Javascript(used for this page only)-->
-    <script src="/assets/js/widgets.bundle.js"></script>
-    <script src="/assets/js/custom/widgets.js"></script>
-    <script src="/assets/js/custom/apps/chat/chat.js"></script>
-    <script src="/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
-    <script src="/assets/js/custom/utilities/modals/users-search.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    /*
-    <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" /> */
+    @include('layouts.js-references')
 
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script> --}}
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script> --}}
-    <script>
-        toastr.options = {
-            "closeButton": false,
-            "debug": false,
-            "newestOnTop": true,
-            "progressBar": false,
-            "positionClass": "toastr-top-right",
-            "preventDuplicates": true,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
-        if ("{{ session('success') }}") {
-            toastr.success("{{ session('success') }}");
-        }
-        if ("{{ session('error') }}") {
-            toastr.error("{{ session('error') }}");
-        }
-    </script>
-
-    <!-- Add any other dependent libraries (e.g., jstree) -->
     @yield('script')
-    <!--end::Custom Javascript-->
-    <!--end::Javascript-->
 </body>
 <!--end::Body-->
 

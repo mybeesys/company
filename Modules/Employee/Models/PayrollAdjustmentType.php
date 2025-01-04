@@ -4,10 +4,11 @@ namespace Modules\Employee\Models;
 
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayrollAdjustmentType extends BaseEmployeeModel
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -19,9 +20,19 @@ class PayrollAdjustmentType extends BaseEmployeeModel
         return ($this->{get_name_by_lang()} ?? $this->name_en) ?? $this->name;
     }
 
-    public function adjustment()
+    public function adjustments()
     {
-        return $this->hasMany(PayrollAdjustment::class);
+        return $this->hasMany(PayrollAdjustment::class, 'adjustment_type_id')->withTrashed();
+    }
+
+    public function allowances()
+    {
+        return $this->hasMany(PayrollAdjustment::class, 'adjustment_type_id')->where('type', 'allowance')->withTrashed();
+    }
+    
+    public function deductions()
+    {
+        return $this->hasMany(PayrollAdjustment::class, 'adjustment_type_id')->where('type', 'deduction')->withTrashed();
     }
 
     public function scopeAllowance(Builder $query)

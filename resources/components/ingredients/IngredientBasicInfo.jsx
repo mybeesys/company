@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import SweetAlert2 from 'react-sweetalert2';
-import axios from 'axios';
-
+import { InputSwitch } from 'primereact/inputswitch';
 const IngredientBasicInfo = ({dir, translations , units , vendors , currentObject , onBasicChange}) => {
 
   return (
     <div class="card-body" dir={dir}>
+        <div class="d-flex  align-items-center pt-3">
+            <label class="fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "150px"}}>{translations.active}</label>
+            <div class="form-check form-switch">
+                {/* <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
+                    class="form-check-input" role="switch"
+                    id="active" checked={!!currentObject.active ? currentObject.active : false}
+                    onChange={(e) => handleChange('active', e.target.checked)}/> */}
+                <InputSwitch checked={!!currentObject.active ? !!currentObject.active : false} 
+                    onChange={(e) => handleChange('active', e.value)} />
+            </div>
+        </div>
         <div class="form-group">
             <div class="row">
                 <div class="col-6">
@@ -27,17 +37,7 @@ const IngredientBasicInfo = ({dir, translations , units , vendors , currentObjec
                     <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" id="amount" value={currentObject.cost}
                         onChange={(e) => onBasicChange('cost', e.target.value)} required></input>
                 </div>
-                <div class="col-6">
-                    <label for="name_ar" class="col-form-label">{translations.Unit}</label>
-                    <select class="form-control form-control-solid custom-height selectpicker" value={currentObject.unit_measurement} 
-                        onChange={(e) => onBasicChange('unit_measurement', e.target.value)} >
-                        {units.map((appType) => (
-                            <option key={appType.value} value={appType.value}>
-                                {appType.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                
             </div>
         </div>
         <div class="form-group">
@@ -88,16 +88,7 @@ const IngredientBasicInfo = ({dir, translations , units , vendors , currentObjec
                 </div>
             </div>
         </div>
-        <div class="d-flex align-items-center pt-3">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.active}</label>
-            <div class="form-check">
-                <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input my-2"
-                    id="active" checked={!!currentObject.active == 1 ? true : false}
-                    onChange={(e) => onBasicChange('active', e.target.checked)}/>
-            </div>
-        </div>
+        
     </div>
 );
 }
