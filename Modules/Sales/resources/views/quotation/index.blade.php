@@ -31,7 +31,7 @@
                         @lang('sales::lang.create_suggestion_quotation')
                     </h4>
                     <a href="{{ route('create-quotation') }}"
-                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">إنشاء عرض سعر </a>
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_quotation')</a>
                 </div>
 
             </div>
