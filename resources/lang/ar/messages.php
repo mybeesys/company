@@ -3,6 +3,8 @@ return [
     'try_now' => 'جرّب الآن',
     'edit' => 'نعديل',
     'activate' => 'تنشيط',
+    'active' => 'فعال',
+    'in_active' => 'غير فعال',
 
     'deactivate' => 'إلغاء تنشيط',
     'inactive' => 'غير نشط',

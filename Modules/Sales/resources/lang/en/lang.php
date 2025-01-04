@@ -91,9 +91,12 @@ return [
     'toggleStorehouse' => 'Enable Storehouse',
     'Delegates' => 'Delegates',
     'payment_account_note' => 'The account to which the payment was credited',
-    'payment_account_select'=>'Select account to which the payment was credited',
+    'payment_account_select' => 'Select account to which the payment was credited',
     'unit' => 'unit',
-
+    'no_quotation' => 'You do not have any quotation.',
+    'create_suggestion_quotation' => 'We provide you with an advanced tool for creating sales quotations, which are official business documents that allow sellers to present detailed information about the proposed products or services to customers. These documents include descriptions of quantities, prices, and terms of sale, ensuring transparency in expected costs, enhancing professionalism, and streamlining business operations efficiently.',
+    'quotation' => 'Quotation',
+    'Create a sales quotation' => 'Create a sales quotation',
 
 
 

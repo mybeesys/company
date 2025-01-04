@@ -123,6 +123,12 @@ return [
                 'url' => 'invoices',
                 'permission' => '',
             ],
+
+            [
+                'name' => 'quotations',
+                'url' => 'quotations',
+                'permission' => '',
+            ],
         ]
     ],
     [

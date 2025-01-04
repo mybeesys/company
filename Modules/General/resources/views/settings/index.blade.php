@@ -96,7 +96,7 @@
                         class="btn bg-light btn-color-gray-600 btn-active-text-gray-800 border border-3 border-gray-100 border-active-primary btn-active-light-primary w-100 mb-5 px-4"
                         data-kt-button="true">
                         <input class="btn-check" type="radio" name="method" value="0">
-                        <i class="ki-outline fas {{$card['icon']}}  fs-2hx mb-2 pe-0"></i>
+                        <i class="{{$card['icon']}}  fs-2hx mb-2 pe-0"></i>
                         <span class="fs-7 fw-bold d-block">{{$card['name']}}</span>
                     </label>
                 </a>

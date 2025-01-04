@@ -9,4 +9,7 @@ return [
     'sales' => 'المبيعات',
     'no_data_to_show'=>'لا توجد بيانات متوفرة!',
     'reach-non-existent-customer'=>'محاولة وصول لعميل غير موجود',
+    'add_quotation' => 'إنشاء عرض سعر',
+    'quotation_search' => 'البحث عن عرض سعر ',
+
 ];

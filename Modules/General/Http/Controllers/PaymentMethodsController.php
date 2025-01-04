@@ -4,34 +4,25 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Models\PaymentMethod;
 
-class GeneralController extends Controller
+class PaymentMethodsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('general::index');
-    }
 
+        if ($request->ajax()) {
 
-    public function setting()
-    {
-        $cards = [
-            [
-                'name' => __('menuItemLang.taxes'),
-                'route' => 'taxes',
-                'icon' => 'ki-outline fas fa-percent',
-            ],
-            [
-                'name' => __('general::lang.payment_methods'),
-                'route' => 'payment-methods',
-                'icon' => 'fa-solid fa-wallet',
-            ],
+            $paymentMethods = PaymentMethod::all();
+            return  PaymentMethod::getPaymentMethodsTable($paymentMethods);
+        }
 
-        ];
-        return view('general::settings.index', compact('cards'));
+        $columns = PaymentMethod::getsPaymentMethodsColumns();
+
+        return view('general::payment-methods.index',compact('columns'));
     }
 
     /**
