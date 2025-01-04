@@ -138,7 +138,7 @@ class PayrollService
 
         $deductions_cache = collect(Cache::get("deduction_{$employee->id}_{$date}"));
         $ids = $deductions->pluck('id')->toArray();
-        $common_html = "<div class='add-deductions-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
+        $common_html = "<div class='add-deductions-button d-flex gap-3 align-items-center text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
 
         if ((request()->firstEnter === "false")) {
             [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions_cache, $common_html, "deduction");
