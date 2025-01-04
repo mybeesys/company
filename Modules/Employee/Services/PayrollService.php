@@ -159,7 +159,13 @@ class PayrollService
             [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions, $common_html, "deduction");
 
             $sum = $deductions?->sum('amount') ?? 0;
-            $common_html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}
+                <i class='ki-duotone ki-plus-square fs-4'>
+                    <span class='path1'></span>
+                    <span class='path2'></span>
+                    <span class='path3'></span>
+                </i>
+            </div>";
         }
         return [$deductions_array, $common_html, $sum, $ids];
     }
