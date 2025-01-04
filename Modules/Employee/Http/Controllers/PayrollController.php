@@ -32,7 +32,7 @@ class PayrollController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $payrolls = Payroll::with('employee', 'payrollGroup', 'adjustments', 'adjustments.adjustmentType');
+            $payrolls = Payroll::with('employee', 'payrollGroup', 'allowances', 'deductions', 'adjustments.adjustmentType');
             if ($request->has('date_filter') && !empty($request->date_filter)) {
                 $payrolls->whereRelation('payrollGroup', 'date', $request->date_filter);
             }
@@ -129,9 +129,9 @@ class PayrollController extends Controller
         $lock = Cache::lock($lockKey, 60);
 
         try {
-            if (!$lock->get()) {
-                return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
-            }
+            // if (!$lock->get()) {
+            //     return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
+            // }
 
             $payrollDataExists = collect($employeeIds)->every(function ($employeeId) use ($date) {
                 return Cache::has("payroll_table_{$date}_" . $employeeId);
