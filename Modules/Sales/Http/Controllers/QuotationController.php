@@ -35,7 +35,7 @@ class QuotationController extends Controller
             return  Transaction::getSellsTable($transaction);
         }
 
-        $columns = Transaction::getsSellsColumns();
+        $columns = Transaction::getsQuotationColumns();
         return view('sales::quotation.index', compact('columns', 'transaction'));
     }
 
