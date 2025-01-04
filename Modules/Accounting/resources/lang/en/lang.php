@@ -135,9 +135,7 @@ return [
     'sell' => 'Sales invoice',
     'is_main' => 'Is the center main?',
     'Closing balance' => 'Closing balance',
-    'main_cost_center_note' => 'Sub-centers can be added under this center and it cannot be used in financial transactions',
-    'sub_cost_center_note' => 'No sub-centers can be added under this center and it can be used in financial transactions',
-
+    'cost_center_note' => 'Sub cost centers can be used in financial transactions, while main cost centers can only have sub-centers added under them and are not used in financial transactions.',
 
 
 
