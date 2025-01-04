@@ -4,7 +4,6 @@
 namespace Modules\Employee\Classes;
 use Cache;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
 use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Services\PayrollService;
@@ -35,7 +34,7 @@ class PayrollTable
         foreach ($adjustment->get('allowance', []) as $allowance) {
             $baseColumns[] = [
                 "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-                "name" => "allowance_{$allowance->adjustmentType->id}",
+                "name" => "allowance_{$allowance->adjustment_type_id}",
                 "translated_name" => $allowance->adjustmentType->{get_name_by_lang()},
                 "group" => "allowances"
             ];
@@ -47,11 +46,10 @@ class PayrollTable
             "translated_name" => __('employee::fields.total_allowances'),
             "group" => "allowances"
         ];
-
         foreach ($adjustment->get('deduction', []) as $deduction) {
             $baseColumns[] = [
                 "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-                "name" => "deduction_{$deduction->id}",
+                "name" => "deduction_{$deduction->adjustment_type_id}",
                 "translated_name" => $deduction->adjustmentType->{get_name_by_lang()},
                 "group" => "deductions"
             ];
@@ -138,14 +136,13 @@ class PayrollTable
         foreach ($adjustment_types->get('allowance', []) as $allowance_type) {
             $columnName = 'allowance_' . $allowance_type->id;
             $datatable->addColumn($columnName, function ($row) {
-                return $row->adjustments()?->sum('amount') ?? 0;
+                return $row->allowances()?->sum('amount') ?? 0;
             });
         }
 
         $datatable->addColumn('allowances', function ($row) {
             return $row->allowances;
         });
-
         // Add dynamic columns for each deduction type
         foreach ($adjustment_types->get('deduction', []) as $deduction_type) {
             $columnName = 'deduction_' . $deduction_type->id;

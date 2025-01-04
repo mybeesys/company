@@ -146,7 +146,7 @@ class PayrollService
         $ids = $deductions->pluck('id')->toArray();
         $common_html = "<div class='add-deductions-button d-flex gap-3 align-items-center text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
 
-        if ((request()->firstEnter === "false")) {
+        if ($deductions_cache->isNotEmpty() && (request()->firstEnter === "false")) {
             [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions_cache, $common_html, "deduction");
 
             $sum = $deductions_cache->sum('amount');
