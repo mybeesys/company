@@ -5,6 +5,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import DeleteModal from '../product/DeleteModal';
 import { TreeTable } from 'primereact/treetable';
 
+const defaultObjectValue = {active:1};
 const Ingredient = ({translations, dir}) => 
     {
         const rootElement = document.getElementById('root');
@@ -125,10 +126,14 @@ const Ingredient = ({translations, dir}) =>
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
                 if (node.key == key) {
-                    if (!!parentNode)
+                    if (!!parentNode){
+                        parentNode.children[parentNode.children.length-1].key = key;
                         parentNode.children.splice(index, 1);
-                    else
+                    }
+                    else{
+                        nodes[nodes.length-1].key = key;
                         nodes.splice(index, 1);
+                    }
                     break;
                 }
             }
@@ -299,7 +304,9 @@ const Ingredient = ({translations, dir}) =>
             parentKey = parentKey + '-' + seg[index];
         }
         node.data.empty = null;
-
+        for (const key in defaultObjectValue) {
+            node.data[key] = defaultObjectValue[key];
+        }
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
             data: { type: type, parentKey: parentKeyName,  empty: 'Y' }
@@ -372,7 +379,6 @@ const Ingredient = ({translations, dir}) =>
                         <Column header={translations.name_en} style={{ width: '13%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable></Column>
                         <Column header={translations.name_ar}  style={{ width: '13%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                         <Column header={translations.cost} style={{ width: '6%' }}  body={(node) => (renderDecimalCell(node, 'cost'))} sortable> </Column>
-                        <Column header={translations.unitType} style={{ width: '10%' }}  body={(node) =>(renderDropDownCell(node, 'unit_measurement', false, unitTypeValues))} sortable> </Column>
                         <Column header={translations.active} style={{ width: '6%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
                         <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
                     </TreeTable>

@@ -2,11 +2,14 @@
 
 namespace Modules\Employee\database\seeders;
 
+use Carbon\Carbon;
+use DB;
 use Hash;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Crypt;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
+use Modules\Employee\Models\TimeCard;
+use Modules\Establishment\Models\Establishment;
 
 class EmployeeDatabaseSeeder extends Seeder
 {
@@ -15,17 +18,26 @@ class EmployeeDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Employee::firstOrCreate(['email' => 'admin@admin.com'], [
+        $employee = Employee::updateOrCreate(['email' => 'admin@admin.com'], [
             'name' => 'آدمن',
             'name_en' => 'admin',
+            'user_name' => 'admin',
             'password' => Hash::make('12345678'),
+            'establishment_id' => Establishment::notMain()->active()->first()?->id,
+            'employment_start_date' => now()->format('Y-m-d'),
             'pin' => 99913,
             'ems_access' => true,
             'pos_is_active' => true
         ]);
-        // Employee::factory()->count(5)->create();
+
+        $establishment = Establishment::active()->notMain()->first();
+
         $pos_permissions = include base_path('Modules/Employee/data/pos-permissions.php');
         $dashboard_permissions = include base_path('Modules/Employee/data/dashboard-permissions.php');
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Permission::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         $permissions = array_merge($pos_permissions, $dashboard_permissions);
         foreach ($permissions as $permission) {
             Permission::updateOrCreate(
@@ -39,5 +51,8 @@ class EmployeeDatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        $permissions = Permission::where('name', 'LIKE', '%all%')->where('type', 'ems')->get();
+        $employee->syncPermissions($permissions);
     }
 }

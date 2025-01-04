@@ -5,7 +5,9 @@ function roleRepeater() {
     $('#pos_role_repeater').repeater({
         initEmpty: !hasInitialValues,
         show: function () {
-            $(this).slideDown();
+            setTimeout(() => {
+                $(this).slideDown();
+            }, 1);
             $(this).find('select[name^="pos_role_repeater"]').select2({
                 minimumResultsForSearch: -1,
             });
@@ -30,141 +32,58 @@ function initElements() {
         minimumResultsForSearch: -1,
     });
 }
+function updateTotalWage() {
+    let baseWage = parseFloat($('input[name="wage_amount"]').val()) || 0;
+    let percentageTotal = 0;
+    let fixedTotal = 0;
 
-function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
-    const customOptions = new Map();
+    // First calculate all percentages
+    $('input[name^="allowance_repeater"][name$="[amount]"]').each(function () {
+        const allowanceAmount = parseFloat($(this).closest('.d-flex').find('input[name$="[amount]"]').val()) || 0;
+        const amountType = $(this).closest('.d-flex').find('select[name$="[amount_type]"]').val();
 
-    function initializeSelect2(element) {
-        const addNewOption = {
-            id: 'add_new',
-            text: lang === 'ar' ? 'إضافة خيار جديد' : 'Add New Option',
-            addNew: true
-        };
-        const allOptions = [addNewOption, ...Array.from(customOptions.values())];
-        const select2Config = {
-            tags: false,
-            data: allOptions,
-            templateResult: function (option) {
-                if (option.addNew) {
-                    return $(`
-            <div class="add-new-option">
-                <i class="fas fa-plus me-2"></i>
-                <span>${option.text}</span>
-            </div>
-        `);
-                }
-                return option.text;
-            },
-            templateSelection: function (option) {
-                if (option.addNew) {
-                    return $(
-                        `<input type="text" class="select2-add-new-input" placeholder="${lang === 'ar' ? 'اكتب الخيار الجديد' : 'Type new option...'}"/>`
-                    );
-                }
-                return option.text;
-            }
-        };
+        if (amountType === 'percent') {
+            percentageTotal += allowanceAmount / 100;
+        } else {
+            fixedTotal += allowanceAmount;
+        }
+    });
 
-        element.select2(select2Config)
-            .on('select2:select', function (e) {
-                const data = e.params.data;
-                if (data.addNew) {
-                    setTimeout(() => {
-                        const input = $('.select2-add-new-input');
-                        input.focus();
-                        let isNewOptionHandled = false;
+    // Calculate final total
+    let totalWage = baseWage + (baseWage * percentageTotal) + fixedTotal;
 
-                        input.on('keydown', function (e) {
-                            if (e.which === 13) {
-                                const newValue = $(this).val();
-                                if (newValue.trim()) {
-                                    handleNewOption(element, newValue);
-                                    isNewOptionHandled = true;
-                                }
-                            }
-                            if (e.which === 32) {
-                                e.stopPropagation();
-                            }
-                        });
-                        input.on('blur', function () {
-                            if (!isNewOptionHandled) {
-                                const newValue = $(this).val().trim();
-                                if (newValue) {
-                                    handleNewOption(element, newValue);
-                                } else {
-                                    element.val(null).trigger('change');
-                                }
-                            }
-                            isNewOptionHandled = false;
-                        });
-                    }, 0);
-                }
-            });
-        reorderOptions();
-    }
+    $('#total-wage-span').text(`${Lang.get('fields.total_wage')}: ${totalWage.toFixed(2)}`);
+}
 
-    function reorderOptions() {
-        const allRepeaters = $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
-        allRepeaters.each(function () {
-            const currentElement = $(this);
-            const addNewOption = currentElement.find('option[value="add_new"]');
-            if (addNewOption.length) {
-                addNewOption.detach();
-                currentElement.append(addNewOption);
-            }
-        });
-    }
+$(document).on('change', 'select[name^="allowance_repeater"][name$="[amount_type]"]', function () {
+    updateTotalWage();
+});
 
-    function handleNewOption(element, newValue) {
-        const name_lang = lang === 'ar' ? 'name' : 'name_en';
+$(document).on('keyup', 'input[name="wage_amount"], input[name^="allowance_repeater"][name$="[amount]"]', function () {
+    updateTotalWage();
+});
 
-        ajaxRequest(addAllowanceTypeUrl, 'POST', {
-            name: newValue,
-            name_lang: name_lang,
-            type: type
-        })
-            .done(function (response) {
-                if (response.id) {
-                    const newOption = {
-                        id: response.id,
-                        text: newValue
-                    };
-                    customOptions.set(response.id, newOption);
-
-                    const newSelectOption = new Option(newOption.text, newOption.id, true, true);
-                    element.append(newSelectOption);
-
-                    reorderOptions();
-
-                    element.trigger('change');
-                    element.select2('open');
-                }
-            })
-            .fail(function () {
-                element.val(null).trigger('change');
-            });
-    }
-
+function adjustmentRepeater(lang, addAllowanceTypeUrl) {
+    
     $('.employee-adjustments').each(function () {
         const hasInitialValues = $(
-            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+            `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
             .val() !== undefined &&
-            $(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+            $(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
                 .val() !== '';
 
-        $(`#${type}_repeater`).repeater({
+        $(`#${adjustmentType_type}_repeater`).repeater({
             initEmpty: !hasInitialValues,
-
             show: function () {
                 const $this = $(this);
                 $this.slideDown();
 
-                $this.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                $this.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
                     .select2({
                         minimumResultsForSearch: -1
                     });
 
-                $this.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                $this.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
                     .flatpickr({
                         plugins: [
                             monthSelectPlugin({
@@ -175,20 +94,22 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
                         ]
                     });
 
+                const customOptions = new Map(); // Moved inside show function
+
                 initializeSelect2($this.find(
-                    `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                ));
+                    `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`
+                ), customOptions, true, lang, addAllowanceTypeUrl);
             },
 
             ready: function () {
-                const $repeater = $(`#${type}_repeater`);
+                const $repeater = $(`#${adjustmentType_type}_repeater`);
 
-                $repeater.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
                     .select2({
                         minimumResultsForSearch: -1
                     });
 
-                $repeater.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
+                $repeater.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
                     .flatpickr({
                         plugins: [
                             monthSelectPlugin({
@@ -199,9 +120,13 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
                         ]
                     });
 
-                $repeater.find(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`)
+                const customOptions =
+                    new Map(); // Also need to define it here for ready function
+
+                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
                     .each(function () {
-                        initializeSelect2($(this));
+                        initializeSelect2($(this), customOptions, true, lang,
+                            addAllowanceTypeUrl);
                     });
             },
 
@@ -213,8 +138,11 @@ function allowanceRepeater(type, addAllowanceTypeUrl, lang) {
 }
 
 function permissionSetRepeater() {
+    const hasInitialValues = $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== undefined &&
+        $('select[name="dashboard_role_repeater[0][dashboardRole]"]').val() !== '';
+
     $('#dashboard_role_repeater').repeater({
-        initEmpty: false,
+        initEmpty: !hasInitialValues,
         show: function () {
             $(this).slideDown();
 
@@ -229,14 +157,7 @@ function permissionSetRepeater() {
             });
         },
         hide: function (deleteElement) {
-            if ($('#dashboard_role_repeater [data-repeater-item]').length > 1) {
-                $(this).slideUp(deleteElement);
-            } else {
-                showAlert(Lang.get('responses.empty_repeater_warning'),
-                    Lang.get('general.ok'),
-                    undefined, undefined,
-                    false, "error");
-            }
+            $(this).slideUp(deleteElement);
         }
     });
 }
@@ -306,6 +227,13 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
         let input = $(this);
         validateField(input, validationUrl, saveButton);
+        console.log($('[name="wage_amount"]').val());
+
+        if ($('[name="wage_amount"]').val()) {
+            $('[name="wage_type"]').attr('required', 'required');
+        } else {
+            $('[name="wage_type"]').removeAttr('required');
+        }
     });
 
     $('#generate_pin').on('click', function (e) {

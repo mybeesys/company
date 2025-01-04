@@ -20,6 +20,7 @@ use Modules\Product\Http\Controllers\CreditCardTypeController;
 use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\DiscountController;
 use Modules\Product\Http\Controllers\DiscountLOVController;
+use Modules\Product\Http\Controllers\GeneralController;
 use Modules\Product\Http\Controllers\LinkedComboController;
 use Modules\Product\Http\Controllers\ModeController;
 use Modules\Product\Http\Controllers\StationController;
@@ -115,4 +116,6 @@ Route::middleware([
     Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
     Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
     Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
+    Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
+    Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
 });

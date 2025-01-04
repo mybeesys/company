@@ -17,8 +17,7 @@ const WasteTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['prep']}: ${data.no} ${translations[resp.data.op_status_name]}`,
-            text: translations.technicalerror ,
+            title: `${data.no} ${translations[resp.data.op_status_name]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,
@@ -66,6 +65,7 @@ const WasteTable = ({ dir, translations }) => {
         title="waste"
         cols={[
           {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
+          {key : "establishment", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},
           {key : "op_status", autoFocus: true, type :"Date", width:'15%',

@@ -34,12 +34,6 @@ class AdjustmentAction
                 }
             }
             if ($type == 'allowance') {
-                $general_allowances = $employee->allowances()->always()->whereNotIn('id', $ids)->get();
-                foreach ($general_allowances as $allowance) {
-                    $allowance->update([
-                        'applicable_date' => Carbon::createFromFormat('Y-m', $date)->addMonth()->startOfMonth(),
-                    ]);
-                }
                 $employee->allowances()->once()->whereNotIn('id', $ids)->where('applicable_date', "{$date}-01")->delete();
             } else {
                 $employee->deductions()->whereNotIn('id', $ids)->where('applicable_date', "{$date}-01")->once()->delete();
@@ -47,13 +41,7 @@ class AdjustmentAction
 
         } else {
             if ($type == 'allowance') {
-                $general_allowances = $employee->allowances()->always()->get();
                 $employee->allowances()->where('applicable_date', "{$date}-01")->once()->delete();
-                foreach ($general_allowances as $allowance) {
-                    $allowance->update([
-                        'applicable_date' => Carbon::createFromFormat('Y-m', $date)->addMonth()->startOfMonth(),
-                    ]);
-                }
             } else {
                 $employee->deductions()->where('applicable_date', "{$date}-01")->once()->delete();
             }

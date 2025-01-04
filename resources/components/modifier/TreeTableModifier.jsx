@@ -4,9 +4,11 @@ import { Column } from 'primereact/column';
 import DeleteModal from '../product/DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
+import { getRowName } from '../lang/Utils';
 
-
-const TreeTableModifier = ({ urlList, rootElement, translations }) => {
+const defaultObjectValue = {active:1};
+const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
+    const listTaxurl = JSON.parse(rootElement.getAttribute('listTax-url'));
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState('');
@@ -15,6 +17,20 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
+    const [taxOptions, setTaxOptions] = useState([]);
+
+    const fetchTaxOptions = async () => {
+        try {
+            let response = await axios.get(listTaxurl);
+            const taxes = response.data.map(tax => ({
+                label: getRowName (tax, dir),  // The text shown in the select options
+                value: tax.id,    // The value of the selected option
+            }));
+            setTaxOptions(taxes);
+        } catch (error) {
+            console.error("Error fetching options:", error);
+        }
+    };
     
     const handleDelete = (message) => {
         if (message != "Done") {
@@ -52,6 +68,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
     }
 
     useEffect(() => {
+        fetchTaxOptions();
         refreshTree();
     }, []);
 
@@ -69,10 +86,14 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
                 if (node.key == key) {
-                    if (!!parentNode)
+                    if (!!parentNode){
+                        parentNode.children[parentNode.children.length-1].key = key;
                         parentNode.children.splice(index, 1);
-                    else
+                    }
+                    else{
+                        nodes[nodes.length-1].key = key;
                         nodes.splice(index, 1);
+                    }
                     break;
                 }
             }
@@ -123,6 +144,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
             });
             return;
         }
+        setEditingRow({});
         setCurrentKey('-1');
         refreshTree();
     }
@@ -168,6 +190,9 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
             parentKey = parentKey + '-' + seg[index];
         }
         node.data.empty = null;
+        for (const key in defaultObjectValue) {
+            node.data[key] = defaultObjectValue[key];
+        }
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
             data: { type: type, parentKey: parentKeyName,  empty: 'Y' }
@@ -180,12 +205,16 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
         }
         setCurrentKey(key);
         setNodes([...nodes]);
+        setEditingRow({ ...node.data });
     }
 
     const renderTextCell = (node, key, autoFocus) => {
-        const indent = (node.key).toString().split('-').length;
+        let indent = (node.key).toString().split('-').length;
+        if(key == 'name_en'){
+            indent = indent + 1;
+        }
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`Add New ${node.data.type}`}</a>
+            return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
             return (
@@ -254,6 +283,27 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
                 :
                 <span>{node.data[key]}</span>);
     }
+    
+    const renderDropDownCell = (node, key, autoFocus, options) => {
+        const val = options.find(x => x.value == node.data[key])
+        const indent = (node.key).toString().split('-').length;
+        return (
+            node.key == currentKey ?
+                <select class={`form-control number-indent-${indent}`}
+                    defaultValue={node.data[key]}
+                    onChange={(e) => handleEditorChange(e.target.value, key)}
+                    autoFocus={!!autoFocus}
+                    onKeyDown={(e) => e.stopPropagation()} 
+                    style={{ width: '100%' }}
+                    required>
+                    {options.map( (option) => (
+                        <option value={option.value}>{option.label}</option>
+                    ))
+                    }
+                </select>
+                :
+                <span>{!!val ? val.label : ''}</span>);
+    }
 
     const openDeleteModel = (data) => {
         setUrl(JSON.parse(rootElement.getAttribute(`${data.type}-url`)));
@@ -268,7 +318,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
                 <div className="flex flex-wrap gap-2">
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) ?
-                        <a href="#" onClick={() => {
+                        <a href="javascript:void(0);" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
                             else {
@@ -279,10 +329,10 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
                         } title="Edit" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                             <i class={(currentKey != '-1' && node.key == currentKey) ? "ki-outline ki-check fs-2" : "ki-outline ki-pencil fs-2"}></i>
                         </a> : <></>}
-                        {currentKey != '-1' ? <a href="#" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                        {currentKey != '-1' ? <a href="javascript:void(0);" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-cross fs-2"></i>
                             </a> : null}
-                    <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    <a href="javascript:void(0);" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a>
                     <button id="btnSubmit" type="submit" style={{display:"none"}}></button>
@@ -318,6 +368,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations }) => {
                     <Column header={translations.name_ar}  style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                     <Column header={translations.price}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
                     <Column header={translations.cost}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
+                    <Column header={translations.tax}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDropDownCell(node, 'tax_id', false ,taxOptions): <></>} sortable></Column>
                     <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
                     <Column header={translations.active} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
                     <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />

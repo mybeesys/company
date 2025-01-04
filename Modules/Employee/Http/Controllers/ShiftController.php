@@ -8,13 +8,12 @@ use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Classes\ShiftTable;
 use Modules\Employee\Http\Requests\StoreShiftRequest;
-use Modules\Employee\Models\Employee;
-use Modules\Employee\Models\Role;
 use Modules\Employee\Models\Schedule;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 use Modules\Employee\Services\ShiftService;
 use Modules\Establishment\Models\Establishment;
+use Spatie\Permission\Models\Role;
 
 class ShiftController extends Controller
 {
@@ -25,7 +24,7 @@ class ShiftController extends Controller
             return $table->getShiftTable();
         }
         $roles = Role::get(['id', 'name']);
-        $establishments = Establishment::get(['id', 'name']);
+        $establishments = Establishment::active()->notMain()->get(['id', 'name']);
         $timeSheet_rules = TimeSheetRule::all();
         $columns = ShiftTable::getShiftColumns();
         $footers = ShiftTable::getShiftFooters();

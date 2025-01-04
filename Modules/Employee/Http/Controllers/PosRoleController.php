@@ -9,7 +9,7 @@ use Modules\Employee\Classes\PosRoleTable;
 use Modules\Employee\Http\Requests\StorePosRoleRequest;
 use Modules\Employee\Http\Requests\UpdatePosRoleRequest;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\Role;
+use Modules\Employee\Models\PosRole;
 use Modules\Employee\Services\PosRoleActions;
 
 class PosRoleController extends Controller
@@ -22,7 +22,7 @@ class PosRoleController extends Controller
     public function __construct()
     {
         $this->permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-        $this->departments = Role::departments();
+        $this->departments = PosRole::departments();
     }
     /**
      * Display a listing of the resource.
@@ -30,7 +30,7 @@ class PosRoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $roles = Role::
+            $roles = PosRole::
                 select('id', 'name', 'guard_name', 'department', 'rank', 'is_active');
             return PosRoleTable::getRoleTable($roles);
         }
@@ -73,7 +73,7 @@ class PosRoleController extends Controller
      */
     public function show($id)
     {
-        $role = Role::where('id', $id)->with('permissions:id,name')->first();
+        $role = PosRole::where('id', $id)->with('permissions:id,name')->first();
         return view('employee::pos-roles.show', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
@@ -82,14 +82,14 @@ class PosRoleController extends Controller
      */
     public function edit(int $id)
     {
-        $role = Role::where('id', $id)->with('permissions:id,name')->first();
+        $role = PosRole::where('id', $id)->with('permissions:id,name')->first();
         return view('employee::pos-roles.edit', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePosRoleRequest $request, Role $role)
+    public function update(UpdatePosRoleRequest $request, PosRole $role)
     {
         DB::transaction(function () use ($request, $role) {
             $filteredRequest = $request->safe();
@@ -103,7 +103,7 @@ class PosRoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $role)
+    public function destroy(PosRole $role)
     {
         $delete = $role->delete();
         if ($delete) {

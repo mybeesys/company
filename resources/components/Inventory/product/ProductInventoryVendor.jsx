@@ -35,7 +35,7 @@ const ProductInventoryVendor = ({ translations, currentObject, onBasicChange, di
             <div class="form-group">
                 <div class="row">
                     <div class="col-6">
-                        <label for="primary_vendor_default_quantity" class="col-form-label">{translations.defaultQuantity}</label>
+                    <label for="primary_vendor_default_quantity" class="col-form-label">{translations.defaultQuantity}</label>
                         <input type="number" min="0" step=".01" class="form-control" id="primary_vendor_default_quantity" value={!!currentObject.primary_vendor_default_quantity ? currentObject.primary_vendor_default_quantity : ''}
                             onChange={(e) => onBasicChange('primary_vendor_default_quantity', e.target.value)}
                              />

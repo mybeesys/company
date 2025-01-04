@@ -3,17 +3,12 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Inventory\Enums\InventoryOperationStatus;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Inventory\Models\InventoryOperation;
 use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\PurchaseOrder;
-use Modules\Inventory\Models\PurchaseOrderItem;
-use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Vendor;
 
 class PurchaseOrderController extends Controller
@@ -49,19 +44,35 @@ class PurchaseOrderController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::find($id);
+        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
         $inventoryOperation->detail->addToFillable();
         foreach ($inventoryOperation->detail->getFillable() as $key) {
             $inventoryOperation->$key = $inventoryOperation->detail[$key];
             $inventoryOperation->addToFillable($key);
         }
         $inventoryOperation->addToFillable('op_status_name');
+        $inventoryOperation->addToFillable('establishment');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
+        $resInventoryOperation = $inventoryOperation->toArray();
+        $resInventoryOperation["items"] = [];
         foreach ($inventoryOperation->items as $item) {
-            $item->product = $item->product;
-            $item->unit = $item->unit;
+            $newItem = $item->toArray();
+            if(isset($item->product_id)){
+                $newItem["product_id"] = $item->product_id.'-p';
+                $prod = $item->product->toArray();
+                $prod["id"] =  $item->product_id.'-p';
+                $newItem["product"] =$prod;
+            }
+            if(isset($item->ingredient_id)){
+                $newItem["product_id"] = $item->ingredient_id.'-i';
+                $ingr = $item->ingredient->toArray();
+                $ingr["id"] =  $item->ingredient_id.'-i';
+                $newItem["product"] =$ingr;
+            }
+            $newItem["unit"] = $item->unit->toArray();
+            $resInventoryOperation["items"][] =$newItem;
         }
-        return view('inventory::purchaseOrder.edit', compact('inventoryOperation'));
+        return view('inventory::purchaseOrder.edit', compact('resInventoryOperation'));
     }
 
     public function recieve($id)
@@ -74,14 +85,23 @@ class PurchaseOrderController extends Controller
         }
         $inventoryOperation->addToFillable('op_status_name');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
+        $resInventoryOperation = $inventoryOperation->toArray();
+        $resInventoryOperation["items"] = [];
         foreach ($inventoryOperation->items as $item) {
-            $item->product = $item->product;
-            $item->unit = $item->unit;
             foreach ($item->detail->getFillable() as $key) {
                 $item->$key = $item->detail[$key];
             }
+            $newItem = $item->toArray();
+            if(isset($item->product_id)){
+                $newItem["product"] = $item->product;
+            }
+            if(isset($item->ingredient_id)){
+                $newItem["product"] = $item->ingredient;
+            }
+            $newItem["unit"] = $item->unit;
+            $resInventoryOperation["items"][] =$newItem;
         }
-        return view('inventory::purchaseOrder.recieve', compact('inventoryOperation'));
+        return view('inventory::purchaseOrder.recieve', compact('resInventoryOperation'));
     }
 
     public function updateRecive(Request $request){

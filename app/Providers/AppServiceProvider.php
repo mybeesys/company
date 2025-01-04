@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\Employee\Models\Payroll;
+use Modules\Employee\Models\PayrollGroup;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::directive('get_format_currency', function () {
             return "<?php echo App\\Helpers\\CurrencyHelper::get_format_currency(); ?>";
+        });
+
+        Gate::define('viewPayrolls', function ($user) {
+            return $user->can('viewAny', Payroll::class) || 
+                   $user->can('viewAny', PayrollGroup::class);
         });
     }
 }

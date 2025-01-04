@@ -145,5 +145,14 @@ return [
     'this_payroll_group' => 'مجموعة كشف الروتب هذه',
     'confirm_payroll_group' => 'تثبيت مجموعة كشف الرواتب',
     'payroll_group_confirm_confirmation' => 'هل أنت متأكد من تثبيت مجموعة كشف الرواتب هذه؟',
-    'confirm' => 'تثبيت'
+    'confirm' => 'تثبيت',
+    'by_working_time' => 'حسب الدوام',
+    'month' => 'الشهر',
+    'add_adjustment' => 'إضافة بدل أو حسم',
+    'edit_adjustment' => 'تعديل بدل أو حسم',
+    'add_adjustment_type' => 'إضافة نوع بدل أو حسم',
+    'adjustment_search' => 'بحث عن بدل أول حسم',
+    'adjustment_type_search' => 'بحث عن نوع بدل أول حسم',
+    'adjustments_types' => 'أنواع البدلات والحسومات',
+    'this_element' => 'هذا العنصر',
 ];

@@ -2,6 +2,7 @@
 
 return [
     [
+        // module.model.permission
         'name' => 'employees.all.show',
         'name_ar' => '',
         'description' => '',
@@ -23,7 +24,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.all.edit',
+        'name' => 'employees.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -36,6 +37,24 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
+    [
+        'name' => 'employees.employees.show',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.employees.print',
+        'name_ar' => 'الموظفون',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
     [
         'name' => 'employees.employee.create',
         'name_ar' => 'موظف',
@@ -51,7 +70,14 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.employee.edit',
+        'name' => 'employees.employee.print',
+        'name_ar' => 'موظف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.employee.update',
         'name_ar' => 'موظف',
         'description' => '',
         'description_ar' => '',
@@ -64,48 +90,289 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
-        'name' => 'employees.employees.show',
-        'name_ar' => 'الموظفون',
+        'name' => 'employees.pos_roles.show',
+        'name_ar' => 'أدوار نقاط البيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.employees.print',
-        'name_ar' => 'الموظفون',
+        'name' => 'employees.pos_roles.print',
+        'name_ar' => 'أدوار نقاط البيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.pos_role.create',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.create',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.show',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.show',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.update',
+        'name_ar' => 'دور نقطة بيع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.edit',
-        'name_ar' => 'دور',
+        'name' => 'employees.pos_role.delete',
+        'name_ar' => 'دور نقطة بيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.pos_role.delete',
+        'name_ar' => 'دور نقطة بيع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.dashboard_roles.show',
+        'name_ar' => 'أدوار لوحة التحكم',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'employees.role.delete',
-        'name_ar' => 'دور',
+        'name' => 'employees.dashboard_roles.print',
+        'name_ar' => 'أدوار لوحة التحكم',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+    [
+        'name' => 'employees.dashboard_role.create',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.show',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.update',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.dashboard_role.delete',
+        'name_ar' => 'دور لوحة تحكم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.time_sheet_rules.show',
+        'name_ar' => 'إعدادات الجدولة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.time_sheet_rules.update',
+        'name_ar' => 'إعدادات الجدولة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.shifts.show',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.shifts.update',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.shifts.print',
+        'name_ar' => 'جداول العمل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.timecards.show',
+        'name_ar' => 'أوقات الدوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecards.print',
+        'name_ar' => 'أوقات الدوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.timecard.print',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.create',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.update',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.timecard.delete',
+        'name_ar' => 'وقت دوام',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payrolls.show',
+        'name_ar' => 'كشوف المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls.print',
+        'name_ar' => 'كشوف المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payroll.create',
+        'name_ar' => 'كشف راتب',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payroll.print',
+        'name_ar' => 'كشف راتب',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.payrolls_groups.show',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_group.show',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_groups.print',
+        'name_ar' => 'مجموعات كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_group.update',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.payrolls_group.delete',
+        'name_ar' => 'مجموعة كشوفات المرتبات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'employees.allowances_deductions.show',
+        'name_ar' => 'البدلات والحسومات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'employees.allowance_deduction.create',
+        'name_ar' => 'بدل أو حسم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.allowance_deduction.update',
+        'name_ar' => 'بدل أو حسم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.allowance_deduction.delete',
+        'name_ar' => 'بدل أو حسم',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
     [
         'name' => 'products.all.show',
         'name_ar' => '',
@@ -128,7 +395,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'products.all.edit',
+        'name' => 'products.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -137,6 +404,160 @@ return [
     [
         'name' => 'products.all.delete',
         'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.category.create',
+        'name_ar' => 'التصنيف الرئيسي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.category.update',
+        'name_ar' => 'التصنيف الرئيسي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.category.delete',
+        'name_ar' => 'التصنيف الرئيسي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.subCatgeory.update',
+        'name_ar' => 'التصنيف الفرعي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.subCatgeory.create',
+        'name_ar' => 'التصنيف الفرعي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.subCatgeory.delete',
+        'name_ar' => 'التصنيف الفرعي',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.product.show',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.product.update',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.product.create',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.product.delete',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.modifier.show',
+        'name_ar' => 'المتغيرات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.modifier.update',
+        'name_ar' => 'المتغيرات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.modifier.create',
+        'name_ar' => 'المتغيرات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.modifier.delete',
+        'name_ar' => 'المتغيرات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.ingredient.show',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.ingredient.update',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.ingredient.create',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.ingredient.delete',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.attribute.show',
+        'name_ar' => 'المعاملات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.attribute.update',
+        'name_ar' => 'المعاملات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.attribute.create',
+        'name_ar' => 'المعاملات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'products.attribute.delete',
+        'name_ar' => 'المعاملات',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -163,7 +584,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'inventory.all.edit',
+        'name' => 'inventory.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -172,6 +593,139 @@ return [
     [
         'name' => 'inventory.all.delete',
         'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.product.show',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.product.update',
+        'name_ar' => 'المنتج',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.ingredient.show',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.ingredient.update',
+        'name_ar' => 'المكونات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.purchaseOrder.show',
+        'name_ar' => 'طلب شراء',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.purchaseOrder.update',
+        'name_ar' => 'طلب شراء',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.purchaseOrder.create',
+        'name_ar' => 'طلب شراء',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.prep.show',
+        'name_ar' => 'تحضيرة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.prep.update',
+        'name_ar' => 'تحضيرة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.prep.create',
+        'name_ar' => 'تحضيرة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.rma.show',
+        'name_ar' => 'إعادة مواد',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.rma.update',
+        'name_ar' => 'إعادة مواد',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.rma.create',
+        'name_ar' => 'إعادة مواد',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.waste.show',
+        'name_ar' => 'الاتلاف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.waste.update',
+        'name_ar' => 'الاتلاف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.waste.create',
+        'name_ar' => 'الاتلاف',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.transfer.show',
+        'name_ar' => 'التحويل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.transfer.update',
+        'name_ar' => 'التحويل',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'inventory.transfer.create',
+        'name_ar' => 'التحويل',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
@@ -198,7 +752,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'accounting.all.edit',
+        'name' => 'accounting.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -211,6 +765,8 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
         'name' => 'establishments.all.show',
         'name_ar' => '',
@@ -233,7 +789,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.all.edit',
+        'name' => 'establishments.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -246,6 +802,16 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
+    [
+        'name' => 'establishments.establishments.show',
+        'name_ar' => 'فرع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
     [
         'name' => 'establishments.establishment.create',
         'name_ar' => 'فرع',
@@ -261,54 +827,29 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'establishments.establishment.edit',
+        'name' => 'establishments.establishment.update',
         'name_ar' => 'فرع',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+
     [
-        'name' => 'establishments.establishment.delete',
-        'name_ar' => 'فرع',
+        'name' => 'establishments.company.show',
+        'name_ar' => 'الشركة',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
-        'name' => 'schedules.all.show',
-        'name_ar' => '',
+        'name' => 'establishments.company.update',
+        'name_ar' => 'الشركة',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
-    [
-        'name' => 'schedules.all.print',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'schedules.all.create',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'schedules.all.edit',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'schedules.all.delete',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
+
     [
         'name' => 'reports.all.show',
         'name_ar' => '',
@@ -331,7 +872,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'reports.all.edit',
+        'name' => 'reports.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
@@ -366,7 +907,7 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'crm.all.edit',
+        'name' => 'crm.all.update',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',

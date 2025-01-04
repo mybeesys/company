@@ -5,7 +5,12 @@ const DropdownMenu = ({actions, data, translations, afterExecute}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Toggle dropdown visibility
-  const toggleDropdown = () => {
+  const toggleDropdown = (e) => {
+    setIsOpen(!isOpen);
+  };
+
+  const openMenu = (e) => {
+    e.preventDefault();
     setIsOpen(!isOpen);
   };
 
@@ -23,7 +28,7 @@ const DropdownMenu = ({actions, data, translations, afterExecute}) => {
 
   return (
     <div className="dropdown">
-      <button className="dropdown-button" onClick={toggleDropdown}>
+      <button className="dropdown-button" onClick={(e) => openMenu(e)}>
         •••
       </button>
       {isOpen && (

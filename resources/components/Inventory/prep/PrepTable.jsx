@@ -17,8 +17,7 @@ const PrepTable = ({ dir, translations }) => {
           data["op_status_name"] = resp.data.op_status_name;
           Swal.fire({
             show: showAlert,
-            title: `${translations['purchaseOrder']}: ${data.no} ${translations[resp.data.op_status_name]}`,
-            text: translations.technicalerror ,
+            title: `${data.no} ${translations[resp.data.op_status_name]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,
@@ -66,6 +65,7 @@ const PrepTable = ({ dir, translations }) => {
         title="preps"
         cols={[
           {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
+          {key : "establishment", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "product", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "op_date", autoFocus: true, type :"Date", width:'15%'},

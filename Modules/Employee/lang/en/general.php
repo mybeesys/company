@@ -145,6 +145,14 @@ return [
     'this_payroll_group' => 'This payroll group',
     'confirm_payroll_group' => 'Confirm payroll group',
     'payroll_group_confirm_confirmation'=>'Are you sure you want to confirm this payroll group?',
-    'confirm' => 'Confirm'
-
+    'confirm' => 'Confirm',
+    'by_working_time' => 'Depending on working time',
+    'month' => 'Month',
+    'add_adjustment' => 'Add allowance or deduction',
+    'edit_adjustment' => 'edit allowance or deduction',
+    'add_adjustment_type' => 'Add allowance or deduction type',
+    'adjustment_search' => 'Search for allowance or deduction',
+    'adjustment_type_search' => 'Search for allowance or deduction type',
+    'adjustments_types' => 'Allowances and deductions types',
+    'this_element' => 'This element',
 ];

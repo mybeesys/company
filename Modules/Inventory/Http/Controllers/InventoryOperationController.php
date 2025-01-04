@@ -7,10 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Inventory\Enums\InventoryOperationStatus;
 use Modules\Inventory\Enums\PurchaseOrderStatus;
+use Modules\Inventory\Models\IngredientInventoryTotal;
 use Modules\Inventory\Models\InventoryOperation;
 use Modules\Inventory\Models\InventoryOperationItem;
+use Modules\Inventory\Models\ProductInventoryTotal;
 use Modules\Inventory\Models\PurchaseOrder;
 use Modules\Inventory\Models\PurchaseOrderItem;
+use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 
 class InventoryOperationController extends Controller
@@ -19,7 +23,7 @@ class InventoryOperationController extends Controller
     public function getinventoryOperations($type)
     {
         $TreeBuilder = new TreeBuilder();
-        $inventoryOperations = InventoryOperation::where('op_type', '=', $type)->get();
+        $inventoryOperations = InventoryOperation::with('establishment')->where('op_type', '=', $type)->get();
         foreach ($inventoryOperations as $inventoryOperation) {
             if($inventoryOperation->hasDetail()){
                 $inventoryOperation->detail->addToFillable();
@@ -29,6 +33,7 @@ class InventoryOperationController extends Controller
                 }
             }
             $inventoryOperation->addToFillable('op_status_name');
+            $inventoryOperation->addToFillable('establishment');
             $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
         }  
         $tree = $TreeBuilder->buildTree($inventoryOperations ,null, 'inventoryOperation', null, null, null);
@@ -73,6 +78,50 @@ class InventoryOperationController extends Controller
         return $newPONumber;
     }
 
+    private function isValidQty($establishment_id, $products, $ingredients, $times){
+        $result = [];
+        $prodIds =  array_map(function($product){
+            return $product->product_id;
+        },$products);
+        $ingrIds =  array_map(function($ingredient){
+            return $ingredient->ingredient_id;
+        }, $ingredients);
+        $prodTotals = ProductInventoryTotal::where('establishment_id', '=', $establishment_id)
+                                            ->whereIn('product_id',$prodIds)->get();
+        foreach ($products as $prod) {
+            $prodTotal = array_filter($prodTotals->toArray(), function($value)use($prod) {
+                return $prod->product_id == $value["product_id"]; // Keep only even numbers
+            });
+            $totalQty = isset($times) && $times!=null ? $prod->qty * $times : $prod->qty;
+            if($prodTotal[0]["qty"] == null || $prodTotal[0]["qty"] < $totalQty){
+                $product = Product::find($prod->product_id);
+                $result [] = [ 
+                    "name_ar" => $product->name_ar ,
+                    "name_en" => $product->name_en ,
+                    "qty" => $prodTotal[0]["qty"] == null ? 0 : $prodTotal[0]["qty"] == null
+                ];
+            }
+        }
+        $ingrTotals = IngredientInventoryTotal::where('establishment_id', '=', $establishment_id)
+                    ->whereIn('ingredient_id',$ingrIds)->get();
+        foreach ($ingredients as $ingr) {
+            $ingrTotal = array_filter($ingrTotals->toArray(), function($value)use($ingr) {
+                return $ingr->ingredient_id == $value["ingredient_id"]; // Keep only even numbers
+            });
+            $ingrTotal = reset($ingrTotal);
+            $totalQty = isset($times) && $times!=null ? $ingr->qty * $times : $ingr->qty;
+            if($ingrTotal["qty"] == null || $ingrTotal["qty"] < $totalQty){
+                $ingredient = Ingredient::find($ingr->ingredient_id);
+                $result [] = [ 
+                    "name_ar" => $ingredient->name_ar ,
+                    "name_en" => $ingredient->name_en ,
+                    "qty" => $ingrTotal["qty"] == null ? 0 : $ingrTotal["qty"]
+                ];
+            }
+        }
+        return $result;
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -96,12 +145,35 @@ class InventoryOperationController extends Controller
             }
             $inventoryOperation = new InventoryOperation();
             $inventoryOperation->op_type = $validated['op_type'];
+            $validated["establishment_id"] = $request["establishment"]["id"];
             $detail = $inventoryOperation->makeDetail();
             $detailValidated = null;
             if(isset($detail)){
                 $detailValidated = $request->validate($detail->validated);
                 $total = $itemTotal + $detail->totals($detailValidated);
                 $validated["total"] = $total;
+            }
+            if(isset($request['items'])){
+                $prods = [];
+                $ingrs = [];
+                foreach ($request['items'] as $newItem) {
+                    $item = new InventoryOperationItem();
+                    $idd = explode("-", $newItem['product']['id']);
+                    $item->qty = $newItem['qty'];
+                    if($idd[1] == 'p'){
+                        $item->product_id = $idd[0];
+                        $prods [] = $item;
+                    }
+                    else{
+                        $item->ingredient_id = $idd[0];
+                        $ingrs [] = $item;
+                    }
+                }
+                if($validated['op_type']!=0){
+                    $result =  $this->isValidQty($request["establishment"]["id"], $prods, $ingrs, isset($request["times"]) ? $request["times"] : null);
+                    if(count($result) >0 )
+                        return response()->json($result);
+                }
             }
             DB::transaction(function () use ($validated, $request, $detail, $detailValidated) {
                 $inventoryOperation = InventoryOperation::create($validated);
@@ -115,7 +187,11 @@ class InventoryOperationController extends Controller
                         if(isset($newItem)){
                             $item = new InventoryOperationItem();
                             $item->operation_id = $inventoryOperation->id;
-                            $item->product_id = $newItem['product']['id'];
+                            $idd = explode("-", $newItem['product']['id']);
+                            if($idd[1] == 'p')
+                                $item->product_id = $idd[0];
+                            else
+                                $item->ingredient_id = $idd[0];
                             $item->qty = $newItem['qty'];
                             $item->cost = $newItem['cost'];
                             $item->total = $newItem['qty'] * $newItem['cost'];
@@ -137,6 +213,7 @@ class InventoryOperationController extends Controller
         }
         else {
             $inventoryOperation = InventoryOperation::find($validated['id']);
+            $validated["establishment_id"] = $request["establishment"]["id"];
             $inventoryOperation->op_date = $validated["op_date"];
             $inventoryOperation->notes = $validated["notes"];
             $inventoryOperation->total = 0;
@@ -168,7 +245,11 @@ class InventoryOperationController extends Controller
                         if(isset($newItem)){
                             $item = new InventoryOperationItem();
                             $item->operation_id = $inventoryOperation->id;
-                            $item->product_id = $newItem['product']['id'];
+                            $idd = explode("-", $newItem['product']['id']);
+                            if($idd[1] == 'p')
+                                $item->product_id = $idd[0];
+                            else
+                                $item->ingredient_id = $idd[0];
                             $item->qty = $newItem['qty'];
                             $item->cost = $newItem['cost'];
                             $item->total = $newItem['qty'] * $newItem['cost'];

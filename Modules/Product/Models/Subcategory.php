@@ -37,10 +37,13 @@ class Subcategory extends Model
     public $parentType = 'subcategory';
     public $parentKey1 = 'category_id';
     public $parentType1 = 'category';
-    public $childType = 'subcategory';
-    public $childType1 = 'product';
-    public $childKey = 'parent_id';
-    public $childKey1 = 'subcategory_id';
+    // public $childType = 'subcategory';
+    // public $childType1 = 'product';
+    // public $childKey = 'parent_id';
+    // public $childKey1 = 'subcategory_id';
+
+    public $childType = 'product';
+    public $childKey = 'subcategory_id';
 
     public function children()
     {

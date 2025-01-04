@@ -16,12 +16,19 @@ use Modules\Product\Models\Transformers\Collections\PAttributeCollection;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Product\Models\TreeBuilder;
 
-
 class ProductController extends Controller
 {
     public function products(Request $request)
     {
-        $products = Product::with(['modifiers' => function ($query) {
+        // $request->validate([
+        //     'establishment_id' => ['required', 'numeric']
+        // ]);
+        $establishment_id = $request->query('establishment_id', '');
+        // $products = Product::whereHas('establishments', function ($query)use($establishment_id) {
+        //     $query->where('establishment_id', $establishment_id); // Example condition on EntityTwo
+        // })
+        $products = Product::where('active', '=', 1)
+            ->with(['modifiers' => function ($query) {
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');
             }]);
@@ -34,16 +41,24 @@ class ProductController extends Controller
                 }]);
             }])->with(['unitTransfers' => function ($query) {
                     $query->whereNull('unit2');
-            }])->with('category')->with('subcategory')->with('total')->get();
+            }])->with('category')->with('subcategory')->with('tax')
+            ->leftJoin('product_inventories', function ($join) use($establishment_id) {
+                $join->on('product_inventories.product_id', '=', 'product_products.id')
+                     ->where('establishment_id', '=', $establishment_id); // Constant condition
+            })->get();
         return new ProductCollection($products);
     }
 
     public function product($id)
     {
-
+        
         $products = Product::where('id', $id)->with(['modifiers' => function ($query) {
+            $query->where('active', 1);
             $query->with(['modifiers' => function ($query) {
-                $query->with('children');
+                $query->with(['children' => function ($query) {
+                        $query->where('active', 1);
+                        $query->with('tax');
+                    }]);
                 }]);
             }])->with(['attributes' => function ($query) {
                 $query->with('attribute1');
@@ -54,7 +69,7 @@ class ProductController extends Controller
                 }]);
             }])->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
-            }])->with('category')->with('subcategory')->with('total')->get();
+            }])->with('category')->with('subcategory')->with('tax')->get();
         return new ProductCollection($products);
     }
 
@@ -69,7 +84,7 @@ class ProductController extends Controller
             $newItem["type"] = "category";
             return $newItem;
         }, $categories->toArray());
-
+        
         $subCategories = Subcategory::all();
         $mappedSubcategories = array_map(function ($item) {
             $newItem["id"] = $item["id"];

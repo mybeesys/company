@@ -14,37 +14,37 @@ class DiningTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        DiningType::updateOrCreate([
-            'name_ar' => 'ديلفيري',
-            'name_en' => 'Delivery',
-            'active' => 1,
-        ]);
-        DiningType::updateOrCreate([
-            'name_ar' => 'داين إن',
-            'name_en' => 'Dine In',
-            'active' => 1,
-        ]);
-        DiningType::updateOrCreate([
-        'name_ar' => 'تيك أوت',
-        'name_en' => 'Takeout',
-        'active' => 1,
-        ]);
+        // DiningType::updateOrCreate([
+        //     'name_ar' => 'ديلفيري',
+        //     'name_en' => 'Delivery',
+        //     'active' => 1,
+        // ]);
+        // DiningType::updateOrCreate([
+        //     'name_ar' => 'داين إن',
+        //     'name_en' => 'Dine In',
+        //     'active' => 1,
+        // ]);
+        // DiningType::updateOrCreate([
+        // 'name_ar' => 'تيك أوت',
+        // 'name_en' => 'Takeout',
+        // 'active' => 1,
+        // ]);
 
-        PaymentCard::updateOrCreate([
-            'name_ar' => 'فيزا',
-            'name_en' => 'Visa',
-            'active' => 1,
-        ]);
-        PaymentCard::updateOrCreate([
-        'name_ar' => 'ماستر كارد',
-        'name_en' => 'Master Card',
-        'active' => 1,
-        ]);
+        // PaymentCard::updateOrCreate([
+        //     'name_ar' => 'فيزا',
+        //     'name_en' => 'Visa',
+        //     'active' => 1,
+        // ]);
+        // PaymentCard::updateOrCreate([
+        // 'name_ar' => 'ماستر كارد',
+        // 'name_en' => 'Master Card',
+        // 'active' => 1,
+        // ]);
 
-        Vendor::updateOrCreate([
-            'name_ar' => 'الافتراضي',
-            'name_en' => 'Default',
-            ]);
+        // Vendor::updateOrCreate([
+        //     'name_ar' => 'الافتراضي',
+        //     'name_en' => 'Default',
+        //     ]);
     }
 
 

@@ -35,7 +35,7 @@ class Transfer extends Model
     }
 
     public function addToFillable(){
-        return array_push($this->fillable, 'establishment');
+        return array_push($this->fillable, 'toEstablishment');
     }
 
     public $type = 'transfer';
@@ -47,14 +47,14 @@ class Transfer extends Model
     }
 
     public function fillValidated($validated, $data){
-        if (isset($data["establishment"])) {
-            $validated["establishment_id"] = $data["establishment"]["id"];
+        if (isset($data["toEstablishment"])) {
+            $validated["establishment_id"] = $data["toEstablishment"]["id"];
         }
         
         return $validated;
     }
 
-    public function establishment()
+    public function toEstablishment()
     {
         return $this->belongsTo(Establishment::class, 'establishment_id', 'id');
     }

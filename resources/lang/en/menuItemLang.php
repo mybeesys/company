@@ -37,6 +37,8 @@ return [
     'costCenter' => 'Cost Centers',
     'serviceFee' => 'Service Fees',
     'company_settings' => 'Company settings',
+    'adjustments' => 'Allowances and deductions',
+
 
     'employees_working_hours' => 'Employees working hours',
 
@@ -73,7 +75,6 @@ return [
     'taxes' => 'Taxes',
 
     'quotations' => 'Quotations',
-
 
 
 ];

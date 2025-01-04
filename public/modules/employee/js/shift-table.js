@@ -36,6 +36,11 @@ function initTable(tableUrl, startDate, endDate) {
             className: 'text-start px-3 py-2 border text-gray-800 fs-6'
         },
         {
+            data: 'basic_wage',
+            name: 'basic_wage',
+            className: 'text-start px-3 py-2 border text-gray-800 fs-6'
+        },
+        {
             data: 'total_wage',
             name: 'total_wage',
             className: 'text-start px-3 py-2 border text-gray-800 fs-6'
@@ -59,13 +64,13 @@ function initTable(tableUrl, startDate, endDate) {
             className: 'mb-5',
             columns: ':lt(6)'
         },
-        {
+        ...(hasPermissionToUpdate ? [{
             text: Lang.get('general.copy_shifts'),
             className: 'mb-5 copy-shifts-btn mw-275px',
             action: function (e, dt, node, config) {
                 copyShifts();
             }
-        }
+        }] : [])
         ],
         "footerCallback": tableFooter()
     });
@@ -116,9 +121,6 @@ function addTableTypeButtons() {
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-hours" href="#">${Lang.get('fields.hours')}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-wage" href="#">${Lang.get('fields.wage_forecasting')}</a>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-color-gray-800 btn-active-secondary btn-active-color-primary text-nowrap fs-6 nav-link px-6 table-breaks" href="#">${Lang.get('fields.breaks')}</a>

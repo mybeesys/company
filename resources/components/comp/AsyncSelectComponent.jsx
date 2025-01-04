@@ -86,6 +86,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
 
     useEffect(() => {
         if (options.length > 0) {
+            console.log(currentObject);
             setCurrentValue(); // Set current value once options are available
         }
     }, [options, currentObject]);

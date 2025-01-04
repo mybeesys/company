@@ -46,7 +46,7 @@ class RecipeProduct extends Model
 
     public function ingredients()
     {
-        return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
+        return $this->belongsTo(Ingredient::class, 'item_id', 'id');
     }
 
     public function products()

@@ -7,11 +7,13 @@ import { SketchPicker, BlockPicker } from "react-color";
 const ProductDisplay = ({ translations, parentHandlechanges, product, saveChanges }) => {
   const rootElement = document.getElementById('root');
   let imageurl = rootElement.getAttribute('image-url');
+  let blankurl = rootElement.getAttribute('blank-url');
   let dir = rootElement.getAttribute('dir');
   const [currentObject, setcurrentObject] = useState(product);
   const [files, setFiles] = useState([]);
-  const [imageSrc, setimageSrc] = useState(imageurl);
+  const [imageSrc, setimageSrc] = useState(!!!imageurl ? blankurl : imageurl);
   //creating state to store our color and also set color using onChange event for sketch picker
+  console.log(blankurl);
   const [sketchPickerColor, setSketchPickerColor] = useState({
     r: "241",
     g: "112",
@@ -45,13 +47,15 @@ const ProductDisplay = ({ translations, parentHandlechanges, product, saveChange
 
   const deleteImage = () => {
     setFiles([]);
-    setimageSrc(imageurl);
+    setimageSrc(blankurl);
     handleChange('image_file', null);
   }
 
   const handleChange = async (key, value) => {
     let r = { ...currentObject };
     r[key] = value;
+    if(!!!value)
+      r['image_deleted'] = 1;
     setcurrentObject({ ...r });
     parentHandlechanges({ ...r });
     console.log(r);
