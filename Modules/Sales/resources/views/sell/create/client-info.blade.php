@@ -12,7 +12,7 @@
 </div>
 
 
-<div class=" align-items-center  mb-5" id="div-cash_account" >
+<div class=" align-items-center  mb-5" id="div-cash_account"  @if($quotation) style="display: none;" @endif>
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('accounting::lang.account')</label>
 
     <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account " style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"

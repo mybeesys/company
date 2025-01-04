@@ -68,7 +68,11 @@
 @section('content')
 
     <div class="text-center m-7">
-        <h1 class="mb-3">@lang('general::general.Tax invoice')</h1>
+        @if ($transaction->type == 'quotation')
+            <h1 class="mb-3">@lang('sales::lang.quotation')</h1>
+        @else
+            <h1 class="mb-3">@lang('general::general.Tax invoice')</h1>
+        @endif
         <h6>{{ $transaction?->client?->tax_number ?? '' }}</h6>
     </div>
 
@@ -81,7 +85,8 @@
         <div class="row">
             <div class="col-sm-4">
                 <p>@lang('sales::fields.ref_no'): {{ $transaction->ref_no }}</p>
-                <p>@lang('sales::fields.payment_status'): @lang('general::lang.' . $transaction->payment_status)</p>
+                <p>@lang('sales::fields.payment_status'):
+                    {{ $transaction->payment_status ? __('general::lang.' . $transaction->payment_status) : '--' }}</p>
                 <p>@lang('general::lang.Invoice Status'): @lang('general::lang.' . $transaction->status)</p>
                 <p>@lang('sales::fields.notice'): {{ $transaction->notice ?? '--' }}</p>
 
@@ -214,7 +219,9 @@
     </div>
 
 
-    @include('general::transactions.payment-rows')
+    @if ($transaction->type != 'quotation')
+        @include('general::transactions.payment-rows')
+    @endif
 
 
 
@@ -223,16 +230,16 @@
         <div class="row">
             <div class="col-sm-4">
                 <p class="fs-5 ">@lang('sales::lang.total_before_vat'): {{ $transaction->total_before_tax }}</p>
-                <p class="fs-5 ">@lang('sales::lang.invoice_discount'): (-) {{$transaction->discount_amount}}</p>
-                <p class="fs-5 ">@lang('sales::lang.totalAfterDiscount'):  {{$transaction->totalAfterDiscount}}</p>
-                <p class="fs-5 ">@lang('sales::lang.vat_value'): (+) {{ $transaction->tax_amount  }}</p>
-                <p class="fs-5 ">@lang('sales::lang.amount'): {{ $transaction->final_total  }}</p>
+                <p class="fs-5 ">@lang('sales::lang.invoice_discount'): (-) {{ $transaction->discount_amount ?? ' 0.00 ' }}</p>
+                <p class="fs-5 ">@lang('sales::lang.totalAfterDiscount'): {{ $transaction->totalAfterDiscount }}</p>
+                <p class="fs-5 ">@lang('sales::lang.vat_value'): (+) {{ $transaction->tax_amount }}</p>
+                <p class="fs-5 ">@lang('sales::lang.amount'): {{ $transaction->final_total }}</p>
 
             </div>
 
 
             <div class="col-sm-8">
-                <p class="fs-5 ">@lang('sales::lang.invoice_note'): {{ $transaction->description?? ' -- ' }}</p>
+                <p class="fs-5 ">@lang('sales::lang.invoice_note'): {{ $transaction->description ?? ' -- ' }}</p>
 
             </div>
         </div>

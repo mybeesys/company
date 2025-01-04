@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\General\Http\Controllers\GeneralController;
+use Modules\General\Http\Controllers\PaymentMethodsController;
 use Modules\General\Http\Controllers\TaxController;
 use Modules\General\Http\Controllers\TransactionController;
 use Modules\Sales\Http\Controllers\SellController;
@@ -31,6 +32,9 @@ Route::middleware([
         Route::post('store-tax', [TaxController::class, 'store'])->name('store-tax');
         Route::post('update-tax', [TaxController::class, 'update'])->name('update-tax');
         Route::get('delete-tax/{id}', [TaxController::class, 'destroy'])->name('delete-tax');
+
+
+        Route::get('payment-methods', [PaymentMethodsController::class, 'index'])->name('payment-methods');
 
 
 

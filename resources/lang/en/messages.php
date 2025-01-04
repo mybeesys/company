@@ -4,6 +4,8 @@ return [
     'edit' => 'Edit',
     'activate' => 'Activate',
     'inactive' => 'Inactive',
+    'active' => 'Active',
+    'in_active' => 'Inactive',
 
     'deactivate' => 'Deactivate',
     'cancel' => 'Cancel',

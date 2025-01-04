@@ -52,8 +52,13 @@ class SalesUtile
             ->whereYear('created_at', $currentYear)
             ->latest()
             ->first();
+        $prefx = 'INV-';
 
         if ($transaction) {
+
+            if ($type == 'quotation') {
+                $prefx = 'QTN-';
+            }
             $last_ref_no = $transaction->ref_no;
 
             list(, $yearAndNumber) = explode('-', $last_ref_no);
@@ -61,12 +66,12 @@ class SalesUtile
 
             if ($year == $currentYear) {
                 $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = 'INV-' . $currentYear . '/' . $newNumber;
+                $new_ref_no = $prefx . $currentYear . '/' . $newNumber;
             } else {
-                $new_ref_no = 'INV-' . $currentYear . '/0001';
+                $new_ref_no = $prefx . $currentYear . '/0001';
             }
         } else {
-            $new_ref_no = 'INV-' . $currentYear . '/0001';
+            $new_ref_no = $prefx . $currentYear . '/0001';
         }
 
         return $new_ref_no;

@@ -4,34 +4,18 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Models\PaymentMethod;
+use Modules\General\Transformers\PaymentMethodsResource;
 
-class GeneralController extends Controller
+class PaymentMethodsApiController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('general::index');
-    }
-
-
-    public function setting()
-    {
-        $cards = [
-            [
-                'name' => __('menuItemLang.taxes'),
-                'route' => 'taxes',
-                'icon' => 'ki-outline fas fa-percent',
-            ],
-            [
-                'name' => __('general::lang.payment_methods'),
-                'route' => 'payment-methods',
-                'icon' => 'fa-solid fa-wallet',
-            ],
-
-        ];
-        return view('general::settings.index', compact('cards'));
+        $pay_methods = PaymentMethod::all();
+        return PaymentMethodsResource::collection($pay_methods);
     }
 
     /**

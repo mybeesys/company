@@ -41,7 +41,7 @@ return [
     'employees_working_hours' => 'Employees working hours',
 
     'payroll_group' => 'Payroll groups',
-    'employees_working_hours' => 'Employees working hours' ,
+    'employees_working_hours' => 'Employees working hours',
 
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
@@ -54,24 +54,25 @@ return [
     'sales' => 'Sales',
     'clients' => 'Clients',
     'invoices' => 'Invoices',
-    'purchases'=>'Purchases',
-    'suppliers'=>'Suppliers',
+    'purchases' => 'Purchases',
+    'suppliers' => 'Suppliers',
 
 
 
-    'inventory' =>'Product',
+    'inventory' => 'Product',
     'inventory_module' => 'Invenetory',
     'po' => 'PO',
     'prep' => 'Prep',
     'rma' => 'RMA',
     'ingredientInventory' => 'Ingredients',
-	 'waste' => 'Waste',
+    'waste' => 'Waste',
     'transfer' => 'Transfer',
-    'purchase_invoices'=>'Purchase Invoices',
-    'general_setting'=>'General Settings',
-    'setting'=>'Settings',
-    'taxes'=>'Taxes',
+    'purchase_invoices' => 'Purchase Invoices',
+    'general_setting' => 'General Settings',
+    'setting' => 'Settings',
+    'taxes' => 'Taxes',
 
+    'quotations' => 'Quotations',
 
 
 
