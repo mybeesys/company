@@ -24,9 +24,14 @@ class PayrollPolicy
         return auth()->user()->hasDashboardPermission('employees.payroll.show');
     }
 
-    public function print()
+    public function printAll()
     {
         return auth()->user()->hasDashboardPermission('employees.payrolls.print');
+    }
+
+    public function print()
+    {
+        return auth()->user()->hasDashboardPermission('employees.payroll.print');
     }
 
     /**

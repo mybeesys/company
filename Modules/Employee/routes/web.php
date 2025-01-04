@@ -177,6 +177,11 @@ Route::middleware([
                 Route::get('/payroll-columns', 'getColumns')->name('get-columns');
 
                 Route::post('/extend-lock', 'extendLock')->name('extendLock');
+
+                Route::get('/{payroll}/print', function (Payroll $payroll) {
+                    return view('employee::schedules.payroll.print', compact('payroll'))->render();
+                })->can('print', Payroll::class);
+    
             });
 
         });
