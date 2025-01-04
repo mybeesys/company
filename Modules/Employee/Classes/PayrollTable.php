@@ -163,7 +163,7 @@ class PayrollTable
         $datatable->addColumn('actions', function ($row) {
             return '
             <div class="text-center text-nowrap ">   
-                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 payroll-print-btn" data-id="' . $row->id . '" >
                     <i class="ki-outline ki-printer fs-2"></i>
                 </a>                
             </div>';

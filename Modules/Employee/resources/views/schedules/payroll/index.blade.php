@@ -53,7 +53,7 @@
                     <x-cards.card>
                         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                             <x-tables.table-header model="payroll_group" module="employee" :addButton="false">
-                                @can('print', \Modules\Employee\Models\PayrollGroup::class)
+                                @can('printAll', \Modules\Employee\Models\PayrollGroup::class)
                                     <x-slot:export>
                                         <x-tables.export-menu id="payroll_group" />
                                     </x-slot:export>
@@ -69,6 +69,7 @@
         </div>
     </div>
 
+    <x-employee::payroll.show-payroll-group-modal />
     <x-employee::payroll.add-payroll-modal :employees=$employees :establishments=$establishments />
 @endsection
 
@@ -197,8 +198,7 @@
             fetch("{{ route('schedules.payrolls.get-columns') }}")
                 .then(response => response.json())
                 .then(columns => {
-                    console.log(columns);
-                    
+
                     let mainColCount = columns.filter(col => col.group === 'main').length;
                     let allowanceColCount = columns.filter(col => col.group === 'allowances').length;
                     allowanceColCount = allowanceColCount == 0 ? 1 : allowanceColCount;
@@ -224,7 +224,7 @@
                         <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.basic_total_wage')</th>
                         `
                     );
-                                        
+
                     // Create group header row
                     mainHeaderRow.append(`  
                     <th colspan="${allowanceColCount}" class="text-center border">@lang('employee::fields.allowances')</th> 
@@ -269,6 +269,34 @@
                     });
                 });
         }
+
+        $(document).on('click', '.payroll-print-btn', function(event) {
+            event.preventDefault();
+
+            const printUrl = "{{ url('/schedule/payroll/:payrollId/print') }}";
+            const payrollId = $(this).data('id');
+            const url = printUrl.replace(':payrollId', payrollId);
+
+            ajaxRequest(url, "GET", {}, false, false, false).done(function(response) {
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-9999px';
+                document.body.appendChild(iframe);
+
+                iframe.contentDocument.open();
+                iframe.contentDocument.write(response);
+                iframe.contentDocument.close();
+
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+            }).fail(function() {
+                console.error('Error fetching print view:', error);
+            });
+        });
 
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
