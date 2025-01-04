@@ -21,9 +21,12 @@ class PayrollAction
         $payroll_group_id = $payroll_group->id;
         $gross_total = 0;
         $net_total = 0;
-        $payroll_ids = [];
+        $employeeIdsToKeep = [];
         foreach ($employeeIds as $employeeId) {
-            $employee = Employee::firstWhere('id', $employeeId);
+            $employee = Employee::where('id', $employeeId)->whereHas('wage')->first();
+            if(!$employee){
+                continue;
+            }
             $payrollData = Cache::get("payroll_table_{$date}_{$employeeId}");
             $allowance_key = "allowance_{$employeeId}_{$date}-01";
             $allowances_repeater = Cache::get($allowance_key);
@@ -55,9 +58,9 @@ class PayrollAction
             ]);
             // $net_total += $payrollData['total_wage'];
             $gross_total += $payrollData['total_wage'];
-            $payroll_ids[] = $payroll->id;
+            $employeeIdsToKeep[] = $employee->id;
         }
-        Payroll::where('payroll_group_id', $payroll_group_id)->whereNotIn('id', $payroll_ids)->delete();
+        Payroll::where('payroll_group_id', $payroll_group_id)->whereNotIn('employee_id', $employeeIdsToKeep)->delete();
         $payroll_group->update([
             // 'net_total' => $net_total,
             'gross_total' => $gross_total

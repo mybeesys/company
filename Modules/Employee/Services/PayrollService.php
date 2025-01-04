@@ -68,6 +68,7 @@ class PayrollService
         return Employee::with(['allowances', 'deductions', 'timecards', 'wage', 'shifts', 'defaultEstablishment'])
             ->whereIn('id', $employeeIds)
             ->whereIn('establishment_id', $establishmentIds)
+            ->whereHas('wage')
             ->get();
     }
 
@@ -99,7 +100,7 @@ class PayrollService
         $allowances_array = [];
 
         $allowances_cache = collect(Cache::get("allowance_{$employee->id}_{$date}"));
-        $common_html = "<div class='add-allowances-button d-flex flex-column text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
+        $common_html = "<div class='add-allowances-button d-flex gap-3 align-items-center text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
 
         if ($allowances_cache->isNotEmpty() && (request()->firstEnter === "false")) {
             [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances_cache, $common_html, "allowance");
@@ -118,7 +119,13 @@ class PayrollService
             [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances, $common_html, "allowance");
 
             $sum = $allowances?->sum('amount') ?? 0;
-            $common_html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}
+            <i class='ki-duotone ki-plus-square fs-4'>
+                <span class='path1'></span>
+                <span class='path2'></span>
+                <span class='path3'></span>
+            </i>
+            </div>";
         }
         return [$allowances_array, $common_html, $sum, $ids];
     }
