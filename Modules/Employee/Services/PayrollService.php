@@ -106,7 +106,13 @@ class PayrollService
             [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances_cache, $common_html, "allowance");
 
             $sum = $allowances_cache->sum('amount');
-            $common_html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}
+                <i class='ki-duotone ki-plus-square fs-4'>
+                    <span class='path1'></span>
+                    <span class='path2'></span>
+                    <span class='path3'></span>
+                </i>
+            </div>";
         } else {
             $allowances = $allowances->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
 
@@ -144,7 +150,13 @@ class PayrollService
             [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions_cache, $common_html, "deduction");
 
             $sum = $deductions_cache->sum('amount');
-            $common_html .= ">{$sum}</div>";
+            $common_html .= ">{$sum}
+                <i class='ki-duotone ki-plus-square fs-4'>
+                    <span class='path1'></span>
+                    <span class='path2'></span>
+                    <span class='path3'></span>
+                </i>
+            </div>";
 
         } else {
             $deductions = $deductions->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
