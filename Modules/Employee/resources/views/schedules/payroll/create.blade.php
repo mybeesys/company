@@ -331,13 +331,67 @@
             $.getJSON(dataUrl, {
                 firstEnter: firstEnter
             }, function(response) {
-                allowancesCount = 0;
-                deductionsCount = 0;
-                if (response.data.length > 0) {
-                    const firstRow = response.data[0];
-                    allowancesCount = firstRow.allowances_array ? Object.keys(firstRow.allowances_array).length : 0;
-                    deductionsCount = firstRow.deductions_array ? Object.keys(firstRow.deductions_array).length : 0;
-                }
+                // let allowancesCount = 0;
+                // let dedctionsCount = 0;
+                // if (response.data.length > 0) {
+                const firstRow = response.data[1];
+
+                // const allAllowances = response.data
+                //     .filter(row => row.allowances_array) // Filter rows with allowances_array
+                //     .flatMap(row => Object.values(row.allowances_array)); // Combine all allowances
+
+                // Remove duplicates
+                // const uniqueAllowances = Array.from(new Set(allAllowances));
+
+
+                // const allDeductions = response.data
+                //     .filter(row => row.deductions_array) // Filter rows with allowances_array
+                //     .flatMap(row => Object.values(row.deductions_array)); // Combine all allowances
+
+                // // Remove duplicates
+                // const uniqueDeductions = Array.from(new Set(allDeductions));
+
+
+                const allowancesCount = response.data.reduce((max, row) => {
+                    const currentCount = row.allowances_array ? Object.keys(row.allowances_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+                const uniqueAllowances = response.data
+                    .filter(row => row.allowances_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.allowances_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
+
+
+
+                // Find the maximum length of deductions_array (if needed)
+                const deductionsCount = response.data.reduce((max, row) => {
+                    const currentCount = row.deductions_array ? Object.keys(row.deductions_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+
+                const uniqueDeductions = response.data
+                    .filter(row => row.deductions_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.deductions_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
+                // }
+                console.log(response.data);
+
 
                 // Update the table header (thead)
                 const tableHead = $('#kt_createPayroll_table thead');
@@ -387,9 +441,11 @@
                     <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>
                     `);
 
-                // Add dynamic allowance sub-headers
+                console.log(uniqueAllowances);
+
+                // Add dynamic allowance sub-headers                
                 if (allowancesCount > 0) {
-                    Object.keys(response.data[0].allowances_array).forEach(key => {
+                    Object.keys(uniqueAllowances).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
@@ -400,7 +456,7 @@
                 );
                 // Add dynamic deduction sub-headers
                 if (deductionsCount > 0) {
-                    Object.keys(response.data[0].deductions_array).forEach(key => {
+                    Object.keys(uniqueDeductions).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
