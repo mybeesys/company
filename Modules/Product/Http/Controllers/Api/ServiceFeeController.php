@@ -19,8 +19,8 @@ class ServiceFeeController extends Controller
         $result = ServiceFeeType::all();
         return response()->json([
             'data' => array_map(function($item) {
-                $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('messages.service_fee_type_'.$item["name"], [], 'ar'); ;
+                $newItem["id"] = $item["value"];    
+                $newItem["name_ar"] = Lang::get('product::messages.service_fee_type_'.$item["name"], [], 'ar'); ;
                 $newItem["name_en"] = Lang::get('messages.service_fee_type_'.$item["name"], [], 'en'); ;
                 return $newItem;
             }, $result)
