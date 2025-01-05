@@ -20,7 +20,13 @@ class PayrollAdjustmentController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $adjustments = PayrollAdjustment::with('employee', 'adjustmentType')->select('id', 'employee_id', 'adjustment_type_id', 'type', 'amount', 'amount_type', 'description', 'description_en', 'applicable_date', 'apply_once');
+            $adjustments = PayrollAdjustment::with('employee', 'adjustmentType')->select('id', 'employee_id', 'adjustment_type_id', 'type', 'amount', 'amount_type', 'description', 'description_en', 'applicable_date', 'apply_once', 'deleted_at');
+            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+                $request->deleted_records == 'only_deleted_records'
+                    ? $adjustments->onlyTrashed()
+                    : ($request->deleted_records == 'with_deleted_records' ? $adjustments->withTrashed() : null);
+            }
+
             return AdjustmentTable::getAdjustmentTable($adjustments);
         }
         $adjustments_columns = AdjustmentTable::getAdjustmentColumns();

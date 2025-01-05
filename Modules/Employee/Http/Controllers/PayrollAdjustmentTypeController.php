@@ -16,6 +16,11 @@ class PayrollAdjustmentTypeController extends Controller
     {
         if ($request->ajax()) {
             $adjustments_types = PayrollAdjustmentType::select('id', 'name', 'name_en', 'type');
+            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+                $request->deleted_records == 'only_deleted_records'
+                    ? $adjustments_types->onlyTrashed()
+                    : ($request->deleted_records == 'with_deleted_records' ? $adjustments_types->withTrashed() : null);
+            }
             return AdjustmentTypeTable::getAdjustmentTypeTable($adjustments_types);
         }
     }
