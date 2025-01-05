@@ -335,9 +335,7 @@
         function initDatatable(dataUrl) {
             $.getJSON(dataUrl, {
                 firstEnter: firstEnter
-            }, function(response) {
-                const firstRow = response.data[1];
-
+            }, function(response) {                
                 const allowancesCount = response.data.reduce((max, row) => {
                     const currentCount = row.allowances_array ? Object.keys(row.allowances_array)
                         .length : 0;
@@ -379,32 +377,32 @@
                 tableHead.empty(); // Clear existing thead
 
                 // Create the first row (main headers)
-                const mainHeaderRow = $('<tr></tr>');
+                const mainHeaderRow = $('<tr class="bg-secondary"></tr>');
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.employee')</th>'
+                    '<th rowspan="2" class="bg-secondary text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.employee')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.establishment')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.establishment')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.basic_wage')</th>'
+                    '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.basic_wage')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.wage_due')</th>'
                 );
 
                 // Dynamic Allowances Header
                 mainHeaderRow.append(
-                    `<th colspan="${allowancesCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.allowances')</th>`
+                    `<th colspan="${allowancesCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.allowances')</th>`
                 );
 
                 // Dynamic Deductions Header
                 mainHeaderRow.append(
-                    `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
+                    `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.deductions')</th>`
                 );
 
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.total_wage')</th>'
                 );
 
                 tableHead.append(mainHeaderRow);

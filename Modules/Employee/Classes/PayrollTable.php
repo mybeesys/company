@@ -93,7 +93,6 @@ class PayrollTable
             Cache::forever("payroll_table_{$date}_{$employee->id}", $employeePayrollData);
             return $employeePayrollData;
         });
-
         return DataTables::of($payrollData)
             ->rawColumns($payrollData->isNotEmpty() ? array_keys($payrollData->first()) : [])
             ->make(true);
