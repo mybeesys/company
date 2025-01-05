@@ -6,15 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Attribute;
 use Modules\Product\Models\Category;
-use Modules\Product\Models\Modifier;
 use Modules\Product\Models\ModifierClass;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\Subcategory;
-use Modules\Product\Models\Transformers\Collections\CategoryCollection;
 use Modules\Product\Models\Transformers\Collections\ModifierClassCollection;
 use Modules\Product\Models\Transformers\Collections\PAttributeCollection;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
-use Modules\Product\Models\TreeBuilder;
 
 class ProductController extends Controller
 {

@@ -27,5 +27,10 @@ class ServiceFeePaymentCard extends Model
         return $this->fillable;
     }
 
+    public function paymentCard()
+    {
+        return $this->belongsTo(PaymentCard::class, 'payment_card_id', 'id');
+    }
+
 }
 ?>

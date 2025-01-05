@@ -6,7 +6,7 @@ enum DiscountType: string
     case amount = '0';
     case altPrice = '1';
     case percent = '2';
-    case rePrice = '3';
+    // case rePrice = '3';
 
     public static function values(): array
     {
