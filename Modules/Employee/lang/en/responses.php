@@ -23,4 +23,5 @@ return [
     'payroll_group_confirmed' => 'Payroll group has been successfully confirmed',
     'no_employees_for_this_establishment' => 'This establishment does not have any employee',
     'please_set_time_sheet_rules_first' => 'Set time sheet rules first',
+    'employees_do_have_wages' => 'There are no salaries allocated for these employees in their data',
 ];

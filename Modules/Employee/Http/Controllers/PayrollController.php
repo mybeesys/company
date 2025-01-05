@@ -62,6 +62,15 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', __('employee::responses.no_employees_for_this_establishment'));
         }
 
+        $employees = Employee::with(['allowances', 'deductions', 'timecards', 'wage', 'shifts', 'defaultEstablishment'])
+            ->whereIn('id', $request->validated('employee_ids'))
+            ->whereIn('establishment_id', $establishmentIds)
+            ->whereHas('wage')
+            ->get();
+        if ($employees->isEmpty()) {
+            return redirect()->back()->with('error', __('employee::responses.employees_do_have_wages'));
+        }
+
 
         $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
         $lock = Cache::lock($lockKey, 30);

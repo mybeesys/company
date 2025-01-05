@@ -210,18 +210,18 @@
                     const $thead = payroll_table.find('thead');
                     $thead.empty();
 
-                    const mainHeaderRow = $('<tr></tr>');
+                    const mainHeaderRow = $('<tr class="bg-secondary"></tr>');
 
                     mainHeaderRow.append(
-                        `<th rowspan="2" class="text-start min-w-50px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.id')</th>
-                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.employee')</th>
-                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.payroll_group_name')</th>
-                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.date')</th>
-                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.regular_worked_hours')</th>
-                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.overtime_hours')</th>
-                        <th rowspan="2" class="text-start min-w-125px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.total_hours')</th>
-                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.total_worked_days')</th>
-                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6">@lang('employee::fields.basic_total_wage')</th>
+                        `<th rowspan="2" class="bg-secondary text-start min-w-50px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.id')</th>
+                        <th rowspan="2" class="bg-secondary text-start min-w-150px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.employee')</th>
+                        <th rowspan="2" class="bg-secondary text-start min-w-150px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.payroll_group_name')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.date')</th>
+                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.regular_worked_hours')</th>
+                        <th rowspan="2" class="text-start min-w-75px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.overtime_hours')</th>
+                        <th rowspan="2" class="text-start min-w-125px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.total_hours')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.total_worked_days')</th>
+                        <th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle border border-light text-gray-800 fs-6">@lang('employee::fields.basic_total_wage')</th>
                         `
                     );
 
@@ -231,7 +231,7 @@
                     <th colspan="${deductionColCount}" class="text-center border">@lang('employee::fields.deductions')</th>                    
             `);
                     mainHeaderRow.append(`
-                    <th rowspan="2" class="text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6">@lang('employee::fields.total_wage_due')</th>
+                    <th rowspan="2" class="text-start min-w-150px px-3 py-1 border border-light align-middle text-gray-800 fs-6">@lang('employee::fields.total_wage_due')</th>
                     <th rowspan="2" class="text-center align-middle min-w-125px border">@lang('employee::fields.actions')</th>
             `);
 
