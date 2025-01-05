@@ -54,12 +54,13 @@ class SellController extends Controller
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main',0)->get();
         $countries = Country::all();
+        $quotation=false;
 
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::sell.create', compact('clients', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::sell.create', compact('clients','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**

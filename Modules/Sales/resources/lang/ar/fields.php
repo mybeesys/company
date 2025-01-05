@@ -28,6 +28,8 @@ return [
     'amount' => 'الاجمال شامل الضريبة',
     'actions' => 'العمليات',
     'payment_status' => 'حالة الدفع',
+    'Expiry Date' => 'تاريخ الانتهاء',
+
 
 
 

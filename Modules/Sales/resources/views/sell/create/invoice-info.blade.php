@@ -1,6 +1,6 @@
 <div class="card" data-section="contact" style="border: 0;box-shadow: none">
     <div class="container">
-        <div class="d-flex align-items-center mb-5">
+        <div class="d- align-items-center mb-5" @if ($quotation) style="display: none;" @endif>
             {{-- <span class=" mt-2" data-bs-toggle="tooltip" title="@lang('accounting::lang.ref_number_note')">
                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.invoice_no')
 
@@ -35,16 +35,30 @@
             </select>
         </div> --}}
 
+
         <div class="d-flex align-items-center mb-5">
-            <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.due_date')</label>
-            <input class="form-control form-control-solid custom-height" name="due_date" required
-                value="{{ now()->format('Y-m-d') }}" placeholder="@lang('sales::fields.due_date')" id="due_date" type="date">
-        </div>
-        <div class="d-flex align-items-center mb-5">
-            <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.transaction_date')</label>
+
+            @if ($quotation)
+                <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.issue_date')</label>
+            @else
+                <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.transaction_date')</label>
+            @endif
             <input class="form-control form-control-solid custom-height" name="transaction_date"
                 value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.transaction_date')" id="transaction_date"
                 type="date">
+        </div>
+
+
+
+        <div class="d-flex align-items-center mb-5">
+
+            @if ($quotation)
+                <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.Expiry Date')</label>
+            @else
+                <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.due_date')</label>
+            @endif
+            <input class="form-control form-control-solid custom-height" name="due_date" required
+                value="{{ now()->format('Y-m-d') }}" placeholder="@lang('sales::fields.due_date')" id="due_date" type="date">
         </div>
 
 

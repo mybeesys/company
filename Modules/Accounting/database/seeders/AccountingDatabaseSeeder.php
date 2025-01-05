@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 use Modules\General\Models\Country;
+use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\Tax;
 
 class AccountingDatabaseSeeder extends Seeder
@@ -102,6 +103,59 @@ class AccountingDatabaseSeeder extends Seeder
             if (!$exists) {
                 Tax::insert($tax);
             }
+        }
+
+
+
+        $paymentMethods = [
+            [
+                'name_en' => 'prepaid',
+                'name_ar' => 'مدفوع مسبقاً',
+                'description_en' => 'Useful for securing payments in advance. Ensure the amount is received before processing the order.',
+                'description_ar' => 'مفيد لتأمين المدفوعات مسبقاً. تأكد من استلام المبلغ قبل متابعة الطلب.',
+                'active' => 1,
+            ],
+            [
+                'name_en' => 'cash',
+                'name_ar' => 'نقداً',
+                'description_en' => 'Preferred for quick transactions. Ensure the exact amount is counted and recorded.',
+                'description_ar' => 'مفضل للمعاملات السريعة. تأكد من عد المبلغ بدقة وتسجيله.',
+                'active' => 1,
+            ],
+            [
+                'name_en' => 'card',
+                'name_ar' => 'بطاقة',
+                'description_en' => 'Ideal for secure payments. Verify the card details and confirm the transaction before completion.',
+                'description_ar' => 'مثالي للمدفوعات الآمنة. تحقق من تفاصيل البطاقة وتأكد من العملية قبل الإكمال.',
+                'active' => 1,
+            ],
+            [
+                'name_en' => 'bank_check',
+                'name_ar' => 'شيك بنكي',
+                'description_en' => 'Recommended for large transactions. Validate the check and confirm its clearance with the bank.',
+                'description_ar' => 'يوصى به للمعاملات الكبيرة. تحقق من الشيك وتأكد من صرفه مع البنك.',
+                'active' => 1,
+            ],
+            [
+                'name_en' => 'bank_transfer',
+                'name_ar' => 'تحويل بنكي',
+                'description_en' => 'Useful for traceable transactions. Ensure the transfer is confirmed before processing the order.',
+                'description_ar' => 'مفيد للمعاملات القابلة للتتبع. تأكد من تأكيد التحويل قبل متابعة الطلب.',
+                'active' => 1,
+            ],
+        ];
+
+        foreach ($paymentMethods as $method) {
+            PaymentMethod::updateOrInsert(
+                ['name_en' => $method['name_en']],
+                [
+                    'name_ar' => $method['name_ar'],
+                    'description_en' => $method['description_en'],
+                    'description_ar' => $method['description_ar'],
+                    'active' => $method['active'],
+
+                ]
+            );
         }
     }
 }

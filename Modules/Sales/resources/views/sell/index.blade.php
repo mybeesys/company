@@ -31,7 +31,7 @@
                         @lang('sales::lang.create_suggestion_invoice')
                     </h4>
                     <a href="{{ route('create-invoice') }}"
-                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">إنشاء فاتورة </a>
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_sell')</a>
                 </div>
 
             </div>

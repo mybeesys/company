@@ -4,8 +4,8 @@
 namespace Modules\Employee\Classes;
 use Cache;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
 use Modules\Employee\Models\PayrollAdjustment;
+use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Services\PayrollService;
 use Yajra\DataTables\DataTables;
 
@@ -30,11 +30,11 @@ class PayrollTable
             ["class" => "text-start min-w-150px px-3 py-1 align-middle border text-gray-800 fs-6", "name" => "basic_total_wage", "group" => "main"],
         ];
 
-        $adjustmentTypes = PayrollAdjustment::with('adjustmentType')->get()->groupBy('type');
-        foreach ($adjustmentTypes->get('allowance', []) as $allowance) {
+        $adjustment = PayrollAdjustment::with('adjustmentType')->get()->groupBy('type');
+        foreach ($adjustment->get('allowance', []) as $allowance) {
             $baseColumns[] = [
                 "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-                "name" => "allowance_{$allowance->id}",
+                "name" => "allowance_{$allowance->adjustment_type_id}",
                 "translated_name" => $allowance->adjustmentType->{get_name_by_lang()},
                 "group" => "allowances"
             ];
@@ -46,11 +46,10 @@ class PayrollTable
             "translated_name" => __('employee::fields.total_allowances'),
             "group" => "allowances"
         ];
-
-        foreach ($adjustmentTypes->get('deduction', []) as $deduction) {
+        foreach ($adjustment->get('deduction', []) as $deduction) {
             $baseColumns[] = [
                 "class" => "text-start min-w-150px px-3 py-1 border align-middle text-gray-800 fs-6",
-                "name" => "deduction_{$deduction->id}",
+                "name" => "deduction_{$deduction->adjustment_type_id}",
                 "translated_name" => $deduction->adjustmentType->{get_name_by_lang()},
                 "group" => "deductions"
             ];
@@ -76,8 +75,7 @@ class PayrollTable
             "translated_name" => __('employee::fields.actions'),
             "group" => "main"
         ];
-
-        return $baseColumns;
+        return array_values(collect($baseColumns)->unique('name')->toArray());
     }
 
     public function getCreatePayrollTable($date, array $employeeIds, array $establishmentIds)
@@ -95,19 +93,15 @@ class PayrollTable
             Cache::forever("payroll_table_{$date}_{$employee->id}", $employeePayrollData);
             return $employeePayrollData;
         });
-
         return DataTables::of($payrollData)
             ->rawColumns($payrollData->isNotEmpty() ? array_keys($payrollData->first()) : [])
             ->make(true);
     }
 
     public static function getIndexPayrollTable($payrolls)
-    {
-        // Get all unique adjustment types
-        $adjustmentTypes = PayrollAdjustment::select('id', 'description', 'type')
-            ->get()
-            ->groupBy('type');
-
+    {            
+        $adjustment_types = PayrollAdjustmentType::whereHas('adjustments')->withTrashed()->get(['id', 'type'])->groupBy('type');
+        
         $datatable = DataTables::of($payrolls)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>{$row->id}</div>";
@@ -136,24 +130,23 @@ class PayrollTable
             ->editColumn('basic_total_wage', function ($row) {
                 return $row->basic_total_wage;
             });
-
+        
         // Add dynamic columns for each allowance type
-        foreach ($adjustmentTypes->get('allowance', []) as $allowance) {
-            $columnName = 'allowance_' . $allowance->id;
-            $datatable->addColumn($columnName, function ($row) use ($allowance) {
-                return $row->adjustments->where('id', $allowance->id)->first()?->amount ?? 0;
+        foreach ($adjustment_types->get('allowance', []) as $allowance_type) {
+            $columnName = 'allowance_' . $allowance_type->id;
+            $datatable->addColumn($columnName, function ($row) {
+                return $row->allowances()?->sum('amount') ?? 0;
             });
         }
 
         $datatable->addColumn('allowances', function ($row) {
             return $row->allowances;
         });
-
         // Add dynamic columns for each deduction type
-        foreach ($adjustmentTypes->get('deduction', []) as $deduction) {
-            $columnName = 'deduction_' . $deduction->id;
-            $datatable->addColumn($columnName, function ($row) use ($deduction) {
-                return $row->adjustments->where('id', $deduction->id)->first()?->amount ?? 0;
+        foreach ($adjustment_types->get('deduction', []) as $deduction_type) {
+            $columnName = 'deduction_' . $deduction_type->id;
+            $datatable->addColumn($columnName, function ($row) {
+                return $row->deductions()?->sum('amount') ?? 0;
             });
         }
 
@@ -169,7 +162,7 @@ class PayrollTable
         $datatable->addColumn('actions', function ($row) {
             return '
             <div class="text-center text-nowrap ">   
-                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 payroll-print-btn" data-id="' . $row->id . '" >
                     <i class="ki-outline ki-printer fs-2"></i>
                 </a>                
             </div>';

@@ -22,8 +22,14 @@ class GeneralController extends Controller
             [
                 'name' => __('menuItemLang.taxes'),
                 'route' => 'taxes',
-                'icon' => 'fa-percent',
+                'icon' => 'ki-outline fas fa-percent',
             ],
+            [
+                'name' => __('general::lang.payment_methods'),
+                'route' => 'payment-methods',
+                'icon' => 'fa-solid fa-wallet',
+            ],
+
         ];
         return view('general::settings.index', compact('cards'));
     }

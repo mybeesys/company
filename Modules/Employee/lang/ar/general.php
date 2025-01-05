@@ -155,4 +155,5 @@ return [
     'adjustment_type_search' => 'بحث عن نوع بدل أول حسم',
     'adjustments_types' => 'أنواع البدلات والحسومات',
     'this_element' => 'هذا العنصر',
+    'payroll_for_employee' => 'كشف راتب للموظف'
 ];

@@ -48,7 +48,7 @@
 
 @section('script')
     @parent
-    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustments.js') }}"></script>
     <script>
         var urlParams = new URLSearchParams(window.location.search);
         let columns;
@@ -60,6 +60,7 @@
         let allowancesCount = 0;
         let deductionsCount = 0;
         let firstEnter = true;
+        let lang = "{{ session('locale') }}"
         const table = $('#kt_createPayroll_table');
         const baseUrl = '{{ route('schedules.payrolls.create') }}';
 
@@ -77,17 +78,19 @@
             const dataUrl = `${baseUrl}?${queryParams.toString()}`;
             initDatatable(dataUrl);
 
-            payrollAllowanceModal();
-            payrollDeductionModal();
+            adjustmentRepeater('allowance', "{{ route('adjustment_types.get-types') }}",
+                "{{ route('adjustment_types.store') }}", false, payrollAllowanceModal());
+            adjustmentRepeater('deduction', "{{ route('adjustment_types.get-types') }}",
+                "{{ route('adjustment_types.store') }}", false, payrollDeductionModal());
+
             addAllowancesForm("{{ route('adjustments.store-allowance-cache') }}", dataUrl);
             addDeductionForm("{{ route('adjustments.store-deduction-cache') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
-            })
-            adjustmentRepeater('deduction');
-            adjustmentRepeater('allowance');
+            });
+
 
             lock();
 
@@ -222,20 +225,40 @@
 
                 repeaterList.empty();
 
-                allowancesIds.forEach((allowanceId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[amount]"]').val(amount[index]);
-                    newItem.find('select[name*="[amount_type]"]').val(amountType[index])
-                        .trigger('change');
-                    newItem.find('select[name*="[adjustment_type]"]').val(allowanceTypes[index])
-                        .trigger('change');
-                    newItem.find('input[name*="[id]"]').val(allowanceId);
-                });
-                adjustmentType_type = "allowance";
-                setTimeout(() => {
+                const createRepeaterItem = (allowanceId, index) => {
+                    return new Promise((resolve) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+
+                        // Wait for Select2 initialization
+                        const checkSelect2Ready = setInterval(() => {
+                            const select = newItem.find('select[name*="[adjustment_type]"]');
+                            if (select.hasClass('select2-hidden-accessible')) {
+                                clearInterval(checkSelect2Ready);
+
+                                newItem.find('input[name*="[amount]"]').val(amount[index]);
+                                select.val(allowanceTypes[index]).trigger('change');
+                                newItem.find('select[name*="[amount_type]"]').val(amountType[
+                                    index]).trigger('change');
+                                newItem.find('input[name*="[id]"]').val(allowanceId);
+
+                                resolve();
+                            }
+                        }, 50);
+                    });
+                };
+
+                // Process all items sequentially
+                async function processAllItems() {
+                    for (let i = 0; i < allowancesIds.length; i++) {
+                        await createRepeaterItem(allowancesIds[i], i);
+                    }
+                    adjustmentType_type = "allowance";
                     $('#payroll_allowance_modal').modal('toggle');
-                }, 300);
+                }
+
+                processAllItems();
+
             });
         }
 
@@ -274,55 +297,37 @@
 
                 repeaterList.empty();
 
-                deductionsIds.forEach((deductionId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[amount]"]').val(amount[index]);
-                    newItem.find('select[name*="[amount_type]"]').val(amountType[index])
-                        .trigger('change');
-                    newItem.find('select[name*="[adjustment_type]"]').val(deductionTypes[index])
-                        .trigger('change');
-                    newItem.find('input[name*="[id]"]').val(deductionId);
-                });
-                adjustmentType_type = "deduction";
-                setTimeout(() => {
+                const createRepeaterItem = (deductionId, index) => {
+                    return new Promise((resolve) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+
+                        const checkSelect2Ready = setInterval(() => {
+                            const select = newItem.find('select[name*="[adjustment_type]"]');
+                            if (select.hasClass('select2-hidden-accessible')) {
+                                clearInterval(checkSelect2Ready);
+
+                                newItem.find('input[name*="[amount]"]').val(amount[index]);
+                                select.val(deductionTypes[index]).trigger('change');
+                                newItem.find('select[name*="[amount_type]"]').val(amountType[
+                                    index]).trigger('change');
+                                newItem.find('input[name*="[id]"]').val(deductionId);
+
+                                resolve();
+                            }
+                        }, 50);
+                    });
+                };
+
+                async function processAllItems() {
+                    for (let i = 0; i < deductionsIds.length; i++) {
+                        await createRepeaterItem(deductionsIds[i], i);
+                    }
+                    adjustmentType_type = "deduction";
                     $('#payroll_deduction_modal').modal('toggle');
-                }, 300);
-            });
-        }
-
-        function adjustmentRepeater(type) {
-            $(`#${type}_repeater`).repeater({
-                show: function() {
-                    const $this = $(this);
-                    $this.slideDown();
-
-                    $this.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
-                        .select2({
-                            minimumResultsForSearch: -1
-                        });
-
-                    $this.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
-                        .flatpickr({
-                            plugins: [
-                                monthSelectPlugin({
-                                    shorthand: true,
-                                    dateFormat: "Y-m",
-                                    altFormat: "F Y"
-                                })
-                            ]
-                        });
-                    const customOptions = new Map();
-
-                    initializeSelect2($this.find(
-                            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                        ), customOptions, true, "{{ session('locale') }}",
-                        "{{ route('adjustment_types.store') }}");
-                },
-
-                hide: function(deleteElement) {
-                    $(this).slideUp(deleteElement);
                 }
+
+                processAllItems();
             });
         }
 
@@ -330,49 +335,74 @@
         function initDatatable(dataUrl) {
             $.getJSON(dataUrl, {
                 firstEnter: firstEnter
-            }, function(response) {
-                allowancesCount = 0;
-                deductionsCount = 0;
-                if (response.data.length > 0) {
-                    const firstRow = response.data[0];
-                    allowancesCount = firstRow.allowances_array ? Object.keys(firstRow.allowances_array).length : 0;
-                    deductionsCount = firstRow.deductions_array ? Object.keys(firstRow.deductions_array).length : 0;
-                }
+            }, function(response) {                
+                const allowancesCount = response.data.reduce((max, row) => {
+                    const currentCount = row.allowances_array ? Object.keys(row.allowances_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+                const uniqueAllowances = response.data
+                    .filter(row => row.allowances_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.allowances_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
+
+
+                // Find the maximum length of deductions_array (if needed)
+                const deductionsCount = response.data.reduce((max, row) => {
+                    const currentCount = row.deductions_array ? Object.keys(row.deductions_array)
+                        .length : 0;
+                    return Math.max(max, currentCount);
+                }, 0);
+
+                const uniqueDeductions = response.data
+                    .filter(row => row.deductions_array) // Filter rows with allowances_array
+                    .reduce((acc, row) => {
+                        Object.entries(row.deductions_array).forEach(([key, value]) => {
+                            if (!acc[key]) {
+                                acc[key] = value; // Add the key-value pair if it doesn't already exist
+                            }
+                        });
+                        return acc;
+                    }, {});
 
                 // Update the table header (thead)
                 const tableHead = $('#kt_createPayroll_table thead');
                 tableHead.empty(); // Clear existing thead
 
                 // Create the first row (main headers)
-                const mainHeaderRow = $('<tr></tr>');
+                const mainHeaderRow = $('<tr class="bg-secondary"></tr>');
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.employee')</th>'
+                    '<th rowspan="2" class="bg-secondary text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.employee')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.establishment')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.establishment')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.basic_wage')</th>'
+                    '<th colspan="5" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.basic_wage')</th>'
                 );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.wage_due')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.wage_due')</th>'
                 );
 
                 // Dynamic Allowances Header
                 mainHeaderRow.append(
-                    `<th colspan="${allowancesCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.allowances')</th>`
+                    `<th colspan="${allowancesCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.allowances')</th>`
                 );
 
                 // Dynamic Deductions Header
                 mainHeaderRow.append(
-                    `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
+                    `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.deductions')</th>`
                 );
 
-                // mainHeaderRow.append(
-                //     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
-                // );
                 mainHeaderRow.append(
-                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
+                    '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2 border-light">@lang('employee::fields.total_wage')</th>'
                 );
 
                 tableHead.append(mainHeaderRow);
@@ -387,9 +417,10 @@
                     <th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>
                     `);
 
-                // Add dynamic allowance sub-headers
+
+                // Add dynamic allowance sub-headers                
                 if (allowancesCount > 0) {
-                    Object.keys(response.data[0].allowances_array).forEach(key => {
+                    Object.keys(uniqueAllowances).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
@@ -400,7 +431,7 @@
                 );
                 // Add dynamic deduction sub-headers
                 if (deductionsCount > 0) {
-                    Object.keys(response.data[0].deductions_array).forEach(key => {
+                    Object.keys(uniqueDeductions).forEach(key => {
                         subHeaderRow.append(
                             `<th class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">${key.replace('_', ' ').toUpperCase()}</th>`
                         );
@@ -413,7 +444,7 @@
                 tableHead.append(subHeaderRow);
 
                 // Initialize DataTable (from previous code)
-                initDataTableColumns(response.data, dataUrl);
+                initDataTableColumns(response.data, dataUrl, uniqueAllowances, uniqueDeductions);
             });
         }
 
@@ -423,7 +454,7 @@
             return txt.value;
         }
 
-        function initDataTableColumns(data, dataUrl) {
+        function initDataTableColumns(data, dataUrl, uniqueAllowances, uniqueDeductions) {
             let columns = [{
                     data: 'employee',
                     name: 'employee',
@@ -468,9 +499,8 @@
 
             // Add dynamic allowance and deduction columns
             if (data.length > 0) {
-                const firstRow = data[0];
 
-                Object.keys(firstRow.allowances_array || {}).forEach(key => {
+                Object.keys(uniqueAllowances || {}).forEach(key => {
                     columns.push({
                         name: `allowances_array.${key}`,
                         data: `allowances_array.${key}`,
@@ -485,7 +515,7 @@
                     data: 'total_allowances',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
-                Object.keys(firstRow.deductions_array || {}).forEach(key => {
+                Object.keys(uniqueDeductions || {}).forEach(key => {
                     columns.push({
                         name: `deductions_array.${key}`,
                         data: `deductions_array.${key}`,
@@ -512,6 +542,10 @@
                 processing: true,
                 serverSide: true,
                 info: false,
+                fixedHeader: true,
+                fixedColumns: {
+                    right: 1
+                },
                 ajax: {
                     url: dataUrl,
                     type: "GET",

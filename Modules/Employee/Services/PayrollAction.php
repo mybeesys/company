@@ -21,17 +21,20 @@ class PayrollAction
         $payroll_group_id = $payroll_group->id;
         $gross_total = 0;
         $net_total = 0;
-
+        $employeeIdsToKeep = [];
         foreach ($employeeIds as $employeeId) {
-            $employee = Employee::firstWhere('id', $employeeId);
+            $employee = Employee::where('id', $employeeId)->whereHas('wage')->first();
+            if (!$employee) {
+                continue;
+            }
             $payrollData = Cache::get("payroll_table_{$date}_{$employeeId}");
             $allowance_key = "allowance_{$employeeId}_{$date}-01";
             $allowances_repeater = Cache::get($allowance_key);
             Cache::forget($allowance_key);
-            
-            $deduction_key = "deduction_{$employeeId}_{$date}-01";
-            $deductions_repeater = Cache::get($deduction_key);
 
+            $deduction_key = "deduction_{$employeeId}_{$date}-01";
+
+            $deductions_repeater = Cache::get($deduction_key);
             Cache::forget($deduction_key);
 
             if ($allowances_repeater) {
@@ -55,14 +58,15 @@ class PayrollAction
             ]);
             // $net_total += $payrollData['total_wage'];
             $gross_total += $payrollData['total_wage'];
-        }
+            $employeeIdsToKeep[] = $employee->id;
 
+            $payroll->adjustments()->sync(array_merge($allowances_ids ?? [], $deductions_ids ?? []));
+        }
+        Payroll::where('payroll_group_id', $payroll_group_id)->whereNotIn('employee_id', $employeeIdsToKeep)->delete();
         $payroll_group->update([
             // 'net_total' => $net_total,
             'gross_total' => $gross_total
         ]);
-
-        $payroll->adjustments()->sync(array_merge($allowances_ids ?? [], $deductions_ids ?? []));
 
         collect($employeeIds)->each(function ($employeeId) use ($date) {
             Cache::forget("payroll_table_{$date}" . $employeeId);

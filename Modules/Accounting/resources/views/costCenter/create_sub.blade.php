@@ -40,10 +40,15 @@
 
 
                     <div class="d-flex  align-items-center ">
-                        <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('accounting::lang.is_main')</label>
+                        <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('accounting::lang.is_main')
+                            <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('accounting::lang.cost_center_note')">
+                                <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                            </span>
+
+                        </label>
                         <div class="form-check">
-                        <input type="checkbox" style="border: 1px solid #9f9f9f;" id="is_main" name="is_main"
-                            class="form-check-input  my-2">
+                            <input type="checkbox" style="border: 1px solid #9f9f9f;" id="is_main" name="is_main"
+                                class="form-check-input  my-2">
                         </div>
                     </div>
 

@@ -19,10 +19,20 @@ class Payroll extends BaseScheduleModel
     {
         return $this->belongsTo(Employee::class)->withTrashed();
     }
-    
+
     public function adjustments()
     {
         return $this->belongsToMany(PayrollAdjustment::class, 'sch_adjustments_payrolls', 'payroll_id', 'adjustment_id')->withTrashed();
+    }
+
+    public function allowances()
+    {
+        return $this->belongsToMany(PayrollAdjustment::class, 'sch_adjustments_payrolls', 'payroll_id', 'adjustment_id')->where('type', 'allowance')->withTrashed();
+    }
+
+    public function deductions()
+    {
+        return $this->belongsToMany(PayrollAdjustment::class, 'sch_adjustments_payrolls', 'payroll_id', 'adjustment_id')->where('type', 'deduction')->withTrashed();
     }
 
     public function payrollGroup()

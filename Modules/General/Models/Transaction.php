@@ -48,6 +48,22 @@ class Transaction extends Model
         ];
     }
 
+    public static function getsQuotationColumns()
+    {
+        return [
+
+
+            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
+            ["class" => "text-start min-w-150px  ", "name" => "client"],
+            ["class" => "text-start min-w-150px", "name" => "issue_date"],
+            ["class" => "text-start min-w-150px ", "name" => "Expiry Date"],
+            ["class" => "text-start min-w-80px ", "name" => "payment_status"],
+            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
+            // ["class" => "text-start min-w-150px  ", "name" => "discount"],
+            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+        ];
+    }
 
 
     public static function getsPurchasesColumns()
