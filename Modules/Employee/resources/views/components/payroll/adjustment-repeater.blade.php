@@ -1,11 +1,11 @@
-@props(['adjustments' => null, 'adjustment_types', 'type'])
+@props(['adjustments' => null, 'type'])
 <div id="{{ $type }}_repeater">
     <div class="form-group">
         <div data-repeater-list="{{ $type }}_repeater" class="d-flex flex-column gap-3">
             <div data-repeater-item class="d-flex flex-wrap align-items-center gap-3">
                 <x-form.input-div class="w-100 min-w-150px">
                     <x-form.select name="{{ $type }}_repeater[][adjustment_type]" optionName="translatedName"
-                        :options="$adjustment_types" :errors="$errors" data_allow_clear="false" required
+                        :options="[]" :errors="$errors" data_allow_clear="false" required
                         placeholder="{{ __('employee::fields.' . $type . '_type') }}" />
                 </x-form.input-div>
                 <x-form.input-div class="w-100 min-w-75px">

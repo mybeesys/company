@@ -119,3 +119,109 @@ function handleNewOption(element, newValue, customOptions, addAllowanceTypeUrl, 
             element.val(null).trigger('change');
         });
 }
+
+function adjustmentRepeater(type, getTypesUrl, storeTypeUrl, hasInitialValues, callbackFunction = null) {
+    $(`#${type}_repeater`).repeater({
+        initEmpty: !hasInitialValues,
+        ready: function () {
+            const $repeater = $(`#${adjustmentType_type}_repeater`);
+            $repeater.find(
+                `select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                .select2({
+                    minimumResultsForSearch: -1
+                });
+
+            $repeater.find(
+                `input[name^="${type}_repeater"][name$="[applicable_date]"]`
+            )
+                .flatpickr({
+                    plugins: [
+                        monthSelectPlugin({
+                            shorthand: true,
+                            dateFormat: "Y-m",
+                            altFormat: "F Y"
+                        })
+                    ]
+                });
+
+            const customOptions = new Map();
+
+            $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
+                .each(function () {
+                    initializeSelect2($(this), customOptions, true, lang,
+                        storeTypeUrl);
+                });
+        },
+        show: function () {
+            const $this = $(this);
+            $this.slideDown();
+
+            ajaxRequest(getTypesUrl, "GET", {
+                type: type
+            }, false, true, false).done(function (response) {
+
+                let adjustment_type = $this.find(`select[name^="${type}_repeater"][name$="[adjustment_type]"]`);
+
+                adjustment_type.attr('disabled', 'disabled');
+                let addNewOption = $this.find(
+                    `select[name^="${type}_repeater"][name$="[adjustment_type]"] option[value="add_new"]`
+                );
+
+                response.data.forEach(function (item) {
+                    let optionText = lang === "ar" ? item.name : (item
+                        .name_en || item
+                            .name);
+                    adjustment_type.append(new Option(optionText,
+                        item.id));
+                    selectedOption = item.id;
+                });
+
+                if (addNewOption.length) {
+                    adjustment_type.append(addNewOption);
+                }
+
+                adjustment_type.val(null).trigger('change');
+
+                adjustment_type.removeAttr('disabled');
+                adjustment_type.trigger('change');
+                adjustment_type.removeAttr('disabled', 'disabled');
+
+                $this.find(
+                    `select[name^="${type}_repeater"][name$="[amount_type]"]`)
+                    .select2({
+                        minimumResultsForSearch: -1
+                    });
+
+                $this.find(
+                    `input[name^="${type}_repeater"][name$="[applicable_date]"]`
+                )
+                    .flatpickr({
+                        plugins: [
+                            monthSelectPlugin({
+                                shorthand: true,
+                                dateFormat: "Y-m",
+                                altFormat: "F Y"
+                            })
+                        ]
+                    });
+                const customOptions = new Map();
+
+                initializeSelect2($this.find(
+                    `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
+                ), customOptions, true, lang, storeTypeUrl);
+
+                if (typeof callbackFunction === "function") {
+                    callbackFunction();
+                }
+            }).fail(function () {
+                $this.slideUp(function () {
+                    $this.remove();
+                });
+            });
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    });
+}

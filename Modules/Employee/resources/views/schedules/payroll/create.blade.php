@@ -60,6 +60,7 @@
         let allowancesCount = 0;
         let deductionsCount = 0;
         let firstEnter = true;
+        let lang = "{{ session('locale') }}"
         const table = $('#kt_createPayroll_table');
         const baseUrl = '{{ route('schedules.payrolls.create') }}';
 
@@ -77,17 +78,19 @@
             const dataUrl = `${baseUrl}?${queryParams.toString()}`;
             initDatatable(dataUrl);
 
-            payrollAllowanceModal();
-            payrollDeductionModal();
+            adjustmentRepeater('allowance', "{{ route('adjustment_types.get-types') }}",
+                "{{ route('adjustment_types.store') }}", false, payrollAllowanceModal());
+            adjustmentRepeater('deduction', "{{ route('adjustment_types.get-types') }}",
+                "{{ route('adjustment_types.store') }}", false, payrollDeductionModal());
+
             addAllowancesForm("{{ route('adjustments.store-allowance-cache') }}", dataUrl);
             addDeductionForm("{{ route('adjustments.store-deduction-cache') }}", dataUrl)
 
             let addAllowanceTypeUrl = "";
             $('[name="payroll_group_state"]').select2({
                 minimumResultsForSearch: -1,
-            })
-            adjustmentRepeater('deduction');
-            adjustmentRepeater('allowance');
+            });
+
 
             lock();
 
@@ -222,20 +225,40 @@
 
                 repeaterList.empty();
 
-                allowancesIds.forEach((allowanceId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[amount]"]').val(amount[index]);
-                    newItem.find('select[name*="[amount_type]"]').val(amountType[index])
-                        .trigger('change');
-                    newItem.find('select[name*="[adjustment_type]"]').val(allowanceTypes[index])
-                        .trigger('change');
-                    newItem.find('input[name*="[id]"]').val(allowanceId);
-                });
-                adjustmentType_type = "allowance";
-                setTimeout(() => {
+                const createRepeaterItem = (allowanceId, index) => {
+                    return new Promise((resolve) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+
+                        // Wait for Select2 initialization
+                        const checkSelect2Ready = setInterval(() => {
+                            const select = newItem.find('select[name*="[adjustment_type]"]');
+                            if (select.hasClass('select2-hidden-accessible')) {
+                                clearInterval(checkSelect2Ready);
+
+                                newItem.find('input[name*="[amount]"]').val(amount[index]);
+                                select.val(allowanceTypes[index]).trigger('change');
+                                newItem.find('select[name*="[amount_type]"]').val(amountType[
+                                    index]).trigger('change');
+                                newItem.find('input[name*="[id]"]').val(allowanceId);
+
+                                resolve();
+                            }
+                        }, 50);
+                    });
+                };
+
+                // Process all items sequentially
+                async function processAllItems() {
+                    for (let i = 0; i < allowancesIds.length; i++) {
+                        await createRepeaterItem(allowancesIds[i], i);
+                    }
+                    adjustmentType_type = "allowance";
                     $('#payroll_allowance_modal').modal('toggle');
-                }, 300);
+                }
+
+                processAllItems();
+
             });
         }
 
@@ -274,55 +297,37 @@
 
                 repeaterList.empty();
 
-                deductionsIds.forEach((deductionId, index) => {
-                    $('[data-repeater-create]').trigger('click');
-                    const newItem = repeaterList.find('[data-repeater-item]').last();
-                    newItem.find('input[name*="[amount]"]').val(amount[index]);
-                    newItem.find('select[name*="[amount_type]"]').val(amountType[index])
-                        .trigger('change');
-                    newItem.find('select[name*="[adjustment_type]"]').val(deductionTypes[index])
-                        .trigger('change');
-                    newItem.find('input[name*="[id]"]').val(deductionId);
-                });
-                adjustmentType_type = "deduction";
-                setTimeout(() => {
+                const createRepeaterItem = (deductionId, index) => {
+                    return new Promise((resolve) => {
+                        $('[data-repeater-create]').trigger('click');
+                        const newItem = repeaterList.find('[data-repeater-item]').last();
+
+                        const checkSelect2Ready = setInterval(() => {
+                            const select = newItem.find('select[name*="[adjustment_type]"]');
+                            if (select.hasClass('select2-hidden-accessible')) {
+                                clearInterval(checkSelect2Ready);
+
+                                newItem.find('input[name*="[amount]"]').val(amount[index]);
+                                select.val(deductionTypes[index]).trigger('change');
+                                newItem.find('select[name*="[amount_type]"]').val(amountType[
+                                    index]).trigger('change');
+                                newItem.find('input[name*="[id]"]').val(deductionId);
+
+                                resolve();
+                            }
+                        }, 50);
+                    });
+                };
+
+                async function processAllItems() {
+                    for (let i = 0; i < deductionsIds.length; i++) {
+                        await createRepeaterItem(deductionsIds[i], i);
+                    }
+                    adjustmentType_type = "deduction";
                     $('#payroll_deduction_modal').modal('toggle');
-                }, 300);
-            });
-        }
-
-        function adjustmentRepeater(type) {
-            $(`#${type}_repeater`).repeater({
-                show: function() {
-                    const $this = $(this);
-                    $this.slideDown();
-
-                    $this.find(`select[name^="${type}_repeater"][name$="[amount_type]"]`)
-                        .select2({
-                            minimumResultsForSearch: -1
-                        });
-
-                    $this.find(`input[name^="${type}_repeater"][name$="[applicable_date]"]`)
-                        .flatpickr({
-                            plugins: [
-                                monthSelectPlugin({
-                                    shorthand: true,
-                                    dateFormat: "Y-m",
-                                    altFormat: "F Y"
-                                })
-                            ]
-                        });
-                    const customOptions = new Map();
-
-                    initializeSelect2($this.find(
-                            `select[name^="${type}_repeater"][name$="[adjustment_type]"]`
-                        ), customOptions, true, "{{ session('locale') }}",
-                        "{{ route('adjustment_types.store') }}");
-                },
-
-                hide: function(deleteElement) {
-                    $(this).slideUp(deleteElement);
                 }
+
+                processAllItems();
             });
         }
 
@@ -331,26 +336,7 @@
             $.getJSON(dataUrl, {
                 firstEnter: firstEnter
             }, function(response) {
-                // let allowancesCount = 0;
-                // let dedctionsCount = 0;
-                // if (response.data.length > 0) {
                 const firstRow = response.data[1];
-
-                // const allAllowances = response.data
-                //     .filter(row => row.allowances_array) // Filter rows with allowances_array
-                //     .flatMap(row => Object.values(row.allowances_array)); // Combine all allowances
-
-                // Remove duplicates
-                // const uniqueAllowances = Array.from(new Set(allAllowances));
-
-
-                // const allDeductions = response.data
-                //     .filter(row => row.deductions_array) // Filter rows with allowances_array
-                //     .flatMap(row => Object.values(row.deductions_array)); // Combine all allowances
-
-                // // Remove duplicates
-                // const uniqueDeductions = Array.from(new Set(allDeductions));
-
 
                 const allowancesCount = response.data.reduce((max, row) => {
                     const currentCount = row.allowances_array ? Object.keys(row.allowances_array)
@@ -417,9 +403,6 @@
                     `<th colspan="${deductionsCount +1}" class="text-center min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.deductions')</th>`
                 );
 
-                // mainHeaderRow.append(
-                //     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage_before_tax')</th>'
-                // );
                 mainHeaderRow.append(
                     '<th rowspan="2" class="text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6 border border-2">@lang('employee::fields.total_wage')</th>'
                 );
@@ -463,7 +446,7 @@
                 tableHead.append(subHeaderRow);
 
                 // Initialize DataTable (from previous code)
-                initDataTableColumns(response.data, dataUrl);
+                initDataTableColumns(response.data, dataUrl, uniqueAllowances, uniqueDeductions);
             });
         }
 
@@ -473,7 +456,7 @@
             return txt.value;
         }
 
-        function initDataTableColumns(data, dataUrl) {
+        function initDataTableColumns(data, dataUrl, uniqueAllowances, uniqueDeductions) {
             let columns = [{
                     data: 'employee',
                     name: 'employee',
@@ -518,9 +501,8 @@
 
             // Add dynamic allowance and deduction columns
             if (data.length > 0) {
-                const firstRow = data[0];
 
-                Object.keys(firstRow.allowances_array || {}).forEach(key => {
+                Object.keys(uniqueAllowances || {}).forEach(key => {
                     columns.push({
                         name: `allowances_array.${key}`,
                         data: `allowances_array.${key}`,
@@ -535,7 +517,7 @@
                     data: 'total_allowances',
                     className: 'text-start px-3 py-2 border border-2 text-gray-800 fs-6'
                 });
-                Object.keys(firstRow.deductions_array || {}).forEach(key => {
+                Object.keys(uniqueDeductions || {}).forEach(key => {
                     columns.push({
                         name: `deductions_array.${key}`,
                         data: `deductions_array.${key}`,
@@ -562,6 +544,10 @@
                 processing: true,
                 serverSide: true,
                 info: false,
+                fixedHeader: true,
+                fixedColumns: {
+                    right: 1
+                },
                 ajax: {
                     url: dataUrl,
                     type: "GET",
