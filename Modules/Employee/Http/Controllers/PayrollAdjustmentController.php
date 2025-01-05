@@ -35,7 +35,8 @@ class PayrollAdjustmentController extends Controller
         try {
             PayrollAdjustment::updateOrCreate(['id' => $request->validated('id')], $request->safe()->merge([
                 'applicable_date' => $request->validated('applicable_date') . "-01",
-                'adjustment_type_id' => $request->validated('adjustment_type')
+                'adjustment_type_id' => $request->validated('adjustment_type'),
+                'apply_once' => $request->validated('apply_once') ?? false
             ])->all());
             return response()->json(['message' => __('employee::responses.operation_success')]);
         } catch (\Throwable $e) {

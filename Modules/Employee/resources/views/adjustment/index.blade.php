@@ -252,8 +252,14 @@
         function addAllowanceForm() {
             $('#add_adjustment_modal_form').on('submit', function(e) {
                 e.preventDefault();
+                const submitButton = $(this).find('button[type="submit"]');
+                submitButton.attr('disabled', 'disabled');
+
                 let data = $(this).serializeArray();
-                data.push({ name: "_token", value: window.csrfToken });
+                data.push({
+                    name: "_token",
+                    value: window.csrfToken
+                });
                 ajaxRequest("{{ route('adjustments.store') }}", "POST", data).fail(
                     function(data) {
                         $.each(data.responseJSON.errors, function(key, value) {
@@ -261,7 +267,9 @@
                             $(`[name='${key}']`).after('<div class="invalid-feedback">' + value +
                                 '</div>');
                         });
+                        submitButton.removeAttr('disabled');
                     }).done(function() {
+                    submitButton.removeAttr('disabled');
                     $('#add_adjustment_modal').modal('toggle');
                     adjustmentDataTable.ajax.reload();
                 });
@@ -272,7 +280,13 @@
             $('#add_adjustment_type_modal_form').on('submit', function(e) {
                 e.preventDefault();
                 let data = $(this).serializeArray();
-                data.push({ name: "_token", value: window.csrfToken });
+                const submitButton = $(this).find('button[type="submit"]');
+                submitButton.attr('disabled', 'disabled');
+
+                data.push({
+                    name: "_token",
+                    value: window.csrfToken
+                });
                 ajaxRequest("{{ route('adjustment_types.store') }}", "POST", data).fail(
                     function(data) {
                         $.each(data.responseJSON.errors, function(key, value) {
@@ -280,7 +294,10 @@
                             $(`[name='${key}']`).after('<div class="invalid-feedback">' + value +
                                 '</div>');
                         });
+                        submitButton.removeAttr('disabled');
+
                     }).done(function() {
+                    submitButton.removeAttr('disabled');
                     $('#add_adjustment_type_modal').modal('toggle');
                     adjustmentTypeDataTable.ajax.reload();
                 });

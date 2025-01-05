@@ -101,8 +101,8 @@ class PayrollTable
 
     public static function getIndexPayrollTable($payrolls)
     {            
-        $adjustment_types = PayrollAdjustmentType::whereHas('adjustments')->get(['id', 'type'])->groupBy('type');
-
+        $adjustment_types = PayrollAdjustmentType::whereHas('adjustments')->withTrashed()->get(['id', 'type'])->groupBy('type');
+        
         $datatable = DataTables::of($payrolls)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>{$row->id}</div>";
@@ -131,7 +131,7 @@ class PayrollTable
             ->editColumn('basic_total_wage', function ($row) {
                 return $row->basic_total_wage;
             });
-
+        
         // Add dynamic columns for each allowance type
         foreach ($adjustment_types->get('allowance', []) as $allowance_type) {
             $columnName = 'allowance_' . $allowance_type->id;

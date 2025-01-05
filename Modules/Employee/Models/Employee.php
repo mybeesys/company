@@ -98,12 +98,12 @@ class Employee extends Authenticatable
 
     public function allowances()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance')->withTrashed();
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
     }
 
     public function deductions()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction')->withTrashed();
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
     }
 
     public function getTranslatedNameAttribute()

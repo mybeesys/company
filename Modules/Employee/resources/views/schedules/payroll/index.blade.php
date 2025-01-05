@@ -253,6 +253,10 @@
                         serverSide: true,
                         ajax: payroll_dataUrl,
                         info: false,
+                        fixedHeader: true,
+                        fixedColumns: {
+                            right: 3
+                        },
                         columns: [
                             ...columns.map(col => ({
                                 data: col.name,
