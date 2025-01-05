@@ -42,11 +42,11 @@ class ServiceFeeResource extends JsonResource
         $applicationType["name_ar"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'ar');
         $applicationType["name_en"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'en');
         $calculationMethod["id"] = $this->calculation_method;
-        $calculationMethod["name_ar"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'ar');
-        $calculationMethod["name_en"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'en');  
+        $calculationMethod["name_ar"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'en');
+        $calculationMethod["name_en"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'ar');  
         $autoApplyType["id"] = $this->auto_apply_type;
-        $autoApplyType["name_ar"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'en');
-        $autoApplyType["name_en"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'ar');    
+        $autoApplyType["name_ar"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'ar');
+        $autoApplyType["name_en"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'en');    
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,
