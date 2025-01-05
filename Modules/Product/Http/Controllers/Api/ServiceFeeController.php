@@ -33,8 +33,8 @@ class ServiceFeeController extends Controller
         return response()->json([
             'data' => array_map(function($item) {
                 $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('product::messages.service_fee_app_type_'.$item["name"], [], 'ar');
-                $newItem["name_en"] = Lang::get('product::messages.service_fee_app_type_'.$item["name"], [], 'en');
+                $newItem["name_ar"] = Lang::get('product::messages.service_fee_app_type_'.$item["name"], [], 'en');
+                $newItem["name_en"] = Lang::get('product::messages.service_fee_app_type_'.$item["name"], [], 'ar');
                 return $newItem;
             }, $result)
         ]);
