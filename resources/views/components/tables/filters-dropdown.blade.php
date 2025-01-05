@@ -1,3 +1,4 @@
+@props(['submitButtonClass' => null, 'resetButtonClass' => null])
 <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
     <button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click"
         data-kt-menu-placement="{{ session('locale') == 'ar' ? 'bottom-start' : 'bottom-end' }}">
@@ -14,9 +15,9 @@
         <div class="px-7 py-5" data-kt-filter="form">
             {{ $slot }}
             <div class="d-flex justify-content-end">
-                <button type="reset" class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6"
+                <button type="reset" class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6 {{ $resetButtonClass }}"
                     data-kt-menu-dismiss="true" data-kt-filter="reset">@lang('general.reset')</button>
-                <button type="submit" class="btn btn-primary fw-semibold px-6" data-kt-menu-dismiss="true"
+                <button type="submit" class="btn btn-primary fw-semibold px-6 {{ $submitButtonClass }}" data-kt-menu-dismiss="true"
                     data-kt-filter="filter">@lang('general.apply')</button>
             </div>
         </div>

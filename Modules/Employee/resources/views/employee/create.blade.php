@@ -14,7 +14,7 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
-    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustment.js') }}"></script>
 
     <script>
         let adjustmentType_type = "allowance";

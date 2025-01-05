@@ -19,7 +19,14 @@
             <div class="tab-pane fade show active" id="adjustment_tab" role="tabpanel">
                 <x-cards.card>
                     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                        <x-tables.table-header :search="false" model="adjustment" :addButton="auth()->user()->hasDashboardPermission('employees.allowance_deduction.create')" module="employee" />
+                        <x-tables.table-header :search="false" model="adjustment" :addButton="auth()->user()->hasDashboardPermission('employees.allowance_deduction.create')" module="employee">
+                            <x-slot:filters>
+                                <x-tables.filters-dropdown submitButtonClass="adjustment_submit_button"
+                                    resetButtonClass="adjustment_reset_button">
+                                    <x-employee::adjustments.filters />
+                                </x-tables.filters-dropdown>
+                            </x-slot:filters>
+                        </x-tables.table-header>
                     </x-cards.card-header>
                     <x-cards.card-body class="table-responsive">
                         <x-tables.table :columns=$adjustments_columns model="adjustment" module="employee" />
@@ -30,7 +37,14 @@
                 <x-cards.card>
                     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                         <x-tables.table-header :search="false" model="adjustment_type" :addButton="auth()->user()->hasDashboardPermission('employees.allowance_deduction.create')"
-                            module="employee" />
+                            module="employee">
+                            <x-slot:filters>
+                                <x-tables.filters-dropdown submitButtonClass="adjustment_type_submit_button"
+                                    resetButtonClass="adjustment_type_reset_button">
+                                    <x-employee::adjustments.types-filters />
+                                </x-tables.filters-dropdown>
+                            </x-slot:filters>
+                        </x-tables.table-header>
                     </x-cards.card-header>
                     <x-cards.card-body class="table-responsive">
                         <x-tables.table :columns=$adjustments_types_columns model="adjustment_type" module="employee" />
@@ -47,7 +61,9 @@
     @parent
     <script src="{{ url('/js/table.js') }}"></script>
     <script type="text/javascript" src="vfs_fonts.js"></script>
-    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustments.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustment-index.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustment-type-index.js') }}"></script>
     <script>
         "use strict";
         let adjustmentDataTable;
@@ -63,8 +79,8 @@
             if (!adjustmentTable.length) return;
             initAdjustmentDatatable();
             initAdjustmentTypeDatatable();
-            addAllowanceForm();
-            addAllowanceTypeForm();
+            addAdjustmentForm("{{ route('adjustments.store') }}");
+            addAdjustmentTypeForm("{{ route('adjustment_types.store') }}");
 
             $('#add_adjustment_button').on('click', function(e) {
                 e.preventDefault();
@@ -152,8 +168,28 @@
                 })
             });
             newAdjustmentType(lang, "{{ route('adjustment_types.store') }}");
-        });
 
+            $('[name="adjustment_status"], [name="adjustment_deleted_records"], [name="adjustment_type_status"], [name="adjustment_type_deleted_records"]').select2({
+                minimumResultsForSearch: -1
+            });
+
+            handleFormFiltersDatatable({
+                submitButtonClass: '.adjustment_submit_button',
+                resetButtonClass: '.adjustment_reset_button',
+                deleted_filter: "adjustment_deleted_records",
+                dataUrl: '{{ route('adjustments.index') }}',
+                dataTable: adjustmentDataTable
+            });
+
+            handleFormFiltersDatatable({
+                submitButtonClass: '.adjustment_type_submit_button',
+                resetButtonClass: '.adjustment_type_reset_button',
+                deleted_filter: "adjustment_type_deleted_records",
+                dataUrl: '{{ route('adjustment_types.index') }}',
+                dataTable: adjustmentTypeDataTable,
+            });
+
+        });
 
         function newAdjustmentType(lang, addAllowanceTypeUrl) {
             const customOptions = new Map();
@@ -200,202 +236,25 @@
             });
         });
 
-        $(document).on('click', '.adjustment-type-edit-btn', function() {
-            var id = $(this).data('id');
-            var adjustmentTypeType = $(this).data('adjustmentTypeType');
-            var name = $(this).data('name');
-            var name_en = $(this).data('nameEn');
+        function handleFormFiltersDatatable(config) {
+            const filters = $(config.submitButtonClass);
+            const resetButton = $(config.resetButtonClass);
+            const deleted = $(`[data-kt-filter="${config.deleted_filter}"]`);
+            const dataUrl = config.dataUrl;
+            const dataTable = config.dataTable;
 
-            $('#add_adjustment_type_modal').modal('toggle');
-            $('#adjustment_type_id').val(id);
-            $('.modal-header h2').html("{{ __('employee::general.edit_adjustment') }}");
-            $('#amount').val(amount);
-            $('select[name="adjustment_type_type"]').val(adjustmentTypeType).trigger('change');
-            $('#name').val(name);
-            $('#name_en').val(name_en);
-        });
+            filters.on('click', function(e) {
+                const deletedValue = deleted.val();
+                
+                dataTable.ajax.url(dataUrl + '?' + $.param({
+                    deleted_records: deletedValue
+                })).load();
+            });
 
-        $(document).on('click', '.edit-btn', function() {
-            var id = $(this).data('id');
-            var adjustmentType = $(this).data('adjustmentType');
-            var employeeId = $(this).data('employeeId');
-            var amount = $(this).data('amount');
-            var amountType = $(this).data('amountType');
-            var applyOnce = $(this).data('applyOnce');
-            var applicableDate = $(this).data('applicableDate').substring(0, 7);
-            var type = $(this).data('type');
-
-            $('#add_adjustment_modal').modal('toggle');
-            $('#id').val(id);
-            $('.modal-header h2').html("{{ __('employee::general.edit_adjustment') }}");
-            $('#amount').val(amount);
-            $('select[name="amount_type"]').val(amountType).trigger('change');
-            $('select[name="adjustment_type"]').val(adjustmentType).trigger('change');
-            $('select[name="employee_id"]').val(employeeId).trigger('change');
-            $('select[name="type"]').val(type).trigger('change');
-            $('#applicable_date').val(applicableDate);
-            $('#apply_once').val(applyOnce);
-
-            if (applyOnce) {
-                $('#apply_once').attr('checked', applyOnce);
-            }
-        });
-
-        $(document).on('click', '.nav-link-adjustment-type', function() {
-            adjustmentTypeDataTable.ajax.reload();
-        });
-
-        $(document).on('click', '.nav-link-adjustment', function() {
-            adjustmentDataTable.ajax.reload();
-        });
-
-        function addAllowanceForm() {
-            $('#add_adjustment_modal_form').on('submit', function(e) {
-                e.preventDefault();
-                const submitButton = $(this).find('button[type="submit"]');
-                submitButton.attr('disabled', 'disabled');
-
-                let data = $(this).serializeArray();
-                data.push({
-                    name: "_token",
-                    value: window.csrfToken
-                });
-                ajaxRequest("{{ route('adjustments.store') }}", "POST", data).fail(
-                    function(data) {
-                        $.each(data.responseJSON.errors, function(key, value) {
-                            $(`[name='${key}']`).addClass('is-invalid');
-                            $(`[name='${key}']`).after('<div class="invalid-feedback">' + value +
-                                '</div>');
-                        });
-                        submitButton.removeAttr('disabled');
-                    }).done(function() {
-                    submitButton.removeAttr('disabled');
-                    $('#add_adjustment_modal').modal('toggle');
-                    adjustmentDataTable.ajax.reload();
-                });
+            resetButton.on('click', function(e) {
+                deleted.val(null).trigger('change');
+                dataTable.search('').columns().search('').ajax.url(dataUrl).load();
             });
         }
-
-        function addAllowanceTypeForm() {
-            $('#add_adjustment_type_modal_form').on('submit', function(e) {
-                e.preventDefault();
-                let data = $(this).serializeArray();
-                const submitButton = $(this).find('button[type="submit"]');
-                submitButton.attr('disabled', 'disabled');
-
-                data.push({
-                    name: "_token",
-                    value: window.csrfToken
-                });
-                ajaxRequest("{{ route('adjustment_types.store') }}", "POST", data).fail(
-                    function(data) {
-                        $.each(data.responseJSON.errors, function(key, value) {
-                            $(`[name='${key}']`).addClass('is-invalid');
-                            $(`[name='${key}']`).after('<div class="invalid-feedback">' + value +
-                                '</div>');
-                        });
-                        submitButton.removeAttr('disabled');
-
-                    }).done(function() {
-                    submitButton.removeAttr('disabled');
-                    $('#add_adjustment_type_modal').modal('toggle');
-                    adjustmentTypeDataTable.ajax.reload();
-                });
-            });
-        }
-
-        function initAdjustmentDatatable() {
-            adjustmentDataTable = $(adjustmentTable).DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: adjustmentDataUrl,
-                info: false,
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-start'
-                    },
-                    {
-                        data: 'adjustment_type_name',
-                        name: 'adjustment_type_name'
-                    },
-                    {
-                        data: 'employee',
-                        name: 'employee'
-                    },
-                    {
-                        data: 'type',
-                        name: 'type'
-                    },
-                    {
-                        data: 'amount',
-                        name: 'amount'
-                    },
-                    {
-                        data: 'amount_type',
-                        name: 'amount_type'
-                    },
-                    {
-                        data: 'applicable_date',
-                        name: 'applicable_date'
-                    },
-                    {
-                        data: 'apply_once',
-                        name: 'apply_once'
-                    },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                order: [],
-                scrollX: true,
-                pageLength: 10,
-                drawCallback: function() {
-                    KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
-                }
-            });
-        };
-
-        function initAdjustmentTypeDatatable() {
-            adjustmentTypeDataTable = $(adjustmentTypeTable).DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: adjustmentTypeDataUrl,
-                info: false,
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-start'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'name_en',
-                        name: 'name_en'
-                    },
-                    {
-                        data: 'type',
-                        name: 'type'
-                    },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                order: [],
-                scrollX: true,
-                pageLength: 10,
-                drawCallback: function() {
-                    KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
-                }
-            });
-        };
     </script>
 @endsection

@@ -48,7 +48,7 @@
 
 @section('script')
     @parent
-    <script src="{{ url('/modules/employee/js/adjustment-type.js') }}"></script>
+    <script src="{{ url('/modules/employee/js/adjustments.js') }}"></script>
     <script>
         var urlParams = new URLSearchParams(window.location.search);
         let columns;
