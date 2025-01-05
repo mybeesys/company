@@ -39,11 +39,11 @@ class ServiceFeeResource extends JsonResource
         $type["name_ar"] = Lang::get('product::messages.service_fee_type_'.$this->getTypeName($this->service_fee_type), [], 'en');
         $type["name_en"] = Lang::get('product::messages.service_fee_type_'.$this->getTypeName($this->service_fee_type), [], 'ar');
         $applicationType["id"] = $this->application_type;
-        $applicationType["name_ar"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'en');
-        $applicationType["name_en"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'ar');
+        $applicationType["name_ar"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'ar');
+        $applicationType["name_en"] = Lang::get('product::messages.service_fee_app_type_'.$this->getApplicationTypeName($this->application_type), [], 'en');
         $calculationMethod["id"] = $this->calculation_method;
-        $calculationMethod["name_ar"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'en');
-        $calculationMethod["name_en"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'ar');  
+        $calculationMethod["name_ar"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'ar');
+        $calculationMethod["name_en"] = Lang::get('product::messages.service_fee_calc_method_'.$this->getCalculationMethodName($this->calculation_method), [], 'en');  
         $autoApplyType["id"] = $this->auto_apply_type;
         $autoApplyType["name_ar"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'en');
         $autoApplyType["name_en"] = Lang::get('product::messages.'.$this->getServiceFeeAutoApplyTypeName($this->auto_apply_type), [], 'ar');    
