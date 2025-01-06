@@ -1202,7 +1202,7 @@
                     <div class="symbol symbol-50px me-5">
 
                         <img alt="Logo"
-                            src="src="{{ auth()->user() && auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
+                            src="{{ auth()->user() && auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
                     </div>
                     <!--end::Avatar-->
                     <!--begin::Username-->
