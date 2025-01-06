@@ -4,14 +4,30 @@ pdfMake.fonts = {
         bold: 'ARIALBD.TTF',
         italics: 'ARIALI.TTF',
         bolditalics: 'ARIALBI.TTF'
+    },
+    Amiri: {
+        normal: 'Amiri-Regular.ttf',
+        bold: 'Amiri-Bold.ttf',
+        italics: 'Amiri-Italic.ttf',
+        bolditalics: 'Amiri-BoldItalic.ttf'
     }
 };
 
 $('#kt_app_sidebar_toggle').on('click', function () {
-    dataTable.columns.adjust().draw();
+    if (typeof dataTable !== 'undefined' && dataTable) {
+        dataTable.columns.adjust().draw();
+    }
 })
+//columnsToReverseInArabic arabic words To Reverse In Arabic lang
+//columnsToReverse arabic columns To Reverse In English lang
+function exportButtons(columns, id, lang, columnsToReverse = [], columnsToReverseInArabic = [], pageSize = 'A4', PageTable = null, pageDataTable = null) {
 
-function exportButtons(columns, id, lang, columnsToReverse = [], columnsToReverseInArabic = [], pageSize = 'A4') {
+    if (pageDataTable) {
+        dataTable = pageDataTable;
+    }
+    if (PageTable) {
+        table = PageTable;
+    }
 
     new $.fn.dataTable.Buttons(table, {
         buttons: [{
@@ -48,10 +64,14 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
 
                 // Function to reverse the text in specific columns when switching lang
                 function reverseColumnTextInArabic(doc) {
-                    for (var i = 1; i < doc.content[2].table.body.length; i++) {
-                        for (var j = 0; j < doc.content[2].table.body[i].length; j++) {
-                            if (columnsToReverseInArabic.includes(j)) {
-                                doc.content[2].table.body[i][j]['text'] = doc.content[2].table.body[i][j]['text'].split(' ').reverse().join(' ');
+                    if (doc.content[2] && doc.content[2].table && doc.content[2].table.body) {
+                        for (var i = 1; i < doc.content[2].table.body.length; i++) {
+                            for (var j = 0; j < doc.content[2].table.body[i].length; j++) {
+                                // Check if the column is in columnsToReverseInArabic and if the text is available
+                                if (columnsToReverseInArabic.includes(j) && doc.content[2].table.body[i][j] && doc.content[2].table.body[i][j]['text']) {
+                                    // Only attempt to reverse text if it exists
+                                    doc.content[2].table.body[i][j]['text'] = doc.content[2].table.body[i][j]['text'].split(' ').reverse().join(' ');
+                                }
                             }
                         }
                     }
@@ -59,20 +79,26 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
 
                 // Function to reverse the headers and rows if language is Arabic
                 function reverseForArabic(doc) {
-                    // Reverse all header texts
-                    for (var i = 0; i < doc.content[2].table.body[0].length; i++) {
-                        doc.content[2].table.body[0][i]['text'] = doc.content[2].table.body[0][i]['text'].split(' ').reverse().join(' ');
-                    }
-                    // Reverse header cells
-                    var headerCells = doc.content[2].table.body[0];
-                    headerCells.reverse();
-
-                    // Reverse each row's cells in the body
-                    for (var i = 1; i < doc.content[2].table.body.length; i++) {
-                        var rowCells = doc.content[2].table.body[i];
-                        rowCells.reverse();
+                    if (doc.content[2] && doc.content[2].table && doc.content[2].table.body && doc.content[2].table.body.length > 0) {
+                        // Reverse all header texts
+                        for (var i = 0; i < doc.content[2].table.body[0].length; i++) {
+                            if (doc.content[2].table.body[0][i]['text']) {
+                                doc.content[2].table.body[0][i]['text'] = doc.content[2].table.body[0][i]['text'].split(' ').reverse().join(' ');
+                            }
+                        }
+                
+                        // Reverse header cells
+                        var headerCells = doc.content[2].table.body[0];
+                        headerCells.reverse();
+                
+                        // Reverse each row's cells in the body
+                        for (var i = 1; i < doc.content[2].table.body.length; i++) {
+                            var rowCells = doc.content[2].table.body[i];
+                            rowCells.reverse();
+                        }
                     }
                 }
+                
                 function centerTable(doc) {
                     doc.content[2].table.widths = '*'.repeat(doc.content[2].table.body[0].length).split('');
 
@@ -83,7 +109,7 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
                 centerTable(doc);
 
                 reverseColumnText(doc);
-                
+
                 if (lang === 'ar') {
                     reverseForArabic(doc);
                     reverseColumnTextInArabic(doc)

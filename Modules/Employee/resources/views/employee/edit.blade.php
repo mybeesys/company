@@ -14,7 +14,7 @@
 @section('script')
     @parent
     <script src="{{ url('modules/employee/js/create-edit-employee.js') }}"></script>
-    <script src="{{ url('/modules/employee/js/adjustment.js') }}"></script>
+    <script src="{{ url('modules/employee/js/adjustments.js') }}"></script>
 
     <script>
         let lang = "{{ session('locale') }}"
