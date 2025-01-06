@@ -1190,7 +1190,7 @@
         <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="{{ $menu_placement_y }}">
-            <img src="{{ auth()->user() && auth()->user()->image ? url(auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" alt="user" />
+            <img src="{{ auth()->user() && auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" alt="user" />
         </div>
         <!--begin::User account menu-->
         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px"
@@ -1202,7 +1202,7 @@
                     <div class="symbol symbol-50px me-5">
 
                         <img alt="Logo"
-                            src="{{ auth()->user() && auth()->user()->image ? url(auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
+                            src="src="{{ auth()->user() && auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
                     </div>
                     <!--end::Avatar-->
                     <!--begin::Username-->
