@@ -13,18 +13,16 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::middleware(['guest'])->group(function () {
+    Route::controller(AuthController::class)->middleware(['guest'])->group(function () {
 
-        Route::get('/login', function () {
-            return view('employee::auth.login');
-        })->name('login');
+        Route::get('/login', 'index')->name('login');
 
-        Route::post('/postlogin', [AuthController::class, 'login'])->name('login.postLogin');
+        Route::post('/postlogin', 'login')->name('login.postLogin');
     });
 
 
     Route::middleware(['auth'])->group(function () {
-        
+
         Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 
     });
