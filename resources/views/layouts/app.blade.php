@@ -93,7 +93,7 @@
                         </div>
                         <!--end::Sidebar mobile toggle-->
                         <!--begin::Logo-->
-                        <a href="index.html" class="app-sidebar-logo">
+                        <a href="/" class="app-sidebar-logo">
                             <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-80px theme-light-show" />
                             <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
