@@ -69,7 +69,6 @@
         </div>
     </div>
 
-    <x-employee::payroll.show-payroll-group-modal />
     <x-employee::payroll.add-payroll-modal :employees=$employees :establishments=$establishments />
 @endsection
 
@@ -82,6 +81,8 @@
     <script>
         let payroll_dataTable;
         let payroll_group_dataTable;
+        let table;
+        let dataTable;
         const payroll_table = $('#kt_payroll_table');
         const payroll_dataUrl = '{{ route('schedules.payrolls.index') }}';
         const payroll_group_table = $('#kt_payroll_group_table');
@@ -271,6 +272,10 @@
                             KTMenu.createInstances();
                         },
                     });
+
+                    exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_payroll_table',
+                        "{{ session('locale') }}", [], [10, 11], 'A4',
+                        payroll_table, payroll_dataTable);
                 });
         }
 
