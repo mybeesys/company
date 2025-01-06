@@ -59,9 +59,9 @@
             <div
                 class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12 p-lg-20">
                 <!--begin::Card-->
-                <div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20">
+                <div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-550px py-20 px-15">
                     <!--begin::Wrapper-->
-                    <div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-20">
+                    <div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-10">
                         <!--begin::Form-->
                         <form action="{{ route('login.postLogin') }}" method="POST" class="form w-100"
                             novalidate="novalidate" id="kt_sign_in_form">
@@ -86,8 +86,8 @@
                                             class="theme-dark-show h-15px me-3" />Sign in with Apple</a>
                                 </div>
                             </div> --}}
-                            <div class="separator separator-content my-14">
-                                <span class="w-125px text-gray-500 fw-semibold fs-7">@lang('employee::general.login_to_your_company')</span>
+                            <div class="separator separator-content mt-14 mb-20">
+                                <span class="w-125px text-gray-500 fw-semibold fs-6">@lang('employee::general.login_to_your_company')</span>
                             </div>
 
                             <div class="fv-row mb-8">
@@ -97,7 +97,7 @@
                                 <x-form.input class="bg-transparent" type="password" name="password"
                                     :placeholder="__('employee::fields.password')" />
                             </div>
-                            <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
+                            <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-12">
                                 <a href="authentication/layouts/creative/reset-password.html"
                                     class="link-primary">@lang('employee::general.forgot_password')</a>
                             </div>
