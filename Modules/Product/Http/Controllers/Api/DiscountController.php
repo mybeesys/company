@@ -19,8 +19,8 @@ class DiscountController extends Controller
         return response()->json([
             'data' => array_map(function($item) {
                 $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('messages.discount_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('messages.discount_'.$item["name"], [], 'en'); ;
+                $newItem["name_ar"] = Lang::get('product::messages.discount_'.$item["name"], [], 'ar'); ;
+                $newItem["name_en"] = Lang::get('product::messages.discount_'.$item["name"], [], 'en'); ;
                 return $newItem;
             }, $result)
         ]);
@@ -32,8 +32,8 @@ class DiscountController extends Controller
         return response()->json([
             'data' => array_map(function($item) {
                 $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('messages.discount_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('messages.discount_'.$item["name"], [], 'en'); ;
+                $newItem["name_ar"] = Lang::get('product::messages.discount_'.$item["name"], [], 'ar'); ;
+                $newItem["name_en"] = Lang::get('product::messages.discount_'.$item["name"], [], 'en'); ;
                 return $newItem;
             }, $result)
         ]);
@@ -45,8 +45,8 @@ class DiscountController extends Controller
         return response()->json([
             'data' => array_map(function($item) {
                 $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('messages.discount_qualification_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('messages.discount_qualification_'.$item["name"], [], 'en'); ;
+                $newItem["name_ar"] = Lang::get('product::messages.discount_qualification_'.$item["name"], [], 'ar'); ;
+                $newItem["name_en"] = Lang::get('product::messages.discount_qualification_'.$item["name"], [], 'en'); ;
                 return $newItem;
             }, $result)
         ]);
@@ -58,8 +58,8 @@ class DiscountController extends Controller
         return response()->json([
             'data' => array_map(function($item) {
                 $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('messages.discount_qualification_type_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('messages.discount_qualification_type_'.$item["name"], [], 'en'); ;
+                $newItem["name_ar"] = Lang::get('product::messages.discount_qualification_type_'.$item["name"], [], 'ar'); ;
+                $newItem["name_en"] = Lang::get('product::messages.discount_qualification_type_'.$item["name"], [], 'en'); ;
                 return $newItem;
             }, $result)
         ]);

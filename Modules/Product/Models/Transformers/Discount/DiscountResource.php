@@ -36,22 +36,22 @@ class DiscountResource extends JsonResource
     public function toArray($request)
     {
         $function["id"] = $this->function_id;
-        $function["name_ar"] = Lang::get('messages.discount_'.$this->getDiscountFunctionName($this->function_id), [], 'ar');
-        $function["name_en"] = Lang::get('messages.discount_'.$this->getDiscountFunctionName($this->function_id), [], 'en');
+        $function["name_ar"] = Lang::get('product::messages.discount_'.$this->getDiscountFunctionName($this->function_id), [], 'ar');
+        $function["name_en"] = Lang::get('product::messages.discount_'.$this->getDiscountFunctionName($this->function_id), [], 'en');
         $type["id"] = $this->discount_type;
-        $type["name_ar"] = Lang::get('messages.discount_'.$this->getDiscountTypeName($this->discount_type), [], 'ar');
-        $type["name_en"] = Lang::get('messages.discount_'.$this->getDiscountTypeName($this->discount_type), [], 'en');
+        $type["name_ar"] = Lang::get('product::messages.discount_'.$this->getDiscountTypeName($this->discount_type), [], 'ar');
+        $type["name_en"] = Lang::get('product::messages.discount_'.$this->getDiscountTypeName($this->discount_type), [], 'en');
         $qualification["id"] = $this->qualification;
-        $qualification["name_ar"] = Lang::get('messages.discount_qualification_'.$this->getDiscountQualificationName($this->qualification), [], 'ar');
-        $qualification["name_en"] = Lang::get('messages.discount_qualification_'.$this->getDiscountQualificationName($this->qualification), [], 'en');  
+        $qualification["name_ar"] = Lang::get('product::messages.discount_qualification_'.$this->getDiscountQualificationName($this->qualification), [], 'ar');
+        $qualification["name_en"] = Lang::get('product::messages.discount_qualification_'.$this->getDiscountQualificationName($this->qualification), [], 'en');  
         $qualificationType = null;
         $productIds = [];
         $modifierIds = [];
         $modifierClassIds = [];
         if(isset($this->qualification_type)){
             $qualificationType["id"] = $this->qualification_type;
-            $qualificationType["name_ar"] = Lang::get('messages.discount_qualification_type_'.$this->getDiscountQualificationTypeName($this->qualification_type), [], 'ar');
-            $qualificationType["name_en"] = Lang::get('messages.discount_qualification_type_'.$this->getDiscountQualificationTypeName($this->qualification_type), [], 'en');    
+            $qualificationType["name_ar"] = Lang::get('product::messages.discount_qualification_type_'.$this->getDiscountQualificationTypeName($this->qualification_type), [], 'ar');
+            $qualificationType["name_en"] = Lang::get('product::messages.discount_qualification_type_'.$this->getDiscountQualificationTypeName($this->qualification_type), [], 'en');    
             if($this->qualification_type == DiscountQualificationType::product->value)
                 $productIds = array_map(function($item){
                     return $item["item_id"];
