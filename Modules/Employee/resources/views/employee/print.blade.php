@@ -109,7 +109,7 @@
                     <td class="py-2 border-2 bg-light">@lang('employee::fields.wage_type')</td>
                     <td class="py-2 border-2">
                         @if ($employee->wage?->wage_type)
-                            @lang('employee::fields.' . $employee->wage?->wage_type)
+                            {{ $employee->wage?->wage_type === 'fixed' ? __('employee::general.fixed') : __('employee::general.by_working_time') }}
                         @endif
                     </td>
                 </tr>

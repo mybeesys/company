@@ -155,5 +155,13 @@ return [
     'adjustment_type_search' => 'بحث عن نوع بدل أول حسم',
     'adjustments_types' => 'أنواع البدلات والحسومات',
     'this_element' => 'هذا العنصر',
-    'payroll_for_employee' => 'كشف راتب للموظف'
+    'payroll_for_employee' => 'كشف راتب للموظف',
+    'login_to_your_company' => 'سجل الدخول إلى شركتك',
+    'email_or_user_name' => 'الإيميل أو اسم المستخدم',
+    'forgot_password' => 'نسيت كلمة المرور؟',
+    'sign_in' => 'سجّل الدخول',
+    'terms' => 'الشروط',
+    'contact_us' => 'تواصل معنا',
+    'dashboard' => 'لوحة التحكم',
+    'log_in' => 'تسجيل الدخول',
 ];

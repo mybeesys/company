@@ -124,6 +124,10 @@
                         name: 'name_en'
                     },
                     {
+                        data: 'employee_image',
+                        name: 'employee_image'
+                    },
+                    {
                         data: 'phone_number',
                         name: 'phone_number'
                     },
