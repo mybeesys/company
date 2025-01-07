@@ -51,6 +51,12 @@ return [
 
             ],
             [
+                'name' => 'priceTier',
+                'url' => 'priceTier',
+                'permission' => '',
+
+            ],
+            [
                 'name' => 'discount',
                 'url' => 'discount',
                 'permission' => '',
