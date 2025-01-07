@@ -163,7 +163,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                         }),2000);
                     }
                 },
-                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '20%'}
+                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '25%'}
             ]}
             actions={[]}
             onUpdate={(nodes) => onBasicChange("price_tiers", nodes)}
