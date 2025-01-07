@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Product;
@@ -18,6 +19,8 @@ use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\PriceTier;
+use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
 use Modules\Product\Models\UnitTransfer;
 
@@ -116,6 +119,7 @@ class ProductController extends Controller
         $product->combos = [];
         $product->linkedCombos = [];
         $product->establishments = [];
+        $product->price_tiers = [];
         $product->recipe = [];
         $product->attributes = [];
         //$product->taxIds = [];
@@ -447,6 +451,19 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
+            ProductPriceTier::where('product_id', '=', $product->id)->delete();
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    
+                    $PriceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $PriceTier->product_id = $product->id;
+                    $PriceTier->price_tier_id = $pt["id"];
+                    $PriceTier->price = $newPriceTier["price"];
+                    $PriceTier->save();
+                }
+            }
             // ProductTax::where('product_id', '=', $product->id)->delete();
             // if(isset($request["taxIds"]))
             // {
@@ -623,6 +640,18 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    
+                    $priceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $priceTier->product_id = $product->id;
+                    $priceTier->price_tier_id = $pt["id"];
+                    $priceTier->price = $newPriceTier["price"];
+                    $priceTier->save();
+                }
+            }
             // if(isset($request["taxIds"]))
             // {
             //     foreach ($request["taxIds"] as $newTax) {
@@ -655,14 +684,22 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with(['establishments' => function ($query) {
+        $product  = Product::with('tax')
+        ->with(['establishments' => function ($query) {
             $query->with('establishment');
+        }])->with(['priceTiers' => function ($query) {
+            $query->with('priceTier');
         }])->with(['recipe' => function ($query) {
             $query->with('unitTransfer');
         }])->with(['attributes' => function ($query) {
             $query->with('attribute1');
             $query->with('attribute2');
         }])->find($id);
+        $product->price_with_tax = $product->price_with_tax;
+        foreach ( $product->priceTiers as $rec) 
+        {
+            $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $product->tax->amount);
+        }
         foreach ( $product->recipe as $rec) 
         {
             $rec->newid = $rec->item_id."-".$rec->item_type;

@@ -7,7 +7,8 @@ import { Column } from 'primereact/column';
 import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 
-const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, cols, title, canDelete, canEditRow, expander }) => {
+const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, 
+                            cols, title, canDelete, canEditRow, expander, defaultValue }) => {
 
     const formRef = useRef(null);
 
@@ -131,10 +132,14 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
                 if (node.key == key) {
-                    if (!!parentNode)
+                    if (!!parentNode){
+                        parentNode.children[parentNode.children.length-1].key = key;
                         parentNode.children.splice(index, 1);
-                    else
+                    }
+                    else{
+                        nodes[nodes.length-1].key = key;
                         nodes.splice(index, 1);
+                    }
                     break;
                 }
             }
@@ -385,7 +390,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
             parentKey = parentKey + '-' + seg[index];
         }
         node.data.empty = null;
-
+        if(!!defaultValue)
+        for (var key in defaultValue) {
+            node.data[key] = defaultValue[key];
+        }
         let newNode = {
             key: !!!parentKey ? Number(seg[0]) + 1 : parentKey + '-' + (Number(seg[seg.length - 1]) + 1),
             data: { type: type, parentKey: parentKeyName, empty: 'Y' }

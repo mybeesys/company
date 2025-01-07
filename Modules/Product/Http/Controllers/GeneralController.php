@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
@@ -25,5 +26,16 @@ class GeneralController extends Controller
     {
         $taxes = Tax::all();
         return response()->json($taxes);
+    }
+
+    public function priceWithTax(Request $request)
+    {
+        $tax_id = $request->query('tax_id', '');
+        $price = $request->query('price', '');
+        if(!isset($tax_id) || $tax_id == null || !isset($price) || $price==null)
+            return response()->json(['price_with_tax' => 0]);
+        $tax = Tax::find($tax_id);
+        $taxValue = TaxHelper::getTax($price, $tax->amount);
+        return response()->json(['price_with_tax' => $price + $taxValue]);
     }
 }

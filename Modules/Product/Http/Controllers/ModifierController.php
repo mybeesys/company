@@ -92,6 +92,15 @@ class ModifierController extends Controller
         return response()->json(["message"=>"Done"]);
     }
 
+    public function create()
+    {
+        $modifier  = new Modifier();
+        $modifier->price_tiers = [];
+        $modifier->recipe = [];
+        $modifier->active = 1;
+        return view('product::modifier.create', compact('modifier'));
+    }
+
     /**
      * Show the specified resource.
      */

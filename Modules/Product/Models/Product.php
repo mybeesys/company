@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models;
 
+use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ProductFactory;
@@ -46,8 +47,13 @@ class Product extends Model
         'set_price',
         'use_upcharge',
         'linked_combo',
-        'promot_upsell'
+        'promot_upsell',
     ];
+
+    public function getPriceWithTaxAttribute()
+    {
+        return $this->price + TaxHelper::getTax($this->price,$this->tax->amount); // Calculate the field on the fly
+    }
 
     public function getFillable(){
         return $this->fillable;
@@ -87,6 +93,10 @@ class Product extends Model
     public function establishments()
     {
         return $this->hasMany(EstablishmentProduct::class, 'product_id', 'id');
+    }
+    public function priceTiers()
+    {
+        return $this->hasMany(ProductPriceTier::class, 'product_id', 'id');
     }
     public function linkedCombos()
     {

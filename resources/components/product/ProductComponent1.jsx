@@ -10,6 +10,7 @@ import ProductCombo from './ProductCombo';
 import ProductLinkedCombo from './ProductLinkedCombo';
 import UnitTransferProduct from './UnitTransferProduct';
 import ProductEstablishment from './ProductEstablishment';
+import ProductPriceTier from './ProductPriceTier';
 
 
 const ProductComponent1 = ({ translations, dir }) => {
@@ -20,6 +21,7 @@ const ProductComponent1 = ({ translations, dir }) => {
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([{ data: {} }, { data: {} }]);
   const [currentObject, setcurrentObject] = useState(product);
+  console.log(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(!!product.unitTransfer ? product.unitTransfer : []);
@@ -27,6 +29,7 @@ const ProductComponent1 = ({ translations, dir }) => {
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
     { key: 'printInfo', visible: false },
+    { key: 'priceTier', visible: false },
     { key: 'modifiers', visible: false },
     { key: 'recipe', visible: false },
     { key: 'groupCombo', visible: false },
@@ -444,7 +447,15 @@ const ProductComponent1 = ({ translations, dir }) => {
                       saveChanges={saveChanges} />
                   </div>
                 </div>
-
+                <div class="tab-content">
+                  <div id="priceTier" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="priceTier_tab">
+                    <ProductPriceTier
+                      translations={translations}
+                      dir={dir}
+                      currentObject={currentObject}
+                      onBasicChange={onProductFieldChange}/>
+                  </div>
+                </div>
                 <div class="tab-content ">
                   <div id="advancedInfo" class="card-body p-0 tab-pane fade show" role="tabpanel"
                     aria-labelledby="advancedInfo_tab">
