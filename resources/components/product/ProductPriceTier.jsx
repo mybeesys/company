@@ -133,7 +133,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
             defaultValue={{ }}
             cols={[
                 {
-                    key: "price_tier", title: "priceTier", autoFocus: true, searchUrl: "searchPriceTiers", type: "AsyncDropDown", width: '25%',
+                    key: "price_tier", title: "priceTier", autoFocus: true, searchUrl: "searchPriceTiers", type: "AsyncDropDown", width: '30%',
                     editable: true,
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                         if (timeoutRef.current) {
@@ -163,7 +163,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                         }),2000);
                     }
                 },
-                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '25%'}
+                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '30%'}
             ]}
             actions={[]}
             onUpdate={(nodes) => onBasicChange("price_tiers", nodes)}
