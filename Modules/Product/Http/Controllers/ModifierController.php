@@ -2,10 +2,13 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Modifier;
-use Modules\Product\Models\TreeBuilder;
+use Modules\Product\Models\RecipeModifier;
+use Illuminate\Support\Facades\DB;
+use Modules\Product\Models\ModifierPriceTier;
 
 class ModifierController extends Controller
 {
@@ -29,9 +32,13 @@ class ModifierController extends Controller
             'class_id' => 'nullable|numeric',
             'cost'=> 'nullable|numeric',
             'price'=> 'nullable|numeric',
+            'SKU'=> 'nullable|string',
+            'barcode'=> 'nullable|string',
             'tax_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'order' => 'nullable|numeric',
+            'recipe_yield' => 'nullable|numeric',
+            'prep_recipe' => 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
 
@@ -55,7 +62,7 @@ class ModifierController extends Controller
                                         ['name_en', '=', $validated['name_en']]])->first();
             if($modifier != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
-            Modifier::create($validated);
+            $this->createModifier($validated, $request);   
         }
         else
         {
@@ -78,18 +85,94 @@ class ModifierController extends Controller
                 ['name_en', '=', $validated['name_en']]])->first();
             if($modifier != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
-
-            $modifier = Modifier::find($validated['id']);
-            $modifier->name_ar  = $validated['name_ar'];
-            $modifier->name_en  = $validated['name_en'];
-            $modifier->cost     = $validated['cost'];
-            $modifier->price    = $validated['price'];
-            $modifier->tax_id   = $validated['tax_id'];
-            $modifier->active   = $validated['active'];
-            $modifier->order   = $validated['order'];
-            $modifier->save();
+            $this->saveModifier($validated, $request);
+            
         }
         return response()->json(["message"=>"Done"]);
+    }
+
+    protected function saveModifier($validated, $request){
+        $modifier = Modifier::find($validated['id']);
+        $modifier->name_ar  = $validated['name_ar'];
+        $modifier->name_en  = $validated['name_en'];
+        $modifier->class_id  = $validated['class_id'];
+        $modifier->cost     = $validated['cost'];
+        $modifier->price    = $validated['price'];
+        $modifier->tax_id   = $validated['tax_id'];
+        $modifier->active   = $validated['active'];
+        $modifier->order   = $validated['order'];
+        $modifier->prep_recipe = $validated['prep_recipe'] ?? $modifier->prep_recipe;
+        $modifier->recipe_yield = $validated['recipe_yield'] ?? $modifier->recipe_yield;
+        
+        DB::transaction(function () use ($modifier, $request) {
+            $modifier->save();
+            $oldRecipe = RecipeModifier::where('modifier_id' , $modifier->id)->get();
+            foreach ($oldRecipe as $recipe)
+            {
+                $recipe->delete();
+            }
+            if(isset($request["recipe"]))
+            {
+                $order = 0 ;
+                foreach ($request["recipe"] as $recipe) 
+                {
+                    $rec = [];
+                    $rec['modifier_id'] =  $modifier->id;
+                    $rec['quantity'] = $recipe['quantity'];
+                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $rec['item_id'] = $recipeIngredient[0];
+                    $rec['item_type'] = $recipeIngredient[1];
+                    $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
+                    $rec['order'] =  $order++;
+                    RecipeModifier::create($rec);
+                }
+            } 
+            ModifierPriceTier::where('modifier_id', '=', $modifier->id)->delete();
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    $PriceTier = new ModifierPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $PriceTier->modifier_id = $modifier->id;
+                    $PriceTier->price_tier_id = $pt["id"];
+                    $PriceTier->price = $newPriceTier["price"];
+                    $PriceTier->save();
+                }
+            } 
+        });
+    }
+
+    protected function createModifier($validated, $request){
+        DB::transaction(function () use ($validated, $request) {
+            $modifier= Modifier::create($validated);
+            if(isset($request["recipe"]))
+            {
+                $order = 0 ;
+                foreach ($request["recipe"] as $recipe) 
+                {
+                    $rec = [];
+                    $rec['modifier_id'] =  $modifier->id;
+                    $rec['quantity'] = $recipe['quantity'];
+                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $rec['item_id'] = $recipeIngredient[0];
+                    $rec['item_type'] = $recipeIngredient[1];
+                    $rec['order'] =  $order++;
+                    RecipeModifier::create($rec);
+                }
+            }
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    
+                    $priceTier = new ModifierPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $priceTier->modifier_id = $modifier->id;
+                    $priceTier->price_tier_id = $pt["id"];
+                    $priceTier->price = $newPriceTier["price"];
+                    $priceTier->save();
+                }
+            }
+        });
     }
 
     public function create()
@@ -120,8 +203,22 @@ class ModifierController extends Controller
      */
     public function edit($id)
     {
-         $product  = Modifier::find($id);
-         return view('product::product.edit', compact('product'));
+         $modifier  = Modifier::with('tax')->with(['priceTiers' => function ($query) {
+            $query->with('priceTier');
+        }])->with(['recipe' => function ($query) {
+            $query->with('unitTransfer');
+        }])->find($id);
+        $modifier->price_with_tax = $modifier->price_with_tax;
+        foreach ( $modifier->priceTiers as $rec) 
+        {
+            $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $modifier->tax->amount);
+        }
+        foreach ( $modifier->recipe as $rec) 
+        {
+            $rec->newid = $rec->item_id."-".$rec->item_type;
+            $rec->cost = $rec->detail->cost;
+        }
+        return view('product::modifier.edit', compact('modifier'));
     }
 
     /**

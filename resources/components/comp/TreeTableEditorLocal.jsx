@@ -79,14 +79,7 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
         setIsDeleteModalVisible(false);
     }
 
-    const handleEditorChange = (value, key, rowKey, onChangeValue) => {
-        nodes[rowKey].data[key] = value;
-        setNodes([...nodes]);
-        if(!!onChangeValue){
-            onChangeValue(nodes, key, value, rowKey, (nodes)=>{
-                setNodes([...nodes]);
-            });
-        }
+    const updateBasicData = (nodes) => {
         const response = onUpdate(nodes.filter(x => x.data.empty =="Y").length > 0 ? nodes.slice(0, nodes.length-1).map(x=> {
             return { id : !!x.data.id ? x.data.id : x.key,
                      ...x.data
@@ -111,6 +104,19 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
             });
             return;
         }
+    }
+
+    const handleEditorChange = (value, key, rowKey, onChangeValue) => {
+        nodes[rowKey].data[key] = value;
+        setNodes([...nodes]);
+        if(!!onChangeValue){
+            onChangeValue(nodes, key, value, rowKey, (nodes, updateOriginalData)=>{
+                setNodes([...nodes]);
+                if(!!updateOriginalData)
+                    updateBasicData(nodes);
+            });
+        }
+        updateBasicData(nodes);
     }
 
     const renderCell = (node, col, index) => {//key, autoFocus, options, type, editable, required, index, customCell) => {

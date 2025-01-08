@@ -4,6 +4,7 @@ import SweetAlert2 from 'react-sweetalert2';
 import ModifierBasicInfo from './ModifierBasicInfo';
 import ModifierRecipe from './ModifierRecipe';
 import ModifierPriceTier from './ModifierPriceTier';
+import { getRowName } from '../lang/Utils';
 
 
 const ModifierComponent = ({ translations, dir }) => {
@@ -18,10 +19,10 @@ const ModifierComponent = ({ translations, dir }) => {
     { key: 'recipe', visible: true },
   ]);
   const [menu, setMenu] = useState(defaultMenu);
-  const [ingredientTree, setIngredientTree] = useState([]);
+  //const [ingredientTree, setIngredientTree] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
-  const [modifierLOVs, setModifierLOVs] = useState({ });
+  const [modifierLOVs, setModifierLOVs] = useState({ modifierClasses : [], taxes: [], ingredient: [] });
 
   const parentHandlechanges = (childproduct) => {
     setcurrentObject({ ...childproduct });
@@ -54,10 +55,11 @@ const ModifierComponent = ({ translations, dir }) => {
   const onModifierFieldChange = (key, value) => {
     currentObject[key] = value;
     setcurrentObject({ ...currentObject });
+    console.log(`${key} :`, currentObject[key]);
     return {
       message: "Done"
     }
-
+    
   }
 
   const getErrorMessage = (data) => {
@@ -86,17 +88,14 @@ const ModifierComponent = ({ translations, dir }) => {
 
   const saveChanges = async () => {
     try {
+      console.log(currentObject);
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
       
-      const response = await axios.post(modifierurl, r, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(modifierurl, r);
       if (response.data.message == "Done") {
-        window.location.href = categoryurl;
+        window.location.href = modifierurl;
       }
       else if (response.data.message == "UNIQUE") {
         handleUniqueError(response.data.data);
@@ -145,10 +144,13 @@ const ModifierComponent = ({ translations, dir }) => {
     const response = await axios.get('/modifierLOVs/' + modifier.id);
     
     const ingredient = response.data.ingredient.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id + e.type, cost: e.cost } });
-    setIngredientTree(ingredient);
+    const taxes = response.data.taxes.map(e => { return { label: getRowName(e, dir), value: e.id, default : e.default} });
+    const modifierClasses = response.data.modifierClasses.map(e => { return { label: getRowName(e, dir), value: e.id} });
 
     setModifierLOVs({
       "ingredient": ingredient,
+      "taxes" : taxes,
+      "modifierClasses" : modifierClasses
     });
   }
 
@@ -233,8 +235,9 @@ const ModifierComponent = ({ translations, dir }) => {
                     <ModifierBasicInfo
                       visible={menu[0].visible}
                       translations={translations}
-                      parentHandlechanges={parentHandlechanges}
-                      modifier={currentObject}
+                      onBasicChange={onModifierFieldChange}
+                      currentObject={currentObject}
+                      lov = {modifierLOVs}
                       saveChanges={saveChanges}
                     />
                   </div>
@@ -263,6 +266,7 @@ const ModifierComponent = ({ translations, dir }) => {
                       translations={translations}
                       dir={dir}
                       currentObject={currentObject}
+                      lov= {modifierLOVs}
                       onBasicChange={onModifierFieldChange}/>
                   </div>
                 </div>
@@ -273,7 +277,7 @@ const ModifierComponent = ({ translations, dir }) => {
                       translations={translations}
                       modifier={currentObject}
                       modifierRecipe={currentObject.recipe}
-                      ingredientTree={ingredientTree}
+                      ingredientTree={modifierLOVs.ingredient}
                       onBasicChange={onModifierFieldChange}
                       dir={dir} />
 

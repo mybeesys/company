@@ -5,40 +5,23 @@ import makeAnimated from 'react-select/animated';
 import { getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
-const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange }) => {
-    const rootElement = document.getElementById('root');
-    const listTaxurl = JSON.parse(rootElement.getAttribute('listTax-url'));
-    const [taxOptions, setTaxOptions] = useState([]);
+const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lov }) => {
     const timeoutRef = useRef(null);
-    const fetchTaxOptions = async () => {
-        try {
-            let response = await axios.get(listTaxurl);
-            const taxes = response.data.map(tax => ({
-                label: getRowName(tax, dir),  // The text shown in the select options
-                value: tax.id,    // The value of the selected option
-                default : tax.default 
-            }));
-            if (response.data.length > 0) {
-                if (!!!currentObject.tax_id) {
-                    currentObject['tax_id'] = response.data[0].id;
-                    const taxIndex = taxes.findIndex(x=>!!x.default && x.default ==1);
-                    currentObject['tax'] = taxIndex == -1 ? taxes[0] : taxes[taxIndex];
-                }
-                else {
-                    currentObject['tax'] = taxes.find(x => x.value == currentObject.tax_id);
-                }
-            }
-            setTaxOptions(taxes);
-            onBasicChange('tax_id', currentObject['tax_id']);
-            onBasicChange('tax', currentObject['tax']);
-        } catch (error) {
-            console.error("Error fetching options:", error);
-        }
-    };
 
     useEffect(() => {
-        fetchTaxOptions();
-      }, []);
+        if (lov.taxes.length > 0) {
+            if (!!!currentObject.tax_id) {                
+                const taxIndex = lov.taxes.findIndex(x=>!!x.default && x.default ==1);
+                currentObject['tax'] = taxIndex == -1 ? lov.taxes[0] : lov.taxes[taxIndex];
+                currentObject['tax_id'] = taxIndex == -1 ? lov.taxes[0].value : lov.taxes[taxIndex].value;
+            }
+            else {
+                currentObject['tax'] = lov.taxes.find(x => x.value == currentObject.tax_id);
+            }
+            onBasicChange('tax_id', currentObject['tax_id']);
+            onBasicChange('tax', currentObject['tax']);
+        }
+      }, [lov]);
 
 
     const handleDelete = (row) =>{
@@ -66,6 +49,21 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange }) 
         if (key == "tax_id") {
            onBasicChange('tax', option);
         }
+    }
+
+    const onPriceWithTaxChange = (key, value) =>{
+        const tax_id = key == 'tax_id' ? value : currentObject.tax_id;
+        onBasicChange(key, value);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=
+            ${!!value ? value : ''}`)
+            .then(response => {
+                    if(response.data.new_price == -1)
+                        return;
+                    onBasicChange('price', response.data.new_price);
+            }),2000);
     }
 
     const updatePriceWithtax = (tax_id) => {
@@ -104,7 +102,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange }) 
               <Select
                     id="tax_id"
                     isMulti={false}
-                    options={taxOptions}
+                    options={lov.taxes}
                     closeMenuOnSelect={true}
                     components={animatedComponents}
                     value={currentObject.tax}
@@ -114,10 +112,10 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange }) 
                 />
             </div>
             <div class="col-6">
-                <label for="price" class="col-form-label">{translations.price}</label>
+                <label for="price" class="col-form-label">{translations.priceWithTax}</label>
                 <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" 
                 id="price_with_tax" value={!!currentObject.price_with_tax ? currentObject.price_with_tax : ''}
-                    readOnly></input>
+                    onChange={(e) => onPriceWithTaxChange('price_with_tax', e.target.value)}></input>
             </div>
           </div>
         </div>
@@ -163,7 +161,20 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange }) 
                         }),2000);
                     }
                 },
-                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '20%'}
+                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: true,
+                    width: '20%',
+                    onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                       if (timeoutRef.current) {
+                           clearTimeout(timeoutRef.current);
+                           console.log("Previous timeout canceled.");
+                       }
+                       timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=
+                                           ${!!nodes[rowKey].data.price_with_tax ? nodes[rowKey].data.price_with_tax : ''}`)
+                           .then(response => {
+                               nodes[rowKey].data.price = response.data.new_price;
+                               postExecute(nodes, true);
+                       }),2000);
+                   }}
             ]}
             actions={[]}
             onUpdate={(nodes) => onBasicChange("price_tiers", nodes)}

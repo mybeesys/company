@@ -20,9 +20,10 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
             }));
             if (response.data.length > 0) {
                 if (!!!currentObject.tax_id) {
-                    currentObject['tax_id'] = response.data[0].id;
+                    
                     const taxIndex = taxes.findIndex(x=>!!x.default && x.default ==1);
                     currentObject['tax'] = taxIndex == -1 ? taxes[0] : taxes[taxIndex];
+                    currentObject['tax_id'] = taxIndex == -1 ? taxes[0].value : taxes[taxIndex].value;
                 }
                 else {
                     currentObject['tax'] = taxes.find(x => x.value == currentObject.tax_id);
@@ -61,11 +62,27 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
             .then(response => {
                     currentObject.price_with_tax = response.data.price_with_tax;
                     onBasicChange('price_with_tax', currentObject.price_with_tax);
-                    updatePriceWithtax(!!tax_id? tax_id : '');
+                    if(key == 'tax_id')
+                        updatePriceWithtax(!!tax_id? tax_id : '');
             }),2000);
         if (key == "tax_id") {
            onBasicChange('tax', option);
         }
+    }
+
+    const onPriceWithTaxChange = (key, value) =>{
+        const tax_id = key == 'tax_id' ? value : currentObject.tax_id;
+        onBasicChange(key, value);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=
+            ${!!value ? value : ''}`)
+            .then(response => {
+                    if(response.data.new_price == -1)
+                        return;
+                    onBasicChange('price', response.data.new_price);
+            }),2000);
     }
 
     const updatePriceWithtax = (tax_id) => {
@@ -114,10 +131,10 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                 />
             </div>
             <div class="col-6">
-                <label for="price" class="col-form-label">{translations.price}</label>
+                <label for="price" class="col-form-label">{translations.priceWithTax}</label>
                 <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" 
                 id="price_with_tax" value={!!currentObject.price_with_tax ? currentObject.price_with_tax : ''}
-                    readOnly></input>
+                    onChange={(e) => onPriceWithTaxChange('price_with_tax', e.target.value)}></input>
             </div>
           </div>
         </div>
@@ -133,7 +150,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
             defaultValue={{ }}
             cols={[
                 {
-                    key: "price_tier", title: "priceTier", autoFocus: true, searchUrl: "searchPriceTiers", type: "AsyncDropDown", width: '30%',
+                    key: "price_tier", title: "priceTier", autoFocus: true, searchUrl: "searchPriceTiers", type: "AsyncDropDown", width: '25%',
                     editable: true,
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                         if (timeoutRef.current) {
@@ -163,7 +180,20 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                         }),2000);
                     }
                 },
-                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: false, width: '30%'}
+                {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: true,
+                     width: '20%',
+                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                        if (timeoutRef.current) {
+                            clearTimeout(timeoutRef.current);
+                            console.log("Previous timeout canceled.");
+                        }
+                        timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=
+                                            ${!!nodes[rowKey].data.price_with_tax ? nodes[rowKey].data.price_with_tax : ''}`)
+                            .then(response => {
+                                nodes[rowKey].data.price = response.data.new_price;
+                                postExecute(nodes, true);
+                        }),2000);
+                    }}
             ]}
             actions={[]}
             onUpdate={(nodes) => onBasicChange("price_tiers", nodes)}

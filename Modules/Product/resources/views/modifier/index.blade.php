@@ -5,6 +5,7 @@
     @vite('resources/components/App.jsx')
    						
       <div id="root" type="modifier" 
+      modifier-crud-url="{{ json_encode(route('modifier.index'))}}"
 	    list-url="{{json_encode(route('modifierClassList'))}}"
 	    modifier-url="{{ json_encode(route('modifier.store'))}}"
       modifierClass-url="{{ json_encode(route('modifierClass.store'))}}"

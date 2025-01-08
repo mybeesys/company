@@ -38,20 +38,11 @@
 @section('content')
 
    						
-      <div id="root" type="product"
-        category-url ="{{ json_encode(route('category.index'))}}"
-	      product-url="{{ json_encode(route('product.store'))}}"
-        product="{{json_encode($product)}}"
-        listCategory-url ="{{json_encode(route('minicategorylist'))}}"
-        listTax-url ="{{json_encode(route('taxList'))}}"
-        listSubCategory-url="{{json_encode(route('minisubcategorylist'))}}"
-        listAttribute-url="{{json_encode(route('attributeClassList'))}}"
-        getProductMatrix-url ="{{json_encode(route('getProductMatrix'))}}"
-        image-url="{{!$product->image ?  null : asset($product->image)}}"
-        blank-url ='/assets/media/svg/files/blank-image.svg'
-        listModifier-url="{{json_encode(route('modifierClassList'))}}"
-        listRecipe-url="{{json_encode(route('listRecipebyProduct'))}}"
-        ingredientProductUrl-url="{{json_encode(route('ingredientProductList'))}}"
+      <div id="root" type="modifierdetail"
+        modifier-crud-url="{{ json_encode(route('modifier.index'))}}"
+	    modifier-url="{{ json_encode(route('modifier.store'))}}"
+	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}" 
+        modifier="{{json_encode($modifier)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 
