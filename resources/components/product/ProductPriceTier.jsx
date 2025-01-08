@@ -57,8 +57,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
             clearTimeout(timeoutRef.current);
             console.log("Previous timeout canceled.");
         }
-        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=
-            ${!!price ? price : ''}`)
+        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=${!!price ? price : ''}`)
             .then(response => {
                     currentObject.price_with_tax = response.data.price_with_tax;
                     onBasicChange('price_with_tax', currentObject.price_with_tax);
@@ -76,8 +75,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
-        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=
-            ${!!value ? value : ''}`)
+        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=${!!value ? value : ''}`)
             .then(response => {
                     if(response.data.new_price == -1)
                         return;
@@ -87,8 +85,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
 
     const updatePriceWithtax = (tax_id) => {
         currentObject.price_tiers.forEach(price_tier => {
-            axios.get(`${window.location.origin}/priceWithTax?tax_id=${tax_id}&price=
-                ${!!price_tier.price ? price_tier.price : ''}`)
+            axios.get(`${window.location.origin}/priceWithTax?tax_id=${tax_id}&price=${!!price_tier.price ? price_tier.price : ''}`)
             .then(response => {
                     price_tier.price_with_tax = response.data.price_with_tax;
                     onBasicChange('price_tiers', currentObject.price_tiers);
