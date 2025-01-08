@@ -151,10 +151,8 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                         if (timeoutRef.current) {
                             clearTimeout(timeoutRef.current);
-                            console.log("Previous timeout canceled.");
                         }
-                        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=
-                            ${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
+                        timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
                         .then(response => {
                             nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                             postExecute(nodes);
@@ -166,10 +164,8 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                         if (timeoutRef.current) {
                             clearTimeout(timeoutRef.current);
-                            console.log("Previous timeout canceled.");
                         }
-                        timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=
-                                            ${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
+                        timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
                             .then(response => {
                                 nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                                 postExecute(nodes);
@@ -181,10 +177,8 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                      onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                         if (timeoutRef.current) {
                             clearTimeout(timeoutRef.current);
-                            console.log("Previous timeout canceled.");
                         }
-                        timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=
-                                            ${!!nodes[rowKey].data.price_with_tax ? nodes[rowKey].data.price_with_tax : ''}`)
+                        timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/getPriceFromPriceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=${!!nodes[rowKey].data.price_with_tax ? nodes[rowKey].data.price_with_tax : ''}`)
                             .then(response => {
                                 nodes[rowKey].data.price = response.data.new_price;
                                 postExecute(nodes, true);
