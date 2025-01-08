@@ -41,6 +41,7 @@ class GeneralController extends Controller
 
     public function getPriceFromPriceWithTax(Request $request)
     {
+        $start = microtime(true)  * 1000;
         $tax_id = $request->query('tax_id', '');
         $price = $request->query('price', '');
         if(!isset($tax_id) || $tax_id == null || !isset($price) || $price==null)
@@ -49,7 +50,9 @@ class GeneralController extends Controller
         $new_price = $price / (1 + $tax->amount / 100);
     
         $new_price = round($new_price, 2); // Round to 2 decimal places
-        return response()->json(['new_price' => $new_price]);
+        $end = microtime(true) * 1000;
+        $executionTime = $end - $start;
+        return response()->json(['new_price' => $new_price,'execution_time' => $executionTime,]);
     }
 
 }

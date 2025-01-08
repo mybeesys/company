@@ -44,7 +44,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                     currentObject.price_with_tax = response.data.price_with_tax;
                     onBasicChange('price_with_tax', currentObject.price_with_tax);
                     updatePriceWithtax(!!tax_id? tax_id : '');
-            }),2000);
+            }),500);
         if (key == "tax_id") {
            onBasicChange('tax', option);
         }
@@ -61,7 +61,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                     if(response.data.new_price == -1)
                         return;
                     onBasicChange('price', response.data.new_price);
-            }),2000);
+            }),500);
     }
 
     const updatePriceWithtax = (tax_id) => {
@@ -140,7 +140,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                         .then(response => {
                             nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                             postExecute(nodes);
-                    }),2000);
+                    }),500);
                         
                     }
                 },
@@ -155,7 +155,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                             .then(response => {
                                 nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                                 postExecute(nodes);
-                        }),2000);
+                        }),500);
                     }
                 },
                 {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: true,
@@ -170,7 +170,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                            .then(response => {
                                nodes[rowKey].data.price = response.data.new_price;
                                postExecute(nodes, true);
-                       }),2000);
+                       }),500);
                    }}
             ]}
             actions={[]}

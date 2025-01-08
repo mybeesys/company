@@ -55,7 +55,6 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
         onBasicChange(key, value);
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
-            console.log("Previous timeout canceled.");
         }
         timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=${!!price ? price : ''}`)
             .then(response => {
@@ -63,7 +62,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                     onBasicChange('price_with_tax', currentObject.price_with_tax);
                     if(key == 'tax_id')
                         updatePriceWithtax(!!tax_id? tax_id : '');
-            }),2000);
+            }),500);
         if (key == "tax_id") {
            onBasicChange('tax', option);
         }
@@ -80,7 +79,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                     if(response.data.new_price == -1)
                         return;
                     onBasicChange('price', response.data.new_price);
-            }),2000);
+            }),500);
     }
 
     const updatePriceWithtax = (tax_id) => {
@@ -159,7 +158,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                         .then(response => {
                             nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                             postExecute(nodes);
-                    }),2000);
+                    }),500);
                         
                     }
                 },
@@ -174,7 +173,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                             .then(response => {
                                 nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
                                 postExecute(nodes);
-                        }),2000);
+                        }),500);
                     }
                 },
                 {key: "price_with_tax", title: "priceWithTax", autoFocus: true, type: "Decimal", editable: true,
@@ -189,7 +188,7 @@ const ProductPriceTier = ({ translations, dir, currentObject, onBasicChange }) =
                             .then(response => {
                                 nodes[rowKey].data.price = response.data.new_price;
                                 postExecute(nodes, true);
-                        }),2000);
+                        }),500);
                     }}
             ]}
             actions={[]}
