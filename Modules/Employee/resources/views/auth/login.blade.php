@@ -51,7 +51,7 @@
         <div class="d-flex flex-column flex-column-fluid flex-lg-row">
             <div class="d-flex flex-center w-lg-50 pt-15 pt-lg-0 px-10">
                 <div class="d-flex flex-center flex-lg-start flex-column">
-                    <a href="index.html" class="mb-7">
+                    <a href="#" class="mb-7">
                         <img class="h-400px w-369px" alt="Logo" src="assets/media/logos/1-08.png" />
                     </a>
                 </div>

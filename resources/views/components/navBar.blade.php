@@ -1221,21 +1221,6 @@
             <div class="separator my-2"></div>
             <!--end::Menu separator-->
             <!--begin::Menu item-->
-            <div class="menu-item px-5">
-                <a href="/account/overview.html" class="menu-link px-5">My Profile</a>
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
-            <div class="menu-item px-5">
-                <a href="/apps/projects/list.html" class="menu-link px-5">
-                    <span class="menu-text">My Projects</span>
-                    <span class="menu-badge">
-                        <span class="badge badge-light-danger badge-circle fw-bold fs-7">3</span>
-                    </span>
-                </a>
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                 data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
                 <a href="#" class="menu-link px-5">
@@ -1283,11 +1268,6 @@
                     <!--end::Menu item-->
                 </div>
                 <!--end::Menu sub-->
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
-            <div class="menu-item px-5">
-                <a href="/account/statements.html" class="menu-link px-5">My Statements</a>
             </div>
             <!--end::Menu item-->
             <!--begin::Menu separator-->
@@ -1381,11 +1361,6 @@
             </div>
             <!--end::Menu item-->
             <!--begin::Menu item-->
-            <div class="menu-item px-5 my-1">
-                <a href="/account/settings.html" class="menu-link px-5">@lang('general.account_settings')</a>
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
             <div class="menu-item px-5">
                 <a href="{{ route('logout') }}" class="menu-link px-5">@lang('general.sign_out')</a>
             </div>
@@ -1398,7 +1373,7 @@
     <!--begin::Action-->
     <div class="app-navbar-item ms-2 ms-lg-6 me-lg-6">
         <!--begin::Link-->
-        <a href="/authentication/layouts/corporate/sign-in.html"
+        <a href="{{ route('logout') }}"
             class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px">
             <i class="ki-outline ki-exit-right fs-1"></i>
         </a>
