@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Company;
 use Closure;
 use DB;
 use Illuminate\Http\Request;
@@ -16,8 +17,8 @@ class EnsureHasSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-        if (!$company->subscribed) {
+        $company = Company::find(get_company_id());
+        if (!$company->subscription) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => __('responses.no_subscription_found')
