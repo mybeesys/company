@@ -76,11 +76,6 @@ return [
                 'permission' => 'inventory.product.show',
             ],
             [
-                'name' => 'ingredientInventory',
-                'url' => 'ingredientInventory',
-                'permission' => 'inventory.ingredient.show',
-            ],
-            [
                 'name' => 'po',
                 'url' => 'purchaseOrder',
                 'permission' => 'inventory.purchaseOrder.show',
