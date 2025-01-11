@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\General\Http\Controllers\GeneralController;
+use Modules\General\Http\Controllers\NotificationController;
 use Modules\General\Http\Controllers\PaymentMethodsController;
 use Modules\General\Http\Controllers\TaxController;
 use Modules\General\Http\Controllers\TransactionController;
@@ -46,6 +47,8 @@ Route::middleware([
 
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
 
-
+        Route::post('notification-mark-read', [NotificationController::class, 'markAsRead'])->name('notification-mark-as-read');
+        Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');
+        Route::get('fetch-notification', [NotificationController::class, 'fetchNotification'])->name('fetch-notification');
     });
 });

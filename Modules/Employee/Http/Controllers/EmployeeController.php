@@ -14,6 +14,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PosRole;
+use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
@@ -101,6 +102,7 @@ class EmployeeController extends Controller
                 });
                 $storeEmployee = new EmployeeActions($filteredRequest);
                 $storeEmployee->store();
+
                 return to_route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
             } catch (\Throwable $e) {
                 Log::error('Employee creation failed', [

@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\Company;
 use Closure;
-use DB;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 

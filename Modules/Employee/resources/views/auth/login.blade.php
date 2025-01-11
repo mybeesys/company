@@ -19,6 +19,11 @@
 </head>
 
 <body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat">
+    <div id="initial-loader" class="page-loader">
+        <span class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </span>
+    </div>
     <script>
         var defaultThemeMode = "light";
         var themeMode;
