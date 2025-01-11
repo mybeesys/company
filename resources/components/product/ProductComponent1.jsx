@@ -21,7 +21,6 @@ const ProductComponent1 = ({ translations, dir }) => {
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([{ data: {} }, { data: {} }]);
   const [currentObject, setcurrentObject] = useState(product);
-  console.log(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(!!product.unitTransfer ? product.unitTransfer : []);
@@ -244,46 +243,9 @@ const ProductComponent1 = ({ translations, dir }) => {
     setMenu([...currentMenu]);
   }
 
-  const parentHandleRecipe = (resultrecipe) => {
-    setRecipe([...resultrecipe]);
-  }
-
   const parentHandleTransfer = (result) => {
     setUnitTransfers([...result]);
   }
-
-  // const handleActiveDeactiveMatrix = (id) => {
-  //   var editedMatrix = [...productMatrix];
-  //   var index = 0;
-  //   for (let i = 0; i < editedMatrix.length; i++) {
-  //     if (editedMatrix[i].id == id) {
-  //       break;
-  //     }
-  //     index = index + 1;
-  //   }
-  //   if (editedMatrix[index]['deleted'] == 1)
-  //     editedMatrix[index]['deleted'] = 0;
-  //   else
-  //     editedMatrix[index]['deleted'] = 1;
-
-  //   setProductMatrix([...editedMatrix]);
-  // }
-
-  // const handleProdMatrixChange = (currentKey, editingRow) => {
-  //   var editedMatrix = [...productMatrix];
-  //   var index = 0;
-
-  //   for (let i = 0; i < editedMatrix.length; i++) {
-  //     if (editedMatrix[i].id == currentKey) {
-  //       break;
-  //     }
-  //     index = index + 1;
-  //   }
-  //   for (var key in editingRow) {
-  //     editedMatrix[index][key] = editingRow[key];
-  //   }
-  //   setProductMatrix([...editedMatrix]);
-  // }
 
   const handleModifierChange = (modifierId, key, value) => {
     let modifier = {

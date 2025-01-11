@@ -78,7 +78,7 @@ class InventoryOperationController extends Controller
         return $newPONumber;
     }
 
-    private function isValidQty($establishment_id, $products, $ingredients, $times){
+    private function isValidQty($establishment_id, $products, $ingredients, $modifiers, $times){
         $result = [];
         $prodIds =  array_map(function($product){
             return $product->product_id;
@@ -190,6 +190,8 @@ class InventoryOperationController extends Controller
                             $idd = explode("-", $newItem['product']['id']);
                             if($idd[1] == 'p')
                                 $item->product_id = $idd[0];
+                            else if($idd[1] == 'm')
+                                $item->modifier_id = $idd[0];
                             else
                                 $item->ingredient_id = $idd[0];
                             $item->qty = $newItem['qty'];

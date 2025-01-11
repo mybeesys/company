@@ -9,6 +9,7 @@ use Modules\Inventory\Enums\InventoryOperationType;
 use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
 use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
@@ -37,6 +38,7 @@ class InventoryOperationItem extends Model
         'operation_id',
         'product_id',
         'ingredient_id',
+        'modifier_id',
         'unit_id',
         'qty',
         'cost',
@@ -67,6 +69,11 @@ class InventoryOperationItem extends Model
     public function ingredient()
     {
         return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
+    }
+
+    public function modifier()
+    {
+        return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
     }
 
     public function parent()

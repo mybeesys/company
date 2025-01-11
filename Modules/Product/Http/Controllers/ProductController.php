@@ -19,6 +19,7 @@ use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\PriceTier;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
@@ -750,21 +751,32 @@ class ProductController extends Controller
                             ->orWhere('name_en', 'like', '%' . $key . '%')
                             ->take(10)
                             ->get();
+        $productCount= count($products);
+        $modifiers = Modifier::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
+                            ->get();
+        $productCount= count($products) + count($modifiers);
         $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
                             ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
                             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
             $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
             return $newProduct;
         });
+        $modifiers = $modifiers->map(function ($modifier) {
+            $newModifier = $modifier->toArray();
+            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            return $newModifier;
+        });
         $ingredients = $ingredients->map(function ($ingredient) {
             $newIngredient = $ingredient->toArray();
             $newIngredient["id"] = $ingredient["id"].'-i'; // Set the value of 'item_type'
             return $newIngredient;
         });
-        $result = array_merge($ingredients->toArray() , $products->toArray());
+        $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
         return response()->json($result);
     }
 
