@@ -13,7 +13,6 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
 
     useEffect(() => {
         updateTotals(currentObject);
-        setcurrentObject({...currentObject});
     }, [currentObject]);
 
     const onBasicChange = (key, value) => {
