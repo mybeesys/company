@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\Vendor;
 
@@ -27,6 +28,7 @@ class Prep extends Model
     protected $fillable = [
         'operation_id',
         'product_id',
+        'modifier_id',
         'times'
     ];
 
@@ -35,7 +37,7 @@ class Prep extends Model
     }
 
     public function addToFillable(){
-        return array_push($this->fillable, 'product');
+        $result= array_push($this->fillable, 'product');
     }
 
     public $type = 'prep';
@@ -48,14 +50,39 @@ class Prep extends Model
 
     public function fillValidated($validated, $data){
         if (isset($data["product"])) {
-            $validated["product_id"] = $data["product"]["id"];
+            $idd = explode("-",$data["product"]["id"]);
+            if($idd[1] == 'p')
+                $validated["product_id"] = $idd[0];
+            if($idd[1] == 'm')
+                $validated["modifier_id"] = $idd[0];
         }
         
         return $validated;
     }
 
-    public function product()
+    public function preped()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function modifier()
+    {
+        return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
+    }
+
+    public function getProductAttribute()
+    {
+        $result = null;
+        if($this->preped)
+        {
+            $result = $this->preped->toArray();
+            $result["id"] = $result["id"].'-p';
+        }
+        if($this->modifier)
+        {
+            $result = $this->modifier->toArray();
+            $result["id"] = $result["id"].'-m';
+        }
+        return $result;
     }
 }

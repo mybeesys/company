@@ -5,14 +5,10 @@ namespace Modules\Inventory\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Inventory\Enums\InventoryOperationType;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
-use Modules\Product\Models\Vendor;
 
 
 

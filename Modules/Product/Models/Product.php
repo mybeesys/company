@@ -48,11 +48,12 @@ class Product extends Model
         'use_upcharge',
         'linked_combo',
         'promot_upsell',
+        'for_sell'
     ];
 
     public function getPriceWithTaxAttribute()
     {
-        return $this->price + TaxHelper::getTax($this->price,$this->tax->amount); // Calculate the field on the fly
+        return $this->price + TaxHelper::getTax($this->price,$this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
     }
 
     public function getFillable(){

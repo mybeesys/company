@@ -6,14 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Inventory\Enums\InventoryOperationStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
 use Modules\Inventory\Models\IngredientInventoryTotal;
 use Modules\Inventory\Models\InventoryOperation;
 use Modules\Inventory\Models\InventoryOperationItem;
+use Modules\Inventory\Models\ModifierInventoryTotal;
 use Modules\Inventory\Models\ProductInventoryTotal;
-use Modules\Inventory\Models\PurchaseOrder;
-use Modules\Inventory\Models\PurchaseOrderItem;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 
@@ -86,6 +85,9 @@ class InventoryOperationController extends Controller
         $ingrIds =  array_map(function($ingredient){
             return $ingredient->ingredient_id;
         }, $ingredients);
+        $modIds =  array_map(function($modifier){
+            return $modifier->modifier_id;
+        }, $modifiers);
         $prodTotals = ProductInventoryTotal::where('establishment_id', '=', $establishment_id)
                                             ->whereIn('product_id',$prodIds)->get();
         foreach ($products as $prod) {
@@ -116,6 +118,23 @@ class InventoryOperationController extends Controller
                     "name_ar" => $ingredient->name_ar ,
                     "name_en" => $ingredient->name_en ,
                     "qty" => $ingrTotal["qty"] == null ? 0 : $ingrTotal["qty"]
+                ];
+            }
+        }
+        $modTotals = ModifierInventoryTotal::where('establishment_id', '=', $establishment_id)
+                    ->whereIn('modifier_id',$modIds)->get();
+        foreach ($modifiers as $mod) {
+            $modTotal = array_filter($modTotals->toArray(), function($value)use($mod) {
+                return $mod->modifier_id == $value["modifier_id"]; // Keep only even numbers
+            });
+            $modTotal = reset($modTotal);
+            $totalQty = isset($times) && $times!=null ? $mod->qty * $times : $mod->qty;
+            if($modTotal["qty"] == null || $modTotal["qty"] < $totalQty){
+                $modifier = Modifier::find($mod->modifier_id);
+                $result [] = [ 
+                    "name_ar" => $modifier->name_ar ,
+                    "name_en" => $modifier->name_en ,
+                    "qty" => $modTotal["qty"] == null ? 0 : $modTotal["qty"]
                 ];
             }
         }
@@ -156,6 +175,7 @@ class InventoryOperationController extends Controller
             if(isset($request['items'])){
                 $prods = [];
                 $ingrs = [];
+                $mods = [];
                 foreach ($request['items'] as $newItem) {
                     $item = new InventoryOperationItem();
                     $idd = explode("-", $newItem['product']['id']);
@@ -164,13 +184,17 @@ class InventoryOperationController extends Controller
                         $item->product_id = $idd[0];
                         $prods [] = $item;
                     }
+                    else if($idd[1] == 'm'){
+                        $item->modifier_id = $idd[0];
+                        $mods [] = $item;
+                    }
                     else{
                         $item->ingredient_id = $idd[0];
                         $ingrs [] = $item;
                     }
                 }
                 if($validated['op_type']!=0){
-                    $result =  $this->isValidQty($request["establishment"]["id"], $prods, $ingrs, isset($request["times"]) ? $request["times"] : null);
+                    $result =  $this->isValidQty($request["establishment"]["id"], $prods, $ingrs, $mods,  isset($request["times"]) ? $request["times"] : null);
                     if(count($result) >0 )
                         return response()->json($result);
                 }
@@ -250,6 +274,8 @@ class InventoryOperationController extends Controller
                             $idd = explode("-", $newItem['product']['id']);
                             if($idd[1] == 'p')
                                 $item->product_id = $idd[0];
+                            else if($idd[1] == 'm')
+                                $item->modifier_id = $idd[0];
                             else
                                 $item->ingredient_id = $idd[0];
                             $item->qty = $newItem['qty'];

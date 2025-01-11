@@ -8,18 +8,19 @@ import { getName } from "../../lang/Utils";
 const PurchaseOrderDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById('root');
     let purchaseOrder = JSON.parse(rootElement.getAttribute('purchaseOrder'));
-    console.log(purchaseOrder);
     const [currentObject, setcurrentObject] = useState(purchaseOrder);
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         updateTotals(currentObject);
+        setcurrentObject({...currentObject});
     }, [currentObject]);
 
     const onBasicChange = (key, value) => {
         let r = {...currentObject};
         r[key] = value;
-        setcurrentObject({...r});
+        updateTotals(r);
+        setcurrentObject({...r}); 
     }
 
     const updateTotals = (row) =>{
@@ -89,7 +90,7 @@ const PurchaseOrderDetail = ({ dir, translations }) => {
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
-                            axios.get(`${window.location.origin}/get${result[1] == 'p' ? 'Product' : 'Ingredient' }Inventory/${result[0]}`)
+                            axios.get(`${window.location.origin}/getProductInventory/${val.id}`)
                             .then(response => {
                                 let prod = response.data;
                                 nodes[rowKey].data.SKU = prod.SKU;

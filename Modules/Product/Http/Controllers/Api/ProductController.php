@@ -24,7 +24,7 @@ class ProductController extends Controller
         // $products = Product::whereHas('establishments', function ($query)use($establishment_id) {
         //     $query->where('establishment_id', $establishment_id); // Example condition on EntityTwo
         // })
-        $products = Product::where('active', '=', 1)
+        $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
             ->with(['modifiers' => function ($query) {
             $query->with(['modifiers' => function ($query) {
                 $query->with('children');

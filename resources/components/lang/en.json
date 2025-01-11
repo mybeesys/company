@@ -243,5 +243,6 @@
   "exist" : "Already Exist",
   "priceTiers" : "Price Tiers",
   "priceTier" : "Price Tier",
-  "priceWithTax" : "Price With Tax"
+  "priceWithTax" : "Price With Tax",
+  "forSell" : "For Sell"
 }

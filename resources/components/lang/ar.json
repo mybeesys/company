@@ -243,5 +243,6 @@
   "exist" : "مكرر",
   "priceTiers" : "التسعيرات",
   "priceTier" : "التسعير",
-  "priceWithTax" : "السعر بعد الضريبة"
+  "priceWithTax" : "السعر بعد الضريبة",
+  "forSell" : "مخصص للبيع"
 }

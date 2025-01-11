@@ -21,21 +21,22 @@ const ProductComponent1 = ({ translations, dir }) => {
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([{ data: {} }, { data: {} }]);
   const [currentObject, setcurrentObject] = useState(product);
+  console.log(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(!!product.unitTransfer ? product.unitTransfer : []);
   const [currentTab, setCurrentTab] = useState(1);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
-    { key: 'printInfo', visible: false },
-    { key: 'priceTier', visible: false },
-    { key: 'modifiers', visible: false },
-    { key: 'recipe', visible: false },
-    { key: 'groupCombo', visible: false },
+    { key: 'printInfo', visible: true },
+    { key: 'priceTier', visible: true },
+    { key: 'modifiers', visible: !!currentObject.for_sell },
+    { key: 'recipe', visible: true },
+    { key: 'groupCombo', visible: !!currentObject.for_sell },
     //{ key: 'linkedCombo', visible: false },
-    { key: 'inventory', visible: false },
-    { key: 'Unit', visible: false },
-    { key: 'advancedInfo', visible: false },
+    { key: 'inventory', visible: true },
+    { key: 'Unit', visible: true },
+    { key: 'advancedInfo', visible: !!currentObject.for_sell },
   ]);
   const [menu, setMenu] = useState(defaultMenu);
   const [ingredientTree, setIngredientTree] = useState([]);
@@ -46,6 +47,8 @@ const ProductComponent1 = ({ translations, dir }) => {
   const [productLOVs, setProductLOVs] = useState({ productForComboLOV: [], linkedComboPromptLOV: [], linkedComboLOV: [] });
 
   const parentHandlechanges = (childproduct) => {
+    if(childproduct.for_sell != currentObject.for_sell)
+      handleForSellChange(childproduct);
     setcurrentObject({ ...childproduct });
   }
 
@@ -112,6 +115,7 @@ const ProductComponent1 = ({ translations, dir }) => {
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
+      r["for_sell"] ? r["for_sell"] = 1 : r["for_sell"] = 0;
       r["track_serial_number"] ? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
       r["sold_by_weight"] ? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
       r["modifiers"] = [...currentModifiers];
@@ -237,10 +241,34 @@ const ProductComponent1 = ({ translations, dir }) => {
   }, []);
 
 
-  const handleChange = (index, value) => {
-    let currentMenu = [...menu];
-    currentMenu[index].visible = value;
+  const handleForSellChange = (childproduct) => {
+    console.log(childproduct.for_sell);
+    let currentMenu = [
+      { key: 'basicInfo', visible: true },
+      { key: 'printInfo', visible: true },
+      { key: 'priceTier', visible: true },
+      { key: 'modifiers', visible: childproduct.for_sell },
+      { key: 'recipe', visible: true },
+      { key: 'groupCombo', visible: childproduct.for_sell },
+      //{ key: 'linkedCombo', visible: false },
+      { key: 'inventory', visible: true },
+      { key: 'Unit', visible: true },
+      { key: 'advancedInfo', visible: childproduct.for_sell },
+    ];
     setMenu([...currentMenu]);
+    currentMenu.forEach((m, index) => {
+      if(index !=0){
+      var element = document.getElementById(m.key);
+      element.classList.remove("active");
+      }
+    });
+    document.getElementById('printInfo').classList.add('active');
+    document.getElementById('printInfo').classList.add('show');
+    setCurrentTab(1);
+  }
+
+  const parentHandleRecipe = (resultrecipe) => {
+    setRecipe([...resultrecipe]);
   }
 
   const parentHandleTransfer = (result) => {
@@ -387,7 +415,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                 <div class="card-toolbar ">
                   <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
                     {menu.map((m, index) => {
-                      return index == 0 ? <></> :
+                      return index == 0 || !m.visible ? <></> :
                         <li class="nav-item" role="presentation">
                           <a id={`${m.key}_tab`} onClick={(e) => setCurrentTab(index)} class={`nav-link justify-content-center text-active-gray-800 ${currentTab == index ? 'active' : ''}`}
                             data-bs-toggle="tab" role="tab" href={`#${m.key}`} aria-selected="true">

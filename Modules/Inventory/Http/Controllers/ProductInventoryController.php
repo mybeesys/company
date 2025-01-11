@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\EstablishmentProduct;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 
@@ -25,8 +26,15 @@ class ProductInventoryController extends Controller
             return $establishment;
         }
         $productInventories = [];
+        $modifierInventories = [];
         if($key != null){
             $productInventories = Product::where('name_ar', 'like', '%' . $key . '%')
+                                        ->orWhere('name_en', 'like', '%' . $key . '%')
+                                        ->with(['inventory' => function ($query) {
+                                            $query->with('vendor');
+                                            $query->with('unit');
+                                        }]);
+            $modifierInventories = Modifier::where('name_ar', 'like', '%' . $key . '%')
                                         ->orWhere('name_en', 'like', '%' . $key . '%')
                                         ->with(['inventory' => function ($query) {
                                             $query->with('vendor');
@@ -35,6 +43,10 @@ class ProductInventoryController extends Controller
         }
         else{
             $productInventories = Product::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }]);
+            $modifierInventories = Modifier::with(['inventory' => function ($query) {
                 $query->with('vendor');
                 $query->with('unit');
             }]);
@@ -48,6 +60,17 @@ class ProductInventoryController extends Controller
             $productInventory->addToFillable('inventory');
             $productInventory->addToFillable('qty');
             $pp = $productInventory->toArray();
+            $pp["type"] = "product";
+            $children[] = $pp;
+        }
+        $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use($establishment) {
+            $join->on('modifier_inventories.modifier_id', '=', 'product_modifiers.id')
+                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+        })->get();
+        foreach ($modifierInventories as $modifierInventory) {
+            $modifierInventory->addToFillable('inventory');
+            $modifierInventory->addToFillable('qty');
+            $pp = $modifierInventory->toArray();
             $pp["type"] = "product";
             $children[] = $pp;
         }
@@ -112,11 +135,19 @@ class ProductInventoryController extends Controller
  
     public function getProductInventory($id)
     {
-        $porduct = Product::with(['inventory' => function ($query) {
-            $query->with('vendor');
-            $query->with('unit');
-        }])->find($id);
-        return response()->json($porduct);
+        $idd = explode("-", $id);
+        $result = null;
+        if($idd[1] == 'p')
+            $result = Product::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }])->find($idd[0]);
+        if($idd[1] == 'm')
+            $result = Modifier::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }])->find($idd[0]);
+        return response()->json($result);
     }
     /**
      * Display a listing of the resource.

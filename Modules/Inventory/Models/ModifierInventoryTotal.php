@@ -10,20 +10,20 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
 
-class IngredientInventoryTotal extends Model
+class ModifierInventoryTotal extends Model
 {
     use HasFactory;
 
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
-    protected $table = 'ingredient_inventories';
+    protected $table = 'modifier_inventories';
 
     // Specify the primary key if it is not 'id'
     protected $primaryKey = 'id';
 
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
-        'ingredient_id',
+        'modifier_id',
         'establishment_id',
         'qty'
     ];
@@ -32,5 +32,5 @@ class IngredientInventoryTotal extends Model
         return $this->fillable;
     }
 
-    public $type = 'productInventoryTotal';
+    public $type = 'modifierInventoryTotal';
 }
