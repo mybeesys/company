@@ -56,6 +56,11 @@ class Employee extends Authenticatable
         return EmployeeFactory::new();
     }
 
+    public function createdBy()
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
+    }
+
     public function defaultEstablishment()
     {
         return $this->belongsTo(Establishment::class, 'establishment_id')->withTrashed();

@@ -164,5 +164,6 @@ return [
     'dashboard' => 'Dashboard',
     'log_in' => 'Log in',
     'new_employee_created' => 'New employee was added',
-    'employee_created_by' => 'Employee :name was added by :admin'
+    'employee_created_by' => 'Employee :name was added by :admin',
+    'admin' => 'admin',
 ];
