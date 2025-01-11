@@ -164,4 +164,6 @@ return [
     'contact_us' => 'تواصل معنا',
     'dashboard' => 'لوحة التحكم',
     'log_in' => 'تسجيل الدخول',
+    'new_employee_created' => 'تمت إضافة موظف جديد',
+    'employee_created_by' => 'تمت إضافة :employee_name من قبل :admin'
 ];

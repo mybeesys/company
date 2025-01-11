@@ -7,6 +7,7 @@ use File;
 use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Wage;
+use Modules\Employee\Notifications\EmployeeCreated;
 
 
 class EmployeeActions
@@ -92,6 +93,8 @@ class EmployeeActions
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
+
+        // auth()->user()->notify(new EmployeeCreated($employee));
     }
 
     public function update($employee)
