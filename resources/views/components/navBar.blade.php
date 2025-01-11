@@ -437,8 +437,6 @@
                         </div>
                     </div>
                 `;
-
-
                     $('#kt_topbar_notifications_1 .scroll-y').append(notificationHtml);
                 });
 

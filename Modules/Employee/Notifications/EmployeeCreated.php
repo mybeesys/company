@@ -4,8 +4,6 @@ namespace Modules\Employee\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Modules\Employee\Models\Employee;
 
 class EmployeeCreated extends Notification
@@ -46,7 +44,7 @@ class EmployeeCreated extends Notification
     {
         return [
             'title' => __('employee::general.new_employee_created'),
-            'body' => __('employee::general.employee_created_by', ['employee_name' => $this->employee->{get_name_by_lang()}, 'admin' => 'dff']),
+            'body' => __('employee::general.employee_created_by', ['employee_name' => $this->employee->{get_name_by_lang()}, 'admin' => $this->employee?->createdBy?->{get_name_by_lang()} ?? __('employee::general.admin')]),
             'icon' => 'ki-user-square'
         ];
     }

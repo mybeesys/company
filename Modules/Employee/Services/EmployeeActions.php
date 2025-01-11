@@ -84,6 +84,7 @@ class EmployeeActions
 
         $employee = Employee::create($this->request->merge([
             'image' => $imageName,
+            'created_by' => auth()->user()->id,
             'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
             'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
         ])->all());
@@ -121,7 +122,6 @@ class EmployeeActions
                 'image' => null,
             ]);
         }
-        // dd($data);
         return $employee->update($data->toArray());
     }
 
