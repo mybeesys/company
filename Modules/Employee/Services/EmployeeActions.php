@@ -7,6 +7,7 @@ use File;
 use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Wage;
+use Modules\Employee\Notifications\EmployeeCreated;
 
 
 class EmployeeActions
@@ -83,6 +84,7 @@ class EmployeeActions
 
         $employee = Employee::create($this->request->merge([
             'image' => $imageName,
+            'created_by' => auth()->user()->id,
             'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
             'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
         ])->all());
@@ -92,6 +94,8 @@ class EmployeeActions
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
+
+        // auth()->user()->notify(new EmployeeCreated($employee));
     }
 
     public function update($employee)
@@ -118,7 +122,6 @@ class EmployeeActions
                 'image' => null,
             ]);
         }
-        // dd($data);
         return $employee->update($data->toArray());
     }
 

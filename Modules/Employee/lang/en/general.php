@@ -163,4 +163,7 @@ return [
     'contact_us' => 'Contact us',
     'dashboard' => 'Dashboard',
     'log_in' => 'Log in',
+    'new_employee_created' => 'New employee was added',
+    'employee_created_by' => 'Employee :name was added by :admin',
+    'admin' => 'admin',
 ];
