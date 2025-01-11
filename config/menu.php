@@ -21,12 +21,6 @@ return [
 
             ],
             [
-                'name' => 'ingredient',
-                'url' => 'ingredient',
-                'permission' => 'products.ingredient.show',
-
-            ],
-            [
                 'name' => 'modifiers',
                 'url' => 'modifier',
                 'permission' => 'products.modifier.show',
