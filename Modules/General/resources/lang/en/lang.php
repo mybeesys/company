@@ -16,6 +16,8 @@ return [
     'payment_methods' => 'Payment Methods',
     'Address' => 'Address',
     'show_payment' => 'Show Payments',
+    'invoice_no'=>'Invoice No',
+
 
 
 

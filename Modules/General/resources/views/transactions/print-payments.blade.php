@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 @php
-$local = session()->get('locale');
-$dir = $local == 'ar' ? 'rtl' : 'ltr';
-$rtl_files = $local == 'ar' ? '.rtl' : '';
+    $local = session()->get('locale');
+    $dir = $local == 'ar' ? 'rtl' : 'ltr';
+    $rtl_files = $local == 'ar' ? '.rtl' : '';
 
 @endphp
 <html dir="{{ $dir }}">
@@ -127,10 +127,29 @@ $rtl_files = $local == 'ar' ? '.rtl' : '';
 
 <body>
 
-    <div class="text-center m-7">
-        <h1 class="mb-3">@lang('general::lang.bill_payment') {{ $transaction->ref_no }}</h1>
-    </div>
+    <div class="row">
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
 
+        </div>
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+            <div class="text-center m-7">
+                <h1 class="mb-3">@lang('general::lang.bill_payment') {{ $transaction->ref_no }}</h1>
+                <p class="fs-7" style="color: #6a6a6a">{{ $company->state }} - {{ $company->city }}</p>
+
+            </div>
+        </div>
+
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+            {!! QrCode::size(90)->generate(
+                json_encode([
+                    'Inovice No' => $transaction->ref_no,
+                    'Client Name' => $transaction->client?->name,
+                    'Final Total' => $transaction->final_total,
+                ]),
+            ) !!}
+        </div>
+
+    </div>
 
 
 
@@ -143,22 +162,29 @@ $rtl_files = $local == 'ar' ? '.rtl' : '';
         <div class="row">
             <div class="col-sm-4">
                 <p>@lang('sales::fields.ref_no'): {{ $transaction->ref_no }}</p>
-                <p>@lang('sales::fields.payment_status'): @lang('general::lang.' . $transaction->payment_status)</p>
+
+                <p @if (!isset($transaction->payment_status)) class="d-none" @endif>@lang('sales::fields.payment_status'):
+                    {{ $transaction->payment_status ? __('general::lang.' . $transaction->payment_status) : '--' }}</p>
                 <p>@lang('general::lang.Invoice Status'): @lang('general::lang.' . $transaction->status)</p>
-
-
-
-            </div>
-            <div class="col-sm-4">
-                <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
-                <p>@lang('clientsandsuppliers::fields.Billing Address'):
-                    {{ $transaction->client->billingAddress?->city . ' - ' . $transaction->client->billingAddress?->street_name }}
-                </p>
-                <p>@lang('clientsandsuppliers::fields.mobile_number'): {{ $transaction->client->mobile_number ?? '--' }}</p>
-                <p>@lang('sales::fields.email'): {{ $transaction->client->email ?? '--' }}</p>
-
+                <p @if (!isset($transaction->notice)) class="d-none" @endif>@lang('sales::fields.notice'):
+                    {{ $transaction->notice ?? '--' }}</p>
 
             </div>
+            @if ($transaction->client)
+                <div class="col-sm-4">
+                    <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    <p @if (!isset($transaction->client->billingAddress?->city)) class="d-none" @endif>@lang('general::lang.Address'):
+                        {{ $transaction->client->billingAddress?->city . ' - ' . $transaction->client->billingAddress?->street_name }}
+                    </p>
+                    <p @if (!isset($transaction->client->mobile_number)) class="d-none" @endif>@lang('clientsandsuppliers::fields.mobile_number'):
+                        {{ $transaction->client->mobile_number ?? '--' }}</p>
+                    <p @if (!isset($transaction->client->email)) class="d-none" @endif>@lang('sales::fields.email'):
+                        {{ $transaction->client->email ?? '--' }}</p>
+
+
+                </div>
+            @endif
+
             <div class="col-sm-4">
                 <p>@lang('sales::fields.transaction_date'): {{ $transaction->transaction_date }}</p>
                 <p>@lang('sales::fields.due_date'): {{ $transaction->due_date }}</p>
@@ -172,11 +198,11 @@ $rtl_files = $local == 'ar' ? '.rtl' : '';
 
     @include('general::transactions.payment-rows')
 
-
-    <div class="separator d-flex flex-center m-7 p-4">
+    <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
 
+    <a class="fs-7" href="{{ $company->website }}" style="color: #6a6a6a;float: left;">{{ $company->website }}</a>
 
     @include('layouts.js-references')
 

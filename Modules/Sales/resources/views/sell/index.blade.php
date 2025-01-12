@@ -104,25 +104,24 @@
             $("#quotation-items").select2(
                 // width: "resolve",
             );
+
+            
         });
 
 
         $(document).ready(function() {
-            // استهداف النموذج وقائمة الاختيار
             const form = $('#create-invoice');
             const quotationSelect = $('#quotation-items');
 
-            // تحديث action الخاص بالنموذج عند الإرسال
             form.on('submit', function(event) {
-                const selectedQuotation = quotationSelect.val(); // الحصول على القيمة المحددة
+                const selectedQuotation = quotationSelect.val();
 
                 if (selectedQuotation) {
-                    // تحديث action للنموذج
                     form.attr('action',
                         `{{ route('create-invoice') }}?quotation_id=${selectedQuotation}`);
                 } else {
-                    event.preventDefault(); // منع الإرسال إذا لم يتم اختيار قيمة
-                    alert('@lang('sales::lang.Please select a quotation')');
+                    event.preventDefault();
+                     alert('@lang('sales::lang.Please select a quotation')');
                 }
             });
         });
