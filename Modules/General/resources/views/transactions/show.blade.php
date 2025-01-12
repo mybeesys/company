@@ -229,9 +229,17 @@
             </div>
 
 
-            <div class="col-sm-8">
+            <div class="col-sm-4">
                 <p class="fs-5 ">@lang('sales::lang.invoice_note'): {{ $transaction->description ?? ' -- ' }}</p>
 
+            </div>
+
+            <div class="col-sm-4">
+                {!! QrCode::size(150)->generate(json_encode([
+                    'invoice_id' => $transaction->id,
+                    // 'customer' => $invoice->customer->name,
+                    // 'total_amount' => $invoice->final_total,
+                ])) !!}
             </div>
         </div>
     </div>
