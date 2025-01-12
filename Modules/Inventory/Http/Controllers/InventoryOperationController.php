@@ -103,7 +103,7 @@ class InventoryOperationController extends Controller
                 $result [] = [ 
                     "name_ar" => $product->name_ar ,
                     "name_en" => $product->name_en ,
-                    "qty" => $prodTotal[0]["qty"] == null ? 0 : $prodTotal[0]["qty"] == null
+                    "qty" => !$prodTotal || $prodTotal["qty"] == null ? 0 : $prodTotal["qty"]
                 ];
             }
         }
