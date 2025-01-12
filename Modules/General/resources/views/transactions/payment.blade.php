@@ -39,7 +39,7 @@
 
                 <input class="form-control form-control-solid no-spin" required name="paid_amount"
                     value="{{ $amount }}" min="0" max="{{ $amount }}" placeholder="0.00"
-                    id="paid_amount" type="number">
+                    id="paid_amount" type="number" step="0.01">
             </div>
         </div>
 

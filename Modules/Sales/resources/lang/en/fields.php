@@ -15,9 +15,9 @@ return [
     'transaction_date' => 'Date of sale',
     'select_client' => 'Select Client',
     'Line Items' => 'Line Items',
-    'notice'=>'Notice',
-    'storehouse'=>'Storehouse',
-    'ref_no'=>'Ref No',
+    'notice' => 'Notice',
+    'storehouse' => 'Storehouse',
+    'ref_no' => 'Ref No',
     'total_before_vat' => 'Total Before VAT',
     'vat_percentage' => 'VAT %',
     'vat_value' => 'VAT',
@@ -28,6 +28,16 @@ return [
     'actions' => 'Actions',
     'payment_status' => 'Payment status',
     'Expiry Date' => 'Expiry Date',
+
+    'remaining_amount' => 'Remainig Amount',
+    'piad_amount' => 'Pid Amount',
+    'invoice_amount' => 'Invoice Amount',
+    'date' => 'Date',
+    'select_transactions'=>' Select Transactions',
+    'transaction_ref_no' => 'Invoice ٌRef No',
+
+
+
 
 
 

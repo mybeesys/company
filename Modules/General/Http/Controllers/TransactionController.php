@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
 use Modules\General\Utils\TransactionUtils;
+use Mpdf\Mpdf;
 
 class TransactionController extends Controller
 {
@@ -41,14 +42,75 @@ class TransactionController extends Controller
     public function show($id)
     {
 
+        // $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        // return    $user = DB::connection('mysql')->table('users')->find($company->id);
         $transaction = Transaction::find($id);
-        return view('general::transactions.show',compact('transaction'));
+        return view('general::transactions.show', compact('transaction'));
+    }
+
+
+    public function print($id)
+    {
+
+        $transaction = Transaction::find($id);
+        return view('general::transactions.print', compact('transaction'));
+    }
+
+
+    public function paymentPrint($id)
+    {
+
+        $transaction = Transaction::find($id);
+        return view('general::transactions.print-payments', compact('transaction'));
+    }
+
+
+    public function exportPDF($id)
+    {
+
+        $transaction = Transaction::find($id);
+        $html = view('general::transactions.print', compact('transaction'))->render();
+
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output($transaction->ref_no, 'D');
+    }
+
+    public function exportTransactionPaymentPDF($id)
+    {
+
+        $transaction = Transaction::find($id);
+        $html = view('general::transactions.print-payments', compact('transaction'))->render();
+
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output($transaction->ref_no, 'D');
     }
 
     public function showPayments($id)
     {
 
-        $transactionUtil =new TransactionUtils();
+        $transactionUtil = new TransactionUtils();
         $transaction = Transaction::find($id);
         $accounts =  AccountingAccount::forDropdown();
         $paid_amount = $transactionUtil->getTotalPaid($id);
@@ -57,7 +119,7 @@ class TransactionController extends Controller
             $amount = 0;
         }
 
-        return view('general::transactions.show-payments',compact('transaction','accounts','amount'));
+        return view('general::transactions.show-payments', compact('transaction', 'accounts', 'amount'));
     }
 
 
@@ -68,7 +130,8 @@ class TransactionController extends Controller
     {
 
 
-        $transactionUtil= new TransactionUtils();
+        // return $request;
+        $transactionUtil = new TransactionUtils();
 
         $transaction = Transaction::find($request->id);
         if ($request->paid_amount) {

@@ -1,51 +1,106 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+@php
+    $local = session()->get('locale');
+    $dir = $local == 'ar' ? 'rtl' : 'ltr';
+    $rtl_files = $local == 'ar' ? '.rtl' : '';
 
-@section('title', $transaction->ref_no)
-@section('css')
+@endphp
+<html dir="{{ $dir }}">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('layouts.css-references')
+
+    <title>Print: {{ $transaction->ref_no }}</title>
     <style>
-        .dropend .dropdown-toggle::after {
-            border-left: 0;
-            border-right: 0;
+        * {
+            font-family: DejaVu Sans !important;
         }
 
-        .fa-folder:before {
-            color: #17c653 !important;
-
-        }
-
-        #accounts_tree_container>ul {
-            text-align: justify !important;
-
-        }
-
-
-        .swal2-popup {
-            width: 58em !important;
-            /* max-width: 0% !important; */
-        }
-
-
-        .btn.btn-secondary.show:hover {
-            background-color: transparent !important;
-        }
-
-        .select-custom {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-color: #f3f4f6;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        body {
+            font-size: 16px;
+            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
             padding: 10px;
-            font-size: 14px;
-            color: #333;
+            margin: 10px;
+
+            color: #777;
+        }
+
+
+        body {
+            color: #777;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
+        }
+
+
+
+        .table_component {
+            overflow: auto;
+        }
+
+        .table_component table {
+            border: 1px solid #dededf;
+            /* height: 99%; */
+            table-layout: auto;
+            border-collapse: collapse;
+            border-spacing: 1px;
+            /* text-align: right; */
+            page-break-before: avoid;
+            page-break-after: avoid;
+            direction: ltr;
+            width: 100%;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
+            /* border: 1px solid; */
+            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
+        }
+
+        .table_component caption {
+            caption-side: top;
+            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
+        }
+
+        .table_component th {
+            border: 1px solid #dededf;
+            background-color: #eceff1;
+            color: #000000;
+            padding: 7px;
+            text-align: center;
+        }
+
+        .table_component td {
+            border: 1px solid #dededf;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 7px;
+        }
+
+        td {
+            padding: 10px;
+            margin: 10px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
         }
     </style>
 
+    <script>
+        window.onload = function() {
+            window.print();
+        };
 
-@stop
+        window.onafterprint = function() {
+            window.location.href = "{{ url('invoices') }}";
 
-@section('content')
+        };
+    </script>
+</head>
+
+
+<body>
 
     <div class="text-center m-7">
         @if ($transaction->type == 'quotation')
@@ -60,7 +115,7 @@
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
 
-    <div class="container">
+    <div class="">
         <div class="row">
             <div class="col-sm-4">
                 <p>@lang('sales::fields.ref_no'): {{ $transaction->ref_no }}</p>
@@ -128,16 +183,14 @@
                         <tr class="fw-bold  text-muted bg-light">
                             <th class="">#</th>
                             <th class="min-w-280px ">@lang('sales::lang.product')</th>
-                            <th class="min-w-150px product-description" style="display:none">@lang('sales::lang.description')
-                            </th>
+
                             <th class="min-w-80px">@lang('sales::lang.qty')</th>
                             <th class="min-w-190px">@lang('sales::lang.unit_price')</th>
-                            <th class="min-w-200px">@lang('sales::lang.discount')</th>
-                            <th class="min-w-125px">@lang('sales::lang.total_before_vat')</th>
-                            <th class="min-w-200px">@lang('sales::lang.vat_percentage')</th>
-                            <th class="min-w-50px">@lang('sales::lang.vat_value')</th>
-                            <th class="min-w-125px">@lang('sales::lang.amount')</th>
-                            <th class="min-w-25px"></th>
+                            <th class="min-w-80px">@lang('sales::lang.discount')</th>
+                            <th class="min-w-80px">@lang('sales::lang.total_before_vat')</th>
+                            <th class="min-w-80px">@lang('sales::lang.vat_percentage')</th>
+                            <th class="min-w-80px">@lang('sales::lang.vat_value')</th>
+                            <th class="min-w-80px">@lang('sales::lang.amount')</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -217,7 +270,7 @@
 
 
 
-    <div class="container my-7">
+    <div class=" my-7">
         <div class="row">
             <div class="col-sm-4">
                 <p class="fs-5 ">@lang('sales::lang.total_before_vat'): {{ $transaction->total_before_tax }}</p>
@@ -236,14 +289,8 @@
         </div>
     </div>
 
+    @include('layouts.js-references')
 
+</body>
 
-
-
-@stop
-
-@section('script')
-    @parent
-
-
-@endsection
+</html>

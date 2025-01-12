@@ -124,6 +124,11 @@ return [
                 'url' => 'quotations',
                 'permission' => '',
             ],
+            [
+                'name' => 'customer_receipts',
+                'url' => 'receipts',
+                'permission' => '',
+            ],
         ]
     ],
     [

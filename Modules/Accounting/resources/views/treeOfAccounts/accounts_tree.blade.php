@@ -148,7 +148,7 @@
                                                                     @endif
                                                                     - {{ $child_account->name_en }}
                                                                 @endif
-                                                                {{-- - @format_currency($child_account->balance) --}}
+                                                                - @format_currency($child_account->balance)
 
                                                                 @if ($child_account->status == 'active')
                                                                     <span><i class="fas fa-check text-success"
@@ -171,8 +171,8 @@
                                                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif
                                                                             style="padding: 8px 15px;">
                                                                             <li><a class="btn-xs btn-default  ledger-link"
-                                                                                    href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"
-                                                                                    style="margin: 2px;">
+                                                                                href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $child_account->id]) }}"
+                                                                                style="margin: 2px;">
                                                                                     <i class="fas fa-file-alt"></i><span
                                                                                         style="margin-left: 5px;">@lang('accounting::lang.ledger')</a>
                                                                             </li>

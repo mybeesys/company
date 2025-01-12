@@ -1,11 +1,11 @@
 <?php
 return [
 
-    'accounting_module'=>'المحاسبة',
+    'accounting_module' => 'المحاسبة',
     'dashboard' => 'لوحة التحكم',
     'user_module' => 'إدارة المسنخدمين',
     'product_module' => 'إدارة الأصناف',
-    'chart_of_accounts'=>'شجرة الحسابات',
+    'chart_of_accounts' => 'شجرة الحسابات',
 
     'employees_management_module' => 'إدارة الموظفين',
     'establishments_module' => 'المنشآت',
@@ -19,7 +19,7 @@ return [
     'establishments' => 'المنشآت',
     'reports' => 'التقارير',
     'schedules' => 'الجدولة',
-    'accounting_dashboard'=>'لوحة التحكم المحاسبية',
+    'accounting_dashboard' => 'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',
     'employees' => 'الموظفون',
     'employees-dashboard' => 'لوحة تحكم الموظفين',
@@ -29,12 +29,12 @@ return [
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'attribute' => 'المعاملات',
-    'employees_working_hours' => 'دوام الموظفين' ,
+    'employees_working_hours' => 'دوام الموظفين',
     'timesheet_rule' => 'إعدادات الجدولة',
     'shift_schedule' => 'جداول العمل',
     'time_worked' => 'ساعات العمل',
     'payroll' => 'كشوف المرتبات',
-    'costCenter'=>'مراكز التكلفة',
+    'costCenter' => 'مراكز التكلفة',
     'payroll_group' => 'مجموعات كشوف المرتبات',
     'company_settings' => 'إعدادات الشركة',
     'adjustments' => 'البدلات والحسومات',
@@ -43,33 +43,36 @@ return [
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',
     'discount' => 'حسومات',
+
     'priceTier' => 'التسعيرات',
     'ingredient' =>'المكونات' ,
+
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
-    'inventory' =>'المنتجات',
+    'inventory' => 'المنتجات',
     'inventory_module' => 'المستودع',
 
-    'sales'=>'المبيعات',
-    'clients'=>'العملاء',
+    'sales' => 'المبيعات',
+    'clients' => 'العملاء',
     'invoices' => 'فواتيير المبيعات',
-    'purchases'=>'المشتريات',
-    'suppliers'=>'الموردين',
+    'purchases' => 'المشتريات',
+    'suppliers' => 'الموردين',
 
 
     'po' => 'طلبات الشراء',
     'prep' => 'التحضيرات',
     'rma' => 'RMA',
     'ingredientInventory' => 'المكونات',
-	 'waste' => 'الاتلاف',
+    'waste' => 'الاتلاف',
     'transfer' => 'التحويلات',
 
-    'purchase_invoices'=>'فواتير الشراء',
-    'general_setting'=>'الإعدادات العامة',
-    'setting'=>'إعدادات',
-    'taxes'=>'الضرائب',
+    'purchase_invoices' => 'فواتير الشراء',
+    'general_setting' => 'الإعدادات العامة',
+    'setting' => 'إعدادات',
+    'taxes' => 'الضرائب',
 
-    'quotations'=>'عروض الأسعار',
+    'quotations' => 'عروض الأسعار',
 
+    'customer_receipts' => 'سندات العملاء',
 
 ];
