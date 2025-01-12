@@ -96,7 +96,8 @@ class InventoryOperationController extends Controller
             });
             $prodTotal = reset($prodTotal);
             $totalQty = isset($times) && $times!=null ? $prod->qty * $times : $prod->qty;
-            if($prodTotal["qty"] == null || $prodTotal["qty"] < $totalQty){
+            if($prodTotal && (is_array($prodTotal)) && 
+                ($prodTotal["qty"] == null || $prodTotal["qty"] < $totalQty)){
                 $product = Product::find($prod->product_id);
                 $result [] = [ 
                     "name_ar" => $product->name_ar ,
@@ -113,7 +114,8 @@ class InventoryOperationController extends Controller
             });
             $ingrTotal = reset($ingrTotal);
             $totalQty = isset($times) && $times!=null ? $ingr->qty * $times : $ingr->qty;
-            if($ingrTotal["qty"] == null || $ingrTotal["qty"] < $totalQty){
+            if($ingrTotal && (is_array($ingrTotal)) &&
+                ($ingrTotal["qty"] == null || $ingrTotal["qty"] < $totalQty)){
                 $ingredient = Ingredient::find($ingr->ingredient_id);
                 $result [] = [ 
                     "name_ar" => $ingredient->name_ar ,
@@ -130,7 +132,8 @@ class InventoryOperationController extends Controller
             });
             $modTotal = reset($modTotal);
             $totalQty = isset($times) && $times!=null ? $mod->qty * $times : $mod->qty;
-            if($modTotal["qty"] == null || $modTotal["qty"] < $totalQty){
+            if($modTotal && (is_array($modTotal)) &&
+                ($modTotal["qty"] == null || $modTotal["qty"] < $totalQty)){
                 $modifier = Modifier::find($mod->modifier_id);
                 $result [] = [ 
                     "name_ar" => $modifier->name_ar ,
