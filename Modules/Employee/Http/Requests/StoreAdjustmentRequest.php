@@ -17,9 +17,9 @@ class StoreAdjustmentRequest extends FormRequest
             'type' => ['required', 'in:allowance,deduction'],
             'employee_id' => ['required', 'exists:emp_employees,id'],
             'amount' => ['required', 'decimal:0,2', 'numeric'],
-            'amount_type' => ['required', 'in:fixed,percentage'],
+            'amount_type' => ['required', 'in:fixed,percent'],
             'applicable_date' => ['required', 'date_format:Y-m'],
-            'apply_once' => ['required', 'boolean']
+            'apply_once' => ['nullable', 'boolean']
         ];
     }
 

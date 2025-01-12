@@ -10,7 +10,8 @@ import { formatDecimal, getName, getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
 const TreeTableComponentLocal = ({ translations, dir, header, cols, 
-                                    actions, type, title, currentNodes, defaultValue, onUpdate, onDelete, addNewRow}) => {
+                                    actions, type, title, currentNodes, defaultValue, onUpdate, 
+                                    onDelete, addNewRow}) => {
 
     const formRef = useRef(null);
 

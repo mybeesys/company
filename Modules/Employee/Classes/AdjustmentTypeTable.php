@@ -15,9 +15,9 @@ class AdjustmentTypeTable
         ];
     }
 
-    public static function getAdjustmentTypeTable($dashboardRoles)
+    public static function getAdjustmentTypeTable($adjustments_types)
     {
-        return DataTables::of($dashboardRoles)
+        return DataTables::of($adjustments_types)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
                              {$row->id} 

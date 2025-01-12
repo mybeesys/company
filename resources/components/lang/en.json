@@ -240,5 +240,9 @@
   "INGREDIENT_USED_INVENTORY" : "Ingredient used in Inventory",
   "INGREDIENT_USED_RECIPE" : "Ingredient used in recipe",
   "search" : "Search",
-  "exist" : "Already Exist"
+  "exist" : "Already Exist",
+  "priceTiers" : "Price Tiers",
+  "priceTier" : "Price Tier",
+  "priceWithTax" : "Price With Tax",
+  "forSell" : "For Sell"
 }

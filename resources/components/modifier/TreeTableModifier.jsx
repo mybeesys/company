@@ -9,6 +9,7 @@ import { getRowName } from '../lang/Utils';
 const defaultObjectValue = {active:1};
 const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const listTaxurl = JSON.parse(rootElement.getAttribute('listTax-url'));
+    const modifierCrudList = JSON.parse(rootElement.getAttribute('modifier-crud-url'));
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState('');
@@ -18,6 +19,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
     const [taxOptions, setTaxOptions] = useState([]);
+    const [expandedKeys, setExpandedKeys] = useState([]);
 
     const fetchTaxOptions = async () => {
         try {
@@ -61,11 +63,27 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             const response = axios.get(urlList).then(response => {
                 let result = response.data;
                 setNodes(result);
+                setExpandedKeys(getExpandedKeys(result));
             });
         } catch (error) {
             console.error('There was an error get the product!', error);
         }
     }
+
+    // Generate the expandedKeys object to expand all nodes by default
+    const getExpandedKeys = (nodes) => {
+        let expandedKeys = {};
+        const expandAll = (nodes) => {
+        nodes.forEach((node) => {
+            expandedKeys[node.key] = true; // Mark this node as expanded
+            if (node.children) {
+            expandAll(node.children); // Recursively expand children
+            }
+        });
+        };
+        expandAll(nodes);
+        return expandedKeys;
+    };
 
     useEffect(() => {
         fetchTaxOptions();
@@ -75,8 +93,13 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
   
 
     const editRow = (data, key) => {
-        setCurrentKey(key);
+        if (data.type == "modifier") {
+            window.location.href = modifierCrudList + '/' + data.id + '/edit'
+        }
+        else {
+            setCurrentKey(key);
         setEditingRow({ ...data });
+        }
     }
 
     const cancelEdit = (key) => {
@@ -340,6 +363,11 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         );
     };
 
+    const openAddModifier = ()=>
+    {
+        window.location.href =  modifierCrudList+'/create'
+    }
+
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
@@ -350,6 +378,8 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                    <a href="javascript:void(0);" class="btn btn-primary" 
+                                  onClick={() => openAddModifier()}>{translations.Add}</a>
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -363,7 +393,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             </div>
             <div class="card-body">
             <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
-                <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
+                <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
                     <Column header={translations.name_en} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
                     <Column header={translations.name_ar}  style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                     <Column header={translations.price}  style={{ width: '10%' }}  body={(node) => node.data.type == "modifier" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>

@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Product\Models\Product;
@@ -18,7 +19,11 @@ use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
+use Modules\Product\Models\PriceTier;
+use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
+use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
 
 class ProductController extends Controller
@@ -52,7 +57,8 @@ class ProductController extends Controller
         'set_price' => 'nullable|boolean',
         'use_upcharge' => 'nullable|boolean',
         'linked_combo' => 'nullable|boolean',
-        'promot_upsell' => 'nullable|numeric'
+        'promot_upsell' => 'nullable|numeric',
+        'for_sell' => 'required|boolean'
     ];
 
 
@@ -64,9 +70,13 @@ class ProductController extends Controller
     public function listRecipe($id, Request $request)
     {
         $key = $request->query('with_ingredient', '');
-        $recipes = null;
-        if(isset($key) && $key='Y'){
-            $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+        $recipes = [];
+        if(isset($key) && $key=='Y'){
+            $idd = explode("-",$id);
+            if($idd[1] == 'p')
+                $recipes = RecipeProduct::where([['product_id', '=', $idd[0]]])->get();
+            else
+                $recipes = RecipeModifier::where([['modifier_id', '=', $idd[0]]])->get();
             $resRecipes = [];
             foreach ($recipes as $recipe) {
                 $newItem = $recipe->toArray();
@@ -116,10 +126,12 @@ class ProductController extends Controller
         $product->combos = [];
         $product->linkedCombos = [];
         $product->establishments = [];
+        $product->price_tiers = [];
         $product->recipe = [];
         $product->attributes = [];
         //$product->taxIds = [];
         $product->active = 1;
+        $product->for_sell = 1;
         return view('product::product.create', compact('product'));
     }
 
@@ -214,6 +226,7 @@ class ProductController extends Controller
         $product->tax_id = $validated['tax_id'];
         $product->subcategory_id = $validated['subcategory_id'];
         $product->active = $validated['active'];
+        $product->for_sell = $validated['for_sell'];
         $product->sold_by_weight = $validated['sold_by_weight'];
         $product->track_serial_number = $validated['track_serial_number'];
         $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
@@ -447,6 +460,19 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
+            ProductPriceTier::where('product_id', '=', $product->id)->delete();
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    
+                    $PriceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $PriceTier->product_id = $product->id;
+                    $PriceTier->price_tier_id = $pt["id"];
+                    $PriceTier->price = $newPriceTier["price"];
+                    $PriceTier->save();
+                }
+            }
             // ProductTax::where('product_id', '=', $product->id)->delete();
             // if(isset($request["taxIds"]))
             // {
@@ -623,6 +649,18 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
+            if(isset($request["price_tiers"]))
+            {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+                    
+                    $priceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $priceTier->product_id = $product->id;
+                    $priceTier->price_tier_id = $pt["id"];
+                    $priceTier->price = $newPriceTier["price"];
+                    $priceTier->save();
+                }
+            }
             // if(isset($request["taxIds"]))
             // {
             //     foreach ($request["taxIds"] as $newTax) {
@@ -655,14 +693,22 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with(['establishments' => function ($query) {
+        $product  = Product::with('tax')
+        ->with(['establishments' => function ($query) {
             $query->with('establishment');
+        }])->with(['priceTiers' => function ($query) {
+            $query->with('priceTier');
         }])->with(['recipe' => function ($query) {
             $query->with('unitTransfer');
         }])->with(['attributes' => function ($query) {
             $query->with('attribute1');
             $query->with('attribute2');
         }])->find($id);
+        $product->price_with_tax = $product->price_with_tax;
+        foreach ( $product->priceTiers as $rec) 
+        {
+            $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
+        }
         foreach ( $product->recipe as $rec) 
         {
             $rec->newid = $rec->item_id."-".$rec->item_type;
@@ -713,21 +759,32 @@ class ProductController extends Controller
                             ->orWhere('name_en', 'like', '%' . $key . '%')
                             ->take(10)
                             ->get();
+        $productCount= count($products);
+        $modifiers = Modifier::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
+                            ->get();
+        $productCount= count($products) + count($modifiers);
         $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
                             ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
                             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
             $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
             return $newProduct;
         });
+        $modifiers = $modifiers->map(function ($modifier) {
+            $newModifier = $modifier->toArray();
+            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            return $newModifier;
+        });
         $ingredients = $ingredients->map(function ($ingredient) {
             $newIngredient = $ingredient->toArray();
             $newIngredient["id"] = $ingredient["id"].'-i'; // Set the value of 'item_type'
             return $newIngredient;
         });
-        $result = array_merge($ingredients->toArray() , $products->toArray());
+        $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
         return response()->json($result);
     }
 
@@ -745,10 +802,29 @@ class ProductController extends Controller
                             })
                             ->take(10)
                             ->get();
+        $productCount= count($products);
+        $modifiers = Modifier::where(function ($query) use($key) {
+                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
+                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
+                            })
+                            ->whereIn('id', function ($query) {
+                                $query->select('modifier_id')
+                                    ->from('product_recipe_modifiers');
+                            })
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
+                            ->get();
+        
         $products = $products->map(function ($product) {
-            $product->item_type = 'p'; // Set the value of 'item_type'
-            return $product;
+            $newProduct = $product->toArray();
+            $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
+            return $newProduct;
         });
-        return response()->json($products);
+        $modifiers = $modifiers->map(function ($modifier) {
+            $newModifier = $modifier->toArray();
+            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            return $newModifier;
+        });
+        $result = array_merge($products->toArray(), $modifiers->toArray());
+        return response()->json($result);
     }
 }

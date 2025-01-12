@@ -63,78 +63,17 @@ $(document).on('keyup', 'input[name="wage_amount"], input[name^="allowance_repea
     updateTotalWage();
 });
 
-function adjustmentRepeater(lang, addAllowanceTypeUrl) {
-    
+function allowanceRepeater(getTypesUrl, storeTypeUrl) {
+    const hasInitialValues = $(
+        `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
+        .val() !== undefined &&
+        $(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
+            .val() !== '';
+        
+    type = adjustmentType_type;
     $('.employee-adjustments').each(function () {
-        const hasInitialValues = $(
-            `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
-            .val() !== undefined &&
-            $(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
-                .val() !== '';
-
-        $(`#${adjustmentType_type}_repeater`).repeater({
-            initEmpty: !hasInitialValues,
-            show: function () {
-                const $this = $(this);
-                $this.slideDown();
-
-                $this.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
-                    .select2({
-                        minimumResultsForSearch: -1
-                    });
-
-                $this.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
-                    .flatpickr({
-                        plugins: [
-                            monthSelectPlugin({
-                                shorthand: true,
-                                dateFormat: "Y-m",
-                                altFormat: "F Y"
-                            })
-                        ]
-                    });
-
-                const customOptions = new Map(); // Moved inside show function
-
-                initializeSelect2($this.find(
-                    `select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`
-                ), customOptions, true, lang, addAllowanceTypeUrl);
-            },
-
-            ready: function () {
-                const $repeater = $(`#${adjustmentType_type}_repeater`);
-
-                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[amount_type]"]`)
-                    .select2({
-                        minimumResultsForSearch: -1
-                    });
-
-                $repeater.find(`input[name^="${adjustmentType_type}_repeater"][name$="[applicable_date]"]`)
-                    .flatpickr({
-                        plugins: [
-                            monthSelectPlugin({
-                                shorthand: true,
-                                dateFormat: "Y-m",
-                                altFormat: "F Y"
-                            })
-                        ]
-                    });
-
-                const customOptions =
-                    new Map(); // Also need to define it here for ready function
-
-                $repeater.find(`select[name^="${adjustmentType_type}_repeater"][name$="[adjustment_type]"]`)
-                    .each(function () {
-                        initializeSelect2($(this), customOptions, true, lang,
-                            addAllowanceTypeUrl);
-                    });
-            },
-
-            hide: function (deleteElement) {
-                $(this).slideUp(deleteElement);
-            }
-        });
-    });
+        adjustmentRepeater(adjustmentType_type, getTypesUrl, storeTypeUrl, hasInitialValues);
+    })
 }
 
 function permissionSetRepeater() {
@@ -227,7 +166,6 @@ function employeeForm(id, validationUrl, generatePinUrl) {
     $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
         let input = $(this);
         validateField(input, validationUrl, saveButton);
-        console.log($('[name="wage_amount"]').val());
 
         if ($('[name="wage_amount"]').val()) {
             $('[name="wage_type"]').attr('required', 'required');

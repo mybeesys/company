@@ -2,11 +2,14 @@
 
 namespace Modules\Product\Models;
 
+use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Product\Database\Factories\ModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\General\Models\Tax;
+use Modules\Inventory\Models\ModifierInventoryTotal;
+use Modules\Inventory\Models\ProductInventory;
 
 class Modifier extends Model
 {
@@ -35,6 +38,16 @@ class Modifier extends Model
         'recipe_yield'
     ];
 
+    public function addToFillable($key){
+        return array_push($this->fillable, $key);
+    }
+
+
+    public function getPriceWithTaxAttribute()
+    {
+        return $this->price + TaxHelper::getTax($this->price,$this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
+    }
+
     public function getFillable(){
         return $this->fillable;
     }
@@ -58,8 +71,64 @@ class Modifier extends Model
         return $this->belongsTo(Tax::class, 'tax_id', 'id');
     }
 
-    // protected static function newFactory(): ModifierFactory
-    // {
-    //     // return ModifierFactory::new();
-    // }
+    public function priceTiers()
+    {
+        return $this->hasMany(ModifierPriceTier::class, 'modifier_id', 'id');
+    }
+
+    public function recipe()
+    {
+        return $this->hasMany(RecipeModifier::class, 'modifier_id', 'id');
+    }
+    
+    public function inventory()
+    {
+        return $this->belongsTo(ProductInventory::class, 'id', 'modifier_id');
+    }
+
+    public function total()
+    {
+        return $this->belongsTo(ModifierInventoryTotal::class, 'modifier_id', 'id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if($model->SKU == null){
+                // Generate a unique random number
+                do {
+                    $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
+                } while (self::where('SKU', $SKU)->exists());
+
+                $model->SKU = $SKU;
+            }
+            if($model->barcode == null){
+                do {
+                    $barcode = Barcode::generateUPCA();
+                } while (self::where('barcode', $barcode)->exists());
+
+                $model->barcode = $barcode;
+            }
+
+        });
+        static::updating(function ($model) {
+            if($model->SKU == null){
+                // Generate a unique random number
+                do {
+                    $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
+                } while (self::where('SKU', $SKU)->exists());
+
+                $model->SKU = $SKU;
+            }
+            if($model->barcode == null){
+                do {
+                    $barcode = Barcode::generateUPCA();
+                } while (self::where('barcode', $barcode)->exists());
+
+                $model->barcode = $barcode;
+            }
+        });
+    }
 }

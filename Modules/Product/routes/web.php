@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateJWT;
+use Modules\Product\Http\Controllers\PriceTierController;
 use Modules\Product\Http\Controllers\ProductController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -23,6 +24,7 @@ use Modules\Product\Http\Controllers\DiscountLOVController;
 use Modules\Product\Http\Controllers\GeneralController;
 use Modules\Product\Http\Controllers\LinkedComboController;
 use Modules\Product\Http\Controllers\ModeController;
+use Modules\Product\Http\Controllers\ModifierLOVController;
 use Modules\Product\Http\Controllers\StationController;
 use Modules\Product\Http\Controllers\PaymentCardController;
 use Modules\Product\Http\Controllers\ProductLOVController;
@@ -118,4 +120,12 @@ Route::middleware([
     Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
     Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
     Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
+    Route::get('priceTierlist', [PriceTierController::class, 'getPriceTierlist'])->name('priceTierlist');
+    Route::resource('priceTier', PriceTierController::class)->names('priceTier');
+    Route::get('searchPriceTiers', [PriceTierController::class, 'searchPriceTiers'])->name('searchPriceTiers');
+    Route::get('priceWithTax', [GeneralController::class, 'priceWithTax'])->name('priceWithTax');
+    Route::get('getPriceFromPriceWithTax', [GeneralController::class, 'getPriceFromPriceWithTax'])->name('getPriceFromPriceWithTax');
+    
+    Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
+    
 });

@@ -4,7 +4,7 @@
 if (!function_exists('get_company_id')) {
     function get_company_id()
     {
-        $subDomain = explode('.', request()->getHost())[0];
+        $subDomain = tenant('id');
         return DB::connection('mysql')->table('tenants')->find($subDomain)?->company_id;
     }
 }

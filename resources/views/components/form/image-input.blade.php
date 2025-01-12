@@ -12,7 +12,7 @@
 
 <div id="imageInput" class="image-input image-input-empty image-input-outline mb-3 mx-auto text-center {{ $class }}"
     data-kt-image-input="true" style="max-width: 180px; position: relative;"
-    data-initial-image="{{ $image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . $image) : '' }}">
+    data-initial-image="{{ $image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . $image) : '/assets/media/avatars/blank.png' }}">
     <div class="image-input-wrapper w-150px h-150px mx-auto">
     </div>
 

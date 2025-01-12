@@ -11,7 +11,7 @@ const DiscountQualification = ({ translations, discountQualifications, discountQ
             <div class="form-group">
                 <div class="row">
                     <div class="col-6 pt-3">
-                        <select id="qualification" class="form-control form-control-solid custom-height selectpicker" value={currentObject.qualification} 
+                        <select id="qualification" class="form-control form-control-solid selectpicker" value={currentObject.qualification} 
                             onChange={(e) => {
                                 
                                 onBasicChange('qualification', e.target.value);
@@ -33,7 +33,7 @@ const DiscountQualification = ({ translations, discountQualifications, discountQ
                     currentObject.qualification== "1" ?
                     <div class="col-6">
                         <label for="qualification_type" class="col-form-label">{translations.discount_qualification_type}</label>
-                        <select id="qualification_type" class="form-control form-control-solid custom-height selectpicker" value={currentObject.qualification_type} 
+                        <select id="qualification_type" class="form-control form-control-solid selectpicker" value={currentObject.qualification_type} 
                             onChange={(e) => {
                                 onBasicChange('qualification_type', e.target.value)
                                 onItemSelectionChange([]);

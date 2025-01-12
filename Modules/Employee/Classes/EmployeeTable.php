@@ -12,6 +12,7 @@ class EmployeeTable
         return [
             ["class" => "text-start min-w-200px px-3", "name" => "name"],
             ["class" => "text-start min-w-200px px-3", "name" => "name_en"],
+            ["class" => "text-start min-w-200px px-3", "name" => "employee_image"],
             ["class" => "text-start min-w-150px px-3", "name" => "phone"],
             ["class" => "text-start min-w-150px text-nowrap px-3", "name" => "employment_start_date"],
             ["class" => "text-start min-w-150px text-nowrap px-3", "name" => "employment_end_date"],
@@ -26,6 +27,11 @@ class EmployeeTable
                 return "<div class='badge badge-light-info'>
                                      {$row->id} 
                             </div>";
+            })
+            ->addColumn('employee_image', function ($row) {
+                return '<img class="h-40px w-40px rounded-circle ms-5" src="' . ($row->image
+                    ? asset("storage/tenant" . tenancy()->tenant->id . "/" . $row->image)
+                    : url("/assets/media/avatars/blank.png")) . '" class="symbol-label" />';
             })
             ->addColumn(
                 'actions',
@@ -81,7 +87,7 @@ class EmployeeTable
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
                     : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
-            ->rawColumns(['actions', 'pos_is_active', 'id'])
+            ->rawColumns(['actions', 'pos_is_active', 'id', 'employee_image'])
             ->make(true);
     }
 }

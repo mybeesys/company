@@ -29,6 +29,8 @@ import TransferTable from './Inventory/transfer/TransferTable';
 import TransferDetail from './Inventory/transfer/TransferDetail';
 import WarehouseTree from './Inventory/warehouse/WarehouseTree';
 import ProductComponent1 from './product/ProductComponent1';
+import PriceTierTree from './priceTier/warehouse/PriceTierTree';
+import ModifierComponent from './modifier/ModifierComponent';
 
 
 const App = ({nodeType, dir}) =>{
@@ -39,6 +41,7 @@ const App = ({nodeType, dir}) =>{
     category        : <CategoryTree translations={translations} dir={dir}/>,
     product         : <ProductComponent1 translations={translations} dir={dir}/>,
     modifier        : <Modifiertree translations={translations} dir={dir}/>,
+    modifierdetail  : <ModifierComponent translations={translations} dir={dir}/>,
     attribute       : <Attributetree translations={translations} dir={dir}/>,
     custommenu      : <CustomMenuTable translations={translations} dir={dir}/>,
     custommenuedit  : <CustomMenuDetail translations={translations} dir={dir}/>,
@@ -65,7 +68,8 @@ const App = ({nodeType, dir}) =>{
     wasteedit : <WasteDetail translations={translations} dir={dir}/>,
     transfer : <TransferTable translations={translations} dir={dir}/>,
     transferedit : <TransferDetail translations={translations} dir={dir}/>,
-    warehouse : <WarehouseTree translations={translations} dir={dir}/>
+    warehouse : <WarehouseTree translations={translations} dir={dir}/>,
+    priceTier : <PriceTierTree translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

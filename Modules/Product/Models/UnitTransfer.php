@@ -26,6 +26,7 @@ class UnitTransfer extends Model
         'unit2',
         'product_id',
         'ingredient_id',
+        'modifier_id',
         'primary'
     ];
 

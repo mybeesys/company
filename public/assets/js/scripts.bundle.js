@@ -7889,9 +7889,9 @@ var KTLayoutSearch = function() {
 }();
 
 // On document ready
-KTUtil.onDOMContentLoaded(function() {
-    KTLayoutSearch.init();
-});
+// KTUtil.onDOMContentLoaded(function() {
+//     KTLayoutSearch.init();
+// });
 "use strict";
 
 // Class definition

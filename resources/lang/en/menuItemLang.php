@@ -48,6 +48,7 @@ return [
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
     'ingredient' => 'Ingredient',
+    'priceTier' => 'Price Tiers',
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
 

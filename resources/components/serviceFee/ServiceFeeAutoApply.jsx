@@ -3,7 +3,6 @@ import { Calendar } from 'primereact/calendar';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 
-const animatedComponents = makeAnimated();
 const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, serviceFeediningTypes, onBasicChange,
                                 autoApplyTypes, diningTypes, creditCardTypes, paymentCards
  }) => {
@@ -30,7 +29,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                 <div class="row">
                                     <div class="col-6">
                                         <label for="name_ar" class="col-form-label">{translations.auto_apply_type}</label>
-                                        <select class="form-control form-control-solid custom-height selectpicker" value={currentObject.auto_apply_type}
+                                        <select class="form-control form-control-solid selectpicker" value={currentObject.auto_apply_type}
                                             onChange={(e) => onBasicChange('auto_apply_type', e.target.value)} >
                                              <option value="-1" disabled selected={!!!currentObject.auto_apply_type}></option>
                                             {autoApplyTypes.map((autoApplyType) => (
@@ -51,7 +50,6 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                             isMulti={true}
                                             options={diningTypes}
                                             closeMenuOnSelect={false}
-                                            components={animatedComponents}
                                             defaultValue={serviceFeediningTypes}
                                             onChange={val => onBasicChange('diningTypes', 
                                                 val.map(x=> { return {dining_type_id : x.value} }))}
@@ -87,7 +85,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                         <div class="row">
                                             <div class="col-12">
                                                 <label for="credit_type" class="col-form-label">{translations.creditType}</label>
-                                                <select class="form-control form-control-solid custom-height selectpicker" value={currentObject.credit_type}
+                                                <select class="form-control form-control-solid selectpicker" value={currentObject.credit_type}
                                                     onChange={(e) => onBasicChange('credit_type', e.target.value)} >
                                                     {creditCardTypes.map((creditCardType) => (
                                                         <option key={creditCardType.value} value={creditCardType.value}>
@@ -103,7 +101,6 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                                 isMulti={true}
                                                 options={paymentCards}
                                                 closeMenuOnSelect={false}
-                                                components={animatedComponents}
                                                 defaultValue={serviceFeeCards}
                                                 onChange={val => onBasicChange('cards', 
                                                     val.map(x=> { return {payment_card_id : x.value} }))}

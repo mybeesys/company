@@ -27,9 +27,14 @@ class RecipeModifier extends Model
         'modifier_id',
         'quantity',
         'order',
-        'item_type'
+        'item_type',
+        'unit_transfer_id'
     ];
 
+    protected $relatedModels = [
+        'p' => \Modules\Product\Models\Product::class,
+        'i' => \Modules\Product\Models\Ingredient::class
+    ];
 
     public function getFillable(){
         return $this->fillable;
@@ -40,12 +45,35 @@ class RecipeModifier extends Model
 
     public function ingredients()
     {
-        return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
+        return $this->belongsTo(Ingredient::class, 'item_id', 'id');
+    }
+
+    public function products()
+    {
+        return $this->belongsTo(Product::class, 'item_id', 'id');
     }
 
     public function modifiers()
     {
         return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
+    }
+
+    public function unitTransfer()
+    {
+        return $this->belongsTo(UnitTransfer::class, 'unit_transfer_id', 'id');
+    }
+
+    public function detail()
+    {
+
+        $relatedModel = $this->relatedModels[$this->item_type] ?? null;
+        
+        if(!$relatedModel)
+            return null;
+
+        if ($relatedModel) {
+            return $this->belongsTo($relatedModel, 'item_id', 'id');//->with('vendor');
+        }
     }
 
 }

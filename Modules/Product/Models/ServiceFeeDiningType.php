@@ -27,5 +27,12 @@ class ServiceFeeDiningType extends Model
         return $this->fillable;
     }
 
+    public function diningType()
+    {
+        return $this->belongsTo(DiningType::class, 'dining_type_id', 'id');
+    }
+
+    
+
 }
 ?>

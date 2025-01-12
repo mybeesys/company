@@ -14,7 +14,7 @@ const ProductRecipe = ({ translations, productRecipe, product, ingredientTree, o
    }
 
     return (
-       <>
+       <div class="pt-3">
        <TreeTableEditorLocal
             translations={translations}
             dir={dir}
@@ -80,7 +80,7 @@ const ProductRecipe = ({ translations, productRecipe, product, ingredientTree, o
                 onChange={(e) => onBasicChange('prep_recipe', e.target.checked ? 1 : 0)} />
             </div>
           </div>
-    </>
+    </div>
 
   );
 };

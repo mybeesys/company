@@ -45,13 +45,13 @@ class AdjustmentTable
                 'actions',
                 function ($row) {
                     $actions = '<div class="justify-content-center d-flex">';
-                    if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.delete')) {
+                    if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.delete') && !$row->deleted_at) {
                         $actions .= '
                             <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px delete-btn me-1" data-id="' . $row->id . '">
                                 <i class="ki-outline ki-trash fs-3"></i>
                             </a>';
                     }
-                    if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.update')) {
+                    if (auth()->user()->hasDashboardPermission('employees.allowance_deduction.update') && !$row->deleted_at) {
 
                         $actions .= '
                             <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" 
