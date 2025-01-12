@@ -71,7 +71,7 @@ class ProductController extends Controller
     {
         $key = $request->query('with_ingredient', '');
         $recipes = [];
-        if(isset($key) && $key='Y'){
+        if(isset($key) && $key=='Y'){
             $idd = explode("-",$id);
             if($idd[1] == 'p')
                 $recipes = RecipeProduct::where([['product_id', '=', $idd[0]]])->get();
