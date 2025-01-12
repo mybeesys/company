@@ -76,5 +76,8 @@ return [
 
     'quotations' => 'Quotations',
 
+    'customer_receipts' => 'Customer Receipts',
+
+
 
 ];

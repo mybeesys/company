@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -37,13 +38,15 @@ class SellController extends Controller
         }
 
         $columns = Transaction::getsSellsColumns();
-        return view('sales::sell.index', compact('columns', 'transaction'));
+
+        $quotations = Transaction::where('type', 'quotation')->get();
+        return view('sales::sell.index', compact('columns', 'transaction', 'quotations'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
@@ -52,23 +55,28 @@ class SellController extends Controller
         $orderStatuses = SalesUtile::orderStatuses();
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
-        $establishments = Establishment::where('is_main',0)->get();
+        $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
-        $quotation=false;
+        $quotation = false;
+        $quotationId = $request->input('quotation_id');
+        $transaction = Transaction::find($quotationId);
 
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::sell.create', compact('clients','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::sell.create', compact('clients','transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
+
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        // return $request;
+        // return   $validatedData = $this->validateInvoiceRequest($request);
+        //  $request;
 
         // try {
 
@@ -116,7 +124,7 @@ class SellController extends Controller
                 'unit_price_inc_tax' => $product->total_after_vat,
                 'tax_id' => $product->tax_vat,
                 'tax_value' => $product->vat_value,
-                'total_before_vat'=>$product->total_before_vat,
+                'total_before_vat' => $product->total_before_vat,
             ]);
         }
         // return $request->paid_amount;
@@ -124,6 +132,7 @@ class SellController extends Controller
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
 
+        // Mail::to();
         //Update payment status
         // $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $request->paid_amount);
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
@@ -136,6 +145,27 @@ class SellController extends Controller
         //     DB::rollBack();
         //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         // }
+    }
+
+
+
+    public function validateInvoiceRequest($request)
+    {
+        $rules = [
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.products_id' => ['required'],
+        ];
+
+        $messages = [
+            'products.required' => 'يجب إرسال المنتجات.',
+            'products.array' => 'المنتجات يجب أن تكون قائمة.',
+            'products.min' => 'يجب إضافة منتج واحد على الأقل.',
+            'products.*.products_id.required' => 'يجب أن يحتوي كل منتج على رقم تعريف.',
+        ];
+
+        $validatedData = $request->validate($rules, $messages);
+
+        return $validatedData;
     }
 
     /**

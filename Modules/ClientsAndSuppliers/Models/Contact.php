@@ -4,6 +4,7 @@ namespace Modules\ClientsAndSuppliers\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -47,9 +48,13 @@ class Contact extends Model
         return $this->hasMany(ContactCustomInformation::class, 'contact_id')->where('table_name', 'billing_addresses');
     }
 
+    public function account()
+    {
+        return $this->belongsTo(AccountingAccount::class, 'account_id');
+    }
     public function  sales()
     {
-        return $this->hasMany(Transaction::class, 'contact_id')->where('type','sell');
+        return $this->hasMany(Transaction::class, 'contact_id')->where('type', 'sell');
     }
 
 

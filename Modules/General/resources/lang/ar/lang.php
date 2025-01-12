@@ -15,6 +15,10 @@ return [
     'draft' => 'مسودة',
     'Payments' => 'الدفعات',
     'payment_methods' => 'طرق الدفع',
+    'Address' => 'العنوان',
+    'show_payment' => 'عرض الدفعات',
+
+
 
 
 

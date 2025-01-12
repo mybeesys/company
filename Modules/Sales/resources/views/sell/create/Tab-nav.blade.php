@@ -37,7 +37,7 @@
 
     </div>
 </div>
-<div class="tab-content">
+<div class="tab-content" id="tab-content-payment_info">
     <div id="payment_info" class="card-body p-0 tab-pane fade show " role="tabpanel"
         aria-labelledby="payment_info_tab">
 

@@ -14,6 +14,10 @@ return [
     'bill_payment' => 'Bill payments',
     'Payments' => 'Payments',
     'payment_methods' => 'Payment Methods',
+    'Address' => 'Address',
+    'show_payment' => 'Show Payments',
+
+
 
 
 

@@ -25,10 +25,10 @@ class TransactionUtils
             $prefix_type = 'purchase_payment';
         }
 
-        $prefix_type = 'sell_payment';
-        if ($transaction->type == 'purchase') {
-            $prefix_type = 'purchase_payment';
-        }
+        // $prefix_type = 'sell_payment';
+        // if ($transaction->type == 'purchase') {
+        //     $prefix_type = 'purchase_payment';
+        // }
 
         $date = Carbon::parse($request->pament_on);
 
@@ -36,20 +36,18 @@ class TransactionUtils
 
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
-            $payment_amount = $request->paid_amount;
             $payment_method = 'cash';
         }
         if ($transaction->invoice_type == 'due') {
             $account_id = $request->account_id;
-            $payment_amount = $request->paid_amount;
             $payment_method = 'due';
         }
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
 
         $transactionPayment =  TransactionPayments::create([
             'transaction_id' => $transaction->id,
-            'payment_type' => $request->invoice_type,
-            'amount' => $payment_amount,
+            'payment_type' => $transaction->invoice_type,
+            'amount' => $request->paid_amount,
             'method' => $payment_method,
             'is_return' => $request->is_return ??  0,
             'note' => $request->additionalNotes,
