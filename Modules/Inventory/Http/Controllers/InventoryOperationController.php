@@ -94,8 +94,9 @@ class InventoryOperationController extends Controller
             $prodTotal = array_filter($prodTotals->toArray(), function($value)use($prod) {
                 return $prod->product_id == $value["product_id"]; // Keep only even numbers
             });
+            $prodTotal = reset($prodTotal);
             $totalQty = isset($times) && $times!=null ? $prod->qty * $times : $prod->qty;
-            if($prodTotal[0]["qty"] == null || $prodTotal[0]["qty"] < $totalQty){
+            if($prodTotal["qty"] == null || $prodTotal["qty"] < $totalQty){
                 $product = Product::find($prod->product_id);
                 $result [] = [ 
                     "name_ar" => $product->name_ar ,
