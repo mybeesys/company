@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.quotations'))
+@section('title', __('menuItemLang.customer_receipts'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -14,7 +14,7 @@
 @section('content')
 
 
-    @if (count($transaction) == 0)
+    @if (count($transactions) == 0)
         <div class="card1 h-md-100 my-5" dir="ltr">
             <div class="card-body d-flex flex-column flex-center">
                 <div class="mb-2 px-20" style="place-items: center;">
@@ -27,11 +27,11 @@
                             alt="">
                     </div>
                     <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
-                        <span class="fw-bolder"> @lang('sales::lang.no_quotation')</span> <br>
-                        @lang('sales::lang.create_suggestion_quotation')
+                        <span class="fw-bolder"> @lang('sales::lang.You do not have any Receipts')</span> <br>
+                        @lang('sales::lang.create_suggestion_Receipts')
                     </h4>
-                    <a href="{{ route('create-quotation') }}"
-                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_quotation')</a>
+                    <a href="{{ route('create-receipts') }}"
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_receipts')</a>
                 </div>
 
             </div>
@@ -39,7 +39,7 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="quotation" url="create-quotation" module="sales">
+                <x-tables.table-header model="receipts" url="create-receipts" module="sales">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
@@ -69,7 +69,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
-        const dataUrl = '{{ route('quotations') }}';
+        const dataUrl = '{{ route('receipts') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -96,37 +96,24 @@
                         name: 'id',
                     },
                     {
-                        data: 'ref_no',
-                        name: 'ref_no'
+                        data: 'payment_ref_no',
+                        name: 'payment_ref_no'
+                    },
+                    {
+                        data: 'paid_on',
+                        name: 'paid_on'
+                    },
+                    {
+                        data: 'transaction_ref_no',
+                        name: 'transaction_ref_no'
                     },
                     {
                         data: 'client',
                         name: 'client'
                     },
                     {
-                        data: 'transaction_date',
-                        name: 'transaction_date'
-                    },
-                    {
-                        data: 'due_date',
-                        name: 'due_date'
-                    },
-                    // {
-                    //     data: 'payment_status',
-                    //     name: 'payment_status'
-                    // },
-                    {
-                        data: 'total_before_tax',
-                        name: 'total_before_tax'
-                    },
-                    // {
-                    //     data: 'tax_amount',
-                    //     name: 'tax_amount'
-                    // },
-
-                    {
-                        data: 'final_total',
-                        name: 'final_total'
+                        data: 'amount',
+                        name: 'amount'
                     },
 
                     {
@@ -156,7 +143,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('quotations') }}?' + $.param({
+                dataTable.ajax.url('{{ route('receipts') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

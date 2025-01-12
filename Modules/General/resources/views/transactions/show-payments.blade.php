@@ -71,6 +71,11 @@
         <h1 class="mb-3">@lang('general::lang.bill_payment') {{ $transaction->ref_no }}</h1>
     </div>
 
+    @include('general::transactions.dropdown-toggle')
+
+
+
+
     <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
@@ -107,7 +112,7 @@
 
 
 
-@include('general::transactions.payment-rows')
+    @include('general::transactions.payment-rows')
 
 
     <div class="separator d-flex flex-center m-7 p-4">
@@ -116,27 +121,32 @@
 
 
 
+    @if ($amount != 0)
+        <div class="card-header border-0 p-0">
+            <h3 class="card-title align-items-start flex-column mb-3">
+                <span class="card-label fw-bold fs-3 mb-1 px-3">@lang('general::lang.add_payment') </span>
 
-    <div class="card-header border-0 p-0">
-        <h3 class="card-title align-items-start flex-column mb-3">
-            <span class="card-label fw-bold fs-3 mb-1 px-3">@lang('general::lang.add_payment') </span>
-
-        </h3>
+            </h3>
 
 
             <div class="row">
-              <div class="col-sm-2">
-                <p>@lang('sales::lang.total_before_vat'):  <span class="fs-4" style="color: #17c653">{{ $transaction->final_total  }}</span></p>
-            </div>
-              <div class="col-sm">
-                <p>@lang('employee::fields.remaining_amount'):  <span class="fs-4" style="color: red">{{$amount}}</span></p>
-            </div>
+                <div class="col-sm-2">
+                    <p>@lang('sales::lang.total_before_vat'): <span class="fs-4"
+                            style="color: #17c653">{{ $transaction->final_total }}</span>
+                    </p>
+                </div>
+                <div class="col-sm">
+                    <p>@lang('employee::fields.remaining_amount'): <span class="fs-4" style="color: red">{{ $amount }}</span></p>
+                </div>
 
             </div>
 
-        @include('general::transactions.payment')
 
-    </div>
+            @include('general::transactions.payment')
+
+
+        </div>
+    @endif
 
 
 

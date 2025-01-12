@@ -96,10 +96,14 @@ return [
     'no_quotation' => 'You do not have any quotation.',
     'create_suggestion_quotation' => 'We provide you with an advanced tool for creating sales quotations, which are official business documents that allow sellers to present detailed information about the proposed products or services to customers. These documents include descriptions of quantities, prices, and terms of sale, ensuring transparency in expected costs, enhancing professionalism, and streamlining business operations efficiently.',
     'quotation' => 'Quotation',
+    'from quotation'=>'from quotation',
     'Create a sales quotation' => 'Create a sales quotation',
 
+    'You do not have any Receipts' => 'You do not have any Receipts',
+    'create_suggestion_Receipts' => 'This tool allows you to create professional payment invoices for clients or suppliers. These are official business documents that accurately record the amounts paid, providing all the necessary financial details to ensure efficient and professional financial management.',
+    'Automatically allocate' => 'Automatically allocate the bond according to the seniority of the invoices',
+    'Automatically allocate payments' => 'Automatically allocate payments to the specified invoices',
 
-
-
+    'allocate_payments_note' => 'It aims to allocate the paid amount in a fair and organized manner, by settling invoices with smaller amounts first, then moving to larger ones, until the full paid amount is utilized.',
 
 ];

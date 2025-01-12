@@ -54,7 +54,9 @@
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('sales::lang.Create a sales invoice')</h1>
+                        <h1> @lang('sales::lang.Create a sales invoice') @if ($transaction)
+                      @lang('sales::lang.from quotation')  {{$transaction->ref_no}}
+                        @endif</h1>
 
                     </div>
                 </div>
@@ -183,166 +185,95 @@
 @stop
 
 @section('script')
-    {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
+    <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script>
-        $("#addClientForm").on("submit", function(e) {
-            e.preventDefault();
+        let salesRowIndex = 0;
 
-            let formData = $(this).serialize();
+        $("#addSalesRow").on("click", function() {
+            salesRowIndex++;
 
-            $.ajax({
-                url: "/client-save",
-                method: "POST",
-                data: formData,
-                success: function(response) {
-                    $("#addClientModal").modal("hide");
+            const newSalesRow = `
+                    <tr>
+                        <td>
+                            <select id="products-${salesRowIndex}" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][products_id]">
+                                                <option value="">@lang('sales::lang.select_products')</option>
+                                    @foreach ($products as $product)
+                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}">
+                                        @if (app()->getLocale() == 'ar')
+                                            {{ $product->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
+                                        @else
+                                            {{ $product->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="product-description" style="display:none">
+                            <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
+                        </td>
+                        <td style="white-space: nowrap;"><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px; display: inline-block;">
+                            <select id="unit" required
+                                                class="form-select form-select-solid select-2 d-inline-block unit"
+                                                name="products[${salesRowIndex}][unit]" style="width: 100px; display: inline-block;">
+                                                <option value="">@lang('sales::lang.unit')</option>
+                                            </select>
+                            </td>
+                        <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
+                        <td style="white-space: nowrap;">
+                            <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
+                            <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
+                                <option value="fixed">@get_format_currency()</option>
+                                <option value="percent">%</option>
+                            </select>
+                        </td>
 
-                    $("#addClientForm")[0].reset();
+                        <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
 
-                    $("#client_id")
-                        .append(
-                            `<option value="${response.id}" data-name="${response.name}"
-                    data-mobile_number="${response.mobile_number}" data-email="${response.email}"
-                    data-tax_number="${response.tax_number}" selected>${response.name}</option>`
-                        )
-                        .trigger("change");
+                        <td class="d-flex justify-content-center">
+                                            <div class="form-check">
+                                                <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]"
+                                                    class="form-check-input  my-2">
+                                                </div>
 
-                    // alert("@lang('sales::fields.client_added_success')");
-                },
-                error: function(xhr) {
-                    // alert("@lang('sales::fields.client_add_error')");
-                    console.error(xhr.responseText);
-                },
-            });
+                                        </td>
+                        <td>
+                            <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
+                                @foreach ($taxes as $tax)
+                                                <option value="{{ $tax->amount }}" @if ($tax->default == 1) selected @endif>{{ $tax->name }}</option>
+
+                                                @endforeach
+                            </select>
+                        </td>
+                        <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
+                        <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
+                        <td>
+                            <button type="button" class="btn btn-icon btn-danger delete-sales-row">
+                                <i class="ki-outline ki-trash fs-2"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+
+            $("#salesTable tbody").append(newSalesRow);
+
+            $("#salesTable tbody tr:last").find(".select-2").select2();
+
+            updateSalesTotals();
+
+            console.log("salesRowIndex " + salesRowIndex);
         });
 
-
-        $("#client_id").on("change", function() {
-            var selectedOption = $(this).find(":selected");
-
-            var clientName = selectedOption.data("name") || '--';
-            var mobileNumber = selectedOption.data("mobile_number") || '-';
-            var email = selectedOption.data("email") || "-";
-            var taxNumber = selectedOption.data("tax_number") || "-";
-            var billing_address = selectedOption.data("billing_address") || "-";
-            var billing_street_name = selectedOption.data("billing_street_name") || "-";
-            var billing_city = selectedOption.data("billing_city") || "-";
-
-
-            console.log(billing_address);
-
-            $("#client_name").text(clientName);
-            if (billing_street_name != '-' || billing_city != '-') {
-                $("#billing_address").text(billing_address);
-                $("#dev-billing_address").show();
-            } else {
-                $("#dev-billing_address").hide();
-            }
-
-
-            if (mobileNumber != '-') {
-                $("#mobile_number").text(mobileNumber);
-                $("#dev-mobile_number").show();
-            } else {
-                $("#dev-mobile_number").hide();
-            }
-            if (email != '-') {
-                $("#email").text(email);
-                $("#dev-email").show();
-            } else {
-                $("#dev-email").hide();
-            }
-            if (taxNumber != '-') {
-                $("#tax_number").text(taxNumber);
-                $("#dev-tax_number").show();
-            } else {
-                $("#dev-tax_number").hide();
-            }
-            // $("#tax_number").text(taxNumber);
+        $(document).on("click", ".delete-sales-row", function() {
+            $(this).closest("tr").remove();
+            updateSalesTotals();
         });
-
-
-        $('#billing_country').select2();
-        $('#shipping_status').select2();
-        $('#cost_center').select2();
-        $('#Delegates').select2({
-            width: 'resolve'
-        });
-        $('#invoice_type').select2({
-            width: 'resolve'
-        });
-        $('#account_id').select2();
-
-        $('#payment_type').select2({
-            width: 'resolve'
-        });
-        $('#unit').select2({
-            width: 'resolve'
-        });
-        $('#cash_account').select2({
-            width: 'resolve'
-        });
-
-        $('#client_id').select2({
-            width: 'resolve'
-        });
-        $('#storehouse').select2({
-            width: 'resolve'
-        });
-        $('#tax_vat').select2({
-            width: 'resolve'
-        });
-        // $('#products').select2();
-        $('#payment_terms').select2({
-            width: 'resolve'
-        });
-
-        $('#cost_center').select2({
-            width: 'resolve'
-        });
-
-
-
-        $('#toggledescrption').on('change', function() {
-            if ($(this).is(':checked')) {
-                $('.product-description').show();
-            } else {
-                $('.product-description').hide();
-            }
-        });
-
-        $('#toggleCost_center').on('change', function() {
-            if ($(this).is(':checked')) {
-                $('#dev-costCenter').show();
-            } else {
-                $('#dev-costCenter').hide();
-            }
-        });
-
-
-
-        $('#toggleStorehouse').on('change', function() {
-            if ($(this).is(':checked')) {
-                $('#div-storehouse').show();
-            } else {
-                $('#div-storehouse').hide();
-            }
-        });
-
-
-        $('#toggleDelegates').on('change', function() {
-            if ($(this).is(':checked')) {
-                $('#div-Delegates').show();
-            } else {
-                $('#div-Delegates').hide();
-            }
-        });
-
 
         $('#addNewAccountBtn').on('click', function() {
             $('#addClientModal').modal('show');
         });
-
 
         $(document).on('click', '.dropdown-item', function(e) {
             e.preventDefault();
@@ -371,14 +302,7 @@
 
 
         $(document).ready(function() {
-            $("#dev-mobile_number").hide();
-            $("#dev-billing_address").hide();
-            $("#dev-email").hide();
-            $("#dev-tax_number").hide();
-
-
-
-
+            updateSalesTotals();
             $('#products').select2({
                 tags: true,
                 language: {
@@ -396,242 +320,10 @@
             });
 
 
-            // $('[name$="[products_id]"]').on('change', function() {
-            //     var selectedOption = $(this).val();
-
-            //     if (selectedOption == 'new-product') {
-            //         $('#addProductModal').modal('show');
-            //     }
-            // });
-
-            let salesRowIndex = 0;
-
-            $('#addSalesRow').on('click', function() {
-                salesRowIndex++;
-
-                const newSalesRow = `
-    <tr>
-        <td>
-            <select id="products-${salesRowIndex}" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][products_id]">
-                                <option value="">@lang('sales::lang.select_products')</option>
-                   @foreach ($products as $product)
-                    <option value="{{ $product->id }}" data-price="{{ $product->price }}">
-                        @if (app()->getLocale() == 'ar')
-                            {{ $product->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
-                        @else
-                            {{ $product->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
-                        @endif
-                    </option>
-                @endforeach
-            </select>
-        </td>
-        <td class="product-description" style="display:none">
-            <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
-        </td>
-        <td style="white-space: nowrap;"><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px; display: inline-block;">
-            <select id="unit" required
-                                class="form-select form-select-solid select-2 d-inline-block unit"
-                                name="products[${salesRowIndex}][unit]" style="width: 100px; display: inline-block;">
-                                <option value="">@lang('sales::lang.unit')</option>
-                            </select>
-            </td>
-        <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
-        <td style="white-space: nowrap;">
-            <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
-            <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
-                <option value="fixed">@get_format_currency()</option>
-                <option value="percent">%</option>
-            </select>
-        </td>
-        <td class="d-flex justify-content-center">
-                            <div class="form-check">
-                                <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]"
-                                    class="form-check-input  my-2">
-                                </div>
-
-                        </td>
-        <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
-        <td>
-            <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
-               @foreach ($taxes as $tax)
-                                <option value="{{ $tax->amount }}">{{ $tax->name }}</option>
-
-                                @endforeach
-            </select>
-        </td>
-        <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
-        <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
-        <td>
-            <button type="button" class="btn btn-icon btn-danger delete-sales-row">
-                <i class="ki-outline ki-trash fs-2"></i>
-            </button>
-        </td>
-    </tr>
-    `;
-
-                $('#salesTable tbody').append(newSalesRow);
-
-                $('#salesTable tbody tr:last').find('.select-2').select2();
-
-                updateSalesTotals();
-
-                console.log('salesRowIndex ' + salesRowIndex);
-            });
-
-
-            $(document).on('click', '.delete-sales-row', function() {
-                $(this).closest('tr').remove();
-            });
-
-
-            function updateSalesTotals() {
-    let totalBeforeVat = 0;
-    let totalVat = 0;
-    let totalAfterVat = 0;
-    let totalBeforeDiscountForVat = 0;
-
-    $('#salesTable tbody tr').each(function(index) {
-        const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
-        const unitPriceOriginal = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
-        const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
-        const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
-        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0; // استرداد معدل الضريبة
-        const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(':checked');
-
-        let unitPrice = unitPriceOriginal;
-
-        if (isInclusive && taxType > 0) {
-            unitPrice = unitPriceOriginal / (1 + taxType / 100); // حساب السعر قبل الضريبة
-        }
-
-        let discountAmount = 0;
-        if (discountType === 'percent') {
-            discountAmount = (qty * unitPrice) * (discountValue / 100);
-        } else {
-            discountAmount = discountValue;
-        }
-
-        const totalBeforeDiscount = (qty * unitPrice) - discountAmount;
-
-        let vatAmount = 0;
-        if (taxType > 0) {
-            vatAmount = totalBeforeDiscount * (taxType / 100); // حساب الضريبة لكل صف
-            totalBeforeDiscountForVat += totalBeforeDiscount;
-        }
-
-        const totalRow = totalBeforeDiscount + vatAmount;
-
-        $(this).find('.total_before_vat-field').val(totalBeforeDiscount.toFixed(2));
-        $(this).find('.vat_value-field').val(vatAmount.toFixed(2));
-        $(this).find('.total_after_vat-field').val(totalRow.toFixed(2));
-
-        totalBeforeVat += totalBeforeDiscount;
-        totalVat += vatAmount;
-        totalAfterVat += totalRow;
-    });
-
-    const invoiceDiscount = parseFloat($('#invoice_discount').val()) || 0;
-    const discountType = $('#invoiced_discount_type').val();
-
-    let totalDiscountAmount = 0;
-    if (discountType === 'percent') {
-        totalDiscountAmount = totalBeforeVat * (invoiceDiscount / 100);
-    } else {
-        totalDiscountAmount = invoiceDiscount;
-    }
-
-    const adjustedTotalForVat = totalBeforeDiscountForVat - totalDiscountAmount;
-
-    // **حساب الضريبة المعدلة بجمع ضرائب كل صف بعد الخصم**
-    let adjustedVat = 0;
-    $('#salesTable tbody tr').each(function(index) {
-        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
-        const rowTotalBeforeDiscount = parseFloat($(this).find('.total_before_vat-field').val()) || 0;
-
-        if (taxType > 0) {
-            // توزيع الخصم الإجمالي على الصفوف وحساب الضريبة
-            const rowDiscountShare = (rowTotalBeforeDiscount / totalBeforeVat) * totalDiscountAmount;
-            const rowAdjustedTotal = rowTotalBeforeDiscount - rowDiscountShare;
-            adjustedVat += rowAdjustedTotal * (taxType / 100); // حساب الضريبة بعد الخصم
-        }
-    });
-
-    const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
-    const finalTotalAfterVat = totalAfterDiscount + adjustedVat;
-
-    adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
-
-    // تحديث القيم في الواجهة
-    $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
-    $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
-    $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
-    $('#input-invoiced_discount').val(totalDiscountAmount.toFixed(2));
-    $('#totalAfterDiscount').text(totalAfterDiscount.toFixed(2));
-    $('#input-totalAfterDiscount').val(totalAfterDiscount.toFixed(2));
-    $('#totalVat').text(adjustedVat.toFixed(2));
-    $('#input-totalVat').val(adjustedVat.toFixed(2));
-    $('#totalAfterVat').text(finalTotalAfterVat.toFixed(2));
-    $('#input-totalAfterVat').val(finalTotalAfterVat.toFixed(2));
-
-    if ($('#invoice_type').val() === "due") {
-        $("#paid_amount").val(0);
-    } else {
-        $('#paid_amount').val(finalTotalAfterVat.toFixed(2));
-    }
-}
-
-
-
             $(document).on('change', '[name*="[inclusive]"]', function() {
                 updateSalesTotals();
             });
 
-
-            // $('#salesTable').on('change', '[name$="[products_id]"]', function() {
-            //     const selectedOption = $(this).find('option:selected');
-            //     const selectedProductId = selectedOption.val();
-            //     const price = parseFloat(selectedOption.data('price')) || 0;
-            //     const currentRow = $(this).closest('tr');
-            //     const rowIndex = currentRow.index();
-            //     console.log('rowIndex  ' + rowIndex);
-
-            //     let productFound = false;
-
-            //     $('#salesTable tbody tr').each(function() {
-            //         const productId = $(this).find('[name$="[products_id]"]').val();
-
-            //         if (productId === selectedProductId && this !== currentRow[0]) {
-            //             productFound = true;
-
-            //             const qtyField = $(this).find('[name*="[qty]"]');
-            //             const currentQty = parseFloat(qtyField.val()) || 0;
-            //             qtyField.val(currentQty + 1);
-
-            //             // updateSalesTotals();
-
-            //             currentRow.remove();
-            //             resetRowIndexes();
-            //             updateSalesTotals();
-            //         }
-            //     });
-            //     console.log('productFound  ' + productFound);
-
-            //     if (!productFound) {
-            //         resetRowIndexes();
-
-            //         console.log('price  ' + price);
-
-            //         currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(
-            //             2));
-            //         currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(
-            //             1);
-
-
-
-
-            //         updateSalesTotals();
-            //     }
-            // });
 
             $('#salesTable').on('change', '[name$="[products_id]"]', function() {
                 const selectedOption = $(this).find('option:selected');
@@ -683,9 +375,6 @@
                 }
             });
 
-
-
-
             function resetRowIndexes() {
                 $('#salesTable tbody tr').each(function(index) {
                     $(this).find('input, select, textarea').each(function() {
@@ -697,8 +386,6 @@
                     });
                 });
             }
-
-
 
             $('#invoice_discount, #invoiced_discount_type').on('input change', function() {
                 updateSalesTotals();
@@ -727,9 +414,6 @@
                     $('#balance').text('0.00');
                 }
             });
-
-
-
 
             $(document).on('input change', '#salesTable tbody [name^="products"]', function() {
                 updateSalesTotals();
@@ -763,21 +447,26 @@
                     // $(".pay-additionalNotes").hide();
 
                     $("#li-payment_info").show();
+                    $("#tab-content-payment_info").show();
                     $("#paid_amount").val(0);
+
 
                     $("#div-cash_account").hide();
 
                     $("#card").hide();
                     $("#bank_check").hide();
                     $("#bank_transfer").hide();
+                    $('#lable-account_id').addClass('required');
+                    $('#account_id').attr('required', 'required');
+
 
                 } else {
                     // $(".pay-pament_on").show();
                     // $(".pay-payment_type").show();
                     // $(".pay-paid_amount").show();
-                    // $(".pay-additionalNotes").show();
 
                     $("#li-payment_info").hide();
+                    $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();
 
                 }

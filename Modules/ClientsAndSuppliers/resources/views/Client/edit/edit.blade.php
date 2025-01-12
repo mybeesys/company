@@ -43,14 +43,13 @@
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1>@if ($contact->business_type != 'customer')
-                            @lang('clientsandsuppliers::general.edit_Supplier')
-
+                        <h1>
+                            @if ($contact->business_type != 'customer')
+                                @lang('clientsandsuppliers::general.edit_Supplier')
                             @else
-                            @lang('clientsandsuppliers::general.edit_clients')
-
+                                @lang('clientsandsuppliers::general.edit_clients')
                             @endif
-                            </h1>
+                        </h1>
 
                     </div>
                 </div>
@@ -200,14 +199,22 @@
                     <div class="card-toolbar ">
                         <!--begin::Tab nav-->
                         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
+
                             <li class="nav-item" role="presentation">
-                                <a id="payment_info_tab"
+                                <a id="financial_information_tab"
                                     class="nav-link justify-content-center text-active-gray-800 active"
+                                    data-bs-toggle="tab" role="tab" href="#financial_information"
+                                    aria-selected="false" tabindex="-1">
+                                    @lang('clientsandsuppliers::fields.financial_information')
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
                                     data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
                             </li>
-                            <li class="nav-item" role="presentation" >
+                            <li class="nav-item" role="presentation">
                                 <a id="shipping_info_tab" class="nav-link justify-content-center text-active-gray-800"
                                     data-bs-toggle="tab" role="tab" href="#shipping_info" aria-selected="false"
                                     tabindex="-1">
@@ -215,7 +222,7 @@
 
                                 </a>
                             </li>
-                            <li class="nav-item" role="presentation" >
+                            <li class="nav-item" role="presentation">
                                 <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800"
                                     data-bs-toggle="tab" role="tab" href="#attachments" aria-selected="false"
                                     tabindex="-1">
@@ -223,7 +230,7 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item" role="presentation" >
+                            <li class="nav-item" role="presentation">
                                 <a id="clientContactsCard_tab"
                                     class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#clientContactsCard" aria-selected="false" tabindex="-1">
@@ -231,20 +238,23 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item" role="presentation">
-                                <a id="financial_information_tab"
-                                    class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                                    role="tab" href="#financial_information" aria-selected="false" tabindex="-1">
-                                    @lang('clientsandsuppliers::fields.financial_information')
-                                </a>
-                            </li>
+
 
                         </ul>
                         <!--end::Tab nav-->
                     </div>
 
                     <div class="tab-content">
-                        <div id="payment_info" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                        <div id="financial_information" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                            aria-labelledby="financial_information_tab">
+
+                            @include('clientsandsuppliers::Client.edit.financial_information')
+
+                        </div>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="payment_info" class="card-body p-0 tab-pane fade show " role="tabpanel"
                             aria-labelledby="payment_info_tab">
 
                             @include('clientsandsuppliers::Client.edit.billingCard')
@@ -257,7 +267,7 @@
                         <div id="shipping_info" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="shipping_info_tab">
 
-                                @include('clientsandsuppliers::Client.edit.shippingCard')
+                            @include('clientsandsuppliers::Client.edit.shippingCard')
 
 
                         </div>
@@ -267,26 +277,18 @@
                         <div id="attachments" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="attachments_tab">
 
-                                @include('clientsandsuppliers::Client.edit.bankAccountCard')
+                            @include('clientsandsuppliers::Client.edit.bankAccountCard')
 
                         </div>
                     </div>
                     <div class="tab-content">
                         <div id="clientContactsCard" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="clientContactsCard_tab">
-                                @include('clientsandsuppliers::Client.edit.clientContactsCard')
+                            @include('clientsandsuppliers::Client.edit.clientContactsCard')
                         </div>
                     </div>
 
 
-                    <div class="tab-content">
-                        <div id="financial_information" class="card-body p-0 tab-pane fade show " role="tabpanel"
-                            aria-labelledby="financial_information_tab">
-
-                                @include('clientsandsuppliers::Client.edit.financial_information')
-                           
-                        </div>
-                    </div>
 
 
 

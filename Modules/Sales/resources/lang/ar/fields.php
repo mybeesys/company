@@ -30,7 +30,13 @@ return [
     'payment_status' => 'حالة الدفع',
     'Expiry Date' => 'تاريخ الانتهاء',
 
+    'remaining_amount' => 'المبلغ المتبقي',
+    'piad_amount' => 'المبلغ المدفوع',
+    'invoice_amount' => 'مبلغ الفاتورة',
+    'date' => 'التاريخ',
 
+    'select_transactions' => 'اختيار المعاملات',
+    'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
 
 
 
