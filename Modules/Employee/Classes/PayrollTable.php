@@ -93,7 +93,6 @@ class PayrollTable
             Cache::forever("payroll_table_{$date}_{$employee->id}", $employeePayrollData);
             return $employeePayrollData;
         });
-
         return DataTables::of($payrollData)
             ->rawColumns($payrollData->isNotEmpty() ? array_keys($payrollData->first()) : [])
             ->make(true);
@@ -101,8 +100,8 @@ class PayrollTable
 
     public static function getIndexPayrollTable($payrolls)
     {            
-        $adjustment_types = PayrollAdjustmentType::whereHas('adjustments')->get(['id', 'type'])->groupBy('type');
-
+        $adjustment_types = PayrollAdjustmentType::whereHas('adjustments')->withTrashed()->get(['id', 'type'])->groupBy('type');
+        
         $datatable = DataTables::of($payrolls)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>{$row->id}</div>";
@@ -131,7 +130,7 @@ class PayrollTable
             ->editColumn('basic_total_wage', function ($row) {
                 return $row->basic_total_wage;
             });
-
+        
         // Add dynamic columns for each allowance type
         foreach ($adjustment_types->get('allowance', []) as $allowance_type) {
             $columnName = 'allowance_' . $allowance_type->id;
@@ -163,7 +162,7 @@ class PayrollTable
         $datatable->addColumn('actions', function ($row) {
             return '
             <div class="text-center text-nowrap ">   
-                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 edit-btn" data-id="' . $row->id . '" >
+                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 payroll-print-btn" data-id="' . $row->id . '" >
                     <i class="ki-outline ki-printer fs-2"></i>
                 </a>                
             </div>';

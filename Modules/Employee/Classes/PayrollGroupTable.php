@@ -51,9 +51,6 @@ class PayrollGroupTable
 				</a>' : $actions = '';
 
                     $actions .= '                
-                <a href="' . url("/payroll-group/show/{$row->id}") . '" class="btn btn-icon btn-bg-light btn-active-color-primary min-w-35px h-35px" data-id="' . $row->id . '">
-					<i class="ki-outline ki-eye fs-3"></i>
-				</a>
                 </div>';
                     return $actions;
                 }

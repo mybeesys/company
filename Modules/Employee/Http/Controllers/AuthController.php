@@ -3,11 +3,19 @@
 namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Rules\EmailOrUserNameExists;
 
 class AuthController extends Controller
 {
+
+    public function index()
+    {        
+        return view('employee::auth.login');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -15,12 +23,15 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $attributes = $request->validate([
-            'email' => 'required|email|exists:emp_employees,email', // exists:users,email exists is the opposite of unique
+            'email' => ['required', 'string', new EmailOrUserNameExists],
             'password' => 'required'
         ]);
-        if (!auth()->attempt($attributes)) {
+        $loginField = filter_var($attributes['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'user_name';
+
+        if (!Auth::attempt([$loginField => $attributes['email'], 'password' => $attributes['password']])) {
             return redirect()->back()->with('error', __('employee::responses.incorrect_credential'));
         }
+
         $user = Employee::firstWhere('email', $attributes['email']);
 
         if (!$user->ems_access) {

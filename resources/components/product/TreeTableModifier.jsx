@@ -5,7 +5,7 @@ import DeleteModal from './DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 
-const defaultObjectValue = {active:1};
+const defaultObjectValue = {active: 1, for_sell: 1};
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
@@ -78,13 +78,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
   
 
     const editRow = (data, key) => {
-        if(data.type == "product")
-        {
-          window.location.href =  productCrudList+'/'+data.id+'/edit'
+        if (data.type == "product") {
+            window.location.href = productCrudList + '/' + data.id + '/edit'
         }
-        else{
-        setCurrentKey(key);
-        setEditingRow({ ...data });
+        else {
+            setCurrentKey(key);
+            setEditingRow({ ...data });
         }
     }
 
@@ -390,6 +389,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     <Column header={translations.cost} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
                     <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
                     <Column header={translations.active} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
+                    <Column header={translations.forSell} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'for_sell'))} sortable> </Column>
                     <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
                 </TreeTable>
             </form>

@@ -14,6 +14,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PosRole;
+use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
@@ -65,7 +66,7 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $employees = Employee::with('permissions:id,name')->
-            select('id', 'name', 'name_en', 'phone_number', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
+            select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
@@ -101,6 +102,7 @@ class EmployeeController extends Controller
                 });
                 $storeEmployee = new EmployeeActions($filteredRequest);
                 $storeEmployee->store();
+
                 return to_route('employees.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.employee')]));
             } catch (\Throwable $e) {
                 Log::error('Employee creation failed', [

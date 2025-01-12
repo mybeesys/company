@@ -28,6 +28,12 @@ class ModifierClassController extends Controller
         return response()->json($tree);
     }
 
+    public function getMiniModifierClasslist()
+    {
+       $result = ModifierClass::all();
+       return response()->json($result);
+    }
+
     public function getModifierClasses()
     {
         $Tree = [];

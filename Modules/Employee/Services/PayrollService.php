@@ -103,9 +103,15 @@ class PayrollService
         $common_html = "<div class='add-allowances-button d-flex gap-3 align-items-center text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
 
         if ($allowances_cache->isNotEmpty() && (request()->firstEnter === "false")) {
-            [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances_cache, $common_html, "allowance");
+            [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances_cache, $common_html, "allowance", $employee->wage?->rate ?? 0);
+            $allowances_cache_collection = collect($allowances_cache);
 
-            $sum = $allowances_cache->sum('amount');
+            $percentage = $allowances_cache_collection->where('amount_type', 'percent')->sum('amount');
+
+            $wage_allowance_after_percent = ($employee->wage?->rate ?? 0) * $percentage / 100;
+
+            $sum = ($allowances_cache_collection?->where('amount_type', 'fixed')->sum('amount') ?? 0) + $wage_allowance_after_percent;
+
             $common_html .= ">{$sum}
                 <i class='ki-duotone ki-plus-square fs-4'>
                     <span class='path1'></span>
@@ -116,15 +122,20 @@ class PayrollService
         } else {
             $allowances = $allowances->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
 
+            $percentage = $allowances->where('amount_type', 'percent')->sum('amount');
+
+            $wage_allowance_after_percent = ($employee->wage?->rate ?? 0) * $percentage / 100;
+
             foreach ($allowances as &$allowance) {
                 $allowance['adjustment_type'] = $allowance['adjustment_type_id'];
                 $adjustment_type_name = PayrollAdjustmentType::find($allowance['adjustment_type'])?->translatedName;
                 $allowance['adjustment_type_name'] = $adjustment_type_name;
             }
             Cache::forever("allowance_{$employee->id}_{$date}", $allowances);
-            [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances, $common_html, "allowance");
+            [$allowances_array, $common_html] = $this->generateAdjustmentDiv($allowances, $common_html, "allowance", $employee->wage?->rate ?? 0);
 
-            $sum = $allowances?->sum('amount') ?? 0;
+            $sum = ($allowances?->where('amount_type', 'fixed')->sum('amount') ?? 0) + $wage_allowance_after_percent;
+
             $common_html .= ">{$sum}
             <i class='ki-duotone ki-plus-square fs-4'>
                 <span class='path1'></span>
@@ -147,9 +158,15 @@ class PayrollService
         $common_html = "<div class='add-deductions-button d-flex gap-3 align-items-center text-nowrap' data-employee-id='$employee->id' data-employee-name='$employee->name' data-date='$date'";
 
         if ($deductions_cache->isNotEmpty() && (request()->firstEnter === "false")) {
-            [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions_cache, $common_html, "deduction");
+            [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions_cache, $common_html, "deduction", $employee->wage?->rate ?? 0);
 
-            $sum = $deductions_cache->sum('amount');
+            $deductions_cache_collection = collect($deductions_cache);
+
+            $percentage = $deductions_cache_collection->where('amount_type', 'percent')->sum('amount');
+            $wage_deduction_after_percent = ($employee->wage?->rate ?? 0) * ($percentage / 100);
+
+            $sum = ($deductions_cache_collection?->where('amount_type', 'fixed')->sum('amount') ?? 0) + $wage_deduction_after_percent;
+
             $common_html .= ">{$sum}
                 <i class='ki-duotone ki-plus-square fs-4'>
                     <span class='path1'></span>
@@ -161,16 +178,20 @@ class PayrollService
         } else {
             $deductions = $deductions->get(['amount_type', 'adjustment_type_id', 'amount', 'id']);
 
+            $percentage = $deductions->where('amount_type', 'percent')->sum('amount');
+
+            $wage_deduction_after_percent = ($employee->wage?->rate ?? 0) * $percentage / 100;
+
             foreach ($deductions as &$deduction) {
                 $deduction['adjustment_type'] = $deduction['adjustment_type_id'];
                 $adjustment_type_name = PayrollAdjustmentType::find($deduction['adjustment_type'])?->name;
                 $deduction['adjustment_type_name'] = $adjustment_type_name;
             }
-
             Cache::forever("deduction_{$employee->id}_{$date}", $deductions);
-            [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions, $common_html, "deduction");
+            [$deductions_array, $common_html] = $this->generateAdjustmentDiv($deductions, $common_html, "deduction", $employee->wage?->rate ?? 0);
 
-            $sum = $deductions?->sum('amount') ?? 0;
+            $sum = ($deductions?->where('amount_type', 'fixed')->sum('amount') ?? 0) + $wage_deduction_after_percent;
+
             $common_html .= ">{$sum}
                 <i class='ki-duotone ki-plus-square fs-4'>
                     <span class='path1'></span>
@@ -182,7 +203,7 @@ class PayrollService
         return [$deductions_array, $common_html, $sum, $ids];
     }
 
-    public function generateAdjustmentDiv($adjustments, $common_html, $type)
+    public function generateAdjustmentDiv($adjustments, $common_html, $type, $wage)
     {
         $adjustments_array = [];
 
@@ -203,7 +224,16 @@ class PayrollService
             if (!isset($adjustments_array[$adjustment['adjustment_type_name']])) {
                 $adjustments_array[$adjustment['adjustment_type_name']] = 0;
             }
-            $adjustments_array[$adjustment['adjustment_type_name']] += $adjustment['amount'];
+            //calculate the percentage if amount_type is percent 
+            if ($adjustment['amount_type'] == 'percent') {
+                $percent_amount = $wage * $adjustment['amount'] / 100;
+                $adjustments_array[$adjustment['adjustment_type_name']] += $percent_amount;
+
+            } else {
+                $adjustments_array[$adjustment['adjustment_type_name']] += $adjustment['amount'];
+
+            }
+
         }
 
         // Convert summed amounts into HTML divs

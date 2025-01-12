@@ -21,12 +21,6 @@ return [
 
             ],
             [
-                'name' => 'ingredient',
-                'url' => 'ingredient',
-                'permission' => 'products.ingredient.show',
-
-            ],
-            [
                 'name' => 'modifiers',
                 'url' => 'modifier',
                 'permission' => 'products.modifier.show',
@@ -47,6 +41,12 @@ return [
             [
                 'name' => 'serviceFee',
                 'url' => 'serviceFee',
+                'permission' => '',
+
+            ],
+            [
+                'name' => 'priceTier',
+                'url' => 'priceTier',
                 'permission' => '',
 
             ],
@@ -74,11 +74,6 @@ return [
                 'name' => 'inventory',
                 'url' => 'productInventory',
                 'permission' => 'inventory.product.show',
-            ],
-            [
-                'name' => 'ingredientInventory',
-                'url' => 'ingredientInventory',
-                'permission' => 'inventory.ingredient.show',
             ],
             [
                 'name' => 'po',

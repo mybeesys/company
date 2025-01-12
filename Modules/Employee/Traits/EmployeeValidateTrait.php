@@ -14,6 +14,7 @@ trait EmployeeValidateTrait
         return $this->getCommonValidationRules($notAjaxValidate, $request) + [
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', 'unique:emp_employees,email'],
             'pin' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', 'unique:emp_employees,pin'],
+            'user_name' => ['required_if_accepted:ems_access', 'nullable', 'unique:emp_employees,email', 'string', 'max:50'],
             'password' => ['required_if_accepted:ems_access', 'nullable', Password::default()],
         ];
     }
@@ -23,6 +24,7 @@ trait EmployeeValidateTrait
         return $this->getCommonValidationRules($notAjaxValidate, $request) + [
             'email' => [Rule::requiredIf($notAjaxValidate), 'email', Rule::unique('emp_employees', 'email')->ignore($employee->email, 'email')],
             'pin' => [Rule::requiredIf($notAjaxValidate), 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'pin')->ignore($employee->pin, 'pin')],
+            'user_name' => ['required_if_accepted:ems_access', 'nullable', Rule::unique('emp_employees', 'user_name')->ignore($employee->user_name, 'user_name'), 'string', 'max:50'],
             'password' => ['nullable', Password::default()],
             'image_old' => [Rule::requiredIf($notAjaxValidate), 'boolean']
         ];
@@ -57,7 +59,6 @@ trait EmployeeValidateTrait
             'ems_access' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'dashboard_role_repeater' => ['nullable', 'array'],
             'dashboard_role_repeater.*.dashboardRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],
-            'user_name' => ['required_if_accepted:ems_access', 'nullable', 'string', 'max:50'],
 
         ];
     }

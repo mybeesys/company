@@ -59,6 +59,12 @@ class WasteController extends Controller
                 $ingr["id"] =  $item->ingredient_id.'-i';
                 $newItem["product"] =$ingr;
             }
+            if(isset($item->modifier_id)){
+                $newItem["product_id"] = $item->modifier_id.'-m';
+                $mod = $item->modifier->toArray();
+                $mod["id"] =  $item->modifier_id.'-m';
+                $newItem["product"] =$mod;
+            }
             $newItem["unit"] = $item->unit->toArray();
             $resInventoryOperation["items"][] =$newItem;
         }

@@ -10,4 +10,13 @@ return [
     'filters' => 'التصفيات',
     'apply' => 'تطبيق',
     'reset' => 'إعادة تعيين',
+    'sign_out' => 'تسجيل الخروج',
+    'mode' => 'الوضع',
+    'light' => 'فاتح',
+    'dark' => 'داكن',
+    'system' => 'حسب النظام',
+    'account_settings' => 'إعدادات الحساب',
+    'notifications' => 'الإشعارات',
+    'no_notifications' => 'لا يوجد اشعارات',
+    'mark_as_read' => 'تعيين كمقروء',
 ];

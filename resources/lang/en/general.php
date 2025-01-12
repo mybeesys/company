@@ -10,5 +10,13 @@ return [
     'filters' => 'Filters',
     'apply' => 'Apply',
     'reset' => 'Reset',
-
+    'sign_out' => 'Sign out',
+    'mode' => 'Mode',
+    'light' => 'Light',
+    'dark' => 'Dark',
+    'system' => 'System',
+    'account_settings' => 'Account settings',
+    'notifications' => 'Notifications',
+    'no_notifications' => 'No notifications',
+    'mark_as_read' => 'Mark as read',
 ];

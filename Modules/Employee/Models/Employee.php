@@ -56,6 +56,11 @@ class Employee extends Authenticatable
         return EmployeeFactory::new();
     }
 
+    public function createdBy()
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
+    }
+
     public function defaultEstablishment()
     {
         return $this->belongsTo(Establishment::class, 'establishment_id')->withTrashed();
@@ -98,12 +103,12 @@ class Employee extends Authenticatable
 
     public function allowances()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance')->withTrashed();
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'allowance');
     }
 
     public function deductions()
     {
-        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction')->withTrashed();
+        return $this->hasMany(PayrollAdjustment::class)->where('type', 'deduction');
     }
 
     public function getTranslatedNameAttribute()

@@ -41,7 +41,7 @@ const DiscountBasicInfo = ({ translations, discountTypes, discountFunctions,
                 <div class="row">
                     <div class="col-6">
                         <label for="function_id" class="col-form-label">{translations.discountFunction}</label>
-                        <select id="function_id" class="form-control form-control-solid custom-height selectpicker" value={currentObject.function_id} 
+                        <select id="function_id" class="form-control form-control-solid selectpicker" value={currentObject.function_id} 
                             onChange={(e) => onBasicChange('function_id', e.target.value)} >
                             {discountFunctions.map((discountFunction) => (
                                 <option key={discountFunction.value} value={discountFunction.value}>
@@ -52,7 +52,7 @@ const DiscountBasicInfo = ({ translations, discountTypes, discountFunctions,
                     </div>
                     <div class="col-6">
                         <label for="discount_type" class="col-form-label">{translations.type}</label>
-                        <select id="discount_type" class="form-control form-control-solid custom-height selectpicker" value={currentObject.discount_type} 
+                        <select id="discount_type" class="form-control form-control-solid selectpicker" value={currentObject.discount_type} 
                             onChange={(e) => onBasicChange('discount_type', e.target.value)} >
                             {discountTypes.map((discountType) => (
                                 <option key={discountType.value} value={discountType.value}>

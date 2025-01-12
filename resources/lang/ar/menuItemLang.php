@@ -43,7 +43,10 @@ return [
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',
     'discount' => 'حسومات',
-    'ingredient' => 'المكونات',
+
+    'priceTier' => 'التسعيرات',
+    'ingredient' =>'المكونات' ,
+
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
     'inventory' => 'المنتجات',

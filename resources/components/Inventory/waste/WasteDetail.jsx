@@ -104,8 +104,8 @@ const WasteDetail = ({ dir, translations }) => {
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
-                            axios.get(`${window.location.origin}/get${result[1] == 'p' ? 'Product' : 'Ingredient' }Inventory/${result[0]}`)
-                           .then(response => {
+                            axios.get(`${window.location.origin}/getProductInventory/${val.id}`)
+                            .then(response => {
                                 let prod = response.data;
                                 nodes[rowKey].data.SKU = prod.SKU;
                                 nodes[rowKey].data.item_type = result[1];
