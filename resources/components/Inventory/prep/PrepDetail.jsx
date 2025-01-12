@@ -29,7 +29,7 @@ const PrepDetail = ({ dir, translations }) => {
             return;
         }
         setcurrentObject({...currentObject});
-        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient='Y'`).then(response => {
+        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient=Y`).then(response => {
             let items = response.data.map(obj => {
                 const { quantity, products, ...rest } = obj;
                 return { 
