@@ -44,7 +44,7 @@
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.transaction_date')</label>
             @endif
             <input class="form-control form-control-solid custom-height" name="transaction_date"
-                @if ($transaction?->transaction_date) value="{{ $transaction->transaction_date }}" @endif
+                @if ($transaction?->transaction_date) value="{{ $transaction?->transaction_date }}" @endif
                 value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.transaction_date')" id="transaction_date"
                 type="date">
         </div>
