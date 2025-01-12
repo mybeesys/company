@@ -102,13 +102,22 @@
 
 <body>
 
-    <div class="text-center m-7">
-        @if ($transaction->type == 'quotation')
-            <h1 class="mb-3">@lang('sales::lang.quotation')</h1>
-        @else
-            <h1 class="mb-3">@lang('general::general.Tax invoice')</h1>
-        @endif
-        <h6>{{ $transaction?->client?->tax_number ?? '' }}</h6>
+    <div class="row">
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+            <img alt="Logo" src="/assets/media/logos/1-14.png" class="h-100px theme-light-show" />
+        </div>
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+            <div class="text-center m-7">
+                @if ($transaction->type == 'quotation')
+                    <h1 class="mb-3">@lang('sales::lang.quotation')</h1>
+                @else
+                    <h1 class="mb-3">@lang('general::general.Tax invoice')</h1>
+                @endif
+                <h6>{{ $transaction?->client?->tax_number ?? '' }}</h6>
+                <p class="fs-7" style="color: #6a6a6a">{{ $company->state }} - {{ $company->city }}</p>
+            </div>
+        </div>
+        <div class="col-sm-4 " style="justify-content: center;display: flex;"></div>
     </div>
 
     <div class="separator d-flex flex-center mb-5">
@@ -118,7 +127,7 @@
     <div class="">
         <div class="row">
             <div class="col-sm-4">
-                <p>@lang('sales::fields.ref_no'): {{ $transaction->ref_no }}</p>
+                <p>@lang('general::lang.invoice_no'): {{ $transaction->ref_no }}</p>
 
 
                 <p @if (!isset($transaction->payment_status)) class="d-none" @endif>@lang('sales::fields.payment_status'):
@@ -145,7 +154,7 @@
 
             <div class="col-sm-4">
                 <p>@lang('sales::fields.transaction_date'): {{ $transaction->transaction_date }}</p>
-                <p>@lang('sales::fields.due_date'): {{ $transaction->due_date }}</p>
+                {{-- <p>@lang('sales::fields.due_date'): {{ $transaction->due_date }}</p> --}}
                 @if ($transaction->client)
                     <p @if (!isset($transaction->client->payment_terms)) class="d-none" @endif>@lang('sales::fields.payment_terms'):
                         {{ __('sales::lang.terms.' . $transaction->client->payment_terms) ?? '--' }}</p>
@@ -282,12 +291,29 @@
             </div>
 
 
-            <div class="col-sm-8">
-                <p class="fs-5 ">@lang('sales::lang.invoice_note'): {{ $transaction->description ?? ' -- ' }}</p>
+            <div class="col-sm-4">
+                <p class="fs-5 "@if ($transaction->description == null) style="display: none;" @endif>@lang('sales::lang.invoice_note'):
+                    {{ $transaction->description ?? ' -- ' }}</p>
 
+            </div>
+
+            <div class="col-sm-4 " style="justify-content: center;display: flex;">
+                {!! QrCode::size(120)->generate(
+                    json_encode([
+                        'Inovice No' => $transaction->ref_no,
+                        'Client Name' => $transaction->client?->name,
+                        'Final Total' => $transaction->final_total,
+                    ]),
+                ) !!}
             </div>
         </div>
     </div>
+
+    <div class="separator d-flex flex-center mb-5">
+        <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
+    </div>
+
+    <a class="fs-7" href="{{ $company->website }}" style="color: #6a6a6a;float: left;">{{ $company->website }}</a>
 
     @include('layouts.js-references')
 

@@ -42,10 +42,10 @@ class TransactionController extends Controller
     public function show($id)
     {
 
-        // $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
-        // return    $user = DB::connection('mysql')->table('users')->find($company->id);
+          $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
         $transaction = Transaction::find($id);
-        return view('general::transactions.show', compact('transaction'));
+        return view('general::transactions.show', compact('transaction','company'));
     }
 
 
@@ -53,23 +53,27 @@ class TransactionController extends Controller
     {
 
         $transaction = Transaction::find($id);
-        return view('general::transactions.print', compact('transaction'));
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
+        return view('general::transactions.print', compact('transaction','company'));
     }
 
 
     public function paymentPrint($id)
     {
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        return view('general::transactions.print-payments', compact('transaction'));
+        return view('general::transactions.print-payments', compact('transaction','company'));
     }
 
 
     public function exportPDF($id)
     {
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        $html = view('general::transactions.print', compact('transaction'))->render();
+        $html = view('general::transactions.print', compact('transaction','company'))->render();
 
 
         $mpdf = new Mpdf([
@@ -89,8 +93,10 @@ class TransactionController extends Controller
     public function exportTransactionPaymentPDF($id)
     {
 
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
         $transaction = Transaction::find($id);
-        $html = view('general::transactions.print-payments', compact('transaction'))->render();
+        $html = view('general::transactions.print-payments', compact('transaction','company'))->render();
 
 
         $mpdf = new Mpdf([
@@ -118,8 +124,9 @@ class TransactionController extends Controller
         if ($amount < 0) {
             $amount = 0;
         }
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        return view('general::transactions.show-payments', compact('transaction', 'accounts', 'amount'));
+        return view('general::transactions.show-payments', compact('transaction', 'company','accounts', 'amount'));
     }
 
 

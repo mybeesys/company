@@ -55,11 +55,11 @@ class QuotationController extends Controller
         $countries = Country::all();
 
         $quotation=true;
-
+        $transaction=null;
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::quotation.create', compact('clients','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::quotation.create', compact('clients','transaction','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
 
     }
 
