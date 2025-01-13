@@ -248,5 +248,6 @@
   "importedsuccessfully" : "تم الاستيراد",
   "errorInImport" : "خطأ في الاستيراد",
   "INVALID" : "غير صحيح",
-  "UNIQUE" : "مكرر"
+  "UNIQUE" : "مكرر",
+  "import" : "Import"
 }

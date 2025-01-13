@@ -244,5 +244,10 @@
   "priceTiers" : "Price Tiers",
   "priceTier" : "Price Tier",
   "priceWithTax" : "Price With Tax",
-  "forSell" : "For Sell"
+  "forSell" : "For Sell",
+  "importedsuccessfully" : "Imported Done Successfully",
+  "errorInImport" : "Error in import",
+  "INVALID" : "Invalid",
+  "UNIQUE" : "Already Exist",
+  "import" : "Import"
 }
