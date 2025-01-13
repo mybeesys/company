@@ -36,6 +36,7 @@
         </div> --}}
 
 
+
         <div class="d-flex align-items-center mb-5">
 
             @if ($quotation)
@@ -44,7 +45,7 @@
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.transaction_date')</label>
             @endif
             <input class="form-control form-control-solid custom-height" name="transaction_date"
-                @if ($transaction?->transaction_date) value="{{ $transaction->transaction_date }}" @endif
+                @if ($transaction?->transaction_date) value="{{ $transaction?->transaction_date }}" @endif
                 value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.transaction_date')" id="transaction_date"
                 type="date">
         </div>
@@ -59,8 +60,8 @@
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.due_date')</label>
             @endif
             <input class="form-control form-control-solid custom-height" name="due_date" required
-            @if ($transaction?->due_date) value="{{ $transaction->due_date }}" @endif
-            value="{{ now()->format('Y-m-d') }}" placeholder="@lang('sales::fields.due_date')" id="due_date" type="date">
+                @if ($transaction?->due_date) value="{{ $transaction->due_date }}" @endif
+                value="{{ now()->format('Y-m-d') }}" placeholder="@lang('sales::fields.due_date')" id="due_date" type="date">
         </div>
 
 
@@ -68,8 +69,7 @@
         <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.notice')</label>
             <input class="form-control form-control-solid custom-height" name="notice"
-            @if ($transaction?->notice) value="{{ $transaction->notice }}" @endif
-            value=""
+                @if ($transaction?->notice) value="{{ $transaction->notice }}" @endif value=""
                 placeholder="@lang('sales::fields.notice')" id="notice" type="text">
         </div>
 

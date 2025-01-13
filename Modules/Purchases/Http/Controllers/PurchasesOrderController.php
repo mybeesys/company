@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Sales\Http\Controllers;
+namespace Modules\Purchases\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Exception;
@@ -14,53 +14,55 @@ use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
-use Modules\General\Models\TransactionSellLine;
+use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
 
-class QuotationController extends Controller
+class PurchasesOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-
-        $transaction = Transaction::where('type', 'quotation')->get();
+        $transaction = Transaction::where('type', 'purchases-order')->get();
 
         if ($request->ajax()) {
 
-            $transaction = Transaction::where('type', 'quotation')->get();
+            $transaction = Transaction::where('type', 'purchases-order')->get();
             return  Transaction::getSellsTable($transaction);
         }
 
         $columns = Transaction::getsQuotationColumns();
-        return view('sales::quotation.index', compact('columns', 'transaction'));
+        return view('purchases::purchase-order.index', compact('columns', 'transaction'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $clients = Contact::where('business_type', 'customer')->get();
+        $clients = Contact::where('business_type', 'supplier')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
-        $establishments = Establishment::where('is_main',0)->get();
+        $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
 
-        $quotation=true;
-        $transaction=null;
+        $po = true;
+        $po_id = false;
+        $po_id = $request->input('po_id');
+        $transaction = Transaction::find($po_id);
+
+
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::quotation.create', compact('clients','transaction','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
-
+        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**
@@ -68,14 +70,14 @@ class QuotationController extends Controller
      */
     public function store(Request $request)
     {
-            try {
+        try {
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('quotation');
+            $ref_no =  SalesUtile::generateReferenceNumber('purchases-order');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transaction =   Transaction::create([
-                'type' => 'quotation',
+                'type' => 'purchases-order',
                 'invoice_type' => $request->invoice_type,
                 'due_date' => $request->due_date,
                 'transaction_date' => $request->transaction_date,
@@ -92,8 +94,6 @@ class QuotationController extends Controller
                 'ref_no' => $ref_no,
                 'status' => 'draft',
                 'notice' => $request->notice,
-                // 'payment_terms',
-
             ]);
 
 
@@ -101,7 +101,7 @@ class QuotationController extends Controller
 
             foreach ($products as $product) {
                 $discount_type = $product->discount ? $product->discount_type : null;
-                TransactionSellLine::create([
+                TransactionePurchasesLine::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
                     'qyt' => $product->qty,
@@ -118,12 +118,11 @@ class QuotationController extends Controller
 
 
             DB::commit();
-            return redirect()->route('quotations')->with('success', __('messages.add_successfully'));
+            return redirect()->route('purchase-order')->with('success', __('messages.add_successfully'));
             } catch (Exception $e) {
                 DB::rollBack();
-                return redirect()->route('quotations')->with('error', __('messages.something_went_wrong'));
+                return redirect()->route('purchase-order')->with('error', __('messages.something_went_wrong'));
             }
-
     }
 
     /**
@@ -131,7 +130,7 @@ class QuotationController extends Controller
      */
     public function show($id)
     {
-        return view('sales::show');
+        return view('purchases::show');
     }
 
     /**
@@ -139,7 +138,7 @@ class QuotationController extends Controller
      */
     public function edit($id)
     {
-        return view('sales::edit');
+        return view('purchases::edit');
     }
 
     /**

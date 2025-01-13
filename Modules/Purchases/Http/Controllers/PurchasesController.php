@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Country;
+use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Utils\TransactionUtils;
@@ -33,8 +35,9 @@ class PurchasesController extends Controller
         }
 
         $columns = Transaction::getsPurchasesColumns();
+        $poes=Transaction::where('type', 'purchases-order')->get();
 
-        return view('purchases::purchases.index', compact('columns', 'transaction'));
+        return view('purchases::purchases.index', compact('columns','poes', 'transaction'));
     }
 
     /**
@@ -49,11 +52,13 @@ class PurchasesController extends Controller
         $orderStatuses = SalesUtile::orderStatuses();
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
-        // $countries = DB::connection('mysql')->table('countries')->get();
+        $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
-
+        $transaction = Transaction::find(0);
+        $taxes = Tax::all();
+        $po = false;
         $products = Product::where('active', 1)->take(25)->get();
-        return view('purchases::purchases.create', compact('clients', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('purchases::purchases.create', compact('clients', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**
@@ -63,8 +68,8 @@ class PurchasesController extends Controller
     {
 
         try {
-            $transactionUtil =new TransactionUtils();
-// return $request;
+            $transactionUtil = new TransactionUtils();
+            // return $request;
             DB::beginTransaction();
             $ref_no =  SalesUtile::generateReferenceNumber('purchases');
 
@@ -79,7 +84,7 @@ class PurchasesController extends Controller
                 'discount_amount' => $request->invoice_discount,
                 'discount_type' => $invoiced_discount_type,
                 'total_before_tax' => $request->totalBeforeVat,
-                'total_after_discount' => $request->totalAfterDiscount,
+                'totalAfterDiscount' => $request->totalAfterDiscount,
                 'tax_amount' => $request->totalVat,
                 'final_total' => $request->totalAfterVat,
                 'created_by' => Auth::user()->id,
@@ -106,14 +111,15 @@ class PurchasesController extends Controller
                     'unit_price_inc_tax' => $product->total_after_vat,
                     'tax_id' => $product->tax_vat,
                     'tax_value' => $product->vat_value,
+                    'total_before_vat' => $product->total_before_vat,
                 ]);
             }
 
-        if ($request->paid_amount) {
-            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-        }
+            if ($request->paid_amount) {
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            }
 
-        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
             return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));

@@ -42,6 +42,11 @@
         #unit+.select2-container {
             width: max-content !important;
         }
+
+        #transactions_div > span > span.selection > span  {
+            border: 1px solid #0095ff !important;
+            border-radius: 11px;
+        }
     </style>
 
 
@@ -103,9 +108,9 @@
                     <div class="d-flex align-items-center">
                         <label class="fs-6 fw-semibold mb-2 px-2 me-3" style="width: auto;">
                             @lang('sales::lang.Automatically allocate payments')
-                            <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.allocate_payments_note')">
+                            {{-- <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.allocate_payments_note')">
                                 <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
-                            </span>
+                            </span> --}}
                         </label>
                         <div class="form-check">
                             <input type="radio" style="border: 1px solid #9f9f9f;" id="specified_invoices"
@@ -168,7 +173,7 @@
                 date: "@lang('accounting::lang.operation_date')",
                 transaction_types: {
                     sell: "@lang('accounting::lang.sell')",
-                    purchase: "@lang('accounting::lang.purchase')",
+                    purchases: "@lang('accounting::lang.purchase')",
                 }
             };
             $('#specified_invoices').on('change', function() {

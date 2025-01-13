@@ -59,10 +59,11 @@ class ReceiptsController extends Controller
         $clients = Contact::where('business_type', 'customer')->get();
         $accounts =  AccountingAccount::forDropdown();
         $countries = Country::all();
+        $supplier=false;
 
 
 
-        return view('sales::receipts.create', compact('clients', 'accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients', 'supplier','accounts', 'countries'));
     }
 
     /**
@@ -71,29 +72,29 @@ class ReceiptsController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        // try {
+        try {
         DB::beginTransaction();
         if ($request->allocation_option == 'specified_invoices') {
             $transactions = Transaction::whereIn('id', $request->transactions)->get();
             $sortBy = 'remaining_amount';
-            $this->settleTransactions($transactions, $request, $sortBy);
+            $this->settleTransactions($transactions, $request);
         } else {
             $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
             $sortBy = 'transaction_date';
-            $this->settleTransactions($transactions, $request, $sortBy);
+            $this->settleTransactions($transactions, $request);
         }
 
         DB::commit();
         return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->route('receipts')->with('error', __('messages.something_went_wrong'));
-        // }
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->route('receipts')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
 
 
-    function settleTransactions($transactions, $request, $sortBy)
+    function settleTransactions($transactions, $request)
     {
 
         $transactionUtil = new TransactionUtils();
@@ -108,7 +109,7 @@ class ReceiptsController extends Controller
                 $transaction->remaining_amount = number_format($remaining_amount, 2);
             }
         }
-        $transactions = $transactions->sortBy($sortBy);
+        $transactions = $transactions->sortBy('transaction_date');
 
         $settledTransactions = [];
         foreach ($transactions as $transaction) {
@@ -158,7 +159,7 @@ class ReceiptsController extends Controller
     {
         $transactionUtil = new TransactionUtils();
 
-        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status','final')->get();
 
         $filteredTransactions = [];
 

@@ -143,10 +143,23 @@ return [
                 'permission' => '',
             ],
             [
+                'name' => 'purchase-order',
+                'url' => 'purchases-order',
+                'permission' => '',
+            ],
+            [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
                 'permission' => '',
             ],
+            [
+                'name' => 'supplier_receipts',
+                'url' => 'suppliers-receipts',
+                'permission' => '',
+            ],
+
+
+
         ]
     ],
 

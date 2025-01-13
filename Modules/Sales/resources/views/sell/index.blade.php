@@ -45,22 +45,31 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-                        <div class="dropdown show">
-                            <a class="btn btn-primary dropdown-toggle  fv-row flex-md-root min-w-150px mw-250px"
-                                href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
+                 
+                        <div class="btn-group">
+                            <a href="{{ url('/create-invoice') }}"
+                                class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
                                 @lang('sales::general.add_sell')
                             </a>
 
-                            <div class="dropdown-menu p-5" aria-labelledby="dropdownMenuLink">
-                                <a href="{{ url('/create-invoice') }}" class="dropdown-item" id="add_sell_button">
-                                    @lang('sales::general.add_sell')
-                                </a>
-                                <a href="#" class="dropdown-item" id="convert-to-invoice" data-bs-toggle="modal"
-                                    data-bs-target="#convertToInvoiceModal">
-                                    @lang('sales::general.convert-to-invoice')
-                                </a>
-                            </div>
+                            <button type="button"
+                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+
+                            <ul class="dropdown-menu p-5">
+                                <li>
+                                    <a href="{{ url('/create-invoice') }}" class="dropdown-item">
+                                        @lang('sales::general.add_sell')
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
+                                        @lang('sales::general.convert-to-invoice')
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
 
 
@@ -108,21 +117,18 @@
 
 
         $(document).ready(function() {
-            // استهداف النموذج وقائمة الاختيار
             const form = $('#create-invoice');
             const quotationSelect = $('#quotation-items');
 
-            // تحديث action الخاص بالنموذج عند الإرسال
             form.on('submit', function(event) {
-                const selectedQuotation = quotationSelect.val(); // الحصول على القيمة المحددة
+                const selectedQuotation = quotationSelect.val();
 
                 if (selectedQuotation) {
-                    // تحديث action للنموذج
                     form.attr('action',
                         `{{ route('create-invoice') }}?quotation_id=${selectedQuotation}`);
                 } else {
-                    event.preventDefault(); // منع الإرسال إذا لم يتم اختيار قيمة
-                    alert('@lang('sales::lang.Please select a quotation')');
+                    event.preventDefault();
+                     alert('@lang('sales::lang.Please select a quotation')');
                 }
             });
         });
@@ -168,7 +174,6 @@
                     //     data: 'tax_amount',
                     //     name: 'tax_amount'
                     // },
-
                     {
                         data: 'final_total',
                         name: 'final_total'
@@ -181,7 +186,6 @@
                         data: 'remaining_amount',
                         name: 'remaining_amount'
                     },
-
                     {
                         data: 'actions',
                         name: 'actions',

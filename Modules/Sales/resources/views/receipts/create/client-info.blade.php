@@ -1,8 +1,19 @@
 <div class="d-flex align-items-center  mb-5">
-    <label class="fs-6 fw-semibold mb-2 me-3 required " style="width: 150px;">@lang('sales::fields.client')</label>
+   @if ($supplier)
+   <label class="fs-6 fw-semibold mb-2 me-3 required " style="width: 150px;">@lang('sales::fields.supplier')</label>
+
+   @else
+   <label class="fs-6 fw-semibold mb-2 me-3 required " style="width: 150px;">@lang('sales::fields.client')</label>
+
+   @endif
     <select id="client_id" class="form-select select-2 form-select-solid"
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" required name="client_id">
+        @if ($supplier)
+        <option value="">@lang('purchases::fields.select_supplier')</option>
+        @else
         <option value="">@lang('sales::fields.select_client')</option>
+
+        @endif
         @foreach ($clients as $client)
             <option value="{{ $client->id }}" data-name="{{ $client->name }}"
                 data-mobile_number="{{ $client->mobile_number }}" data-email="{{ $client->email }}"

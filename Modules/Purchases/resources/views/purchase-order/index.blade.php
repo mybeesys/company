@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('purchases::lang.invoices'))
+@section('title', __('menuItemLang.purchase-order'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -26,12 +26,13 @@
                         <img src="/assets/media/illustrations/empty-content.svg" class="theme-dark-show w-200px"
                             alt="">
                     </div>
+
                     <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
-                        <span class="fw-bolder"> @lang('purchases::lang.no_invoice')</span> <br>
-                        @lang('purchases::lang.create_suggestion_invoice')
+                        <span class="fw-bolder"> @lang('purchases::lang.no_purchase-order')</span> <br>
+                        @lang('purchases::lang.create_suggestion_purchase-order')
                     </h4>
-                    <a href="{{ route('create-purchases-invoice') }}"
-                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('purchases::lang.Create a sales invoice')</a>
+                    <a href="{{ route('create-purchase-order') }}"
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('purchases::general.add_purchase_order')</a>
                 </div>
 
             </div>
@@ -39,50 +40,24 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchases" url="create-purchases-invoice" :addButton="false" module="purchases">
+                <x-tables.table-header model="purchase_order" url="create-purchase-order" module="purchases">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-                        <div class="btn-group">
-                            <a href="{{ url('/create-purchases-invoice') }}"
-                                class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
-                                @lang('sales::general.add_sell')
-                            </a>
-
-                            <button type="button"
-                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropdown</span>
-                            </button>
-
-                            <ul class="dropdown-menu p-5">
-                                <li>
-                                    <a href="{{ url('/create-purchases-invoice') }}" class="dropdown-item">
-                                        @lang('sales::general.add_sell')
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
-                                        @lang('purchases::general.convert-to-invoice')
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
 
 
-                        <x-tables.export-menu id="purchases" />
+                        <x-tables.export-menu id="purchase_order" />
                     </x-slot:export>
                 </x-tables.table-header>
             </x-cards.card-header>
 
             <x-cards.card-body class="table-responsive">
-                <x-tables.table :columns=$columns model="purchases" module="purchases" />
+                <x-tables.table :columns=$columns model="purchase_order" module="sales" />
             </x-cards.card-body>
         </div>
     @endif
 
 
-    @include('purchases::purchase-order.convertToInvoiceModal')
 
 
 
@@ -96,13 +71,13 @@
     <script>
         "use strict";
         let dataTable;
-        const table = $('#kt_purchases_table');;
-        const dataUrl = '{{ route('purchase-invoices') }}';
+        const table = $('#kt_purchase_order_table');;
+        const dataUrl = '{{ route('purchases-order') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_purchases_table');
+            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_purchase_order_table');
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
@@ -139,14 +114,14 @@
                         data: 'due_date',
                         name: 'due_date'
                     },
-                    {
-                        data: 'payment_status',
-                        name: 'payment_status'
-                    },
                     // {
-                    //     data: 'total_before_tax',
-                    //     name: 'total_before_tax'
+                    //     data: 'payment_status',
+                    //     name: 'payment_status'
                     // },
+                    {
+                        data: 'total_before_tax',
+                        name: 'total_before_tax'
+                    },
                     // {
                     //     data: 'tax_amount',
                     //     name: 'tax_amount'
@@ -155,14 +130,6 @@
                     {
                         data: 'final_total',
                         name: 'final_total'
-                    },
-                    {
-                        data: 'paid_amount',
-                        name: 'paid_amount'
-                    },
-                    {
-                        data: 'remaining_amount',
-                        name: 'remaining_amount'
                     },
 
                     {
@@ -192,7 +159,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('purchase-invoices') }}?' + $.param({
+                dataTable.ajax.url('{{ route('purchases-order') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

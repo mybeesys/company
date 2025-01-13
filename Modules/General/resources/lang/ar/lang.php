@@ -17,6 +17,7 @@ return [
     'payment_methods' => 'طرق الدفع',
     'Address' => 'العنوان',
     'show_payment' => 'عرض الدفعات',
+    'invoice_no'=>'رقم الفاتورة',
 
 
 

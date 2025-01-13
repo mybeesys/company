@@ -78,6 +78,10 @@ return [
     'quotations' => 'Quotations',
 
     'customer_receipts' => 'Customer Receipts',
+    'purchase-order' => 'Purchases -order',
+    'supplier_receipts'=>'Supplier Receipts',
+
+
 
 
 

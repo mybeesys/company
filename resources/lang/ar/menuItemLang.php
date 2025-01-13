@@ -45,7 +45,7 @@ return [
     'discount' => 'حسومات',
 
     'priceTier' => 'التسعيرات',
-    'ingredient' =>'المكونات' ,
+    'ingredient' => 'المكونات',
 
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
@@ -74,5 +74,7 @@ return [
     'quotations' => 'عروض الأسعار',
 
     'customer_receipts' => 'سندات العملاء',
+    'purchase-order' => 'طلبات الشراء',
+    'supplier_receipts'=>'سندات الموردين',
 
 ];
