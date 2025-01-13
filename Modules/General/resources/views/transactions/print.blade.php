@@ -93,7 +93,16 @@
         };
 
         window.onafterprint = function() {
-            window.location.href = "{{ url('invoices') }}";
+            @if ($transaction->type == 'purchases')
+                window.location.href = "{{ url('purchase-invoices') }}";
+            @elseif ($transaction->type == 'sell')
+                window.location.href = "{{ url('invoices') }}";
+            @elseif ($transaction->type == 'quotation')
+                window.location.href = "{{ url('quotations') }}";
+            @elseif ($transaction->type == 'purchases-order')
+                window.location.href = "{{ url('purchases-order') }}";
+            @endif
+
 
         };
     </script>
@@ -110,6 +119,8 @@
             <div class="text-center m-7">
                 @if ($transaction->type == 'quotation')
                     <h1 class="mb-3">@lang('sales::lang.quotation')</h1>
+                @elseif ($transaction->type == 'purchases-order')
+                    <h1 class="mb-3">@lang('purchases::lang.purchase order')</h1>
                 @else
                     <h1 class="mb-3">@lang('general::general.Tax invoice')</h1>
                 @endif
@@ -139,7 +150,11 @@
             </div>
             @if ($transaction->client)
                 <div class="col-sm-4">
-                    <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @if ($transaction->type == 'purchases' || $transaction->type == 'purchases-order')
+                        <p>@lang('purchases::general.supplier'): {{ $transaction->client->name ?? '--' }}</p>
+                    @else
+                        <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @endif
                     <p @if (!isset($transaction->client->billingAddress?->city)) class="d-none" @endif>@lang('general::lang.Address'):
                         {{ $transaction->client->billingAddress?->city . ' - ' . $transaction->client->billingAddress?->street_name }}
                     </p>
@@ -203,7 +218,14 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        @foreach ($transaction->sell_lines as $index => $line)
+                        @php
+                            $lines =
+                                $transaction->type == 'purchases' || $transaction->type == 'purchases-order'
+                                    ? $transaction->purchases_lines
+                                    : $transaction->sell_lines;
+                        @endphp
+
+                        @foreach ($lines as $index => $line)
                             <tr>
                                 <td>
                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
@@ -241,7 +263,7 @@
 
                                 <td>
                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->tax_id }}
+                                        {{ $line->tax_id }} %
                                     </a>
                                 </td>
 

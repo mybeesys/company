@@ -45,6 +45,19 @@ class TransactionPayments extends Model
         ];
     }
 
+
+    public static function getSuppliersReceiptsColumns()
+    {
+        return [
+
+            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
+            ["class" => "text-start min-w-150px", "name" => "paid_on"],
+            ["class" => "text-start min-w-150px  ", "name" => "transaction_ref_no"],
+            ["class" => "text-start min-w-150px ", "name" => "supplier"],
+            ["class" => "text-start min-w-80px ", "name" => "piad_amount"],
+        ];
+    }
+
     public static function getReceiptsTable($transactions)
     {
 

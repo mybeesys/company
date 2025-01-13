@@ -35,6 +35,10 @@ return [
     'date' => 'Date',
     'select_transactions'=>' Select Transactions',
     'transaction_ref_no' => 'Invoice ٌRef No',
+    'paid_on' => 'Piad on',
+    'supplier' => 'Supplier',
+
+
 
 
 

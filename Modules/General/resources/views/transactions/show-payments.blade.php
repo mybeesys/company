@@ -114,7 +114,11 @@
             </div>
             @if ($transaction->client)
                 <div class="col-sm-4">
-                    <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @if ($transaction->type == 'purchases' || $transaction->type == 'purchases-order')
+                        <p>@lang('purchases::general.supplier'): {{ $transaction->client->name ?? '--' }}</p>
+                    @else
+                        <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @endif
                     <p @if (!isset($transaction->client->billingAddress?->city)) class="d-none" @endif>@lang('general::lang.Address'):
                         {{ $transaction->client->billingAddress?->city . ' - ' . $transaction->client->billingAddress?->street_name }}
                     </p>
@@ -130,7 +134,8 @@
             <div class="col-sm-4">
                 <p>@lang('sales::fields.transaction_date'): {{ $transaction->transaction_date }}</p>
                 <p>@lang('sales::fields.due_date'): {{ $transaction->due_date }}</p>
-                <p @if (!isset($transaction->client?->payment_terms)) class="d-none" @endif>@lang('sales::fields.payment_terms'): {{ __('sales::lang.terms.' . $transaction->client?->payment_terms) ?? '--' }}</p>
+                <p @if (!isset($transaction->client?->payment_terms)) class="d-none" @endif>@lang('sales::fields.payment_terms'):
+                    {{ __('sales::lang.terms.' . $transaction->client?->payment_terms) ?? '--' }}</p>
 
             </div>
         </div>

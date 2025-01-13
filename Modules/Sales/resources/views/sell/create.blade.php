@@ -441,10 +441,6 @@
 
             $("#invoice_type").change(function() {
                 if ($(this).val() === "due") {
-                    // $(".pay-pament_on").hide();
-                    // $(".pay-payment_type").hide();
-                    // $(".pay-paid_amount").hide();
-                    // $(".pay-additionalNotes").hide();
 
                     $("#li-payment_info").show();
                     $("#tab-content-payment_info").show();
@@ -461,10 +457,7 @@
 
 
                 } else {
-                    // $(".pay-pament_on").show();
-                    // $(".pay-payment_type").show();
-                    // $(".pay-paid_amount").show();
-
+                    
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();

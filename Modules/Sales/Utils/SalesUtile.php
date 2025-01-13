@@ -57,6 +57,12 @@ class SalesUtile
         if ($type == 'quotation') {
             $prefx = 'QTN-';
         }
+
+        if ($type == 'purchases-order') {
+            $prefx = 'PO-';
+        }
+
+
         if ($transaction) {
 
 
