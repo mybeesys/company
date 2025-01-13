@@ -66,7 +66,7 @@ class SubCategoryController extends Controller
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
+            'order' => 'nullable|numeric',
             'category_id' => 'required|numeric',
             'parent_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
@@ -119,6 +119,7 @@ class SubCategoryController extends Controller
             $subcategory->name_en = $validated['name_en'];
             $subcategory->order = $validated['order'];
             $subcategory->active = $validated['active'];
+            $subcategory->order = $validated['order'] ?? null;
             $subcategory->save();
         }
 

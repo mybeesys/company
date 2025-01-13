@@ -53,7 +53,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
+            'order' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
             'method' => 'nullable|string'
@@ -100,6 +100,7 @@ class CategoryController extends Controller
             $category->name_en = $validated['name_en'];
             $category->order = $validated['order'];
             $category->active = $validated['active'];
+            $category->order = $validated['order'] ?? null;
             $category->save();
          }
 

@@ -5,7 +5,6 @@ namespace Modules\Product\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Product\Models\Subcategory;
-// use Modules\Product\Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
@@ -37,11 +36,6 @@ class Category extends Model
     //public $childKey = 'parent_id';
     public $childKey = 'category_id';
 
-    // public function children()
-    // {
-    //     return $this->hasMany(Category::class, 'parent_id');
-    // }
-
     public function children()
     {
         return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
@@ -60,5 +54,17 @@ class Category extends Model
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->order = OrderGenerator::generateOrder($model->order, null, null, $model->table);
+        });
+        static::updating(function ($model) {
+            $model->order = OrderGenerator::generateOrder($model->order, null, null, $model->table);
+        });
     }
 }

@@ -26,7 +26,8 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
 
     const handleDelete = (row) =>{
         let index = currentObject.price_tiers.findIndex(x=>x.id == row.id);
-        currentObject.price_tiers.splice(index, 1); // Removes 1 element at index 2
+        if(index != -1)
+            currentObject.price_tiers.splice(index, 1); // Removes 1 element at index 2
         onBasicChange("price_tiers", currentObject.price_tiers);
         return { message : 'Done'};
     }
@@ -137,7 +138,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                         timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
                         .then(response => {
                             nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
-                            postExecute(nodes);
+                            postExecute(nodes, true);
                     }),500);
                         
                     }
@@ -150,7 +151,7 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
                         timeoutRef.current = setTimeout(() => axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!currentObject.tax_id? currentObject.tax_id : ''}&price=${!!nodes[rowKey].data.price ? nodes[rowKey].data.price : ''}`)
                             .then(response => {
                                 nodes[rowKey].data.price_with_tax = response.data.price_with_tax;
-                                postExecute(nodes);
+                                postExecute(nodes, true);
                         }),500);
                     }
                 },

@@ -5,13 +5,10 @@ namespace Modules\Product\Models;
 use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Product\Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
 use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
-
 class Product extends Model
 {
     protected $table = 'product_products';
@@ -129,8 +126,6 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            Log::info(Barcode::generateUPCA());
-            logger('This is a debug log message. '.Barcode::generateUPCA());
             if($model->SKU == null){
                 // Generate a unique random number
                 do {
@@ -146,11 +141,9 @@ class Product extends Model
 
                 $model->barcode = $barcode;
             }
-
+            $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
         });
         static::updating(function ($model) {
-            Log::info(Barcode::generateUPCA());
-            logger('This is a debug log message. '.Barcode::generateUPCA());    
             if($model->SKU == null){
                 // Generate a unique random number
                 do {
@@ -159,7 +152,6 @@ class Product extends Model
 
                 $model->SKU = $SKU;
             }
-            Log::info(Barcode::generateUPCA());
             if($model->barcode == null){
                 do {
                     $barcode = Barcode::generateUPCA();
@@ -167,6 +159,7 @@ class Product extends Model
 
                 $model->barcode = $barcode;
             }
+            $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
         });
     }
 }

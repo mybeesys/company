@@ -20,11 +20,16 @@ const UnitTransferModifier = ({ translations, unitTransfer, unitTree, parentHand
 
     const handleDelete = (row) =>{
         let index = nodes.findIndex(x=>x.id == row.id);
-        if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+        if(index != -1)
         {
-            return { message : 'relatedUnitTransfer'}
+            if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+            {
+                return { message : 'relatedUnitTransfer'}
+            }
+            nodes.splice(index, 1); // Removes 1 element at index 2
+            let index1 = innerUnits.findIndex((object) => object.value == row.id);
+            innerUnits.splice(index1, 1); // Removes 1 element at index 2
         }
-        nodes.splice(index, 1); // Removes 1 element at index 2
         setNodes([...nodes]);
         parentHandle(nodes);
         return { message : 'Done'};

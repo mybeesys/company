@@ -81,12 +81,10 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
 
     const updateBasicData = (nodes) => {
         const response = onUpdate(nodes.filter(x => x.data.empty =="Y").length > 0 ? nodes.slice(0, nodes.length-1).map(x=> {
-            return { id : !!x.data.id ? x.data.id : x.key,
-                     ...x.data
+            return { ...x.data, id : !!x.data.id ? x.data.id : x.key
                 }
         }) : nodes.map(x=> {
-            return { id : !!x.data.id ? x.data.id : x.key,
-                     ...x.data
+            return { ...x.data,  id : !!x.data.id ? x.data.id : x.key
                 }
         }));
         if (response.message != "Done") {

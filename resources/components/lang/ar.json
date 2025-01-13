@@ -244,5 +244,9 @@
   "priceTiers" : "التسعيرات",
   "priceTier" : "التسعير",
   "priceWithTax" : "السعر بعد الضريبة",
-  "forSell" : "مخصص للبيع"
+  "forSell" : "مخصص للبيع",
+  "importedsuccessfully" : "تم الاستيراد",
+  "errorInImport" : "خطأ في الاستيراد",
+  "INVALID" : "غير صحيح",
+  "UNIQUE" : "مكرر"
 }

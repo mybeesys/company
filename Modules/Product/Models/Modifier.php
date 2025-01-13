@@ -5,7 +5,6 @@ namespace Modules\Product\Models;
 use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Product\Database\Factories\ModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ModifierInventoryTotal;

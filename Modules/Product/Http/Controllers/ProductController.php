@@ -31,7 +31,7 @@ class ProductController extends Controller
     protected $requetsValidator = [
         'name_ar' => 'required|string|max:255',
         'name_en' => 'required|string',
-        'order' => 'required|numeric',
+        'order' => 'nullable|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
         'tax_id' => 'nullable|numeric',
@@ -152,7 +152,7 @@ class ProductController extends Controller
         return null;
     }
 
-    private function validateProduct($id, $product){
+    public function validateProduct($id, $product){
         $checkResult = [];
         $uniqueFields = ['name_ar', 'name_en'];
         if(isset($product['SKU']))
@@ -226,6 +226,7 @@ class ProductController extends Controller
         $product->tax_id = $validated['tax_id'];
         $product->subcategory_id = $validated['subcategory_id'];
         $product->active = $validated['active'];
+        $product->order = $validated['order'] ?? null;
         $product->for_sell = $validated['for_sell'];
         $product->sold_by_weight = $validated['sold_by_weight'];
         $product->track_serial_number = $validated['track_serial_number'];

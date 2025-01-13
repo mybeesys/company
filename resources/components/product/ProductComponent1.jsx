@@ -62,11 +62,6 @@ const ProductComponent1 = ({ translations, dir }) => {
     event.stopPropagation();
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
-
-      var menu = [...defaultMenu]
-      menu[0].visible = true;
-      setMenu([...menu]);
-
       form.classList.add('was-validated');
       return;
     }
@@ -404,7 +399,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                       visible={menu[0].visible}
                       translations={translations}
                       parentHandlechanges={parentHandlechanges}
-                      product={currentObject}
+                      currentObject={currentObject}
                       saveChanges={saveChanges}
                       category={categories} />
                   </div>

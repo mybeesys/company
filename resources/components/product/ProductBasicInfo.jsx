@@ -6,13 +6,12 @@ import makeAnimated from 'react-select/animated';
 import { getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
-const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
+const ProductBasicInfo = ({ translations, parentHandlechanges, currentObject, visible }) => {
   const rootElement = document.getElementById('root');
   const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
   const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
   let imageurl = rootElement.getAttribute('image-url');
   let dir = rootElement.getAttribute('dir');
-  const [currentObject, setcurrentObject] = useState(product);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subcategoryOption, setSubCategoryOptions] = useState([]);
 
@@ -43,7 +42,6 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
       }
       setCategoryOptions(categories);
       setSubCategoryOptions(subCategories);
-      setcurrentObject({ ...currentObject });
       parentHandlechanges({ ...currentObject });
     } catch (error) {
       console.error("Error fetching options:", error);
@@ -74,9 +72,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
       r['subcategory'] = subCategories.length > 0 ? subCategories[0] : null;
       setSubCategoryOptions(subCategories);
     }
-    setcurrentObject({ ...r });
     parentHandlechanges({ ...r });
-    console.log(r);
   }
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
@@ -189,7 +185,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
               <label for="SKU" class="col-form-label">{translations.order}</label>
               <input type="number" class="form-control form-control-solid custom-height" id="class" value={!!currentObject.order ? currentObject.order : ''}
                 onChange={(e) => handleChange('order', e.target.value)}
-                required></input>
+                ></input>
             </div>
             <div class="col-6">
               <label for="barcode" class="col-form-label">{translations.commissions}</label>

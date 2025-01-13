@@ -22,6 +22,7 @@ use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\DiscountController;
 use Modules\Product\Http\Controllers\DiscountLOVController;
 use Modules\Product\Http\Controllers\GeneralController;
+use Modules\Product\Http\Controllers\Import\ProductImportController;
 use Modules\Product\Http\Controllers\LinkedComboController;
 use Modules\Product\Http\Controllers\ModeController;
 use Modules\Product\Http\Controllers\ModifierLOVController;
@@ -128,4 +129,6 @@ Route::middleware([
     
     Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
     
+
+    Route::post('/uploadProduct', [ProductImportController::class, 'upload']);
 });
