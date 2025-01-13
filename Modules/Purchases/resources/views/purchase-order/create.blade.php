@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('purchases::lang.Create a sales invoice'))
+@section('title', __('purchases::lang.Create a purchase order'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -47,14 +47,14 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-purchases-invoice') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-purchase-order') }}">
         @csrf
 
         <div class="container">
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('purchases::lang.Create a sales invoice')</h1>
+                        <h1> @lang('purchases::lang.Create a purchase order')</h1>
 
                     </div>
                 </div>
@@ -115,9 +115,9 @@
 
 
                     <input type="hidden" name="status" value="draft" />
-                    <button type="submit" style="border-radius: 6px;" class="btn btn-bg-dark text-white ">
+                    {{-- <button type="submit" style="border-radius: 6px;" class="btn btn-bg-dark text-white ">
                         @lang('messages.savedraft')
-                    </button>
+                    </button> --}}
                 </div>
                 <div class="col-sm " style="justify-items: end">
                     <div class="card-body p-0 d-flex flex-column">
@@ -127,38 +127,6 @@
                             <div class="d-flex flex-column flex-grow-1 ">
 
                                 <div class="d-flex flex-wrap">
-
-
-
-                                    <div class="border border-gray-300 border-dashed rounded min-w-125px  px-4 me-6 "
-                                        style="    height: max-content;padding: 6px;">
-                                        <div class="d-flex align-items-center">
-
-                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.remaining_balance')</span>
-                                            <div class="fs-2 fw-bold counted" data-kt-countup="true"
-                                                data-kt-countup-value="4500" data-kt-countup-prefix="$"
-                                                data-kt-initialized="1" id="remaining_balance" style="color: red;">
-                                                0.00</div><span
-                                                class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
-
-                                        </div>
-                                    </div>
-
-                                    {{-- <div class="border border-gray-300 border-dashed rounded min-w-125px  px-4 me-6 "
-                                        style="    height: max-content;padding: 6px;">
-                                        <div class="d-flex align-items-center">
-
-                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.balance')</span>
-                                            <div class="fs-2 fw-bold counted" data-kt-countup="true"
-                                                data-kt-countup-value="4500" data-kt-countup-prefix="$"
-                                                data-kt-initialized="1" id="balance" style="color: #2cd32c;">
-                                                0.00</div><span
-                                                class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
-
-                                        </div>
-                                    </div> --}}
-
-
 
 
 
@@ -175,7 +143,7 @@
 
     </form>
 
-    @include('purchases::purchases.create.add-client')
+    @include('sales::sell.create.add-client')
 
 
 

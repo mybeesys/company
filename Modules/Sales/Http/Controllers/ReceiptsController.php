@@ -59,10 +59,11 @@ class ReceiptsController extends Controller
         $clients = Contact::where('business_type', 'customer')->get();
         $accounts =  AccountingAccount::forDropdown();
         $countries = Country::all();
+        $supplier=false;
 
 
 
-        return view('sales::receipts.create', compact('clients', 'accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients', 'supplier','accounts', 'countries'));
     }
 
     /**
@@ -158,7 +159,7 @@ class ReceiptsController extends Controller
     {
         $transactionUtil = new TransactionUtils();
 
-        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status','final')->get();
 
         $filteredTransactions = [];
 

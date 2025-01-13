@@ -63,7 +63,14 @@
                 </thead>
                 <tbody id="table-body">
                     @if ($transaction)
-                        @foreach ($transaction->sell_lines as $index => $line)
+                        @php
+                            $lines =
+                                $transaction->type == 'purchases' || $transaction->type == 'purchases-order'
+                                    ? $transaction->purchases_lines
+                                    : $transaction->sell_lines;
+                        @endphp
+
+                        @foreach ($lines as $index => $line)
                             <tr>
                                 <td>
                                     <select id="products" required class="form-select form-select-solid select-2"
@@ -89,44 +96,52 @@
                                     <textarea class="form-control form-control-solid" rows="1" name="products[0][description]"></textarea>
                                 </td>
                                 <td style="white-space: nowrap;"><input type="number" step="any"
-                                        class="form-control qty-field" name="products[{{ $index }}][qty]" placeholder="0"
-                                        min="1" style="width: 80px;display: inline-block;" value="{{$line->qyt}}">
+                                        class="form-control qty-field" name="products[{{ $index }}][qty]"
+                                        placeholder="0" min="1" style="width: 80px;display: inline-block;"
+                                        value="{{ $line->qyt }}">
 
 
                                     <select id="unit" required
                                         class="form-select form-select-solid select-2 d-inline-block unit"
-                                        name="products[{{ $index }}][unit]" style="width: 100px; display: inline-block;">
+                                        name="products[{{ $index }}][unit]"
+                                        style="width: 100px; display: inline-block;">
                                         <option value="">@lang('sales::lang.unit')</option>
                                     </select>
                                 </td>
 
                                 <td><input type="number" step="any" class="form-control unit_price-field no-spin"
-                                        name="products[{{ $index }}][unit_price]" placeholder="0.0" value="{{$line->unit_price}}"
+                                        name="products[{{ $index }}][unit_price]" placeholder="0.0"
+                                        value="{{ $line->unit_price }}"
                                         style="width: 100px;-moz-appearance: textfield !important">
                                 </td>
                                 <td style="white-space: nowrap;">
                                     <input type="number" step="any"
                                         class="form-control discount-field no-spin d-inline-block discount"
-                                        name="products[{{ $index }}][discount]" id="discount" placeholder="0.0" value="{{$line->discount_amount}}"
+                                        name="products[{{ $index }}][discount]" id="discount" placeholder="0.0"
+                                        value="{{ $line->discount_amount }}"
                                         style="width: 70px; display: inline-block;">
 
                                     <select id="discount_type" required
                                         class="form-select form-select-solid select-2 d-inline-block discount_type"
-                                        name="products[{{ $index }}][discount_type]" style="width: 100px; display: inline-block;" value="{{$line->discount_type}}">
+                                        name="products[{{ $index }}][discount_type]"
+                                        style="width: 100px; display: inline-block;"
+                                        value="{{ $line->discount_type }}">
                                         <option value="fixed">@get_format_currency()</option>
                                         <option value="percent">%</option>
                                     </select>
                                 </td>
 
                                 <td><input type="number" step="any" readonly
-                                        class="form-control total_before_vat-field" name="products[{{ $index }}][total_before_vat]"
-                                        placeholder="0.00" style="width: 107px;"></td>
+                                        class="form-control total_before_vat-field"
+                                        name="products[{{ $index }}][total_before_vat]" placeholder="0.00"
+                                        style="width: 107px;"></td>
 
 
                                 <td class="d-flex justify-content-center">
                                     <div class="form-check">
                                         <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive"
-                                            name="products[{{ $index }}][inclusive]" class="form-check-input  my-2">
+                                            name="products[{{ $index }}][inclusive]"
+                                            class="form-check-input  my-2">
                                     </div>
 
                                 </td>
@@ -135,7 +150,7 @@
                                         name="products[{{ $index }}][tax_vat]" style="width: 200px;">
                                         @foreach ($taxes as $tax)
                                             <option value="{{ $tax->amount }}"
-                                                @if ($tax->default == 1 || $line->tax_id == $tax->amount ) selected @endif>
+                                                @if ($tax->default == 1 || $line->tax_id == $tax->amount) selected @endif>
                                                 @if (app()->getLocale() == 'en')
                                                     {{ $tax->name_en }}
                                                 @else
@@ -146,11 +161,13 @@
                                     </select>
                                 </td>
                                 <td><input type="number" step="any" readonly
-                                        class="form-control vat_value-field" name="products[{{ $index }}][vat_value]"
-                                        placeholder="0.00" style="width: 80px;"></td>
+                                        class="form-control vat_value-field"
+                                        name="products[{{ $index }}][vat_value]" placeholder="0.00"
+                                        style="width: 80px;"></td>
                                 <td><input type="number" step="any" readonly
-                                        class="form-control total_after_vat-field" name="products[{{ $index }}][total_after_vat]"
-                                        placeholder="0.00" style="width: 107px;"></td>
+                                        class="form-control total_after_vat-field"
+                                        name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
+                                        style="width: 107px;"></td>
                             </tr>
                         @endforeach
                     @else

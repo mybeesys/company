@@ -118,7 +118,15 @@
         };
 
         window.onafterprint = function() {
-            window.location.href = "{{ url('invoices') }}";
+            @if ($transaction->type == 'purchases')
+                window.location.href = "{{ url('purchase-invoices') }}";
+            @elseif ($transaction->type == 'sell')
+                window.location.href = "{{ url('invoices') }}";
+            @elseif ($transaction->type == 'quotation')
+                window.location.href = "{{ url('quotations') }}";
+            @elseif ($transaction->type == 'purchases-order')
+                window.location.href = "{{ url('purchases-order') }}";
+            @endif
 
         };
     </script>
@@ -129,7 +137,7 @@
 
     <div class="row">
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
-
+            <img alt="Logo" src="/assets/media/logos/1-14.png" class="h-100px theme-light-show" />
         </div>
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
             <div class="text-center m-7">
@@ -153,6 +161,7 @@
 
 
 
+
     <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
@@ -172,7 +181,11 @@
             </div>
             @if ($transaction->client)
                 <div class="col-sm-4">
-                    <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @if ($transaction->type == 'purchases' || $transaction->type == 'purchases-order')
+                        <p>@lang('purchases::general.supplier'): {{ $transaction->client->name ?? '--' }}</p>
+                    @else
+                        <p>@lang('sales::fields.client'): {{ $transaction->client->name ?? '--' }}</p>
+                    @endif
                     <p @if (!isset($transaction->client->billingAddress?->city)) class="d-none" @endif>@lang('general::lang.Address'):
                         {{ $transaction->client->billingAddress?->city . ' - ' . $transaction->client->billingAddress?->street_name }}
                     </p>

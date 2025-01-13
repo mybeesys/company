@@ -19,34 +19,32 @@ use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
 
-class PurchasesController extends Controller
+class PurchasesOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $transaction = Transaction::where('type', 'purchases')->get();
+        $transaction = Transaction::where('type', 'purchases-order')->get();
 
         if ($request->ajax()) {
 
-            $transaction = Transaction::where('type', 'purchases')->get();
+            $transaction = Transaction::where('type', 'purchases-order')->get();
             return  Transaction::getSellsTable($transaction);
         }
 
-        $columns = Transaction::getsPurchasesColumns();
-        $poes=Transaction::where('type', 'purchases-order')->get();
-
-        return view('purchases::purchases.index', compact('columns','poes', 'transaction'));
+        $columns = Transaction::getsQuotationColumns();
+        return view('purchases::purchase-order.index', compact('columns', 'transaction'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Contact::where('business_type', 'supplier')->get();
-        // $taxes = Tax::all();
+        $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
@@ -54,11 +52,17 @@ class PurchasesController extends Controller
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
-        $transaction = Transaction::find(0);
-        $taxes = Tax::all();
-        $po = false;
-        $products = Product::where('active', 1)->take(25)->get();
-        return view('purchases::purchases.create', compact('clients', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+
+        $po = true;
+        $po_id = false;
+        $po_id = $request->input('po_id');
+        $transaction = Transaction::find($po_id);
+
+
+        $products = Product::with(['unitTransfers' => function ($query) {
+            $query->whereNull('unit2');
+        }])->get();
+        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**
@@ -66,16 +70,14 @@ class PurchasesController extends Controller
      */
     public function store(Request $request)
     {
-
         try {
             $transactionUtil = new TransactionUtils();
-            // return $request;
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('purchases');
+            $ref_no =  SalesUtile::generateReferenceNumber('purchases-order');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transaction =   Transaction::create([
-                'type' => 'purchases',
+                'type' => 'purchases-order',
                 'invoice_type' => $request->invoice_type,
                 'due_date' => $request->due_date,
                 'transaction_date' => $request->transaction_date,
@@ -90,16 +92,15 @@ class PurchasesController extends Controller
                 'created_by' => Auth::user()->id,
                 'description' => $request->invoice_note,
                 'ref_no' => $ref_no,
-                'status' => $request->status,
+                'status' => 'draft',
                 'notice' => $request->notice,
-                // 'payment_terms',
-
             ]);
+
 
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
-                $discount_type = $product->discount  ? $product->discount_type : null;
+                $discount_type = $product->discount ? $product->discount_type : null;
                 TransactionePurchasesLine::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
@@ -111,22 +112,17 @@ class PurchasesController extends Controller
                     'unit_price_inc_tax' => $product->total_after_vat,
                     'tax_id' => $product->tax_vat,
                     'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
+                    'total_before_vat'=>$product->total_before_vat,
                 ]);
             }
 
-            if ($request->paid_amount) {
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            }
-
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
-            return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
-        }
+            return redirect()->route('purchase-order')->with('success', __('messages.add_successfully'));
+            } catch (Exception $e) {
+                DB::rollBack();
+                return redirect()->route('purchase-order')->with('error', __('messages.something_went_wrong'));
+            }
     }
 
     /**

@@ -173,7 +173,7 @@
                 date: "@lang('accounting::lang.operation_date')",
                 transaction_types: {
                     sell: "@lang('accounting::lang.sell')",
-                    purchase: "@lang('accounting::lang.purchase')",
+                    purchases: "@lang('accounting::lang.purchase')",
                 }
             };
             $('#specified_invoices').on('change', function() {

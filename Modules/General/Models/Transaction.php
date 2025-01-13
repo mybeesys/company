@@ -27,6 +27,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionSellLine::class, 'transaction_id');
     }
 
+    public function purchases_lines()
+    {
+        return $this->hasMany(TransactionePurchasesLine::class, 'transaction_id');
+    }
+
     public function payment()
     {
         return $this->hasMany(TransactionPayments::class, 'transaction_id');
@@ -74,14 +79,16 @@ class Transaction extends Model
         return [
 
             ["class" => "text-start min-w-150px ", "name" => "ref_no"],
-            ["class" => "text-start min-w-150px  ", "name" => "supplier"],
+            ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
             ["class" => "text-start min-w-80px ", "name" => "payment_status"],
-            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            // ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
-            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "invoice_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "piad_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "remaining_amount"],
         ];
     }
 
@@ -118,7 +125,7 @@ class Transaction extends Model
             })
             ->editColumn('remaining_amount', function ($row) {
                 $transactionUtil = new TransactionUtils();
-    
+
                 $paid_amount = $transactionUtil->getTotalPaid($row->id);
                 $amount = $row->final_total - $paid_amount;
                 if ($amount < 0) {
@@ -163,15 +170,19 @@ class Transaction extends Model
             </div>';
 
 
-                    if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
-                        $actions .= '<div class="menu-item px-3">
-                        <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
-                    </div>';
-                    } else {
-                        $actions .= '<div class="menu-item px-3">
-                        <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.show_payment') . '</a>
-                    </div>';
+                    if ($row->type != 'quotation' && $row->type != 'purchases-order') {
+                        if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
+                            $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
+                </div>';
+                        } else {
+
+                            $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.show_payment') . '</a>
+                </div>';
+                        }
                     }
+
 
 
                     // $status = $row->status == 'active' ? __('messages.deactivate') : __('messages.activate');
