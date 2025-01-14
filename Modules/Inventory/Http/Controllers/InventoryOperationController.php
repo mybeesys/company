@@ -5,6 +5,7 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\General\Models\Transaction;
 use Modules\Inventory\Enums\InventoryOperationStatus;
 use Modules\Inventory\Models\IngredientInventoryTotal;
 use Modules\Inventory\Models\InventoryOperation;
@@ -44,16 +45,16 @@ class InventoryOperationController extends Controller
         // Validate incoming data (optional)
         $validated = $request->validate([
             'id' => 'required|numeric',
-            'op_status' => 'required|numeric',
+            'status' => 'required|string',
         ]);
-        $inventoryOperation = InventoryOperation::find($validated['id']);
-        $inventoryOperation->op_status = $validated['op_status'];
+        $inventoryOperation = Transaction::find($validated['id']);
+        $inventoryOperation->status = $validated['status'];
         $inventoryOperation->save();
-        $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
+        $inventoryOperation->status_name = $inventoryOperation->op_status;
         return response()->json($inventoryOperation);
     }
 
-    private function generatePoNo($opType)
+    public function generatePoNo($opType)
     {
         $prefix = [
             0 => 'PO',
@@ -77,7 +78,7 @@ class InventoryOperationController extends Controller
         return $newPONumber;
     }
 
-    private function isValidQty($establishment_id, $products, $ingredients, $modifiers, $times){
+    public function isValidQty($establishment_id, $products, $ingredients, $modifiers, $times){
         $result = [];
         $prodIds =  array_map(function($product){
             return $product->product_id;

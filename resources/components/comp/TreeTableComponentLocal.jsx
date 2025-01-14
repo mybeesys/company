@@ -211,7 +211,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
                         required={!!col.required}
                         value={editingRow[col.key]} />
                     :
-                    currentKey && !!!col.editable ? 
+                    node.key == currentKey && !!!col.editable ? 
                         <apan>{editingRow[col.key]}</apan>:
                         <span>{node.data[col.key]}</span>);
         }
@@ -447,7 +447,7 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
     const actionTemplate = (node, actions) => {
         const data = node.data;
         return (
-            (!!!node.data.empty && node.data.empty != 'Y') ?
+            (!!!node.data.empty && node.data.empty != 'Y' && !!onUpdate) ?
                 <div className="flex flex-wrap gap-2">
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) ?

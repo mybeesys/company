@@ -264,13 +264,13 @@ color: white !important;
   }
 
   .status {
-    &.status0:before {
+    &.status-draft:before {
       background-color: #7B8089;
       border-color: #3C3E42;
       box-shadow: 0px 0px 4px 1px #3C3E42;
     }
   
-    &.status1:before {
+    &.status:before {
       background-color: #64D9FF;
       border-color: #285766;
       box-shadow: 0px 0px 4px 1px #285766;
@@ -288,7 +288,13 @@ color: white !important;
       box-shadow: 0px 0px 4px 1px #664618;
     }
 
-    &.status4:before {
+    &.status-approved:before {
+      background-color: #00E200;
+      border-color: #005A00;
+      box-shadow: 0px 0px 4px 1px #005A00;
+    }
+
+    &.status-preped:before {
       background-color: #00E200;
       border-color: #005A00;
       box-shadow: 0px 0px 4px 1px #005A00;

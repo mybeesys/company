@@ -70,8 +70,8 @@ class ProductImport implements ToModel, WithHeadingRow
         $product = new Product([
             'name_ar'           => $row['arabic_name'],
             'name_en'           => $row['english_name'],
-            'description_ar'    => $row['arabic_description'],
-            'description_en'    => $row['english_description'],
+            'deacription_ar'    => $row['arabic_description'],
+            'deacription_en'    => $row['english_description'],
             'category_id'       => $category->id,
             'subcategory_id'    => $subCategory->id,
             'active'            => $row['active'],

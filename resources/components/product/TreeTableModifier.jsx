@@ -18,7 +18,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
     const [expandedKeys, setExpandedKeys] = useState([]);
-    const [file, setFile] = useState(null);
 
     const handleDelete = (message) => {
         if (message != "Done") {
@@ -74,7 +73,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     useEffect(() => {
         refreshTree();
-        document.getElementById('uploadProduct').textContent = 'Upload Your Resume';
     }, []);
 
   
@@ -357,87 +355,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         window.location.href = productCrudList + '/create'
     }
 
-    // Handle file input change
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-    };
-
-    const handleFileUpload = async () => {
-        if (!file) {
-            alert('Please select a file first!');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await axios.post('/uploadProduct', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            if(response.data.message == 'Done')
-            {
-                Swal.fire({
-                    show: showAlert,
-                    title: '',
-                    html: `${translations.products} - ${translations.importedsuccessfully}`,
-                    icon: "info",
-                    timer: 4000,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                  }).then(() => {
-                    setShowAlert(false); // Reset the state after alert is dismissed
-                  });
-                refreshTree();
-            }
-            else{
-                Swal.fire({
-                    show: showAlert,
-                    title: 'Error',
-                    html: `<div>${translations.products} - ${translations.errorInImport}</div>${getErrorMessage(response.data.errors)}`,
-                    icon: "error",
-                    timer: 4000,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                  }).then(() => {
-                    setShowAlert(false); // Reset the state after alert is dismissed
-                  });
-            }
-                
-        } catch (error) {
-            console.log(error);
-            alert('Error uploading file');
-        }
-    }
-
-    const getErrorMessage = (data) => {
-        let res = ''
-        for (let index = 0; index < data.length; index++) {
-          const element = data[index];
-          res += `<div>${translations.product}: ${getRowName(element.row)}</div>`;
-          res += `<div>${element.message.message.split('_').map(m=>`${translations[m]} `)}: ${element.message.data.map(m=>`${!!translations[m] ? translations[m] : m}, `)}</div>`;
-        }
-        return res;
-      }
-    
-      const handleImportError = (data) => {
-        setShowAlert(true);
-        Swal.fire({
-          show: showAlert,
-          title: 'Error',
-          html: `<div>${translations.exist}</div>${getErrorMessage(data)}`,
-          icon: "error",
-          timer: 4000,
-          showCancelButton: false,
-          showConfirmButton: false,
-        }).then(() => {
-          setShowAlert(false); // Reset the state after alert is dismissed
-        });
-      }
-
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
@@ -451,9 +368,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
                     <a href="javascript:void(0);" class="btn btn-primary" 
                                   onClick={() => openAddCategory()}>{translations.Add}</a>
-                    <input id="uploadProduct" className="form-control" type="file"accept=".xlsx, .xls, .csv"
-                        onChange={handleFileChange}/>
-                    <button class="btn btn-primary"  onClick={handleFileUpload}>{translations.import1}</button>
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}

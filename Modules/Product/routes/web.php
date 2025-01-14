@@ -131,4 +131,6 @@ Route::middleware([
     
 
     Route::post('/uploadProduct', [ProductImportController::class, 'upload']);
+    Route::post('/readData', [ProductImportController::class, 'readData']);
+    Route::get('/productImport/import', [ProductImportController::class, 'import'])->name('productImport.import');
 });

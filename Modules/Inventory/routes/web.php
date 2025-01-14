@@ -46,8 +46,10 @@ Route::middleware([
     Route::get('ingredientInventoryList', [IngredientInventoryController::class, 'getIngredientInventories'])->name('ingredientInventoryList');
     Route::get('getIngredientInventory/{id}', [IngredientInventoryController::class, 'getIngredientInventory']);
     Route::resource('prep', PrepController::class)->names('prep');
+    Route::get('prepList', [PrepController::class, 'getPreps'])->name('prepList');
     Route::resource('rma', RMAController::class)->names('rma');
     Route::resource('waste', WasteController::class)->names('waste');
+    Route::get('wasteList', [WasteController::class, 'getWastes'])->name('wasteList');
     Route::resource('transfer', TransferController::class)->names('transfer');
     Route::resource('inventoryOperation', InventoryOperationController::class)->names('inventoryOperation');
     Route::get('/inventoryOperationList/{type?}', [InventoryOperationController::class, 'getinventoryOperations'])->name('inventoryOperationList');;

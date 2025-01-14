@@ -79,9 +79,9 @@ const WasteDetail = ({ dir, translations }) => {
                         fields={
                             [   
                                 {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
-                                {key:"op_date" , title:"date", type:"Date", required : true, size:12},
+                                {key:"transaction_date" , title:"date", type:"Date", required : true, size:12},
                                 {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:12, newRow: true},
-                                {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:12, newRow: true}
+                                {key:"description" , title:"notes", type:"TextArea", newRow: true, size:12, newRow: true}
                             ]
                         }
                        />
@@ -111,14 +111,14 @@ const WasteDetail = ({ dir, translations }) => {
                                 nodes[rowKey].data.item_type = result[1];
                                 if(!!prod.inventory){
                                     nodes[rowKey].data.qty = prod.inventory.primary_vendor_default_quantity;
-                                    nodes[rowKey].data.cost = prod.inventory.primary_vendor_default_price;
+                                    nodes[rowKey].data.unit_price_before_discount = prod.inventory.primary_vendor_default_price;
                                     nodes[rowKey].data.unit = prod.inventory.unit;
                                     nodes[rowKey].data.total = !!prod.inventory.primary_vendor_default_price && !!prod.inventory.primary_vendor_default_quantity 
                                                         ? prod.inventory.primary_vendor_default_price * prod.inventory.primary_vendor_default_quantity : 0;
                                 }
                                 else{
                                     nodes[rowKey].data.qty = null;
-                                    nodes[rowKey].data.cost = null;
+                                    nodes[rowKey].data.unit_price_before_discount = null;
                                     nodes[rowKey].data.unit = null;
                                     nodes[rowKey].data.total = null;
                                 }
@@ -143,17 +143,17 @@ const WasteDetail = ({ dir, translations }) => {
                     },
                     {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.cost ? val * nodes[rowKey].data.cost : null;
+                            nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.unit_price_before_discount : null;
                             postExecute(nodes);
                         }
                     },
-                    {key : "cost", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
+                    {key : "unit_price_before_discount", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             nodes[rowKey].data.total = !!nodes[rowKey].data.qty && !!val ? nodes[rowKey].data.qty* val : null;
                             postExecute(nodes);
                         }
                     },
-                    {key : "total", autoFocus: true, type :"Decimal", width:'15%', editable:true}
+                    {key : "total_before_vat", autoFocus: true, type :"Decimal", width:'15%', editable:true}
                 ]}
                 actions = {[]}
                 onUpdate={(nodes)=> onProductChange("items", nodes)}
@@ -163,7 +163,7 @@ const WasteDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="inventoryOperation/store/3"
+          apiUrl={'waste'}
           afterSubmitUrl="../../waste"
           handleError={handleQuantityError}
           validateObject={validateObject}

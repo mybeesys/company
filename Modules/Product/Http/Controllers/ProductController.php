@@ -74,9 +74,9 @@ class ProductController extends Controller
         if(isset($key) && $key=='Y'){
             $idd = explode("-",$id);
             if($idd[1] == 'p')
-                $recipes = RecipeProduct::where([['product_id', '=', $idd[0]]])->get();
+                $recipes = RecipeProduct::with('unitTransfer')->where([['product_id', '=', $idd[0]]])->get();
             else
-                $recipes = RecipeModifier::where([['modifier_id', '=', $idd[0]]])->get();
+                $recipes = RecipeModifier::with('unitTransfer')->where([['modifier_id', '=', $idd[0]]])->get();
             $resRecipes = [];
             foreach ($recipes as $recipe) {
                 $newItem = $recipe->toArray();
@@ -85,14 +85,12 @@ class ProductController extends Controller
                     $prod = $recipe->products->toArray();
                     $prod["id"] =  $recipe->item_id.'-p';
                     if(isset($recipe->products))
-                    $prod["unitTransfers"] = $recipe->products->unitTransfers;
                     $newItem["products"] =$prod;
                 }
                 if($recipe->item_type == 'i'){
                     $newItem["product_id"] = $recipe->item_id.'-i';
                     $ingr = $recipe->ingredients->toArray();
                     $ingr["id"] =  $recipe->item_id.'-i';
-                    $ingr["unitTransfers"] = $recipe->ingredients->unitTransfers;
                     $newItem["products"] =$ingr;
                 }
                 $resRecipes [] =$newItem;

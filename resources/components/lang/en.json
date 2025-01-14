@@ -201,7 +201,7 @@
   "items" : "Items",
   "unit" : "Unit",
   "qty" : "Qty",
-  "new_op" : "New",
+  "draft" : "New",
   "sent" : "Sent",
   "partiallyReceived" : "Partially Received",
   "fullyReceived" : "Fully Received",
@@ -245,9 +245,7 @@
   "priceTier" : "Price Tier",
   "priceWithTax" : "Price With Tax",
   "forSell" : "For Sell",
-  "importedsuccessfully" : "Imported Done Successfully",
-  "errorInImport" : "Error in import",
-  "INVALID" : "Invalid",
-  "UNIQUE" : "Already Exist",
-  "import1" : "Import"
+  "import1" : "Import",
+  "productImport" : "Products Import",
+  "downloadTemplate" : "Download Template"
 }

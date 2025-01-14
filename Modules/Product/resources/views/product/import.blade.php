@@ -4,8 +4,9 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="root" type="waste" 
-	  list-url="{{json_encode(value: route('wasteList'))}}"
+      <div id="root" type="importProduct"
+	  category-url="{{ json_encode(route('category.index'))}}"
+    template-url="{{'/assets/media/svg/files/products.xlsx'}}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

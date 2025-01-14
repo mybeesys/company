@@ -40,6 +40,7 @@
    						
       <div id="root" type="prepedit" 
       prep="{{json_encode($prep)}}"
+      prep-url="{{ json_encode(route('prep.store'))}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

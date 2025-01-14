@@ -201,7 +201,7 @@
   "items" : "المواد",
   "unit" : "الوحدة",
   "qty" : "الكمية",
-  "new_op" : "جديد",
+  "draft" : "جديد",
   "sent" : "مرسل",
   "partiallyReceived" : "مستلم جزئيا",
   "fullyReceived" : "مستلم كليا",
@@ -222,7 +222,7 @@
   "print" : "طباعة",
   "waste" : "إتلاف",
   "wasteInfo" : "معلومات الأتلاف",
-  "op_status" : "الحالية",
+  "op_status" : "الحالة",
   "transfers" : "التحويلات",
   "establishment" : "منشأة",
   "establishments" : "المنشأت",
@@ -249,5 +249,7 @@
   "errorInImport" : "خطأ في الاستيراد",
   "INVALID" : "غير صحيح",
   "UNIQUE" : "مكرر",
-  "import1" : "استيراد"
+  "import1" : "استيراد",
+  "productImport" : "استيراد المنتجات",
+  "downloadTemplate" : "تحميل النموذج"
 }
