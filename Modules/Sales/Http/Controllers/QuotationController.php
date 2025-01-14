@@ -15,6 +15,7 @@ use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
@@ -44,6 +45,9 @@ class QuotationController extends Controller
      */
     public function create()
     {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('create_sell','convert-to-invoice','#');
+
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
