@@ -64,7 +64,7 @@ return [
             ],
             [
                 'name' => 'import',
-                'url' => 'import',
+                'url' => 'productImport/import',
                 'permission' => '',
 
             ]
