@@ -453,7 +453,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                   onClick={() => openAddCategory()}>{translations.Add}</a>
                     <input id="uploadProduct" className="form-control" type="file"accept=".xlsx, .xls, .csv"
                         onChange={handleFileChange}/>
-                    <button class="btn btn-primary"  onClick={handleFileUpload}>استيراد</button>
+                    <button class="btn btn-primary"  onClick={handleFileUpload}>{translations.import1}</button>
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
