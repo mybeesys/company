@@ -45,15 +45,22 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-                 
-                        <div class="btn-group">
-                            <a href="{{ url('/create-invoice') }}"
-                                class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
-                                @lang('sales::general.add_sell')
-                            </a>
 
-                            <button type="button"
-                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                        <div class="btn-group">
+                            @if ($Latest_event->action != '#')
+                                <a href="{{ url('/create-invoice') }}"
+                                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
+                                    @lang('sales::general.add_sell')
+                                </a>
+                            @else
+                                <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px" data-bs-toggle="modal"
+                                    data-bs-target="#convertToInvoiceModal">
+                                    @lang('sales::general.convert-to-invoice')
+                                </a>
+                            @endif
+
+
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
@@ -65,7 +72,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
+                                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                        data-bs-target="#convertToInvoiceModal">
                                         @lang('sales::general.convert-to-invoice')
                                     </a>
                                 </li>
@@ -128,7 +136,7 @@
                         `{{ route('create-invoice') }}?quotation_id=${selectedQuotation}`);
                 } else {
                     event.preventDefault();
-                     alert('@lang('sales::lang.Please select a quotation')');
+                    alert('@lang('sales::lang.Please select a quotation')');
                 }
             });
         });

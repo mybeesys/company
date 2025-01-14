@@ -12,10 +12,12 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
@@ -40,7 +42,13 @@ class SellController extends Controller
         $columns = Transaction::getsSellsColumns();
 
         $quotations = Transaction::where('type', 'quotation')->get();
-        return view('sales::sell.index', compact('columns', 'transaction', 'quotations'));
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_sell')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
+        }
+
+        return view('sales::sell.index', compact('columns', 'Latest_event', 'transaction', 'quotations'));
     }
 
     /**
@@ -48,6 +56,8 @@ class SellController extends Controller
      */
     public function create(Request $request)
     {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
@@ -60,12 +70,17 @@ class SellController extends Controller
         $quotation = false;
         $quotationId = $request->input('quotation_id');
         $transaction = Transaction::find($quotationId);
+        if ($quotationId > 0) {
+
+            $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
+        }
+
 
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::sell.create', compact('clients','transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::sell.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
 
