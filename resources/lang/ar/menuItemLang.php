@@ -76,5 +76,5 @@ return [
     'customer_receipts' => 'سندات العملاء',
     'purchase-order' => 'طلبات الشراء',
     'supplier_receipts'=>'سندات الموردين',
-
+    'import' => 'الاستيراد'
 ];

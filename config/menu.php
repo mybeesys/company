@@ -62,6 +62,13 @@ return [
                 'permission' => '',
 
             ],
+            [
+                'name' => 'import',
+                'url' => 'import',
+                'permission' => '',
+
+            ]
+            
         ]
     ],
     [
