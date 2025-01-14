@@ -39,18 +39,25 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchases" url="create-purchases-invoice" :addButton="false" module="purchases">
+                <x-tables.table-header model="purchases" url="create-purchases-invoice" :addButton="false"
+                    module="purchases">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
                         <div class="btn-group">
-                            <a href="{{ url('/create-purchases-invoice') }}"
-                                class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
-                                @lang('sales::general.add_sell')
-                            </a>
+                            @if ($Latest_event->action != '#')
+                                <a href="{{ url('/create-purchases-invoice') }}"
+                                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
+                                    @lang('sales::general.add_sell')
+                                </a>
+                            @else
+                                <a href="#" class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px"
+                                    data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
+                                    @lang('purchases::general.convert-to-invoice')
+                                </a>
+                            @endif
 
-                            <button type="button"
-                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
@@ -62,7 +69,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
+                                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                        data-bs-target="#convertToInvoiceModal">
                                         @lang('purchases::general.convert-to-invoice')
                                     </a>
                                 </li>

@@ -11,10 +11,12 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
@@ -37,7 +39,12 @@ class PurchasesController extends Controller
         $columns = Transaction::getsPurchasesColumns();
         $poes=Transaction::where('type', 'purchases-order')->get();
 
-        return view('purchases::purchases.index', compact('columns','poes', 'transaction'));
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_po')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
+        }
+        return view('purchases::purchases.index', compact('columns','Latest_event','poes', 'transaction'));
     }
 
     /**
@@ -45,6 +52,9 @@ class PurchasesController extends Controller
      */
     public function create()
     {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
+
         $clients = Contact::where('business_type', 'supplier')->get();
         // $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();

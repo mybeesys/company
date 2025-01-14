@@ -15,6 +15,7 @@ use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
@@ -43,6 +44,8 @@ class PurchasesOrderController extends Controller
      */
     public function create(Request $request)
     {
+        $actionUtil = new ActionUtil();
+
         $clients = Contact::where('business_type', 'supplier')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
@@ -57,6 +60,11 @@ class PurchasesOrderController extends Controller
         $po_id = false;
         $po_id = $request->input('po_id');
         $transaction = Transaction::find($po_id);
+        if ($po_id > 0) {
+
+            $actionUtil->saveOrUpdateAction('create_po', 'convert-to-invoice', '#');
+        }
+
 
 
         $products = Product::with(['unitTransfers' => function ($query) {
@@ -112,17 +120,17 @@ class PurchasesOrderController extends Controller
                     'unit_price_inc_tax' => $product->total_after_vat,
                     'tax_id' => $product->tax_vat,
                     'tax_value' => $product->vat_value,
-                    'total_before_vat'=>$product->total_before_vat,
+                    'total_before_vat' => $product->total_before_vat,
                 ]);
             }
 
 
             DB::commit();
             return redirect()->route('purchase-order')->with('success', __('messages.add_successfully'));
-            } catch (Exception $e) {
-                DB::rollBack();
-                return redirect()->route('purchase-order')->with('error', __('messages.something_went_wrong'));
-            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->route('purchase-order')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     /**
