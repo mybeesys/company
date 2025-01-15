@@ -10,6 +10,9 @@
     'internal_receiver_hint' => null,
     'email_receiver_hint' => null,
     'sms_receiver_hint' => null,
+    'internal_fields' => ['title' => true, 'body' => true, 'receiver' => true],
+    'email_fields' => ['subject' => true, 'body' => true, 'bcc' => true, 'cc' => true, 'receiver' => true],
+    'sms_fields' => ['body' => true, 'receiver' => true],
 ])
 <div @class(['tab-pane fade', 'show active' => $active]) id="{{ $notification_name }}_notification" role="tabpanel">
     @php
@@ -30,15 +33,15 @@
         @csrf
         @if ($internal)
             <x-general::notifications.notification-types-cards.internal-notification :variables="$variables" :employees="$employees"
-                :notification_setting="$general_internal_notification_setting" :notification_name="$notification_name" :receiver_hint="$internal_receiver_hint" />
+                :fields="$internal_fields" :notification_setting="$general_internal_notification_setting" :notification_name="$notification_name" :receiver_hint="$internal_receiver_hint" />
         @endif
         @if ($email)
             <x-general::notifications.notification-types-cards.email-notification :variables="$variables" :employees="$employees"
-                :notification_setting="$general_email_notification_setting" :notification_name="$notification_name" :receiver_hint="$email_receiver_hint" />
+                :fields="$email_fields" :notification_setting="$general_email_notification_setting" :notification_name="$notification_name" :receiver_hint="$email_receiver_hint" />
         @endif
         @if ($sms)
             <x-general::notifications.notification-types-cards.sms-notification :variables="$variables" :employees="$employees"
-                :notification_setting="$general_sms_notification_setting" :notification_name="$notification_name" :receiver_hint="$sms_receiver_hint" />
+                :fields="$sms_fields" :notification_setting="$general_sms_notification_setting" :notification_name="$notification_name" :receiver_hint="$sms_receiver_hint" />
         @endif
 
         <x-form.form-buttons cancelUrl="{{ url('/employee') }}" id="{{ $notification_name }}_notifications_settings" />
@@ -115,11 +118,12 @@
         $('#{{ $notification_name }}_notifications_settings').on('submit', function(e) {
             e.preventDefault();
             let employee_to_receive_internal_notification = $(
-                '[name="employee_to_receive_{{ $notification_name }}_internal_notification"]').val();
+                    '[name="employee_to_receive_{{ $notification_name }}_internal_notification"]').val() ??
+                null;
             let employee_to_receive_email_notification = $(
-                '[name="employee_to_receive_{{ $notification_name }}_email_notification"]').val();
+                '[name="employee_to_receive_{{ $notification_name }}_email_notification"]').val() ?? null;
             let employee_to_receive_sms_notification = $(
-                '[name="employee_to_receive_{{ $notification_name }}_sms_notification"]').val();
+                '[name="employee_to_receive_{{ $notification_name }}_sms_notification"]').val() ?? null;
 
             let data = $(this).serializeArray();
             data.push({
@@ -145,32 +149,38 @@
     }
 
     function initElements_{{ $notification_name }}() {
-        selectDeselectAll(
-            $('#{{ $notification_name }}_intern_emp_select_all_btn'),
-            $('#{{ $notification_name }}_intern_emp_deselect_all_btn'),
-            '[name="employee_to_receive_{{ $notification_name }}_internal_notification"]'
-        );
+        if ($('[name="employee_to_receive_{{ $notification_name }}_internal_notification"]')) {
+            selectDeselectAll(
+                $('#{{ $notification_name }}_intern_emp_select_all_btn'),
+                $('#{{ $notification_name }}_intern_emp_deselect_all_btn'),
+                '[name="employee_to_receive_{{ $notification_name }}_internal_notification"]'
+            );
+        }
+        if ($('[name="employee_to_receive_{{ $notification_name }}_email_notification"]')) {
+            selectDeselectAll(
+                $('#{{ $notification_name }}_email_emp_select_all_btn'),
+                $('#{{ $notification_name }}_email_emp_deselect_all_btn'),
+                '[name="employee_to_receive_{{ $notification_name }}_email_notification"]'
+            );
+        }
 
-        selectDeselectAll(
-            $('#{{ $notification_name }}_email_emp_select_all_btn'),
-            $('#{{ $notification_name }}_email_emp_deselect_all_btn'),
-            '[name="employee_to_receive_{{ $notification_name }}_email_notification"]'
-        );
-
-        ClassicEditor
-            .create($('#{{ $notification_name }}_email_notification_body_ar')[0], {
-                toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
-        ClassicEditor
-            .create($('#{{ $notification_name }}_email_notification_body_en')[0], {
-                toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        if ($('#{{ $notification_name }}_email_notification_body_ar')[0]) {
+            ClassicEditor
+                .create($('#{{ $notification_name }}_email_notification_body_ar')[0], {
+                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+        if ($('#{{ $notification_name }}_email_notification_body_en')[0]) {
+            ClassicEditor
+                .create($('#{{ $notification_name }}_email_notification_body_en')[0], {
+                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     }
 </script>

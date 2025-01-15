@@ -24,7 +24,7 @@ class StoreNotificationRequest extends FormRequest
             "{$notificationType}_internal_notification_active" => ['nullable', 'boolean'],
             "{$notificationType}_email_notification_active" => ['nullable', 'boolean'],
             "{$notificationType}_sms_notification_active" => ['nullable', 'boolean'],
-
+            
             "{$notificationType}_internal_notification_title_ar" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],
             "{$notificationType}_internal_notification_title_en" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],
             "{$notificationType}_internal_notification_body_ar" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],
@@ -39,8 +39,8 @@ class StoreNotificationRequest extends FormRequest
             "employee_to_receive_{$notificationType}_sms_notification" => ['required_if:{$notificationType}_sms_notification_active,1', 'array', 'nullable'],
             "employee_to_receive_{$notificationType}_sms_notification.*" => ['exists:emp_employees,id'],
 
-            "{$notificationType}_email_notification_title_ar" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:100'],
-            "{$notificationType}_email_notification_title_en" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:100'],
+            "{$notificationType}_email_notification_subject_ar" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:100'],
+            "{$notificationType}_email_notification_subject_en" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:100'],
             "{$notificationType}_email_notification_body_ar" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:1000'],
             "{$notificationType}_email_notification_body_en" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:1000'],
             "{$notificationType}_email_notification_bcc" => ['required_if:{$notificationType}_email_notification_active,1', 'nullable', 'string', 'max:100'],

@@ -12,6 +12,6 @@
         <x-general::notifications.general-notification-tab active :employees="$employees" :notifications_settings="$notifications_settings"
             notification_name="created_emp"
             variables="{employee_pin}, {employee_total_wage}, {created_by}, {created_date}, {created_time}, {employee_name}, {employee_username}, {employee_password}"
-            :internal="false" :sms="false" :email_receiver_hint="__('general::general.created_employee_receiver_hint')" />
+            :internal="false" :sms="false" :email_receiver_hint="__('general::general.created_employee_receiver_hint')" :email_fields="['subject' => true, 'body' => true, 'bcc' => true, 'cc' => true, 'receiver' => false]" />
     </div>
 </x-cards.card>

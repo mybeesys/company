@@ -38,7 +38,7 @@ class EmployeeCreated extends Notification
         ->first();
 
         return (new MailMessage)
-            ->view('general::mail.employee-created-mail', ['notifiable' => $notifiable])
+            // ->view('general::mail.employee-created-mail', ['notifiable' => $notifiable])
             ->subject('Hello');
     }
 
