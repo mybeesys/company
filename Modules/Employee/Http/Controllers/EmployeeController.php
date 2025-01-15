@@ -18,6 +18,8 @@ use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\NotificationSetting;
+use Notification;
 
 class EmployeeController extends Controller
 {
@@ -65,6 +67,9 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
+        $notifiable_Employees = Employee::first();
+        $notifiable_Employees->notify(new EmployeeCreated($notifiable_Employees));
+
         $employees = Employee::with('permissions:id,name')->
             select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {

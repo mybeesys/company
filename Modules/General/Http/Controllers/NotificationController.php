@@ -9,16 +9,9 @@ use Illuminate\Validation\Rule;
 
 class NotificationController extends Controller
 {
-    public function markAsRead(Request $request)
+    public function markAllAsRead()
     {
-        $validated = $request->validate([
-            'id' => ['required', 'exists:notifications,id', Rule::exists('notifications','id')->whereNull('read_at')] 
-        ]);
-        $notification = DatabaseNotification::find($validated['id']);
-        $notification->markAsRead();
-        return response()->json([
-            'data' => auth()->user()->unreadNotifications->count()
-        ]);
+        auth()->user()->unreadNotifications->markAsRead();
     }
 
     public function destroy(Request $request)

@@ -278,7 +278,7 @@ return [
     ],
     [
         'name' => 'setting',
-        'url' => 'general-setting',
+        'url' => '',
         'icon' => 'fas fa-cog',
         'permission' => '',
         'subMenu' => [

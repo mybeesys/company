@@ -63,12 +63,10 @@
     </style>
 
 
-@stop
+@endsection
 
 @section('content')
-
-
-    <div class="container">
+    {{-- <div class="container">
         <div class="row my-6">
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
@@ -77,53 +75,371 @@
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-
             </div>
         </div>
-    </div>
-
-
-
-
-    <div class="container">
+    </div> --}}
+    {{-- <div class="container">
         <div class="row">
-
-                @foreach ($cards as $card)
+            @foreach ($cards as $card)
                 <div class="col-3">
+                    <a href="{{ route($card['route']) }}" class="link">
+                        <label
+                            class="btn bg-light btn-color-gray-600 btn-active-text-gray-800 border border-3 border-gray-100 border-active-primary btn-active-light-primary w-100 mb-5 px-4"
+                            data-kt-button="true">
+                            <input class="btn-check" type="radio" name="method" value="0">
+                            <i class="{{ $card['icon'] }}  fs-2hx mb-2 pe-0"></i>
+                            <span class="fs-7 fw-bold d-block">{{ $card['name'] }}</span>
+                        </label>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div> --}}
+    <div class="d-flex flex-column flex-row-fluid gap-5">
+        <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
+            <li class="nav-item nav-link-taxes">
+                <a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
+                    href="#taxes_tab">@lang('menuItemLang.taxes')</a>
+            </li>
+            <li class="nav-item nav-link-methods">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#notifications_tab">@lang('general::general.notifications_templates')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#mail_settings_tab">@lang('general::general.mail_settings')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
 
-                <a href="{{route($card['route'])}}" class="link">
-                    <label
-                        class="btn bg-light btn-color-gray-600 btn-active-text-gray-800 border border-3 border-gray-100 border-active-primary btn-active-light-primary w-100 mb-5 px-4"
-                        data-kt-button="true">
-                        <input class="btn-check" type="radio" name="method" value="0">
-                        <i class="{{$card['icon']}}  fs-2hx mb-2 pe-0"></i>
-                        <span class="fs-7 fw-bold d-block">{{$card['name']}}</span>
-                    </label>
-                </a>
-            </div>
+            <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
 
-                @endforeach
+            <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
 
+            <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters"/>
 
-
+            <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters"/>
 
         </div>
+        @include('general::tax.create')
+        @include('general::tax.edit')
+        @include('general::payment-methods.create')
     </div>
-
-
-
-@stop
+@endsection
 
 @section('script')
+    @parent
 
-<script>
-    document.querySelectorAll('.link').forEach(function(link) {
-        link.addEventListener('click', function(event) {
-            if (event.target.tagName !== 'INPUT') {
-                event.preventDefault();
-                window.location.href = this.href;
-            }
+    <script src="{{ url('js/table.js') }}"></script>
+    <script src="{{ url('modules/employee/js/messages.js') }}"></script>
+    <script src="assets/plugins/custom/ckeditor/ckeditor-classic.bundle.js"></script>
+    <script>
+        "use strict";
+        let taxesDataTable;
+        const taxesTable = $('#kt_tax_table');;
+        const taxesDataUrl = '{{ route('taxes') }}';
+
+        let methodDataTable;
+        const methodTable = $('#kt_payment_methods_table');;
+        const methodDataUrl = '{{ route('payment-methods') }}';
+
+        document.querySelectorAll('.link').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                if (event.target.tagName !== 'INPUT') {
+                    event.preventDefault();
+                    window.location.href = this.href;
+                }
+            });
         });
-    });
-</script>
+
+
+        $(document).ready(function() {
+            @foreach (['new_sell', 'created_emp', 'payment_received'] as $notification_name)
+                handleInternalNotification_{{ $notification_name }}();
+                handleSMSNotification_{{ $notification_name }}();
+                handleEmailNotification_{{ $notification_name }}();
+                handleNotificationsSettingsForm_{{ $notification_name }}();
+                initElements_{{ $notification_name }}();
+            @endforeach
+            mailSettingsForm();
+            initMethodDatatable();
+            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_payment_methods_table', "{{ session('locale') }}", [], [],
+                'A4',
+                methodTable, methodDataTable);
+
+            handleFormFiltersDatatable();
+            $('#add_payment_methods_button').on('click', function(event) {
+                event.preventDefault();
+                $('#kt_modal_create_add_pay_method').modal('show');
+            });
+
+            initTaxesDatatable();
+            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_tax_table', "{{ session('locale') }}", [], [], 'A4',
+                taxesTable, taxesDataTable);
+
+            handleSearchDatatable(taxesDataTable);
+
+            handleFormFiltersDatatable();
+
+            $('#add_tax_button').on('click', function(event) {
+                event.preventDefault();
+                $('#kt_modal_create_add_tax').modal('show');
+            });
+
+            $('#kt_tax_table').on('click', '.open-tax-modal', function(event) {
+                event.preventDefault();
+
+                const row = $(this).closest('tr');
+                const table = $('#kt_tax_table').DataTable();
+                const data = table.row(row).data();
+
+                let selectedTaxes = [];
+
+                if (data && data.sub_taxes) {
+                    let subTaxes = data.sub_taxes;
+
+                    if (typeof subTaxes === 'string') {
+                        try {
+                            subTaxes = JSON.parse(subTaxes);
+                        } catch (e) {
+                            console.error('Failed to parse sub_taxes:', e);
+                            subTaxes = [];
+                        }
+                    }
+
+                    if (Array.isArray(subTaxes)) {
+                        selectedTaxes = subTaxes.map((tax) => tax.id);
+                    } else {
+                        console.error('sub_taxes is not an array:', subTaxes);
+                    }
+                }
+
+                console.log('Selected Taxes:', selectedTaxes);
+
+                const taxListContainer = $('#tax-list-container-edit');
+                taxListContainer.find('option').each(function() {
+                    const option = $(this);
+                    const taxId = parseInt(option.val());
+
+                    if (selectedTaxes.includes(taxId)) {
+                        option.prop('selected', true);
+                    } else {
+                        option.prop('selected', false);
+                    }
+                });
+
+                if (taxListContainer.hasClass('select2-hidden-accessible')) {
+                    taxListContainer.trigger('change');
+                }
+
+                const id = row.find('td:nth-child(1)').text().trim();
+                const taxName = row.find('td:nth-child(2)').text().trim();
+                const taxNameEn = row.find('td:nth-child(3)').text().trim();
+                const taxAmount = row.find('td:nth-child(4)').text().trim();
+                const isGroup = row.find('td:nth-child(5)').text().trim();
+                const taxAmountContainer = $('#tax-amount-container-edit');
+                const groupTaxContainer = $('#group-tax-container-edit');
+                let group_tax_checkbox = 0;
+                if (isGroup == 'Compound tax' || isGroup == 'ضريبة مُركبة') {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                    group_tax_checkbox = 1;
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                    group_tax_checkbox = 0;
+                }
+
+                $('#kt_modal_edit_tax input[name="tax_name"]').val(taxName.replace(/\([^)]*\)\s*/g, ''));
+                $('#kt_modal_edit_tax input[name="tax_name_en"]').val(taxNameEn.replace(/\([^)]*\)\s*/g,
+                    ''));
+                $('#kt_modal_edit_tax input[name="tax_amount"]').val(taxAmount);
+                $('#kt_modal_edit_tax input[name="id"]').val(id);
+                $('#kt_modal_edit_tax input[name="group_tax_checkbox"]').val(group_tax_checkbox);
+
+                $('#kt_modal_edit_tax').modal('show');
+            });
+
+
+            $('select[multiple]').select2({
+                placeholder: "اختر",
+                allowClear: false,
+                closeOnSelect: false
+            });
+
+            $('#group_tax_checkbox').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                const taxAmountContainer = $('#tax-amount-container');
+                const groupTaxContainer = $('#group-tax-container');
+
+                if (isChecked) {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                }
+            });
+
+
+            $('#group_tax_checkbox_edit').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                const taxAmountContainer = $('#tax-amount-container-edit');
+                const groupTaxContainer = $('#group-tax-container-edit');
+
+                if (isChecked) {
+                    taxAmountContainer.hide();
+                    groupTaxContainer.show();
+                } else {
+                    taxAmountContainer.show();
+                    groupTaxContainer.hide();
+                }
+            });
+        });
+
+
+        function initMethodDatatable() {
+            methodDataTable = $(methodTable).DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: methodDataUrl,
+
+                info: false,
+
+                columns: [{
+                        data: 'id',
+                        name: 'id',
+                    },
+                    {
+                        data: 'name_ar',
+                        name: 'name_ar'
+                    },
+                    {
+                        data: 'name_en',
+                        name: 'name_en'
+                    },
+                    {
+                        data: 'description_ar',
+                        name: 'description_ar'
+                    },
+                    {
+                        data: 'description_en',
+                        name: 'description_en',
+                        // visible: false
+                    },
+
+                    {
+                        data: 'active',
+                        name: 'active',
+                        // visible: false
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                order: [],
+                scrollX: true,
+                pageLength: 10,
+                drawCallback: function() {
+                    KTMenu.createInstances();
+                }
+            });
+        };
+
+        function handleFormFiltersDatatable() {
+            const filters = $('[data-kt-filter="filter"]');
+            const resetButton = $('[data-kt-filter="reset"]');
+            const status = $('[data-kt-filter="status"]');
+            const deleted = $('[data-kt-filter="deleted_records"]');
+
+            filters.on('click', function(e) {
+                const deletedValue = deleted.val();
+
+                dataTable.ajax.url('{{ route('payment-methods') }}?' + $.param({
+                    deleted_records: deletedValue
+                })).load();
+
+                const statusValue = status.val();
+                dataTable.column(6).search(statusValue).draw();
+            });
+
+            resetButton.on('click', function(e) {
+                status.val(null).trigger('change');
+                deleted.val(null).trigger('change');
+                dataTable.search('').columns().search('').ajax.url(dataUrl)
+                    .load();
+            });
+        };
+
+
+        function initTaxesDatatable() {
+            taxesDataTable = $(taxesTable).DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: taxesDataUrl,
+
+                info: false,
+
+                columns: [{
+                        data: 'id',
+                        name: 'id',
+                    },
+                    {
+                        data: 'name',
+                        name: 'name'
+                    },
+                    {
+                        data: 'name_en',
+                        name: 'name_en'
+                    },
+                    {
+                        data: 'amount',
+                        name: 'amount'
+                    },
+                    {
+                        data: 'is_tax_group',
+                        name: 'is_tax_group',
+                        // visible: false
+                    },
+                    {
+                        data: 'sub_taxes',
+                        name: 'sub_taxes',
+                        visible: false
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                order: [],
+                scrollX: true,
+                pageLength: 10,
+                drawCallback: function() {
+                    KTMenu.createInstances();
+                }
+            });
+        };
+
+        $(document).on('click', '.nav-link-taxes', function() {
+            taxesDataTable.ajax.reload();
+        });
+
+        $(document).on('click', '.nav-link-methods', function() {
+            methodDataTable.ajax.reload();
+        });
+    </script>
 @endsection

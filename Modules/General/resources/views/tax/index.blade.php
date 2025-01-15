@@ -105,7 +105,7 @@
             exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_tax_table');
             handleSearchDatatable();
             handleFormFiltersDatatable();
-            $('#add_tax_button').on('click', function() {
+            $('#add_tax_button').on('click', function(event) {
                 event.preventDefault();
                 $('#kt_modal_create_add_tax').modal('show');
             });

@@ -8,6 +8,7 @@ use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Wage;
 use Modules\Employee\Notifications\EmployeeCreated;
+use Modules\General\Models\NotificationSetting;
 
 
 class EmployeeActions
@@ -95,7 +96,15 @@ class EmployeeActions
 
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
 
-        // auth()->user()->notify(new EmployeeCreated($employee));
+        $notification_setting = NotificationSetting::where('type', 'employeeCreated')
+            ->where('sendType', 'internal')
+            ->first();
+        if ($notification_setting?->is_active) {
+            $notifiable_Employees = Employee::whereIn('id', $notification_setting->notifiable->pluck('id')->toArray())->get();
+            foreach ($notifiable_Employees as $notifiable_Employee) {
+                $notifiable_Employee->notify(new EmployeeCreated($employee));
+            }
+        }
     }
 
     public function update($employee)

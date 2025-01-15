@@ -148,7 +148,7 @@ function handleImageInput(id, name) {
     const imageInput = KTImageInput.getInstance($imageInputElement[0]);
     const $hiddenInput = $(`input[name="${name}_old"]`);
 
-    
+
     // Check if there is an initial image
     const initialImage = $imageInputElement.data("initial-image");
     const $imageWrapper = $imageInputElement.find(".image-input-wrapper");
@@ -176,5 +176,26 @@ function handleImageInput(id, name) {
         if ($hiddenInput.length) {
             $hiddenInput.val("0");
         }
+    });
+}
+
+function selectDeselectAll(selectAllBtn, deselectAllBtn, selectElement) {
+    selectAllBtn.on('click', function () {
+        $(selectElement).select2('destroy');
+        $(selectElement).select2();
+        let allValues = $(`${selectElement} option`).map(
+            function () {
+                return $(this).val();
+            }).get().filter(function (value) {
+                return value !== '';
+            });
+        $(selectElement).val(allValues).trigger(
+            'change');
+    });
+
+    deselectAllBtn.on('click', function () {
+        $(selectElement).select2('destroy');
+        $(selectElement).select2();
+        $(selectElement).val(null).trigger('change');
     });
 }

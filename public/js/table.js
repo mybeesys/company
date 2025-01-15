@@ -5,12 +5,6 @@ pdfMake.fonts = {
         italics: 'ARIALI.TTF',
         bolditalics: 'ARIALBI.TTF'
     },
-    Amiri: {
-        normal: 'Amiri-Regular.ttf',
-        bold: 'Amiri-Bold.ttf',
-        italics: 'Amiri-Italic.ttf',
-        bolditalics: 'Amiri-BoldItalic.ttf'
-    }
 };
 
 $('#kt_app_sidebar_toggle').on('click', function () {
@@ -148,7 +142,11 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
     });
 };
 
-function handleSearchDatatable() {
+function handleSearchDatatable(pageDataTable) {
+    if (pageDataTable) {
+        dataTable = pageDataTable;
+    }
+    
     const filterSearch = $('[data-kt-filter="search"]');
     filterSearch.on('keyup', function (e) {
         dataTable.search(e.target.value).draw();
