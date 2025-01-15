@@ -1,4 +1,4 @@
-@props(['notification_setting', 'employees', 'notification_name', 'variables', 'receiver_hint' => null, 'fields'])
+@props(['sms_notification_setting', 'employees', 'notification_name', 'variables', 'receiver_hint' => null, 'fields'])
 <x-form.form-card class="mb-15 shadow" :title="__('general::general.sms_notification')" :collapsible="true" id="{{ $notification_name }}_sms_notification"
     headerClass="{{ $notification_name }}_sms_notification_active_field">
     <x-slot:header>
@@ -19,14 +19,14 @@
             <label for="{{ $notification_name }}_sms_notification_body" class="form-label">@lang('general::general.body_ar')
             </label>
             <textarea name="{{ $notification_name }}_sms_notification_body_ar" class="form-control form-control form-control-solid"
-                data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_sms_notification_body_ar'] ?? null }}</textarea>
+                data-kt-autosize="true">{{ $sms_notification_setting->template[$notification_name . '_sms_notification_body_ar'] ?? null }}</textarea>
         </x-form.input-div>
 
         <x-form.input-div class="mb-10 w-100 px-2">
             <label for="{{ $notification_name }}_sms_notification_body_en" class="form-label">@lang('general::general.body_en')
             </label>
             <textarea name="{{ $notification_name }}_sms_notification_body_en" class="form-control form-control form-control-solid"
-                data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_sms_notification_body_en'] ?? null }}</textarea>
+                data-kt-autosize="true">{{ $sms_notification_setting->template[$notification_name . '_sms_notification_body_en'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
     @if ($fields['receiver'])
@@ -34,7 +34,7 @@
             <x-form.input-div class="w-100 w-md-50 px-2" :row="false">
                 <x-form.select name="employee_to_receive_{{ $notification_name }}_sms_notification"
                     optionName="translatedName" :label="__('general::general.employees_to_receive_notification')" :options=$employees :errors="$errors"
-                    data_allow_clear="false" :value="$notification_setting?->notifiable->pluck('id')->toArray()" placeholder="{{ __('employee::fields.employee') }}"
+                    data_allow_clear="false" :value="$sms_notification_setting?->notifiable->pluck('id')->toArray()" placeholder="{{ __('employee::fields.employee') }}"
                     required no_default attribute="multiple">
                     <button type="button" id="{{ $notification_name }}_intern_emp_select_all_btn"
                         class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>

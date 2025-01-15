@@ -1,4 +1,4 @@
-@props(['notification_setting', 'employees', 'notification_name', 'variables', 'receiver_hint' => null, 'fields'])
+@props(['internal_notification_setting', 'employees', 'notification_name', 'variables', 'receiver_hint' => null, 'fields'])
 <x-form.form-card class="mb-15 shadow" :title="__('general::general.internal_notification')" :collapsible="true"
     id="{{ $notification_name }}_internal_notification"
     headerClass="{{ $notification_name }}_internal_notification_active_field">
@@ -17,7 +17,7 @@
     </div>
     @if ($fields['title'])
         <x-form.input-div class="mb-10 w-100 px-2">
-            <x-form.input required :errors=$errors :placeholder="__('general::general.title_ar')" :value="$notification_setting->template[$notification_name . '_internal_notification_title_ar'] ?? null"
+            <x-form.input required :errors=$errors :placeholder="__('general::general.title_ar')" :value="$internal_notification_setting->template[$notification_name . '_internal_notification_title_ar'] ?? null"
                 name="{{ $notification_name }}_internal_notification_title_ar" :label="__('general::general.title_ar')" />
         </x-form.input-div>
     @endif
@@ -26,14 +26,14 @@
             <label for="{{ $notification_name }}_internal_notification_body_ar" class="form-label">@lang('general::general.body_ar')
             </label>
             <textarea name="{{ $notification_name }}_internal_notification_body_ar"
-                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_internal_notification_body_ar'] ?? null }}</textarea>
+                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $internal_notification_setting->template[$notification_name . '_internal_notification_body_ar'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
 
 
     @if ($fields['title'])
         <x-form.input-div class="mb-10 w-100 px-2">
-            <x-form.input required :errors=$errors :placeholder="__('general::general.title_en')" :value="$notification_setting->template[$notification_name . '_internal_notification_title_en'] ?? null"
+            <x-form.input required :errors=$errors :placeholder="__('general::general.title_en')" :value="$internal_notification_setting->template[$notification_name . '_internal_notification_title_en'] ?? null"
                 name="{{ $notification_name }}_internal_notification_title_en" :label="__('general::general.title_en')" />
         </x-form.input-div>
     @endif
@@ -42,7 +42,7 @@
             <label for="{{ $notification_name }}_internal_notification_body_en" class="form-label">@lang('general::general.body_en')
             </label>
             <textarea name="{{ $notification_name }}_internal_notification_body_en"
-                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_internal_notification_body_en'] ?? null }}</textarea>
+                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $internal_notification_setting->template[$notification_name . '_internal_notification_body_en'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
 
@@ -51,7 +51,7 @@
             <x-form.input-div class="w-100 w-md-50 px-2" :row="false">
                 <x-form.select name="employee_to_receive_{{ $notification_name }}_internal_notification"
                     optionName="translatedName" :label="__('general::general.employees_to_receive_notification')" :options=$employees :errors="$errors"
-                    data_allow_clear="false" :value="$notification_setting?->notifiable->pluck('id')->toArray()" placeholder="{{ __('employee::fields.employee') }}"
+                    data_allow_clear="false" :value="$internal_notification_setting?->notifiable->pluck('id')->toArray()" placeholder="{{ __('employee::fields.employee') }}"
                     required no_default attribute="multiple">
                     <button type="button" id="{{ $notification_name }}_intern_emp_select_all_btn"
                         class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>
