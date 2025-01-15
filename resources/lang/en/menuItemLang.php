@@ -78,7 +78,7 @@ return [
     'quotations' => 'Quotations',
 
     'customer_receipts' => 'Customer Receipts',
-    'purchase-order' => 'Purchases -order',
+    'purchase-order' => 'Purchases Order',
     'supplier_receipts'=>'Supplier Receipts',
 
 

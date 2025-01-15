@@ -80,7 +80,14 @@ class SellController extends Controller
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::sell.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
+        }
+
+        return view('sales::sell.create', compact('clients', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
 
@@ -90,10 +97,10 @@ class SellController extends Controller
      */
     public function store(Request $request)
     {
-        // return   $validatedData = $this->validateInvoiceRequest($request);
-        //  $request;
-
+        // return $request;
         // try {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
 
         $transactionUtil = new TransactionUtils();
@@ -155,7 +162,15 @@ class SellController extends Controller
         //  if(due)
 
         DB::commit();
-        return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        if ($request->action == 'save_print') {
+            return redirect()->route('transaction-print',$transaction->id)->with('success', __('messages.add_successfully'));
+
+        } else if ($request->action == 'save_add') {
+            return redirect()->route('create-invoice')->with('success', __('messages.add_successfully'));
+
+        } else {
+            return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        }
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
