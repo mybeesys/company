@@ -4,6 +4,11 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Employee\Models\Employee;
+use Modules\General\Models\NotificationSetting;
+use Modules\General\Models\NotificationSettingParameter;
+use Modules\General\Models\PaymentMethod;
+use Modules\General\Models\Tax;
 
 class GeneralController extends Controller
 {
@@ -15,8 +20,17 @@ class GeneralController extends Controller
         return view('general::index');
     }
 
+    public function storeSidebarState(Request $request)
+    {
+        $state = $request->input('state') === "true" ? true : false;
 
-    public function setting()
+        session(['sidebar_minimize' => $state]);
+
+        return response()->json(['success' => true]);
+    }
+
+
+    public function setting(Request $request)
     {
         $cards = [
             [
@@ -29,56 +43,14 @@ class GeneralController extends Controller
                 'route' => 'payment-methods',
                 'icon' => 'fa-solid fa-wallet',
             ],
-
         ];
-        return view('general::settings.index', compact('cards'));
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('general::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('general::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('general::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        $taxesColumns = Tax::getsTaxesColumns();
+        $taxes = Tax::where('is_tax_group', 0)->get();
+        $methodColumns = PaymentMethod::getsPaymentMethodsColumns();
+        $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
+        $notifications_settings = NotificationSetting::all();
+        $notifications_settings_parameters = NotificationSettingParameter::all();
+        return view('general::settings.index', compact('cards', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 }

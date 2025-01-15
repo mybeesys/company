@@ -18,6 +18,8 @@ use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\NotificationSetting;
+use Notification;
 
 class EmployeeController extends Controller
 {

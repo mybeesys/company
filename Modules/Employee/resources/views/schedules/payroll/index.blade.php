@@ -133,39 +133,9 @@
                 window.location.href = baseUrl + queryParams;
             });
 
-            $('#emp-select-all-btn').on('click', function() {
-                $('[name="employee"]').select2('destroy');
-                $('[name="employee"]').select2();
-                let allValues = $('[name="employee"] option').map(function() {
-                    return $(this).val();
-                }).get().filter(function(value) {
-                    return value !== '';
-                });
-                $('[name="employee"]').val(allValues).trigger('change');
-            });
+            selectDeselectAll($('#emp-select-all-btn'), $('#emp-deselect-all-btn'), '[name="employee"]');
+            selectDeselectAll($('#est-select-all-btn'), $('#est-deselect-all-btn'), '[name="establishment"]');
 
-            $('#emp-deselect-all-btn').on('click', function() {
-                $('[name="employee"]').select2('destroy');
-                $('[name="employee"]').select2();
-                $('[name="employee"]').val(null).trigger('change');
-            });
-
-            $('#est-select-all-btn').on('click', function() {
-                $('[name="establishment"]').select2('destroy');
-                $('[name="establishment"]').select2();
-                let allValues = $('[name="establishment"] option').map(function() {
-                    return $(this).val();
-                }).get().filter(function(value) {
-                    return value !== '';
-                });
-                $('[name="establishment"]').val(allValues).trigger('change');
-            });
-
-            $('#est-deselect-all-btn').on('click', function() {
-                $('[name="establishment"]').select2('destroy');
-                $('[name="establishment"]').select2();
-                $('[name="establishment"]').val(null).trigger('change');
-            });
         });
 
         function addPayrollModal() {

@@ -32,9 +32,8 @@
 </head>
 <!--end::Head-->
 <!--begin::Body-->
-
 <body id="kt_app_body" data-kt-app-header-fixed="true" data-kt-app-header-fixed-mobile="true"
-    data-kt-app-sidebar-minimize="on" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
+    data-kt-app-sidebar-minimize="{{ (session('sidebar_minimize') == false ? 'on' : 'off') ?? 'off' }}" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
     data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
     data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
     data-kt-app-aside-push-footer="true" class="app-default">

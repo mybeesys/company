@@ -87,7 +87,7 @@
         <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px position-relative"
             data-kt-menu-trigger="{default: 'click'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="{{ $menu_placement_y }}">
-            <i class="ki-outline ki-notification-on fs-1"></i>
+            <i class="ki-outline ki-notification-on fs-1 notification_btn"></i>
             <span
                 class="position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger w-15px h-15px ms-n4 mt-3 pb-1 read-notification-count">{{ auth()->user()->unreadNotifications->count() }}</span>
         </div>
@@ -96,7 +96,8 @@
             <div class="d-flex flex-column bgi-no-repeat rounded-top"
                 style="background-image:url('/assets/media/misc/menu-header-bg.jpg')">
                 <h3 class="text-white fw-semibold px-5 my-6">@lang('general.notifications')
-                    <span class="fs-8 opacity-75 ps-1 notification-count">({{ auth()->user()->notifications->count() }})</span>
+                    <span
+                        class="fs-8 opacity-75 ps-1 notification-count">({{ auth()->user()->notifications->count() }})</span>
                 </h3>
             </div>
             <div id="kt_topbar_notifications_1" role="tabpanel">
@@ -105,7 +106,7 @@
                         @foreach (auth()->user()->notifications as $notification)
                             @if ($notification->data['body'] && $notification->data['title'])
                                 <div @class([
-                                    "d-flex flex-stack py-4 notification-{$notification->id}",
+                                    "d-flex flex-stack py-4 notification-body notification-{$notification->id}",
                                     'bg-secondary' => !$notification['read_at'],
                                     'rounded-top' => $loop->first,
                                     'rounded-bottom' => $loop->last,
@@ -136,12 +137,6 @@
                                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3 show"
                                         data-kt-menu="true" data-popper-placement="bottom-end"
                                         style="z-index: 107; position: fixed; inset: 0px 0px auto auto; margin: 0px; transform: translate3d(-145.6px, 175.2px, 0px);">
-                                        @if (!$notification['read_at'])
-                                            <div class="menu-item px-3 my-1">
-                                                <a data-id="{{ $notification['id'] }}"
-                                                    class="menu-link px-3 notification-mark-as-read-btn">@lang('general.mark_as_read')</a>
-                                            </div>
-                                        @endif
                                         <div class="menu-item px-3 my-1">
                                             <a data-id="{{ $notification['id'] }}"
                                                 class="menu-link px-3 notification-delete-btn">@lang('employee::fields.delete')</a>
@@ -357,23 +352,27 @@
     </div>
     <!--end::Header menu toggle-->
 </div>
-
+<style>
+    .notification-body {
+        transition: background-color 0.5s ease-out;
+    }
+</style>
 <script>
+    let unreadNotificationCount = "{{ auth()->user()->notifications->count() }}";
     $(document).ready(function() {
         setInterval(fetchNotifications, 120000);
-    });
-
-    $(document).on('click', '.notification-mark-as-read-btn', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        let id = $(this).data('id');
-        $(this).closest('.menu').removeClass('show');
-        ajaxRequest("{{ route('notification-mark-as-read') }}", "POST", {
-            id: id
-        }, false, false).done(function(response) {
-            $(`.notification-${id}`).removeClass('bg-secondary');
-            $('.notification-mark-as-read-btn').hide();
-            $('.read-notification-count').html(response.data);
+        $('.notification_btn').on('click', function(e) {
+            if (unreadNotificationCount > 0) {
+                ajaxRequest("{{ route('notification-mark-all-as-read') }}", "POST", {}, false, false, false)
+                    .done(
+                        function(response) {
+                            $('.notification-mark-as-read-btn').hide();
+                            $('.read-notification-count').html(0);
+                            setTimeout(() => {
+                                $(`.notification-body`).removeClass('bg-secondary');
+                            }, 1000);
+                        });
+            }
         });
     });
 
@@ -439,8 +438,8 @@
                 `;
                     $('#kt_topbar_notifications_1 .scroll-y').append(notificationHtml);
                 });
-
-                $('.read-notification-count').html(response.unread_count);
+                unreadNotificationCount = response.unread_count
+                $('.read-notification-count').html(unreadNotificationCount);
                 $('.notification-count').html(response.all_count)
                 KTMenu.init();
                 KTMenu.createInstances();

@@ -19,14 +19,14 @@ class TaxController extends Controller
 
         if ($request->ajax()) {
 
-            $teaxes = Tax::all();
-            return  Tax::getTaxesTable($teaxes);
+            $taxes = Tax::all();
+            return  Tax::getTaxesTable($taxes);
         }
 
         $columns = Tax::getsTaxesColumns();
-        $teaxes = Tax::where('is_tax_group', 0)->get();
+        $taxes = Tax::where('is_tax_group', 0)->get();
 
-        return view('general::tax.index', compact('columns', 'teaxes'));
+        return view('general::tax.index', compact('columns', 'taxes'));
     }
 
     /**
