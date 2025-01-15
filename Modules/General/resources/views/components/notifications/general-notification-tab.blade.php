@@ -33,15 +33,15 @@
         @csrf
         @if ($internal)
             <x-general::notifications.notification-types-cards.internal-notification :variables="$variables" :employees="$employees"
-                :fields="$internal_fields" :notification_setting="$general_internal_notification_setting" :notification_name="$notification_name" :receiver_hint="$internal_receiver_hint" />
+                :fields="$internal_fields" :internal_notification_setting="$general_internal_notification_setting" :notification_name="$notification_name" :receiver_hint="$internal_receiver_hint" />
         @endif
         @if ($email)
             <x-general::notifications.notification-types-cards.email-notification :variables="$variables" :employees="$employees"
-                :fields="$email_fields" :notification_setting="$general_email_notification_setting" :notification_name="$notification_name" :receiver_hint="$email_receiver_hint" />
+                :fields="$email_fields" :email_notification_setting="$general_email_notification_setting" :notification_name="$notification_name" :receiver_hint="$email_receiver_hint" />
         @endif
         @if ($sms)
             <x-general::notifications.notification-types-cards.sms-notification :variables="$variables" :employees="$employees"
-                :fields="$sms_fields" :notification_setting="$general_sms_notification_setting" :notification_name="$notification_name" :receiver_hint="$sms_receiver_hint" />
+                :fields="$sms_fields" :sms_notification_setting="$general_sms_notification_setting" :notification_name="$notification_name" :receiver_hint="$sms_receiver_hint" />
         @endif
 
         <x-form.form-buttons cancelUrl="{{ url('/employee') }}" id="{{ $notification_name }}_notifications_settings" />
