@@ -39,7 +39,7 @@
 
         {{-- @if ($visibleSubmenuItems->isNotEmpty()) --}}
         <x-sidebar.main-menu :isSubmenuActive=$isSubmenuActive>
-            <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="/* $visibleSubmenuItems->count() */1" />
+            <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="/* $visibleSubmenuItems->count() */ 1" />
             <x-sidebar.submenu>
                 @foreach ($menuItem['subMenu'] as $submenuItem)
                     @if (!array_key_exists('subMenu', $submenuItem))
@@ -82,7 +82,7 @@
 
                         @if ($visibleSubsubmenuItems->isNotEmpty())
                             <x-sidebar.main-menu :isSubmenuActive=$isSubsubmenuActive>
-                                <x-sidebar.menu-link :name="$submenuItem['name']" :subMenuCount="/* $visibleSubsubmenuItems->count() */1" />
+                                <x-sidebar.menu-link :name="$submenuItem['name']" :subMenuCount="/* $visibleSubsubmenuItems->count() */ 1" />
                                 <x-sidebar.submenu>
                                     @foreach ($submenuItem['subMenu'] as $item)
                                         @if (array_key_exists('permission', $item))

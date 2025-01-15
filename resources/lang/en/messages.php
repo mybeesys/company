@@ -35,7 +35,7 @@ return [
     'savedraft' => 'Save as draft',
     'yes' => 'Yes',
     'no' => 'No',
-
+    'required_fields_warning' => 'Please fill in all required fields before proceeding.',
 
 
 

@@ -8,9 +8,7 @@ use Modules\Accounting\database\seeders\AccountingDatabaseSeeder;
 
 use Modules\Establishment\database\seeders\EstablishmentDatabaseSeeder;
 use Modules\Employee\database\seeders\EmployeeDatabaseSeeder;
-use Modules\General\Database\seeders\CountrySeeder;
-// use Modules\General\Database\Seeders\GeneralDatabaseSeeder;
-use Modules\General\Models\Country;
+use Modules\General\database\seeders\GeneralDatabaseSeeder;
 use Modules\Product\database\seeders\DiningTypeSeeder;
 use Modules\Product\database\seeders\ProductDatabaseSeeder;
 
@@ -24,8 +22,7 @@ class TenantDatabaseSeeder extends Seeder
                 ProductDatabaseSeeder::class,
                 DiningTypeSeeder::class,
                 AccountingDatabaseSeeder::class,
-                // GeneralDatabaseSeeder::class,
-                // CountrySeeder::class,
+                GeneralDatabaseSeeder::class
             ]);
     }
 }

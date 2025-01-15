@@ -37,14 +37,14 @@ class PurchasesController extends Controller
         }
 
         $columns = Transaction::getsPurchasesColumns();
-        $poes=Transaction::where('type', 'purchases-order')->get();
+        $poes = Transaction::where('type', 'purchases-order')->get();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_po')->first();
         if (!$Latest_event) {
             $actionUtil = new ActionUtil();
             $Latest_event = $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
         }
-        return view('purchases::purchases.index', compact('columns','Latest_event','poes', 'transaction'));
+        return view('purchases::purchases.index', compact('columns', 'Latest_event', 'poes', 'transaction'));
     }
 
     /**
@@ -68,7 +68,12 @@ class PurchasesController extends Controller
         $taxes = Tax::all();
         $po = false;
         $products = Product::where('active', 1)->take(25)->get();
-        return view('purchases::purchases.create', compact('clients', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_purchases')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
+        }
+        return view('purchases::purchases.create', compact('clients', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
     /**
@@ -76,6 +81,8 @@ class PurchasesController extends Controller
      */
     public function store(Request $request)
     {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
 
         try {
             $transactionUtil = new TransactionUtils();
@@ -132,7 +139,14 @@ class PurchasesController extends Controller
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
-            return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
+
+            if ($request->action == 'save_print') {
+                return redirect()->route('transaction-print', $transaction->id)->with('success', __('messages.add_successfully'));
+            } else if ($request->action == 'save_add') {
+                return redirect()->route('create-purchases-invoice')->with('success', __('messages.add_successfully'));
+            } else {
+                return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
+            }
         } catch (Exception $e) {
             DB::rollBack();
             return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));

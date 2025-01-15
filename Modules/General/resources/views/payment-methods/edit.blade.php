@@ -54,7 +54,7 @@
                         </label>
                         <select class="form-select d-flex form-select-solid" id="tax-list-container-edit" data-placeholder="@lang('messages.select')"
                             name="group_tax[]" multiple>
-                            @foreach ($teaxes as $tax)
+                            @foreach ($taxes as $tax)
                                 <option value="{{ $tax->id }}">
                                     @if (session()->get('locale') == 'ar')
                                         {{ $tax->name }}

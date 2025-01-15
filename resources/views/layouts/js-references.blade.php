@@ -55,4 +55,21 @@
     if ("{{ session('error') }}") {
         toastr.error("{{ session('error') }}");
     }
+
+    $('#kt_app_sidebar_toggle').on('click', function() {
+        $(this).data('kt-app-sidebar-minimize');
+
+        const myTimeout = setTimeout(function() {
+            const sidebarState = $('#kt_app_body').attr('data-kt-app-sidebar-minimize');
+            let status;
+            if (sidebarState) {                
+                status = false;
+            } else {
+                status = true;
+            }
+            ajaxRequest("{{ route('store-sidebar-status') }}", "POST", {
+                state: status
+            }, false, false, false);
+        }, 300);
+    });
 </script>

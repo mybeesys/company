@@ -26,7 +26,7 @@ return [
     'actions' => 'العمليات',
     'add_successfully' => 'تمت الإضافة بنجاح',
     'updated_successfully' => 'تم التعديل بنجاح',
-    'deleted_successfully'=>'تم الحذف بنجاح',
+    'deleted_successfully' => 'تم الحذف بنجاح',
     'something_went_wrong' => 'لقد حدث خطأ ما',
     'ref_number already exists' => 'الرقم المرجعي موجود مسبفاً',
     'save&add' => 'حفظ وإضافة اخر',
@@ -34,9 +34,9 @@ return [
     'previous' => 'السابق',
     'next' => 'التالي',
     'savedraft' => 'حفظ كـ مسودة',
-    'yes'=>'نعم',
-    'no'=>'لا',
-
+    'yes' => 'نعم',
+    'no' => 'لا',
+    'required_fields_warning' => 'يرجى تعبئة جميع الحقول الإلزامية قبل المتابعة.',
 
 
 

@@ -101,7 +101,7 @@
                                         value="{{ $line->qyt }}">
 
 
-                                    <select id="unit" required
+                                    <select id="unit" 
                                         class="form-select form-select-solid select-2 d-inline-block unit"
                                         name="products[{{ $index }}][unit]"
                                         style="width: 100px; display: inline-block;">
