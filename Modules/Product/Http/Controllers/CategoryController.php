@@ -72,9 +72,12 @@ class CategoryController extends Controller
 
         if(!isset($validated['id']))
         {
-            $category = Category::where('order', $validated['order'])->first();
-            if($category != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $category = Category::where('order', $validated['order'])->first();
+                if($category != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $category = Category::where('name_ar', $validated['name_ar'])->first();
             if($category != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
@@ -85,9 +88,12 @@ class CategoryController extends Controller
         }
          else
          {
-            $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-            if($categories != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
+                if($categories != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $categories = Category::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
             if($categories != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);

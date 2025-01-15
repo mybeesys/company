@@ -13,6 +13,7 @@ use Modules\Inventory\Http\Controllers\RMAController;
 use Modules\Inventory\Http\Controllers\TransferController;
 use Modules\Inventory\Http\Controllers\WarehouseController;
 use Modules\Inventory\Http\Controllers\WasteController;
+use Modules\Inventory\Http\Controllers\Import\OpenInventoryImportController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -59,5 +60,8 @@ Route::middleware([
     Route::post('/inventoryOperation/store/{type}', [InventoryOperationController::class, 'store'])->name('inventoryOperationStore');
     Route::get('warehouselist', [WarehouseController::class, 'getWarehouselist'])->name('warehouselist');
     Route::resource('warehouse', WarehouseController::class)->names('warehouse');
-    
+    Route::post('/openInventoryImport/upload', [OpenInventoryImportController::class, 'upload']);
+    Route::post('/openInventoryImport/readData', [OpenInventoryImportController::class, 'readData']);
+    Route::get('/openInventoryImport/import', [OpenInventoryImportController::class, 'import'])->name('openInventoryImport.import');
+
 });

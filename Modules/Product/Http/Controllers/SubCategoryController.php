@@ -90,9 +90,12 @@ class SubCategoryController extends Controller
 
         if(!isset($validated['id']))
         {
-            $subcategory = $this->findSubCategory($validated, 'order');
-            if($subcategory != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $subcategory = $this->findSubCategory($validated, 'order');
+                if($subcategory != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
             if($subcategory != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
@@ -104,9 +107,12 @@ class SubCategoryController extends Controller
         }
         else
         {
-            $subcategory = $this->findSubCategory($validated, 'order');
-            if($subcategory != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $subcategory = $this->findSubCategory($validated, 'order');
+                if($subcategory != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
             if($subcategory != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);

@@ -130,7 +130,7 @@ Route::middleware([
     Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
     
 
-    Route::post('/uploadProduct', [ProductImportController::class, 'upload']);
-    Route::post('/readData', [ProductImportController::class, 'readData']);
-    Route::get('/productImport/import', [ProductImportController::class, 'import'])->name('productImport.import');
+    Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
+    Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
+    Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
 });

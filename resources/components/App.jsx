@@ -31,7 +31,7 @@ import WarehouseTree from './Inventory/warehouse/WarehouseTree';
 import ProductComponent1 from './product/ProductComponent1';
 import PriceTierTree from './priceTier/warehouse/PriceTierTree';
 import ModifierComponent from './modifier/ModifierComponent';
-import ProductImport from './product/ProductImport';
+import DataImport from './comp/DataImport';
 
 
 const App = ({nodeType, dir}) =>{
@@ -71,7 +71,8 @@ const App = ({nodeType, dir}) =>{
     transferedit : <TransferDetail translations={translations} dir={dir}/>,
     warehouse : <WarehouseTree translations={translations} dir={dir}/>,
     priceTier : <PriceTierTree translations={translations} dir={dir}/>,
-    importProduct: <ProductImport translations={translations} dir={dir}/>
+    importProduct: <DataImport translations={translations} dir={dir}/>,
+    openInventoryImport: <DataImport translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

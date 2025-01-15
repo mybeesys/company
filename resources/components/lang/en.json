@@ -246,6 +246,8 @@
   "priceWithTax" : "Price With Tax",
   "forSell" : "For Sell",
   "import1" : "Import",
-  "productImport" : "Products Import",
-  "downloadTemplate" : "Download Template"
+  "importProduct" : "Products Import",
+  "downloadTemplate" : "Download Template",
+  "openInventory" : "Open Inventory",
+  "openInventoryImport" : "Open Inventory Import"
 }

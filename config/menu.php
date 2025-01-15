@@ -56,12 +56,12 @@ return [
                 'permission' => '',
 
             ],
-            [
-                'name' => 'linkedCombo',
-                'url' => 'linkedCombo',
-                'permission' => '',
+            // [
+            //     'name' => 'linkedCombo',
+            //     'url' => 'linkedCombo',
+            //     'permission' => '',
 
-            ],
+            // ],
             [
                 'name' => 'import',
                 'url' => 'productImport/import',
@@ -82,29 +82,29 @@ return [
                 'url' => 'productInventory',
                 'permission' => 'inventory.product.show',
             ],
-            [
-                'name' => 'po',
-                'url' => 'purchaseOrder',
-                'permission' => 'inventory.purchaseOrder.show',
-            ],
+            // [
+            //     'name' => 'po',
+            //     'url' => 'purchaseOrder',
+            //     'permission' => 'inventory.purchaseOrder.show',
+            // ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
                 'permission' => 'inventory.prep.show',
             ],
-            [
-                'name' => 'rma',
-                'url' => 'rma',
-                'permission' => 'inventory.rma.show',
-            ],
+            // [
+            //     'name' => 'rma',
+            //     'url' => 'rma',
+            //     'permission' => 'inventory.rma.show',
+            // ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
                 'permission' => 'inventory.waste.show',
             ],
             [
-                'name' => 'transfer',
-                'url' => 'transfer',
+                'name' => 'import',
+                'url' => 'openInventoryImport/import',
                 'permission' => 'inventory.transfer.show',
             ]
         ]
@@ -292,7 +292,7 @@ return [
     ],
     [
         'name' => 'setting',
-        'url' => 'general-setting',
+        'url' => '',
         'icon' => 'fas fa-cog',
         'permission' => '',
         'subMenu' => [
