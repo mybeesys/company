@@ -94,24 +94,50 @@
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>
             <div class="row">
-                <div class="col-sm-3">
-                    <div class="btn-group dropend">
-                        <button type="button" style="border-radius: 6px;" class="btn btn-primary dropdown-toggle"
+                <div class="col-sm-4">
+                    <div class="btn-group">
+                        @if ($Latest_event->action == 'save')
+                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
+                                type="submit" href="#" data-action="save" data-status="final">@lang('messages.save')
+                            </a>
+                        @elseif ($Latest_event->action == 'save_add')
+                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
+                                type="submit" href="#" data-action="save_add" data-status="final">@lang('messages.save&add')
+                            </a>
+                        @else
+                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
+                                type="submit" href="#" data-action="save_print"
+                                data-status="final">@lang('messages.save&print')
+                            </a>
+                        @endif
+
+
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split "
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            @lang('messages.save')
+                            <span class="visually-hidden">Toggle Dropdown</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-left" role="menu"
-                            style="width: max-content; padding: 10px;">
-                            <li class="" style="text-align: justify;">
-                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
-                                    data-status="final">@lang('messages.save&add')</a>
+
+                        <ul class="dropdown-menu p-5">
+                            <li>
+                                <a class="dropdown-item" type="submit" href="#" data-action="save"
+                                    data-status="final">@lang('messages.save')
+                                </a>
                             </li>
-                            <li class="" style="text-align: justify;">
+
+                            <li>
+                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
+                                    data-status="final">@lang('messages.save&add')
+                                </a>
+                            </li>
+
+                            <li>
                                 <a class="dropdown-item" href="#" data-action="save_print"
                                     data-status="final">@lang('messages.save&print')</a>
+
                             </li>
                         </ul>
                     </div>
+
 
 
                     <input type="hidden" name="status" value="draft" />
@@ -213,7 +239,7 @@
                             <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
                         </td>
                         <td style="white-space: nowrap;"><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px; display: inline-block;">
-                            <select id="unit" required
+                            <select id="unit"
                                                 class="form-select form-select-solid select-2 d-inline-block unit"
                                                 name="products[${salesRowIndex}][unit]" style="width: 100px; display: inline-block;">
                                                 <option value="">@lang('sales::lang.unit')</option>
@@ -276,7 +302,23 @@
         $(document).on('click', '.dropdown-item', function(e) {
             e.preventDefault();
             let action = $(this).data('action');
+            let isValid = true;
+            let requiredFields = $('#sell_save').find('[required]');
+            console.log(requiredFields);
 
+            requiredFields.each(function() {
+                if (!$(this).val()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            if (!isValid) {
+                const message = "@lang('messages.required_fields_warning')";
+                toastr.warning(message);
+                return;
+            }
             if (action === 'save_add') {
                 $('<input>').attr({
                     type: 'hidden',
@@ -288,6 +330,12 @@
                     type: 'hidden',
                     name: 'action',
                     value: 'save_print'
+                }).appendTo('#sell_save');
+            } else if (action === 'save') {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'action',
+                    value: 'save'
                 }).appendTo('#sell_save');
             }
             $('<input>').attr({
@@ -339,7 +387,9 @@
                 unitSelect.append(`<option value="">@lang('sales::lang.unit')</option>`);
                 units.forEach(unit => {
                     unitSelect.append(
-                        `<option value="${unit.transfer}">${unit.name_ar || unit.unit1}</option>`
+                        `<option value="${unit.transfer}" ${unit.primary ? "selected" : ""}>
+                        ${unit.name_ar || unit.unit1}
+                        </option>`
                     );
                 });
 
@@ -453,12 +503,15 @@
                     $('#lable-account_id').addClass('required');
                     $('#account_id').attr('required', 'required');
 
+                    $('#cash_account').removeAttr('required');
 
                 } else {
 
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();
+                    $('#cash_account').attr('required', 'required');
+                    $('#account_id').removeAttr('required');
 
                 }
 

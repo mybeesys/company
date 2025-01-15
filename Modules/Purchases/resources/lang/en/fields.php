@@ -4,6 +4,8 @@ return [
 
     'id' => 'id',
     'client' => 'Client',
+    'supplier' => 'Supplier',
+
     'mobile_number' => 'Mobile Number',
     'email' => 'Email',
     'commercial_register' => 'Commercial Register',
@@ -33,6 +35,8 @@ return [
     'date' => 'Date',
     'select_transactions' => ' Select Transactions',
     'transaction_ref_no' => 'Invoice ٌRef No',
+    'select_supplier' => 'Select supplier',
+
 
 
 ];
