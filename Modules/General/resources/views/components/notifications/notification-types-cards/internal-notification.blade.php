@@ -17,7 +17,7 @@
     </div>
     @if ($fields['title'])
         <x-form.input-div class="mb-10 w-100 px-2">
-            <x-form.input required :errors=$errors :placeholder="__('general::general.title_ar')" :value='$notification_setting->template["{$notification_name}_internal_notification_title_ar"] ?? null'
+            <x-form.input required :errors=$errors :placeholder="__('general::general.title_ar')" :value="$notification_setting->template[$notification_name . '_internal_notification_title_ar'] ?? null"
                 name="{{ $notification_name }}_internal_notification_title_ar" :label="__('general::general.title_ar')" />
         </x-form.input-div>
     @endif
@@ -26,14 +26,14 @@
             <label for="{{ $notification_name }}_internal_notification_body_ar" class="form-label">@lang('general::general.body_ar')
             </label>
             <textarea name="{{ $notification_name }}_internal_notification_body_ar"
-                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template["{$notification_name}_internal_notification_body_ar"] ?? null }}</textarea>
+                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_internal_notification_body_ar'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
 
 
     @if ($fields['title'])
         <x-form.input-div class="mb-10 w-100 px-2">
-            <x-form.input required :errors=$errors :placeholder="__('general::general.title_en')" :value='$notification_setting->template["{$notification_name}_internal_notification_title_en"] ?? null'
+            <x-form.input required :errors=$errors :placeholder="__('general::general.title_en')" :value="$notification_setting->template[$notification_name . '_internal_notification_title_en'] ?? null"
                 name="{{ $notification_name }}_internal_notification_title_en" :label="__('general::general.title_en')" />
         </x-form.input-div>
     @endif
@@ -42,7 +42,7 @@
             <label for="{{ $notification_name }}_internal_notification_body_en" class="form-label">@lang('general::general.body_en')
             </label>
             <textarea name="{{ $notification_name }}_internal_notification_body_en"
-                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template["{$notification_name}_internal_notification_body_en"] ?? null }}</textarea>
+                class="form-control form-control form-control-solid" data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_internal_notification_body_en'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
 

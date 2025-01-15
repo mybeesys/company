@@ -19,14 +19,14 @@
             <label for="{{ $notification_name }}_sms_notification_body" class="form-label">@lang('general::general.body_ar')
             </label>
             <textarea name="{{ $notification_name }}_sms_notification_body_ar" class="form-control form-control form-control-solid"
-                data-kt-autosize="true">{{ $notification_setting->template["{$notification_name}_sms_notification_body_ar"] ?? null }}</textarea>
+                data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_sms_notification_body_ar'] ?? null }}</textarea>
         </x-form.input-div>
 
         <x-form.input-div class="mb-10 w-100 px-2">
             <label for="{{ $notification_name }}_sms_notification_body_en" class="form-label">@lang('general::general.body_en')
             </label>
             <textarea name="{{ $notification_name }}_sms_notification_body_en" class="form-control form-control form-control-solid"
-                data-kt-autosize="true">{{ $notification_setting->template["{$notification_name}_sms_notification_body_en"] ?? null }}</textarea>
+                data-kt-autosize="true">{{ $notification_setting->template[$notification_name . '_sms_notification_body_en'] ?? null }}</textarea>
         </x-form.input-div>
     @endif
     @if ($fields['receiver'])
