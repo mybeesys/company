@@ -40,7 +40,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
   }
 
   const openTransactionModel = (data) => {
-    axios.get(`/listTransactions?typ=${data.type}&id=${data.id}`).then(respponse => setProductTransaction(respponse.data));
+    axios.get(`/listTransactions?est=${data.establishment_id}&typ=${data.type}&id=${data.id}`).then(respponse => setProductTransaction(respponse.data));
     setIsTransactionModalVisible(true);
   }
 

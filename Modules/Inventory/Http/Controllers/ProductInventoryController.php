@@ -62,6 +62,7 @@ class ProductInventoryController extends Controller
             $productInventory->addToFillable('qty');
             $pp = $productInventory->toArray();
             $pp["type"] = "product";
+            $pp["establishment_id"] = $establishment["id"];
             $children[] = $pp;
         }
         $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use($establishment) {
@@ -72,7 +73,8 @@ class ProductInventoryController extends Controller
             $modifierInventory->addToFillable('inventory');
             $modifierInventory->addToFillable('qty');
             $pp = $modifierInventory->toArray();
-            $pp["type"] = "product";
+            $pp["type"] = "modifier";
+            $pp["establishment_id"] = $establishment["id"];
             $children[] = $pp;
         }
         $establishment["children"] = $children;
@@ -82,12 +84,15 @@ class ProductInventoryController extends Controller
     public function listTransactions(Request $request){
         $typ = $request->query('typ');  // Get 'query' parameter
         $id = $request->query('id', '');
+        $est_id = $request->query('est', '');
         $sellLines = null;
         if($typ =='product')
             $sellLines = TransactionSellLine::with(['product', 'unitTransfer', 'transaction'])->where('product_id', '=', $id);
         else
             $sellLines = TransactionSellLine::with(['modifier', 'unitTransfer', 'transaction'])->where('modifier_id', '=', $id);
-        $sellLines = $sellLines->get();
+        $sellLines = $sellLines->whereHas('transaction', function ($query) use ($est_id) {
+            $query->where('establishment_id', $est_id);
+        })->get();
         $prepsForSellLine = Prep::whereIn('operation_id', $sellLines->pluck('transaction_id')->toArray())->get();
         $result1 = array_map(function($item) use($typ, $prepsForSellLine) {
             $newItem = $item;
@@ -126,7 +131,9 @@ class ProductInventoryController extends Controller
                         }]);
                 }])
             ->where('modifier_id', '=', $id);
-        $preps = $preps->get();
+        $preps = $preps->whereHas('transaction', function ($query) use ($est_id) {
+            $query->where('establishment_id', $est_id);
+        })->get();
         $result2 = array_map(function($item) use($typ) {
             $newItem = $item;
             $newItem["type"] = $item["transaction"]["type"];
