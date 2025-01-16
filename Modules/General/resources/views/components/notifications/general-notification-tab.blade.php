@@ -97,18 +97,18 @@
             $('#{{ $notification_name }}_email_notification').collapse('toggle');
             $('#{{ $notification_name }}_email_notification_active').prop('checked', true).val(1);
         } else {
-            $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_title_ar"], [name="{{ $notification_name }}_email_notification_title_en"]')
+            $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_subject_ar"], [name="{{ $notification_name }}_email_notification_subject_en"]')
                 .prop('required', false);
         }
 
         $('.{{ $notification_name }}_email_notification_active_field').on('click', function(e) {
             if ($(this).attr("aria-expanded") == 'true') {
                 $('#{{ $notification_name }}_email_notification_active').prop('checked', true).val(1);
-                $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_title_ar"], [name="{{ $notification_name }}_email_notification_title_en"]')
+                $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_subject_ar"], [name="{{ $notification_name }}_email_notification_subject_en"]')
                     .prop('required', true);
             } else {
                 $('#{{ $notification_name }}_email_notification_active').prop('checked', false).val(0);
-                $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_title_ar"], [name="{{ $notification_name }}_email_notification_title_en"]')
+                $('[name="employee_to_receive_{{ $notification_name }}_email_notification"], [name="{{ $notification_name }}_email_notification_subject_ar"], [name="{{ $notification_name }}_email_notification_subject_en"]')
                     .prop('required', false);
             }
         });

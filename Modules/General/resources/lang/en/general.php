@@ -43,4 +43,5 @@ return [
     'created_employee_receiver_hint' => 'This information will be sent to the newly added employee, in addition to the employees who will be specified in this field. You can leave this field empty',
     'this_email_was_sent_to' => 'This email was sent to',
     'all_rights_reserved' => 'All rights reserved',
+    'suppliers_notifications' => 'Suppliers notifications',
 ];
