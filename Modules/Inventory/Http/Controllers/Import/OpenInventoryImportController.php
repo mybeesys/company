@@ -64,7 +64,7 @@ class OpenInventoryImportController extends Controller
             $import= null;
             try {
                 
-                DB::transaction(function () use($tenantId, $uuid) {
+                DB::transaction(function () use($tenantId, $uuid, &$openInventoryImport, &$import) {
                     $import = new OpenInventoryTransactionImport();
 
                     // Perform the import
@@ -78,7 +78,7 @@ class OpenInventoryImportController extends Controller
                 ], 200);
             } catch (Exception $e) {
                 // If an exception was thrown, return the error message and details
-                $errors = $openInventoryImport!= null ? $openInventoryImport->getErrors() : 
+                $errors = $openInventoryImport!= null ? $openInventoryImport?->getErrors() : 
                             ($import != null ? $import->getErrors() : []);
 
                 return response()->json([
