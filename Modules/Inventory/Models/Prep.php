@@ -5,6 +5,7 @@ namespace Modules\Inventory\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\General\Models\Transaction;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 
@@ -66,6 +67,11 @@ class Prep extends Model
     public function modifier()
     {
         return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'operation_id', 'id');
     }
 
     public function getProductAttribute()

@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Exception;
-use Modules\General\Models\Transaction;
 use Illuminate\Support\Facades\DB;
-use Modules\Establishment\Models\Establishment;
 
 class OpenInventoryImportController extends Controller
 {

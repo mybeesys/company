@@ -5,6 +5,7 @@ namespace Modules\General\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -21,6 +22,10 @@ class Transaction extends Model
         return $this->belongsTo(Contact::class, 'contact_id');
     }
 
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id');
+    }
 
     public function sell_lines()
     {

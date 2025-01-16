@@ -249,5 +249,6 @@
   "importProduct" : "Products Import",
   "downloadTemplate" : "Download Template",
   "openInventory" : "Open Inventory",
-  "openInventoryImport" : "Open Inventory Import"
+  "openInventoryImport" : "Open Inventory Import",
+  "transactions" : "Transactions"
 }

@@ -253,5 +253,6 @@
   "importProduct" : "استيراد المنتجات",
   "downloadTemplate" : "تحميل النموذج",
   "openInventory" : "الرصيد الإفتتاحي",
-  "openInventoryImport" : "استيراد الرصيد الإفتتاحي"
+  "openInventoryImport" : "استيراد الرصيد الإفتتاحي",
+  "transactions" : "الحركات"
 }

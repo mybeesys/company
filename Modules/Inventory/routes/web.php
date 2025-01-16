@@ -43,6 +43,7 @@ Route::middleware([
     
     Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
     Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
+    Route::get('listTransactions', [ProductInventoryController::class, 'listTransactions']);
     Route::resource('ingredientInventory', IngredientInventoryController::class)->names('ingredientInventory');
     Route::get('ingredientInventoryList', [IngredientInventoryController::class, 'getIngredientInventories'])->name('ingredientInventoryList');
     Route::get('getIngredientInventory/{id}', [IngredientInventoryController::class, 'getIngredientInventory']);

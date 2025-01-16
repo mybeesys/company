@@ -5,9 +5,10 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
 use Modules\Establishment\Models\Establishment;
-use Modules\Product\Models\EstablishmentProduct;
+use Modules\General\Models\TransactionSellLine;
+use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
@@ -76,6 +77,86 @@ class ProductInventoryController extends Controller
         }
         $establishment["children"] = $children;
         return $establishment;
+    }
+
+    public function listTransactions(Request $request){
+        $typ = $request->query('typ');  // Get 'query' parameter
+        $id = $request->query('id', '');
+        $sellLines = null;
+        if($typ =='product')
+            $sellLines = TransactionSellLine::with(['product', 'unitTransfer', 'transaction'])->where('product_id', '=', $id);
+        else
+            $sellLines = TransactionSellLine::with(['modifier', 'unitTransfer', 'transaction'])->where('modifier_id', '=', $id);
+        $sellLines = $sellLines->get();
+        $prepsForSellLine = Prep::whereIn('operation_id', $sellLines->pluck('transaction_id')->toArray())->get();
+        $result1 = array_map(function($item) use($typ, $prepsForSellLine) {
+            $newItem = $item;
+            $newItem["type"] = $item["transaction"]["type"];
+            $newItem["product"] = $typ =='product' ? $item["product"] : $item["modifier"];
+            $newItem["transaction_date"] = $item["transaction"]["transaction_date"];
+            $newItem["transaction_id"] = $item["transaction_id"];
+            if($item["transaction"]["type"] == 'PREP'){
+                $prep = $prepsForSellLine->first(function($p) use($item) {
+                    return $p['operation_id'] == $item["transaction"]["id"];
+                });
+                $newItem["qty"] = $item["qyt"] * $prep->times;
+                $newItem["signed_qty"] =  -1 * $item["qyt"] * $prep->times;
+            }
+            else{
+                $newItem["qty"] =  $item["qyt"];
+                $newItem["signed_qty"] =  $item["qyt"];
+            }
+            return $newItem;
+        }, $sellLines->toArray());
+        
+        $preps = null;
+        if($typ =='product')
+            $preps = Prep::with('transaction')
+                    ->with(['preped'=>function($query){
+                        $query->with(['unitTransfers'=>function($query1){
+                            $query1->whereNull('unit2');
+                        }]);
+                }])
+                ->where('product_id', '=', $id);
+        else
+            $preps = Prep::with('transaction')
+                    ->with(['modifier'=>function($query){
+                        $query->with(['unitTransfers'=>function($query1){
+                            $query1->whereNull('unit2');
+                        }]);
+                }])
+            ->where('modifier_id', '=', $id);
+        $preps = $preps->get();
+        $result2 = array_map(function($item) use($typ) {
+            $newItem = $item;
+            $newItem["type"] = $item["transaction"]["type"];
+            $newItem["product"] = $typ =='product' ? $item["preped"] : $item["modifier"];
+            $newItem["transaction_date"] = $item["transaction"]["transaction_date"];
+            $newItem["transaction_id"] = $item["operation_id"];
+            $newItem["qty"] =  $item["times"];
+            $newItem["signed_qty"] =  $item["times"];
+            $newItem["unit_transfer"] =  $typ =='product' ? 
+                    (count($item["preped"]["unit_transfers"]) > 0 ? $item["preped"]["unit_transfers"][0] : '') :
+                    (count($item["modifier"]["unit_transfers"]) > 0 ? $item["modifier"]["unit_transfers"][0] : '');
+            return $newItem;
+        }, array: $preps->toArray());
+        $result = array_merge($result1, $result2);
+        usort($result, function($a, $b) {
+            return $a['transaction_date'] === $b['transaction_date']
+                    ? $a['transaction_id'] <=> $b['transaction_id']
+                    : $a['transaction_date'] <=> $b['transaction_date'];  // Ascending order
+        });
+        $updatedResult = collect($result)->map(function ($item) use (&$subtotal) {
+            $subtotal += $item['signed_qty'];
+            $item['sub_total'] = $subtotal;
+            return $item;
+        })->toArray();
+        usort($updatedResult, function($a, $b) {
+            return $b['transaction_date'] === $a['transaction_date']
+            ? $b['transaction_id'] <=> $a['transaction_id']
+            : $b['transaction_date'] <=> $a['transaction_date'];  // Descending order
+        });
+        return response()->json($updatedResult);
     }
 
     public function getProductInventories(Request $request)
