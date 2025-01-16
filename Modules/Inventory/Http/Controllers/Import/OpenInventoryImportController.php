@@ -42,7 +42,8 @@ class OpenInventoryImportController extends Controller
         return response()->json($mappedData);
     }
     
-public function upload(Request $request)
+
+    public function upload(Request $request)
     {
         // Validate that the request contains a file
         $request->validate([
@@ -77,7 +78,8 @@ public function upload(Request $request)
                 ], 200);
             } catch (Exception $e) {
                 // If an exception was thrown, return the error message and details
-                $errors = $openInventoryImport?->getErrors() ?? $import?->getErrors() ?? [];
+                $errors = $openInventoryImport!= null ? $openInventoryImport->getErrors() : 
+                            ($import != null ? $import->getErrors() : []);
 
                 return response()->json([
                     'message' => 'Error',
