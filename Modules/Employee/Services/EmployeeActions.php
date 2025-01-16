@@ -97,7 +97,7 @@ class EmployeeActions
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
 
         $notification_setting = NotificationSetting::where('type', 'created_emp')
-            ->where('sendType', 'internal')
+            ->where('sendType', 'email')
             ->first();
         if ($notification_setting?->is_active) {
             $notifiable_Employees = Employee::whereIn('id', $notification_setting->notifiable->pluck('id')->toArray())->get();

@@ -163,7 +163,10 @@
 
 
         $(document).ready(function() {
-            @foreach (['new_sell', 'created_emp', 'payment_received'] as $notification_name)
+            @php
+                $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order'];
+            @endphp
+            @foreach ($notification_names as $notification_name)
                 handleInternalNotification_{{ $notification_name }}();
                 handleSMSNotification_{{ $notification_name }}();
                 handleEmailNotification_{{ $notification_name }}();
