@@ -96,15 +96,15 @@ class EmployeeActions
 
         !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
 
-        // $notification_setting = NotificationSetting::where('type', 'created_emp')
-        //     ->where('sendType', 'internal')
-        //     ->first();
-        // if ($notification_setting?->is_active) {
-        //     $notifiable_Employees = Employee::whereIn('id', $notification_setting->notifiable->pluck('id')->toArray())->get();
-        //     foreach ($notifiable_Employees as $notifiable_Employee) {
-        //         $notifiable_Employee->notify(new EmployeeCreated($employee));
-        //     }
-        // }
+        $notification_setting = NotificationSetting::where('type', 'created_emp')
+            ->where('sendType', 'internal')
+            ->first();
+        if ($notification_setting?->is_active) {
+            $notifiable_Employees = Employee::whereIn('id', $notification_setting->notifiable->pluck('id')->toArray())->get();
+            foreach ($notifiable_Employees as $notifiable_Employee) {
+                $notifiable_Employee->notify(new EmployeeCreated($employee, $this->request->get('password')));
+            }
+        }
     }
 
     public function update($employee)

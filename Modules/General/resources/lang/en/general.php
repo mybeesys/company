@@ -40,5 +40,7 @@ return [
     'payments_notification' => 'Payments notification',
     'new_booking_notification' => 'New booking notification',
     'new_quotation_notification' => 'New quotation notification',
-    'created_employee_receiver_hint' => 'This information will be sent to the newly added employee, in addition to the employees who will be specified in this field. You can leave this field empty'
+    'created_employee_receiver_hint' => 'This information will be sent to the newly added employee, in addition to the employees who will be specified in this field. You can leave this field empty',
+    'this_email_was_sent_to' => 'This email was sent to',
+    'all_rights_reserved' => 'All rights reserved',
 ];

@@ -163,11 +163,14 @@
                 '[name="employee_to_receive_{{ $notification_name }}_email_notification"]'
             );
         }
-
         if ($('#{{ $notification_name }}_email_notification_body_ar')[0]) {
             ClassicEditor
                 .create($('#{{ $notification_name }}_email_notification_body_ar')[0], {
-                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo'],
+                    language: {
+                        content: 'ar',
+                        ui: 'ar'
+                    }
                 })
                 .catch(error => {
                     console.error(error);
@@ -176,7 +179,11 @@
         if ($('#{{ $notification_name }}_email_notification_body_en')[0]) {
             ClassicEditor
                 .create($('#{{ $notification_name }}_email_notification_body_en')[0], {
-                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo'],
+                    language: {
+                        content: 'en',
+                        ui: 'en'
+                    }
                 })
                 .catch(error => {
                     console.error(error);
