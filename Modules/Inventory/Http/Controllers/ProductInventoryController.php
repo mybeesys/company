@@ -104,7 +104,7 @@ class ProductInventoryController extends Controller
             }
             else{
                 $newItem["qty"] =  $item["qyt"];
-                $newItem["signed_qty"] =  in_array($newItem["type"], ['purchase','PO0']) ? $item["qyt"] : -1 * $item["qyt"];
+                $newItem["signed_qty"] =  in_array($newItem["type"], ['purchases-order','PO0']) ? $item["qyt"] : -1 * $item["qyt"];
             }
             return $newItem;
         }, $sellLines->toArray());
