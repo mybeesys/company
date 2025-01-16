@@ -125,9 +125,9 @@
 
             <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
 
-            <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters"/>
+            <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
-            <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters"/>
+            <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
         </div>
         @include('general::tax.create')

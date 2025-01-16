@@ -36,9 +36,9 @@
                     optionName="translatedName" :label="__('general::general.employees_to_receive_notification')" :options=$employees :errors="$errors"
                     data_allow_clear="false" :value="$sms_notification_setting?->notifiable->pluck('id')->toArray()" placeholder="{{ __('employee::fields.employee') }}"
                     required no_default attribute="multiple">
-                    <button type="button" id="{{ $notification_name }}_intern_emp_select_all_btn"
+                    <button type="button" id="{{ $notification_name }}_sms_emp_select_all_btn"
                         class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>
-                    <button type="button" id="{{ $notification_name }}_intern_emp_deselect_all_btn"
+                    <button type="button" id="{{ $notification_name }}_sms_emp_deselect_all_btn"
                         class="btn btn-secondary px-4 py-1 fs-7 mb-1">{{ __('employee::general.deselect_all') }}</button>
                     @if ($receiver_hint)
                         <x-form.field-hint :hint="$receiver_hint" />

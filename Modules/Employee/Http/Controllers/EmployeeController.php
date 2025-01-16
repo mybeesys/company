@@ -67,6 +67,7 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
+        auth()->user()->notify(new EmployeeCreated(Employee::first(), '123456'));
         $employees = Employee::with('permissions:id,name')->
             select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {

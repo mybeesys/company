@@ -15,7 +15,7 @@ class EmployeeCreated extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(protected Employee $employee)
+    public function __construct(protected Employee $employee, protected string $password = "__('messages.in_active')")
     {
 
     }
@@ -33,13 +33,11 @@ class EmployeeCreated extends Notification
      */
     public function toMail($notifiable): MailMessage
     {
-        $notification_setting = NotificationSetting::where('type', 'created_emp')
-        ->where('sendType', 'internal')
-        ->first();
+        $mail = $this->getInternalNotificationContent();
 
         return (new MailMessage)
-            // ->view('general::mail.employee-created-mail', ['notifiable' => $notifiable])
-            ->subject('Hello');
+            ->view('general::mail.employee-created-mail', ['notifiable' => $notifiable, 'body' => $mail['body']])
+            ->subject($mail['subject']);
     }
 
     /**
@@ -50,54 +48,63 @@ class EmployeeCreated extends Notification
     //     return $this->getInternalNotificationContent();
     // }
 
-    // public function getInternalNotificationContent()
-    // {
-    //     $notification_setting = NotificationSetting::where('type', 'employeeCreated')
-    //         ->where('sendType', 'internal')
-    //         ->firstOrFail();
+    public function getInternalNotificationContent()
+    {
+        $notification_setting = NotificationSetting::where('type', 'created_emp')
+            ->where('sendType', 'email')
+            ->first();
 
-    //     $getLocalizedContent = function ($arKey, $enKey) use ($notification_setting) {
-    //         $locale = session('locale');
-    //         $template = $notification_setting->template;
+        $getLocalizedContent = function ($arKey, $enKey) use ($notification_setting) {
+            $locale = session('locale');
+            $template = $notification_setting->template;
 
-    //         return ($locale === 'ar' ? $template[$arKey] : $template[$enKey])
-    //             ?? $template[$enKey]
-    //             ?? $template[$arKey]
-    //             ?? '';
-    //     };
+            return ($locale === 'ar' ? $template[$arKey] : $template[$enKey])
+                ?? $template[$enKey]
+                ?? $template[$arKey]
+                ?? '';
+        };
 
-    //     $creatorName = $this->employee?->createdBy?->{get_name_by_lang()}
-    //         ?? __('employee::general.admin');
-    //     $creationDate = $this->employee?->created_at
-    //         ? date_format($this->employee->created_at, 'm-d')
-    //         : '';
+        $creatorName = $this->employee?->createdBy?->{get_name_by_lang()}
+            ?? __('employee::general.admin');
+        $creationDate = $this->employee?->created_at
+            ? date_format($this->employee->created_at, 'm-d')
+            : '';
 
-    //     $creationTime = $this->employee?->created_at
-    //         ? date_format($this->employee->created_at, 'H:i')
-    //         : '';
+        $creationTime = $this->employee?->created_at
+            ? date_format($this->employee->created_at, 'H:i')
+            : '';
 
-    //     $title = $getLocalizedContent(
-    //         'created_emp_internal_notification_title_ar',
-    //         'created_emp_internal_notification_title_en'
-    //     );
-    //     $title = str_replace('{created_by}', $creatorName, $title);
-    //     $title = str_replace('{created_date}', $creationDate, $title);
-    //     $title = str_replace('{created_time}', $creationTime, $title);
-    //     $title = str_replace('{employee_name}', $this->employee->{get_name_by_lang()}, $title);
 
-    //     $body = $getLocalizedContent(
-    //         'created_emp_internal_notification_body_ar',
-    //         'created_emp_internal_notification_body_en'
-    //     );
-    //     $body = str_replace('{created_by}', $creatorName, $body);
-    //     $body = str_replace('{created_date}', $creationDate, $body);
-    //     $body = str_replace('{created_time}', $creationTime, $body);
-    //     $body = str_replace('{employee_name}', $this->employee->{get_name_by_lang()}, $body);
+        $subject = $getLocalizedContent(
+            'created_emp_email_notification_subject_ar',
+            'created_emp_email_notification_subject_en'
+        );
+        $subject = str_replace('{created_by}', $creatorName, $subject);
+        $subject = str_replace('{created_date}', $creationDate, $subject);
+        $subject = str_replace('{created_time}', $creationTime, $subject);
+        $subject = str_replace('{employee_name}', $this->employee->{get_name_by_lang()}, $subject);
+        $subject = str_replace('{employee_username}', $this->employee?->user_name ?? __('messages.in_active'), $subject);
+        $subject = str_replace('{employee_password}', $this->password, $subject);
+        $subject = str_replace('{employee_pin}', $this->employee->pin, $subject);
+        $subject = str_replace('{employee_total_wage}', ($this->employee->wage->rate ?? 0) + ($this->employee->allowances()?->always()?->sum('amount') ?? 0), $subject);
 
-    //     return [
-    //         'title' => $title,
-    //         'body' => $body,
-    //         'icon' => 'ki-user-square'
-    //     ];
-    // }
+        $body = $getLocalizedContent(
+            'created_emp_email_notification_body_ar',
+            'created_emp_email_notification_body_en'
+        );
+        $body = str_replace('{created_by}', $creatorName, $body);
+        $body = str_replace('{created_date}', $creationDate, $body);
+        $body = str_replace('{created_time}', $creationTime, $body);
+        $body = str_replace('{employee_name}', $this->employee->{get_name_by_lang()}, $body);
+        $body = str_replace('{employee_username}', $this->employee?->user_name ?? __('messages.in_active'), $body);
+        $body = str_replace('{employee_password}', $this->password, $body);
+        $body = str_replace('{employee_pin}', $this->employee->pin, $body);
+        $body = str_replace('{employee_total_wage}', ($this->employee->wage->rate ?? 0) + ($this->employee->allowances()?->always()?->sum('amount') ?? 0), $body);
+
+
+        return [
+            'subject' => $subject,
+            'body' => $body,
+        ];
+    }
 }
