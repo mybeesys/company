@@ -8,6 +8,7 @@ use Modules\Inventory\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Modules\General\Models\TransactionSellLine;
 use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 
 class WasteController extends Controller
@@ -40,7 +41,7 @@ class WasteController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = Transaction::find($id);//::with('establishment')->find($id);
+        $inventoryOperation  = Transaction::with('establishment')->find($id);//::->find($id);
         $inventoryOperation->op_status_name = $inventoryOperation->status;//->name;
         $resInventoryOperation = $inventoryOperation->toArray();
         $resInventoryOperation["items"] = [];
@@ -65,7 +66,7 @@ class WasteController extends Controller
                 $mod["id"] =  $item->modifier_id.'-m';
                 $newItem["product"] =$mod;
             }
-            //$newItem["unit"] = $item->unit->toArray();
+            $newItem["unit"] = $item->unitTransfer?->toArray();
             $resInventoryOperation["items"][] =$newItem;
         }
         return view('inventory::waste.edit', compact('resInventoryOperation'));
@@ -73,7 +74,7 @@ class WasteController extends Controller
 
     public function getWastes()
     {
-        $inventoryOperations = Transaction::where('type', '=', 'WASTE')->get();//with('establishment')->
+        $inventoryOperations = Transaction::with('establishment')->where('type', '=', 'WASTE')->get();//with('establishment')->
         foreach ($inventoryOperations as $inventoryOperation) {
             $inventoryOperation->op_status_name = $inventoryOperation->op_status;
         }  
@@ -147,8 +148,8 @@ class WasteController extends Controller
                             $item->unit_price = $newItem['unit_price_before_discount'];
                             $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
                             $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
-                            //if(isset($newItem['unit'])) 
-                            //    $item->unit_id = $newItem['unit']['id'];
+                            if(isset($newItem['unit'])) 
+                                $item->unit_id = $newItem['unit']['id'];
                             $item->save();
                         }
                     }
@@ -160,7 +161,7 @@ class WasteController extends Controller
             $validated["establishment_id"] = $request["establishment"]["id"];
             $inventoryOperation->transaction_date = $validated["transaction_date"];
             $inventoryOperation->description = $validated["description"];
-            //$inventoryOperation->establishment_id = $request["establishment"]["id"];
+            $inventoryOperation->establishment_id = $request["establishment"]["id"];
             $inventoryOperation->total_before_tax = 0;
             if(isset($request['items'])){
                 $itemTotal = array_reduce($request['items'], function($carry, $item) {
@@ -187,8 +188,8 @@ class WasteController extends Controller
                             $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
                             $item->unit_price = $newItem['unit_price_before_discount'];
                             $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
-                            //if(isset($newItem['unit'])) 
-                            //    $item->unit_id = $newItem['unit']['id'];
+                            if(isset($newItem['unit'])) 
+                                $item->unit_id = $newItem['unit']['id'];
                             $item->save();
                         }
                     }

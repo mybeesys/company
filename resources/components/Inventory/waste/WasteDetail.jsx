@@ -100,7 +100,7 @@ const WasteDetail = ({ dir, translations }) => {
                 currentNodes={[...currentObject.items]}
                 defaultValue={{taxed : 0}}
                 cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', 
+                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'20%', 
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
@@ -134,7 +134,7 @@ const WasteDetail = ({ dir, translations }) => {
                             return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
                         }
                     },
-                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:true,required:true,
+                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'20%', editable:true, required:true,
                         searchUrl:"searchUnitTransfers",
                         relatedTo:{
                             key: "id",

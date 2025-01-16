@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use Exception;
 use Modules\General\Models\Transaction;
 use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
+
 class OpenInventoryImportController extends Controller
 {
 
@@ -60,15 +62,13 @@ class OpenInventoryImportController extends Controller
             
             $openInventoryImport = null;
             try {
+                
                 DB::transaction(function () use($tenantId, $uuid) {
-                    $transaction = Transaction::create([
-                        'type'              => 'PO0',
-                        'status'            => 'approved',
-                        'ref_no'            => 'PO-0000',
-                        'total_before_tax'  => 0,
-                        'transaction_date'  => date("Y-m-d"),
-                    ]);
-                    $openInventoryImport = new OpenInventoryImport($transaction->id);
+                    $import = new OpenInventoryTransactionImport();
+
+                    // Perform the import
+                    Excel::import($import, public_path('storage/'.'tenant'. $tenantId.'/uploads/'.$uuid));
+                    $openInventoryImport = new OpenInventoryImport($import->transactions);
                     // Import data from the uploaded file
                     Excel::import($openInventoryImport, public_path('storage/'.'tenant'. $tenantId.'/uploads/'.$uuid));
                 });

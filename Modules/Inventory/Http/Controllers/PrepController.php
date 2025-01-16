@@ -3,22 +3,13 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
-use Modules\Inventory\Enums\InventoryOperationStatus;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Inventory\Enums\PurchaseOrderStatus;
-use Modules\Inventory\Models\InventoryOperation;
-use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Inventory\Models\PurchaseOrder;
-use Modules\Inventory\Models\PurchaseOrderItem;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\Vendor;
 
 class PrepController extends Controller
 {
@@ -58,7 +49,7 @@ class PrepController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = Transaction::find($id);//::with('establishment')->find($id);
+        $inventoryOperation  = Transaction::with('establishment')->find($id);
         $inventoryOperation->op_status_name = $inventoryOperation->status;//->name;
         $prep = Prep::where('operation_id' ,'=' , $inventoryOperation->id)->first();
         $inventoryOperation->product = $prep->product;
@@ -89,7 +80,7 @@ class PrepController extends Controller
                 $mod["id"] =  $item->modifier_id.'-m';
                 $newItem["product"] =$mod;
             }
-            //$newItem["unit"] = $item->unit->toArray();
+            $newItem["unit_transfer"] = $item->unitTransfer?->toArray();
             $resInventoryOperation["items"][] =$newItem;
         }
         return view('inventory::prep.edit', compact('resInventoryOperation'));
@@ -97,7 +88,7 @@ class PrepController extends Controller
 
     public function getPreps()
     {
-        $inventoryOperations = Transaction::where('type', '=', 'PREP')->get();//with('establishment')->
+        $inventoryOperations = Transaction::with('establishment')->where('type', '=', 'PREP')->get();//with('establishment')->
         foreach ($inventoryOperations as $inventoryOperation) {
             $inventoryOperation->op_status_name = $inventoryOperation->op_status;
             $prep = Prep::where('operation_id' ,'=' , $inventoryOperation->id)->first();
@@ -184,8 +175,8 @@ class PrepController extends Controller
                             $item->unit_price = $newItem['unit_price_before_discount'];
                             $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
                             $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
-                            //if(isset($newItem['unit'])) 
-                            //    $item->unit_id = $newItem['unit']['id'];
+                            if(isset($newItem['unit_transfer'])) 
+                                $item->unit_id = $newItem['unit_transfer']['id'];
                             $item->save();
                         }
                     }
@@ -197,7 +188,7 @@ class PrepController extends Controller
             $validated["establishment_id"] = $request["establishment"]["id"];
             $inventoryOperation->transaction_date = $validated["transaction_date"];
             $inventoryOperation->description = $validated["description"];
-            //$inventoryOperation->establishment_id = $request["establishment"]["id"];
+            $inventoryOperation->establishment_id = $request["establishment"]["id"];
             $inventoryOperation->total_before_tax = 0;
             if(isset($request['items'])){
                 $itemTotal = array_reduce($request['items'], function($carry, $item) {
@@ -224,8 +215,8 @@ class PrepController extends Controller
                             $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
                             $item->unit_price = $newItem['unit_price_before_discount'];
                             $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
-                            //if(isset($newItem['unit'])) 
-                            //    $item->unit_id = $newItem['unit']['id'];
+                            if(isset($newItem['unit_transfer'])) 
+                                $item->unit_id = $newItem['unit_transfer']['id'];
                             $item->save();
                         }
                     }

@@ -13,14 +13,14 @@ use Modules\Product\Models\UnitTransfer;
 
 class OpenInventoryImport implements ToModel, WithHeadingRow
 {
-    private $transaction_id;
+    private $transactions;
     protected $errors = [];
     protected $rowIndex = 1;  // Start from 1 to match Excel row number
 
     // Pass the master ID when initializing the import
-    public function __construct($transaction_id)
+    public function __construct($transactions)
     {
-        $this->transaction_id = $transaction_id;
+        $this->transactions = $transactions;
     }
 
     /**
@@ -32,18 +32,6 @@ class OpenInventoryImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         $valid = true;
-        $establishment = Establishment::where('name', '=', $row['establishment'])
-                            ->orWhere('name_en', '=', $row['establishment'])->first();
-        if (!$establishment) {
-            $this->errors[] = [
-                'row' => [
-                    'name_ar'           => $row['itemname_or_sku'],
-                    'name_en'           => $row['itemname_or_sku'],
-                ],
-                'message' => ['message' => 'INVALID_establishment', 'data' => [ $row['establishment']]]
-            ];
-            $valid = false;
-        }
         if(!isset($row['item_type_mp']) || !($row['item_type_mp'] == 'P' || $row['item_type_mp'] =='M')){
             $this->errors[] = [
                 'row' => [
@@ -115,14 +103,18 @@ class OpenInventoryImport implements ToModel, WithHeadingRow
         }
         if(!$valid)
             throw new Exception("Validation failed for row: " . json_encode($row));
+        $est = array_filter($this->transactions, function($value)use($row) {
+            return $row["establishment"] == $value["establishment"]; // Keep only even numbers
+        });
+        $est = reset($est);
         $items = TransactionSellLine::create(attributes: [
-            'transaction_id'                => $this->transaction_id,
+            'transaction_id'                => $est["transaction"]->id,
             'product_id'                    => $product?->id ?? null,
-            //'modifier_id'                   => $modifier?->id ?? null,
+            'modifier_id'                   => $modifier?->id ?? null,
             'qyt'                           => $row['qty'],
             'unit_price_before_discount'    => $row['price'],
             'unit_price'                    => $row['price'],
-            //'unit_id'                       => $unit?->id ?? null,
+            'unit_id'                       => $unit?->id ?? null,
         ]);
     }
 /**

@@ -73,7 +73,7 @@ const PrepDetail = ({ dir, translations }) => {
     const validateObject = (data) =>{
         if(!!!data.establishment) return `${translations.establishment} ${translations.required}`;
         if(!!!data.product || data.product.length ==0) return `${translations.product} ${translations.required}`;
-        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit).length >0) return translations['item_unit_error'];
+        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit_transfer).length >0) return translations['item_unit_error'];
         return 'Success';
     }
     

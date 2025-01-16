@@ -5,10 +5,8 @@ namespace Modules\Inventory\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\Vendor;
 
 
 class Prep extends Model
