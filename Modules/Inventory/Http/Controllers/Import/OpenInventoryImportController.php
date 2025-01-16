@@ -42,8 +42,7 @@ class OpenInventoryImportController extends Controller
         return response()->json($mappedData);
     }
     
-
-    public function upload(Request $request)
+public function upload(Request $request)
     {
         // Validate that the request contains a file
         $request->validate([
@@ -61,6 +60,7 @@ class OpenInventoryImportController extends Controller
             $tenantId = $tenant->id;
             
             $openInventoryImport = null;
+            $import= null;
             try {
                 
                 DB::transaction(function () use($tenantId, $uuid) {
@@ -77,7 +77,7 @@ class OpenInventoryImportController extends Controller
                 ], 200);
             } catch (Exception $e) {
                 // If an exception was thrown, return the error message and details
-                $errors = $openInventoryImport?->getErrors() ?? [];
+                $errors = $openInventoryImport?->getErrors() ?? $import?->getErrors() ?? [];
 
                 return response()->json([
                     'message' => 'Error',
