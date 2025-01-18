@@ -37,7 +37,7 @@ const ProductTransactionModal = ({ visible, onClose, transactions, translations,
                   {key : "transaction_date", title: "date", autoFocus: false, type :"Text", width:'40%', editable:true},
                   {key : "qty", title: "qty", autoFocus: false, type :"Decimal", width:'40%', editable:true},
                   {key : "unit_transfer", title:"unit", autoFocus: true,  type :"AsyncDropDown", width:'40%', editable:false},
-                  {key : "sub_total", title:"sss", autoFocus: true,  type :"Decimal", width:'40%', editable:false},
+                  {key : "sub_total", title:"subTotal", autoFocus: true,  type :"Decimal", width:'40%', editable:false},
                   
                 ]}
                 actions ={[
