@@ -33,7 +33,7 @@ const ProductTransactionModal = ({ visible, onClose, transactions, translations,
                 title={translations.transactions}
                 currentNodes={transactions}
                 cols={[
-                  {key : "type", title: "date", autoFocus: false, type :"Text", width:'40%', editable:true},
+                  {key : "type", title: "op_type", autoFocus: false, type :"Text", width:'40%', editable:true},
                   {key : "transaction_date", title: "date", autoFocus: false, type :"Text", width:'40%', editable:true},
                   {key : "qty", title: "qty", autoFocus: false, type :"Decimal", width:'40%', editable:true},
                   {key : "unit_transfer", title:"unit", autoFocus: true,  type :"AsyncDropDown", width:'40%', editable:false},
