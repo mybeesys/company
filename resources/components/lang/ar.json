@@ -50,6 +50,7 @@
   "attr_value2": "المعامل 2",
   "generateMatrix": "إنشاء المصفوفة",
   "required": "مطلوب",
+  "required1": "مطلوبة",
   "default": "الافتراضي",
   "defaultModifier": "الافتراضي",
   "display": "الإظهار",
@@ -254,5 +255,6 @@
   "downloadTemplate" : "تحميل النموذج",
   "openInventory" : "الرصيد الإفتتاحي",
   "openInventoryImport" : "استيراد الرصيد الإفتتاحي",
-  "transactions" : "الحركات"
+  "transactions" : "الحركات",
+  "op_type" : "العملية"
 }

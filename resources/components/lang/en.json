@@ -51,6 +51,7 @@
   "attr_value2": "Attr 2",
   "generateMatrix": "Generate Matrix",
   "required": "Required",
+  "required1": "Required",
   "default": "Default",
   "defaultModifier": "Default",
   "min": "Min",
@@ -250,5 +251,6 @@
   "downloadTemplate" : "Download Template",
   "openInventory" : "Open Inventory",
   "openInventoryImport" : "Open Inventory Import",
-  "transactions" : "Transactions"
+  "transactions" : "Transactions",
+  "op_type" : "Operation"
 }
