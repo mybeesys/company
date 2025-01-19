@@ -62,7 +62,7 @@
                 <div class="mb-0">
                     <x-form.form-card class="pt-3 mb-5" title="{{ __('general::general.current_plan') }}:">
                         <x-slot:header>
-                            <a href="{{ str_replace(tenant('id') . '.', request()->secure() ? 'https://' : 'http://', tenant()->domains->first()->domain) }}" class="btn btn-bg-warning my-auto text-white">@lang('general::general.change_the_plan')</a>
+                            <a href="{{ str_replace(tenant('id') . '.', request()->secure() ? 'https://' : 'http://', tenant()->domains->first()->domain) }}/subscribe" class="btn btn-bg-warning my-auto text-white">@lang('general::general.change_the_plan')</a>
                         </x-slot:header>
                         <div class="mb-5 d-flex gap-2">
                             <h3 class="text-gray-700 fs-2">@lang('employee::fields.name'):</h3>
