@@ -57,4 +57,9 @@ return [
     'start_subscription_date' => 'تاريخ بداية الإشتراك',
     'previous_subscriptions' => 'الإشتراكات السابقة',
     'change_the_plan' => 'تبديل الخطة',
+    'subscription_price' => 'سعر الإشتراك',
+    'sar' => 'ر/س',
+    'summary' => 'ملخص',
+    'payment_details' => 'تفاصيل الدفع',
+    'subscription_id' => 'رقم الإشتراك',
 ];
