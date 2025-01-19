@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('inventory:ten-minute-reminder')->everyTenSeconds()
+        $schedule->command('inventory:ten-minute-reminder')->everyMinute()
         ->sendOutputTo(storage_path('logs/inventory_schedule_output.log'));
     }
 
