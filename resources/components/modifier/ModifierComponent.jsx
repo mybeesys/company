@@ -60,7 +60,6 @@ const ModifierComponent = ({ translations, dir }) => {
   const onModifierFieldChange = (key, value) => {
     currentObject[key] = value;
     setcurrentObject({ ...currentObject });
-    console.log(`${key} :`, currentObject[key]);
     return {
       message: "Done"
     }
@@ -93,7 +92,6 @@ const ModifierComponent = ({ translations, dir }) => {
 
   const saveChanges = async () => {
     try {
-      console.log(currentObject);
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;

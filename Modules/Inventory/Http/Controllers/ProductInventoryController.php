@@ -5,13 +5,14 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
+use Modules\Product\Models\UnitTransferConvertor;
 
 class ProductInventoryController extends Controller
 {
@@ -87,9 +88,17 @@ class ProductInventoryController extends Controller
         $est_id = $request->query('est', '');
         $sellLines = null;
         if($typ =='product')
-            $sellLines = TransactionSellLine::with(['product', 'unitTransfer', 'transaction'])->where('product_id', '=', $id);
+            $sellLines = TransactionSellLine::with(
+                        ['product' => function($query){ $query->with('unitTransfers');}, 
+                                    'unitTransfer', 
+                                    'transaction'
+                                    ])->where('product_id', '=', $id);
         else
-            $sellLines = TransactionSellLine::with(['modifier', 'unitTransfer', 'transaction'])->where('modifier_id', '=', $id);
+            $sellLines = TransactionSellLine::with(relations: 
+                                    ['modifier'=> function($query){ $query->with('unitTransfers');}, 
+                                     'unitTransfer',
+                                     'transaction'
+                                     ])->where('modifier_id', '=', $id);
         $sellLines = $sellLines->whereHas('transaction', function ($query) use ($est_id) {
             $query->where('establishment_id', $est_id);
         })->get();
@@ -98,18 +107,25 @@ class ProductInventoryController extends Controller
             $newItem = $item;
             $newItem["type"] = $item["transaction"]["type"];
             $newItem["product"] = $typ =='product' ? $item["product"] : $item["modifier"];
+            $itemType = $typ == 'product' ? 'P' : 'M';
             $newItem["transaction_date"] = $item["transaction"]["transaction_date"];
             $newItem["transaction_id"] = $item["transaction_id"];
+            $units = $newItem["product"]['unit_transfers'];
+            $newItem["unit_transfer"] = UnitTransferConvertor::getMainUnit($itemType, $newItem["product"]["id"], $units);
             if($item["transaction"]["type"] == 'PREP'){
                 $prep = $prepsForSellLine->first(function($p) use($item) {
                     return $p['operation_id'] == $item["transaction"]["id"];
                 });
-                $newItem["qty"] = $item["qyt"] * $prep->times;
-                $newItem["signed_qty"] =  -1 * $item["qyt"] * $prep->times;
+                $quantity =  UnitTransferConvertor::convertUnit($itemType, $newItem["product"]["id"], $item["unit_id"], null, 
+                                    $item["qyt"] , $units);
+                $newItem["qty"] = $quantity * $prep->times;
+                $newItem["signed_qty"] =  -1 * $quantity * $prep->times;
             }
             else{
-                $newItem["qty"] =  $item["qyt"];
-                $newItem["signed_qty"] =  in_array($newItem["type"], ['purchases-order','PO0']) ? $item["qyt"] : -1 * $item["qyt"];
+                $quantity =  UnitTransferConvertor::convertUnit($itemType, $newItem["product"]["id"], $item["unit_id"], null, 
+                            $item["qyt"], $units);
+                $newItem["qty"] = $quantity;
+                $newItem["signed_qty"] =  in_array($newItem["type"], ['purchases-order','PO0']) ? $quantity : -1 * $quantity;
             }
             return $newItem;
         }, $sellLines->toArray());
@@ -268,10 +284,10 @@ class ProductInventoryController extends Controller
             if (isset($request["unit"])) {
                 $validated["unit_id"] = $request["unit"]["id"];
             }
-            if (isset($request["vendor"])) {
+            if ($request["vendor"]) {
                 $validated["primary_vendor_id"] = $request["vendor"]["id"];
             }
-            if (isset($request["vendor_unit"])) {
+            if ($request["vendor_unit"]) {
                 $validated["primary_vendor_unit_id"] = $request["vendor_unit"]["id"];
             }
             ProductInventory::create($validated);

@@ -265,7 +265,7 @@ class ProductController extends Controller
             // Optionally save the file path to the database
             $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
         }
-       // DB::transaction(function () use ($product, $request) {
+        DB::transaction(function () use ($product, $request) {
             $product->save();
             if(isset($request["modifiers"]))
             {
@@ -483,7 +483,7 @@ class ProductController extends Controller
             //         $tax->save();
             //     }
             // }
-        //});
+        });
     }
 
     protected function createProduct($validated, $request){

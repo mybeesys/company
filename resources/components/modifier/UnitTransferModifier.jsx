@@ -12,7 +12,6 @@ const UnitTransferModifier = ({ translations, unitTransfer, unitTree, parentHand
 
     React.useEffect(() => {
         setNodes(unitTransfer);
-        console.log(unitTransfer);
         setMainUnit(modifierUnit);
         if(!!!innerUnits || innerUnits.length ==0)
             setUnits(unitTree);

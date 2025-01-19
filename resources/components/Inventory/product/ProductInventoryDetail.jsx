@@ -14,6 +14,11 @@ const ProductInventoryDetail = ({ dir, translations, p_type }) => {
         r[key] = value;
         setcurrentObject({...r});
     }
+
+    const validateObject = (data) =>{
+        if(!!!data.unit) return `${translations.unit} ${translations.required1}`;
+        return 'Success';
+    }
     
     return (
         <EditRowCompnent
@@ -45,6 +50,7 @@ const ProductInventoryDetail = ({ dir, translations, p_type }) => {
           dir={dir}
           apiUrl={`${p_type}Inventory`}
           type={getName(currentObject.name_en, currentObject.name_ar, dir)}
+          validateObject = {validateObject}
         />
     );
 }

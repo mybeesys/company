@@ -164,7 +164,7 @@
 
         $(document).ready(function() {
             @php
-                $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order'];
+                $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order', 'low_stock_alert_notification'];
             @endphp
             @foreach ($notification_names as $notification_name)
                 handleInternalNotification_{{ $notification_name }}();

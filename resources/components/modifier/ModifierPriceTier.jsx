@@ -38,7 +38,6 @@ const ModifierPriceTier = ({ translations, dir, currentObject, onBasicChange, lo
         onBasicChange(key, value);
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
-            console.log("Previous timeout canceled.");
         }
         timeoutRef.current = setTimeout(() =>axios.get(`${window.location.origin}/priceWithTax?tax_id=${!!tax_id? tax_id : ''}&price=${!!price ? price : ''}`)
             .then(response => {

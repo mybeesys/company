@@ -21,7 +21,6 @@ const ProductComponent1 = ({ translations, dir }) => {
   let product = JSON.parse(rootElement.getAttribute('product'));
   const [AttributesTree, setAttributesTree] = useState([{ data: {} }, { data: {} }]);
   const [currentObject, setcurrentObject] = useState(product);
-  console.log(product);
   const [units, setUnits] = useState([]);
   const [productUnit, setProductUnit] = useState();
   const [unitTransfer, setUnitTransfers] = useState(!!product.unitTransfer ? product.unitTransfer : []);
@@ -73,7 +72,6 @@ const ProductComponent1 = ({ translations, dir }) => {
 
   const onProductFieldChange = (key, value) => {
     currentObject[key] = value;
-    console.log(currentObject[key]);
     setcurrentObject({ ...currentObject });
     return {
       message: "Done"
@@ -122,7 +120,6 @@ const ProductComponent1 = ({ translations, dir }) => {
         else
           transfer.push(productUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});  
       }
-
       const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
       r["transfer"] = [...sortedItems];
 
@@ -237,7 +234,6 @@ const ProductComponent1 = ({ translations, dir }) => {
 
 
   const handleForSellChange = (childproduct) => {
-    console.log(childproduct.for_sell);
     let currentMenu = [
       { key: 'basicInfo', visible: true },
       { key: 'printInfo', visible: true },

@@ -16,6 +16,7 @@ use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
+use Modules\Product\Models\UnitTransferConvertor;
 
 class InventoryOperationController extends Controller
 {
@@ -97,6 +98,8 @@ class InventoryOperationController extends Controller
             });
             $prodTotal = reset($prodTotal);
             $totalQty = isset($times) && $times!=null ? $prod->qty * $times : $prod->qty;
+            $totalQty =  UnitTransferConvertor::convertUnit('P', $prod->product_id, $prod->unit_id, null, 
+                            $totalQty , null);
             if((!$prodTotal) || 
                 $prodTotal["qty"] == null || 
                 $prodTotal["qty"] < $totalQty){
@@ -116,6 +119,8 @@ class InventoryOperationController extends Controller
             });
             $ingrTotal = reset($ingrTotal);
             $totalQty = isset($times) && $times!=null ? $ingr->qty * $times : $ingr->qty;
+            $totalQty =  UnitTransferConvertor::convertUnit('I', $ingr->ingredient_id, $ingr->unit_id, null, 
+                            $totalQty , null);
             if((!$ingrTotal) ||
                 $ingrTotal["qty"] == null || 
                 $ingrTotal["qty"] < $totalQty){
@@ -135,6 +140,8 @@ class InventoryOperationController extends Controller
             });
             $modTotal = reset($modTotal);
             $totalQty = isset($times) && $times!=null ? $mod->qty * $times : $mod->qty;
+            $totalQty =  UnitTransferConvertor::convertUnit('M', $mod->modifier_id, $mod->unit_id, null, 
+                            $totalQty , null);
             if((!$modTotal) ||
                 $modTotal["qty"] == null || 
                 $modTotal["qty"] < $totalQty){
@@ -190,14 +197,20 @@ class InventoryOperationController extends Controller
                     $item->qty = $newItem['qty'];
                     if($idd[1] == 'p'){
                         $item->product_id = $idd[0];
+                        if(isset($newItem['unit'])) 
+                            $item->unit_id = $newItem['unit']['id'];
                         $prods [] = $item;
                     }
                     else if($idd[1] == 'm'){
                         $item->modifier_id = $idd[0];
+                        if(isset($newItem['unit'])) 
+                            $item->unit_id = $newItem['unit']['id'];
                         $mods [] = $item;
                     }
                     else{
                         $item->ingredient_id = $idd[0];
+                        if(isset($newItem['unit'])) 
+                            $item->unit_id = $newItem['unit']['id'];
                         $ingrs [] = $item;
                     }
                 }

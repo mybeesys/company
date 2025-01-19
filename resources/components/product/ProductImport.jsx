@@ -71,7 +71,6 @@ const ProductImport = ({ translations, dir }) => {
       }
 
     } catch (error) {
-      console.log(error);
       alert('Error uploading file');
     }
   }
