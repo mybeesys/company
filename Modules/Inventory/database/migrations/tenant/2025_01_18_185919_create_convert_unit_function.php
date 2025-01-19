@@ -86,7 +86,8 @@ return new class extends Migration
                 END");
         
 
-        DB::statement("SELECT 
+        DB::statement("CREATE OR REPLACE VIEW product_inventories AS
+        SELECT 
         pp.id AS product_id,
         establishment_id,
         SUM(qty) qty
