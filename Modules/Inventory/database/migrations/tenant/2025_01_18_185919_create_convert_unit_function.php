@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statment("DROP FUNCTION IF EXISTS get_main_unit");
+        DB::statement("DROP FUNCTION IF EXISTS get_main_unit");
         DB::statement("CREATE FUNCTION get_main_unit
                 (p_type char(1), 
                 p_id INT) 
@@ -36,7 +36,7 @@ return new class extends Migration
                     RETURN result;
                 END;");
         DB::statment("DROP FUNCTION IF EXISTS convert_quantity");
-        DB::statement("CREATE FUNCTION convert_quantity
+        DB::statment("CREATE FUNCTION convert_quantity
                     (p_type char(1), 
                     p_id INT, 
                     from_id INT, 
