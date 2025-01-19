@@ -3,6 +3,8 @@
 namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
+use DB;
 use Illuminate\Http\Request;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\NotificationSetting;
@@ -52,5 +54,14 @@ class GeneralController extends Controller
         $notifications_settings = NotificationSetting::all();
         $notifications_settings_parameters = NotificationSettingParameter::all();
         return view('general::settings.index', compact('cards', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+    }
+
+    public function subscription()
+    {
+        $company = Company::findOrFail(get_company_id());
+        $current_subscription = $company->subscription;
+        $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
+        $user = DB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
+        return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
     }
 }
