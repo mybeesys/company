@@ -35,8 +35,8 @@ return new class extends Migration
                     END IF;
                     RETURN result;
                 END;");
-        DB::statment("DROP FUNCTION IF EXISTS convert_quantity");
-        DB::statment("CREATE FUNCTION convert_quantity
+        DB::statement("DROP FUNCTION IF EXISTS convert_quantity");
+        DB::statement("CREATE FUNCTION convert_quantity
                     (p_type char(1), 
                     p_id INT, 
                     from_id INT, 
