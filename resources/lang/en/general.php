@@ -19,4 +19,5 @@ return [
     'notifications' => 'Notifications',
     'no_notifications' => 'No notifications',
     'mark_as_read' => 'Mark as read',
+    'subscriptions' => 'Subscription'
 ];

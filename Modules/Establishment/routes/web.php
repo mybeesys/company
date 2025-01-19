@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\Company;
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\CompanyController;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
-use Modules\Establishment\Models\Company;
 use Modules\Establishment\Models\Establishment;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;

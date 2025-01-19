@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\General\Http\Controllers\Api\GeneralController;
 use Modules\General\Http\Controllers\PaymentMethodsApiController;
 use Modules\General\Http\Controllers\SellApiController;
 use Modules\General\Http\Controllers\TaxApiController;
@@ -18,4 +19,5 @@ Route::middleware([
     Route::get('taxes', [TaxApiController::class, 'taxes'])->name('taxes');
     Route::get('payment-methods', [PaymentMethodsApiController::class, 'index'])->name('payment-methods');
 
+    Route::get('/company-details', [GeneralController::class, 'companyDetails'])->middleware(['auth-central']);
 });

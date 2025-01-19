@@ -30,6 +30,8 @@ Route::middleware([
 
     Route::middleware(['auth'])->group(function () {
 
+        Route::get('/subscription', [GeneralController::class, 'subscription'])->name('subscription');
+
         Route::post('store-sidebar-status', [GeneralController::class, 'storeSidebarState'])->name('store-sidebar-status');
 
         Route::post('store-notifications-settings/{notificationType}', [NotificationSettingController::class, 'storeNotificationsSettings'])->name('store-notifications-settings');
