@@ -19,4 +19,5 @@ return [
     'notifications' => 'الإشعارات',
     'no_notifications' => 'لا يوجد اشعارات',
     'mark_as_read' => 'تعيين كمقروء',
+    'subscriptions' => 'الاشتراكات'
 ];

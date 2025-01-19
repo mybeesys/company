@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Company;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PayrollGroup;
+use Modules\Establishment\Policies\CompanyPolicy;
 use Modules\General\Models\NotificationSettingParameter;
 use Stancl\Tenancy\Events\TenancyBootstrapped;
 
@@ -50,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
             $this->configureMailTransport();
         });
 
-
+        Gate::policy(Company::class, CompanyPolicy::class);
     }
 
     protected function configureMailTransport()
