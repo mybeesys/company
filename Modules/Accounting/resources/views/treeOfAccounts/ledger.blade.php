@@ -317,9 +317,14 @@
                                         <span class="badge badge-light-primary fs-7">
                                             @if ($transactions->sub_type == 'sell')
                                                 @lang('accounting::lang.sell')
+                                            @elseif ($transactions->sub_type == 'sell_cash')
+                                                @lang('accounting::lang.receipt_voucher') <!-- سند قبض -->
+                                            @elseif ($transactions->sub_type == 'sales_revenue')
+                                                @lang('accounting::lang.payment_voucher') <!-- سند صرف -->
                                             @else
                                                 @lang('accounting::lang.' . $transactions->sub_type)
                                             @endif
+
                                         </span>
                                     </td>
                                     <td>

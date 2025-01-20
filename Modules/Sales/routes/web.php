@@ -6,6 +6,7 @@ use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
 use Modules\Sales\Http\Controllers\QuotationController;
 use Modules\Sales\Http\Controllers\ReceiptsController;
 use Modules\Sales\Http\Controllers\SellController;
+use Modules\Sales\Http\Controllers\SellReturnController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -34,6 +35,7 @@ Route::middleware([
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
 
+        Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');
 
 
         Route::get('quotations', [QuotationController::class, 'index'])->name('quotations');
