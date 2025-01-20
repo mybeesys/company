@@ -4,6 +4,7 @@ use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientsAndSuppliersController;
+use Modules\ClientsAndSuppliers\Http\Controllers\ClientSupplierSettingController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -37,5 +38,8 @@ Route::middleware([
         Route::post('client-update', [ClientController::class, 'update'])->name('client-update');
         Route::get('client-update-status/{id}', [ClientsAndSuppliersController::class, 'updateStatus'])->name('client-update-status');
         Route::get('client-destroy/{id}', [ClientsAndSuppliersController::class, 'destroy'])->name('client-destroy');
+
+        Route::get('client-supplier-setting', [ClientSupplierSettingController::class, 'index']);
+        Route::post('store-loyalty-point-settings', [ClientSupplierSettingController::class, 'storeLoyaltyPointsSettings'])->name('store-loyalty-point-settings');
     });
 });

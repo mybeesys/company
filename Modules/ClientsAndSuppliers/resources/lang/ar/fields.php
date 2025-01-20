@@ -50,6 +50,14 @@ return [
     'Point of sale client'=>'عميل نقطة بيع',
     'financial_information'=>'المعلومات المالية',
     'select_account'=>'تحديد الحساب',
+    'amount_to_pay_to_earn_point' => 'المبلغ الواجب إنفاقه للحصول على نقطة',
+    'minimum_order_payment_to_earn_points' => 'الحد الأدنى لمدفوعات الطلب للحصول على نقاط',
+    'maximum_order_points' => 'الحد الأقصى للنقاط لكل طلب',
+    'redeemed_amount_for_each_point' => 'المبلغ المُسترد لكل نقطة',
+    'minimum_order_payment_to_redeem_points' => 'الحد الأدنى لمدفوعات الطلب لاستبدال النقاط',
+    'minimum_points' => 'الحد الأدنى لنقاط المكافأة',
+    'maximum_redeem_point_per_order' => 'الحد الأقصى لاسترداد النقاط لكل طلب',
+    'points_expiration_period' => 'فترة صلاحية نقاط المكافآت',
 
 
 

@@ -50,6 +50,15 @@ return [
     'Point of sale client' => 'Point of sale client',
     'financial_information' => 'Financial information',
     'select_account' => 'Account identification',
+    'amount_to_pay_to_earn_point' => 'Amount that has to be paid to earn a point',
+    'minimum_order_payment_to_earn_points' => 'Minimum order payment to earn points',
+    'maximum_order_points' => 'Maximum points for each order',
+    'redeemed_amount_for_each_point' => 'Redeemed amount for each point',
+    'minimum_order_payment_to_redeem_points' => 'Minimum order payment to redeem point',
+    'minimum_points' => 'Minimum point',
+    'maximum_redeem_point_per_order' => 'Maximum redeem point for each order',
+    'points_expiration_period' => 'Points expiration period',
+
 
 
 
