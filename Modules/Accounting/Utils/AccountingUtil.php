@@ -26,26 +26,61 @@ class AccountingUtil
     }
 
 
+    // public function saveAccountTransaction($type, $transactionPayment, $transaction)
+    // {
+    //     if ($transaction->invoice_type == 'cash') {
+    //         $account_transaction_data['type'] = 'debit';
+    //         $sub_type ='sell_cash';
+    //     }
+    //     if ($transaction->invoice_type == 'due') {
+    //         $account_transaction_data['type'] = 'credit';
+    //         $sub_type ='sell_cash';
+
+    //     }
+
+    //     $account_transaction_data = [
+    //         'amount' => $transactionPayment->amount,
+    //         'accounting_account_id' => $transactionPayment->account_id,
+    //         'type' => 'debit',
+    //         'sub_type' => $sub_type,
+    //         'operation_date' => $transactionPayment->paid_on,
+    //         'created_by' => $transactionPayment->created_by,
+    //         'transaction_id' => $transactionPayment->transaction_id,
+    //         'transaction_payment_id' => $transactionPayment->id,
+    //     ];
+    //     //If change return then set type as debit
+    //     if ($transaction->transaction_type == 'sell' &&  $transactionPayment->is_return == 1) {
+    //         $account_transaction_data['type'] = 'debit';
+    //     }
+    //     if ($transaction->invoice_type == 'cash') {
+    //         $account_transaction_data['type'] = 'debit';
+    //     }
+
+    //     if ($transaction->transaction_type == 'purchases') {
+    //         $account_transaction_data['type'] = 'credit';
+    //     }
+    //     AccountingAccountsTransaction::create($account_transaction_data);
+    //     return true;
+    // }
+
     public function saveAccountTransaction($type, $transactionPayment, $transaction)
     {
+        $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
             'amount' => $transactionPayment->amount,
             'accounting_account_id' => $transactionPayment->account_id,
-            'type' => 'debit',
-            'sub_type' => $type,
+            'type' => $transaction->invoice_type == 'cash' ? 'debit' : 'credit',
+            'sub_type' => $sub_type,
             'operation_date' => $transactionPayment->paid_on,
             'created_by' => $transactionPayment->created_by,
             'transaction_id' => $transactionPayment->transaction_id,
             'transaction_payment_id' => $transactionPayment->id,
         ];
-        //If change return then set type as debit
-        if ($transaction->transaction_type == 'sell' &&  $transactionPayment->is_return == 1) {
+
+        if ($transaction->transaction_type == 'sell' && $transactionPayment->is_return == 1) {
             $account_transaction_data['type'] = 'debit';
         }
 
-        if ($transaction->transaction_type == 'purchases') {
-            $account_transaction_data['type'] = 'credit';
-        }
         AccountingAccountsTransaction::create($account_transaction_data);
         return true;
     }

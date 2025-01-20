@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
@@ -99,7 +100,8 @@ class SellController extends Controller
     {
         // return $request;
         // try {
-        $actionUtil = new ActionUtil();
+            $actionUtil = new ActionUtil();
+            $contactUtils = new ContactUtils();
         $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
 
@@ -150,9 +152,26 @@ class SellController extends Controller
             ]);
         }
         // return $request->paid_amount;
+        // if ($request->paid_amount) {
+        //     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        //     if($request->paid_amount != $transaction->final_total){
+        //         $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $request->paid_amount,$transaction);
+
+        //     }
+        // }
+
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+
+            if ($request->paid_amount != $transaction->final_total) {
+                $contactUtils->addRemainingAmountToCustomerAccount(
+                    $request->client_id,
+                    $transaction->final_total - $request->paid_amount,
+                    $transaction
+                );
+            }
         }
+
 
         // Mail::to();
         //Update payment status

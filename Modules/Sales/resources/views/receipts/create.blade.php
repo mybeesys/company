@@ -79,6 +79,7 @@
             <div class="row py-3">
                 <div class="col-sm">
 
+                    <input type="hidden" name="payment_type" value="receipts" />
                     {{-- receipts information --}}
                     @include('sales::receipts.create.receipts-info')
 
