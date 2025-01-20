@@ -38,6 +38,7 @@ return [
     'serviceFee' => 'Service Fees',
     'company_settings' => 'Company settings',
     'adjustments' => 'Allowances and deductions',
+    'clients_suppliers_module' => 'Clients and suppliers',
 
 
     'employees_working_hours' => 'Employees working hours',
