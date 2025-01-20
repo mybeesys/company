@@ -207,11 +207,17 @@ return [
 
 
     [
-        'name' => 'crm',
+        'name' => 'clients_suppliers_module',
         'url' => '/',
-        'icon' => 'fas fa-cogs',
+        'icon' => 'fas fa-users',
         'permission' => '',
-        'subMenu' => []
+        'subMenu' => [
+            [
+                'name' => 'loyalty_points',
+                'url' => 'loyalty-points',
+                'permission' => ''
+            ],
+        ]
     ],
     [
 
