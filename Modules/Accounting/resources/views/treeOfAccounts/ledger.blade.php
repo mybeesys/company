@@ -299,7 +299,7 @@
                                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
                                                     {{-- href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" --}}
                                                     @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
-                                                    @if ($transactions->sub_type == 'journal_entry' || $transactions->sub_type == 'contact_balance')
+                                                    @if (isset($transactions->accTransMapping))
                                                         {{ $transactions->accTransMapping->ref_no }}
                                                     @else
                                                         {{ $transactions->transaction->ref_no }}
@@ -314,7 +314,13 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
+                                        <span class="badge badge-light-primary fs-7">
+                                            @if ($transactions->sub_type == 'sell')
+                                                @lang('accounting::lang.sell')
+                                            @else
+                                                @lang('accounting::lang.' . $transactions->sub_type)
+                                            @endif
+                                        </span>
                                     </td>
                                     <td>
                                         <span class="text-muted fw-semibold text-muted d-block fs-7">
