@@ -213,8 +213,8 @@ return [
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'loyalty_points',
-                'url' => 'loyalty-points',
+                'name' => 'clients_suppliers_settings',
+                'url' => 'client-supplier-setting',
                 'permission' => ''
             ],
         ]
