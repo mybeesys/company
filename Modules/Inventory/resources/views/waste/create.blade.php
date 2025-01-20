@@ -40,6 +40,7 @@
    						
       <div id="root" type="wasteedit" 
       waste="{{json_encode($waste)}}"
+      waste-url="{{ json_encode(route('waste.store'))}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

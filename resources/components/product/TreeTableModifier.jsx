@@ -4,8 +4,9 @@ import { Column } from 'primereact/column';
 import DeleteModal from './DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
+import { getRowName } from '../lang/Utils';
 
-const defaultObjectValue = {active:1};
+const defaultObjectValue = {active: 1, for_sell: 1};
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(rootElement.getAttribute('product-crud-url'));
     const [nodes, setNodes] = useState([]);
@@ -72,7 +73,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     useEffect(() => {
         refreshTree();
-        
     }, []);
 
   
@@ -178,14 +178,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         key = (key).toString();
         path = key.split('-');
 
-        console.log(key);
         let node;
 
         while (path.length) {
             let list = node ? node.children : nodes;
 
             node = list[parseInt(path[0], 10)];
-            console.log(parseInt(path[0], 10))
             path.shift();
         }
 
@@ -286,7 +284,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         )
     }
 
-    const renderNumberCell = (node, key, autoFocus) => {
+    const renderNumberCell = (node, key, autoFocus, required) => {
         const indent = (node.key).toString().split('-').length;
         return (
             node.key == currentKey ?
@@ -296,7 +294,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     autoFocus={!!autoFocus}
                     onKeyDown={(e) => e.stopPropagation()} 
                     style={{ width: '100%' }}
-                    required/>
+                    required={!!required}/>
                 :
                 <span>{node.data[key]}</span>);
     }
@@ -351,10 +349,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         );
     };
 
-    const openAddCategory = ()=>
-        {
-            window.location.href =  productCrudList+'/create'
-        }
+    const openAddCategory = () => {
+        window.location.href = productCrudList + '/create'
+    }
 
     return (
         <div class="card mb-5 mb-xl-8">
@@ -387,8 +384,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     <Column header={translations.name_ar} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                     <Column header={translations.price} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
                     <Column header={translations.cost} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
-                    <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order'))} sortable></Column>
+                    <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order', false, false))} sortable></Column>
                     <Column header={translations.active} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
+                    <Column header={translations.forSell} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'for_sell'))} sortable> </Column>
                     <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
                 </TreeTable>
             </form>

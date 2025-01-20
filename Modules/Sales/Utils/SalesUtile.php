@@ -54,11 +54,18 @@ class SalesUtile
             ->first();
         $prefx = 'INV-';
 
+        if ($type == 'quotation') {
+            $prefx = 'QTN-';
+        }
+
+        if ($type == 'purchases-order') {
+            $prefx = 'PO-';
+        }
+
+
         if ($transaction) {
 
-            if ($type == 'quotation') {
-                $prefx = 'QTN-';
-            }
+
             $last_ref_no = $transaction->ref_no;
 
             list(, $yearAndNumber) = explode('-', $last_ref_no);

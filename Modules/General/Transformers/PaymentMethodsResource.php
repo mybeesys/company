@@ -13,13 +13,12 @@ class PaymentMethodsResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            [
-                'name_en' => $this->name_en,
-                'name_ar' => $this->name_ar,
-                'description_en' =>  $this->description_en,
-                'description_ar' =>  $this->description_ar,
-                'active' => $this->active,
-            ],
+            'name_en' => $this->name_en,
+            'name_ar' => $this->name_ar,
+            'description_en' =>  $this->description_en,
+            'description_ar' =>  $this->description_ar,
+            'active' => $this->active,
+            'id' => $this->id,
         ];
     }
 }

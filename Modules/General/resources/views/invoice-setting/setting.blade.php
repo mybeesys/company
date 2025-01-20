@@ -33,10 +33,6 @@
                     <label class="form-check-label ml-4" for="toggleDelegates">@lang('sales::lang.toggleDelegates')</label>
                 </div>
             </li>
-
-
-
-
         </ul>
     </div>
 

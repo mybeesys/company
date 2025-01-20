@@ -21,12 +21,6 @@ return [
 
             ],
             [
-                'name' => 'ingredient',
-                'url' => 'ingredient',
-                'permission' => 'products.ingredient.show',
-
-            ],
-            [
                 'name' => 'modifiers',
                 'url' => 'modifier',
                 'permission' => 'products.modifier.show',
@@ -62,12 +56,19 @@ return [
                 'permission' => '',
 
             ],
+            // [
+            //     'name' => 'linkedCombo',
+            //     'url' => 'linkedCombo',
+            //     'permission' => '',
+
+            // ],
             [
-                'name' => 'linkedCombo',
-                'url' => 'linkedCombo',
+                'name' => 'import',
+                'url' => 'importProduct/import',
                 'permission' => '',
 
-            ],
+            ]
+            
         ]
     ],
     [
@@ -81,34 +82,29 @@ return [
                 'url' => 'productInventory',
                 'permission' => 'inventory.product.show',
             ],
-            [
-                'name' => 'ingredientInventory',
-                'url' => 'ingredientInventory',
-                'permission' => 'inventory.ingredient.show',
-            ],
-            [
-                'name' => 'po',
-                'url' => 'purchaseOrder',
-                'permission' => 'inventory.purchaseOrder.show',
-            ],
+            // [
+            //     'name' => 'po',
+            //     'url' => 'purchaseOrder',
+            //     'permission' => 'inventory.purchaseOrder.show',
+            // ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
                 'permission' => 'inventory.prep.show',
             ],
-            [
-                'name' => 'rma',
-                'url' => 'rma',
-                'permission' => 'inventory.rma.show',
-            ],
+            // [
+            //     'name' => 'rma',
+            //     'url' => 'rma',
+            //     'permission' => 'inventory.rma.show',
+            // ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
                 'permission' => 'inventory.waste.show',
             ],
             [
-                'name' => 'transfer',
-                'url' => 'transfer',
+                'name' => 'import',
+                'url' => 'openInventoryImport/import',
                 'permission' => 'inventory.transfer.show',
             ]
         ]
@@ -135,6 +131,11 @@ return [
                 'url' => 'quotations',
                 'permission' => '',
             ],
+            [
+                'name' => 'customer_receipts',
+                'url' => 'receipts',
+                'permission' => '',
+            ],
         ]
     ],
     [
@@ -149,10 +150,23 @@ return [
                 'permission' => '',
             ],
             [
+                'name' => 'purchase-order',
+                'url' => 'purchases-order',
+                'permission' => '',
+            ],
+            [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
                 'permission' => '',
             ],
+            [
+                'name' => 'supplier_receipts',
+                'url' => 'suppliers-receipts',
+                'permission' => '',
+            ],
+
+
+
         ]
     ],
 

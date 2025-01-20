@@ -5,6 +5,8 @@ namespace Modules\General\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\Establishment;
+use Modules\General\Utils\TransactionUtils;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\TransactionFactory;
@@ -20,10 +22,19 @@ class Transaction extends Model
         return $this->belongsTo(Contact::class, 'contact_id');
     }
 
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id');
+    }
 
     public function sell_lines()
     {
         return $this->hasMany(TransactionSellLine::class, 'transaction_id');
+    }
+
+    public function purchases_lines()
+    {
+        return $this->hasMany(TransactionePurchasesLine::class, 'transaction_id');
     }
 
     public function payment()
@@ -41,10 +52,12 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
             ["class" => "text-start min-w-80px ", "name" => "payment_status"],
-            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            // ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
-            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "invoice_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "piad_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "remaining_amount"],
         ];
     }
 
@@ -57,7 +70,7 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "issue_date"],
             ["class" => "text-start min-w-150px ", "name" => "Expiry Date"],
-            ["class" => "text-start min-w-80px ", "name" => "payment_status"],
+            // ["class" => "text-start min-w-80px ", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
@@ -71,19 +84,22 @@ class Transaction extends Model
         return [
 
             ["class" => "text-start min-w-150px ", "name" => "ref_no"],
-            ["class" => "text-start min-w-150px  ", "name" => "supplier"],
+            ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
             ["class" => "text-start min-w-80px ", "name" => "payment_status"],
-            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            // ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
             // ["class" => "text-start min-w-150px  ", "name" => "discount"],
-            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "invoice_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "piad_amount"],
+            ["class" => "text-start min-w-100px  ", "name" => "remaining_amount"],
         ];
     }
 
     public static function getSellsTable($transactions)
     {
+
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
@@ -106,14 +122,24 @@ class Transaction extends Model
             ->editColumn('total_before_tax', function ($row) {
                 return  $row->total_before_tax ?? '0.00';
             })
-            // ->editColumn('tax_amount', function ($row) {
-            //     return  $row->tax_amount ?? '0.00';
-            // })
-            // ->editColumn('discount_amount', function ($row) {
-            //     return  $row->discount_amount ?? '0.00';
-            // })
+            ->editColumn('paid_amount', function ($row) {
+                $transactionUtil = new TransactionUtils();
+
+                $paid_amount = $transactionUtil->getTotalPaid($row->id);
+                return number_format($paid_amount, 2);
+            })
+            ->editColumn('remaining_amount', function ($row) {
+                $transactionUtil = new TransactionUtils();
+
+                $paid_amount = $transactionUtil->getTotalPaid($row->id);
+                $amount = $row->final_total - $paid_amount;
+                if ($amount < 0) {
+                    $amount = 0;
+                }
+                return number_format($amount, 2);
+            })
             ->editColumn('final_total', function ($row) {
-                return  $row->final_total ?? '0.00';
+                return  number_format($row->final_total, 2) ?? '0.00';
             })
             ->editColumn('payment_status', function ($row) {
                 if ($row->payment_status == 'paid') {
@@ -143,14 +169,25 @@ class Transaction extends Model
                     $actions .= '<div class="menu-item px-3">
                     <a href="' . url("/transaction-show/{$row->id}") . '" class="menu-link px-3">' . __('employee::fields.show') . '</a>
                 </div>';
-                    if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
-                        $actions .= '<div class="menu-item px-3">
-                        <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
-                    </div>';
+
+                    $actions .= '<div class="menu-item px-3">
+                <a href="' . url("/transaction-print/{$row->id}") . '" class="menu-link px-3">' . __('general.print') . '</a>
+            </div>';
+
+
+                    if ($row->type != 'quotation' && $row->type != 'purchases-order') {
+                        if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
+                            $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.add_payment') . '</a>
+                </div>';
+                        } else {
+
+                            $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/transaction-show-payments/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.show_payment') . '</a>
+                </div>';
+                        }
                     }
-                    // $actions .= '<div class="menu-item px-3">
-                    //     <a href="' . url("/client-edit/{$row->id}") . '" class="menu-link px-3">' . __('messages.edit') . '</a>
-                    // </div>';
+
 
 
                     // $status = $row->status == 'active' ? __('messages.deactivate') : __('messages.activate');
@@ -173,7 +210,7 @@ class Transaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'payment_status', 'client', 'id'])
+            ->rawColumns(['actions', 'payment_status', 'remaining_amount', 'paid_amount', 'client', 'id'])
             ->make(true);
     }
 }

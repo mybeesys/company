@@ -5,9 +5,10 @@ namespace Modules\Product\Models;
 use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Product\Database\Factories\ModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\General\Models\Tax;
+use Modules\Inventory\Models\ModifierInventoryTotal;
+use Modules\Inventory\Models\ProductInventory;
 
 class Modifier extends Model
 {
@@ -36,9 +37,14 @@ class Modifier extends Model
         'recipe_yield'
     ];
 
+    public function addToFillable($key){
+        return array_push($this->fillable, $key);
+    }
+
+
     public function getPriceWithTaxAttribute()
     {
-        return $this->price + TaxHelper::getTax($this->price,$this->tax->amount); // Calculate the field on the fly
+        return $this->price + TaxHelper::getTax($this->price,$this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
     }
 
     public function getFillable(){
@@ -72,6 +78,16 @@ class Modifier extends Model
     public function recipe()
     {
         return $this->hasMany(RecipeModifier::class, 'modifier_id', 'id');
+    }
+    
+    public function inventory()
+    {
+        return $this->belongsTo(ProductInventory::class, 'id', 'modifier_id');
+    }
+
+    public function total()
+    {
+        return $this->belongsTo(ModifierInventoryTotal::class, 'modifier_id', 'id');
     }
 
     protected static function boot()

@@ -297,9 +297,9 @@
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex justify-content-start flex-column">
                                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
-                                                {{-- href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" --}}
+                                                    {{-- href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" --}}
                                                     @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
-                                                    @if ($transactions->sub_type == 'journal_entry')
+                                                    @if (isset($transactions->accTransMapping))
                                                         {{ $transactions->accTransMapping->ref_no }}
                                                     @else
                                                         {{ $transactions->transaction->ref_no }}
@@ -314,7 +314,13 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
+                                        <span class="badge badge-light-primary fs-7">
+                                            @if ($transactions->sub_type == 'sell')
+                                                @lang('accounting::lang.sell')
+                                            @else
+                                                @lang('accounting::lang.' . $transactions->sub_type)
+                                            @endif
+                                        </span>
                                     </td>
                                     <td>
                                         <span class="text-muted fw-semibold text-muted d-block fs-7">
@@ -332,7 +338,7 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'debit')
-                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #17c653">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6"style="color: #e90909">
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -343,7 +349,7 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'credit')
-                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #e90909">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #17c653">
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -354,11 +360,11 @@
                                     </td>
                                     <td>
                                         <a class=" fw-bold text-hover-primary mb-1 fs-6"
-                                            @if ($balance < 0) style="color: #e90909"@else style="color: #17c653" @endif>
+                                            @if ($balance < 0) style="color: #e90909" @else style="color: #17c653" @endif>
 
 
                                             @if ($balance < 0)
-                                                {{ number_format(abs($balance), 2) }} (-)
+                                                ({{ number_format(abs($balance), 2) }})
                                             @else
                                                 {{ number_format($balance, 2) }}
                                             @endif
@@ -371,10 +377,10 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" class=" text-center fw-bold fs-4">@lang('accounting::lang.Closing balance')</td>
-                                <td colspan="1" class=" fw-bold fs-5" style="color: #17c653">
+                                <td colspan="1" class=" fw-bold fs-5" style="color: #e90909">
                                     @format_currency($total_debit)
                                 </td>
-                                <td class=" fw-bold fs-5" style="color: #e90909">
+                                <td class=" fw-bold fs-5" style="color: #17c653">
                                     @format_currency($total_credit)
                                 </td>
                                 <td colspan="2" class=" fw-bold fs-5">

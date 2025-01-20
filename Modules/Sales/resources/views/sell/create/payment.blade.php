@@ -40,7 +40,7 @@
     <div class="col-4">
         <div class="fv-row ">
 
-            <label class="fs-6 fw-semibold mb-2 ">@lang('accounting::lang.account')
+            <label class="fs-6 fw-semibold mb-2 " id="lable-account_id">@lang('accounting::lang.account')
                 <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.payment_account_note')">
                     <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                 </span>

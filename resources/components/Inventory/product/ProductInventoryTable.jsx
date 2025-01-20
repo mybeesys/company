@@ -3,6 +3,7 @@ import TreeTableComponent from '../../comp/TreeTableComponent';
 import { getName, getRowName } from '../../lang/Utils';
 import makeAnimated from 'react-select/animated';
 import Select from "react-select";
+import ProductTransactionModal from './ProductTransactionModal';
 
 const animatedComponents = makeAnimated();
 const ProductInventoryTable = ({ dir, translations, p_type }) => {
@@ -10,7 +11,8 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
   const [urlList, setUrlList] = useState(JSON.parse(rootElement.getAttribute('list-url')));
   const [searchBy, setSearchBy] = useState({label: translations.establishment, value: 0});
   const [searchText, setSearchText] = useState();
-
+  const [isTransactionModalVisible, setIsTransactionModalVisible] = useState(false);
+  const [productTrnsaction, setProductTransaction] = useState([]);
   const canEditRow=(data)=>{
     return data.type == "product" || data.type == "Ingredient";
   }
@@ -35,7 +37,15 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
     else{
       window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${-1}&key=&t=1`, '_blank');
     }
-    
+  }
+
+  const openTransactionModel = (data) => {
+    axios.get(`/listTransactions?est=${data.establishment_id}&typ=${data.type}&id=${data.id}`).then(respponse => setProductTransaction(respponse.data));
+    setIsTransactionModalVisible(true);
+  }
+
+  const handleClose = () => {
+    setIsTransactionModalVisible(false);
   }
 
   return (
@@ -44,6 +54,12 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
           <div class="row">
             <div class="col-3">
               <label for="name_ar" class="col-form-label">{translations.search}</label>
+              <ProductTransactionModal
+                            visible={isTransactionModalVisible}
+                            onClose={handleClose}
+                            transactions={productTrnsaction}
+                            translations ={translations}
+                        />
               <Select
                     id="search_id"
                     isMulti={false}
@@ -98,7 +114,6 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
               customCell: (data, key, editMode, editable) => {
                 return  (<>
                       <span>{getRowName(data, dir)}</span>
-
                   </>);
               },
             },
@@ -127,6 +142,16 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                       (!!data.inventory) ? 
                       <span>{data.inventory.threshold}</span>
                       : <></>
+                  );
+              },
+            },
+            {key: "", autoFocus: false, type: "Decimal", width: '16%',
+              customCell: (data, key, editMode, editable) => {
+                return  (
+                  data.type == "product" || data.type == "Ingredient" ?
+                  <a href="javascript:void(0);" onClick={() => openTransactionModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    <i class="ki-outline ki-timer fs-2"></i>
+                  </a>  : <></>
                   );
               },
             }

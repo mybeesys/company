@@ -133,9 +133,18 @@ return [
     'amount' => 'Amount',
     'parent_account' => 'Parent Account',
     'sell' => 'Sales invoice',
+    'purchases' => 'Purchases invoice',
+    'purchase' => 'Purchases invoice',
+
     'is_main' => 'Is the center main?',
     'Closing balance' => 'Closing balance',
     'cost_center_note' => 'Sub cost centers can be used in financial transactions, while main cost centers can only have sub-centers added under them and are not used in financial transactions.',
+
+    'contact_balance' => 'Contact balance',
+    'sell_cash'=>'Cash sales invoice collection',
+
+    'sales_revenue'=>'Sales revenue',
+
 
 
 

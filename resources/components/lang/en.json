@@ -51,6 +51,7 @@
   "attr_value2": "Attr 2",
   "generateMatrix": "Generate Matrix",
   "required": "Required",
+  "required1": "Required",
   "default": "Default",
   "defaultModifier": "Default",
   "min": "Min",
@@ -201,7 +202,7 @@
   "items" : "Items",
   "unit" : "Unit",
   "qty" : "Qty",
-  "new_op" : "New",
+  "draft" : "New",
   "sent" : "Sent",
   "partiallyReceived" : "Partially Received",
   "fullyReceived" : "Fully Received",
@@ -243,5 +244,13 @@
   "exist" : "Already Exist",
   "priceTiers" : "Price Tiers",
   "priceTier" : "Price Tier",
-  "priceWithTax" : "Price With Tax"
+  "priceWithTax" : "Price With Tax",
+  "forSell" : "For Sell",
+  "import1" : "Import",
+  "importProduct" : "Products Import",
+  "downloadTemplate" : "Download Template",
+  "openInventory" : "Open Inventory",
+  "openInventoryImport" : "Open Inventory Import",
+  "transactions" : "Transactions",
+  "op_type" : "Operation"
 }

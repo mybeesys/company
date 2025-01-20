@@ -18,10 +18,15 @@ class UnitTransferController extends Controller
             $prodTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($prodTransfer);
          } 
-        else
+        else if ($type == "ingredient")
         {
             $ingTransfer = UnitTransfer::where('ingredient_id', '=', $id)->get();
             return response()->json($ingTransfer);
+        }
+        else
+        {
+            $modTransfer = UnitTransfer::where('modifier_id', '=', $id)->get();
+            return response()->json($modTransfer);
         }
     }
 
@@ -35,11 +40,14 @@ class UnitTransferController extends Controller
             $recipeIngredient = explode("-",$request['id']);
             if($recipeIngredient[1] == 'p')
                 $request['product_id'] = $recipeIngredient[0];
+            else if($recipeIngredient[1] == 'm')
+                $request['modifier_id'] = $recipeIngredient[0];
             else
                 $request['ingredient_id'] = $recipeIngredient[0];
         }
         $porduct_id = $request->query('product_id', '');
         $ingredient_id = $request->query('ingredient_id', '');
+        $modifier_id=  $request->query('modifier_id', '');
         if ($request->has('product_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
                             ->where('product_id', '=', $porduct_id)
@@ -49,6 +57,12 @@ class UnitTransferController extends Controller
         if($request->has('ingredient_id')){
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
                             ->where('ingredient_id', '=', $ingredient_id)
+                            ->take(10)
+                            ->get();
+        }
+        if ($request->has('modifier_id')) {
+            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+                            ->where('modifier_id', '=', $modifier_id)
                             ->take(10)
                             ->get();
         }

@@ -12,7 +12,6 @@ const UnitTransferIngredient = ({ translations, unitTransfer, unitTree, parentHa
 
     React.useEffect(() => {
         setNodes(unitTransfer);
-        console.log(unitTransfer);
         setMainUnit(productUnit);
         if(!!!innerUnits || innerUnits.length ==0)
             setUnits(unitTree);

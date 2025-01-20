@@ -42,4 +42,21 @@ class AccountingAccountsTransaction extends Model
     {
         return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
     }
+
+
+    public static function getAccountTransactionType($tansaction_type)
+    {
+        $account_transaction_types = [
+            'sell' => 'credit',
+            'purchases' => 'debit',
+            'expense' => 'debit',
+            'purchase_return' => 'credit',
+            'sell_return' => 'debit',
+            'payroll' => 'debit',
+            'expense_refund' => 'credit',
+            'hms_booking' => 'credit',
+        ];
+
+        return $account_transaction_types[$tansaction_type];
+    }
 }

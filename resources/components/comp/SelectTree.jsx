@@ -89,7 +89,6 @@ const SelectTree = ({ translations, title, selectedItems, itemType, itemKey, ite
         fillSelectedItems(items, keys, selectedItems);
         setSelectedNodeKeys(keys);
         onItemSelectionChange(selectedItems);
-        console.log(selectedItems);
     }
 
     return (

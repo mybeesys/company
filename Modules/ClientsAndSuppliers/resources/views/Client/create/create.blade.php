@@ -37,7 +37,7 @@
 @section('content')
     <form id="client" method="POST" action="{{ route('client-save') }}">
         @csrf
-        <input type="hidden"  name="business_type" value="customer"/>
+        <input type="hidden" name="business_type" value="customer" />
 
         <div class="container">
             <div class="row">
@@ -107,15 +107,15 @@
                             <div class="d-flex align-items-center mb-5">
                                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('clientsandsuppliers::fields.commercial_register')</label>
                                 <input class="form-control form-control-solid custom-height" name="commercial_register"
-                                     placeholder="@lang('clientsandsuppliers::fields.commercial_register')" id="commercial_register" type="text">
+                                    placeholder="@lang('clientsandsuppliers::fields.commercial_register')" id="commercial_register" type="text">
                             </div>
 
 
                             <div class="d-flex  align-items-center ">
                                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('clientsandsuppliers::fields.Point of sale client')</label>
                                 <div class="form-check">
-                                <input type="checkbox" style="border: 1px solid #9f9f9f;" id="point_of_sale_client" name="point_of_sale_client"
-                                    class="form-check-input  my-2">
+                                    <input type="checkbox" style="border: 1px solid #9f9f9f;" id="point_of_sale_client"
+                                        name="point_of_sale_client" class="form-check-input  my-2">
                                 </div>
                             </div>
                         </div>
@@ -168,45 +168,62 @@
                         <!--begin::Tab nav-->
                         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 active"
+                                <a id="financial_information_tab"
+                                    class="nav-link justify-content-center text-active-gray-800 active"
+                                    data-bs-toggle="tab" role="tab" href="#financial_information"
+                                    aria-selected="false" tabindex="-1">
+                                    @lang('clientsandsuppliers::fields.financial_information')
+                                </a>
+                            </li>
+
+
+                            <li class="nav-item" role="presentation">
+                                <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
                                     data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a id="shipping_info_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                                    role="tab" href="#shipping_info" aria-selected="false" tabindex="-1">
+                                <a id="shipping_info_tab" class="nav-link justify-content-center text-active-gray-800"
+                                    data-bs-toggle="tab" role="tab" href="#shipping_info" aria-selected="false"
+                                    tabindex="-1">
                                     @lang('clientsandsuppliers::fields.shipping_addresses')
 
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                                    role="tab" href="#attachments" aria-selected="false" tabindex="-1">
+                                <a id="attachments_tab" class="nav-link justify-content-center text-active-gray-800"
+                                    data-bs-toggle="tab" role="tab" href="#attachments" aria-selected="false"
+                                    tabindex="-1">
                                     @lang('clientsandsuppliers::fields.bank_account_information')
                                 </a>
                             </li>
 
                             <li class="nav-item" role="presentation">
-                                <a id="clientContactsCard_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                                <a id="clientContactsCard_tab"
+                                    class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                                     role="tab" href="#clientContactsCard" aria-selected="false" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.client_contacts')
                                 </a>
                             </li>
 
-                            <li class="nav-item" role="presentation">
-                                <a id="financial_information_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                                    role="tab" href="#financial_information" aria-selected="false" tabindex="-1">
-                                    @lang('clientsandsuppliers::fields.financial_information')
-                                </a>
-                            </li>
 
                         </ul>
                         <!--end::Tab nav-->
                     </div>
 
+
                     <div class="tab-content">
-                        <div id="payment_info" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                        <div id="financial_information" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                            aria-labelledby="financial_information_tab">
+                            @include('clientsandsuppliers::Client.create.financial_information')
+
+                        </div>
+                    </div>
+
+
+                    <div class="tab-content">
+                        <div id="payment_info" class="card-body p-0 tab-pane fade show" role="tabpanel"
                             aria-labelledby="payment_info_tab">
 
                             @include('clientsandsuppliers::Client.create.billingCard')
@@ -225,25 +242,20 @@
                     </div>
 
                     <div class="tab-content">
-                        <div id="attachments" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="attachments_tab">
+                        <div id="attachments" class="card-body p-0 tab-pane fade show" role="tabpanel"
+                            aria-labelledby="attachments_tab">
                             @include('clientsandsuppliers::Client.create.bankAccountCard')
 
                         </div>
                     </div>
                     <div class="tab-content">
-                        <div id="clientContactsCard" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="clientContactsCard_tab">
+                        <div id="clientContactsCard" class="card-body p-0 tab-pane fade show" role="tabpanel"
+                            aria-labelledby="clientContactsCard_tab">
                             @include('clientsandsuppliers::Client.create.clientContactsCard')
 
                         </div>
                     </div>
 
-
-                    <div class="tab-content">
-                        <div id="financial_information" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="financial_information_tab">
-                            @include('clientsandsuppliers::Client.create.financial_information')
-
-                        </div>
-                    </div>
 
 
 
@@ -322,27 +334,26 @@
 
 
         $('#addAccountForm').on('submit', function(e) {
-                e.preventDefault();
+            e.preventDefault();
 
-                $('#submitBtn .indicator-label').hide();
-                $('#submitBtn .indicator-progress').show();
+            $('#submitBtn .indicator-label').hide();
+            $('#submitBtn .indicator-progress').show();
 
-                $.ajax({
-                    url: "{{ route('store-account') }}",
-                    method: "POST",
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        $('#kt_modal_create_account').modal('hide');
-                        $('#addAccountForm')[0].reset();
-                    },
-                    error: function(xhr) {
-                    },
-                    complete: function() {
-                        $('#submitBtn .indicator-label').show();
-                        $('#submitBtn .indicator-progress').hide();
-                    }
-                });
+            $.ajax({
+                url: "{{ route('store-account') }}",
+                method: "POST",
+                data: $(this).serialize(),
+                success: function(response) {
+                    $('#kt_modal_create_account').modal('hide');
+                    $('#addAccountForm')[0].reset();
+                },
+                error: function(xhr) {},
+                complete: function() {
+                    $('#submitBtn .indicator-label').show();
+                    $('#submitBtn .indicator-progress').hide();
+                }
             });
+        });
 
 
         document.getElementById('addContactCard').addEventListener('click', function() {

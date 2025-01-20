@@ -66,7 +66,7 @@ class SubCategoryController extends Controller
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
+            'order' => 'nullable|numeric',
             'category_id' => 'required|numeric',
             'parent_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
@@ -90,9 +90,12 @@ class SubCategoryController extends Controller
 
         if(!isset($validated['id']))
         {
-            $subcategory = $this->findSubCategory($validated, 'order');
-            if($subcategory != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $subcategory = $this->findSubCategory($validated, 'order');
+                if($subcategory != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
             if($subcategory != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
@@ -104,9 +107,12 @@ class SubCategoryController extends Controller
         }
         else
         {
-            $subcategory = $this->findSubCategory($validated, 'order');
-            if($subcategory != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if(isset($validated['order']))
+            {
+                $subcategory = $this->findSubCategory($validated, 'order');
+                if($subcategory != null)
+                    return response()->json(["message"=>"ORDER_EXIST"]);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
             if($subcategory != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
@@ -119,6 +125,7 @@ class SubCategoryController extends Controller
             $subcategory->name_en = $validated['name_en'];
             $subcategory->order = $validated['order'];
             $subcategory->active = $validated['active'];
+            $subcategory->order = $validated['order'] ?? null;
             $subcategory->save();
         }
 

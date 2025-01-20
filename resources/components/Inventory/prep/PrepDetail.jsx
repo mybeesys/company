@@ -29,12 +29,12 @@ const PrepDetail = ({ dir, translations }) => {
             return;
         }
         setcurrentObject({...currentObject});
-        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient='Y'`).then(response => {
+        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient=Y`).then(response => {
             let items = response.data.map(obj => {
                 const { quantity, products, ...rest } = obj;
                 return { 
                     qty: quantity,
-                    cost:1, 
+                    unit_price_before_discount:1, 
                     product: products, 
                     unitTransfers: !!products.unitTransfers ? products.unitTransfers: [],
                     unit : !!products.unitTransfers ? products.unitTransfers.find(x=>x.unit2 == null) : null,
@@ -73,7 +73,7 @@ const PrepDetail = ({ dir, translations }) => {
     const validateObject = (data) =>{
         if(!!!data.establishment) return `${translations.establishment} ${translations.required}`;
         if(!!!data.product || data.product.length ==0) return `${translations.product} ${translations.required}`;
-        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit).length >0) return translations['item_unit_error'];
+        if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit_transfer).length >0) return translations['item_unit_error'];
         return 'Success';
     }
     
@@ -116,26 +116,11 @@ const PrepDetail = ({ dir, translations }) => {
                         editable:false, required:true
                     },
                     {key : "SKU", autoFocus: true, type :"Text", width:'15%', editable:false,
-                        customCell:(data, key, currentEditing, editable)=>{
+                        customCell:(data, key, editable, onChange)=>{
                             return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
                         }
                     },
-                    {key : "unit", autoFocus: true, type :"Text", width:'15%', editable:true, required:true,
-                        customCell: (data, key, editMode, editable, onCahnge) =>{
-                            return (!!!editMode? <>{!!data.unit? data.unit.unit1 : ''}</> :
-                            <select class={`form-control number-indent-2`}
-                                defaultValue={!!data.unit? data.unit.id : ''}
-                                onChange={(e) => onCahnge(e.target.value, col.key)}
-                                onKeyDown={(e) => e.stopPropagation()}
-                                style={{ width: '100%' }}
-                                required>
-                                {!!data.product.unitTransfers ? data.product.unitTransfers.map((option) => (
-                                    <option value={option.id}>{option.unit1}</option>
-                                )): null
-                                }
-                            </select>)
-                        }
-                    },                    
+                    {key : "unit_transfer", title: "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:false},                    
                     {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
                         onChangeValue : (row, key, val, postExecute) => {
                             row.total = !!val && !!row.cost ? val * row.cost : null;
@@ -151,7 +136,7 @@ const PrepDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="inventoryOperation/store/1"
+          apiUrl="prep"
           afterSubmitUrl="../../prep"
           validateObject = {validateObject}
           type="prp"

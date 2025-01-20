@@ -69,4 +69,16 @@ class Subcategory extends Model
     {
         return $this->belongsTo(Subcategory::class, 'parent_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->order = OrderGenerator::generateOrder($model->order, 'category_id', $model->category_id, $model->table);
+        });
+        static::updating(function ($model) {
+            $model->order = OrderGenerator::generateOrder($model->order, 'category_id', $model->category_id, $model->table);
+        });
+    }
 }

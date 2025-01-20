@@ -90,7 +90,6 @@ const CustomMenuProduct = ({ translations, customMenuProducts, onProductSelectio
         fillSelectedProducts(products, keys, selectedProducts);
         setSelectedNodeKeys(keys);
         onProductSelectionChange(selectedProducts);
-        console.log(selectedProducts);
     }
 
     return (

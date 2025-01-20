@@ -39,10 +39,45 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchases" url="create-purchases-invoice" module="purchases">
+                <x-tables.table-header model="purchases" url="create-purchases-invoice" :addButton="false"
+                    module="purchases">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
+                        <div class="btn-group">
+                            @if ($Latest_event->action != '#')
+                                <a href="{{ url('/create-purchases-invoice') }}"
+                                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
+                                    @lang('sales::general.add_sell')
+                                </a>
+                            @else
+                                <a href="#" class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px"
+                                    data-bs-toggle="modal" data-bs-target="#convertToInvoiceModal">
+                                    @lang('purchases::general.convert-to-invoice')
+                                </a>
+                            @endif
+
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+
+                            <ul class="dropdown-menu p-5">
+                                <li>
+                                    <a href="{{ url('/create-purchases-invoice') }}" class="dropdown-item">
+                                        @lang('sales::general.add_sell')
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                        data-bs-target="#convertToInvoiceModal">
+                                        @lang('purchases::general.convert-to-invoice')
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+
                         <x-tables.export-menu id="purchases" />
                     </x-slot:export>
                 </x-tables.table-header>
@@ -55,6 +90,7 @@
     @endif
 
 
+    @include('purchases::purchase-order.convertToInvoiceModal')
 
 
 
@@ -114,21 +150,27 @@
                     {
                         data: 'payment_status',
                         name: 'payment_status'
-                    }, {
-                        data: 'total_before_tax',
-                        name: 'total_before_tax'
                     },
+                    // {
+                    //     data: 'total_before_tax',
+                    //     name: 'total_before_tax'
+                    // },
                     // {
                     //     data: 'tax_amount',
                     //     name: 'tax_amount'
                     // },
-                    // {
-                    //     data: 'discount_amount',
-                    //     name: 'discount_amount'
-                    // },
+
                     {
                         data: 'final_total',
                         name: 'final_total'
+                    },
+                    {
+                        data: 'paid_amount',
+                        name: 'paid_amount'
+                    },
+                    {
+                        data: 'remaining_amount',
+                        name: 'remaining_amount'
                     },
 
                     {

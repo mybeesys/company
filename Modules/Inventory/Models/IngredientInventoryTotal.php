@@ -23,7 +23,7 @@ class IngredientInventoryTotal extends Model
 
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
-        'product_id',
+        'ingredient_id',
         'establishment_id',
         'qty'
     ];

@@ -5,10 +5,19 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\InventoryOperation;
 use Modules\Inventory\Models\PurchaseOrder;
-use Modules\Product\Models\Vendor;
+use Illuminate\Http\Request;
+use Modules\General\Models\TransactionSellLine;
+use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Transaction;
 
 class WasteController extends Controller
 {
+    protected $inventoryOperationController;
+
+    public function __construct(InventoryOperationController $inventoryOperationController){
+        $this->inventoryOperationController = $inventoryOperationController;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -32,21 +41,13 @@ class WasteController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
-        if($inventoryOperation->hasDetail()){
-            $inventoryOperation->detail->addToFillable();
-            foreach ($inventoryOperation->detail->getFillable() as $key) {
-                $inventoryOperation->$key = $inventoryOperation->detail[$key];
-                $inventoryOperation->addToFillable($key);
-            }
-        }
-        $inventoryOperation->addToFillable('op_status_name');
-        $inventoryOperation->addToFillable('establishment');
-        $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
+        $inventoryOperation  = Transaction::with('establishment')->find($id);//::->find($id);
+        $inventoryOperation->op_status_name = $inventoryOperation->status;//->name;
         $resInventoryOperation = $inventoryOperation->toArray();
         $resInventoryOperation["items"] = [];
-        foreach ($inventoryOperation->items as $item) {
+        foreach ($inventoryOperation->sell_lines as $item) {
             $newItem = $item->toArray();
+            $newItem["qty"] = $item->qyt;
             if(isset($item->product_id)){
                 $newItem["product_id"] = $item->product_id.'-p';
                 $prod = $item->product->toArray();
@@ -59,9 +60,142 @@ class WasteController extends Controller
                 $ingr["id"] =  $item->ingredient_id.'-i';
                 $newItem["product"] =$ingr;
             }
-            $newItem["unit"] = $item->unit->toArray();
+            if(isset($item->modifier_id)){
+                $newItem["product_id"] = $item->modifier_id.'-m';
+                $mod = $item->modifier->toArray();
+                $mod["id"] =  $item->modifier_id.'-m';
+                $newItem["product"] =$mod;
+            }
+            $newItem["unit"] = $item->unitTransfer?->toArray();
             $resInventoryOperation["items"][] =$newItem;
         }
         return view('inventory::waste.edit', compact('resInventoryOperation'));
+    }
+
+    public function getWastes()
+    {
+        $inventoryOperations = Transaction::with('establishment')->where('type', '=', 'WASTE')->get();//with('establishment')->
+        foreach ($inventoryOperations as $inventoryOperation) {
+            $inventoryOperation->op_status_name = $inventoryOperation->op_status;
+        }  
+        return response()->json($inventoryOperations);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'nullable|numeric',
+            'transaction_date' => 'nullable|date',
+            'description' => 'nullable|string',
+        ]);
+        $validated['type'] = 'WASTE';
+        $validated['transaction_date'] = $validated['transaction_date'] ?? date("Y-m-d");
+        if (!isset($validated['id'])) {
+            $validated["ref_no"] = $this->inventoryOperationController->generatePoNo(3);
+            $validated["status"] = 'draft';
+            $validated["total_before_tax"] = 0;
+            if(isset($request['items'])){
+                $itemTotal = array_reduce($request['items'], function($carry, $item) {
+                    return $carry + $item["qty"] * $item["unit_price_before_discount"];
+                }, 0);
+            }
+            $inventoryOperation = new Transaction();
+            $inventoryOperation->type = $validated['type'];
+            $validated["establishment_id"] = $request["establishment"]["id"];
+            $validated["total_before_tax"] = $itemTotal;
+            if(isset($request['items'])){
+                $prods = [];
+                $ingrs = [];
+                $mods = [];
+                foreach ($request['items'] as $newItem) {
+                    $item = new TransactionSellLine();
+                    $idd = explode("-", $newItem['product']['id']);
+                    $item->qty = $newItem['qty'];
+                    if($idd[1] == 'p'){
+                        $item->product_id = $idd[0];
+                        $prods [] = $item;
+                    }
+                    else if($idd[1] == 'm'){
+                        $item->modifier_id = $idd[0];
+                        $mods [] = $item;
+                    }
+                    else{
+                        $item->ingredient_id = $idd[0];
+                        $ingrs [] = $item;
+                    }
+                }
+                if($validated['type']!=0){
+                    $result =  $this->inventoryOperationController->isValidQty($request["establishment"]["id"], $prods, $ingrs, $mods,  $request["times"] ?? null);
+                    if(count($result) >0 )
+                        return response()->json($result);
+                }
+            }
+            DB::transaction(function () use ($validated, $request) {
+                $inventoryOperation = Transaction::create($validated);
+                if(isset($request['items'])){
+                    foreach ($request['items'] as $newItem) {
+                        if(isset($newItem)){
+                            $item = new TransactionSellLine();
+                            $item->transaction_id = $inventoryOperation->id;
+                            $idd = explode("-", $newItem['product']['id']);
+                            if($idd[1] == 'p')
+                                $item->product_id = $idd[0];
+                            else if($idd[1] == 'm')
+                                $item->modifier_id = $idd[0];
+                            else
+                                $item->ingredient_id = $idd[0];
+                            $item->qyt = $newItem['qty'];
+                            $item->unit_price = $newItem['unit_price_before_discount'];
+                            $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
+                            $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
+                            if(isset($newItem['unit'])) 
+                                $item->unit_id = $newItem['unit']['id'];
+                            $item->save();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            $inventoryOperation = Transaction::find($validated['id']);
+            $validated["establishment_id"] = $request["establishment"]["id"];
+            $inventoryOperation->transaction_date = $validated["transaction_date"];
+            $inventoryOperation->description = $validated["description"];
+            $inventoryOperation->establishment_id = $request["establishment"]["id"];
+            $inventoryOperation->total_before_tax = 0;
+            if(isset($request['items'])){
+                $itemTotal = array_reduce($request['items'], function($carry, $item) {
+                    return $carry + $item["qty"] * $item["unit_price_before_discount"];
+                }, 0);
+            }
+            $inventoryOperation->total_before_tax = $itemTotal;
+            DB::transaction(function () use ($inventoryOperation, $validated, $request) {
+                $inventoryOperation->save();
+                if(isset($request['items'])){
+                    TransactionSellLine::where('transaction_id', '=', $inventoryOperation->id)->delete();
+                    foreach ($request['items'] as $newItem) {
+                        if(isset($newItem)){
+                            $item = new TransactionSellLine();
+                            $item->transaction_id = $inventoryOperation->id;
+                            $idd = explode("-", $newItem['product']['id']);
+                            if($idd[1] == 'p')
+                                $item->product_id = $idd[0];
+                            else if($idd[1] == 'm')
+                                $item->modifier_id = $idd[0];
+                            else
+                                $item->ingredient_id = $idd[0];
+                            $item->qyt = $newItem['qty'];
+                            $item->unit_price_before_discount = $newItem['unit_price_before_discount'];
+                            $item->unit_price = $newItem['unit_price_before_discount'];
+                            $item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
+                            if(isset($newItem['unit'])) 
+                                $item->unit_id = $newItem['unit']['id'];
+                            $item->save();
+                        }
+                    }
+            }
+            });
+        }
+        return response()->json(["message" => "Done"]);
     }
 }

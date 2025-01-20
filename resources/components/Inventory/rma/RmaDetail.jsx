@@ -13,6 +13,7 @@ const RmaDetail = ({ dir, translations }) => {
     
     useEffect(() => {
         updateTotals(currentObject);
+        setcurrentObject({...currentObject});
     }, [currentObject]);
 
     const onBasicChange = (key, value) => {
@@ -112,7 +113,7 @@ const RmaDetail = ({ dir, translations }) => {
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
-                            axios.get(`${window.location.origin}/get${result[1] == 'p' ? 'Product' : 'Ingredient' }Inventory/${result[0]}`)
+                            axios.get(`${window.location.origin}/getProductInventory/${val.id}`)
                             .then(response => {
                                 let prod = response.data;
                                 nodes[rowKey].data.SKU = prod.SKU;

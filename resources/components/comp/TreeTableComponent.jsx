@@ -8,7 +8,7 @@ import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 
 const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, 
-                            cols, title, canDelete, canEditRow, expander, defaultValue }) => {
+                            cols, title, canDelete, canEditRow, expander, defaultValue, prepareData }) => {
 
     const formRef = useRef(null);
 
@@ -322,9 +322,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         try {
             const response = axios.get(urlList).then(response => {
                 let result = response.data;
+                if(!!prepareData)
+                    result = prepareData(result);
                 if(!!!canAddInline)
                     result = clearAddRow(result);
-                console.log(result);
                 setNodes(result);
                 setExpandedKeys(getExpandedKeys(result));
             });
@@ -354,14 +355,12 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         key = (key).toString();
         path = key.split('-');
 
-        console.log(key);
         let node;
 
         while (path.length) {
             let list = node ? node.children : nodes;
 
             node = list[parseInt(path[0], 10)];
-            console.log(parseInt(path[0], 10))
             path.shift();
         }
 

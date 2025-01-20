@@ -4,6 +4,7 @@ namespace Modules\Inventory\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Inventory\Notifications\CheckLowStockReminder;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class InventoryServiceProvider extends ServiceProvider
@@ -25,6 +26,7 @@ class InventoryServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'inventory');
     }
 
     /**
@@ -34,6 +36,9 @@ class InventoryServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->commands([
+            CheckLowStockReminder::class,
+        ]);
     }
 
     /**
