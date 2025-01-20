@@ -1,21 +1,23 @@
  <ul>
      @foreach ($account->child_accounts as $child_account)
          <li @if (count($child_account->child_accounts) == 0) data-jstree='{ "icon" : "ki-outline ki-fasten" }' @endif>
-             @if (app()->getLocale() == 'ar')
-                 @if (!empty($child_account->gl_code))
-                     ({{ $child_account->gl_code }})
-                     -
-                 @endif
+             <span class="gap-1">
 
-                 {{ $child_account->name_ar }}
-             @else
-                 @if (!empty($child_account->gl_code))
-                     ({{ $child_account->gl_code }})
-                 @endif
-                 - {{ $child_account->name_en }}
-             @endif
-             - @format_currency($child_account->balance)
+                 @if (app()->getLocale() == 'ar')
+                     @if (!empty($child_account->gl_code))
+                         ({{ $child_account->gl_code }})
+                         -
+                     @endif
 
+                     {{ $child_account->name_ar }}
+                 @else
+                     @if (!empty($child_account->gl_code))
+                         ({{ $child_account->gl_code }})
+                     @endif
+                     - {{ $child_account->name_en }}
+                 @endif
+                 - @format_currency($child_account->balance) 
+             </span>
              @if ($child_account->status == 'active')
                  <span><i class="fas fa-check text-success" title="@lang('accounting::lang.active')"></i></span>
              @elseif($child_account->status == 'inactive')
@@ -27,10 +29,10 @@
                          class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                          <i class="fas fa-cog"></i>
                      </button>
-                     <ul class="dropdown-menu"  @if (app()->getLocale() == 'ar') dir="rtl" @endif style="padding: 8px 15px;">
+                     <ul class="dropdown-menu" @if (app()->getLocale() == 'ar') dir="rtl" @endif
+                         style="padding: 8px 15px;">
                          <li><a class="btn-xs  btn-default  ledger-link"
-                                 href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"
-                                 data-href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', $child_account->id) }}"
+                                 href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $child_account->id]) }}"
                                  style="margin: 2px;">
                                  <i class="fas fa-file-alt"></i><span style="margin-left: 5px;">@lang('accounting::lang.ledger')</a>
                          </li>

@@ -19,9 +19,11 @@ use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\PriceTier;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
+use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
 
 class ProductController extends Controller
@@ -29,7 +31,7 @@ class ProductController extends Controller
     protected $requetsValidator = [
         'name_ar' => 'required|string|max:255',
         'name_en' => 'required|string',
-        'order' => 'required|numeric',
+        'order' => 'nullable|numeric',
         'category_id' => 'required|numeric',
         'subcategory_id' => 'required|numeric',
         'tax_id' => 'nullable|numeric',
@@ -55,7 +57,8 @@ class ProductController extends Controller
         'set_price' => 'nullable|boolean',
         'use_upcharge' => 'nullable|boolean',
         'linked_combo' => 'nullable|boolean',
-        'promot_upsell' => 'nullable|numeric'
+        'promot_upsell' => 'nullable|numeric',
+        'for_sell' => 'required|boolean'
     ];
 
 
@@ -67,9 +70,13 @@ class ProductController extends Controller
     public function listRecipe($id, Request $request)
     {
         $key = $request->query('with_ingredient', '');
-        $recipes = null;
-        if(isset($key) && $key='Y'){
-            $recipes = RecipeProduct::where([['product_id', '=', $id]])->get();
+        $recipes = [];
+        if(isset($key) && $key=='Y'){
+            $idd = explode("-",$id);
+            if($idd[1] == 'p')
+                $recipes = RecipeProduct::with('unitTransfer')->where([['product_id', '=', $idd[0]]])->get();
+            else
+                $recipes = RecipeModifier::with('unitTransfer')->where([['modifier_id', '=', $idd[0]]])->get();
             $resRecipes = [];
             foreach ($recipes as $recipe) {
                 $newItem = $recipe->toArray();
@@ -78,14 +85,12 @@ class ProductController extends Controller
                     $prod = $recipe->products->toArray();
                     $prod["id"] =  $recipe->item_id.'-p';
                     if(isset($recipe->products))
-                    $prod["unitTransfers"] = $recipe->products->unitTransfers;
                     $newItem["products"] =$prod;
                 }
                 if($recipe->item_type == 'i'){
                     $newItem["product_id"] = $recipe->item_id.'-i';
                     $ingr = $recipe->ingredients->toArray();
                     $ingr["id"] =  $recipe->item_id.'-i';
-                    $ingr["unitTransfers"] = $recipe->ingredients->unitTransfers;
                     $newItem["products"] =$ingr;
                 }
                 $resRecipes [] =$newItem;
@@ -124,6 +129,7 @@ class ProductController extends Controller
         $product->attributes = [];
         //$product->taxIds = [];
         $product->active = 1;
+        $product->for_sell = 1;
         return view('product::product.create', compact('product'));
     }
 
@@ -144,7 +150,7 @@ class ProductController extends Controller
         return null;
     }
 
-    private function validateProduct($id, $product){
+    public function validateProduct($id, $product){
         $checkResult = [];
         $uniqueFields = ['name_ar', 'name_en'];
         if(isset($product['SKU']))
@@ -218,6 +224,8 @@ class ProductController extends Controller
         $product->tax_id = $validated['tax_id'];
         $product->subcategory_id = $validated['subcategory_id'];
         $product->active = $validated['active'];
+        $product->order = $validated['order'] ?? null;
+        $product->for_sell = $validated['for_sell'];
         $product->sold_by_weight = $validated['sold_by_weight'];
         $product->track_serial_number = $validated['track_serial_number'];
         $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
@@ -257,7 +265,7 @@ class ProductController extends Controller
             // Optionally save the file path to the database
             $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
         }
-       // DB::transaction(function () use ($product, $request) {
+        DB::transaction(function () use ($product, $request) {
             $product->save();
             if(isset($request["modifiers"]))
             {
@@ -475,7 +483,7 @@ class ProductController extends Controller
             //         $tax->save();
             //     }
             // }
-        //});
+        });
     }
 
     protected function createProduct($validated, $request){
@@ -698,7 +706,7 @@ class ProductController extends Controller
         $product->price_with_tax = $product->price_with_tax;
         foreach ( $product->priceTiers as $rec) 
         {
-            $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $product->tax->amount);
+            $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
         foreach ( $product->recipe as $rec) 
         {
@@ -750,21 +758,32 @@ class ProductController extends Controller
                             ->orWhere('name_en', 'like', '%' . $key . '%')
                             ->take(10)
                             ->get();
+        $productCount= count($products);
+        $modifiers = Modifier::where('name_ar', 'like', '%' . $key . '%')
+                            ->orWhere('name_en', 'like', '%' . $key . '%')
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
+                            ->get();
+        $productCount= count($products) + count($modifiers);
         $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
                             ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
                             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
             $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
             return $newProduct;
         });
+        $modifiers = $modifiers->map(function ($modifier) {
+            $newModifier = $modifier->toArray();
+            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            return $newModifier;
+        });
         $ingredients = $ingredients->map(function ($ingredient) {
             $newIngredient = $ingredient->toArray();
             $newIngredient["id"] = $ingredient["id"].'-i'; // Set the value of 'item_type'
             return $newIngredient;
         });
-        $result = array_merge($ingredients->toArray() , $products->toArray());
+        $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
         return response()->json($result);
     }
 
@@ -782,10 +801,29 @@ class ProductController extends Controller
                             })
                             ->take(10)
                             ->get();
+        $productCount= count($products);
+        $modifiers = Modifier::where(function ($query) use($key) {
+                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
+                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
+                            })
+                            ->whereIn('id', function ($query) {
+                                $query->select('modifier_id')
+                                    ->from('product_recipe_modifiers');
+                            })
+                            ->take($productCount > 10 ? 0 : 10 - $productCount)
+                            ->get();
+        
         $products = $products->map(function ($product) {
-            $product->item_type = 'p'; // Set the value of 'item_type'
-            return $product;
+            $newProduct = $product->toArray();
+            $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
+            return $newProduct;
         });
-        return response()->json($products);
+        $modifiers = $modifiers->map(function ($modifier) {
+            $newModifier = $modifier->toArray();
+            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            return $newModifier;
+        });
+        $result = array_merge($products->toArray(), $modifiers->toArray());
+        return response()->json($result);
     }
 }

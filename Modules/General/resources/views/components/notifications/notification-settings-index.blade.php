@@ -18,6 +18,11 @@
                     @lang('general::general.suppliers_notifications')
                 </a>
             </li>
+            <li class="nav-item w-md-200px me-0">
+                <a class="nav-link py-3" data-bs-toggle="tab" href="#inventory_notification">
+                    @lang('inventory::notification.inventory_notifications')
+                </a>
+            </li>
         </ul>
         <div class="tab-content w-100" id="mySubTabContent">
             <div class="tab-pane fade show active" id="general_notifications" role="tabpanel">
@@ -28,6 +33,9 @@
             </div>
             <div class="tab-pane fade" id="suppliers_notification" role="tabpanel">
                 <x-general::notifications.suppliers.main-tab :employees="$employees" :notifications_settings="$notifications_settings" />
+            </div>
+            <div class="tab-pane fade" id="inventory_notification" role="tabpanel">
+                <x-general::notifications.inventory.main-tab :employees="$employees" :notifications_settings="$notifications_settings" />
             </div>
         </div>
     </div>

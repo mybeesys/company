@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Product\Models\Ingredient;
+use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
@@ -27,6 +28,7 @@ class ProductInventory extends Model
     protected $fillable = [
         'product_id',
         'ingredient_id',
+        'modifier_id',
         'threshold',
         'unit_id',
         'primary_vendor_id',
@@ -54,6 +56,11 @@ class ProductInventory extends Model
     public function ingredient()
     {
         return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
+    }
+
+    public function modifier()
+    {
+        return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
     }
 
     public function unit()

@@ -15,14 +15,14 @@
 @section('content')
 
     <div class="container">
-        <div class="row" >
+        <div class="row">
             <div class="col-6">
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     {{-- <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
                         data-bs-target="#kt_modal_create_campaign">
                         @lang('accounting::lang.import_tree_of_accounts')
                     </a> --}}
-                <h1> @lang('accounting::lang.accounting_dashboard')</h1>
+                    <h1> @lang('accounting::lang.accounting_dashboard')</h1>
 
                 </div>
             </div>
@@ -115,7 +115,8 @@
 
                     <div class="d-flex flex-wrap">
 
-                        <div class="position-relative d-flex flex-center h-175px w-175px me-15 mb-7" style="margin-left: 0.7rem !important;">
+                        <div class="position-relative d-flex flex-center h-175px w-175px me-15 mb-7"
+                            style="margin-left: 0.7rem !important;">
                             <div class="position-absolute translate-middle start-50 top-50 d-flex flex-column flex-center">
                                 <span class="fs-2qx fw-bold">{{ $total_blance }}</span>
                                 <span class="fs-6 fw-semibold text-gray-500">@lang('messages.total')</span>
@@ -127,7 +128,7 @@
                         <!--end::Chart-->
 
                         <!--begin::Labels-->
-                        <div class="d-flex flex-column justify-content-center flex-row-fluid pe-11 mb-5" >
+                        <div class="d-flex flex-column justify-content-center flex-row-fluid pe-11 mb-5">
 
                             @foreach ($account_types as $k => $v)
                                 @php
@@ -178,7 +179,95 @@
 
         </div>
 
+        {{-- <div class="card card-xl-stretch mb-5 mb-xl-8">
+            <!--begin::Header-->
+            <div class="card-header border-0">
+                <h3 class="card-title fw-bold text-gray-900">Notifications</h3>
 
+                <div class="card-toolbar">
+                    <!--begin::Menu-->
+                    <button type="button" class="btn btn-sm btn-icon btn-color-primary btn-active-light-primary"
+                        data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                        <i class="ki-outline ki-category fs-6"></i> </button>
+
+
+                </div>
+            </div>
+            <!--end::Header-->
+
+            <!--begin::Body-->
+            <div class="card-body pt-0">
+                <!--begin::Item-->
+                <div class="d-flex align-items-center bg-light-warning rounded p-5 mb-7">
+                    <i class="ki-outline ki-abstract-26 text-warning fs-1 me-5"></i>
+                    <!--begin::Title-->
+                    <div class="flex-grow-1 me-2">
+                        <a href="#" class="fw-bold text-gray-800 text-hover-primary fs-6">Group lunch
+                            celebration</a>
+
+                        <span class="text-muted fw-semibold d-block">Due in 2 Days</span>
+                    </div>
+                    <!--end::Title-->
+
+                    <!--begin::Lable-->
+                    <span class="fw-bold text-warning py-1">+28%</span>
+                    <!--end::Lable-->
+                </div>
+                <!--end::Item-->
+                <!--begin::Item-->
+                <div class="d-flex align-items-center bg-light-success rounded p-5 mb-7">
+                    <i class="ki-outline ki-abstract-26 text-success fs-1 me-5"></i>
+                    <!--begin::Title-->
+                    <div class="flex-grow-1 me-2">
+                        <a href="#" class="fw-bold text-gray-800 text-hover-primary fs-6">Navigation
+                            optimization</a>
+
+                        <span class="text-muted fw-semibold d-block">Due in 2 Days</span>
+                    </div>
+                    <!--end::Title-->
+
+                    <!--begin::Lable-->
+                    <span class="fw-bold text-success py-1">+50%</span>
+                    <!--end::Lable-->
+                </div>
+                <!--end::Item-->
+                <!--begin::Item-->
+                <div class="d-flex align-items-center bg-light-danger rounded p-5 mb-7">
+                    <i class="ki-outline ki-abstract-26 text-danger fs-1 me-5"></i>
+                    <!--begin::Title-->
+                    <div class="flex-grow-1 me-2">
+                        <a href="#" class="fw-bold text-gray-800 text-hover-primary fs-6">Rebrand strategy
+                            planning</a>
+
+                        <span class="text-muted fw-semibold d-block">Due in 5 Days</span>
+                    </div>
+                    <!--end::Title-->
+
+                    <!--begin::Lable-->
+                    <span class="fw-bold text-danger py-1">-27%</span>
+                    <!--end::Lable-->
+                </div>
+                <!--end::Item-->
+                <!--begin::Item-->
+                <div class="d-flex align-items-center bg-light-info rounded p-5 ">
+                    <i class="ki-outline ki-abstract-26 text-info fs-1 me-5"></i>
+                    <!--begin::Title-->
+                    <div class="flex-grow-1 me-2">
+                        <a href="#" class="fw-bold text-gray-800 text-hover-primary fs-6">Product goals strategy</a>
+
+                        <span class="text-muted fw-semibold d-block">Due in 7 Days</span>
+                    </div>
+                    <!--end::Title-->
+
+                    <!--begin::Lable-->
+                    <span class="fw-bold text-info py-1">+8%</span>
+                    <!--end::Lable-->
+                </div>
+                <!--end::Item-->
+
+            </div>
+            <!--end::Body-->
+        </div> --}}
 
 
 
@@ -199,8 +288,8 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: balance, // بيانات الشارت
-                        backgroundColor: color, // ألوان القطاعات
+                        data: balance,
+                        backgroundColor: color,
                     }]
                 },
                 options: {
@@ -209,7 +298,7 @@
                     cutout: '80%',
                     plugins: {
                         legend: {
-                            position: false, // وضعية العناوين
+                            position: false,
                         }
                     }
                 }

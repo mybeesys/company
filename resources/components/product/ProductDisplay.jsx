@@ -13,7 +13,7 @@ const ProductDisplay = ({ translations, parentHandlechanges, product, saveChange
   const [files, setFiles] = useState([]);
   const [imageSrc, setimageSrc] = useState(!!!imageurl ? blankurl : imageurl);
   //creating state to store our color and also set color using onChange event for sketch picker
-  console.log(blankurl);
+  
   const [sketchPickerColor, setSketchPickerColor] = useState({
     r: "241",
     g: "112",
@@ -58,7 +58,6 @@ const ProductDisplay = ({ translations, parentHandlechanges, product, saveChange
       r['image_deleted'] = 1;
     setcurrentObject({ ...r });
     parentHandlechanges({ ...r });
-    console.log(r);
   }
 
   const clickSubmit = (event) => {

@@ -40,7 +40,7 @@
    						
       <div id="root" type="product"
         category-url ="{{ json_encode(route('category.index'))}}"
-	      product-url="{{ json_encode(route('product.store'))}}"
+	    product-url="{{ json_encode(route('product.store'))}}"
         product="{{json_encode($product)}}"
         listCategory-url ="{{json_encode(route('minicategorylist'))}}"
         listTax-url ="{{json_encode(route('taxList'))}}"

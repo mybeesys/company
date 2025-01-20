@@ -5,6 +5,7 @@ import ModifierBasicInfo from './ModifierBasicInfo';
 import ModifierRecipe from './ModifierRecipe';
 import ModifierPriceTier from './ModifierPriceTier';
 import { getRowName } from '../lang/Utils';
+import UnitTransferModifier from './UnitTransferModifier';
 
 
 const ModifierComponent = ({ translations, dir }) => {
@@ -12,11 +13,15 @@ const ModifierComponent = ({ translations, dir }) => {
   const modifierurl = JSON.parse(rootElement.getAttribute('modifier-url'));
   let modifier = JSON.parse(rootElement.getAttribute('modifier'));
   const [currentObject, setcurrentObject] = useState(modifier);
+  const [units, setUnits] = useState([]);
+  const [modifierUnit, setModifierUnit] = useState();
+  const [unitTransfer, setUnitTransfers] = useState(!!modifier.unitTransfer ? modifier.unitTransfer : []); 
   const [currentTab, setCurrentTab] = useState(1);
   const [defaultMenu, setdefaultMenu] = useState([
     { key: 'basicInfo', visible: true },
     { key: 'priceTier', visible: true },
     { key: 'recipe', visible: true },
+    { key: 'Unit', visible: false },
   ]);
   const [menu, setMenu] = useState(defaultMenu);
   //const [ingredientTree, setIngredientTree] = useState([]);
@@ -24,8 +29,8 @@ const ModifierComponent = ({ translations, dir }) => {
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
   const [modifierLOVs, setModifierLOVs] = useState({ modifierClasses : [], taxes: [], ingredient: [] });
 
-  const parentHandlechanges = (childproduct) => {
-    setcurrentObject({ ...childproduct });
+  const parentHandlechanges = (childModifier) => {
+    setcurrentObject({ ...childModifier });
   }
 
   const clickSubmit = () => {
@@ -55,7 +60,6 @@ const ModifierComponent = ({ translations, dir }) => {
   const onModifierFieldChange = (key, value) => {
     currentObject[key] = value;
     setcurrentObject({ ...currentObject });
-    console.log(`${key} :`, currentObject[key]);
     return {
       message: "Done"
     }
@@ -88,11 +92,20 @@ const ModifierComponent = ({ translations, dir }) => {
 
   const saveChanges = async () => {
     try {
-      console.log(currentObject);
       setSubmitdisableButton(true);
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
-      
+      let transfer = [...unitTransfer];
+
+      if (!!modifierUnit) {
+        if (!!!modifierUnit.id)
+          transfer.push({ id: 0, unit1: modifierUnit.unit1, unit2: -100, transfer: -100, primary: -100 });
+        else
+          transfer.push(modifierUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});  
+      }
+
+      const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
+      r["transfer"] = [...sortedItems];
       const response = await axios.post(modifierurl, r);
       if (response.data.message == "Done") {
         window.location.href = modifierurl;
@@ -127,7 +140,7 @@ const ModifierComponent = ({ translations, dir }) => {
       }).then(() => {
         setShowAlert(false); // Reset the state after alert is dismissed
       });
-      console.error('There was an error adding the product!', error);
+      console.error('There was an error adding the modifier!', error);
     }
     setSubmitdisableButton(false);
   }
@@ -146,6 +159,22 @@ const ModifierComponent = ({ translations, dir }) => {
     const ingredient = response.data.ingredient.map(e => { return { label: getName(e.name_en, e.name_ar), value: e.id + e.type, cost: e.cost } });
     const taxes = response.data.taxes.map(e => { return { label: getRowName(e, dir), value: e.id, default : e.default} });
     const modifierClasses = response.data.modifierClasses.map(e => { return { label: getRowName(e, dir), value: e.id} });
+
+    const units = response.data.unitTransfer;
+    const unitsResult = units.map(e => { return { label: e.unit1, value: e.id } });
+    setUnits(unitsResult);
+
+    let mainUnit = units.find(function (element) {
+      return element.unit2 == null;
+    });
+
+    setModifierUnit(mainUnit)
+
+    const unitTransfers = response.data.unitTransfer;
+    const unitTransfersResult = unitTransfers.length > 0 ? unitTransfers.filter(e => e.unit2 != null).map(e => {
+      return { id: e.id, transfer: e.transfer, unit1: e.unit1, unit2: e.unit2, primary: e.primary, newid: e.newid }
+    }) : [];
+    setUnitTransfers(unitTransfersResult);
 
     setModifierLOVs({
       "ingredient": ingredient,
@@ -166,10 +195,6 @@ const ModifierComponent = ({ translations, dir }) => {
     setMenu([...currentMenu]);
   }
 
-  const parentHandleRecipe = (resultrecipe) => {
-    setRecipe([...resultrecipe]);
-  }
-
   const parentHandleTransfer = (result) => {
     setUnitTransfers([...result]);
   }
@@ -178,7 +203,11 @@ const ModifierComponent = ({ translations, dir }) => {
   const validModifier = () => {
     let errorMessage = null;
     let valid = true;
-    
+    if (!!!modifierUnit || !!!modifierUnit.unit1) {
+      valid = false;
+      errorMessage = translations.noDefaultUnit;
+      document.getElementById("Unit_tab").click();
+    }
     if (!valid) {
       setShowAlert(true);
       Swal.fire({
@@ -197,6 +226,9 @@ const ModifierComponent = ({ translations, dir }) => {
     return true;
   }
 
+  const handleMainUnit = (value) => {
+    setModifierUnit(value);
+  }
 
   return (
     <div>
@@ -283,6 +315,22 @@ const ModifierComponent = ({ translations, dir }) => {
 
                   </div>
                 </div>
+
+                <div class="tab-content">
+                  <div id="Unit" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="Unit_tab">
+                    <UnitTransferModifier
+                      translations={translations}
+                      modifier={currentObject}
+                      unitTransfer={unitTransfer}
+                      unitTree={units}
+                      parentHandle={parentHandleTransfer}
+                      handleMainUnit={handleMainUnit}
+                      modifierUnit={modifierUnit}
+                      dir={dir} />
+
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

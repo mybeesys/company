@@ -111,10 +111,10 @@
                         data: 'due_date',
                         name: 'due_date'
                     },
-                    {
-                        data: 'payment_status',
-                        name: 'payment_status'
-                    },
+                    // {
+                    //     data: 'payment_status',
+                    //     name: 'payment_status'
+                    // },
                     {
                         data: 'total_before_tax',
                         name: 'total_before_tax'

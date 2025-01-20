@@ -5,7 +5,7 @@
     @vite('resources/components/App.jsx')
    						
       <div id="root" type="waste" 
-	  list-url="{{json_encode(value: route('inventoryOperationList'))}}"
+	  list-url="{{json_encode(value: route('wasteList'))}}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

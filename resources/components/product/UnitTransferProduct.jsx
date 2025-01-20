@@ -12,7 +12,6 @@ const UnitTransferProduct = ({ translations, unitTransfer, unitTree, parentHandl
 
     React.useEffect(() => {
         setNodes(unitTransfer);
-        console.log(unitTransfer);
         setMainUnit(productUnit);
         if(!!!innerUnits || innerUnits.length ==0)
             setUnits(unitTree);
@@ -20,11 +19,16 @@ const UnitTransferProduct = ({ translations, unitTransfer, unitTree, parentHandl
 
     const handleDelete = (row) =>{
         let index = nodes.findIndex(x=>x.id == row.id);
-        if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+        if(index != -1)
         {
-            return { message : 'relatedUnitTransfer'}
+            if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+            {
+                return { message : 'relatedUnitTransfer'}
+            }
+            nodes.splice(index, 1); // Removes 1 element at index 2
+            let index1 = innerUnits.findIndex((object) => object.value == row.id);
+            innerUnits.splice(index1, 1); // Removes 1 element at index 2
         }
-        nodes.splice(index, 1); // Removes 1 element at index 2
         setNodes([...nodes]);
         parentHandle(nodes);
         return { message : 'Done'};
@@ -81,7 +85,7 @@ const UnitTransferProduct = ({ translations, unitTransfer, unitTree, parentHandl
                 type={"unit"}
                 title={translations.recipe}
                 currentNodes={[...nodes]}
-                defaultValue={{ }}
+                defaultValue={{ primary : 0}}
                 rowTitle= "unit1"
                 cols={[
                     {
@@ -95,7 +99,7 @@ const UnitTransferProduct = ({ translations, unitTransfer, unitTree, parentHandl
                     key: "unit1", autoFocus: false, type: "Text", width: '20%',
                     editable: true, required: true,
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            if(!!!nodes[rowKey].data.id){
+                            if(nodes[rowKey].data.id >= 0 && nodes[rowKey].data.newItem == 1){
                                 nodes[rowKey].data.id = globalId - 1;
                                 setGlobalId(globalId - 1);
                             }

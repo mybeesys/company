@@ -9,6 +9,7 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\RecipeModifier;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\ModifierPriceTier;
+use Modules\Product\Models\UnitTransfer;
 
 class ModifierController extends Controller
 {
@@ -138,7 +139,68 @@ class ModifierController extends Controller
                     $PriceTier->price = $newPriceTier["price"];
                     $PriceTier->save();
                 }
-            } 
+            }
+            $oldUnites = UnitTransfer::where('modifier_id' , $modifier->id)->get();
+        
+            if(isset($request["transfer"])){
+                $ids=[];
+                $insertedIds=[];
+                $updatedTransfers = [];
+                $requestIds = array_map(function($item) {
+                    return $item["id"];
+                }, $request["transfer"]);
+                UnitTransfer::where('modifier_id', '=',  $modifier->id)->whereNotIn('id', $requestIds)->delete();  
+                foreach ($oldUnites  as $old){
+                    $newid = [];
+                    $newid['oldId'] = $old['id'];
+                    $newid['newId'] = $old['id'];
+                    $ids[] = $newid ;
+                }
+                foreach ($request["transfer"] as $transfer){
+                    if($transfer['id'] <= 0)
+                    {
+                        $newid = [];
+                        $inserted = [];
+                        $tran = [];
+                        $newid['oldId'] =  $transfer['id'];
+                        $tran['modifier_id'] =  $modifier->id;
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                        $tran['unit1'] = $transfer['unit1'];
+                        $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $id = UnitTransfer::create($tran)->id;
+                        $inserted['id'] = $id;
+                        $inserted['unit2'] = $transfer['unit2'];
+                        $newid['newId'] =  $id;
+                        $ids[] = $newid ;
+                        $insertedIds[] = $inserted;
+                    }
+                    else if(!isset($transfer['unit2'])){
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer->save();
+                    }
+                    else{
+                        $updatedTransfer = UnitTransfer::find($transfer['id']);
+                        $updatedTransfer['unit1'] = $transfer['unit1'];
+                        $updatedTransfer['unit2'] = $transfer['unit2'];
+                        $updatedTransfer['primary'] = $transfer['primary'];
+                        $updatedTransfer['transfer'] = $transfer['transfer'];
+                        $updatedTransfer->save();
+                    }
+                }
+                foreach ($insertedIds as $transfer){
+                    foreach($ids as $updateId)
+                    {
+                        if($transfer['unit2'] == $updateId['oldId'] )
+                        {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
+                    } 
+                }  
+            }
         });
     }
 
@@ -172,6 +234,41 @@ class ModifierController extends Controller
                     $priceTier->save();
                 }
             }
+            if(isset($request["transfer"]))
+            {
+                $ids=[];
+                $insertedIds=[];
+                foreach ($request["transfer"] as $transfer) 
+                {
+                    $newid = [];
+                    $inserted = [];
+                    $tran = [];
+                    $newid['oldId'] =  $transfer['id'];
+                    $tran['modifier_id'] =  $modifier->id;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $id = UnitTransfer::create($tran)->id;
+                    $inserted['id'] = $id;
+                    $inserted['unit2'] = $transfer['unit2'];
+                    $newid['newId'] =  $id;
+                    $ids[] = $newid ;
+                    $insertedIds[] = $inserted;
+                }
+                foreach ($insertedIds as $transfer) 
+                {
+                    foreach($ids as $updateId)
+                    {
+                    if($transfer['unit2'] == $updateId['oldId'] )
+                    {
+                        $updateObject = UnitTransfer::find($transfer['id']);
+                        $updateObject->unit2 =  $updateId['newId'];
+                        $updateObject->save();
+                    }
+                    } 
+                }   
+            } 
         });
     }
 

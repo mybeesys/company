@@ -15,12 +15,11 @@
                 <thead>
                     <tr class="fw-bold  text-muted bg-light">
                         <th class="">#</th>
-                        <th class="min-w-280px ">@lang('sales::fields.ref_no')</th>
+                        <th class="min-w-200px ">@lang('sales::fields.ref_no')</th>
                         <th class="min-w-80px">@lang('sales::lang.pament_on')</th>
-                        <th class="min-w-190px">@lang('sales::lang.paid_amount')</th>
-                        <th class="min-w-200px">@lang('sales::lang.payment_account_note')</th>
-                        <th class="min-w-200px">@lang('accounting::lang.additionalNotes')</th>
-                        <th class="min-w-25px"></th>
+                        <th class="min-w-100px">@lang('sales::lang.paid_amount')</th>
+                        <th class="min-w-150px">@lang('sales::lang.payment_account_note')</th>
+                        <th class="min-w-150px">@lang('accounting::lang.additionalNotes')</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">

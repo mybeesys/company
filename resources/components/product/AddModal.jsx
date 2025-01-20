@@ -10,7 +10,6 @@ const AddModal = ({ visible, onHide, onProductAdded, type, onClose, url , catego
     const [validated, setValidated] = useState(false);
     const handleSubmit = async () => {
         
-        console.log(validateForm());
         try {
             let r = {...currentRow};
             if(type == "Category")

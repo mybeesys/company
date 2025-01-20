@@ -135,14 +135,12 @@ const TreeTableServiceFee = ({ urlList, rootElement, translations, appTypes, fee
         key = (key).toString();
         path = key.split('-');
 
-        console.log(key);
         let node;
 
         while (path.length) {
             let list = node ? node.children : nodes;
 
             node = list[parseInt(path[0], 10)];
-            console.log(parseInt(path[0], 10))
             path.shift();
         }
 

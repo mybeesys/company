@@ -7,14 +7,18 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
@@ -37,14 +41,24 @@ class SellController extends Controller
         }
 
         $columns = Transaction::getsSellsColumns();
-        return view('sales::sell.index', compact('columns', 'transaction'));
+
+        $quotations = Transaction::where('type', 'quotation')->get();
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_sell')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
+        }
+
+        return view('sales::sell.index', compact('columns', 'Latest_event', 'transaction', 'quotations'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $actionUtil = new ActionUtil();
+        $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
@@ -52,16 +66,32 @@ class SellController extends Controller
         $orderStatuses = SalesUtile::orderStatuses();
         $accounts =  AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
-        $establishments = Establishment::where('is_main',0)->get();
+        $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
-        $quotation=false;
+        $quotation = false;
+        $quotationId = $request->input('quotation_id');
+        $transaction = Transaction::find($quotationId);
+        if ($quotationId > 0) {
+
+            $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
+        }
+
 
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
-        return view('sales::sell.create', compact('clients','quotation', 'taxes','establishments','countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
+        if (!$Latest_event) {
+            $actionUtil = new ActionUtil();
+            $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
+        }
+
+        return view('sales::sell.create', compact('clients', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -69,8 +99,10 @@ class SellController extends Controller
     public function store(Request $request)
     {
         // return $request;
-
         // try {
+            $actionUtil = new ActionUtil();
+            $contactUtils = new ContactUtils();
+        $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
 
         $transactionUtil = new TransactionUtils();
@@ -116,14 +148,32 @@ class SellController extends Controller
                 'unit_price_inc_tax' => $product->total_after_vat,
                 'tax_id' => $product->tax_vat,
                 'tax_value' => $product->vat_value,
-                'total_before_vat'=>$product->total_before_vat,
+                'total_before_vat' => $product->total_before_vat,
             ]);
         }
         // return $request->paid_amount;
+        // if ($request->paid_amount) {
+        //     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        //     if($request->paid_amount != $transaction->final_total){
+        //         $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $request->paid_amount,$transaction);
+
+        //     }
+        // }
+
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+
+            if ($request->paid_amount != $transaction->final_total) {
+                $contactUtils->addRemainingAmountToCustomerAccount(
+                    $request->client_id,
+                    $transaction->final_total - $request->paid_amount,
+                    $transaction
+                );
+            }
         }
 
+
+        // Mail::to();
         //Update payment status
         // $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $request->paid_amount);
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
@@ -131,11 +181,40 @@ class SellController extends Controller
         //  if(due)
 
         DB::commit();
-        return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        if ($request->action == 'save_print') {
+            return redirect()->route('transaction-print',$transaction->id)->with('success', __('messages.add_successfully'));
+
+        } else if ($request->action == 'save_add') {
+            return redirect()->route('create-invoice')->with('success', __('messages.add_successfully'));
+
+        } else {
+            return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        }
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         // }
+    }
+
+
+
+    public function validateInvoiceRequest($request)
+    {
+        $rules = [
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.products_id' => ['required'],
+        ];
+
+        $messages = [
+            'products.required' => 'يجب إرسال المنتجات.',
+            'products.array' => 'المنتجات يجب أن تكون قائمة.',
+            'products.min' => 'يجب إضافة منتج واحد على الأقل.',
+            'products.*.products_id.required' => 'يجب أن يحتوي كل منتج على رقم تعريف.',
+        ];
+
+        $validatedData = $request->validate($rules, $messages);
+
+        return $validatedData;
     }
 
     /**

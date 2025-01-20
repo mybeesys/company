@@ -6,13 +6,12 @@ import makeAnimated from 'react-select/animated';
 import { getRowName } from '../lang/Utils';
 
 const animatedComponents = makeAnimated();
-const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible }) => {
+const ProductBasicInfo = ({ translations, parentHandlechanges, currentObject, visible }) => {
   const rootElement = document.getElementById('root');
   const listCategoryurl = JSON.parse(rootElement.getAttribute('listCategory-url'));
   const listSubCategoryurl = JSON.parse(rootElement.getAttribute('listSubCategory-url'));
   let imageurl = rootElement.getAttribute('image-url');
   let dir = rootElement.getAttribute('dir');
-  const [currentObject, setcurrentObject] = useState(product);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subcategoryOption, setSubCategoryOptions] = useState([]);
 
@@ -43,7 +42,6 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
       }
       setCategoryOptions(categories);
       setSubCategoryOptions(subCategories);
-      setcurrentObject({ ...currentObject });
       parentHandlechanges({ ...currentObject });
     } catch (error) {
       console.error("Error fetching options:", error);
@@ -74,9 +72,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
       r['subcategory'] = subCategories.length > 0 ? subCategories[0] : null;
       setSubCategoryOptions(subCategories);
     }
-    setcurrentObject({ ...r });
     parentHandlechanges({ ...r });
-    console.log(r);
   }
   // Clean up object URLs to avoid memory leaks
   React.useEffect(() => {
@@ -90,12 +86,16 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
             <label class="fs-6 fw-semibold mb-2 me-3 "
                 style={{width: "150px"}}>{translations.active}</label>
             <div class="form-check form-switch">
-                {/* <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input" role="switch"
-                    id="active" checked={!!currentObject.active ? currentObject.active : false}
-                    onChange={(e) => handleChange('active', e.target.checked)}/> */}
                 <InputSwitch checked={!!currentObject.active ? !!currentObject.active : false} 
                   onChange={(e) => handleChange('active', e.value)} />
+            </div>
+        </div>  
+        <div class="d-flex  align-items-center pt-3">
+            <label class="fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "150px"}}>{translations.forSell}</label>
+            <div class="form-check form-switch">
+                <InputSwitch checked={!!currentObject.for_sell ? !!currentObject.for_sell : false} 
+                  onChange={(e) => handleChange('for_sell', e.value)} />
             </div>
         </div>  
         <div class="form-group">
@@ -185,7 +185,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
               <label for="SKU" class="col-form-label">{translations.order}</label>
               <input type="number" class="form-control form-control-solid custom-height" id="class" value={!!currentObject.order ? currentObject.order : ''}
                 onChange={(e) => handleChange('order', e.target.value)}
-                required></input>
+                ></input>
             </div>
             <div class="col-6">
               <label for="barcode" class="col-form-label">{translations.commissions}</label>
@@ -195,26 +195,6 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, product, visible 
             </div>
           </div>
         </div>
-        {/* <div class="d-flex  align-items-center ">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.SoldByWeight}</label>
-            <div class="form-check">
-            <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input my-2" id="sold_by_weight" checked={currentObject.sold_by_weight}
-                    onChange={(e) => handleChange('sold_by_weight', e.target.checked)}
-                  />
-            </div>
-        </div>
-        <div class="d-flex  align-items-center ">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.TrackSerialNumber}</label>
-            <div class="form-check">
-            <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input my-2" id="track_serial_number" checked={currentObject.track_serial_number}
-                    onChange={(e) => handleChange('track_serial_number', e.target.checked)}
-                  />
-            </div>
-        </div> */}
         <div class="form-group" style={{ paddingtop: '5px' }}>
         </div>
 
