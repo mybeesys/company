@@ -13,6 +13,12 @@
             input[type="email"]::-webkit-input-placeholder {
                 text-align: right;
             }
+
+            @media (min-width: 768px) {
+                .text-md-nowrap {
+                    white-space: nowrap !important;
+                }
+            }
         </style>
     @endif
 @endsection
@@ -45,13 +51,14 @@
 
                             <x-form.form-card class="mb-5" :title="__('clientsandsuppliers::general.points_earning_settings')">
                                 <div class="d-flex flex-wrap mt-10">
-                                    <x-form.input-div class="mb-10 w-100 px-2">
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
                                         <x-form.input required :errors=$errors :labelWidth="true" :hint="__('clientsandsuppliers::general.amount_to_pay_to_earn_point_hint')"
-                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'amount_to_pay_to_earn_point')?->value }}" type="number" name="key[amount_to_pay_to_earn_point]"
-                                            :label="__('clientsandsuppliers::fields.amount_to_pay_to_earn_point')" />
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'amount_to_pay_to_earn_point')?->value }}"
+                                            type="number" name="key[amount_to_pay_to_earn_point]" :label="__('clientsandsuppliers::fields.amount_to_pay_to_earn_point')" />
                                     </x-form.input-div>
-                                    <x-form.input-div class="mb-10 w-100 px-2">
-                                        <x-form.input required type="number" :errors=$errors value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_earn_points')?->value }}"
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
+                                        <x-form.input required type="number" :errors=$errors
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_earn_points')?->value }}"
                                             :labelWidth="true" :hint="__(
                                                 'clientsandsuppliers::general.minimum_order_payment_to_earn_points_hint',
                                             )"
@@ -59,32 +66,35 @@
                                                 'clientsandsuppliers::fields.minimum_order_payment_to_earn_points',
                                             )" />
                                     </x-form.input-div>
-                                    <x-form.input-div class="mb-10 w-100 px-2">
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
                                         <x-form.input :errors=$errors type="number" :labelWidth="true" :hint="__('clientsandsuppliers::general.maximum_order_points_hint')"
-                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_order_points')?->value }}" name="key[maximum_order_points]" :label="__('clientsandsuppliers::fields.maximum_order_points')" />
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_order_points')?->value }}"
+                                            name="key[maximum_order_points]" :label="__('clientsandsuppliers::fields.maximum_order_points')" />
                                     </x-form.input-div>
                                 </div>
                             </x-form.form-card>
 
                             <x-form.form-card :title="__('clientsandsuppliers::general.points_redemption_settings')">
                                 <div class="d-flex flex-wrap mt-10">
-                                    <x-form.input-div class="mb-10 w-100 px-2">
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
                                         <x-form.input required :errors=$errors :labelWidth="true" type="number"
                                             :hint="__(
                                                 'clientsandsuppliers::general.redeemed_amount_for_each_point_hint',
-                                            )" value="{{ $loyaltyPointsSettings->firstWhere('key', 'redeemed_amount_for_each_point')?->value }}" name="key[redeemed_amount_for_each_point]"
-                                            :label="__('clientsandsuppliers::fields.redeemed_amount_for_each_point')" />
+                                            )"
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'redeemed_amount_for_each_point')?->value }}"
+                                            name="key[redeemed_amount_for_each_point]" :label="__('clientsandsuppliers::fields.redeemed_amount_for_each_point')" />
                                     </x-form.input-div>
-                                    <x-form.input-div class="mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_redeem_points')?->value }}" :labelWidth="true"
-                                            type="number" :hint="__(
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
+                                        <x-form.input required :errors=$errors
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_redeem_points')?->value }}"
+                                            :labelWidth="true" type="number" :hint="__(
                                                 'clientsandsuppliers::general.minimum_order_payment_to_redeem_points_hint',
                                             )"
                                             name="key[minimum_order_payment_to_redeem_points]" :label="__(
                                                 'clientsandsuppliers::fields.minimum_order_payment_to_redeem_points',
                                             )" />
                                     </x-form.input-div>
-                                    <x-form.input-div class="mb-10 w-100 px-2">
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
                                         <x-form.input :errors=$errors :labelWidth="true" :hint="__('clientsandsuppliers::general.minimum_points_hint')"
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_points')?->value }}"
                                             name="key[minimum_points]" :label="__('clientsandsuppliers::fields.minimum_points')" type="number" />
@@ -92,14 +102,15 @@
                                 </div>
 
                                 <div class="d-flex mt-10">
-                                    <x-form.input-div class="mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_redeem_point_per_order')?->value }}" :labelWidth="true"
-                                            type="number" :hint="__(
+                                    <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
+                                        <x-form.input required :errors=$errors
+                                            value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_redeem_point_per_order')?->value }}"
+                                            :labelWidth="true" type="number" :hint="__(
                                                 'clientsandsuppliers::general.maximum_redeem_point_per_order_hint',
-                                            )" name="key[maximum_redeem_point_per_order]"
-                                            :label="__('clientsandsuppliers::fields.maximum_redeem_point_per_order')" />
+                                            )"
+                                            name="key[maximum_redeem_point_per_order]" :label="__('clientsandsuppliers::fields.maximum_redeem_point_per_order')" />
                                     </x-form.input-div>
-                                    <x-form.input-div class="d-flex flex-column">
+                                    <x-form.input-div class="text-md-nowrap d-flex flex-column">
                                         <div class="form-label">
                                             <label for="points_expiration_period">@lang('clientsandsuppliers::fields.points_expiration_period')</label>
                                             @include('components.form.field-hint', [
@@ -109,7 +120,8 @@
                                         </div>
                                         <div class="input-group input-group-solid mb-5 flex-nowrap">
                                             <x-form.input :label="false" class="border-0 w-100" :errors=$errors
-                                                type="number" :labelWidth="true" value="{{ $loyaltyPointsSettings->firstWhere('key', 'points_expiration_period')?->value }}"
+                                                type="number" :labelWidth="true"
+                                                value="{{ $loyaltyPointsSettings->firstWhere('key', 'points_expiration_period')?->value }}"
                                                 name="key[points_expiration_period]" />
                                             <x-form.select name="key[points_expiration_period_type]"
                                                 class="w-50 rounded-0 border-3 border-start" :options="[
