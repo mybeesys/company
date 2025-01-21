@@ -68,7 +68,7 @@ const AreaQRTable = ({translations, dir }) => {
                         />
 
                         {/* Table Info */}
-                        <p style={{ fontSize: "14px", margin: "10px 0" }}>Table {table.data.code}</p>
+                        <p style={{ fontSize: "14px", margin: "10px 0" }}>{`${translations.table} ${table.data.code}`}</p>
 
                         {/* Buttons */}
                         <div
