@@ -12,18 +12,18 @@ class StoreLoyaltyPointSetting extends FormRequest
     public function rules(): array
     {
         return [
-            'key' => ['required', 'array'],
-            'key.*' => ['string'],
-            'key.points_expiration_period_type' => ['required', 'string', 'in:month,year'],
-            'key.points_expiration_period' => ['required', 'numeric'],
-            'key.minimum_points' => ['required', 'numeric'],
-            'key.maximum_redeem_point_per_order' => ['required', 'numeric'],
-            'key.minimum_order_payment_to_redeem_points' => ['required', 'numeric'],
-            'key.redeemed_amount_for_each_point' => ['required', 'numeric'],
-            'key.maximum_order_points' => ['required', 'numeric'],
-            'key.minimum_order_payment_to_earn_points' => ['required', 'numeric'],
-            'key.amount_to_pay_to_earn_point' => ['required', 'numeric'],
-            'key.loyalty_points_settings_active' => ['required', 'in:0,1'],
+            'key' => ['nullable', 'array'],
+            'key.*' => ['nullable', 'string'],
+            'key.points_expiration_period_type' => ['nullable', 'string', 'in:month,year'],
+            'key.points_expiration_period' => ['nullable', 'numeric'],
+            'key.minimum_points' => ['nullable', 'numeric'],
+            'key.maximum_redeem_point_per_order' => ['nullable', 'numeric'],
+            'key.minimum_order_payment_to_redeem_points' => ['nullable', 'numeric'],
+            'key.redeemed_amount_for_each_point' => ['nullable', 'numeric'],
+            'key.maximum_order_points' => ['nullable', 'numeric'],
+            'key.minimum_order_payment_to_earn_points' => ['nullable', 'numeric'],
+            'key.amount_to_pay_to_earn_point' => ['nullable', 'numeric'],
+            'key.loyalty_points_settings_active' => ['nullable', 'in:0,1'],
         ];
     }
 

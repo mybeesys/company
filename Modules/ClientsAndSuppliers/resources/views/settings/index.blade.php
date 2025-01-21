@@ -52,12 +52,15 @@
                             <x-form.form-card class="mb-5" :title="__('clientsandsuppliers::general.points_earning_settings')">
                                 <div class="d-flex flex-wrap mt-10">
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors :labelWidth="true" :hint="__('clientsandsuppliers::general.amount_to_pay_to_earn_point_hint')"
+                                        <x-form.input :errors=$errors :labelWidth="true" attribute="step=.01"
+                                            :hint="__(
+                                                'clientsandsuppliers::general.amount_to_pay_to_earn_point_hint',
+                                            )"
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'amount_to_pay_to_earn_point')?->value }}"
                                             type="number" name="key[amount_to_pay_to_earn_point]" :label="__('clientsandsuppliers::fields.amount_to_pay_to_earn_point')" />
                                     </x-form.input-div>
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input required type="number" :errors=$errors
+                                        <x-form.input type="number" :errors=$errors attribute="step=.01"
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_earn_points')?->value }}"
                                             :labelWidth="true" :hint="__(
                                                 'clientsandsuppliers::general.minimum_order_payment_to_earn_points_hint',
@@ -67,7 +70,8 @@
                                             )" />
                                     </x-form.input-div>
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input :errors=$errors type="number" :labelWidth="true" :hint="__('clientsandsuppliers::general.maximum_order_points_hint')"
+                                        <x-form.input :errors=$errors type="number" attribute="step=.01" :labelWidth="true"
+                                            :hint="__('clientsandsuppliers::general.maximum_order_points_hint')"
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_order_points')?->value }}"
                                             name="key[maximum_order_points]" :label="__('clientsandsuppliers::fields.maximum_order_points')" />
                                     </x-form.input-div>
@@ -77,7 +81,7 @@
                             <x-form.form-card :title="__('clientsandsuppliers::general.points_redemption_settings')">
                                 <div class="d-flex flex-wrap mt-10">
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors :labelWidth="true" type="number"
+                                        <x-form.input :errors=$errors :labelWidth="true" type="number" attribute="step=.01"
                                             :hint="__(
                                                 'clientsandsuppliers::general.redeemed_amount_for_each_point_hint',
                                             )"
@@ -85,9 +89,9 @@
                                             name="key[redeemed_amount_for_each_point]" :label="__('clientsandsuppliers::fields.redeemed_amount_for_each_point')" />
                                     </x-form.input-div>
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors
+                                        <x-form.input :errors=$errors
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_order_payment_to_redeem_points')?->value }}"
-                                            :labelWidth="true" type="number" :hint="__(
+                                            :labelWidth="true" type="number" attribute="step=.01" :hint="__(
                                                 'clientsandsuppliers::general.minimum_order_payment_to_redeem_points_hint',
                                             )"
                                             name="key[minimum_order_payment_to_redeem_points]" :label="__(
@@ -97,15 +101,16 @@
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
                                         <x-form.input :errors=$errors :labelWidth="true" :hint="__('clientsandsuppliers::general.minimum_points_hint')"
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'minimum_points')?->value }}"
-                                            name="key[minimum_points]" :label="__('clientsandsuppliers::fields.minimum_points')" type="number" />
+                                            name="key[minimum_points]" :label="__('clientsandsuppliers::fields.minimum_points')" type="number"
+                                            attribute="step=.01" />
                                     </x-form.input-div>
                                 </div>
 
                                 <div class="d-flex mt-10">
                                     <x-form.input-div class="text-md-nowrap mb-10 w-100 px-2">
-                                        <x-form.input required :errors=$errors
+                                        <x-form.input :errors=$errors
                                             value="{{ $loyaltyPointsSettings->firstWhere('key', 'maximum_redeem_point_per_order')?->value }}"
-                                            :labelWidth="true" type="number" :hint="__(
+                                            :labelWidth="true" type="number" attribute="step=.01" :hint="__(
                                                 'clientsandsuppliers::general.maximum_redeem_point_per_order_hint',
                                             )"
                                             name="key[maximum_redeem_point_per_order]" :label="__('clientsandsuppliers::fields.maximum_redeem_point_per_order')" />
@@ -120,7 +125,7 @@
                                         </div>
                                         <div class="input-group input-group-solid mb-5 flex-nowrap">
                                             <x-form.input :label="false" class="border-0 w-100" :errors=$errors
-                                                type="number" :labelWidth="true"
+                                                type="number" attribute="step=.01" :labelWidth="true"
                                                 value="{{ $loyaltyPointsSettings->firstWhere('key', 'points_expiration_period')?->value }}"
                                                 name="key[points_expiration_period]" />
                                             <x-form.select name="key[points_expiration_period_type]"
@@ -129,7 +134,7 @@
                                                     ['id' => 'month', 'name' => __('employee::fields.month')],
                                                 ]"
                                                 value="{{ $loyaltyPointsSettings->firstWhere('key', 'points_expiration_period_type')?->value }}"
-                                                :errors="$errors" data_allow_clear="false" required />
+                                                :errors="$errors" data_allow_clear="false" />
                                         </div>
                                     </x-form.input-div>
                                 </div>
@@ -171,34 +176,36 @@
             });
         }
 
-        function loyaltySettings(active = true) {
+        function loyaltySettings() {
+
             let saveButton = $(`#loyalty_points_settings_form_button`);
             if ("{{ $loyaltyPointsSettings->firstWhere('key', 'loyalty_points_settings_active')?->value }}" === "1") {
                 $('#loyalty_points_settings_field').collapse('toggle');
                 $('input[name="key[loyalty_points_settings_active]"]').prop('checked', true).val(1);
-                // $('[name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]').prop('required', true)
+
+                $('[name="key[amount_to_pay_to_earn_point]"], [name="key[redeemed_amount_for_each_point]"]').each(
+                    function() {
+                        $(this).prop('required', true);
+                    });
             }
 
             $('.loyalty_points_settings_active_field').on('click', function(e) {
                 if ($(this).attr("aria-expanded") == 'true') {
                     $('input[name="key[loyalty_points_settings_active]"]').prop('checked', true);
                     $('input[name="key[loyalty_points_settings_active]"]').val(1);
+                    console.log($('[name^="key*"]'));
 
-
-                    // if (!active) {
-                    //     $('[name="password"]').prop('required', true);
-                    // }
-                    // $('[name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]')
-                    //     .prop('required', true);
+                    $('[name="key[amount_to_pay_to_earn_point]"], [name="key[redeemed_amount_for_each_point]"]')
+                        .each(function() {
+                            $(this).prop('required', true);
+                        });
                 } else {
                     $('input[name="key[loyalty_points_settings_active]"]').prop('checked', false);
                     $('input[name="key[loyalty_points_settings_active]"]').val(0);
-                    // $('[name="password"], [name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]')
-                    //     .prop('required', false);
-                    // $('[name="password"], [name="username"], [name^="dashboard_role_repeater"][name$="[dashboardRole]"]')
-                    //     .removeClass('is-invalid');
-                    // $('[name^="dashboard_role_repeater"][name$="[dashboardRole]"]').siblings('.select2-container')
-                    //     .find('.select2-selection').removeClass('is-invalid');
+                    $('[name="key[amount_to_pay_to_earn_point]"], [name="key[redeemed_amount_for_each_point]"]')
+                        .each(function() {
+                            $(this).prop('required', false);
+                        });
                     checkErrors(saveButton);
                 }
             });
