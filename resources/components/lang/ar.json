@@ -256,5 +256,20 @@
   "openInventory" : "الرصيد الإفتتاحي",
   "openInventoryImport" : "استيراد الرصيد الإفتتاحي",
   "transactions" : "الحركات",
-  "op_type" : "العملية"
+  "op_type" : "العملية",
+  "areas" : "المناطق",
+  "tables" : "الطاولات",
+  "tables1" : "طاولات",
+  "code" : "الرمز",
+  "steatingCapacity" : "المقاعد",
+  "steatingCapacity1" : "مقاعد",
+  "availability" : "الحالة",
+  "area" : "المنطقة",
+  "table" : "الطاولة",
+  "CODE_EXIST" : "الرمز مكرر",
+  "available" :  "متوفر",
+  "reserved" : "محجوز",
+  "notAvailable" : "غير متاح",
+  "downloadQRCode" : "تحميل ال QR",
+  "visitLink" : "فتح الرابط"
 }

@@ -80,7 +80,9 @@ return [
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
     'supplier_receipts'=>'Supplier Receipts',
-    'import' => 'Import'
+    'import' => 'Import',
+    'tables' => 'Tables',
+    'tables_qr' => 'Tables QR'
 
 
 

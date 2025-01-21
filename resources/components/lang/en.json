@@ -252,5 +252,17 @@
   "openInventory" : "Open Inventory",
   "openInventoryImport" : "Open Inventory Import",
   "transactions" : "Transactions",
-  "op_type" : "Operation"
+  "op_type" : "Operation",
+  "tables" : "Tables",
+  "code" : "Code",
+  "steatingCapacity" : "Capacity",
+  "availability" : "Availability",
+  "area" : "Area",
+  "table" : "Table",
+  "CODE_EXIST" : "Code Already Exist",
+  "available" :  "Available",
+  "reserved" : "Reserved",
+  "notAvailable" : "Not Available",
+  "downloadQRCode" : "Download QR",
+  "visitLink" : "Visit Link"
 }

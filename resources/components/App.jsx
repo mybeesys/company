@@ -1,6 +1,5 @@
 import React , { useState, useCallback, useEffect  } from 'react';
 import ReactDOM from 'react-dom/client';
-import ProductComponent from './product/ProductComponent';
 import CategoryTree from './product/CategoryTree';
 import Modifiertree from './modifier/modifiertree';
 import Attributetree from './attributes/attributetree';
@@ -32,6 +31,8 @@ import ProductComponent1 from './product/ProductComponent1';
 import PriceTierTree from './priceTier/warehouse/PriceTierTree';
 import ModifierComponent from './modifier/ModifierComponent';
 import DataImport from './comp/DataImport';
+import AreaTable from './reservation/AreaTable';
+import AreaQRTable from './reservation/AreaQRTable';
 
 
 const App = ({nodeType, dir}) =>{
@@ -72,7 +73,9 @@ const App = ({nodeType, dir}) =>{
     warehouse : <WarehouseTree translations={translations} dir={dir}/>,
     priceTier : <PriceTierTree translations={translations} dir={dir}/>,
     importProduct: <DataImport translations={translations} dir={dir}/>,
-    openInventoryImport: <DataImport translations={translations} dir={dir}/>
+    openInventoryImport: <DataImport translations={translations} dir={dir}/>,
+    area : <AreaTable translations={translations} dir={dir}/>,
+    areaQR : <AreaQRTable translations={translations} dir={dir}/>,
   }
   
   useEffect(() => {

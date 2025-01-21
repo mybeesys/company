@@ -216,6 +216,16 @@ return [
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
             ],
+            [
+                'name' => 'tables',
+                'url' => 'area',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables_qr',
+                'url' => 'areaQR',
+                'permission' => '',
+            ],
         ]
     ],
 
