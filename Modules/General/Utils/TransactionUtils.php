@@ -11,47 +11,98 @@ use Modules\General\Models\TransactionPayments;
 
 class TransactionUtils
 {
+    // public function createOrUpdatePaymentLines($transaction, $request)
+    // {
+
+    //     $accountUtil = new  AccountingUtil();
+    //     //If status is draft don't add payment
+    //     if ($transaction->status == 'draft') {
+    //         return true;
+    //     }
+
+    //     $prefix_type = 'sell_payment';
+    //     if ($transaction->type == 'purchase') {
+    //         $prefix_type = 'purchase_payment';
+    //     }
+
+    //     // $prefix_type = 'sell_payment';
+    //     // if ($transaction->type == 'purchase') {
+    //     //     $prefix_type = 'purchase_payment';
+    //     // }
+
+    //     $date = Carbon::parse($request->pament_on);
+
+    //     $pament_on = $date->format('Y-m-d H:i:s');
+
+    //     if ($transaction->invoice_type == 'cash') {
+    //         $account_id = $request->cash_account;
+    //         $payment_method = 'cash';
+    //         $type ='sell_cash';
+    //     }
+    //     if ($transaction->invoice_type == 'due') {
+    //         $account_id = $request->account_id;
+    //         $payment_method = 'due';
+    //         $type ='sales_revenue';
+
+    //     }
+    //     if(isset($request->payment_type) && $request->payment_type =='receipts'){
+    //         $account_id = $request->account_id;
+
+    //     }
+
+    //         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
+
+    //     $transactionPayment =  TransactionPayments::create([
+    //         'transaction_id' => $transaction->id,
+    //         'payment_type' => $transaction->invoice_type,
+    //         'amount' => $request->paid_amount,
+    //         'method' => $payment_method,
+    //         'is_return' => $request->is_return ??  0,
+    //         'note' => $request->additionalNotes,
+    //         'paid_on' => $pament_on,
+    //         'created_by' => Auth::user()->id,
+    //         'payment_for' => $transaction->contact_id,
+    //         'payment_ref_no' => $payment_ref_no,
+    //         'account_id' => $account_id,
+    //     ]);
+
+    //     $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
+
+    //     return true;
+    // }
+
     public function createOrUpdatePaymentLines($transaction, $request)
     {
+        $accountUtil = new AccountingUtil();
 
-        $accountUtil = new  AccountingUtil();
-        //If status is draft don't add payment
         if ($transaction->status == 'draft') {
             return true;
         }
 
-        $prefix_type = 'sell_payment';
-        if ($transaction->type == 'purchase') {
-            $prefix_type = 'purchase_payment';
-        }
-
-        // $prefix_type = 'sell_payment';
-        // if ($transaction->type == 'purchase') {
-        //     $prefix_type = 'purchase_payment';
-        // }
-
-        $date = Carbon::parse($request->pament_on);
-
-        $pament_on = $date->format('Y-m-d H:i:s');
+        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+        $date = Carbon::parse($request->payment_on);
+        $payment_on = $date->format('Y-m-d H:i:s');
 
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
             $payment_method = 'cash';
-        }
-        if ($transaction->invoice_type == 'due') {
+            $type = 'sell_cash';
+        } elseif ($transaction->invoice_type == 'due') {
             $account_id = $request->account_id;
             $payment_method = 'due';
+            $type = 'sales_revenue';
         }
+
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
 
-        $transactionPayment =  TransactionPayments::create([
+        $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
             'amount' => $request->paid_amount,
             'method' => $payment_method,
-            'is_return' => $request->is_return ??  0,
+            'is_return' => $request->is_return ?? 0,
             'note' => $request->additionalNotes,
-            'paid_on' => $pament_on,
+            'paid_on' => $payment_on,
             'created_by' => Auth::user()->id,
             'payment_for' => $transaction->contact_id,
             'payment_ref_no' => $payment_ref_no,

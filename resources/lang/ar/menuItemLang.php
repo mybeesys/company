@@ -38,6 +38,8 @@ return [
     'payroll_group' => 'مجموعات كشوف المرتبات',
     'company_settings' => 'إعدادات الشركة',
     'adjustments' => 'البدلات والحسومات',
+    'clients_suppliers_module' => 'العملاء والموردين',
+    'clients_suppliers_settings' => 'إعدادات العملاء والموردين',
 
 
     'customMenu' => 'القوائم المخصصة',

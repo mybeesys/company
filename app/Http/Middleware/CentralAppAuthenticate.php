@@ -23,14 +23,14 @@ class CentralAppAuthenticate
             $bearerToken = $request->bearerToken();
             if (empty($bearerToken)) {
                 $response_success = false;
-            }elseif (Cache::has('company_token') && Cache::get('company_token') === $bearerToken) {
+            } elseif (Cache::has($bearerToken)) {
                 $response_success = true;
             } else {
-                $response = Http::withToken($bearerToken)->get(env('APP_URL') . '/api/verify-token');
+                $response = Http::withToken($bearerToken)->withHeaders(['Content-Type' => 'application/json', 'Accept' => 'application/json', ])->get(env('APP_URL') . '/api/verify-token');
                 $response_success = $response->successful();
             }
             if ($response_success) {
-                Cache::put('company_token', $bearerToken, 86400 /* One day */);
+                Cache::put($bearerToken, true, 86400 /* One day */);
                 return $next($request);
             } else {
                 return $this->unauthenticatedResponse($request);

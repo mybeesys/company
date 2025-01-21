@@ -231,11 +231,17 @@ return [
 
 
     [
-        'name' => 'crm',
+        'name' => 'clients_suppliers_module',
         'url' => '/',
-        'icon' => 'fas fa-cogs',
+        'icon' => 'fas fa-users',
         'permission' => '',
-        'subMenu' => []
+        'subMenu' => [
+            [
+                'name' => 'clients_suppliers_settings',
+                'url' => 'client-supplier-setting',
+                'permission' => ''
+            ],
+        ]
     ],
     [
 
