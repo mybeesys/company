@@ -42,6 +42,7 @@ return [
     'clients_suppliers_module' => 'Clients and suppliers',
     'client_loyalty_points' => 'clients loyalty points',
     'clients_suppliers_settings' => 'clients and suppliers settings',
+    'coupons' => 'Coupons',
 
 
 

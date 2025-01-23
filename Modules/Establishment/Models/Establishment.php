@@ -11,6 +11,7 @@ use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
+use Modules\Sales\Models\Coupon;
 
 class Establishment extends Model
 {
@@ -92,5 +93,10 @@ class Establishment extends Model
         }
 
         return false;
+    }
+
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupon::class, 'sales_coupons_establishments');
     }
 }

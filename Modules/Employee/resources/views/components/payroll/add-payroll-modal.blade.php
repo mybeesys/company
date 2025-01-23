@@ -1,5 +1,5 @@
 @props(['establishments', 'employees'])
-<x-employee::general.modal id='add_payroll_modal' title='create_payroll' class='mw-600px'>
+<x-general.modal module="employee" id='add_payroll_modal' title='create_payroll' class='mw-600px'>
     <x-form.input-div class="mb-10 w-100">
         <x-form.select name="establishment" :label="__('employee::fields.establishment')" :options=$establishments :errors="$errors"
             data_allow_clear="false" required placeholder="{{ __('employee::fields.establishment') }}"
@@ -23,4 +23,4 @@
     <x-form.input-div class="mb-10 w-100">
         <x-form.input :label="__('employee::fields.year_month')" :placeholder="__('employee::fields.date')" name="date" required />
     </x-form.input-div>
-</x-employee::general.modal>
+</x-general.modal>
