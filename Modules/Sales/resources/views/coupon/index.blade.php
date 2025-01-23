@@ -3,6 +3,7 @@
 @section('title', __('menuItemLang.coupons'))
 
 @section('css')
+    @parent
     <style>
         .hover-primary:hover {
             color: #0d6efd !important;
