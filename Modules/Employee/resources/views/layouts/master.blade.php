@@ -2,7 +2,7 @@
 @section('css')
     @if (session('locale') == 'ar')
         <style>
-            input[type="number"] {
+            input[type="number"]:not(.numInput) {
                 text-align: right;
             }
 

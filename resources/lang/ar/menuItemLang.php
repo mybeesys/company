@@ -40,6 +40,7 @@ return [
     'adjustments' => 'البدلات والحسومات',
     'clients_suppliers_module' => 'العملاء والموردين',
     'clients_suppliers_settings' => 'إعدادات العملاء والموردين',
+    'coupons' => 'الكوبونات',
 
 
     'customMenu' => 'القوائم المخصصة',

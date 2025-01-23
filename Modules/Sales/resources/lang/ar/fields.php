@@ -39,9 +39,22 @@ return [
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
     'supplier' => 'المورد',
-
-
-
+    
+    'name' => 'الاسم',
+    'code' => 'الكود',
+    'type' => 'النوع',
+    'value_type' => 'نوع القيمة',
+    'value' => 'القيمة',
+    'start_date' => 'تاريخ البدء',
+    'end_date' => 'تاريخ الإنتهاء',
+    'discount_apply_to' => 'تطبيق الكوبون على',
+    'person_use_time_count' => 'عدد مرات الإستخدام للشخص الواحد',
+    'coupon_count' => 'عدد مرات الإستخدام الكلي',
+    'category' => 'تصنيف',
+    'product' => 'صنف',
+    'all' => 'الكل',
+    'apply_to_clients_groups' => 'تطبيق على مجموعات العملاء',
+    'is_active' => 'مفعًّل؟'
 
 
 
