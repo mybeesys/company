@@ -138,6 +138,14 @@
                 dataUrl: '{{ route('coupons.index') }}',
                 dataTable: couponDataTable
             });
+
+            $('#generate_code').on('click', function(e) {
+                e.preventDefault();
+                ajaxRequest("{{ route('coupons.generate-code') }}", 'GET', {}, false, true).done(function(
+                    response) {
+                    $('#code').val(response.data);
+                });
+            });
         });
 
         function handleFormFiltersDatatable(config) {

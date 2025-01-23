@@ -26,7 +26,7 @@ class StoreCouponRequest extends FormRequest
             'establishments_ids' => ['required', 'array'],
             'establishments_ids.*' => ['required', 'integer', 'exists:est_establishments,id'],
             'name' => ['required', 'string'],
-            'code' => ['nullable', 'string', Rule::unique('sales_coupons', 'code')->ignore($this->id ? $this->code : '', 'code'), 'regex:/^\S*$/u'],
+            'code' => ['required', 'string', Rule::unique('sales_coupons', 'code')->ignore($this->id ? $this->code : '', 'code'), 'regex:/^\S*$/u'],
             'discount_apply_to' => ['required', 'in:all,product,category'],
             'products_ids' => ['required_if:discount_apply_to,product', 'array'],
             'products_ids.*' => ['required_if:discount_apply_to,product', 'nullable', 'integer', 'exists:product_products,id'],
