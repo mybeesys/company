@@ -2,6 +2,13 @@
 
 @section('title', __('menuItemLang.coupons'))
 
+@section('css')
+    <style>
+        .hover-primary:hover {
+            color: #0d6efd !important;
+        }
+    </style>
+@endsection
 @section('content')
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
@@ -300,6 +307,21 @@
                         name: 'code'
                     },
                     {
+                        data: 'discount_apply_to',
+                        name: 'discount_apply_to',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'coupon_count',
+                        name: 'coupon_count',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'person_use_time_count',
+                        name: 'person_use_time_count',
+                        class: 'text-center'
+                    },
+                    {
                         data: 'value_type',
                         name: 'value_type'
                     },
@@ -316,8 +338,12 @@
                         name: 'end_date'
                     },
                     {
-                        data: 'discount_apply_to',
-                        name: 'discount_apply_to'
+                        data: 'apply_to_clients_groups',
+                        name: 'apply_to_clients_groups'
+                    },
+                    {
+                        data: 'is_active',
+                        name: 'is_active'
                     },
                     {
                         data: 'actions',
