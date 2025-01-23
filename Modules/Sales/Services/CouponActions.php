@@ -10,15 +10,9 @@ class CouponActions
 {
     public function store($data)
     {
-        if (!$data->code) {
-            $code = $this->generateCode();
-        } else {
-            $code = $data->code;
-        }
-
         $coupons = Coupon::updateOrCreate(['id' => $data->id], [
             'name' => $data->name,
-            'code' => $code,
+            'code' => $data->code,
             'discount_apply_to' => $data->discount_apply_to,
             'start_date' => $data->start_date,
             'end_date' => $data->end_date,
@@ -47,14 +41,4 @@ class CouponActions
             }
         }
     }
-
-    public function generateCode()
-    {
-        $code = Str::random(6);
-        if (Coupon::where('code', $code)->exists()) {
-            return $this->generateCode();
-        }
-        return $code;
-    }
-
 }

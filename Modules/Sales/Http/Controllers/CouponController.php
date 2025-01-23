@@ -12,6 +12,7 @@ use Modules\Sales\Classes\CouponTable;
 use Modules\Sales\Http\Requests\StoreCouponRequest;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\CouponActions;
+use Str;
 
 class CouponController extends Controller
 {
@@ -51,6 +52,15 @@ class CouponController extends Controller
             ]);
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
+    }
+
+    public function generateCode()
+    {
+        $code = Str::random(6);
+        if (Coupon::where('code', $code)->exists()) {
+            return $this->generateCode();
+        }
+        return response()->json(['data' => $code]);
     }
 
     public function getCouponDetails($id)

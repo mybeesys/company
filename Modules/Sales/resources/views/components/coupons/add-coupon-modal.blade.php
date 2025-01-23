@@ -5,9 +5,18 @@
             <x-form.input required :errors=$errors placeholder="{{ __('sales::fields.name') }}" value=""
                 name="name" :label="__('sales::fields.name')" />
         </x-form.input-div>
-        <x-form.input-div class="mb-10 w-100 px-2">
+        {{-- <x-form.input-div class="mb-10 w-100 px-2">
             <x-form.input :errors=$errors placeholder="{{ __('sales::fields.code') }}" value="" name="code"
                 label="{{ __('sales::fields.code') }} ({{ __('sales::general.auto_generate_hint') }})" />
+        </x-form.input-div> --}}
+        <x-form.input-div class="mb-10 w-100 px-2">
+            <label for="code" class="form-label required">@lang('sales::fields.code')</label>
+            <div class="input-group">
+                <x-form.input :errors=$errors placeholder="code" name="code" required>
+                    <button type="button" id="generate_code"
+                        class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
+                </x-form.input>
+            </div>
         </x-form.input-div>
         <x-form.input-div class="mb-10 w-100">
             <x-form.select name="establishments_ids" :label="__('employee::fields.establishment')" :options=$establishments :errors="$errors"

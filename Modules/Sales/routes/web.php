@@ -56,6 +56,8 @@ Route::middleware([
             Route::post('/restore/{id}', 'restore')->name('restore');
 
             Route::get('get-details/{id}', 'getCouponDetails')->name('get-details');
+
+            Route::get('/generate-code', 'generateCode')->name('generate-code');
         });
     });
 });
