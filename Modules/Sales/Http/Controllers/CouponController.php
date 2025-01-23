@@ -11,6 +11,7 @@ use Modules\Product\Models\Product;
 use Modules\Sales\Classes\CouponTable;
 use Modules\Sales\Http\Requests\StoreCouponRequest;
 use Modules\Sales\Models\Coupon;
+use Modules\Sales\Services\CouponActions;
 
 class CouponController extends Controller
 {
@@ -35,41 +36,13 @@ class CouponController extends Controller
         return view('sales::coupon.index', compact('coupons_columns', 'products', 'categories', 'establishments'));
     }
 
-    public function store(StoreCouponRequest $request)
+    public function store(StoreCouponRequest $request, CouponActions $action)
     {
         $data = $request->safe();
         try {
-            DB::transaction(function () use ($data, $request) {
-                $coupons = Coupon::updateOrCreate(['id' => $request->safe()->id], [
-                    'name' => $data->name,
-                    'code' => $data->code,
-                    'discount_apply_to' => $data->discount_apply_to,
-                    'start_date' => $data->start_date,
-                    'end_date' => $data->end_date,
-                    'coupon_count' => $data->coupon_count,
-                    'person_use_time_count' => $data->person_use_time_count,
-                    'value' => $data->value,
-                    'value_type' => $data->value_type,
-                    'apply_to_clients_groups' => $data->apply_to_clients_groups,
-                    'is_active' => $data->is_active,
-                ]);
-                $coupons->establishments()->sync($data->establishments_ids);
-                if ($data->discount_apply_to === 'product') {
-                    $coupons->products()->sync($data->products_ids);
-                    if ($request->safe()->id) {
-                        $coupons->categories()->sync([]);
-                    }
-                } elseif ($data->discount_apply_to === 'category') {
-                    $coupons->categories()->sync($data->categories_ids);
-                    if ($request->safe()->id) {
-                        $coupons->products()->sync([]);
-                    }
-                } else {
-                    if ($request->safe()->id) {
-                        $coupons->products()->sync([]);
-                        $coupons->categories()->sync([]);
-                    }
-                }
+            DB::transaction(function () use ($data, $action) {
+                $action->store($data);
+                return response()->json(['message' => __('employee::responses.operation_success')]);
             });
         } catch (\Throwable $e) {
             \Log::error('coupons creation failed', [

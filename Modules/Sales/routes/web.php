@@ -52,7 +52,7 @@ Route::middleware([
             Route::get('', 'index')->name('index');
             Route::post('/store', 'store')->name('store');
             Route::delete('/{coupon}', 'destroy')->name('delete');
-            Route::delete('force-delete/{coupon}', 'destroy')->name('delete');
+            Route::delete('/force-delete/{coupon}', 'forceDelete')->name('delete');
             Route::post('/restore/{id}', 'restore')->name('restore');
 
             Route::get('get-details/{id}', 'getCouponDetails')->name('get-details');
