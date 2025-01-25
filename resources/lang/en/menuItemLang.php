@@ -78,11 +78,11 @@ return [
 
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
-    'supplier_receipts'=>'Supplier Receipts',
+
+    'supplier_receipts' => 'Supplier Receipts',
     'import' => 'Import',
+    'sell-return' => 'Sell Return',
+    'purchases-return' => 'Purchases return',
     'tables' => 'Tables',
-    'tables_qr' => 'Tables QR'
-
-
-
+    'tables_qr' => 'Tables QR',
 ];

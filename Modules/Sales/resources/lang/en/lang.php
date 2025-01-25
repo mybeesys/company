@@ -96,7 +96,7 @@ return [
     'no_quotation' => 'You do not have any quotation.',
     'create_suggestion_quotation' => 'We provide you with an advanced tool for creating sales quotations, which are official business documents that allow sellers to present detailed information about the proposed products or services to customers. These documents include descriptions of quantities, prices, and terms of sale, ensuring transparency in expected costs, enhancing professionalism, and streamlining business operations efficiently.',
     'quotation' => 'Quotation',
-    'from quotation'=>'from quotation',
+    'from quotation' => 'from quotation',
     'Create a sales quotation' => 'Create a sales quotation',
 
     'You do not have any Receipts' => 'You do not have any Receipts',
@@ -105,5 +105,6 @@ return [
     'Automatically allocate payments' => 'Automatically allocate payments to the specified invoices',
 
     'allocate_payments_note' => 'It aims to allocate the paid amount in a fair and organized manner, by settling invoices with smaller amounts first, then moving to larger ones, until the full paid amount is utilized.',
-
+    'no_sell_return' => 'You do not have any sell return',
+    'suggestion_sell_return' => 'We provide you with an advanced tool for handling sales returns, allowing sellers to document product returns from customers. It records details such as returned items, their quantities, and prices to ensure accurate accounting and efficient organization of business operations.',
 ];

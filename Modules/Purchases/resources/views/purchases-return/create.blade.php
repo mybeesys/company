@@ -48,7 +48,7 @@
 @stop
 @section('content')
 
-    <form id="sell_save" method="POST" action="{{ route('store-sell-return') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-purchases-return') }}">
         @csrf
 
         <input type="hidden" name="transaction_id" value="{{ $transaction->id }}" />

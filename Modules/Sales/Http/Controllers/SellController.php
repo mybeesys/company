@@ -32,6 +32,7 @@ class SellController extends Controller
      */
     public function index(Request $request)
     {
+  
         $transaction = Transaction::where('type', 'sell')->get();
 
         if ($request->ajax()) {
@@ -99,7 +100,7 @@ class SellController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        // try {
+        try {
             $actionUtil = new ActionUtil();
             $contactUtils = new ContactUtils();
         $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
@@ -190,10 +191,10 @@ class SellController extends Controller
         } else {
             return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
         }
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
-        // }
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
 

@@ -121,14 +121,19 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'invoices',
-                'url' => 'invoices',
+                'name' => 'quotations',
+                'url' => 'quotations',
                 'permission' => '',
             ],
 
             [
-                'name' => 'quotations',
-                'url' => 'quotations',
+                'name' => 'invoices',
+                'url' => 'invoices',
+                'permission' => '',
+            ],
+            [
+                'name' => 'sell-return',
+                'url' => 'sell-return',
                 'permission' => '',
             ],
             [
@@ -162,6 +167,11 @@ return [
             [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
+                'permission' => '',
+            ],
+            [
+                'name' => 'purchases-return',
+                'url' => 'purchases-return',
                 'permission' => '',
             ],
             [
