@@ -15,7 +15,6 @@ class CouponTable
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "discount_apply_to"],
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "coupon_count"],
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "person_use_time_count"],
-            ["class" => "text-start min-w-100px px-3 align-middle", "name" => "value_type"],
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "value"],
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "start_date"],
             ["class" => "text-start min-w-100px px-3 align-middle", "name" => "end_date"],
@@ -83,10 +82,10 @@ class CouponTable
                     ? '<div class="badge badge-light-success">' . __("employee::fields.active") . '</div>'
                     : '<div class="badge badge-light-danger">' . __("employee::fields.inActive") . '</div>';
             })
-            ->editColumn('value_type', function ($row) {
+            ->editColumn('value', function ($row) {
                 return $row->value_type === 'fixed'
-                    ? '<div class="badge badge-light-primary">' . __("sales::general.fixed") . '</div>'
-                    : '<div class="badge badge-light-success">' . __("sales::general.percent") . '</div>';
+                    ? $row->value
+                    : "{$row->value} %";
             })
             ->editColumn('discount_apply_to', function ($row) {
                 return $row->discount_apply_to === 'all'
@@ -99,7 +98,7 @@ class CouponTable
             ->editColumn('coupon_count', function ($row) {
                 return '<div class="badge badge-light-secondary text-gray-600 fs-5">' . $row->coupon_count . '</div>';
             })
-            ->rawColumns(['actions', 'is_active', 'id', 'value_type', 'discount_apply_to', 'apply_to_clients_groups', 'coupon_count', 'person_use_time_count'])
+            ->rawColumns(['actions', 'is_active', 'id', 'value', 'discount_apply_to', 'apply_to_clients_groups', 'coupon_count', 'person_use_time_count'])
             ->make(true);
     }
 }

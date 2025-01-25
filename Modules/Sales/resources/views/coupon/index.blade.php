@@ -331,10 +331,6 @@
                         class: 'text-center'
                     },
                     {
-                        data: 'value_type',
-                        name: 'value_type'
-                    },
-                    {
                         data: 'value',
                         name: 'value'
                     },
