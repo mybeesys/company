@@ -81,7 +81,8 @@ return [
     'supplier_receipts'=>'Supplier Receipts',
     'import' => 'Import',
     'tables' => 'Tables',
-    'tables_qr' => 'Tables QR'
+    'tables_qr' => 'Tables QR',
+    'menu_qr' => 'Menu QR'
 
 
 

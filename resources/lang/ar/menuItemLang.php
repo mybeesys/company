@@ -81,5 +81,6 @@ return [
     'supplier_receipts'=>'سندات الموردين',
     'import' => 'الاستيراد',
     'tables' => 'الطاولات',
-    'tables_qr' => 'الطاولات QR'
+    'tables_qr' => 'الطاولات QR',
+    'menu_qr' => 'القائمة QR'
 ];

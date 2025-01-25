@@ -6,17 +6,13 @@ import SweetAlert2 from 'react-sweetalert2';
 ///const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
 const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
 
-const Menu = ({ translations, dir }) => {
+const MenuQR = ({ translations, dir }) => {
     const rootElement = document.getElementById('root');
     const blankurl = rootElement.getAttribute('blank-url');
     const urlList = JSON.parse(rootElement.getAttribute('list-url'));
-    const table = JSON.parse(rootElement.getAttribute('table'));
     const [currentTab, setCurrentTab] = useState('all');
     const [nodes, setNodes] = useState([]);
     const [allProducts, setAllProducts] = useState([]);
-    const [order, setOrder] = useState({ items: [] });
-    const [disableSubmitButton, setSubmitdisableButton] = useState(false);
-    const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         refreshMenu();
@@ -39,89 +35,6 @@ const Menu = ({ translations, dir }) => {
         }
     }
 
-    const getProductCount = (id) => {
-        let index = order.items.findIndex(x => x.item_id == id);
-        if (index == -1)
-            return 0;
-        else
-            return order.items[index].quantity;
-    }
-
-    const sendOrder = (order) => {
-        socket.emit('order', order, (response) => {
-            // This is the acknowledgment callback that is executed once the server sends a response
-            console.log('Received response for order:', response);
-            if (response.success) {
-                console.log('Order successfully processed:', response.order);
-                setOrder(response.order);
-            } else {
-                console.log('Failed to process order:', response.message);
-            }
-        });
-    }
-
-    const removeFromOrder = (e, product) => {
-        e.preventDefault();
-        let index = order.items.findIndex(x => x.item_id == product.id);
-        if (index == -1) {
-            return;
-        }
-        else {
-            if (order.items[index].quantity == 1)
-                order.items.splice(index, 1);
-            else
-                order.items[index].quantity = order.items[index].quantity - 1;
-        }
-        sendOrder(order);
-    }
-
-    const addToOrder = (e, product) => {
-        e.preventDefault();
-        order.table_code = table.code;
-        order.tenant = table.tenant;
-        let index = order.items.findIndex(x => x.item_id == product.id);
-        if (index == -1) {
-            let item = {};
-            item.quantity = 1;
-            item.item_price = product.price;
-            item.item_id = product.id;
-            order.items.push(item);
-        }
-        else {
-            order.items[index].quantity = order.items[index].quantity + 1;
-        }
-        sendOrder(order);
-    }
-
-    const clickSubmit = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        setSubmitdisableButton(true);
-        socket.emit('submitOrder', order, (response) => {
-            // This is the acknowledgment callback that is executed once the server sends a response
-            console.log('Received response for order:', response);
-            if (response.success) {
-                console.log('Order successfully submited:', response.order);
-                setShowAlert(true);
-                Swal.fire({
-                    show: showAlert,
-                    title: '',
-                    html: translations.orderSubmited,
-                    icon: "info",
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                    }).then(() => {});
-                setOrder(response.order);
-            } else {
-                console.log('Failed to process order:', response.message);
-            }
-        });
-        
-    }
-
     return (
         <div class="container my-4">
             <div class="card-toolbar row">
@@ -140,14 +53,6 @@ const Menu = ({ translations, dir }) => {
                             </li>
                         )}
                     </ul>
-                </div>
-                <div class="col-2" style={{ "justify-content": "end", "display": "flex" }}>
-                    <div class="flex-center" style={{ "display": "flex" }}>
-                        <button onClick={clickSubmit} disabled={disableSubmitButton} class="btn btn-primary mx-2"
-                            style={{ "width": "12rem" }}>{translations.submitOrder}</button>
-
-                    </div>
-
                 </div>
             </div>
             {/* <div class="d-flex align-items-center mt-3">
@@ -180,9 +85,6 @@ const Menu = ({ translations, dir }) => {
                                                         <p style={{ "min-height": "3rem" }} class="card-text text-muted mb-1">{dir = 'rtl' ? product.description_ar : product.description_en}</p>
                                                         <div class="d-flex justify-content-between align-items-center mt-3">
                                                             <h5 class="text-primary mb-0">{`${product.price} $`}</h5>
-                                                            <button class="custom-btn" onClick={(e) => addToOrder(e, product)}>{`+`}</button>
-                                                            <p class="text-primary mb-0">{getProductCount(product.id)}</p>
-                                                            <button class="custom-btn" onClick={(e) => removeFromOrder(e, product)}>{`-`}</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -223,9 +125,6 @@ const Menu = ({ translations, dir }) => {
                                                             <p style={{ "min-height": "3rem" }} class="card-text text-muted mb-1">{dir = 'rtl' ? product.description_ar : product.description_en}</p>
                                                             <div class="d-flex justify-content-between align-items-center mt-3">
                                                                 <h5 class="text-primary mb-0">{`${product.price} $`}</h5>
-                                                                <button class="custom-btn" onClick={(e) => addToOrder(e, product)}>{`+`}</button>
-                                                                <p class="text-primary mb-0">{getProductCount(product.id)}</p>
-                                                                <button class="custom-btn" onClick={(e) => removeFromOrder(e, product)}>{`-`}</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -245,4 +144,4 @@ const Menu = ({ translations, dir }) => {
     );
 }
 
-export default Menu;
+export default MenuQR;
