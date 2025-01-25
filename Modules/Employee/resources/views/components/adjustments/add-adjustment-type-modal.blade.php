@@ -1,4 +1,4 @@
-<x-employee::general.modal id='add_adjustment_type_modal' title='add_adjustment_type' class='mw-800px'>
+<x-general.modal module="employee" id='add_adjustment_type_modal' title='add_adjustment_type' class='mw-800px'>
     <div class="d-flex flex-wrap gap-2 mb-10">
         <x-form.input-div class="w-100">
             <x-form.input name="name" :placeholder="__('employee::fields.name')" :label="__('employee::fields.name')" required />
@@ -18,4 +18,4 @@
         </x-form.input-div>
     </div>
     <input type="hidden" name="id" id="adjustment_type_id">
-</x-employee::general.modal>
+</x-general.modal>

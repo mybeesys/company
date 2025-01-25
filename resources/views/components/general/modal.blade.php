@@ -4,15 +4,15 @@
     'class' => null,
     'header_class' => null,
     'body_class' => null,
-    'title' => null,
     'header' => null,
+    'module',
 ])
 <div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ $class }}">
         <div class="modal-content">
             <div class="modal-header mb-2 {{ $header_class }}">
                 @if ($title)
-                    <h2 class="fw-bold">@lang('employee::general.' . $title)</h2>
+                    <h2 class="fw-bold">@lang($module . '::general.' . $title)</h2>
                 @else
                     {{ $header }}
                 @endif

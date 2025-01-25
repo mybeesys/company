@@ -11,7 +11,7 @@ class StorePayrollRequest extends FormRequest
     public function prepareForValidation()
     {
         $this->merge([
-            'establishment_ids' => explode(',', $this->establishment_ids),
+            'establishment_ids' => is_array(explode(',', $this->establishment_ids)) ? explode(',', $this->establishment_ids) : [explode(',', $this->establishment_ids)],
             'employee_ids' => explode(',', $this->employee_ids)
         ]);
     }

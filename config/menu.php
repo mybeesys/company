@@ -68,7 +68,7 @@ return [
                 'permission' => '',
 
             ]
-            
+
         ]
     ],
     [
@@ -136,6 +136,11 @@ return [
                 'url' => 'receipts',
                 'permission' => '',
             ],
+            [
+                'name' => 'coupons',
+                'url' => 'coupon',
+                'permission' => ''
+            ]
         ]
     ],
     [

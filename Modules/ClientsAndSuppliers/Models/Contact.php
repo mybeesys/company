@@ -52,9 +52,14 @@ class Contact extends Model
     {
         return $this->belongsTo(AccountingAccount::class, 'account_id');
     }
-    public function  sales()
+    public function sales()
     {
         return $this->hasMany(Transaction::class, 'contact_id')->where('type', 'sell');
+    }
+
+    public function loyaltyPointsTransactions()
+    {
+        return $this->belongsToMany(Transaction::class, 'cs_clients_transactions_loyalty_points', 'client_id', 'transaction_id')->withPivot('points');
     }
 
 
@@ -85,25 +90,25 @@ class Contact extends Model
             })
 
             ->editColumn('mobile_number', function ($row) {
-                return  $row->mobile_number ?? '--';
+                return $row->mobile_number ?? '--';
             })
             ->editColumn('email', function ($row) {
-                return  $row->email ?? '--';
+                return $row->email ?? '--';
             })
             ->editColumn('commercial_register', function ($row) {
-                return  $row->commercial_register;
+                return $row->commercial_register;
             })
             ->editColumn('tax_number', function ($row) {
-                return  $row->tax_number ?? '--';
+                return $row->tax_number ?? '--';
             })
             ->editColumn('status', function ($row) {
 
                 if ($row->status == 'active') {
-                    return    '<span class="badge badge-light-success px-3 py-3 fs-base">
+                    return '<span class="badge badge-light-success px-3 py-3 fs-base">
 
                ' . __('clientsandsuppliers::lang.activate') . ' </span>';
                 } else {
-                    return    '<span class="badge badge-light-danger px-3 py-3 fs-base">
+                    return '<span class="badge badge-light-danger px-3 py-3 fs-base">
 
                ' . __('clientsandsuppliers::lang.inactive') . ' </span>';
                 }
@@ -138,7 +143,7 @@ class Contact extends Model
                     // $actions .= '<div class="menu-item px-3">
                     //                 <a class="menu-link px-3 delete-btn" href="' . url("/client-destroy/{$row->id}") . '" data-id="' . $row->id . '"  data-ref_no="' . $row->name . '">'. __('employee::fields.delete') . '</a>
                     //             </div>';
-
+        
 
                     return $actions;
                 }

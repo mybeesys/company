@@ -16,5 +16,8 @@ return [
     'receipts_search' => 'Search for a receipts',
     'convert-to-invoice' => 'Convert quotation to invoice',
 
-
+    'add_coupon' => 'Add coupon',
+    'auto_generate_hint' => 'Leave the field empty for auto generation',
+    'percent' => 'Percent',
+    'fixed' => 'Fixed'
 ];

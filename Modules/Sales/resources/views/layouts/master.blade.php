@@ -1,29 +1,47 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@extends('layouts.app')
+@section('css')
+    @if (session('locale') == 'ar')
+        <style>
+            input[type="number"]:not(.numInput) {
+                text-align: right;
+            }
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            input[type="number"]::-webkit-input-placeholder,
+            input[type="email"]::-webkit-input-placeholder {
+                text-align: right;
+            }
+        </style>
+    @endif
+    <style>
+        .add-new-option {
+            display: flex;
+            align-items: center;
+            color: #2563eb;
+            padding: 4px;
+        }
 
-    <title>Sales Module - {{ config('app.name', 'Laravel') }}</title>
+        .add-new-option:hover {
+            background-color: #f8fafc;
+        }
 
-    <meta name="description" content="{{ $description ?? '' }}">
-    <meta name="keywords" content="{{ $keywords ?? '' }}">
-    <meta name="author" content="{{ $author ?? '' }}">
+        .select2-add-new-input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 2px;
+        }
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    {{-- Vite CSS --}}
-    {{-- {{ module_vite('build-sales', 'resources/assets/sass/app.scss') }} --}}
-</head>
-
-<body>
+        html[dir="rtl"] .add-new-option i {
+            margin-left: 8px;
+            margin-right: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url('css/monthSelectPlugin.css') }}">
+@endsection
+@section('content')
     @yield('content')
+@endsection
 
-    {{-- Vite JS --}}
-    {{-- {{ module_vite('build-sales', 'resources/assets/js/app.js') }} --}}
-</body>
+@section('script')
+    <script src="{{ url('modules/employee/js/messages.js') }}"></script>
+@endsection
