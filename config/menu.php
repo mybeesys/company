@@ -132,8 +132,6 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'quotations',
-                'url' => 'quotations',
                 'name' => 'sell-return',
                 'url' => 'sell-return',
                 'permission' => '',
