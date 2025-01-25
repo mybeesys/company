@@ -83,5 +83,6 @@ return [
     'sell-return' => 'مردود المبيعات',
     'purchases-return' => 'مردود المشتريات',
     'tables' => 'الطاولات',
-    'tables_qr' => 'الطاولات QR'
+    'tables_qr' => 'الطاولات QR',
+    'menu_qr' => 'القائمة QR'
 ];
