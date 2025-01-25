@@ -39,6 +39,8 @@ return [
     'company_settings' => 'إعدادات الشركة',
     'adjustments' => 'البدلات والحسومات',
     'clients_suppliers_module' => 'العملاء والموردين',
+    'clients_suppliers_settings' => 'إعدادات العملاء والموردين',
+    'coupons' => 'الكوبونات',
 
 
     'customMenu' => 'القوائم المخصصة',
@@ -80,4 +82,7 @@ return [
     'import' => 'الاستيراد',
     'sell-return' => 'مردود المبيعات',
     'purchases-return' => 'مردود المشتريات',
+    'tables' => 'الطاولات',
+    'tables_qr' => 'الطاولات QR',
+
 ];

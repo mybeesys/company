@@ -386,7 +386,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     <Column header={translations.cost} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
                     <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order', false, false))} sortable></Column>
                     <Column header={translations.active} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'active'))} sortable> </Column>
-                    <Column header={translations.forSell} style={{ width: '10%' }}  body={(node) => (renderCheckCell(node, 'for_sell'))} sortable> </Column>
+                    <Column header={translations.forSell} style={{ width: '10%' }}  body={(node) => (node.data.type == "product" ? renderCheckCell(node, 'for_sell'): <></>)} sortable> </Column>
                     <Column style={{ width: '10%' }} body={(node) => (actionTemplate(node))} />
                 </TreeTable>
             </form>

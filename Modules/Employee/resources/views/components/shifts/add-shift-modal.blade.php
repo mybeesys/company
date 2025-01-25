@@ -5,7 +5,7 @@
         ['id' => 'break', 'name' => __('employee::fields.break')],
     ];
 @endphp
-<x-employee::general.modal class="mw-1000px" header_class="px-10 py-5" body_class="pt-0" id="shift_add">
+<x-general.modal module="employee" class="mw-1000px" header_class="px-10 py-5" body_class="pt-0" id="shift_add">
     <x-slot:header>
         <div class="d-flex flex-column gap-2">
             <h2 class="fw-bold work-time-modal-title"></h2>
@@ -56,4 +56,4 @@
             </div>
         </div>
     </div>
-</x-employee::general.modal>
+</x-general.modal>

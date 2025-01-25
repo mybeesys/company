@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @section('css')
-    <style>
-        @if (session('locale') == 'ar')
-            input[type="number"] {
+    @if (session('locale') == 'ar')
+        <style>
+            input[type="number"]:not(.numInput) {
                 text-align: right;
             }
 
@@ -10,7 +10,9 @@
             input[type="email"]::-webkit-input-placeholder {
                 text-align: right;
             }
-        @endif
+        </style>
+    @endif
+    <style>
         .add-new-option {
             display: flex;
             align-items: center;

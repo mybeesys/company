@@ -1,5 +1,5 @@
 @props(['adjustments_types', 'employees'])
-<x-employee::general.modal id='add_adjustment_modal' title='add_adjustment' class='mw-800px'>
+<x-general.modal module="employee" id='add_adjustment_modal' title='add_adjustment' class='mw-800px'>
     <div class="d-flex flex-wrap gap-2">
         <x-form.input-div class="mb-10 w-100">
             <x-form.select name="type" :label="__('employee::fields.adjustment_type')" :options="[
@@ -47,4 +47,4 @@
             :form_control="false" name="apply_once" labelClass="w-50 mb-0" labelWidth />
     </x-form.input-div>
     <input type="hidden" name="id" id="id">
-</x-employee::general.modal>
+</x-general.modal>

@@ -17,6 +17,7 @@ use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\PayrollGroup;
 use Modules\Employee\Services\PayrollAction;
 use Modules\Establishment\Models\Establishment;
+use Mpdf\Mpdf;
 use Spatie\Permission\Models\Role;
 
 class PayrollController extends Controller
@@ -71,7 +72,6 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', __('employee::responses.employees_do_have_wages'));
         }
 
-
         $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
         $lock = Cache::lock($lockKey, 30);
 
@@ -79,10 +79,10 @@ class PayrollController extends Controller
             return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
-        // if (!$lock->get()) {
-        //     return to_route('schedules.payrolls.index')
-        //         ->with('error', __('employee::responses.payroll_creation_in_progress'));
-        // }
+        if (!$lock->get()) {
+            return to_route('schedules.payrolls.index')
+                ->with('error', __('employee::responses.payroll_creation_in_progress'));
+        }
 
         $payroll_group = PayrollGroup::with(['payrolls'])
             ->where('date', $date)
@@ -126,6 +126,26 @@ class PayrollController extends Controller
         return response()->json(['status' => 'lock not acquired'], 400);
     }
 
+    public function exportPdfAll()
+    {
+        $payrolls = Payroll::with('payrollGroup', 'employee');
+
+        $html = view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+            'tempDir' => storage_path('temp/mpdf')
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('payrolls.pdf','D');
+    }
 
     public function store(StorePayrollRequest $request)
     {
@@ -138,9 +158,9 @@ class PayrollController extends Controller
         $lock = Cache::lock($lockKey, 60);
 
         try {
-            // if (!$lock->get()) {
-            //     return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
-            // }
+            if (!$lock->get()) {
+                return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
+            }
 
             $payrollDataExists = collect($employeeIds)->every(function ($employeeId) use ($date) {
                 return Cache::has("payroll_table_{$date}_" . $employeeId);
@@ -170,14 +190,5 @@ class PayrollController extends Controller
                 $lock->release();
             }
         }
-    }
-
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('employee::show');
     }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateJWT;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
+use Modules\Sales\Http\Controllers\CouponController;
 use Modules\Sales\Http\Controllers\QuotationController;
 use Modules\Sales\Http\Controllers\ReceiptsController;
 use Modules\Sales\Http\Controllers\SellController;
@@ -27,7 +28,6 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    // Route::middleware(AuthenticateJWT::class)->group(function () {
     Route::middleware(['auth'])->group(function () {
 
         Route::get('invoices', [SellController::class, 'index'])->name('invoices');
@@ -48,5 +48,17 @@ Route::middleware([
         Route::post('store-receipts', [ReceiptsController::class, 'store'])->name('store-receipts');
 
         Route::get('get-transactions/{clientId}', [ReceiptsController::class, 'getTransactions'])->name('get-transactions');
+
+        Route::controller(CouponController::class)->prefix('coupon')->name('coupons.')->group(function () {
+            Route::get('', 'index')->name('index');
+            Route::post('/store', 'store')->name('store');
+            Route::delete('/{coupon}', 'destroy')->name('delete');
+            Route::delete('/force-delete/{coupon}', 'forceDelete')->name('force-delete');
+            Route::post('/restore/{id}', 'restore')->name('restore');
+
+            Route::get('get-details/{id}', 'getCouponDetails')->name('get-details');
+
+            Route::get('/generate-code', 'generateCode')->name('generate-code');
+        });
     });
 });

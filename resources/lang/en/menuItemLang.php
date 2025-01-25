@@ -36,15 +36,16 @@ return [
     'payroll' => 'Payroll',
     'costCenter' => 'Cost Centers',
     'serviceFee' => 'Service Fees',
+    'payroll_group' => 'Payroll groups',
     'company_settings' => 'Company settings',
     'adjustments' => 'Allowances and deductions',
     'clients_suppliers_module' => 'Clients and suppliers',
+    'client_loyalty_points' => 'clients loyalty points',
+    'clients_suppliers_settings' => 'clients and suppliers settings',
+    'coupons' => 'Coupons',
 
 
-    'employees_working_hours' => 'Employees working hours',
 
-    'payroll_group' => 'Payroll groups',
-    'employees_working_hours' => 'Employees working hours',
 
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
@@ -53,8 +54,7 @@ return [
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
 
-    'inventory' => 'Product',
-    'inventory_module' => 'Invenetory',
+    'inventory_module' => 'Inventory',
     'sales' => 'Sales',
     'clients' => 'Clients',
     'invoices' => 'Invoices',
@@ -63,8 +63,6 @@ return [
 
 
 
-    'inventory' => 'Product',
-    'inventory_module' => 'Invenetory',
     'po' => 'PO',
     'prep' => 'Prep',
     'rma' => 'RMA',
@@ -80,12 +78,11 @@ return [
 
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
+
     'supplier_receipts' => 'Supplier Receipts',
     'import' => 'Import',
     'sell-return' => 'Sell Return',
     'purchases-return' => 'Purchases return',
-
-
-
-
+    'tables' => 'Tables',
+    'tables_qr' => 'Tables QR',
 ];

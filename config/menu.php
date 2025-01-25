@@ -141,6 +141,11 @@ return [
                 'url' => 'receipts',
                 'permission' => '',
             ],
+            [
+                'name' => 'coupons',
+                'url' => 'coupon',
+                'permission' => ''
+            ]
         ]
     ],
     [
@@ -226,6 +231,16 @@ return [
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
             ],
+            [
+                'name' => 'tables',
+                'url' => 'area',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables_qr',
+                'url' => 'areaQR',
+                'permission' => '',
+            ],
         ]
     ],
 
@@ -237,8 +252,8 @@ return [
         'permission' => '',
         'subMenu' => [
             [
-                'name' => 'loyalty_points',
-                'url' => 'loyalty-points',
+                'name' => 'clients_suppliers_settings',
+                'url' => 'client-supplier-setting',
                 'permission' => ''
             ],
         ]

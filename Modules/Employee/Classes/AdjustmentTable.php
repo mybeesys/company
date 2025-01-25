@@ -33,8 +33,8 @@ class AdjustmentTable
             ->addColumn('employee', function ($row) {
                 return $row->employee->{get_name_by_lang()};
             })
-            ->editColumn('apply_once', function ($employee) {
-                return $employee->apply_once
+            ->editColumn('apply_once', function ($row) {
+                return $row->apply_once
                     ? '<div class="badge badge-light-success">True</div>'
                     : '<div class="badge badge-light-danger">False</div>';
             })

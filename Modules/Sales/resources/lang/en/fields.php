@@ -38,6 +38,21 @@ return [
     'paid_on' => 'Piad on',
     'supplier' => 'Supplier',
 
+    'name' => 'Name',
+    'code' => 'Code',
+    'type' => 'Type',
+    'value_type' => 'Value type',
+    'value' => 'Value',
+    'start_date' => 'Start date',
+    'end_date' => 'End date',
+    'discount_apply_to' => 'Coupon applied on',
+    'person_use_time_count' => 'Use count for one person',
+    'coupon_count' => 'total Use count',
+    'category' => 'Category',
+    'product' => 'Product',
+    'all' => 'All',
+    'apply_to_clients_groups' => 'Apply to clients groups',
+    'is_active' => 'Is active'
 
 
 

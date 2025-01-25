@@ -156,9 +156,6 @@
         hoursMinsInuptMask('duration_of_paid_break')
         hoursMinsInuptMask('work_time_to_qualify_for_paid_break')
 
-        $('.flatpickr-time').addClass('d-flex align-items-center gap-10 py-5 w-75 mx-auto border-0');
-        $('.flatpickr-time.time24hr').addClass('gap-15');
-        $('.flatpickr-calendar').addClass('h-50px d-flex align-items-center');
 
         $('[name="week_starts_on"]').select2({
             minimumResultsForSearch: -1

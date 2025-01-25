@@ -7,5 +7,6 @@
     "ClientsAndSuppliers": true,
     "Sales": true,
     "General": true,
-    "Purchases": true
+    "Purchases": true,
+    "Reservation": true
 }
