@@ -264,5 +264,8 @@
   "reserved" : "Reserved",
   "notAvailable" : "Not Available",
   "downloadQRCode" : "Download QR",
-  "visitLink" : "Visit Link"
+  "visitLink" : "Visit Link",
+  "showAll" : "Show All",
+  "submitOrder" : "Submit Order",
+  "orderSubmited" : "Order Submited"
 }

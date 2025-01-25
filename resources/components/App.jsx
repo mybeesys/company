@@ -33,6 +33,7 @@ import ModifierComponent from './modifier/ModifierComponent';
 import DataImport from './comp/DataImport';
 import AreaTable from './reservation/AreaTable';
 import AreaQRTable from './reservation/AreaQRTable';
+import Menu from './reservation/Menu';
 
 
 const App = ({nodeType, dir}) =>{
@@ -76,6 +77,7 @@ const App = ({nodeType, dir}) =>{
     openInventoryImport: <DataImport translations={translations} dir={dir}/>,
     area : <AreaTable translations={translations} dir={dir}/>,
     areaQR : <AreaQRTable translations={translations} dir={dir}/>,
+    menu : <Menu translations={translations} dir={dir} />
   }
   
   useEffect(() => {

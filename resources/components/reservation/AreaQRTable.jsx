@@ -61,7 +61,7 @@ const AreaQRTable = ({translations, dir }) => {
                         {/* QR Code */}
                         <QRCodeCanvas
                             id={`qr-${table.data.code}`}
-                            value={JSON.stringify(table.data)}
+                            value={`${window.location.origin}/menu/${table.data.code}`}
                             size={150}
                             bgColor="#ffffff"
                             fgColor="#000000"
@@ -97,7 +97,7 @@ const AreaQRTable = ({translations, dir }) => {
 
                             {/* Visit Link Button */}
                             <a
-                                href={table.data.link}
+                                href={`${window.location.origin}/menu/${table.data.code}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{

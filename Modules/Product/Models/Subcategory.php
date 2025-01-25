@@ -60,6 +60,12 @@ class Subcategory extends Model
         return $this->hasMany(Product::class, 'subcategory_id', 'id');
     }
 
+    public function productsForSale()
+    {
+        return $this->hasMany(Product::class, 'subcategory_id', 'id')
+            ->where('for_sell', 1)->where('active' , 1);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id' , 'id');

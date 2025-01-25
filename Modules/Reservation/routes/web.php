@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Reservation\Http\Controllers\AreaController;
+use Modules\Reservation\Http\Controllers\OrderController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Modules\Reservation\Http\Controllers\TableController;
@@ -28,5 +29,6 @@ Route::middleware([
     Route::resource('table', TableController::class)->names('table');
     Route::get('table-status-type-values', [TableStatusTypeController::class, 'getTableStatusTypeValues'])->name('table-status-type-values');;
     Route::get('/areaQR', [AreaController::class, 'areaQR'])->name('reservation.areaQR');
-    
+    Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');
+    Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
 });

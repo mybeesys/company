@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.menu')
 @section('css')
     <style>
       .title {

@@ -1,7 +1,9 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
-use Modules\Reservation\Http\Controllers\ReservationController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
  *--------------------------------------------------------------------------
@@ -14,6 +16,11 @@ use Modules\Reservation\Http\Controllers\ReservationController;
  *
 */
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('reservation', ReservationController::class)->names('reservation');
+Route::middleware([
+    'api',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+
+    require __DIR__ . '/Api/order.php';
 });

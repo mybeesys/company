@@ -271,5 +271,8 @@
   "reserved" : "محجوز",
   "notAvailable" : "غير متاح",
   "downloadQRCode" : "تحميل ال QR",
-  "visitLink" : "فتح الرابط"
+  "visitLink" : "فتح الرابط",
+  "showAll" : "الكل",
+  "submitOrder" : "تثبيت الطلب",
+  "orderSubmited" : "تم تثبيت الطلب"
 }
