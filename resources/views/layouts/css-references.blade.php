@@ -49,10 +49,10 @@
     }
 
     tr:hover {
-        background: #b4d4f8 !important;
+        background: #cae0fa !important;
         /* font-style: italic; */
 
-        font-weight: bold !important;
+        /* font-weight: bold !important; */
     }
 
     input.no-spin::-webkit-inner-spin-button,
