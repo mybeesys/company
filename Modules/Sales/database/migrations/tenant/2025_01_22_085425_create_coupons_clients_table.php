@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('sales_coupons_clients', function (Blueprint $table) {
             $table->foreignId('client_id')->constrained('cs_contacts')->cascadeOnDelete();
             $table->foreignId('transaction_id')->constrained('transactions')->cascadeOnDelete();
+            $table->foreignId('coupon_id')->constrained('sales_coupons')->cascadeOnDelete();
             $table->timestamps();
             $table->unique(['client_id', 'transaction_id']);
         });
