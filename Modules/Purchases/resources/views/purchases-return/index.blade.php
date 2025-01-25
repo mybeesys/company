@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.sell-return'))
+@section('title', __('menuItemLang.purchases-return'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -27,8 +27,8 @@
                             alt="">
                     </div>
                     <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
-                        <span class="fw-bolder"> @lang('sales::lang.no_sell_return')</span> <br>
-                        @lang('sales::lang.suggestion_sell_return')
+                        <span class="fw-bolder"> @lang('purchases::lang.no_purchases_return')</span> <br>
+                        @lang('purchases::lang.suggestion_purchases_return')
                     </h4>
                    </div>
 
@@ -37,7 +37,7 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="sell-return" url="create-invoice" module="sales" :addButton="false">
+                <x-tables.table-header model="purchases-retrun" url="create-invoice" module="purchases" :addButton="false">
 
 
                     <x-slot:filters>
@@ -69,7 +69,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
-        const dataUrl = '{{ route('sell-return') }}';
+        const dataUrl = '{{ route('purchases-return') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -167,7 +167,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('sell-return') }}?' + $.param({
+                dataTable.ajax.url('{{ route('purchases-return') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

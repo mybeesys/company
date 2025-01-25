@@ -43,6 +43,7 @@ class Transaction extends Model
     }
 
 
+
     public static function getsSellsColumns()
     {
         return [
@@ -70,10 +71,7 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "issue_date"],
             ["class" => "text-start min-w-150px ", "name" => "Expiry Date"],
-            // ["class" => "text-start min-w-80px ", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
-            // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
-            // ["class" => "text-start min-w-150px  ", "name" => "discount"],
             ["class" => "text-start min-w-150px  ", "name" => "amount"],
         ];
     }
@@ -84,13 +82,10 @@ class Transaction extends Model
         return [
 
             ["class" => "text-start min-w-150px ", "name" => "ref_no"],
-            ["class" => "text-start min-w-150px  ", "name" => "client"],
+            ["class" => "text-start min-w-150px  ", "name" => "supplier"],
             ["class" => "text-start min-w-150px", "name" => "transaction_date"],
             ["class" => "text-start min-w-150px ", "name" => "due_date"],
             ["class" => "text-start min-w-80px ", "name" => "payment_status"],
-            // ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
-            // ["class" => "text-start min-w-150px ", "name" => "vat_value"],
-            // ["class" => "text-start min-w-150px  ", "name" => "discount"],
             ["class" => "text-start min-w-100px  ", "name" => "invoice_amount"],
             ["class" => "text-start min-w-100px  ", "name" => "piad_amount"],
             ["class" => "text-start min-w-100px  ", "name" => "remaining_amount"],
@@ -100,13 +95,20 @@ class Transaction extends Model
     public static function getSellsTable($transactions)
     {
 
+        $returns = Transaction::whereIn('type', ['sell-return', 'purchases-return'])->pluck('parent_id')->toArray();
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
                                      {$row->id}
                             </div>";
             })
-            ->editColumn('ref_no', function ($row) {
+            ->editColumn('ref_no', function ($row) use ($returns) {
+                if (in_array($row->id, $returns)) {
+                    return $row->ref_no .
+                        '<span class=" m-2" data-bs-toggle="tooltip" title="' . __('general::lang.tooltip_inv_return') . '">
+                                <i class="fas fa-undo text-danger fs-6"></i>
+                            </span>';
+                }
                 return $row->ref_no;
             })
 
@@ -174,6 +176,27 @@ class Transaction extends Model
                 <a href="' . url("/transaction-print/{$row->id}") . '" class="menu-link px-3">' . __('general.print') . '</a>
             </div>';
 
+                    if ($row->type == 'sell') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="' . url("/create-sell-return/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.sell-return') . '</a>
+            </div>';
+                    }
+
+                    if ($row->type == 'purchases') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="' . url("/create-purchases-return/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.purchases-return') . '</a>
+            </div>';
+                    }
+
+                    if ($row->type == 'sell-return' || $row->type == 'purchases-return') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="' . url("/transaction-print/{$row->parent_id}") . '" class="menu-link px-3">' . __('general::lang.transaction-parent') . '</a>
+            </div>';
+                    }
+
+
+
+
 
                     if ($row->type != 'quotation' && $row->type != 'purchases-order') {
                         if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
@@ -210,7 +233,7 @@ class Transaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'payment_status', 'remaining_amount', 'paid_amount', 'client', 'id'])
+            ->rawColumns(['actions', 'payment_status', 'ref_no', 'remaining_amount', 'paid_amount', 'client', 'id'])
             ->make(true);
     }
 }

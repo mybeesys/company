@@ -83,7 +83,7 @@
             {!! QrCode::size(90)->generate(
                 json_encode([
                     'Inovice No' => $transaction->ref_no,
-                    'Client Name' => $transaction->client?->name,
+                    // 'Client Name' => $transaction?->client?->name,
                     'Final Total' => $transaction->final_total,
                 ]),
             ) !!}

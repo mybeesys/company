@@ -8,6 +8,8 @@ return [
 
     'add_purchases' => 'Create Invoice',
     'sell_search' => 'Search for a sales invoice',
+    'purchases-retrun_search' => 'Search for a purchases return',
+
     'purchases_search' => 'Search for a purchase invoice',
     'sales' => 'المبيعات',
     'no_data_to_show' => 'No Data Available!',
