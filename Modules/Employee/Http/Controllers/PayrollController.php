@@ -126,16 +126,15 @@ class PayrollController extends Controller
         return response()->json(['status' => 'lock not acquired'], 400);
     }
 
-    public function printAll()
+    public function exportPdfAll()
     {
         $payrolls = Payroll::all();
 
         $html = view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
-        // return $html;
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4',
+            'format' => 'A4-L',
             'default_font' => 'DejaVuSans',
             'default_font_size' => 12,
             'autoLangToFont' => true,
@@ -147,7 +146,6 @@ class PayrollController extends Controller
 
         return $mpdf->Output('cost-centers.pdf','D');
     }
-
 
     public function store(StorePayrollRequest $request)
     {
