@@ -140,6 +140,7 @@ class PayrollController extends Controller
             'default_font_size' => 12,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
+            'tempDir' => storage_path('temp/mpdf')
         ]);
 
         $mpdf->WriteHTML($html);
