@@ -63,6 +63,4 @@ class Coupon extends Model
     {
         return $this->belongsToMany(Establishment::class, 'sales_coupons_establishments');
     }
-
-
 }

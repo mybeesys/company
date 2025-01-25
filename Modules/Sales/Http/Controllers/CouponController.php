@@ -91,10 +91,12 @@ class CouponController extends Controller
 
     public function forceDelete($id)
     {
-
         $coupon = Coupon::where('id', $id);
-        // if($coupon->)
-        $delete = $coupon->forceDelete();
+        if ($coupon->first()->transactions()->exists()) {
+            return response()->json(['error' => __('sales::responses.can_not_delete_coupon_has_transaction')], 500);
+        } else {
+            $delete = $coupon->forceDelete();
+        }
         if ($delete) {
             return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::general.this_element')])]);
         } else {
