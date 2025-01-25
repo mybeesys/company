@@ -14,7 +14,7 @@ $('#kt_app_sidebar_toggle').on('click', function () {
 })
 //columnsToReverseInArabic arabic words To Reverse In Arabic lang
 //columnsToReverse arabic columns To Reverse In English lang
-function exportButtons(columns, id, lang, columnsToReverse = [], columnsToReverseInArabic = [], pageSize = 'A4', PageTable = null, pageDataTable = null) {
+function exportButtons(columns, id, lang, columnsToReverse = [], columnsToReverseInArabic = [], pageSize = 'A4', PageTable = null, pageDataTable = null, activePdf = true, activeExcel = true, activePrint = true) {
 
     if (pageDataTable) {
         dataTable = pageDataTable;
@@ -80,11 +80,11 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
                                 doc.content[2].table.body[0][i]['text'] = doc.content[2].table.body[0][i]['text'].split(' ').reverse().join(' ');
                             }
                         }
-                
+
                         // Reverse header cells
                         var headerCells = doc.content[2].table.body[0];
                         headerCells.reverse();
-                
+
                         // Reverse each row's cells in the body
                         for (var i = 1; i < doc.content[2].table.body.length; i++) {
                             var rowCells = doc.content[2].table.body[i];
@@ -92,7 +92,7 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
                         }
                     }
                 }
-                
+
                 function centerTable(doc) {
                     doc.content[2].table.widths = '*'.repeat(doc.content[2].table.body[0].length).split('');
 
@@ -138,7 +138,13 @@ function exportButtons(columns, id, lang, columnsToReverse = [], columnsToRevers
     exportButtons.on('click', function (e) {
         e.preventDefault();
         const exportValue = $(this).attr('data-kt-export');
-        $('.dt-buttons .buttons-' + exportValue).click();
+        if (exportValue === 'pdf' && activePdf) {
+            $('.dt-buttons .buttons-' + exportValue).click();
+        } else if (exportValue === 'excel' && activeExcel) {
+            $('.dt-buttons .buttons-' + exportValue).click();
+        } else if (exportValue === 'print' && activePrint) {
+            $('.dt-buttons .buttons-' + exportValue).click();
+        }
     });
 };
 
@@ -146,7 +152,7 @@ function handleSearchDatatable(pageDataTable) {
     if (pageDataTable) {
         dataTable = pageDataTable;
     }
-    
+
     const filterSearch = $('[data-kt-filter="search"]');
     filterSearch.on('keyup', function (e) {
         dataTable.search(e.target.value).draw();
