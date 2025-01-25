@@ -136,8 +136,11 @@
             selectDeselectAll($('#emp-select-all-btn'), $('#emp-deselect-all-btn'), '[name="employee"]');
             selectDeselectAll($('#est-select-all-btn'), $('#est-deselect-all-btn'), '[name="establishment"]');            
             $('#kt_payroll_table_export_menu [data-kt-export="pdf"]').on('click', function(){
-                ajaxRequest("{{ route('schedules.payrolls.print-all') }}", "GET", {}, false, false);                
-            })
+                window.open("{{ route('schedules.payrolls.print-all') }}", '_blank').focus();
+            });
+            $('#kt_payroll_table_export_menu [data-kt-export="print"]').on('click', function(){
+                window.open("{{ route('schedules.payrolls.print-all') }}", '_blank').focus();
+            });
         });
 
         function addPayrollModal() {
@@ -247,7 +250,7 @@
 
                     exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '#kt_payroll_table',
                         "{{ session('locale') }}", [], [10, 11], 'A4',
-                        payroll_table, payroll_dataTable, false, true, true);
+                        payroll_table, payroll_dataTable, false, true, false);
                 });
         }
 

@@ -178,12 +178,17 @@ Route::middleware([
 
                 Route::post('/extend-lock', 'extendLock')->name('extendLock');
 
-                Route::get('/print-all', 'printAll')->name('print-all');
+                Route::get('/export-pdf-all', 'exportPdfAll')->name('export-pdf-all');
+
+                Route::get('/print-all', function () {
+                    $payrolls = Payroll::all();
+                    return view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
+                })->name('print-all');
 
                 Route::get('/{payroll}/print', function (Payroll $payroll) {
                     return view('employee::schedules.payroll.print', compact('payroll'))->render();
                 })->name('print')->can('print', Payroll::class);
-    
+
             });
 
         });
