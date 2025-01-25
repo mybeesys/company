@@ -178,9 +178,11 @@ Route::middleware([
 
                 Route::post('/extend-lock', 'extendLock')->name('extendLock');
 
+                Route::get('/print-all', 'printAll')->name('print-all');
+
                 Route::get('/{payroll}/print', function (Payroll $payroll) {
                     return view('employee::schedules.payroll.print', compact('payroll'))->render();
-                })->can('print', Payroll::class);
+                })->name('print')->can('print', Payroll::class);
     
             });
 
