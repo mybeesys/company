@@ -136,7 +136,7 @@
             selectDeselectAll($('#emp-select-all-btn'), $('#emp-deselect-all-btn'), '[name="employee"]');
             selectDeselectAll($('#est-select-all-btn'), $('#est-deselect-all-btn'), '[name="establishment"]');            
             $('#kt_payroll_table_export_menu [data-kt-export="pdf"]').on('click', function(){
-                window.open("{{ route('schedules.payrolls.print-all') }}", '_blank').focus();
+                window.open("{{ route('schedules.payrolls.export-pdf-all') }}").focus();
             });
             $('#kt_payroll_table_export_menu [data-kt-export="print"]').on('click', function(){
                 window.open("{{ route('schedules.payrolls.print-all') }}", '_blank').focus();

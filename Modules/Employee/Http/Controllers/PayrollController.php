@@ -128,7 +128,7 @@ class PayrollController extends Controller
 
     public function exportPdfAll()
     {
-        $payrolls = Payroll::all();
+        $payrolls = Payroll::with('payrollGroup', 'employee');
 
         $html = view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
 
@@ -144,7 +144,7 @@ class PayrollController extends Controller
 
         $mpdf->WriteHTML($html);
 
-        return $mpdf->Output('cost-centers.pdf','D');
+        return $mpdf->Output('payrolls.pdf','D');
     }
 
     public function store(StorePayrollRequest $request)

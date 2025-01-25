@@ -11,7 +11,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print: @lang('menuItemLang.payroll')</title>
-    @include('layouts.css-references')
+    {{-- <link href="/assets/plugins/custom/datatables/datatables.bundle{{ $rtl_files }}.css" rel="stylesheet"
+        type="text/css" />
+    <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" /> --}}
+
     <style>
         * {
             font-family: DejaVu Sans !important;
@@ -21,9 +25,11 @@
             font-size: 16px;
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
             padding: 5px;
-            /* margin: 10px; */
             background-color: white;
             color: #777;
+            margin: 0px;
+            font-size: 13px;
+            line-height: 20px;
         }
 
 
@@ -74,6 +80,18 @@
             .no-print {
                 display: none;
             }
+        }
+
+        .min-w-125px {
+            min-width: 100px;
+        }
+
+        .text-nowrap {
+            text-wrap: nowrap;
+        }
+
+        .align-middle {
+            vertical-align: middle;
         }
     </style>
 
@@ -127,12 +145,9 @@
                         </tr>
                     @endforeach
                 </tbody>
-
             </table>
-
         </div>
     </div>
-    @include('layouts.js-references')
 </body>
 
 </html>
