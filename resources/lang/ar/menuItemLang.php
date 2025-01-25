@@ -78,9 +78,10 @@ return [
 
     'customer_receipts' => 'سندات العملاء',
     'purchase-order' => 'طلبات الشراء',
-    'supplier_receipts'=>'سندات الموردين',
+    'supplier_receipts' => 'سندات الموردين',
     'import' => 'الاستيراد',
+    'sell-return' => 'مردود المبيعات',
+    'purchases-return' => 'مردود المشتريات',
     'tables' => 'الطاولات',
-    'tables_qr' => 'الطاولات QR',
-    'menu_qr' => 'القائمة QR'
+    'tables_qr' => 'الطاولات QR'
 ];

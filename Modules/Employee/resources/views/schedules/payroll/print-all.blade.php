@@ -10,8 +10,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- عنوان صفحة الطباعة  --}}
-    <title>Print: @lang('menuItemLang.costCenter')</title>
+    <title>Print: @lang('menuItemLang.payroll')</title>
+    {{-- <link href="/assets/plugins/custom/datatables/datatables.bundle{{ $rtl_files }}.css" rel="stylesheet"
+        type="text/css" />
+    <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" /> --}}
+
     <style>
         * {
             font-family: DejaVu Sans !important;
@@ -20,10 +24,12 @@
         body {
             font-size: 16px;
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
-            padding: 10px;
-            margin: 10px;
-
+            padding: 5px;
+            background-color: white;
             color: #777;
+            margin: 0px;
+            font-size: 13px;
+            line-height: 20px;
         }
 
 
@@ -40,17 +46,13 @@
 
         .table_component table {
             border: 1px solid #dededf;
-            /* height: 99%; */
             table-layout: auto;
             border-collapse: collapse;
             border-spacing: 1px;
-            /* text-align: right; */
             page-break-before: avoid;
             page-break-after: avoid;
-            /* direction: ltr; */
             width: 100%;
             text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
-            /* border: 1px solid; */
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
         }
 
@@ -74,15 +76,22 @@
             padding: 7px;
         }
 
-        td {
-            padding: 10px;
-            margin: 10px;
-        }
-
         @media print {
             .no-print {
                 display: none;
             }
+        }
+
+        .min-w-125px {
+            min-width: 100px;
+        }
+
+        .text-nowrap {
+            text-wrap: nowrap;
+        }
+
+        .align-middle {
+            vertical-align: middle;
         }
     </style>
 
@@ -90,7 +99,7 @@
         window.onload = function() {
             window.print();
         };
-        // هون لما بدك ترجع بعد ما تخلص من صفحة الطباعة
+        // Return back after print
         window.onafterprint = function() {
             window.location.href = "{{ route('schedules.payrolls.index') }}";
         };
@@ -100,41 +109,43 @@
 
 <body>
 
-    <div class="template-header">
-
-    </div>
-
     <div class="section">
-        <div class="section-header">
-            <p>@lang('menuItemLang.costCenter')</p>
-        </div>
-
-        <div class="content table_component">
+        <div class="content table_component overflow-hidden">
             <table class="table table-bordered table-striped hide-footer" dir="{{ $dir }}" id="journal_table">
                 <thead>
                     <tr>
-                        <th>@lang('accounting::lang.cost_center')</th>
-                        <th>@lang('accounting::lang.main_cost_center')</th>
+                        <th class="align-middle">@lang('employee::fields.employee')</th>
+                        <th class="align-middle">@lang('employee::fields.payroll_group_name')</th>
+                        <th class="align-middle">@lang('employee::fields.date')</th>
+                        <th class="align-middle">@lang('employee::fields.regular_worked_hours')</th>
+                        <th class="align-middle">@lang('employee::fields.overtime_hours')</th>
+                        <th class="align-middle">@lang('employee::fields.total_hours')</th>
+                        <th class="align-middle">@lang('employee::fields.total_worked_days')</th>
+                        <th class="align-middle">@lang('employee::fields.basic_wage')</th>
+                        <th class="align-middle">@lang('employee::fields.total_allowances')</th>
+                        <th class="align-middle">@lang('employee::fields.total_deductions')</th>
+                        <th class="align-middle">@lang('employee::fields.wage_due')</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach ($payrolls as $row)
+                    @foreach ($payrolls as $payroll)
                         <tr>
-                            <td>123 -
-
-                            </td>
-                            <td>245 -
-                            </td>
+                            <td class="min-w-125px">{{ $payroll->employee?->{get_name_by_lang()} }}</td>
+                            <td>{{ $payroll->payrollGroup?->name }}</td>
+                            <td class="text-nowrap">{{ $payroll->payrollGroup?->date }}</td>
+                            <td>{{ $payroll->regular_worked_hours }}</td>
+                            <td>{{ $payroll->overtime_hours }}</td>
+                            <td>{{ $payroll->total_hours }}</td>
+                            <td>{{ $payroll->total_worked_days }}</td>
+                            <td>{{ $payroll->basic_total_wage }}</td>
+                            <td>{{ $payroll->allowances }}</td>
+                            <td>{{ $payroll->deductions }}</td>
+                            <td>{{ $payroll->total_wage }}</td>
                         </tr>
                     @endforeach
                 </tbody>
-
             </table>
-
-            <hr style="width:100%;text-align:left;margin-left:0">
-
-
         </div>
     </div>
 </body>

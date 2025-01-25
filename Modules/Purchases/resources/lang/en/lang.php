@@ -91,6 +91,9 @@ return [
     'create_suggestion_purchase-order' => 'We provide you with an advanced tool for managing purchase orders, which are official business documents that allow the buyer to request specific products or services in an organized and detailed manner. These documents include details such as quantities, prices, payment terms, and delivery conditions, ensuring clear business transactions and enhancing efficient communication between parties, leading to improved productivity and timely execution.',
 
     'purchase order' => 'Purchase order',
+    'no_purchases_return' => 'You do not have any purchases return',
+    'suggestion_purchases_return' => 'We provide you with an advanced tool for handling purchase returns, enabling buyers to document the return of goods to the supplier. This tool allows for recording return details, such as returned items, quantities, and prices, ensuring accurate accounting operations and efficient business management.',
+
 
 
 

@@ -158,7 +158,9 @@
 
                         @php
                             $lines =
-                                $transaction->type == 'purchases' || $transaction->type == 'purchases-order'
+                                $transaction->type == 'purchases' ||
+                                $transaction->type == 'purchases-order' ||
+                                $transaction->type == 'sell-return'
                                     ? $transaction->purchases_lines
                                     : $transaction->sell_lines;
                         @endphp
@@ -261,7 +263,7 @@
                 {!! QrCode::size(120)->generate(
                     json_encode([
                         'Inovice No' => $transaction->ref_no,
-                        'Client Name' => $transaction->client->name,
+                        // 'Client Name' => $transaction->client->name,
                         'Final Total' => $transaction->final_total,
                     ]),
                 ) !!}
