@@ -3,12 +3,16 @@ import laravel from 'laravel-vite-plugin';
 import { readdirSync, statSync } from 'fs';
 import { join,relative,dirname } from 'path';
 import { fileURLToPath } from 'url';
+import process from 'process';
 
 export default defineConfig({
     build: {
         outDir: '../../public/build-reservation',
         emptyOutDir: true,
         manifest: true,
+    },
+    define: {
+        'process.env': {},
     },
     plugins: [
         laravel({

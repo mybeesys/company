@@ -32,7 +32,7 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="root" type="menuSimple" 
+      <div id="root" type="menuQR" 
       list-url="{{json_encode(route('order.products'))}}"
       blank-url ='/assets/media/svg/files/blank-image.svg'
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getRowName } from "../lang/Utils";
 
 
-const MenuQR = ({ translations, dir }) => {
+const MenuSimple = ({ translations, dir }) => {
     const rootElement = document.getElementById('root');
     const blankurl = rootElement.getAttribute('blank-url');
     const urlList = JSON.parse(rootElement.getAttribute('list-url'));
@@ -140,4 +140,4 @@ const MenuQR = ({ translations, dir }) => {
     );
 }
 
-export default MenuQR;
+export default MenuSimple;
