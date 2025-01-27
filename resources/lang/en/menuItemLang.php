@@ -85,7 +85,11 @@ return [
     'purchases-return' => 'Purchases return',
     'tables' => 'Tables',
     'tables_qr' => 'Tables QR',
-    'menu_qr' => 'Menu QR'
+
+    'accounts-routing' => 'Accounts Routing',
+
+    'menu_qr' => 'Menu QR',
+
 
 
 
