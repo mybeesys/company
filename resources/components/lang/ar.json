@@ -274,5 +274,13 @@
   "visitLink" : "فتح الرابط",
   "showAll" : "الكل",
   "submitOrder" : "تثبيت الطلب",
-  "orderSubmited" : "تم تثبيت الطلب"
+  "orderSubmited" : "تم تثبيت الطلب",
+  "purshaseItems" : "",
+  "productsModifiers" : "المنتجات أو المتغيرات",
+  "prepEstablishment" : "مستودع الانتاج",
+  "ingredientEstablishment" : "مستودع الخام",
+  "title" : "العنوان",
+  "subTitle" : "العنوان الفرعي",
+  "generateQr" : "إنشاء الرمز",
+  "showLogo" : "إظهار الشعار"
 }

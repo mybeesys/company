@@ -1,4 +1,4 @@
-@extends('layouts.menu')
+@extends('layouts.app')
 @section('css')
     <style>
       .title {
@@ -34,7 +34,7 @@
    						
       <div id="root" type="menuQR" 
       list-url="{{json_encode(route('order.products'))}}"
-      blank-url ='/assets/media/svg/files/blank-image.svg'
+      logo-url ='/assets/media/logos/1-01.png'
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>
 

@@ -30,12 +30,12 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
       }
   }
 
-  const print = () => {
+  const print = (type) => {
     if(!!searchText){
-      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${searchBy.value}&key=${searchText}&t=1`, '_blank');
+      window.open(`../productInventoryReport/1/productInventory_${type}?type=${p_type == 'product' ? 'p' : 'i'}&by=${searchBy.value}&key=${searchText}&t=1`, '_blank');
     }
     else{
-      window.open(`../productInventoryReport/1/productInventory_pdf?type=${p_type == 'product' ? 'p' : 'i'}&by=${-1}&key=&t=1`, '_blank');
+      window.open(`../productInventoryReport/1/productInventory_${type}?type=${p_type == 'product' ? 'p' : 'i'}&by=${-1}&key=&t=1`, '_blank');
     }
   }
 
@@ -89,10 +89,15 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                 </div>
             </div>
             <div class="col-3 pt-12" style={{"justify-content": "end", "display": "flex"}}>
-                <div class="flex-center" style={{"display": "flex"}}>
-                    <button onClick={print} class="btn btn-primary mx-2"
-                        style={{"width": "12rem"}}>{translations.print}</button>
-
+                <div class="flex-center px-2" style={{"display": "flex"}}>
+                  <a title={translations.visitLink} href="javascript:void(0);" onClick={(e)=>print('xls')} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    <img style={{width:50, height:60}} src="/assets/media/svg/files/icons8-excel.svg"/>
+                  </a>
+                </div>
+                <div class="flex-center px-2" style={{"display": "flex"}}>
+                  <a href="javascript:void(0);" onClick={(e)=>print('pdf')} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                          <img style={{width:40, height:40}} src="/assets/media/svg/files/pdf.svg"/>
+                  </a>
                 </div>
             </div>
           </div>

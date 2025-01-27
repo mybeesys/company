@@ -140,7 +140,7 @@ const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl
         <form noValidate validated={true} class="needs-validation" onSubmit={handleMainSubmit}>
           <div class="container">
             <div class="row">
-              <div class="col-sm">
+              <div class={`col-${!!!defaultMenu[0].size ? 'sm' : defaultMenu[0].size}`}>
 
                 <div class="card" data-section="contact" style={{ "border": "0", "box-shadow": "none" }}>
                   <div class="container">
@@ -148,7 +148,7 @@ const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl
                   </div>
                 </div>
               </div>
-              <div class="col-7">
+              <div class={`col-${!!!defaultMenu[0].size ? '7' : 12-defaultMenu[0].size}`}>
 
                 <div class="card-toolbar ">
                   <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">

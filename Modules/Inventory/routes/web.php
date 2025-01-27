@@ -42,6 +42,7 @@ Route::middleware([
         Route::get('/purchaseOrderReport/{id}/purchase_order_pdf', [PurchaseOrderReportController::class, 'purchase_order_pdf'])->name('purchaseOrder.purchase_order_pdf');
         Route::resource('purchaseOrderReport', PurchaseOrderReportController::class)->names('purchaseOrderReport');
         Route::get('/productInventoryReport/{id}/productInventory_pdf', [ProductInventoryReportController::class, 'productInventory_pdf'])->name('productInventory.productInventory_pdf');
+        Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');;
         Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
         
         Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');

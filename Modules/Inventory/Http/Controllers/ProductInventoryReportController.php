@@ -4,6 +4,8 @@ namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\Inventory\Models\ExcelExport;
 class ProductInventoryReportController extends Controller
 {
     protected $productInventoryController;
@@ -16,6 +18,15 @@ class ProductInventoryReportController extends Controller
         $this->ingredientInventoryController = $ingredientInventoryController;
     }
 
+    public function productInventory_xls(Request $request)
+    {
+        $productList = [];
+        if($request['type'] == 'p')
+            $productList = $this->productInventoryController->getProductInventories($request);
+        else
+            $productList = $this->ingredientInventoryController->getIngredientInventories($request);      
+        return Excel::download(new ExcelExport($productList), 'hierarchical_data.xlsx');
+    }
 
     public function productInventory_pdf(Request $request)
     {

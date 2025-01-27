@@ -267,5 +267,15 @@
   "visitLink" : "Visit Link",
   "showAll" : "Show All",
   "submitOrder" : "Submit Order",
-  "orderSubmited" : "Order Submited"
+  "orderSubmited" : "Order Submited",
+  "purshaseItems" : "",
+  "productsModifiers" : "Products & Modifiers",
+  "prepEstablishment" : "Prep Establishment",
+  "ingredientEstablishment" : "Ingredient Establishment",
+  "title" : "Title",
+  "subTitle" : "Sub Title",
+  "generateQr" : "generate QR",
+  "showLogo" : "Show Logo"
+
+
 }
