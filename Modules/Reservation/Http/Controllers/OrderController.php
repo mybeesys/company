@@ -23,9 +23,18 @@ class OrderController extends Controller
         return view('reservation::order.menu' , compact('table')); 
     }
 
-    public function menuSimple()
+    public function menuSimple(Request $request)
     {
-        return view('reservation::order.menuSimple'); 
+        $establishment_id = $request->query('est_id', '');
+        $title = $request->query('title', '');
+        $subTitle = $request->query('sub_title', '');
+        $establishment = Establishment::find($establishment_id);
+        $info = [
+            'establishment' => $establishment,
+            'title' => $title,
+            'sub_title' => $subTitle
+        ];
+        return view('reservation::order.menuSimple', compact('info')); 
     }
 
     public function menuQR()

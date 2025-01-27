@@ -175,7 +175,7 @@ const Menu = ({ translations, dir }) => {
             <div class="container my-4" style={{display : `${showMenu ? 'block' : 'none'}`}}>
                 <div class="card-toolbar row">
                     <div class="col-10">
-                        <ul class="nav nav-tabs  nav-stretch fs-4 fw-bold custom-tabs">
+                        <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold custom-tabs">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active"
                                     id={`all_tab`} onClick={(e) => setCurrentTab(0)}
@@ -199,9 +199,6 @@ const Menu = ({ translations, dir }) => {
 
                     </div>
                 </div>
-                {/* <div class="d-flex align-items-center mt-3">
-                <input type="text" class="form-control me-3" placeholder="Search your menu item here" />
-            </div> */}
                 <div class="tab-content">
                     <div class="row mt-4 tab-pane fade show active" id={`cat-all`} role="tabpanel" aria-labelledby={`all_tab`}>
                         {allProducts.map((subCatgeory) =>
