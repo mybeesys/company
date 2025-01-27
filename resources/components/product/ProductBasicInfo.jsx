@@ -84,18 +84,27 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, currentObject, vi
       <div class="card-body" dir={dir} style={{display: visible ? 'block' : 'none'}}>
         <div class="d-flex  align-items-center pt-3">
             <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.active}</label>
+                style={{width: "120px"}}>{translations.active}</label>
             <div class="form-check form-switch">
                 <InputSwitch checked={!!currentObject.active ? !!currentObject.active : false} 
                   onChange={(e) => handleChange('active', e.value)} />
             </div>
-        </div>  
-        <div class="d-flex  align-items-center pt-3">
-            <label class="fs-6 fw-semibold mb-2 me-3 "
-                style={{width: "150px"}}>{translations.forSell}</label>
+            <label class="ps-4 fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "90px"}}>{translations.forSell}</label>
             <div class="form-check form-switch">
                 <InputSwitch checked={!!currentObject.for_sell ? !!currentObject.for_sell : false} 
                   onChange={(e) => handleChange('for_sell', e.value)} />
+            </div>
+        </div>  
+        <div class="d-flex  align-items-center pt-3">
+            
+        </div>
+        <div class="d-flex  align-items-center pt-3">
+            <label class="fs-6 fw-semibold mb-2 me-3 "
+                style={{width: "120px"}}>{translations.showInMenu}</label>
+            <div class="form-check form-switch">
+                <InputSwitch checked={!!currentObject.show_in_menu ? !!currentObject.show_in_menu : false} 
+                  onChange={(e) => handleChange('show_in_menu', e.value)} />
             </div>
         </div>  
         <div class="form-group">
@@ -163,6 +172,20 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, currentObject, vi
         <div class="form-group">
           <div class="row">
             <div class="col-6">
+              <label for="preparation_time" class="col-form-label">{translations.preparationTime}</label>
+              <input type="number" class="form-control form-control-solid custom-height" id="preparation_time" value={!!currentObject.preparation_time ? currentObject.preparation_time : ''}
+                onChange={(e) => handleChange('preparation_time', e.target.value)}></input>
+            </div>
+            <div class="col-6">
+              <label for="calories" class="col-form-label">{translations.calories}</label>
+              <input type="number" min="0" step=".01" class="form-control form-control-solid custom-height" id="calories" value={!!currentObject.calories ? currentObject.calories : ''}
+                onChange={(e) => handleChange('calories', e.target.value)}></input>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="row">
+            <div class="col-6">
               <label for="SKU" class="col-form-label" >{translations.SKU}</label>
               <input type="text" class="form-control form-control-solid custom-height" id="SKU" 
                 value={!!currentObject.SKU ? currentObject.SKU : ''}
@@ -189,7 +212,7 @@ const ProductBasicInfo = ({ translations, parentHandlechanges, currentObject, vi
             </div>
             <div class="col-6">
               <label for="barcode" class="col-form-label">{translations.commissions}</label>
-              <input type="number" min="0" class="form-control form-control-solid custom-height" id="commissions" value={!!currentObject.commissions ? product.commissions : ''}
+              <input type="number" min="0" class="form-control form-control-solid custom-height" id="commissions" value={!!currentObject.commissions ? currentObject.commissions : ''}
                 onChange={(e) => handleChange('commissions', e.target.value)}
               ></input>
             </div>

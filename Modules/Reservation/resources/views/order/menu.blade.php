@@ -26,6 +26,58 @@
           color: #7a41c5;
           border-color: #7a41c5;
         }
+        .order-header {
+          background-color: #f4f4ff;
+          text-align: center;
+          padding: 20px;
+          font-weight: bold;
+          color: #5a4fcf;
+          font-size: 1.5rem;
+        }
+        .order-summary {
+          background-color: #f9f9f9;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .btn-place-order {
+          background-color: #d1b5f9;
+          border-color: #d1b5f9;
+          color: white;
+        }
+        .btn-place-order:hover {
+          background-color: #bba0e0;
+          border-color: #bba0e0;
+        }
+        .quantity-controls input {
+          max-width: 60px;
+          text-align: center;
+        }
+        .custom-tabs .nav-link {
+          border: none; /* Remove default border */
+          color: #6c757d; /* Inactive tab color */
+          padding: 0.5rem 1rem; /* Adjust spacing */
+          position: relative;
+        }
+
+        .custom-tabs .nav-link.active {
+          color: #7b2cf1; /* Active tab color */
+          font-weight: bold;
+        }
+
+        .custom-tabs .nav-link.active::after {
+          content: '';
+          display: block;
+          width: 100%;
+          height: 2px;
+          background-color: #7b2cf1; /* Line color */
+          position: absolute;
+          bottom: -2px; /* Adjust line placement */
+          left: 0;
+        }
+
+        .custom-tabs {
+          border-bottom: 1px solid #dee2e6; /* Light border under tabs */
+        }
       </style>
 @stop
 @section('content')

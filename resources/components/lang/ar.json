@@ -282,5 +282,12 @@
   "title" : "العنوان",
   "subTitle" : "العنوان الفرعي",
   "generateQr" : "إنشاء الرمز",
-  "showLogo" : "إظهار الشعار"
+  "showLogo" : "إظهار الشعار",
+  "showInMenu" : "إظهار في القائمة",
+  "preparationTime" : "زمن التحضير (د)",
+  "preparationTime1" : "زمن التحضير",
+  "calories" : "السعرات الحرارية",
+  "minutes" : "دقيقة",
+  "viewCart" : "عرض الطلب",
+  "back" : "عودة"
 }

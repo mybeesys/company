@@ -109,6 +109,7 @@ const ProductComponent1 = ({ translations, dir }) => {
       let r = { ...currentObject };
       r["active"] ? r["active"] = 1 : r["active"] = 0;
       r["for_sell"] ? r["for_sell"] = 1 : r["for_sell"] = 0;
+      r["show_in_menu"] ? r["show_in_menu"] = 1 : r["show_in_menu"] = 0;
       r["track_serial_number"] ? r["track_serial_number"] = 1 : r["track_serial_number"] = 0;
       r["sold_by_weight"] ? r["sold_by_weight"] = 1 : r["sold_by_weight"] = 0;
       r["modifiers"] = [...currentModifiers];

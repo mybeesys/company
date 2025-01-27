@@ -275,7 +275,14 @@
   "title" : "Title",
   "subTitle" : "Sub Title",
   "generateQr" : "generate QR",
-  "showLogo" : "Show Logo"
+  "showLogo" : "Show Logo",
+  "showInMenu" : "Show In Menu",
+  "preparationTime" : "Preparation Time (m)",
+  "preparationTime1" : "Preparation Time",
+  "calories" : "Calories",
+  "minutes" : "Minutes",
+  "viewCart" : "View Cart",
+  "back" : "Back"
 
 
 }

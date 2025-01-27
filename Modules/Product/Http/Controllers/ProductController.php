@@ -58,7 +58,9 @@ class ProductController extends Controller
         'use_upcharge' => 'nullable|boolean',
         'linked_combo' => 'nullable|boolean',
         'promot_upsell' => 'nullable|numeric',
-        'for_sell' => 'required|boolean'
+        'for_sell' => 'required|boolean',
+        'preparation_time' => 'nullable|numeric',
+        'calories' => 'nullable|numeric',
     ];
 
 
@@ -85,7 +87,7 @@ class ProductController extends Controller
                     $prod = $recipe->products->toArray();
                     $prod["id"] =  $recipe->item_id.'-p';
                     if(isset($recipe->products))
-                    $newItem["products"] =$prod;
+                        $newItem["products"] =$prod;
                 }
                 if($recipe->item_type == 'i'){
                     $newItem["product_id"] = $recipe->item_id.'-i';
@@ -101,6 +103,51 @@ class ProductController extends Controller
             foreach ( $resRecipes as $rec) 
             {
                 $rec->newid = $rec->item_id."-".$rec->item_type;
+            }
+        }
+        return response()->json($resRecipes);
+    }
+
+    public function listPrepRecipe(Request $request)
+    {
+        $resRecipes = [];
+        $modRecipes = [];
+        $prodRecipes = [];
+        $prodIds = [];
+        $modIds = [];
+        if(isset($request['ids'])){
+            foreach ($request['ids'] as $id) {
+                $idd = explode("-",$id);
+                if($idd[1] == 'p')
+                    $prodIds [] = $idd[0];
+                else
+                    $modIds [] = $idd[0];
+            }
+            $prodRecipes = RecipeProduct::with('unitTransfer')->whereIn('product_id', $prodIds)->get();
+            $modRecipes = RecipeModifier::with('unitTransfer')->whereIn('modifier_id', $modIds)->get();
+            foreach ($prodRecipes as $prodRecipe) {
+                $newItem = $prodRecipe->toArray();
+                $newItem["product_id"] = $prodRecipe->item_id.'-p';
+                $prod = $prodRecipe->products->toArray();
+                $prod["id"] =  $prodRecipe->item_id.'-p';
+                if(isset($prodRecipe->products))
+                    $newItem["products"] =$prod;
+                $resRecipes [] =$newItem;
+            }
+            foreach ($modRecipes as $modRecipe) {
+                foreach ($resRecipes as $resRecipe) {
+                    if($modRecipe->item_id.'-p' == $resRecipe['product_id'])
+                        $resRecipe['quantity'] += $modRecipe['quantity'];
+                    else{
+                        $newItem = $modRecipe->toArray();
+                        $newItem["product_id"] = $modRecipe->item_id.'-p';
+                        $prod = $modRecipe->products->toArray();
+                        $prod["id"] =  $modRecipe->item_id.'-p';
+                        if(isset($modRecipe->products))
+                            $newItem["products"] =$prod;
+                        $resRecipes [] =$newItem;
+                    }
+                }
             }
         }
         return response()->json($resRecipes);
@@ -130,6 +177,7 @@ class ProductController extends Controller
         //$product->taxIds = [];
         $product->active = 1;
         $product->for_sell = 1;
+        $product->show_in_menu = 0;
         return view('product::product.create', compact('product'));
     }
 
@@ -214,31 +262,32 @@ class ProductController extends Controller
 
     protected function saveProduct($validated, $request){
         $product = Product::find($validated['id']); 
-        $product->name_ar = $validated['name_ar'];
-        $product->name_en = $validated['name_en'];
-        $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
-        $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
-        $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
-        $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
-        $product->category_id = $validated['category_id'];
-        $product->tax_id = $validated['tax_id'];
-        $product->subcategory_id = $validated['subcategory_id'];
-        $product->active = $validated['active'];
-        $product->order = $validated['order'] ?? null;
-        $product->for_sell = $validated['for_sell'];
-        $product->sold_by_weight = $validated['sold_by_weight'];
-        $product->track_serial_number = $validated['track_serial_number'];
-        $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
-        $product->price = $validated['price'];
-        $product->cost = $validated['cost'];
-        $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
-        $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
-        $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
-        $product->group_combo = $validated['group_combo'] ?? 0;
-        $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
-        $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
-        $product->linked_combo = $validated['linked_combo'] ?? 0;
-        $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
+        $product->fill($validated);
+        // $product->name_ar = $validated['name_ar'];
+        // $product->name_en = $validated['name_en'];
+        // $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
+        // $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
+        // $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
+        // $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
+        // $product->category_id = $validated['category_id'];
+        // $product->tax_id = $validated['tax_id'];
+        // $product->subcategory_id = $validated['subcategory_id'];
+        // $product->active = $validated['active'];
+        // $product->order = $validated['order'] ?? null;
+        // $product->for_sell = $validated['for_sell'];
+        // $product->sold_by_weight = $validated['sold_by_weight'];
+        // $product->track_serial_number = $validated['track_serial_number'];
+        // $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
+        // $product->price = $validated['price'];
+        // $product->cost = $validated['cost'];
+        // $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
+        // $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
+        // $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
+        // $product->group_combo = $validated['group_combo'] ?? 0;
+        // $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
+        // $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
+        // $product->linked_combo = $validated['linked_combo'] ?? 0;
+        // $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
         if(isset($request["image_deleted"])){
             $filePath = public_path($product->image);
             if (File::exists($product->image))

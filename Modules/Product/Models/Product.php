@@ -45,8 +45,13 @@ class Product extends Model
         'use_upcharge',
         'linked_combo',
         'promot_upsell',
-        'for_sell'
+        'for_sell',
+        'preparation_time',
+        'calories',
+        'show_in_menu'
     ];
+
+    protected $appends = ['price_with_tax'];
 
     public function getPriceWithTaxAttribute()
     {
