@@ -56,6 +56,7 @@ Route::middleware([
         Route::post('add-payment', [TransactionController::class, 'addPayment'])->name('add-payment');
 
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
+        Route::post('update-prefix', [GeneralController::class, 'updatePrefix'])->name('update-prefix');
 
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');

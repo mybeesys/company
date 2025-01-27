@@ -42,6 +42,10 @@ class Transaction extends Model
         return $this->hasMany(TransactionPayments::class, 'transaction_id');
     }
 
+    public function prefixSetting()
+    {
+        return $this->hasOne(PrefixSetting::class, 'type', 'type');
+    }
 
 
     public static function getsSellsColumns()

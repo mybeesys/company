@@ -117,6 +117,10 @@
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
+            </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
@@ -129,6 +133,7 @@
 
             <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
+            @include('general::prefix-settings.prefix-settings')
         </div>
         @include('general::tax.create')
         @include('general::tax.edit')
