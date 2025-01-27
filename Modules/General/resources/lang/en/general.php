@@ -63,4 +63,5 @@ return [
     'summary' => 'Summary',
     'payment_details' => 'Payment details',
     'subscription_id' => 'Subscription id',
+    'Prefix Settings' => 'Prefix Settings',
 ];

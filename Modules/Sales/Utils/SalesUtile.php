@@ -2,6 +2,7 @@
 
 namespace Modules\Sales\Utils;
 
+use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Transaction;
 
 class SalesUtile
@@ -43,43 +44,36 @@ class SalesUtile
     }
 
 
-
     public static function generateReferenceNumber($type)
     {
         $currentYear = date('Y');
+        $type_prefix = '';
+        if (in_array($type, ['sell', 'sell-return', 'purchases-return', 'purchases'])) {
+            $type_prefix = 'invoices';
+        }
+
+        $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
+        $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
 
         $transaction = Transaction::where('type', $type)
             ->whereYear('created_at', $currentYear)
             ->latest()
             ->first();
-        $prefx = 'INV-';
 
-        if ($type == 'quotation') {
-            $prefx = 'QTN-';
-        }
-
-        if ($type == 'purchases-order') {
-            $prefx = 'PO-';
-        }
-
-
-        if ($transaction) {
-
-
-            $last_ref_no = $transaction->ref_no;
-
-            list(, $yearAndNumber) = explode('-', $last_ref_no);
+        if ($transaction && $transaction->ref_no) {
+            list(, $yearAndNumber) = explode('-', $transaction->ref_no);
             list($year, $number) = explode('/', $yearAndNumber);
 
             if ($year == $currentYear) {
                 $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = $prefx . $currentYear . '/' . $newNumber;
             } else {
-                $new_ref_no = $prefx . $currentYear . '/0001';
+                $newNumber = '0001';
             }
         } else {
-            $new_ref_no = $prefx . $currentYear . '/0001';
+            $newNumber = '0001';
         }
+
+        $new_ref_no = $prefix . '-' . $currentYear . '/' . $newNumber;
 
         return $new_ref_no;
     }
