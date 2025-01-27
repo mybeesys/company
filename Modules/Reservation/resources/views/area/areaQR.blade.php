@@ -35,7 +35,7 @@
         color: #6c757d; /* Gray color for seats info */
         font-weight: bold; /* Make text bold */
         text-align: end;
-}
+      }
     </style>
 @stop
 @section('content')
@@ -43,7 +43,7 @@
     @vite('resources/components/App.jsx')
    						
       <div id="root" type="areaQR" 
-      list-url="{{json_encode(route('areaList'))}}"
+      list-url="{{json_encode(route('areaMiniList'))}}"
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>
 

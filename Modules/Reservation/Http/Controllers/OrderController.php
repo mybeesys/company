@@ -23,6 +23,16 @@ class OrderController extends Controller
         return view('reservation::order.menu' , compact('table')); 
     }
 
+    public function menuSimple()
+    {
+        return view('reservation::order.menuSimple'); 
+    }
+
+    public function menuQR()
+    {
+        return view('reservation::order.menuQR'); 
+    }
+
     public function products(Request $request)
     {
         // $request->validate([

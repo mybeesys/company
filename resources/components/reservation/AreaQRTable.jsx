@@ -35,7 +35,7 @@ const AreaQRTable = ({translations, dir }) => {
             area.data.empty =='Y' ? <></> :
         <div>
             <div class="container">
-                <span class="title">{getRowName(area.data, dir)}</span>
+                <span class="title">{`${getRowName(area.data.establishment)} - ${getRowName(area.data, dir)}`}</span>
                 <div class="badge">{`${area.children.length} ${translations.tables1}`}</div>
             </div>
             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", padding: "20px" }}>

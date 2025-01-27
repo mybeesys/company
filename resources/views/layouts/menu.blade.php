@@ -88,7 +88,7 @@
                             <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
                     </div>
-                    @include('components.navBar')
+                    
                 </div>
                 <!--begin::Separator-->
                 <div class="app-header-separator"></div>

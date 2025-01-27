@@ -60,6 +60,8 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         try {
             const response = axios.get(urlList).then(response => {
                 let result = response.data;
+                if(result.length > 0)
+                    result.splice(result.length-1, 1);
                 setNodes(result);
                 setExpandedKeys(getExpandedKeys(result));
             });
@@ -227,7 +229,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         if(key == 'name_en'){
             indent = indent + 1;
         }
-        if (key == 'name_en' && !!node.data.empty) {
+        if (key == 'name_en' && !!node.data.empty && node.data.type != 'establishment') {
             return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {

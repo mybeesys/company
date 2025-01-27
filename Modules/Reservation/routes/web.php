@@ -24,11 +24,17 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group( function () {
-    Route::resource('area', AreaController::class)->names('area');
-    Route::get('areaList', [AreaController::class, 'getAreas'])->name('areaList');
-    Route::resource('table', TableController::class)->names('table');
-    Route::get('table-status-type-values', [TableStatusTypeController::class, 'getTableStatusTypeValues'])->name('table-status-type-values');;
-    Route::get('/areaQR', [AreaController::class, 'areaQR'])->name('reservation.areaQR');
+
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('area', AreaController::class)->names('area');
+        Route::get('areaList', [AreaController::class, 'getAreas'])->name('areaList');
+        Route::get('areaMiniList', [AreaController::class, 'getMiniAreas'])->name('areaMiniList');
+        Route::resource('table', TableController::class)->names('table');
+        Route::get('table-status-type-values', [TableStatusTypeController::class, 'getTableStatusTypeValues'])->name('table-status-type-values');;
+        Route::get('/areaQR', [AreaController::class, 'areaQR'])->name('reservation.areaQR');
+    });
     Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');
+    Route::get('/menuQR', [OrderController::class, 'menuQR'])->name('reservation.menuQR');
+    Route::get('/menuSimple', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
     Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
 });

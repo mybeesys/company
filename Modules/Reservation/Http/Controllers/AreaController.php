@@ -4,6 +4,7 @@ namespace Modules\Reservation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\TreeData;
 use Modules\Product\Models\TreeObject;
@@ -25,10 +26,66 @@ class AreaController extends Controller
         return view('reservation::area.areaQR' ); 
     }
 
+    protected function fillArea($establishment){
+        if($establishment["is_main"] == 1){
+            $children =[];
+            foreach ($establishment["children"] as $childEstablishment) {
+                $childEstablishment['name_ar'] = $childEstablishment['name'];
+                $childEstablishment['type'] = 'establishment';
+                $childEstablishment['childType'] = 'area';
+                $childEstablishment['childKey'] = 'establishment_id';
+                $est = $this->fillArea($childEstablishment);
+                $children [] = $est;
+            }
+            $establishment["children"] = $children;
+            return $establishment;
+        }
+        $areas = Area::with('children')->where('establishment_id', $establishment["id"])->get();
+        $children =[];
+        foreach ($areas as $area) {
+            $ar = $area->toArray();
+            $ar['type'] = 'area';
+            $ar['childType'] = 'table';
+            $ar['childKey'] = 'area_id';
+            $ar['parentKey'] = 'establishment_id';
+            $tables = [];
+            foreach ($ar['children'] as $tt) {
+                $tt['type'] = 'table';
+                $tt['parentKey'] = 'area_id';
+                $tables [] = $tt;
+            }
+            $ar['children'] = $tables;
+            $children[] = $ar;
+        }
+        $establishment["children"] = $children;
+        return $establishment;
+    }
+
     public function getAreas()
     {
         $TreeBuilder = new TreeBuilder();
-        $result = Area::all();
+        $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+        $establishmentArray = $establishments->toArray();
+        $details = [];
+        foreach ($establishmentArray as $establishment) {
+            $establishment['name_ar'] = $establishment['name'];
+            $establishment['type'] = 'establishment';
+            $establishment['childType'] = 'area';
+            $establishment['childKey'] = 'establishment_id';
+            $est = $this->fillArea($establishment);
+            $details [] = $est;
+        }
+        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'establishment', null, null, null);
+        return response()->json($tree);
+    }
+
+    public function getMiniAreas()
+    {
+        $TreeBuilder = new TreeBuilder();
+        $result = Area::with('establishment')->orderBy('establishment_id')->get();
+        foreach($result as $area){
+            $area->addToFillable(['establishment']);
+        }
         $tree = $TreeBuilder->buildTree($result, null, 'area', null, null, null);
         return response()->json($tree);
     }
@@ -47,6 +104,7 @@ class AreaController extends Controller
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
+            'establishment_id' => 'required|numeric',
             'active' => 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
@@ -62,10 +120,12 @@ class AreaController extends Controller
         }
         else if(!isset($validated['id']))
         {
-            $area = Area::where('name_ar', $validated['name_ar'])->first();
+            $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
+                                    ['name_ar', '=', $validated['name_ar']]])->first();
             if($area != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $area = Area::where('name_en', $validated['name_en'])->first();
+            $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
+                                ['name_en', '=', $validated['name_en']]])->first();
             if($area != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
 
@@ -73,10 +133,12 @@ class AreaController extends Controller
         }
         else
         {
-            $area = Area::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
+            $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
+                                ['name_ar', '=', $validated['name_ar']]])->where('id', '!=', $validated['id'])->first();
             if($area != null)
                 return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $area = Area::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
+            $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
+                                ['name_en', '=', $validated['name_en']]])->where('id', '!=', $validated['id'])->first();
             if($area != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
 

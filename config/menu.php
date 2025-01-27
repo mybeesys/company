@@ -246,6 +246,11 @@ return [
                 'url' => 'areaQR',
                 'permission' => '',
             ],
+            [
+                'name' => 'menu_qr',
+                'url' => 'menuQR',
+                'permission' => '',
+            ],
         ]
     ],
 
