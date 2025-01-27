@@ -1,4 +1,4 @@
-<div class="tab-pane fade show active" id="prefix_settings_tab" role="tabpanel">
+<div class="tab-pane fade show" id="prefix_settings_tab" role="tabpanel">
     <div class="container">
         <form id="update-prefix" method="POST" action="{{ route('update-prefix') }}">
             @csrf
