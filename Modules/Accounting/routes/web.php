@@ -4,6 +4,7 @@ use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingController;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
+use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
 use Modules\Accounting\Http\Controllers\TreeAccountsController;
@@ -34,6 +35,9 @@ Route::middleware([
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])->name('change-status-account');
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
+
+        Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
+        Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');
 
         // Journal Enter
         Route::get('journal-entry-index', [JournalEntryController::class, 'index'])->name('journal-entry-index');

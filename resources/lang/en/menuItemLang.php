@@ -85,4 +85,6 @@ return [
     'purchases-return' => 'Purchases return',
     'tables' => 'Tables',
     'tables_qr' => 'Tables QR',
+    'accounts-routing' => 'Accounts Routing',
+
 ];

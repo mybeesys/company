@@ -23,6 +23,8 @@ class AccountingServiceProvider extends ServiceProvider
         $this->registerCommandSchedules();
         $this->registerTranslations();
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'accounting');
+        Blade::componentNamespace('Modules\\Accounting\\View\\Components', 'accounting');
+
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));

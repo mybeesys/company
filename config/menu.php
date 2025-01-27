@@ -202,6 +202,11 @@ return [
                 'permission' => '',
             ],
             [
+                'name' => 'accounts-routing',
+                'url' => 'accounts-routing',
+                'permission' => '',
+            ],
+            [
                 'name' => 'journalEntry',
                 'url' => 'journal-entry-index',
                 'permission' => '',
