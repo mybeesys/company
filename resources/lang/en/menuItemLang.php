@@ -89,6 +89,9 @@ return [
     'accounts-routing' => 'Accounts Routing',
 
     'menu_qr' => 'Menu QR',
+    'purchase' => 'Supplier Vouchers',
+    'sell' => 'Customer Vouchers',
+
 
 
 
