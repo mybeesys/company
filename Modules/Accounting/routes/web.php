@@ -7,6 +7,8 @@ use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
+use Modules\Accounting\Http\Controllers\PaymentVouchersController;
+use Modules\Accounting\Http\Controllers\ReceiptVouchersController;
 use Modules\Accounting\Http\Controllers\TreeAccountsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -65,5 +67,10 @@ Route::middleware([
         Route::get('cost-center-export-excel', [CostCenterConrollerController::class, 'exportExcel'])->name('cost-center-export-excel');
 
 
+        Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
+        Route::post('payment-vouchers-store', [PaymentVouchersController::class, 'store'])->name('payment-vouchers-store');
+
+        Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
+        Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
     });
 });
