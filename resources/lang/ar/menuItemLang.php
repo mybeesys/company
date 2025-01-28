@@ -91,5 +91,6 @@ return [
     'menu_qr' => 'القائمة QR',
     'purchase' => 'سندات الموردين',
     'sell' => 'سندات العملاء',
-
+    'receipt_vouchers' => 'سندات القبض',
+    'payment_vouchers' => 'سندات الصرف',
 ];

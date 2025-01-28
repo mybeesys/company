@@ -50,11 +50,4 @@
                 placeholder="@lang('purchases::lang.description')" id="notice" type="text">
         </div>
     </div>
-
-
-
-
-
-
-
 </div>
