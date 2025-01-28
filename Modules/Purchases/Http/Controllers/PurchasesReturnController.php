@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
@@ -56,7 +57,7 @@ class PurchasesReturnController extends Controller
     public function store(Request $request)
     {
         //   return $request;
-          try {
+        try {
             $sell = Transaction::findOrFail($request->transaction_id);
 
             if (!$sell) {
@@ -67,7 +68,12 @@ class PurchasesReturnController extends Controller
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
+            $main_establishment = Establishment::notMain()->active()->first();
 
+            $establishment_id = $request->storehouse;
+            if ($request->storehouse == $main_establishment->id) {
+                $establishment_id = $main_establishment->id;
+            }
             $transaction =   Transaction::create([
                 'type' => 'purchases-return',
                 'invoice_type' => $request->invoice_type,
@@ -87,6 +93,8 @@ class PurchasesReturnController extends Controller
                 'ref_no' => $ref_no,
                 'status' => 'final',
                 'notice' => $request->notice,
+                'establishment_id' => $establishment_id,
+
             ]);
 
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
@@ -98,6 +106,7 @@ class PurchasesReturnController extends Controller
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
                     'qyt' => $product->qty,
+                    'unit_id'=>$product->unit,
                     'unit_price_before_discount' => $product->unit_price,
                     'unit_price' => $product->unit_price,
                     'discount_type' => $discount_type,
@@ -110,10 +119,10 @@ class PurchasesReturnController extends Controller
             }
             DB::commit();
             return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
-            } catch (Exception $e) {
-                DB::rollBack();
-                return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
-            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     /**
