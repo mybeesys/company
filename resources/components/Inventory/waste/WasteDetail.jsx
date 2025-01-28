@@ -81,7 +81,7 @@ const WasteDetail = ({ dir, translations }) => {
                                 {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
                                 {key:"transaction_date" , title:"date", type:"Date", required : true, size:12},
                                 {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:12, newRow: true},
-                                {key:"description" , title:"notes", type:"TextArea", newRow: true, size:12, newRow: true}
+                                {key:"description" , title:"notes", type:"TextArea", size:12, newRow: true}
                             ]
                         }
                        />
