@@ -188,7 +188,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
 
     const renderTextCell = (node, col, index) => {
         const indent = (node.key).toString().split('-').length;
-        if (col.key == 'name_en' && !!node.data.empty) {
+        if ((index==0) && !!node.data.empty) {
             if (!!canAddInline)
                 return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
