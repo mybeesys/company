@@ -92,11 +92,11 @@ return [
                 'url' => 'prep',
                 'permission' => 'inventory.prep.show',
             ],
-            // [
-            //     'name' => 'rma',
-            //     'url' => 'rma',
-            //     'permission' => 'inventory.rma.show',
-            // ],
+            [
+                'name' => 'transfer',
+                'url' => 'transfer',
+                'permission' => 'inventory.rma.show',
+            ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
