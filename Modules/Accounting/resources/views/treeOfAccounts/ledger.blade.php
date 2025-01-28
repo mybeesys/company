@@ -301,8 +301,10 @@
                                                     @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
                                                     @if (isset($transactions->accTransMapping))
                                                         {{ $transactions->accTransMapping->ref_no }}
-                                                    @else
+                                                    @elseif (isset($transactions->transaction))
                                                         {{ $transactions->transaction->ref_no }}
+                                                    @else
+                                                        --
                                                     @endif
                                                 </a>
                                             </div>
@@ -318,9 +320,9 @@
                                             @if ($transactions->sub_type == 'sell')
                                                 @lang('accounting::lang.sell')
                                             @elseif ($transactions->sub_type == 'sell_cash')
-                                                @lang('accounting::lang.receipt_voucher') <!-- سند قبض -->
+                                                @lang('accounting::lang.receipt_voucher')
                                             @elseif ($transactions->sub_type == 'sales_revenue')
-                                                @lang('accounting::lang.payment_voucher') <!-- سند صرف -->
+                                                @lang('accounting::lang.payment_voucher')
                                             @else
                                                 @lang('accounting::lang.' . $transactions->sub_type)
                                             @endif

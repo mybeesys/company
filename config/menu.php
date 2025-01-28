@@ -216,6 +216,16 @@ return [
                 'url' => 'cost-center-index',
                 'permission' => '',
             ],
+            [
+                'name' => 'receipt_vouchers',
+                'url' => 'receipt-vouchers',
+                'permission' => '',
+            ],
+            [
+                'name' => 'payment_vouchers',
+                'url' => 'payment-vouchers',
+                'permission' => '',
+            ],
 
         ]
     ],

@@ -92,6 +92,8 @@ return [
     'menu_qr' => 'Menu QR',
     'purchase' => 'Supplier Vouchers',
     'sell' => 'Customer Vouchers',
+    'receipt_vouchers' => 'Receipt Vouchers',
+    'payment_vouchers' => 'Payment Vouchers',
 
 
 
