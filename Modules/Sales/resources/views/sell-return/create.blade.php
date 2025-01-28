@@ -330,7 +330,7 @@
                 units.forEach(unit => {
 
                     unitSelect.append(
-                        `<option value="${unit.transfer}" ${unit.primary ? "selected" : ""}>
+                        `<option value="${unit.id}" ${unit.primary ? "selected" : ""}>
                         ${unit.name_ar || unit.unit1}
                         </option>`
                     );
