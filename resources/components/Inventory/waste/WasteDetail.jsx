@@ -12,7 +12,7 @@ const WasteDetail = ({ dir, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     
     useEffect(() => {
-        updateTotals(currentObject);
+        //updateTotals(currentObject);
     }, [currentObject]);
 
     const onBasicChange = (key, value) => {
@@ -21,16 +21,16 @@ const WasteDetail = ({ dir, translations }) => {
         setcurrentObject({...r});
     }
 
-    const updateTotals = (row) =>{
-        row.subtotal = row.items ? 
-        row.items.reduce((accumulator, item) => accumulator + Number(item.total ?? 0), 0) : 0;
-        row.total = row.subtotal + Number(row.tax ?? 0);
-        row.grand_total = row.total + Number(row.shipping_amount ?? 0) + Number(row.misc_amount ?? 0);
-    }
+    // const updateTotals = (row) =>{
+    //     row.subtotal = row.items ? 
+    //     row.items.reduce((accumulator, item) => accumulator + Number(item.total ?? 0), 0) : 0;
+    //     row.total = row.subtotal + Number(row.tax ?? 0);
+    //     row.grand_total = row.total + Number(row.shipping_amount ?? 0) + Number(row.misc_amount ?? 0);
+    // }
 
     const onProductChange = (key, val) =>{
         currentObject[key] = val;
-        updateTotals(currentObject);
+        //updateTotals(currentObject);
         setcurrentObject({...currentObject});
         return {message:"Done"};
     }
@@ -80,7 +80,6 @@ const WasteDetail = ({ dir, translations }) => {
                             [   
                                 {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
                                 {key:"transaction_date" , title:"date", type:"Date", required : true, size:12},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:12, newRow: true},
                                 {key:"description" , title:"notes", type:"TextArea", size:12, newRow: true}
                             ]
                         }
@@ -100,7 +99,7 @@ const WasteDetail = ({ dir, translations }) => {
                 currentNodes={[...currentObject.items]}
                 defaultValue={{taxed : 0}}
                 cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'20%', 
+                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'30%', 
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
@@ -134,7 +133,7 @@ const WasteDetail = ({ dir, translations }) => {
                             return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
                         }
                     },
-                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'20%', editable:true, required:true,
+                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'25%', editable:true, required:true,
                         searchUrl:"searchUnitTransfers",
                         relatedTo:{
                             key: "id",
@@ -143,17 +142,10 @@ const WasteDetail = ({ dir, translations }) => {
                     },
                     {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.unit_price_before_discount : null;
-                            postExecute(nodes);
+                            // nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.unit_price_before_discount : null;
+                            // postExecute(nodes);
                         }
-                    },
-                    {key : "unit_price_before_discount", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
-                        onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            nodes[rowKey].data.total = !!nodes[rowKey].data.qty && !!val ? nodes[rowKey].data.qty* val : null;
-                            postExecute(nodes);
-                        }
-                    },
-                    {key : "total_before_vat", autoFocus: true, type :"Decimal", width:'15%', editable:true}
+                    }
                 ]}
                 actions = {[]}
                 onUpdate={(nodes)=> onProductChange("items", nodes)}

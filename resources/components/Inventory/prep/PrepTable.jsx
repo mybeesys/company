@@ -14,7 +14,6 @@ const PrepTable = ({ dir, translations }) => {
     axios.post('statusUpdate', {id: data.id, status: status})
         .then((resp)=>{
           data["status"] = resp.data.status;
-          data["status_name"] = resp.data.status_name;
           Swal.fire({
             show: showAlert,
             title: `${data.ref_no} ${translations[data["status"]]}`,

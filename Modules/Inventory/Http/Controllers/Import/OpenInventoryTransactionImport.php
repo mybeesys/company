@@ -7,9 +7,15 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Exception;
+use Modules\Inventory\Http\Controllers\InventoryOperationController;
 
 class OpenInventoryTransactionImport implements ToCollection, WithHeadingRow
 {
+    protected $inventoryOperationController;
+
+    public function __construct(InventoryOperationController $inventoryOperationController){
+        $this->inventoryOperationController = $inventoryOperationController;
+    }
     protected $errors = [];
     public $transactions = [];  // Public property to store categories
 
@@ -34,7 +40,7 @@ class OpenInventoryTransactionImport implements ToCollection, WithHeadingRow
             $transaction = Transaction::create([
                 'type'              => 'PO0',
                 'status'            => 'approved',
-                'ref_no'            => 'PO-0000',
+                'ref_no'            => $this->inventoryOperationController->generatePoNo('PO0'),
                 'establishment_id'  => $establishment?->id,
                 'total_before_tax'  => 0,
                 'transaction_date'  => date("Y-m-d"),

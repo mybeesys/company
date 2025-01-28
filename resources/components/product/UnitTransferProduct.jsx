@@ -92,11 +92,11 @@ const UnitTransferProduct = ({ translations, unitTransfer, unitTree, parentHandl
                         key: "unit2", title: "Unit", autoFocus: true, options: innerUnits, type: "DropDown", width: '25%',
                         editable: true, required: true
                     },
-                    {key : "transfer", autoFocus: false, type :"Decimal", width:'25%', 
+                    {key : "transfer", title: "transfer1", autoFocus: false, type :"Decimal", width:'25%', 
                         editable:true, required:true
                     },
                     {
-                    key: "unit1", autoFocus: false, type: "Text", width: '20%',
+                    key: "unit1", title: "newUnit", autoFocus: false, type: "Text", width: '20%',
                     editable: true, required: true,
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             if(nodes[rowKey].data.id >= 0 && nodes[rowKey].data.newItem == 1){

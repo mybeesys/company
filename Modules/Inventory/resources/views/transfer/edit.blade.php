@@ -39,7 +39,7 @@
 
    						
       <div id="root" type="transferedit" 
-      transfer="{{json_encode($resInventoryOperation)}}"
+      transfer="{{json_encode($transfer)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 
