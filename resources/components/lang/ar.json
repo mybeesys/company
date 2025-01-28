@@ -289,5 +289,6 @@
   "calories" : "السعرات الحرارية",
   "minutes" : "دقيقة",
   "viewCart" : "عرض الطلب",
-  "back" : "عودة"
+  "back" : "عودة",
+  "globalFilter" : "بحث عام"
 }

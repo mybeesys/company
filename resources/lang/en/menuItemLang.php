@@ -84,6 +84,7 @@ return [
     'sell-return' => 'Sell Return',
     'purchases-return' => 'Purchases return',
     'tables' => 'Tables',
+    'areas' => 'Areas',
     'tables_qr' => 'Tables QR',
 
     'accounts-routing' => 'Accounts Routing',

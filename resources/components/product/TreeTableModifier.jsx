@@ -19,6 +19,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [validated, setValidated] = useState(false);
     const [expandedKeys, setExpandedKeys] = useState([]);
 
+    const [globalFilter, setGlobalFilter] = useState(null);
+    const [filterOptions] = useState([
+        { label: 'Lenient', value: 'lenient' },
+        { label: 'Strict', value: 'strict' }
+    ]);
+
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -353,6 +359,18 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         window.location.href = productCrudList + '/create'
     }
 
+    const getHeader = () => {
+        return (
+            <div className="col-4 flex justify-content-end">
+                
+                    <input type="Text" class="form-control text-editor" onInput={(e) => setGlobalFilter(e.target.value)} placeholder={translations.globalFilter} />
+                
+            </div>
+        );
+    };
+
+    let header = getHeader();
+
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
@@ -379,9 +397,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             </div>
             <div class="card-body">
             <form  id="treeForm" noValidate validated={true} class="needs-validation" onSubmit={handleSubmit}>
-                <TreeTable  value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
-                    <Column header={translations.name_en} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
-                    <Column header={translations.name_ar} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
+                <TreeTable value={nodes} 
+                        tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} 
+                        globalFilter={globalFilter} header={header} filterMode="lenient"
+                        expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
+                    <Column field="name_en" filter filterPlaceholder={translations.name_en} header={translations.name_en} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
+                    <Column field="name_ar" filter filterPlaceholder={translations.name_ar} header={translations.name_ar} style={{ width: '20%' }} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>
                     <Column header={translations.price} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'price') : <></>} sortable></Column>
                     <Column header={translations.cost} style={{ width: '10%' }}  body={(node) => node.data.type == "product" ? renderDecimalCell(node, 'cost'): <></>} sortable></Column>
                     <Column header={translations.order} style={{ width: '10%' }}  body={(node) => (renderNumberCell(node, 'order', false, false))} sortable></Column>

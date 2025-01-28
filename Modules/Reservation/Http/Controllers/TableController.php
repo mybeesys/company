@@ -4,6 +4,7 @@ namespace Modules\Reservation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Product\Models\TreeBuilder;
 use Modules\Reservation\Models\Table;
 
 class TableController extends Controller
@@ -16,6 +17,24 @@ class TableController extends Controller
         return view('reservation::table.index' ); 
     }
 
+    public function getTables()
+    {
+        $TreeBuilder = new TreeBuilder();
+        $tables = Table::with(['area' => function ($query) {
+            $query->with('establishment');
+        }])->get();
+        $details = [];
+        foreach ($tables as $table) {
+            $t = $table->toArray();
+            $t["type"] = "table";
+            $t["area"]['name_ar'] = $table->area->establishment->name.' - '.$table->area->name_ar;
+            $t["area"]['name_en'] = $table->area->establishment->name_en.' - '.$table->area->name_en;
+            $details [] = $t;
+        }
+        $tree = $TreeBuilder->buildTreeFromArray($details ,null, 'establishment', null, null, null);
+        return response()->json($tree);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -24,7 +43,6 @@ class TableController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'code' => 'required|string',
-            'area_id' => 'nullable|numeric',
             'steating_capacity'=> 'required|numeric',
             'table_status'=> 'required|numeric',
             'active' => 'nullable|boolean',
@@ -39,37 +57,35 @@ class TableController extends Controller
         }
         else if(!isset($validated['id']))
         {
+            $validated['area_id'] = $request['area']['id'];
             $table = Table::where([['area_id', '=', $validated['area_id']],
                                         ['code', '=', $validated['code']]])->first();
             if($table != null)
                 return response()->json(["message"=>"CODE_EXIST"]);
-            $this->createModifier($validated, $request);   
+            $this->createTable($validated, $request);   
         }
         else
         {
-            //dd($validated['id'].' '.$validated['class_id'].' '.$validated['name_ar']);
+            $validated['area_id'] = $request['area']['id'];
             $table = Table::where([
                 ['id', '!=', $validated['id']],
                 ['area_id', '=', $validated['area_id']],
                 ['code', '=', $validated['code']]])->first();
             if($table != null)
                 return response()->json(["message"=>"CODE_EXIST"]);
-            $this->saveModifier($validated, $request);
+            $this->saveTable($validated, $request);
             
         }
         return response()->json(["message"=>"Done"]);
     }
 
-    protected function saveModifier($validated, $request){
+    protected function saveTable($validated, $request){
         $table = Table::find($validated['id']);
-        $table->area_id  = $validated['area_id'];
-        $table->code     = $validated['code'];
-        $table->steating_capacity    = $validated['steating_capacity'];
-        $table->table_status   = $validated['table_status'];
+        $table->fill($validated);
         $table->save();
     }
 
-    protected function createModifier($validated, $request){
+    protected function createTable($validated, $request){
         $table= Table::create($validated);
     }
 

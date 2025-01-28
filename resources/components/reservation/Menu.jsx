@@ -3,8 +3,8 @@ import { getRowName } from "../lang/Utils";
 import io from 'socket.io-client';
 import SweetAlert2 from 'react-sweetalert2';
 
-const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
-//const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
+//const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
+const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
 
 const Menu = ({ translations, dir }) => {
     const rootElement = document.getElementById('root');
@@ -173,6 +173,12 @@ const Menu = ({ translations, dir }) => {
                 </div>
             </div>
             <div class="container my-4" style={{display : `${showMenu ? 'block' : 'none'}`}}>
+                <div class="col-12" style={{ "justify-content": "end", "display": "flex" }}>
+                    <div class="flex-center" style={{ "display": "flex" }}>
+                        <button onClick={(e) => setShowMenu(false)} disabled={disableSubmitButton} class="btn btn-primary mx-2"
+                            style={{ "width": "12rem" }}>{translations.viewCart}</button>
+                    </div>
+                </div>
                 <div class="card-toolbar row">
                     <div class="col-10">
                         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold custom-tabs">
@@ -189,14 +195,6 @@ const Menu = ({ translations, dir }) => {
                                 </li>
                             )}
                         </ul>
-                    </div>
-                    <div class="col-2" style={{ "justify-content": "end", "display": "flex" }}>
-                        <div class="flex-center" style={{ "display": "flex" }}>
-                            <button onClick={(e) => setShowMenu(false)} disabled={disableSubmitButton} class="btn btn-primary mx-2"
-                                style={{ "width": "12rem" }}>{translations.viewCart}</button>
-
-                        </div>
-
                     </div>
                 </div>
                 <div class="tab-content">

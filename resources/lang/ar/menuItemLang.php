@@ -82,6 +82,7 @@ return [
     'import' => 'الاستيراد',
     'sell-return' => 'مردود المبيعات',
     'purchases-return' => 'مردود المشتريات',
+    'areas' => 'المناطق',
     'tables' => 'الطاولات',
     'tables_qr' => 'الطاولات QR',
 

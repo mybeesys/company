@@ -14,7 +14,7 @@ const AreaQRTable = ({translations, dir }) => {
 
     const refreshTree = () => {
         try {
-            axios.get(urlList).then(response => {
+            axios.get(`${urlList}?child=Y`).then(response => {
                 let result = response.data;
                 setNodes(result);
             });

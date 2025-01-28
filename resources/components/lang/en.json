@@ -282,7 +282,8 @@
   "calories" : "Calories",
   "minutes" : "Minutes",
   "viewCart" : "View Cart",
-  "back" : "Back"
+  "back" : "Back",
+  "globalFilter" : "Global Search"
 
 
 }

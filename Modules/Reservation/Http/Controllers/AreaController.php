@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\TreeData;
-use Modules\Product\Models\TreeObject;
 use Modules\Reservation\Models\Area;
 use Modules\Reservation\Models\Table;
 
@@ -79,14 +77,28 @@ class AreaController extends Controller
         return response()->json($tree);
     }
 
-    public function getMiniAreas()
+    public function getMiniAreas(Request $request)
     {
+        $withChild = $request->query('child', '');
         $TreeBuilder = new TreeBuilder();
-        $result = Area::with('establishment')->orderBy('establishment_id')->get();
-        foreach($result as $area){
-            $area->addToFillable(['establishment']);
+        $areas = Area::with('establishment')->orderBy('establishment_id')->get();
+        $result = [];
+        foreach($areas as $area){
+            if($withChild =='Y'){
+                $area->addToFillable(['establishment']);
+            }
+            else{
+                $ar = $area->toArray();
+                $ar["type"] = 'area';
+                $ar["children"] = null;
+                $result [] = $ar;
+            }
+            
         }
-        $tree = $TreeBuilder->buildTree($result, null, 'area', null, null, null);
+        if($withChild =='Y')
+            $tree = $TreeBuilder->buildTree($areas, null, 'area', null, null, null);
+        else
+            $tree = $TreeBuilder->buildTreeFromArray($result, null, 'area', null, null, null);
         return response()->json($tree);
     }
 
@@ -104,7 +116,6 @@ class AreaController extends Controller
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'establishment_id' => 'required|numeric',
             'active' => 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
@@ -120,6 +131,7 @@ class AreaController extends Controller
         }
         else if(!isset($validated['id']))
         {
+            $validated['establishment_id'] = $request['establishment']['id'];
             $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
                                     ['name_ar', '=', $validated['name_ar']]])->first();
             if($area != null)
@@ -133,6 +145,7 @@ class AreaController extends Controller
         }
         else
         {
+            $validated['establishment_id'] = $request['establishment']['id'];
             $area = Area::where([['establishment_id', '=', $validated['establishment_id']],
                                 ['name_ar', '=', $validated['name_ar']]])->where('id', '!=', $validated['id'])->first();
             if($area != null)
@@ -143,34 +156,28 @@ class AreaController extends Controller
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
 
             $area = Area::find($validated['id']);
-            $area->name_ar  = $validated['name_ar'];
-            $area->name_en  = $validated['name_en'];
-            $area->active   = $validated['active'];
+            $area->fill($validated);
             $area->save();
         }
         return response()->json(["message"=>"Done"]);
     }
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function searchAreas(Request $request)
     {
-        $item = Area::find($id);
-
-        if ($item) {
-            return response()->json($item);
-        }
-
-        return response()->json(['error' => 'Item not found'], 404);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-         $area  = Area::find($id);
-         return view('reservation::area.edit', compact('area'));
+        $key = $request->query('key', '');
+        $areas = Area::with('establishment')->where(function ($query) use($key) {
+            $query->where('name_ar', 'like', "%{$key}%")
+                ->orWhere('name_en', 'like', "%{$key}%")
+                ->orWhereHas('establishment', function ($subQuery) use ($key) {
+                  $subQuery->where('name_ar', 'like', "%{$key}%")
+                           ->orWhere('name_en', 'like', "%{$key}%");
+              });
+        })->take(10)->get();
+        $result = array_map(function($item){
+            $item["name_ar"] = $item["establishment"]["name"].' - '.$item["name_ar"];
+            $item["name_en"] = $item["establishment"]["name_en"].' - '.$item["name_en"];
+            return $item;
+        }, $areas->toArray());
+        return response()->json($result);
     }
 }

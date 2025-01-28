@@ -237,8 +237,13 @@ return [
                 'permission' => 'establishments.establishments.show',
             ],
             [
-                'name' => 'tables',
+                'name' => 'areas',
                 'url' => 'area',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables',
+                'url' => 'table',
                 'permission' => '',
             ],
             [

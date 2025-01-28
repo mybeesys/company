@@ -36,6 +36,7 @@ import AreaQRTable from './reservation/AreaQRTable';
 import Menu from './reservation/Menu';
 import MenuSimple from './reservation/MenuSimple';
 import MenuQR from './reservation/MenuQR';
+import TableAreaTable from './reservation/TableAreaTable';
 
 
 const App = ({nodeType, dir}) =>{
@@ -78,6 +79,7 @@ const App = ({nodeType, dir}) =>{
     importProduct: <DataImport translations={translations} dir={dir}/>,
     openInventoryImport: <DataImport translations={translations} dir={dir}/>,
     area : <AreaTable translations={translations} dir={dir}/>,
+    table : <TableAreaTable translations={translations} dir={dir}/>,
     areaQR : <AreaQRTable translations={translations} dir={dir}/>,
     menu : <Menu translations={translations} dir={dir} />,
     menuSimple : <MenuSimple translations={translations} dir={dir} />,
