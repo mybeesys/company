@@ -140,6 +140,14 @@ return [
     'sales_revenue' => 'إيرادات المبيعات',
     'receipt_voucher' => 'سند قبض',
     'payment_voucher' => 'سند صرف',
+    'routing_type' => 'نوع التوجيه',
+    'Discount allowed' => 'خصم مسموح به',
+    'Earned discount' => 'خصم مكتسب',
+    'auto_assign' => 'تعيين تلقائي',
+    'no_routing' => 'بلا توجيه',
+    'cancel_account' => 'إلغاء الحساب',
+    'assign_to_each' => 'تعيين لكل منها',
+
 
 
 

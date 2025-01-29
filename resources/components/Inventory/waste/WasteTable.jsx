@@ -14,10 +14,9 @@ const WasteTable = ({ dir, translations }) => {
     axios.post('statusUpdate', {id: data.id, status: status})
         .then((resp)=>{
           data["status"] = resp.data.status;
-          data["op_status_name"] = resp.data.status_name;
           Swal.fire({
             show: showAlert,
-            title: `${data.ref_no} ${translations[data["status"]]}`,
+            title: `${resp.data.ref_no} ${translations[data["status"]]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,
@@ -36,7 +35,7 @@ const WasteTable = ({ dir, translations }) => {
 
   const dropdownCell = (data, key, editMode, editable, refreshTree) => {
     let actions = [];
-    if(data.op_status != 'approved')
+    if(data.status != 'approved')
       actions.push({key:"approved", action: (data, afterExecute)=>{
         changeStatus(data, "approved", afterExecute);
       }});
@@ -72,7 +71,6 @@ const WasteTable = ({ dir, translations }) => {
         cols={[
           {key : "ref_no", title:"number", autoFocus: true, type :"Text", width:'15%'},
           {key : "establishment", autoFocus: true, type :"AsyncDropDown", width:'15%'},
-          {key : "total_before_tax", title: "total", autoFocus: true, type :"Decimal", width:'15%'},
           {key : "transaction_date", title: "date", autoFocus: true, type :"Date", width:'15%'},
           {key : "status", title: "op_status", autoFocus: true, type :"Date", width:'15%',
               customCell : statusCell

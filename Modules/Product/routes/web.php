@@ -53,84 +53,88 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group( function () {
-    Route::resource('product', ProductController::class)->names('product');
-    Route::resource('category', CategoryController::class)->names('category');
-    Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
-    Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
-    Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
+    
+    Route::middleware(['auth'])->group(function () {
+        
+        Route::resource('product', ProductController::class)->names('product');
+        Route::resource('category', CategoryController::class)->names('category');
+        Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
+        Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
+        Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
 
-    Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
-    Route::get('categories/subcategories/{id?}', [CategoryController::class, 'getminisubcategorylist'])->name('minisubcategorylist');
-    Route::resource('modifier', ModifierController::class)->names('modifier');
-    Route::resource('modifierClass', ModifierClassController::class)->names('modifierClass');
-    Route::get('modifierClassList', [ModifierClassController::class, 'getModifiers'])->name('modifierClassList');
-    Route::resource('attribute', AttributeController::class)->names('attribute');
-    Route::resource('attributeClass', AttributesClassController::class)->names('attributeClass');
-    Route::get('attributeClassList', [AttributesClassController::class, 'getAttributes'])->name('attributeClassList');
-    Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');   
-    
-	Route::get('button-display-values', [ButtonDisplayController::class, 'getButtonDisplayValues'])->name('button-display-values');;
-    Route::get('modifier-display-values', [ModifierDisplayController::class, 'getModifierDisplayValues'])->name('modifier-display-values');;
+        Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
+        Route::get('categories/subcategories/{id?}', [CategoryController::class, 'getminisubcategorylist'])->name('minisubcategorylist');
+        Route::resource('modifier', ModifierController::class)->names('modifier');
+        Route::resource('modifierClass', ModifierClassController::class)->names('modifierClass');
+        Route::get('modifierClassList', [ModifierClassController::class, 'getModifiers'])->name('modifierClassList');
+        Route::resource('attribute', AttributeController::class)->names('attribute');
+        Route::resource('attributeClass', AttributesClassController::class)->names('attributeClass');
+        Route::get('attributeClassList', [AttributesClassController::class, 'getAttributes'])->name('attributeClassList');
+        Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');   
+        
+        Route::get('button-display-values', [ButtonDisplayController::class, 'getButtonDisplayValues'])->name('button-display-values');;
+        Route::get('modifier-display-values', [ModifierDisplayController::class, 'getModifierDisplayValues'])->name('modifier-display-values');;
 
-	Route::get('customMenues', [CustomMenuController::class, 'getCustomMenus'])->name('customMenuList');
-    Route::resource('customMenu', CustomMenuController::class)->names('customMenu');
-    Route::get('application-type-values', [ApplicationTypeController::class, 'getApplicationTypeValues'])->name('application-type-values');;
-    Route::get('mode-values', [ModeController::class, 'getModeValues'])->name('mode-values');;
-    Route::get('stations', [StationController::class, 'getStations'])->name('stationList');
-	
-    Route::resource('ingredient', IngredientController::class)->names('ingredient');
-    Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
-    Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
-    Route::get('ingredientProductList', [IngredientController::class, 'ingredientProductList'])->name('ingredientProductList');
-	Route::get('unitTypeList', [IngredientController::class, 'getUnitTypeList'])->name('unitTypeList');
-    Route::get('getVendors', [IngredientController::class, 'getVendors'])->name('getVendors');
-    Route::resource('unit', UnitController::class)->names('unit');
-    Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
-    Route::get('listRecipebyProduct/{id?}', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
-    
-	Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
-    Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
-    Route::get('serviceFeeTypeValues', [ServiceFeeTypeController::class, 'getServiceFeeTypeValues'])->name('serviceFeeTypeValues');
-    Route::get('serviceFeeAppTypeValues', [ServiceFeeAppTypeController::class, 'getServiceFeeAppTypeValues'])->name('serviceFeeAppTypeValues');
-    Route::get('serviceFeeCalcMetheodValues', [ServiceFeeCalcMethedController::class, 'getServiceFeeCalcMethodValues'])->name('serviceFeeCalcMetheodValues');
-    Route::get('serviceFeeAutoApplyValues', [ServiceFeeAutoApplyTypeController::class, 'getServiceFeeAutoApplyValues'])->name('serviceFeeAutoApplyValues');
-    Route::get('creditCardTypeValues', [CreditCardTypeController::class, 'getCreditCardTypeValues'])->name('creditCardTypeValues');
-    Route::get('paymentCards', [PaymentCardController::class, 'getPaymentCards'])->name('paymentCards');
-    Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
+        Route::get('customMenues', [CustomMenuController::class, 'getCustomMenus'])->name('customMenuList');
+        Route::resource('customMenu', CustomMenuController::class)->names('customMenu');
+        Route::get('application-type-values', [ApplicationTypeController::class, 'getApplicationTypeValues'])->name('application-type-values');;
+        Route::get('mode-values', [ModeController::class, 'getModeValues'])->name('mode-values');;
+        Route::get('stations', [StationController::class, 'getStations'])->name('stationList');
+        
+        Route::resource('ingredient', IngredientController::class)->names('ingredient');
+        Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+        Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+        Route::get('ingredientProductList', [IngredientController::class, 'ingredientProductList'])->name('ingredientProductList');
+        Route::get('unitTypeList', [IngredientController::class, 'getUnitTypeList'])->name('unitTypeList');
+        Route::get('getVendors', [IngredientController::class, 'getVendors'])->name('getVendors');
+        Route::resource('unit', UnitController::class)->names('unit');
+        Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
+        Route::get('listRecipebyProduct/{id?}', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
+        
+        Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
+        Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
+        Route::get('serviceFeeTypeValues', [ServiceFeeTypeController::class, 'getServiceFeeTypeValues'])->name('serviceFeeTypeValues');
+        Route::get('serviceFeeAppTypeValues', [ServiceFeeAppTypeController::class, 'getServiceFeeAppTypeValues'])->name('serviceFeeAppTypeValues');
+        Route::get('serviceFeeCalcMetheodValues', [ServiceFeeCalcMethedController::class, 'getServiceFeeCalcMethodValues'])->name('serviceFeeCalcMetheodValues');
+        Route::get('serviceFeeAutoApplyValues', [ServiceFeeAutoApplyTypeController::class, 'getServiceFeeAutoApplyValues'])->name('serviceFeeAutoApplyValues');
+        Route::get('creditCardTypeValues', [CreditCardTypeController::class, 'getCreditCardTypeValues'])->name('creditCardTypeValues');
+        Route::get('paymentCards', [PaymentCardController::class, 'getPaymentCards'])->name('paymentCards');
+        Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
 
-    Route::get('modifierClasses', [ModifierClassController::class, 'getModifierClasses'])->name('modifierClasses');
-    
-    Route::get('discountLovs', [DiscountLOVController::class, 'getDiscountLovs'])->name('discountLovs');
-    Route::get('discounts', [DiscountController::class, 'getDiscounts'])->name('discountList');
-    Route::resource('discount', DiscountController::class)->names('discount');
+        Route::get('modifierClasses', [ModifierClassController::class, 'getModifierClasses'])->name('modifierClasses');
+        
+        Route::get('discountLovs', [DiscountLOVController::class, 'getDiscountLovs'])->name('discountLovs');
+        Route::get('discounts', [DiscountController::class, 'getDiscounts'])->name('discountList');
+        Route::resource('discount', DiscountController::class)->names('discount');
 
-    Route::get('linkedCombos', [LinkedComboController::class, 'getLinkedCombos'])->name('linkedComboList');
-    Route::resource('linkedCombo', LinkedComboController::class)->names('linkedCombo');
-    
-    Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
-    Route::get('productList', [ProductController::class, 'all'])->name('productList');
-    
-    Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
-    Route::get('units', [UnitController::class, 'units'])->name('units');    
-    Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
-    Route::get('searchUnitTransfers', [UnitTransferController::class, 'searchUnitTransfers'])->name('searchUnitTransfers');
+        Route::get('linkedCombos', [LinkedComboController::class, 'getLinkedCombos'])->name('linkedComboList');
+        Route::resource('linkedCombo', LinkedComboController::class)->names('linkedCombo');
+        
+        Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
+        Route::get('productList', [ProductController::class, 'all'])->name('productList');
+        
+        Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
+        Route::get('units', [UnitController::class, 'units'])->name('units');    
+        Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
+        Route::get('searchUnitTransfers', [UnitTransferController::class, 'searchUnitTransfers'])->name('searchUnitTransfers');
 
-    Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
-    Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
-    Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
-    Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
-    Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
-    Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
-    Route::get('priceTierlist', [PriceTierController::class, 'getPriceTierlist'])->name('priceTierlist');
-    Route::resource('priceTier', PriceTierController::class)->names('priceTier');
-    Route::get('searchPriceTiers', [PriceTierController::class, 'searchPriceTiers'])->name('searchPriceTiers');
-    Route::get('priceWithTax', [GeneralController::class, 'priceWithTax'])->name('priceWithTax');
-    Route::get('getPriceFromPriceWithTax', [GeneralController::class, 'getPriceFromPriceWithTax'])->name('getPriceFromPriceWithTax');
-    
-    Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
-    
+        Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
+        Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
+        Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
+        Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
+        Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
+        Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
+        Route::get('priceTierlist', [PriceTierController::class, 'getPriceTierlist'])->name('priceTierlist');
+        Route::resource('priceTier', PriceTierController::class)->names('priceTier');
+        Route::get('searchPriceTiers', [PriceTierController::class, 'searchPriceTiers'])->name('searchPriceTiers');
+        Route::get('priceWithTax', [GeneralController::class, 'priceWithTax'])->name('priceWithTax');
+        Route::get('getPriceFromPriceWithTax', [GeneralController::class, 'getPriceFromPriceWithTax'])->name('getPriceFromPriceWithTax');
+        
+        Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
+        
 
-    Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
-    Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
-    Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
+        Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
+        Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
+        Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
+    });
 });

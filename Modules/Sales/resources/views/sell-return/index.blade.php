@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('sales::lang.invoices'))
+@section('title', __('menuItemLang.sell-return'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -27,59 +27,22 @@
                             alt="">
                     </div>
                     <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
-                        <span class="fw-bolder"> @lang('sales::lang.no_invoice')</span> <br>
-                        @lang('sales::lang.create_suggestion_invoice')
+                        <span class="fw-bolder"> @lang('sales::lang.no_sell_return')</span> <br>
+                        @lang('sales::lang.suggestion_sell_return')
                     </h4>
-                    <a href="{{ route('create-invoice') }}"
-                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_sell')</a>
-                </div>
+                   </div>
 
             </div>
         </div>
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="sell" url="create-invoice" module="sales" :addButton="false">
+                <x-tables.table-header model="sell-return" url="create-invoice" module="sales" :addButton="false">
 
 
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-
-                        <div class="btn-group">
-                            @if ($Latest_event->action != '#')
-                                <a href="{{ url('/create-invoice') }}"
-                                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
-                                    @lang('sales::general.add_sell')
-                                </a>
-                            @else
-                                <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px" data-bs-toggle="modal"
-                                    data-bs-target="#convertToInvoiceModal">
-                                    @lang('sales::general.convert-to-invoice')
-                                </a>
-                            @endif
-
-
-                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropdown</span>
-                            </button>
-
-                            <ul class="dropdown-menu p-5">
-                                <li>
-                                    <a href="{{ url('/create-invoice') }}" class="dropdown-item">
-                                        @lang('sales::general.add_sell')
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                        data-bs-target="#convertToInvoiceModal">
-                                        @lang('sales::general.convert-to-invoice')
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
 
                         <x-tables.export-menu id="sell" />
                     </x-slot:export>
@@ -92,7 +55,6 @@
         </div>
     @endif
 
-    @include('sales::sell.convertToInvoiceModal')
 
 
 
@@ -107,7 +69,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
-        const dataUrl = '{{ route('invoices') }}';
+        const dataUrl = '{{ route('sell-return') }}';
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -124,22 +86,6 @@
         });
 
 
-        $(document).ready(function() {
-            const form = $('#create-invoice');
-            const quotationSelect = $('#quotation-items');
-
-            form.on('submit', function(event) {
-                const selectedQuotation = quotationSelect.val();
-
-                if (selectedQuotation) {
-                    form.attr('action',
-                        `{{ route('create-invoice') }}?quotation_id=${selectedQuotation}`);
-                } else {
-                    event.preventDefault();
-                    alert('@lang('sales::lang.Please select a quotation')');
-                }
-            });
-        });
 
 
         function initDatatable() {
@@ -221,7 +167,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('invoices') }}?' + $.param({
+                dataTable.ajax.url('{{ route('sell-return') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

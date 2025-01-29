@@ -129,14 +129,20 @@ class PrepController extends Controller
                     $item->qty = $newItem['qty'];
                     if($idd[1] == 'p'){
                         $item->product_id = $idd[0];
+                        if(isset($newItem['unit_transfer'])) 
+                            $item->unit_id = $newItem['unit_transfer']['id'];
                         $prods [] = $item;
                     }
                     else if($idd[1] == 'm'){
                         $item->modifier_id = $idd[0];
+                        if(isset($newItem['unit_transfer'])) 
+                            $item->unit_id = $newItem['unit_transfer']['id'];
                         $mods [] = $item;
                     }
                     else{
                         $item->ingredient_id = $idd[0];
+                        if(isset($newItem['unit_transfer'])) 
+                            $item->unit_id = $newItem['unit_transfer']['id'];
                         $ingrs [] = $item;
                     }
                 }

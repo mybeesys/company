@@ -16,7 +16,14 @@ return [
     'payment_methods' => 'Payment Methods',
     'Address' => 'Address',
     'show_payment' => 'Show Payments',
-    'invoice_no'=>'Invoice No',
+    'invoice_no' => 'Invoice No',
+    'sell-return' => 'Sell return',
+    'purchases-return'=>'Purchases return',
+    'transaction-parent' => 'View the Reference Invoice',
+    'tooltip_inv_return' => 'A partial return has been processed for this invoice for some items.',
+
+
+
 
 
 

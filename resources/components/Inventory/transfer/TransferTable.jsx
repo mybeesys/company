@@ -11,13 +11,12 @@ const TransferTable = ({ dir, translations }) => {
   const [currentRow, setCurrentRow] = useState({});
 
   const changeStatus = (data, status, afterExecute)=>{    
-    axios.post('statusUpdate', {id: data.id, op_status: status})
+    axios.post('statusUpdate', {id: data.id, status: status})
         .then((resp)=>{
-          data["op_status"] = resp.data.op_status;
-          data["op_status_name"] = resp.data.op_status_name;
+          data["status"] = resp.data.status;
           Swal.fire({
             show: showAlert,
-            title: `${data.no} ${translations[resp.data.op_status_name]}`,
+            title: `${data.ref_no} ${translations[data["status"]]}`,
             icon: "success",
             timer: 2000,
             showCancelButton: false,
@@ -31,24 +30,26 @@ const TransferTable = ({ dir, translations }) => {
   }
 
   const statusCell = (data, key, editMode, editable) => {
-    return !!editMode? <></>: <span class={`status status${data[key]}`}>{translations[data[`${key}_name`]]}</span>
+    return !!editMode? <></>: <span class={`status status${data[key]}`}>{` ${translations[data[key]]}`}</span>
   }
 
   const dropdownCell = (data, key, editMode, editable, refreshTree) => {
     let actions = [];
-    if(data.op_status != 6)
+    if(data.status != "approved")
       actions.push({key:"approved", action: (data, afterExecute)=>{
-        changeStatus(data, 6, afterExecute);
+        changeStatus(data, "approved", afterExecute);
       }});
     return <DropdownMenu actions={actions} data={data} translations={translations} afterExecute={refreshTree}/>;
   }
 
   const canEditRow=(data)=>{
-    return data.op_status == 0;
+    return data.status == 'draft';
   }
 
-  const onSave=(data)=>{
-    
+  const prepareData = (data) =>{
+    return data.map((row)=>{
+      return {key: row.id, data: {...row}};
+    });
   }
 
   return (
@@ -57,25 +58,25 @@ const TransferTable = ({ dir, translations }) => {
       <TreeTableComponent
         translations={translations}
         dir={dir}
-        urlList={`${urlList}/4`}
+        urlList={`${urlList}`}
         editUrl={'transfer/%/edit'}
         addUrl={'transfer/create'}
         canEditRow={canEditRow}
         canAddInline={false}
         title="transfers"
         cols={[
-          {key : "no", title:"number", autoFocus: true, type :"Text", width:'15%'},
+          {key : "ref_no", title:"number", autoFocus: true, type :"Text", width:'15%'},
           {key : "establishment", title:"from", autoFocus: true, type :"AsyncDropDown", width:'15%'},
           {key : "toEstablishment", title: "to", autoFocus: true, type :"AsyncDropDown", width:'15%'},
-          {key : "total", autoFocus: true, type :"Decimal", width:'15%'},
-          {key : "op_date", autoFocus: true, type :"Date", width:'15%'},
-          {key : "op_status", autoFocus: true, type :"Date", width:'15%',
+          {key : "transaction_date", title: "date", autoFocus: true, type :"Date", width:'15%'},
+          {key : "status", title: "op_status", autoFocus: true, type :"Date", width:'15%',
               customCell : statusCell
           },
           {key : "dd", autoFocus: true, type :"Date", width:'15%',
             customCell : dropdownCell
           }
         ]}
+        prepareData={prepareData}
       />
     </div>
   );

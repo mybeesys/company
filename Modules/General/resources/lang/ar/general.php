@@ -62,4 +62,5 @@ return [
     'summary' => 'ملخص',
     'payment_details' => 'تفاصيل الدفع',
     'subscription_id' => 'رقم الإشتراك',
+    'Prefix Settings' => 'إعدادات البادئة (Prefix)',
 ];

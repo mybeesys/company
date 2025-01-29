@@ -78,6 +78,12 @@ class QuotationController extends Controller
             $ref_no =  SalesUtile::generateReferenceNumber('quotation');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+            $main_establishment = Establishment::notMain()->active()->first();
+            $establishment_id =$request->storehouse;
+            if ($request->storehouse == $main_establishment->id)
+            {
+                $establishment_id = $main_establishment->id;
+            }
             $transaction =   Transaction::create([
                 'type' => 'quotation',
                 'invoice_type' => $request->invoice_type,
@@ -96,7 +102,8 @@ class QuotationController extends Controller
                 'ref_no' => $ref_no,
                 'status' => 'draft',
                 'notice' => $request->notice,
-                // 'payment_terms',
+                'establishment_id'=>$establishment_id,
+
 
             ]);
 
@@ -109,6 +116,7 @@ class QuotationController extends Controller
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
                     'qyt' => $product->qty,
+                    'unit_id'=>$product->unit,
                     'unit_price_before_discount' => $product->unit_price,
                     'unit_price' => $product->unit_price,
                     'discount_type' => $discount_type,

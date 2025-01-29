@@ -5,11 +5,8 @@ namespace Modules\Inventory\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
-use Modules\Employee\Models\Employee;
 use Modules\General\Models\NotificationSetting;
 use Modules\Product\Models\Product;
-use PhpParser\Node\Scalar\Float_;
-use Ramsey\Uuid\Type\Decimal;
 
 class LowStockAmountNotification extends Notification
 {

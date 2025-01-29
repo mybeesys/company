@@ -13,7 +13,10 @@ return [
     'add_journal-entry' => 'Add Journal Entry',
     'duplication'=>'Duplication',
     'print'=>'Print',
-    'id' => 'Id'
+    'id' => 'Id',
+    'account' => 'Account',
+    'amount' => 'Amount',
+
 
 
 

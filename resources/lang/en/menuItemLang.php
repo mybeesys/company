@@ -78,11 +78,31 @@ return [
 
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
+
     'supplier_receipts'=>'Supplier Receipts',
     'import' => 'Import',
 
     'screen_module' => 'Screens',
     'main' => 'Main',
+
+
+    'supplier_receipts' => 'Supplier Receipts',
+    'import' => 'Import',
+    'sell-return' => 'Sell Return',
+    'purchases-return' => 'Purchases return',
+    'tables' => 'Tables',
+    'areas' => 'Areas',
+    'tables_qr' => 'Tables QR',
+
+    'accounts-routing' => 'Accounts Routing',
+
+    'menu_qr' => 'Menu QR',
+    'purchase' => 'Supplier Vouchers',
+    'sell' => 'Customer Vouchers',
+    'receipt_vouchers' => 'Receipt Vouchers',
+    'payment_vouchers' => 'Payment Vouchers',
+
+
 
 
 

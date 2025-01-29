@@ -4,8 +4,11 @@ use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingController;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
+use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
+use Modules\Accounting\Http\Controllers\PaymentVouchersController;
+use Modules\Accounting\Http\Controllers\ReceiptVouchersController;
 use Modules\Accounting\Http\Controllers\TreeAccountsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -35,6 +38,9 @@ Route::middleware([
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
 
+        Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
+        Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');
+
         // Journal Enter
         Route::get('journal-entry-index', [JournalEntryController::class, 'index'])->name('journal-entry-index');
         Route::get('journal-entry-create', [JournalEntryController::class, 'create'])->name('journal-entry-create');
@@ -61,5 +67,10 @@ Route::middleware([
         Route::get('cost-center-export-excel', [CostCenterConrollerController::class, 'exportExcel'])->name('cost-center-export-excel');
 
 
+        Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
+        Route::post('payment-vouchers-store', [PaymentVouchersController::class, 'store'])->name('payment-vouchers-store');
+
+        Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
+        Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
     });
 });

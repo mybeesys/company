@@ -92,11 +92,11 @@ return [
                 'url' => 'prep',
                 'permission' => 'inventory.prep.show',
             ],
-            // [
-            //     'name' => 'rma',
-            //     'url' => 'rma',
-            //     'permission' => 'inventory.rma.show',
-            // ],
+            [
+                'name' => 'transfer',
+                'url' => 'transfer',
+                'permission' => 'inventory.rma.show',
+            ],
             [
                 'name' => 'waste',
                 'url' => 'waste',
@@ -121,14 +121,19 @@ return [
                 'permission' => '',
             ],
             [
-                'name' => 'invoices',
-                'url' => 'invoices',
+                'name' => 'quotations',
+                'url' => 'quotations',
                 'permission' => '',
             ],
 
             [
-                'name' => 'quotations',
-                'url' => 'quotations',
+                'name' => 'invoices',
+                'url' => 'invoices',
+                'permission' => '',
+            ],
+            [
+                'name' => 'sell-return',
+                'url' => 'sell-return',
                 'permission' => '',
             ],
             [
@@ -165,6 +170,11 @@ return [
                 'permission' => '',
             ],
             [
+                'name' => 'purchases-return',
+                'url' => 'purchases-return',
+                'permission' => '',
+            ],
+            [
                 'name' => 'supplier_receipts',
                 'url' => 'suppliers-receipts',
                 'permission' => '',
@@ -192,6 +202,11 @@ return [
                 'permission' => '',
             ],
             [
+                'name' => 'accounts-routing',
+                'url' => 'accounts-routing',
+                'permission' => '',
+            ],
+            [
                 'name' => 'journalEntry',
                 'url' => 'journal-entry-index',
                 'permission' => '',
@@ -199,6 +214,16 @@ return [
             [
                 'name' => 'costCenter',
                 'url' => 'cost-center-index',
+                'permission' => '',
+            ],
+            [
+                'name' => 'receipt_vouchers',
+                'url' => 'receipt-vouchers',
+                'permission' => '',
+            ],
+            [
+                'name' => 'payment_vouchers',
+                'url' => 'payment-vouchers',
                 'permission' => '',
             ],
 
@@ -220,6 +245,26 @@ return [
                 'name' => 'establishments',
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
+            ],
+            [
+                'name' => 'areas',
+                'url' => 'area',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables',
+                'url' => 'table',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables_qr',
+                'url' => 'areaQR',
+                'permission' => '',
+            ],
+            [
+                'name' => 'menu_qr',
+                'url' => 'menuQR',
+                'permission' => '',
             ],
         ]
     ],

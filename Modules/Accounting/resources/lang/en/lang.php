@@ -146,6 +146,14 @@ return [
     'sales_revenue' => 'Sales revenue',
     'receipt_voucher' => 'Receipt voucher',
     'payment_voucher' => 'Payment voucher',
+    'routing_type' => 'Routing type',
+    'Discount allowed' => 'Discount allowed',
+    'Earned discount' => 'Earned discount',
+    'auto_assign' => 'Auto assign',
+    'no_routing' => 'No routing',
+    'cancel_account' => 'Cancel account',
+    'assign_to_each' => 'Assign to each',
+
 
 
 

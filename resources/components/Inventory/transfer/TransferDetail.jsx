@@ -11,7 +11,7 @@ const TransferDetail = ({ dir, translations }) => {
     const [currentObject, setcurrentObject] = useState(transfer);
     const [showAlert, setShowAlert] = useState(false);
     useEffect(() => {
-        updateTotals(currentObject);
+        //updateTotals(currentObject);
     }, [currentObject]);
 
     const onBasicChange = (key, value) => {
@@ -20,16 +20,16 @@ const TransferDetail = ({ dir, translations }) => {
         setcurrentObject({...r});
     }
 
-    const updateTotals = (row) =>{
-        row.subtotal = row.items ? 
-        row.items.reduce((accumulator, item) => accumulator + Number(item.total ?? 0), 0) : 0;
-        row.total = row.subtotal + Number(row.tax ?? 0);
-        row.grand_total = row.total + Number(row.shipping_amount ?? 0) + Number(row.misc_amount ?? 0);
-    }
+    // const updateTotals = (row) =>{
+    //     row.subtotal = row.items ? 
+    //     row.items.reduce((accumulator, item) => accumulator + Number(item.total_before_vat ?? 0), 0) : 0;
+    //     row.total = row.subtotal + Number(row.tax ?? 0);
+    //     row.grand_total = row.total + Number(row.shipping_amount ?? 0) + Number(row.misc_amount ?? 0);
+    // }
 
     const onProductChange = (key, val) =>{
         currentObject[key] = val;
-        updateTotals(currentObject);
+        //updateTotals(currentObject);
         setcurrentObject({...currentObject});
         return {message:"Done"};
     }
@@ -82,8 +82,7 @@ const TransferDetail = ({ dir, translations }) => {
                             [
                                 {key:"establishment" , title:"from", searchUrl:"searchEstablishments", type:"Async", required : true},
                                 {key:"toEstablishment" , title:"to", searchUrl:"searchEstablishments", type:"Async", required : true},
-                                {key:"op_date" , title:"date", type:"Date", required : true, size:6},
-                                {key:"subtotal" , title:"subTotal", type:"Decimal", readOnly: true, size:6}, 
+                                {key:"transaction_date" , title:"date", type:"Date", required : true, size:6},
                                 {key:"notes" , title:"notes", type:"TextArea", newRow: true, size:12}
                             ]
                         }
@@ -96,14 +95,14 @@ const TransferDetail = ({ dir, translations }) => {
                 <TreeTableEditorLocal
                 translations={translations}
                 dir={dir}
-                header={true}
+                header={false}
                 addNewRow={true}
                 type= {"items"}
                 title={translations.items}
                 currentNodes={[...currentObject.items]}
                 defaultValue={{taxed : 0}}
                 cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', 
+                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'30%', 
                         editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
                             const result = val.id.split("-");
@@ -137,7 +136,7 @@ const TransferDetail = ({ dir, translations }) => {
                             return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
                         }
                     },
-                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:true,required:true,
+                    {key : "unit", autoFocus: true, type :"AsyncDropDown", width:'25%', editable:true,required:true,
                         searchUrl:"searchUnitTransfers",
                         relatedTo:{
                             key: "id",
@@ -146,17 +145,10 @@ const TransferDetail = ({ dir, translations }) => {
                     },
                     {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
                         onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            nodes[rowKey].data.total = !!val && !!nodes[rowKey].data.cost ? val * nodes[rowKey].data.cost : null;
-                            postExecute(nodes);
+                            // nodes[rowKey].data.total_before_vat = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.cost : null;
+                            // postExecute(nodes);
                         }
-                    },
-                    {key : "cost", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
-                        onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            nodes[rowKey].data.total = !!nodes[rowKey].data.qty && !!val ? nodes[rowKey].data.qty* val : null;
-                            postExecute(nodes);
-                        }
-                    },
-                    {key : "total", autoFocus: true, type :"Decimal", width:'15%', editable:true}
+                    }
                 ]}
                 actions = {[]}
                 onUpdate={(nodes)=> onProductChange("items", nodes)}
@@ -166,9 +158,9 @@ const TransferDetail = ({ dir, translations }) => {
           currentObject={currentObject}
           translations={translations}
           dir={dir}
-          apiUrl="inventoryOperation/store/4"
+          apiUrl="transfer"
           afterSubmitUrl="../../transfer"
-          type="inventoryTransfer"
+          type="transfer"
           handleError={handleQuantityError}
           validateObject={validateObject}
         />

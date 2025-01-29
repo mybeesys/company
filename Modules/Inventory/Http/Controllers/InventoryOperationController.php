@@ -48,21 +48,29 @@ class InventoryOperationController extends Controller
             'id' => 'required|numeric',
             'status' => 'required|string',
         ]);
-        $inventoryOperation = Transaction::find($validated['id']);
-        $inventoryOperation->status = $validated['status'];
-        $inventoryOperation->save();
-        $inventoryOperation->status_name = $inventoryOperation->op_status;
-        return response()->json($inventoryOperation);
+        $transaction = Transaction::find($validated['id']);
+        $transaction->status = $validated['status'];
+        DB::transaction(function () use($transaction){
+            $transaction->save();
+            $related = Transaction::with('establishment')->where('parent_id', $transaction->id)->first();
+            if($related)
+            {
+                $related->status = $transaction->status;
+                $related->save();
+            }
+        });
+        $transaction->status_name = $transaction->op_status;
+        return response()->json($transaction);
     }
 
     public function generatePoNo($opType)
     {
         $prefix = [
-            0 => 'PO',
-            1 => 'PREP',
-            2 => 'RMA',
-            3 => 'WASTE',
-            4 => 'Trans'
+            'PO0' => 'PO0',
+            'PREP' => 'PREP',
+            'RMA' => 'RMA',
+            'WASTE' => 'WASTE',
+            'TRANSFER' => 'Trans'
         ];
         // Get the last invoice number (if any)
         $lastPO = InventoryOperation::where('op_type', '=', $opType)->orderBy('no', 'desc')->first();
@@ -85,7 +93,7 @@ class InventoryOperationController extends Controller
             return $product->product_id;
         },$products);
         $ingrIds =  array_map(function($ingredient){
-            return $ingredient->ingredient_id;
+        return $ingredient->ingredient_id;
         }, $ingredients);
         $modIds =  array_map(function($modifier){
             return $modifier->modifier_id;
@@ -111,29 +119,29 @@ class InventoryOperationController extends Controller
                 ];
             }
         }
-        $ingrTotals = IngredientInventoryTotal::where('establishment_id', '=', $establishment_id)
-                    ->whereIn('ingredient_id',$ingrIds)->get();
-        foreach ($ingredients as $ingr) {
-            $ingrTotal = array_filter($ingrTotals->toArray(), function($value)use($ingr) {
-                return $ingr->ingredient_id == $value["ingredient_id"]; // Keep only even numbers
-            });
-            $ingrTotal = reset($ingrTotal);
-            $totalQty = isset($times) && $times!=null ? $ingr->qty * $times : $ingr->qty;
-            $totalQty =  UnitTransferConvertor::convertUnit('I', $ingr->ingredient_id, $ingr->unit_id, null, 
-                            $totalQty , null);
-            if((!$ingrTotal) ||
-                $ingrTotal["qty"] == null || 
-                $ingrTotal["qty"] < $totalQty){
-                $ingredient = Ingredient::find($ingr->ingredient_id);
-                $result [] = [ 
-                    "name_ar" => $ingredient->name_ar ,
-                    "name_en" => $ingredient->name_en ,
-                    "qty" => $ingrTotal["qty"] == null ? 0 : $ingrTotal["qty"]
-                ];
-            }
-        }
+        // $ingrTotals = IngredientInventoryTotal::where('establishment_id', '=', $establishment_id)
+        //             ->whereIn('ingredient_id',$ingrIds)->get();
+        // foreach ($ingredients as $ingr) {
+        //     $ingrTotal = array_filter($ingrTotals->toArray(), function($value)use($ingr) {
+        //         return $ingr->ingredient_id == $value["ingredient_id"]; // Keep only even numbers
+        //     });
+        //     $ingrTotal = reset($ingrTotal);
+        //     $totalQty = isset($times) && $times!=null ? $ingr->qty * $times : $ingr->qty;
+        //     $totalQty =  UnitTransferConvertor::convertUnit('I', $ingr->ingredient_id, $ingr->unit_id, null, 
+        //                     $totalQty , null);
+        //     if((!$ingrTotal) ||
+        //         $ingrTotal["qty"] == null || 
+        //         $ingrTotal["qty"] < $totalQty){
+        //         $ingredient = Ingredient::find($ingr->ingredient_id);
+        //         $result [] = [ 
+        //             "name_ar" => $ingredient->name_ar ,
+        //             "name_en" => $ingredient->name_en ,
+        //             "qty" => $ingrTotal["qty"] == null ? 0 : $ingrTotal["qty"]
+        //         ];
+        //     }
+        // }
         $modTotals = ModifierInventoryTotal::where('establishment_id', '=', $establishment_id)
-                    ->whereIn('modifier_id',$modIds)->get();
+                    ->whereIn('modifier_id', $modIds)->get();
         foreach ($modifiers as $mod) {
             $modTotal = array_filter($modTotals->toArray(), function($value)use($mod) {
                 return $mod->modifier_id == $value["modifier_id"]; // Keep only even numbers
@@ -149,7 +157,7 @@ class InventoryOperationController extends Controller
                 $result [] = [ 
                     "name_ar" => $modifier->name_ar ,
                     "name_en" => $modifier->name_en ,
-                    "qty" => $modTotal["qty"] == null ? 0 : $modTotal["qty"]
+                    "qty" => !$modTotal || $modTotal["qty"] == null ? 0 : $modTotal["qty"]
                 ];
             }
         }

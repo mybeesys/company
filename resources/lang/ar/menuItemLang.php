@@ -78,9 +78,27 @@ return [
 
     'customer_receipts' => 'سندات العملاء',
     'purchase-order' => 'طلبات الشراء',
+
     'supplier_receipts'=>'سندات الموردين',
     'import' => 'الاستيراد',
 
     'screen_module' => 'الشاشات',
     'main' => 'الرئيسية',
+
+    'supplier_receipts' => 'سندات الموردين',
+    'import' => 'الاستيراد',
+    'sell-return' => 'مردود المبيعات',
+    'purchases-return' => 'مردود المشتريات',
+    'areas' => 'المناطق',
+    'tables' => 'الطاولات',
+    'tables_qr' => 'الطاولات QR',
+
+    'accounts-routing' => 'توجيه الحسابات',
+
+    'menu_qr' => 'القائمة QR',
+    'purchase' => 'سندات الموردين',
+    'sell' => 'سندات العملاء',
+    'receipt_vouchers' => 'سندات القبض',
+    'payment_vouchers' => 'سندات الصرف',
 ];
+

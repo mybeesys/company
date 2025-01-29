@@ -6,9 +6,10 @@ import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
+import AsyncSelectComponent from './AsyncSelectComponent';
 
 const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, 
-                            cols, title, canDelete, canEditRow, expander, defaultValue, prepareData }) => {
+                            cols, title, canDelete, canEditRow, expander, defaultValue, prepareData, validateObject }) => {
 
     const formRef = useRef(null);
 
@@ -60,11 +61,28 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         //const form = event.currentTarget;
         if (form.checkValidity() === false) {
 
-            setValidated(true);
+            //setValidated(true);
             form.classList.add('was-validated');
             return;
         }
 
+        let message = !!validateObject ? validateObject(editingRow) : 'Success';
+        if (message != 'Success') {
+            setShowAlert(true);
+            Swal.fire({
+                show: showAlert,
+                title: 'Error',
+                text: message,
+                icon: "error",
+                timer: 2000,
+                showCancelButton: false,
+                showConfirmButton: false,
+            }).then(() => {
+                setShowAlert(false); // Reset the state after alert is dismissed
+                setSubmitdisableButton(false);
+            });
+            return;
+        }
         let editedNode = findNodeByKey(nodes, currentKey);
         for (var key in editingRow) {
             editedNode.data[key] = editingRow[key];
@@ -170,9 +188,9 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
 
     const renderTextCell = (node, col, index) => {
         const indent = (node.key).toString().split('-').length;
-        if (col.key == 'name_en' && !!node.data.empty) {
+        if ((index==0) && !!node.data.empty) {
             if (!!canAddInline)
-                return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+                return <a href='javascript:void(0);' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
         }
         else {
             return (
@@ -272,7 +290,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
                     required={!!col.required}>
-                    {options.map((option) => (
+                    {col.options.map((option) => (
                         <option value={option.value}>{option.name}</option>
                     ))
                     }
@@ -416,7 +434,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
 
                     {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) &&
                      (!!!canEditRow || canEditRow(node.data)) ?
-                        <a href="#" onClick={() => {
+                        <a href="javascript:void(0);" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
                             else {
@@ -426,10 +444,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                         } title="Edit" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                             <i class={(currentKey != '-1' && node.key == currentKey) ? "ki-outline ki-check fs-2" : "ki-outline ki-pencil fs-2"}></i>
                         </a> : <></>}
-                    {currentKey != '-1' ? <a href="#" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    {currentKey != '-1' ? <a href="javascript:void(0);" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a> : null}
-                    {!!canDelete ? <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                    {!!canDelete ? <a href="javascript:void(0);" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a> : <></>}
                     
@@ -449,7 +467,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
                         {!!addUrl ?
-                            <a href="#" class="btn btn-primary"
+                            <a href="javascript:void(0);" class="btn btn-primary"
                                 onClick={() => openAdd()}>{translations.Add}</a>
                             : <></>}
                         <DeleteModal
@@ -468,7 +486,7 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                 <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"} expandedKeys={expandedKeys} onToggle={(e) => setExpandedKeys(e.value)}>
                     {cols.map((col, index) =>
                         <Column
-                            header={!!col.title ? translations[col.title] : translations[col.key]} 
+                            header={!!col.title ? translations[col.title] : translations[col.key]}
                             body={(node) => (
                                 renderCell(node, col, index)
                             )} expander={index == 0 && !!expander} />

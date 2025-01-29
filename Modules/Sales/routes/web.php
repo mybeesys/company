@@ -35,8 +35,9 @@ Route::middleware([
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
 
+        Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');
         Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');
-
+        Route::post('store-sell-return', [SellReturnController::class, 'store'])->name('store-sell-return');
 
         Route::get('quotations', [QuotationController::class, 'index'])->name('quotations');
         Route::get('create-quotation', [QuotationController::class, 'create'])->name('create-quotation');
@@ -52,7 +53,7 @@ Route::middleware([
             Route::get('', 'index')->name('index');
             Route::post('/store', 'store')->name('store');
             Route::delete('/{coupon}', 'destroy')->name('delete');
-            Route::delete('/force-delete/{coupon}', 'forceDelete')->name('delete');
+            Route::delete('/force-delete/{coupon}', 'forceDelete')->name('force-delete');
             Route::post('/restore/{id}', 'restore')->name('restore');
 
             Route::get('get-details/{id}', 'getCouponDetails')->name('get-details');

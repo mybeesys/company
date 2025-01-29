@@ -4,9 +4,9 @@ namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Modules\Establishment\Models\Establishment;
-use Modules\Inventory\Models\InventoryOperation;
-use Modules\Inventory\Models\PurchaseOrder;
 use Illuminate\Http\Request;
+use Modules\General\Models\Transaction;
+use Modules\Inventory\Models\TransactionUtil;
 
 class TransferController extends Controller
 {
@@ -23,8 +23,7 @@ class TransferController extends Controller
      */
     public function create()
     {
-        $transfer = new PurchaseOrder();
-        $transfer->establishment = new Establishment();
+        $transfer = new Transaction();
         $transfer->items = [];
         return view('inventory::transfer.create', compact('transfer'));
     }
@@ -34,43 +33,36 @@ class TransferController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
-        if($inventoryOperation->hasDetail()){
-            $inventoryOperation->detail->addToFillable();
-            foreach ($inventoryOperation->detail->getFillable() as $key) {
-                $inventoryOperation->$key = $inventoryOperation->detail[$key];
-                $inventoryOperation->addToFillable($key);
-            }
+        $transfer = TransactionUtil::prepareTransaction($id);
+        return view('inventory::transfer.edit', compact('transfer'));
+    }
+
+    public function getTransfer()
+    {
+        return response()->json(TransactionUtil::getTransactions('TRANSFER'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'nullable|numeric',
+            'transaction_date' => 'nullable|date',
+            'description' => 'nullable|string',
+        ]);
+        if (!isset($validated['id'])) {
+            $result = TransactionUtil::createTransaction('TRANSFER', $validated, $request, true);
+            if(count($result) > 0)
+                return response()->json($result);
+            else
+                return response()->json(["message" => "Done"]);
         }
-        $inventoryOperation->addToFillable('op_status_name');
-        $inventoryOperation->addToFillable('establishment');
-        $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
-        $resInventoryOperation = $inventoryOperation->toArray();
-        $resInventoryOperation["items"] = [];
-        foreach ($inventoryOperation->items as $item) {
-            $newItem = $item->toArray();
-            if(isset($item->product_id)){
-                $newItem["product_id"] = $item->product_id.'-p';
-                $prod = $item->product->toArray();
-                $prod["id"] =  $item->product_id.'-p';
-                $newItem["product"] =$prod;
-            }
-            if(isset($item->ingredient_id)){
-                $newItem["product_id"] = $item->ingredient_id.'-i';
-                $ingr = $item->ingredient->toArray();
-                $ingr["id"] =  $item->ingredient_id.'-i';
-                $newItem["product"] =$ingr;
-            }
-            if(isset($item->modifier_id)){
-                $newItem["product_id"] = $item->modifier_id.'-m';
-                $mod = $item->modifier->toArray();
-                $mod["id"] =  $item->modifier_id.'-m';
-                $newItem["product"] =$mod;
-            }
-            $newItem["unit"] = $item->unit->toArray();
-            $resInventoryOperation["items"][] =$newItem;
+        else {
+            $result = TransactionUtil::updateTransaction($validated, $request, true);
+            if(count($result) > 0)
+                return response()->json($result);
+            else
+                return response()->json(["message" => "Done"]);
         }
-        return view('inventory::transfer.edit', compact('resInventoryOperation'));
     }
 
     public function searchEstablishments(Request $request)

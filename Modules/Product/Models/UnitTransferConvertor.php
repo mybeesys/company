@@ -63,10 +63,10 @@ class UnitTransferConvertor{
         }
         $visited[] = $fromId;
         try{
-        $unit = $units[$fromId];
+            $unit = $units[$fromId];
         }
         catch(Exception $e){
-            dd($units);
+            dd($e->getTrace());
         }
         if ($unit['unit2'] && !in_array($unit['unit2'], $visited)) {
             $path = self::findPath($units, $unit['unit2'], $toId, $visited);

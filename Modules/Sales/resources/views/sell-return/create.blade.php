@@ -47,9 +47,11 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-invoice') }}">
+
+    <form id="sell_save" method="POST" action="{{ route('store-sell-return') }}">
         @csrf
 
+        <input type="hidden" name="transaction_id" value="{{ $transaction->id }}" />
         <div class="">
             <div class="row">
                 <div class="col-6">
@@ -108,11 +110,11 @@
                     </div>
                 </div>
 
-                <div class="separator d-flex flex-center my-6">
+                {{-- <div class="separator d-flex flex-center my-6">
                     <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
-                </div>
+                </div> --}}
 
-                @include('sales::sell.create.line-items')
+                @include('sales::sell-return.create.line-items')
 
 
             </div>
@@ -129,7 +131,8 @@
 
 
                     <input type="hidden" name="status" value="draft" />
-                    <button type="submit" style="border-radius: 6px;" class="btn btn-bg-primary min-w-150px mw-250px text-white ">
+                    <button type="submit" style="border-radius: 6px;"
+                        class="btn btn-bg-primary min-w-150px mw-250px text-white ">
                         @lang('messages.save')
                     </button>
                 </div>
@@ -327,7 +330,7 @@
                 units.forEach(unit => {
 
                     unitSelect.append(
-                        `<option value="${unit.transfer}" ${unit.primary ? "selected" : ""}>
+                        `<option value="${unit.id}" ${unit.primary ? "selected" : ""}>
                         ${unit.name_ar || unit.unit1}
                         </option>`
                     );

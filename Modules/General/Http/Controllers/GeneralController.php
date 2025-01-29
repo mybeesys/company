@@ -10,7 +10,9 @@ use Modules\Employee\Models\Employee;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Models\NotificationSettingParameter;
 use Modules\General\Models\PaymentMethod;
+use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Tax;
+use Predis\Configuration\Option\Prefix;
 
 class GeneralController extends Controller
 {
@@ -53,7 +55,10 @@ class GeneralController extends Controller
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
         $notifications_settings = NotificationSetting::all();
         $notifications_settings_parameters = NotificationSettingParameter::all();
-        return view('general::settings.index', compact('cards', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        $prefixes = PrefixSetting::where('table_name', 'transactions')->get();
+        $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
+        $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
+        return view('general::settings.index', compact('cards', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()
@@ -63,5 +68,37 @@ class GeneralController extends Controller
         $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
         $user = DB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
         return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
+    }
+
+
+    public function updatePrefix(Request $request)
+    {
+
+        $prefixes = $request->input('prefixes');
+        $prefixes_payments = $request->input('prefixes_payments');
+        $prefixes_mapp = $request->input('prefixes_mapp');
+
+        foreach ($prefixes as $type => $prefix) {
+            PrefixSetting::updateOrCreate(
+                ['type' => $type],
+                ['prefix' => $prefix]
+            );
+        }
+
+        foreach ($prefixes_payments as $type => $prefix) {
+            PrefixSetting::updateOrCreate(
+                ['type' => $type],
+                ['prefix' => $prefix]
+            );
+        }
+        foreach ($prefixes_mapp as $type => $prefix) {
+            PrefixSetting::updateOrCreate(
+                ['type' => $type],
+                ['prefix' => $prefix]
+            );
+        }
+
+        PrefixSetting::updateRefNumbers();
+        return redirect()->back()->with('success', __('product::messages.add_successfully'));
     }
 }

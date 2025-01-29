@@ -6,6 +6,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Validators\Failure;
 use Exception;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
@@ -107,7 +108,7 @@ class OpenInventoryImport implements ToModel, WithHeadingRow
             return $row["establishment"] == $value["establishment"]; // Keep only even numbers
         });
         $est = reset($est);
-        $items = TransactionSellLine::create(attributes: [
+        $items = TransactionePurchasesLine::create(attributes: [
             'transaction_id'                => $est["transaction"]->id,
             'product_id'                    => $product?->id ?? null,
             'modifier_id'                   => $modifier?->id ?? null,

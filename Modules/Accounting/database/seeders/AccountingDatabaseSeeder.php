@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 use Modules\General\Models\Country;
 use Modules\General\Models\PaymentMethod;
+use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Tax;
 
 class AccountingDatabaseSeeder extends Seeder
@@ -155,6 +156,26 @@ class AccountingDatabaseSeeder extends Seeder
                     'active' => $method['active'],
 
                 ]
+            );
+        }
+
+
+        $prefixes = [
+            ['type' => 'invoices', 'prefix' => 'INV', 'table_name' => 'transactions'],
+            ['type' => 'quotations', 'prefix' => 'QTN', 'table_name' => 'transactions'],
+            ['type' => 'purchase-order', 'prefix' => 'PO', 'table_name' => 'transactions'],
+            ['type' => 'journalEntry', 'prefix' => 'JE', 'table_name' => 'transaction_mapp'],
+            ['type' => 'purchase', 'prefix' => 'PP', 'table_name' => 'transaction_payments'],
+            ['type' => 'sell', 'prefix' => 'SP', 'table_name' => 'transaction_payments'],
+        ];
+
+              foreach ($prefixes as $prefix) {
+            PrefixSetting::firstOrCreate(
+                [
+                    'type' => $prefix['type'],
+                    'table_name' => $prefix['table_name']
+                ],
+                ['prefix' => $prefix['prefix']]
             );
         }
     }
