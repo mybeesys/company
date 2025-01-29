@@ -97,8 +97,8 @@ const PrepDetail = ({ dir, translations }) => {
                         onBasicChange={onProductChange}
                         fields={
                             [
-                                {key:"establishment" , title:"prepEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, size:12},
-                                {key:"toEstablishment" , title:"ingredientEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, newRow:true, size:12},
+                                {key:"establishment" , title:"ingredientEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, size:12},
+                                {key:"toEstablishment" , title:"", searchUrl:"prepEstablishment", type:"Async", required : true, newRow:true, size:12},
                             ]
                         }
                        />
