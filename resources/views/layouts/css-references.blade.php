@@ -48,7 +48,7 @@
         border-right: 0;
     }
 
-    tr:hover {
+    tr:hover:not(.not-hover) {
         background: #cae0fa !important;
         /* font-style: italic; */
 
@@ -109,9 +109,10 @@
     .select2-container .select2-selection--single .select2-selection__clear {
         position: absolute !important;
     }
+</style>
 
-
-    @if ($local == 'ar')
+@if ($local == 'ar')
+    <style>
         .select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected:after {
             left: 1.25rem;
             right: auto;
@@ -129,12 +130,15 @@
         .select2-selection__choice__display {
             margin-right: 20px;
         }
-    @else
+    </style>
+@else
+    <style>
         .select2-selection__rendered {
             padding-right: 0px !important;
         }
-    @endif
-
+    </style>
+@endif
+<style>
     .select2-container .select2-selection--single {
         height: auto;
     }

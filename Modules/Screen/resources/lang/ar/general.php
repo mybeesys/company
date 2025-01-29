@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'promos' => 'الإعلانات',
+    'playlists' => 'قوائم التشغيل',
+    'devices' => 'الأجهزة',
+    'playlist' => 'قائمة تشغيل',
+    'add_promo' => 'أضف إعلان',
+    'click_to_upload' => 'انقر لتحميله الملف',
+    'promo_hint' => 'JPG أو PNG أو MP4، حجم الملف لا يزيد عن 120 ميجابايت',
+    'uploading' => 'جاري الرفع',
+    'of' => 'من',
+    'preview' => 'عرض',
+    'rename' => 'إعادة تسمية',
+    'delete' => 'حذف',
+    'rename_promo' => 'إعادة تسمية الإعلان',
+    'preview_promo' => 'عرض الإعلان',
+    'create_playlist' => 'إنشاء قائمة تشغيل',
+    'add_playlist' => 'إضافة قائمة تشغيل',
+    'next' => 'التالي',
+    'back' => 'السابق',
+    'step' => 'الخطوة',
+    'every_day' => 'كل يوم',
+    'start_time' => 'وقت البداية',
+    'days_of_the_weak' => 'أيام من الأسبوع',
+    'custom_date_time' => 'تاريخ ووقت مخصص',
+    'start_date_time' => 'تاريخ ووقت البداية',
+    'manual' => 'يدوي',
+    'screen_orientation' => 'اتجاه الشاشة',
+    'landscape' => 'أفقي',
+    'portrait' => 'عمودي',
+    'all_displays' => 'كل شاشات العرض'
+];
