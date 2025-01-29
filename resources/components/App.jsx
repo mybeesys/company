@@ -8,7 +8,6 @@ import CustomMenuDetail from './custommenu/CustomMenuDetail';
 import ServiceFeeTable from './serviceFee/ServiceFeeTable';
 import ServiceFeeDetail from './serviceFee/ServiceFeeDetail';
 import DiscountTable from './discount/DiscountTable';
-import Ingredient from './ingredients/Ingredient';
 import IngredientDetail from './ingredients/IngredientDetail';
 import DiscountDetail from './discount/DiscountDetail';
 import LinkedComboTable from './linkedCombo/LinkedComboTable';
@@ -37,6 +36,7 @@ import Menu from './reservation/Menu';
 import MenuSimple from './reservation/MenuSimple';
 import MenuQR from './reservation/MenuQR';
 import TableAreaTable from './reservation/TableAreaTable';
+import Ingredient from './ingredients/ingredient';
 
 
 const App = ({nodeType, dir}) =>{
