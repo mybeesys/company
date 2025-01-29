@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Screen\Http\Controllers\DeviceController;
 use Modules\Screen\Http\Controllers\MainController;
 use Modules\Screen\Http\Controllers\PlaylistController;
 use Modules\Screen\Http\Controllers\PromoController;
@@ -39,5 +40,11 @@ Route::middleware([
     Route::controller(PlaylistController::class)->prefix('playlist')->name('playlists.')->group(function(){
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
+    });
+
+    Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function(){
+        Route::post('/store', 'store')->name('store');
+        Route::get('/index', 'index')->name('index');
+        Route::delete('/{device}', 'destroy')->name('delete');
     });
 });

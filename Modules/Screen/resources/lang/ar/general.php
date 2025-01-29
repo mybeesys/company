@@ -29,5 +29,6 @@ return [
     'screen_orientation' => 'اتجاه الشاشة',
     'landscape' => 'أفقي',
     'portrait' => 'عمودي',
-    'all_displays' => 'كل شاشات العرض'
+    'all_displays' => 'كل شاشات العرض',
+    'add_device' => 'أضف جهاز',
 ];
