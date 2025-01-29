@@ -29,5 +29,6 @@ return [
     'screen_orientation' => 'Screen orientation',
     'landscape' => 'Landscape',
     'portrait' => 'Portrait',
-    'all_displays' => 'All displays'
+    'all_displays' => 'All displays',
+    'add_device' => 'Add device',
 ];

@@ -101,7 +101,6 @@
             pageLength: 5,
             drawCallback: function() {
                 KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
-                // loadThumbnail(promoTable);
             },
             rowCallback: function(row, data, index) {
                 $(row).addClass('not-hover');
