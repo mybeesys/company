@@ -4482,6 +4482,7 @@
             },
             "time": "2025-01-10T20:23:57+00:00"
             },
+            {
             "name": "paragonie/sodium_compat",
             "version": "v2.1.0",
             "source": {
@@ -4570,7 +4571,7 @@
                 "issues": "https://github.com/paragonie/sodium_compat/issues",
                 "source": "https://github.com/paragonie/sodium_compat/tree/v2.1.0"
             },
-            "time": "2024-09-04T12:51:01+00:00
+            "time": "2024-09-04T12:51:01+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
