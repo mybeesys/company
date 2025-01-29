@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'promos' => 'Promos',
+    'playlists' => 'Playlists',
+    'devices' => 'Devices',
+    'playlist' => 'Playlist',
+    'add_promo' => 'Add promo',
+    'click_to_upload' => 'Click to upload the file',
+    'promo_hint' => 'JPG, PNG or MP4, file size no more than 120MB',
+    'uploading' => 'Uploading',
+    'of' => 'of',
+    'preview' => 'Preview',
+    'rename' => 'Rename',
+    'delete' => 'Delete',
+    'rename_promo' => 'Rename promo',
+    'preview_promo' => 'Preview promo',
+    'create_playlist' => 'Create playlist',
+    'add_playlist' => 'Add playlist',
+    'next' => 'Next',
+    'back' => 'Back',
+    'step' => 'Step',
+    'every_day' => 'Every day',
+    'start_time' => 'Start time',
+    'days_of_the_weak' => 'Select days of the week',
+    'custom_date_time' => 'Custom Date and time',
+    'start_date_time' => 'Start date and time',
+    'manual' => 'Manual',
+    'screen_orientation' => 'Screen orientation',
+    'landscape' => 'Landscape',
+    'portrait' => 'Portrait',
+    'all_displays' => 'All displays'
+];

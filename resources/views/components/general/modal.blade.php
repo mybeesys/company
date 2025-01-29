@@ -6,6 +6,9 @@
     'body_class' => null,
     'header' => null,
     'module',
+    'buttons' => true,
+    'cancelButton' => true,
+    'submitButton' => true,
 ])
 <div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ $class }}">
@@ -24,13 +27,19 @@
                 <form id="{{ $id }}_form" class="form" action="#">
                     @csrf
                     {{ $slot }}
-                    <div class="text-center pt-5">
-                        <button type="reset" class="btn btn-light me-3"
-                            data-bs-dismiss="modal">@lang('general.cancel')</button>
-                        <button type="submit" class="btn btn-primary" data-kt-roles-modal-action="submit">
-                            <span class="indicator-label">@lang('general.save')</span>
-                        </button>
-                    </div>
+                    @if ($buttons)
+                        <div class="text-center pt-5">
+                            @if ($cancelButton)
+                                <button type="reset" class="btn btn-light me-3"
+                                    data-bs-dismiss="modal">@lang('general.cancel')</button>
+                            @endif
+                            @if ($submitButton)
+                                <button type="submit" class="btn btn-primary" data-kt-roles-modal-action="submit">
+                                    <span class="indicator-label">@lang('general.save')</span>
+                                </button>
+                            @endif
+                        </div>
+                    @endif
                 </form>
             </div>
         </div>

@@ -78,6 +78,13 @@ return [
 
     'customer_receipts' => 'سندات العملاء',
     'purchase-order' => 'طلبات الشراء',
+
+    'supplier_receipts'=>'سندات الموردين',
+    'import' => 'الاستيراد',
+
+    'screen_module' => 'الشاشات',
+    'main' => 'الرئيسية',
+
     'supplier_receipts' => 'سندات الموردين',
     'import' => 'الاستيراد',
     'sell-return' => 'مردود المبيعات',
@@ -94,3 +101,4 @@ return [
     'receipt_vouchers' => 'سندات القبض',
     'payment_vouchers' => 'سندات الصرف',
 ];
+

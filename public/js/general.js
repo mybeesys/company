@@ -55,7 +55,7 @@ function validateField(input, validationUrl, saveButton) {
     });
 }
 
-function ajaxRequest(url, method, data = {}, handleResponse = true, handleError = true, showProgressBar = true) {
+function ajaxRequest(url, method, data = {}, handleResponse = true, handleError = true, showProgressBar = true, callbacks = {}) {
     data._token = window.csrfToken;
 
     const progressBar = $("#ajax-progress-bar");
@@ -69,9 +69,12 @@ function ajaxRequest(url, method, data = {}, handleResponse = true, handleError 
         processData: !(data instanceof FormData),
         xhr: function () {
             var xhr = new window.XMLHttpRequest();
+            
             if (showProgressBar) {
                 progressBar.show();
             }
+
+            // Handle the overall AJAX progress
             progressBarInner.css("width", "0%");
             progressBarInner.stop().animate({
                 width: "5%"
@@ -83,21 +86,33 @@ function ajaxRequest(url, method, data = {}, handleResponse = true, handleError 
                 }
             });
 
+            // Handle the file upload progress
+            xhr.upload.addEventListener('progress', function(e) {
+                if (callbacks.uploadProgress) {
+                    callbacks.uploadProgress(e);
+                }
+            });
+
             return xhr;
         },
         beforeSend: function () {
             progressBarInner.css("width", "0%");
         },
         complete: function () {
+            // Handle the overall AJAX progress bar
             progressBarInner.stop().animate({
                 width: "100%"
             }, 300, function () {
                 setTimeout(() => {
                     progressBar.hide();
-                    progressBarInner.css("width",
-                        "0%");
+                    progressBarInner.css("width", "0%");
                 }, 200);
             });
+
+            // Handle the file upload progress bar
+            if (callbacks.complete) {
+                callbacks.complete();
+            }
         },
         success: function (response) {
             if (handleResponse) {

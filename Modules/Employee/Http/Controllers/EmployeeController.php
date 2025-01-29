@@ -36,7 +36,7 @@ class EmployeeController extends Controller
         $this->allowances_types = PayrollAdjustmentType::allowance()->get();
     }
 
-    function generatePin()
+    public function generatePin()
     {
         $number = mt_rand(10000, 99999);
         if (Employee::where('pin', $number)->exists()) {

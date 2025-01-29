@@ -8,5 +8,6 @@
     "Sales": true,
     "General": true,
     "Purchases": true,
+    "Screen": true
     "Reservation": true
 }

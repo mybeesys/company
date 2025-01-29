@@ -79,6 +79,13 @@ return [
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
 
+    'supplier_receipts'=>'Supplier Receipts',
+    'import' => 'Import',
+
+    'screen_module' => 'Screens',
+    'main' => 'Main',
+
+
     'supplier_receipts' => 'Supplier Receipts',
     'import' => 'Import',
     'sell-return' => 'Sell Return',

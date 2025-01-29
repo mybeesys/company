@@ -1,0 +1,11 @@
+{
+    "name": "Screen",
+    "alias": "screen",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Screen\\Providers\\ScreenServiceProvider"
+    ],
+    "files": []
+}
