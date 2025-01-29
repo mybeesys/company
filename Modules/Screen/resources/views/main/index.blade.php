@@ -72,6 +72,7 @@
     <x-screen::promo.rename-promo-modal />
     <x-screen::promo.preview-promo-modal />
     <x-screen::playlist.add-playlist-modal :establishments="$establishments" />
+    <x-screen::device.add-device-modal />
 
 @endsection
 
@@ -93,9 +94,13 @@
         let playlistDataTable;
         const playlistTable = $('#playlist_table');
         const playlistDataUrl = '{{ route('playlists.index') }}';
+        let DeviceDataTable;
+        const deviceTable = $('#device_table');
+        const deviceDataUrl = '{{ route('devices.index') }}';
 
         $(document).ready(function() {
             initPromoDataTable();
+            initDeviceDataTable();
             playlistTab();
             initializeStyles();
             initializeModal();
@@ -105,6 +110,7 @@
             addPlaylistModal();
             addPlaylistForm();
             initPlaylistDataTable();
+            addDeviceModal();
         });
     </script>
 @endsection
