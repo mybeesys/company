@@ -3,8 +3,8 @@ import { getRowName } from "../lang/Utils";
 import io from 'socket.io-client';
 import SweetAlert2 from 'react-sweetalert2';
 
-//const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
-const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
+const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
+//const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
 
 const Menu = ({ translations, dir }) => {
     const rootElement = document.getElementById('root');
