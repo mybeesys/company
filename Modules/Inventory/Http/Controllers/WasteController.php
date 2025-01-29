@@ -9,11 +9,6 @@ use Modules\Inventory\Models\TransactionUtil;
 
 class WasteController extends Controller
 {
-    protected $inventoryOperationController;
-
-    public function __construct(InventoryOperationController $inventoryOperationController){
-        $this->inventoryOperationController = $inventoryOperationController;
-    }
     /**
      * Display a listing of the resource.
      */

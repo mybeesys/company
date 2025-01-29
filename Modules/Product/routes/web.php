@@ -90,6 +90,7 @@ Route::middleware([
         Route::resource('unit', UnitController::class)->names('unit');
         Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
         Route::get('listRecipebyProduct/{id?}', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
+        Route::post('listPrepRecipe', [ProductController::class, 'listPrepRecipe'])->name('listPrepRecipe');
         
         Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
         Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');

@@ -39,7 +39,7 @@
 
    						
       <div id="root" type="prepedit" 
-      prep="{{json_encode($resInventoryOperation)}}"
+      prep="{{json_encode($prep)}}"
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

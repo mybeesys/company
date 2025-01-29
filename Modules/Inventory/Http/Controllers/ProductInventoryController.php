@@ -5,11 +5,9 @@ namespace Modules\Inventory\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
-use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
@@ -119,47 +117,13 @@ class ProductInventoryController extends Controller
         $purchaseLines = $purchaseLines->whereHas('transaction', function ($query) use ($est_id) {
             $query->where('establishment_id', $est_id);
         })->get();
-        $prepsForSellLine = Prep::whereIn('operation_id', $sellLines->pluck('transaction_id')->toArray())->get();
-        $resultSellLine = array_map(function($item) use($typ, $prepsForSellLine) {
-            return $this->getTransItem($item, $typ, $prepsForSellLine, -1);
+        $resultSellLine = array_map(function($item) use($typ) {
+            return $this->getTransItem($item, $typ, -1);
         }, $sellLines->toArray());
         $resultPurchaseLine = array_map(function($item) use($typ, $purchaseLines) {
-            return $this->getTransItem($item, $typ, $purchaseLines, 1);
+            return $this->getTransItem($item, $typ, 1);
         }, $purchaseLines->toArray());
-        $preps = null;
-        if($typ =='product')
-            $preps = Prep::with('transaction')
-                    ->with(['preped'=>function($query){
-                        $query->with(['unitTransfers'=>function($query1){
-                            $query1->whereNull('unit2');
-                        }]);
-                }])
-                ->where('product_id', '=', $id);
-        else
-            $preps = Prep::with('transaction')
-                    ->with(['modifier'=>function($query){
-                        $query->with(['unitTransfers'=>function($query1){
-                            $query1->whereNull('unit2');
-                        }]);
-                }])
-            ->where('modifier_id', '=', $id);
-        $preps = $preps->whereHas('transaction', function ($query) use ($est_id) {
-            $query->where('establishment_id', $est_id);
-        })->get();
-        $result2 = array_map(function($item) use($typ) {
-            $newItem = $item;
-            $newItem["type"] = $item["transaction"]["type"];
-            $newItem["product"] = $typ =='product' ? $item["preped"] : $item["modifier"];
-            $newItem["transaction_date"] = $item["transaction"]["transaction_date"];
-            $newItem["transaction_id"] = $item["operation_id"];
-            $newItem["qty"] =  $item["times"];
-            $newItem["signed_qty"] =  $item["times"];
-            $newItem["unit_transfer"] =  $typ =='product' ? 
-                    (count($item["preped"]["unit_transfers"]) > 0 ? $item["preped"]["unit_transfers"][0] : '') :
-                    (count($item["modifier"]["unit_transfers"]) > 0 ? $item["modifier"]["unit_transfers"][0] : '');
-            return $newItem;
-        }, array: $preps->toArray());
-        $result = array_merge($resultSellLine, $resultPurchaseLine, $result2);
+        $result = array_merge($resultSellLine, $resultPurchaseLine);
         usort($result, function($a, $b) {
             return $a['transaction_date'] === $b['transaction_date']
                     ? $a['transaction_id'] <=> $b['transaction_id']
@@ -178,7 +142,7 @@ class ProductInventoryController extends Controller
         return response()->json($updatedResult);
     }
 
-    public function getTransItem($item, $typ, $prepsForSellLine, $sign){
+    public function getTransItem($item, $typ, $sign){
         $newItem = $item;
         $newItem["type"] = $item["transaction"]["type"];
         $newItem["product"] = $typ =='product' ? $item["product"] : $item["modifier"];
@@ -187,21 +151,10 @@ class ProductInventoryController extends Controller
         $newItem["transaction_id"] = $item["transaction_id"];
         $units = $newItem["product"]['unit_transfers'];
         $newItem["unit_transfer"] = UnitTransferConvertor::getMainUnit($itemType, $newItem["product"]["id"], $units);
-        if($item["transaction"]["type"] == 'PREP'){
-            $prep = $prepsForSellLine->first(function($p) use($item) {
-                return $p['operation_id'] == $item["transaction"]["id"];
-            });
-            $quantity =  UnitTransferConvertor::convertUnit($itemType, $newItem["product"]["id"], $item["unit_id"], null, 
-                                $item["qyt"] , $units);
-            $newItem["qty"] = $quantity * $prep->times;
-            $newItem["signed_qty"] =  -1 * $quantity * $prep->times;
-        }
-        else{
-            $quantity =  UnitTransferConvertor::convertUnit($itemType, $newItem["product"]["id"], $item["unit_id"], null, 
+        $quantity =  UnitTransferConvertor::convertUnit($itemType, $newItem["product"]["id"], $item["unit_id"], null, 
                         $item["qyt"], $units);
-            $newItem["qty"] = $quantity;
-            $newItem["signed_qty"] =  $sign * $quantity;
-        }
+        $newItem["qty"] = $quantity;
+        $newItem["signed_qty"] =  $sign * $quantity;
         return $newItem;
     }
 
