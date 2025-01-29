@@ -340,6 +340,19 @@ return [
         ]
     ],
     [
+        'name' => 'screen_module',
+        'url' => '/',
+        'icon' => 'fas fa-desktop',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'main',
+                'url' => 'main',
+                'permission' => '',
+            ],
+        ]
+    ],
+    [
         'name' => 'reports_module',
         'url' => '/',
         'icon' => 'fas fa-bar-chart',

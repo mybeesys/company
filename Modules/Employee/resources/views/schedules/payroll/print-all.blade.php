@@ -38,12 +38,6 @@
             text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
         }
 
-
-
-        .table_component {
-            overflow: auto;
-        }
-
         .table_component table {
             border: 1px solid #dededf;
             table-layout: auto;
