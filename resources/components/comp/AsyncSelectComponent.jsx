@@ -30,11 +30,13 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
                 let options = response.data.map(item => ({
                     label: getRowName(item, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
+                    data : item
                 }));
                 if(!!currentObject && !!currentObject.id && !!!options.find(x=>x.value == currentObject.id))
                     options.push({
                         value: currentObject.id,  // Option value
-                        label: getRowName(currentObject, dir) // Option label
+                        label: getRowName(currentObject, dir), // Option label
+                        data : currentObject
                     });
                 setOptions(options);
             })
@@ -62,6 +64,7 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
                 const options = response.data.map(item => ({
                     label: getRowName(item, dir),  // The text shown in the select options
                     value: item.id,    // The value of the selected option
+                    data : item
                 }));
                 if(!!resolve)
                     resolve(options); // Resolve the Promise with the formatted options
@@ -78,7 +81,8 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
         if (!!currentObject)
             setSelectedOption({
                 value: currentObject.id,  // Option value
-                label: getRowName(currentObject, dir) // Option label
+                label: getRowName(currentObject, dir), // Option label
+                data: currentObject
             });
         else
             setSelectedOption(null);
@@ -117,7 +121,8 @@ const AsyncSelectComponent = ({ field, currentObject, onBasicChange, dir, search
                 id: e.value,
                 name_er: e.label,
                 name_en: e.label,
-                name : e.label
+                name : e.label,
+                data : e.data
             })} />
     );
 }

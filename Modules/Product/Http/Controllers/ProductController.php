@@ -167,6 +167,11 @@ class ProductController extends Controller
         return view('product::product.index' ); 
     }
 
+    public function barcode()
+    {
+        return view('product::product.barcode'); 
+    }
+
     /**
      * Show the form for creating a new resource.
      */

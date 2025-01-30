@@ -100,5 +100,6 @@ return [
     'sell' => 'سندات العملاء',
     'receipt_vouchers' => 'سندات القبض',
     'payment_vouchers' => 'سندات الصرف',
+    'productBarcode' => 'طباعة الباركود'
 ];
 

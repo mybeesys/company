@@ -6,8 +6,9 @@ import { Column } from 'primereact/column';
 import Select from "react-select";
 import makeAnimated from 'react-select/animated';
 import AsyncSelectComponent from './AsyncSelectComponent';
-import { formatDecimal, getName, getRowName } from '../lang/Utils';
+import { formatDecimal, getName, getRowName, toDate } from '../lang/Utils';
 import MultiDropDown from './MultiDropDown';
+import { Calendar } from 'primereact/calendar';
 
 const animatedComponents = makeAnimated();
 const TreeTableEditorLocal = ({ translations, dir, header, cols, 
@@ -128,11 +129,12 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
             return renderNumberCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
         else if (col.type == "Decimal")
             return renderDecimalCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
+        else if (col.type == "Date")
+            return renderDateCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
         else if (col.type == "Check")
             return renderCheckCell(node, col, firstCell);//key, autoFocus, editable, required, firstCell);
         else if (col.type == "DropDown"){
             return renderDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
-            
         }
         else if (col.type == "AsyncDropDown")
             return renderAsyncDropDownCell(node, col, firstCell);//key, autoFocus, options, editable, required, firstCell);
@@ -178,6 +180,28 @@ const TreeTableEditorLocal = ({ translations, dir, header, cols,
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: '100%' }}
                     required={!!col.required} />
+                :
+                <span>{node.data[col.key]}</span>
+            );
+        }
+    }
+
+    const renderDateCell = (node, col, firstCell)=>{//key, autoFocus, editable, required) => {
+        const indent = (node.key).toString().split('-').length;
+        if (!!node.data.empty) {
+            if(!!firstCell)
+                return <a href="javascript:void(0);" onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+        }
+        else{
+            return (
+            !!col.editable?
+                    <Calendar class="col-12" value={toDate(node.data[col.key], 'D') } 
+                    onChange={(e) => handleEditorChange(!!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}` 
+                                                : null, col.key, node.key, col.onChangeValue 
+                                                )}
+                                            autoFocus={!!col.autoFocus}
+                                            required={!!col.required}
+                                            />
                 :
                 <span>{node.data[col.key]}</span>
             );

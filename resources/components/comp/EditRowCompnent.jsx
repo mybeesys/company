@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import SweetAlert2 from 'react-sweetalert2';
 import axios from 'axios';
 
-const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl, afterSubmitUrl, validateObject, type, handleError }) => {
+const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl, afterSubmitUrl, 
+                            validateObject, type, handleError, submitTitle, submitAction }) => {
   const [disableSubmitButton, setSubmitdisableButton] = useState(false);
   const [menu, setMenu] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -123,8 +124,8 @@ const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl
           </div>
           <div class="col-6" style={{ "justify-content": "end", "display": "flex" }}>
             <div class="flex-center" style={{ "display": "flex" }}>
-              <button onClick={clickSubmit} disabled={disableSubmitButton} class="btn btn-primary mx-2"
-                style={{ "width": "12rem" }}>{translations.savechanges}</button>
+              <button onClick={!!!submitAction ? clickSubmit : submitAction} disabled={disableSubmitButton} class="btn btn-primary mx-2"
+                style={{ "width": "12rem" }}>{!!!submitTitle ? translations.savechanges : submitTitle}</button>
 
             </div>
 
@@ -169,7 +170,7 @@ const EditRowCompnent = ({ dir, translations, defaultMenu, currentObject, apiUrl
                 {
                   defaultMenu.map((item, index) => index !=0 ?
                     <div class="tab-content pt-3">
-                      <div id={item.key} class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                      <div id={item.key} class={`card-body p-0 tab-pane fade show active`} role="tabpanel"
                         aria-labelledby={`${item.key}_tab`}>
                           {defaultMenu[index].comp}
                       </div>

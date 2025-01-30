@@ -128,6 +128,7 @@ Route::middleware([
         Route::get('priceTierlist', [PriceTierController::class, 'getPriceTierlist'])->name('priceTierlist');
         Route::resource('priceTier', PriceTierController::class)->names('priceTier');
         Route::get('searchPriceTiers', [PriceTierController::class, 'searchPriceTiers'])->name('searchPriceTiers');
+        Route::get('searchProductPriceTiers', [PriceTierController::class, 'searchProductPriceTiers'])->name('searchProductPriceTiers');
         Route::get('priceWithTax', [GeneralController::class, 'priceWithTax'])->name('priceWithTax');
         Route::get('getPriceFromPriceWithTax', [GeneralController::class, 'getPriceFromPriceWithTax'])->name('getPriceFromPriceWithTax');
         
@@ -137,5 +138,7 @@ Route::middleware([
         Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
         Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
         Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
+        Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])->name('productBarcode.barcode');
+        
     });
 });

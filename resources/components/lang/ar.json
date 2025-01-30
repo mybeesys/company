@@ -291,5 +291,14 @@
   "minutes" : "دقيقة",
   "viewCart" : "عرض الطلب",
   "back" : "عودة",
-  "globalFilter" : "بحث عام"
+  "globalFilter" : "بحث عام",
+  "preview" : "معاينة",
+  "printBarcode" : "طباعة الباركود",
+  "printOptions" : "خيارات الطباعة",
+  "beforTax" : "قبل الضريبة",
+  "afterTax" : "بعد الضريبة",
+  "priceDisplay" : "عرض السعر",
+  "expiryDate" : "تاريخ انتهاء الصلاحية",
+  "sellDate" : "تاريخ المبيعات",
+  "count" : "العدد"
 }

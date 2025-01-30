@@ -63,6 +63,12 @@ return [
 
             // ],
             [
+                'name' => 'productBarcode',
+                'url' => 'productBarcode/barcode',
+                'permission' => '',
+
+            ],
+            [
                 'name' => 'import',
                 'url' => 'importProduct/import',
                 'permission' => '',

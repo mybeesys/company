@@ -37,6 +37,7 @@ import MenuSimple from './reservation/MenuSimple';
 import MenuQR from './reservation/MenuQR';
 import TableAreaTable from './reservation/TableAreaTable';
 import Ingredient from './ingredients/ingredient';
+import ProductBarcode from './reports/ProductBarcode';
 
 
 const App = ({nodeType, dir}) =>{
@@ -83,7 +84,8 @@ const App = ({nodeType, dir}) =>{
     areaQR : <AreaQRTable translations={translations} dir={dir}/>,
     menu : <Menu translations={translations} dir={dir} />,
     menuSimple : <MenuSimple translations={translations} dir={dir} />,
-    menuQR : <MenuQR translations={translations} dir={dir} />
+    menuQR : <MenuQR translations={translations} dir={dir} />,
+    productBarcode : <ProductBarcode  translations={translations} dir={dir}/>
   }
   
   useEffect(() => {

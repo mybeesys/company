@@ -284,7 +284,14 @@
   "minutes" : "Minutes",
   "viewCart" : "View Cart",
   "back" : "Back",
-  "globalFilter" : "Global Search"
-
-
+  "globalFilter" : "Global Search",
+  "preview" : "Preview",
+  "printBarcode" : "Print Barcode",
+  "printOptions" : "خيارات الطباعة",
+  "beforTax" : "Befor Tax",
+  "afterTax" : "After Tax",
+  "priceDisplay" : "Price Display",
+  "expiryDate" : "Expiry Date",
+  "Sell Date" : "Sell Date",
+  "count" : "Count"
 }
