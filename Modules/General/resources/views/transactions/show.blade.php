@@ -271,6 +271,34 @@
         </div>
     </div>
 
+    @if ($transaction->settings_terms_notes)
+        @php
+            $data = json_decode($transaction->settings_terms_notes ?? '{}', true);
+            $locale = app()->getLocale();
+            $terms = $locale == 'en' ? $data['terms_en'] ?? null : $data['terms_ar'] ?? null;
+            $note = $locale == 'en' ? $data['note_en'] ?? null : $data['note_ar'] ?? null;
+        @endphp
+        <div id="terms_notes_section">
+            @if ($terms)
+                <div class="align-items-center">
+                    <label class="fs-6 fw-semibold me-3">@lang('general::general.terms_and_conditions'):</label>
+                    <label class="fs-5 fw-semibold my-2 me-3">{!! $terms !!}</label>
+                </div>
+            @endif
+
+            @if ($note)
+                <div class="align-items-center mb-2">
+                    <label class="fs-6 fw-semibold my-2 me-3">@lang('general::general.note'):</label>
+                    <label class="fs-5 fw-semibold me-3">{{ $note }}</label>
+                </div>
+            @endif
+        </div>
+
+    @endif
+
+
+
+
     <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
