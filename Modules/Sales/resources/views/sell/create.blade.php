@@ -88,11 +88,12 @@
 
                 @include('sales::sell.create.line-items')
 
-
             </div>
 
             @include('sales::sell.create.Tab-nav')
 
+
+            @include('general::invoice-setting.general-invoice-setting.terms-conditions-notes')
             <div class="separator d-flex flex-center my-6">
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>

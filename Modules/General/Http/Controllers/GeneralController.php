@@ -5,12 +5,15 @@ namespace Modules\General\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use DB;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Models\NotificationSettingParameter;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\PrefixSetting;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
 use Predis\Configuration\Option\Prefix;
 
@@ -58,7 +61,8 @@ class GeneralController extends Controller
         $prefixes = PrefixSetting::where('table_name', 'transactions')->get();
         $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
         $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
-        return view('general::settings.index', compact('cards', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        $settings = Setting::getNotesAndTermsConditions();
+        return view('general::settings.index', compact('cards','settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()
@@ -66,7 +70,7 @@ class GeneralController extends Controller
         $company = Company::findOrFail(get_company_id());
         $current_subscription = $company->subscription;
         $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
-        $user = DB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
+        $user = FacadesDB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
         return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
     }
 
@@ -100,5 +104,32 @@ class GeneralController extends Controller
 
         PrefixSetting::updateRefNumbers();
         return redirect()->back()->with('success', __('product::messages.add_successfully'));
+    }
+
+
+    public function saveNotsTerms(Request $request)
+    {
+        try {
+            $settings = [
+                ['key' => 'terms_and_conditions_en', 'value' => $request->input('terms_and_conditions_en')],
+                ['key' => 'terms_and_conditions_ar', 'value' => $request->input('terms_and_conditions_ar')],
+                ['key' => 'note_ar', 'value' => $request->input('note_ar')],
+                ['key' => 'note_en', 'value' => $request->input('note_en')],
+            ];
+
+            FacadesDB::beginTransaction();
+            foreach ($settings as $setting) {
+                Setting::updateOrCreate(
+                    ['key' => $setting['key']],
+                    ['value' => $setting['value']]
+                );
+            }
+
+            FacadesDB::commit();
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (Exception $e) {
+            FacadesDB::rollBack();
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
     }
 }
