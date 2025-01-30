@@ -31,4 +31,5 @@ return [
     'portrait' => 'Portrait',
     'all_displays' => 'All displays',
     'add_device' => 'Add device',
+    'preview_playlist' => 'Preview playlist',
 ];

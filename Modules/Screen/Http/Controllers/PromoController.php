@@ -32,17 +32,32 @@ class PromoController extends Controller
         $validated = $request->validate([
             'promo' => ['required', 'mimes:jpeg,png,mp4', 'max:120000'],
         ]);
-        $action = new PromoActions();
-        $action->storePromo($validated);
-        return response()->json(['message' => __('employee::responses.operation_success')]);
+        try {
+            $action = new PromoActions();
+            $action->storePromo($validated);
+            return response()->json(['message' => __('employee::responses.operation_success')]);
+        } catch (\Throwable $e) {
+            \Log::error('promo creation field', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
     }
 
     public function update(Request $request, Promo $promo)
     {
-        $validated = $request->validate(['name' => ['required', 'string', 'max:255']]);
-        $promo->update(['name' => $validated['name']]);
-
-        return response()->json(['message' => __('employee::responses.updated_successfully', ['name' => __('screen::fields.promo')])]);
+        try {
+            $validated = $request->validate(['name' => ['required', 'string', 'max:255']]);
+            $promo->update(['name' => $validated['name']]);
+            return response()->json(['message' => __('employee::responses.updated_successfully', ['name' => __('screen::fields.promo')])]);
+        } catch (\Throwable $e) {
+            \Log::error('promo creation field', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
     }
 
     public function destroy(Promo $promo)
