@@ -27,7 +27,7 @@ class StorePlaylistRequest extends FormRequest
             'start_time' => [Rule::requiredIf(fn() => in_array(request('days_settings'), ['every_day', 'days_of_the_weak'])), 'date_format:H:i', 'nullable'],
             'days_of_the_weak' => ['required_if:days_settings,days_of_the_weak', 'array'],
             'days_of_the_weak.*' => ['in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
-            'start_date_time' => ['required_if:days_settings,custom_date_time', 'nullable', 'date_format:Y-m-d H:i:s'],
+            'start_date_time' => ['required_if:days_settings,custom_date_time', 'nullable', 'date_format:Y-m-d H:i'],
             'devices' => ['required', 'array'],
             'devices.*' => ['required', 'exists:screen_devices,id', 'integer'],
             'establishments_ids' => ['required', 'array'],

@@ -52,7 +52,7 @@
         $('#add_device_button').on('click', function() {
             $('#add_device_modal').modal('toggle');
         });
-        $(document).on('click', '.device-delete-btn', function(e){
+        $(document).on('click', '.device-delete-btn', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
             let deleteUrl = `{{ url('/device/${id}') }}`;
@@ -65,6 +65,10 @@
                 if (t.isConfirmed) {
                     ajaxRequest(deleteUrl, 'DELETE').done(function() {
                         deviceDataTable.ajax.reload();
+
+                        let selectElement = $('select[name="devices"]');
+                        selectElement.find(`option[value='${id}']`).remove();
+                        selectElement.trigger('change');
                     });
                 }
             });

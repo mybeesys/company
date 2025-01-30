@@ -40,6 +40,10 @@ Route::middleware([
     Route::controller(PlaylistController::class)->prefix('playlist')->name('playlists.')->group(function(){
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
+
+        Route::delete('/{playlist}', 'destroy')->name('delete');
+
+        Route::get('get-promos/{playlist}', 'getPlaylistPromos')->name('get-playlist-promos');
     });
 
     Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function(){

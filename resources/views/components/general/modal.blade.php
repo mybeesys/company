@@ -9,6 +9,7 @@
     'buttons' => true,
     'cancelButton' => true,
     'submitButton' => true,
+    'form' => true
 ])
 <div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ $class }}">
@@ -24,23 +25,27 @@
                 </div>
             </div>
             <div class="modal-body mx-5 {{ $body_class }}">
-                <form id="{{ $id }}_form" class="form" action="#">
-                    @csrf
-                    {{ $slot }}
-                    @if ($buttons)
-                        <div class="text-center pt-5">
-                            @if ($cancelButton)
-                                <button type="reset" class="btn btn-light me-3"
-                                    data-bs-dismiss="modal">@lang('general.cancel')</button>
-                            @endif
-                            @if ($submitButton)
-                                <button type="submit" class="btn btn-primary" data-kt-roles-modal-action="submit">
-                                    <span class="indicator-label">@lang('general.save')</span>
-                                </button>
-                            @endif
-                        </div>
-                    @endif
-                </form>
+                @if ($form)
+                    <form id="{{ $id }}_form" class="form" action="#">
+                @endif
+                @csrf
+                {{ $slot }}
+                @if ($buttons)
+                    <div class="text-center pt-5">
+                        @if ($cancelButton)
+                            <button type="reset" class="btn btn-light me-3"
+                                data-bs-dismiss="modal">@lang('general.cancel')</button>
+                        @endif
+                        @if ($submitButton)
+                            <button type="submit" class="btn btn-primary" data-kt-roles-modal-action="submit">
+                                <span class="indicator-label">@lang('general.save')</span>
+                            </button>
+                        @endif
+                    </div>
+                @endif
+                @if ($form)
+                    </form>
+                @endif
             </div>
         </div>
     </div>

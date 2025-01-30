@@ -30,7 +30,7 @@ class PlaylistTable
                     </div>
                     <div class="px-5 py-3 d-flex flex-column gap-2" style="width: 275px;">
                         <span class="text-gray-700 fw-bold">' . $playlist->name . '</span>
-                        <span class="text-gray-700 fw-bolder">' . $playlist->days_settings['days_settings_option'] . '</span>
+                        <span class="text-gray-700 fw-bolder">' . __('screen::general.' . $playlist->days_settings['days_settings_option']) . '</span>
                     </div>
                      <div class="d-flex flex-column gap-5 py-5 justify-content-center" style="width: 150px;">
                                     <a href="#" 

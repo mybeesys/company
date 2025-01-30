@@ -1,6 +1,6 @@
-@props(['establishments'])
+@props(['establishments', 'devices'])
 <x-general.modal module="screen" id='add_playlist_modal' title='add_playlist' class='mw-900px' :submitButton="false">
-    <div class="stepper stepper-pills" id="kt_stepper_example_basic">
+    <div class="stepper stepper-pills" id="add_playlist_stepper">
         <div class="stepper-nav flex-center flex-wrap mb-10">
             <div class="stepper-item mx-8 my-4 current" data-kt-stepper-element="nav">
                 <div class="stepper-wrapper d-flex align-items-center">
@@ -85,8 +85,8 @@
                     </x-form.input-div>
 
                     <x-form.input-div class="mb-10 w-100">
-                        <x-form.select name="devices" :label="__('screen::general.devices')" :options="[]" :errors="$errors"
-                            data_allow_clear="false" required>
+                        <x-form.select name="devices" :label="__('screen::general.devices')" :options="$devices" optionName="code" :errors="$errors"
+                            data_allow_clear="false" attribute="multiple" no_default required>
                             <button type="button" id="device-select-all-btn"
                                 class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>
                             <button type="button" id="device-deselect-all-btn"
@@ -140,7 +140,7 @@
 
 <script>
     function addPlaylistModal() {
-        var element = document.querySelector("#kt_stepper_example_basic");
+        var element = document.querySelector("#add_playlist_stepper");
         var stepper = new KTStepper(element);
         stepper.on("kt.stepper.next", function(stepper) {
             stepper.goNext();

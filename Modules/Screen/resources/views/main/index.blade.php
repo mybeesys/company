@@ -71,7 +71,8 @@
     <x-screen::promo.add-promo-modal />
     <x-screen::promo.rename-promo-modal />
     <x-screen::promo.preview-promo-modal />
-    <x-screen::playlist.add-playlist-modal :establishments="$establishments" />
+    <x-screen::playlist.add-playlist-modal :establishments="$establishments" :devices="$devices" />
+    <x-screen::playlist.preview-playlist-modal />
     <x-screen::device.add-device-modal />
 
 @endsection
@@ -111,6 +112,7 @@
             addPlaylistForm();
             initPlaylistDataTable();
             addDeviceModal();
+            previewPlaylistModal()
         });
     </script>
 @endsection

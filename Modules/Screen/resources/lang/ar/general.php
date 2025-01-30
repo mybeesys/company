@@ -31,4 +31,5 @@ return [
     'portrait' => 'عمودي',
     'all_displays' => 'كل شاشات العرض',
     'add_device' => 'أضف جهاز',
+    'preview_playlist' => 'معاينة قائمة التشغيل',
 ];
