@@ -24,7 +24,7 @@ class PlaylistController extends Controller
     {
         $data = $request->safe();
         try {
-            DB::transaction(function () use ($data) {
+            return DB::transaction(function () use ($data) {
                 $days_settings = [
                     'days_settings_option' => $data->days_settings,
                     'start_time' => $data->start_time,
@@ -34,17 +34,39 @@ class PlaylistController extends Controller
                 ];
                 $playlist = Playlist::create(['name' => $data->name, 'days_settings' => $days_settings]);
 
-                $playlist->promos()->sync($data->selected_promos);
+                foreach ($data->selected_promos as $index => $promoId) {
+                    $playlist->promos()->attach($promoId, [
+                        'created_at' => now()->addSeconds($index),
+                        'updated_at' => now()->addSeconds($index)
+                    ]);
+                }
                 $playlist->establishments()->sync($data->establishments_ids);
                 $playlist->devices()->sync($data->devices);
 
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             });
         } catch (\Throwable $e) {
-            \Log::error('coupons creation failed', [
+            \Log::error('playlist creation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
+        }
+    }
+
+    public function getPlaylistPromos(Playlist $playlist)
+    {
+         $promos = $playlist->promos->select('path');
+         return response()->json(['data' => $promos]);
+    }
+
+
+    public function destroy(Playlist $playlist)
+    {
+        $delete = $playlist->delete();
+        if ($delete) {
+            return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('screen::fields.promo')])]);
+        } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }

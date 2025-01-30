@@ -25,9 +25,12 @@
                             value +
                             '</div>');
                     });
-                }).done(function() {
+                }).done(function(response) {
                 $('#add_device_modal').modal('toggle');
                 deviceDataTable.ajax.reload();
+
+                let newOption = new Option(response.data.name, response.data.id, true, true);
+                $('select[name="devices"]').append(newOption).trigger('change');
             });
         });
     }

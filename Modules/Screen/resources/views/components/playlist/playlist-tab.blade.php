@@ -23,6 +23,24 @@
             e.preventDefault();
             $('#add_playlist_modal').modal('show');
         });
+
+        $(document).on('click', '.playlist-delete-btn', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            let deleteUrl = `{{ url('/playlist/${id}') }}`;
+
+            showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
+                    "{{ __('employee::general.this_element') }}"),
+                "{{ __('employee::general.delete') }}",
+                "{{ __('employee::general.cancel') }}", undefined,
+                true, "warning").then(function(t) {
+                if (t.isConfirmed) {
+                    ajaxRequest(deleteUrl, 'DELETE').done(function() {
+                        playlistDataTable.ajax.reload();
+                    });
+                }
+            });
+        });
     }
 
     function initPlaylistDataTable() {
