@@ -58,9 +58,9 @@ class PurchasesReturnController extends Controller
     {
         //   return $request;
         try {
-            $sell = Transaction::findOrFail($request->transaction_id);
+            $purchases = Transaction::findOrFail($request->transaction_id);
 
-            if (!$sell) {
+            if (!$purchases) {
                 return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
             }
 
@@ -78,9 +78,9 @@ class PurchasesReturnController extends Controller
                 'type' => 'purchases-return',
                 'invoice_type' => $request->invoice_type,
                 // 'due_date' => $request->due_date,
-                'parent_id' => $sell->id,
+                'parent_id' => $purchases->id,
                 'transaction_date' => now(),
-                'contact_id' => $sell->contact_id,
+                'contact_id' => $purchases->contact_id,
                 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->invoice_discount,
                 'discount_type' => $invoiced_discount_type,

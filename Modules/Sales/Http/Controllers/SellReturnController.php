@@ -93,6 +93,8 @@ class SellReturnController extends Controller
                 'status' => 'final',
                 'notice' => $request->notice,
                 'establishment_id' => $establishment_id,
+                'establishment_id' => $establishment_id,
+
 
             ]);
 
