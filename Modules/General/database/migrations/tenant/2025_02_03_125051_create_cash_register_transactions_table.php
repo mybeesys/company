@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('cash_register_id');
             $table->bigInteger('amount');
-            $table->bigInteger('pay_method')->nullable();
-            $table->bigInteger('type');
-            $table->bigInteger('transaction_type')->nullable();
-            $table->bigInteger('transaction_id ')->nullable();
+            $table->string('pay_method')->nullable();
+            $table->string('type');
+            $table->string('transaction_type')->nullable();
+            $table->bigInteger('transaction_id')->nullable();
             $table->timestamps();
         });
     }
