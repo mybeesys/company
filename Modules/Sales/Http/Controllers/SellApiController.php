@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
@@ -44,7 +45,11 @@ class SellApiController extends Controller
         $transactionUtil = new TransactionUtils();
         DB::beginTransaction();
         $ref_no =  SalesUtile::generateReferenceNumber('sell');
-
+        $main_establishment = Establishment::notMain()->active()->first();
+        $establishment_id = $request->establishment_id;
+        if ($request->establishment_id == $main_establishment->id) {
+            $establishment_id = $main_establishment->id;
+        }
         $transaction =   Transaction::create([
             'type' => 'sell',
             'invoice_type' => $request->payment_status,
@@ -65,8 +70,7 @@ class SellApiController extends Controller
             'notice' => null,
             'invoice_no'=>$request->invoice_no,
             'shift_number'=>$request->shift_number,
-            // 'payment_terms',
-
+            'establishment_id' => $establishment_id,
         ]);
 
 
