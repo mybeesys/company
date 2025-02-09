@@ -53,35 +53,54 @@
     <script>
         $(document).ready(function() {
 
-            $("#client_account").select2();
-            $("#client_type_route").select2();
-            $("#sales_type_route").select2();
-            $("#sales_account").select2();
-            $("#sell_return_type_route").select2();
-            $("#sell_return_account").select2();
-            $("#discount_sales_account").select2();
-            $("#discount_sales_type_route").select2();
+            $("#sales_client_account").select2();
+            $("#sales_client_type_route").select2();
+            $("#sales_sales_type_route").select2();
+            $("#sales_sales_account").select2();
+            $("#sales_sell_return_type_route").select2();
+            $("#sales_sell_return_account").select2();
+            $("#sales_discount_sales_account").select2();
+            $("#sales_discount_sales_type_route").select2();
 
-            $("#suppliers_type_route").select2();
-            $("#purchases_account").select2();
-            $("#purchases_type_route").select2();
-            $("#suppliers_account").select2();
-            $("#purchases_return_type_route").select2();
-            $("#purchases_return_account").select2();
-            $("#discount_purchases_type_route").select2();
-            $("#discount_purchases_account").select2();
+            $("#purchases_suppliers_type_route").select2();
+            $("#purchases_purchases_account").select2();
+            $("#purchases_purchases_type_route").select2();
+            $("#purchases_suppliers_account").select2();
+            $("#purchases_purchases_return_type_route").select2();
+            $("#purchases_purchases_return_account").select2();
+            $("#purchases_discount_purchases_type_route").select2();
+            $("#purchases_discount_purchases_account").select2();
 
-            $("#vat_calculation_route").select2();
-            $("#vat_calculation_account").select2();
+            $("#purchases_vat_calculation_type_route").select2();
+            $("#purchases_vat_calculation_account").select2();
 
-            $("#total_amount_route").select2();
-            $("#total_amount_account").select2();
+            $("#purchases_total_amount_type_route").select2();
+            $("#purchases_total_amount_account").select2();
 
-            $("#amount_before_vat_route").select2();
-            $("#amount_before_vat_account").select2();
+            $("#sales_amount_before_vat_type_route").select2();
+            $("#purchases_amount_before_vat_account").select2();
 
-            $("#discount_calculation_route").select2();
-            $("#discount_calculation_account").select2();
+            $("#purchases_discount_calculation_type_route").select2();
+            $("#purchases_discount_calculation_account").select2();
+
+            $("#sales_total_amount_account").select2();
+            $("#purchases_purchase_type_route").select2();
+            $("#purchases_purchase_account").select2();
+            $("#purchases_amount_before_vat_type_route").select2();
+            $("#purchases_purchase_return_type_route").select2();
+            $("#purchases_purchase_return_account").select2();
+            $("#sales_discount_calculation_type_route").select2();
+            $("#sales_vat_calculation_account").select2();
+            $("#sales_vat_calculation_account").select2();
+
+            $("#sales_total_amount_type_route").select2();
+            $("#sales_vat_calculation_type_route").select2();
+
+            $("#sales_amount_before_vat_type_route").select2();
+            $("#sales_amount_before_vat_account").select2();
+
+            $("#sales_discount_calculation_type_route").select2();
+            $("#sales_discount_calculation_account").select2()
 
 
         });

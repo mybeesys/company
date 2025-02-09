@@ -9,7 +9,7 @@
             <label class="fs-6 fw-semibold form-label">
                 <span>@lang('accounting::lang.routing_type')</span>
             </label>
-            <select class="form-select select-2 form-select-solid routing-type-select" name="{{ $typeSelectName }}"
+            <select class="form-select select-2 form-select-solid routing-type-select" name="{{ $typeSelectName }}" id="{{ $typeSelectName }}"
                 data-section="{{ $accountSelectName }}">
                 <option value="" {{ is_null($selectedType) ? 'selected' : '' }}>@lang('messages.select')</option>
                 @isset($typeOptions)
@@ -26,7 +26,7 @@
             <label class="fs-6 fw-semibold form-label">
                 <span>@lang('accounting::lang.account')</span>
             </label>
-            <select class="form-select select-2 form-select-solid account-select" name="{{ $accountSelectName }}">
+            <select class="form-select select-2 form-select-solid account-select" name="{{ $accountSelectName }}" id="{{ $accountSelectName }}">
                 <option value="" {{ is_null($selectedAccount) ? 'selected' : '' }}>@lang('messages.select')</option>
                 @isset($accounts)
                     @foreach ($accounts as $account)
