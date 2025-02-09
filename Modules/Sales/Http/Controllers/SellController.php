@@ -183,13 +183,13 @@ class SellController extends Controller
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
 
-                if ($request->paid_amount != $transaction->final_total) {
-                    $contactUtils->addRemainingAmountToCustomerAccount(
-                        $request->client_id,
-                        $transaction->final_total - $request->paid_amount,
-                        $transaction
-                    );
-                }
+                // if ($request->paid_amount != $transaction->final_total) {
+                //     $contactUtils->addRemainingAmountToCustomerAccount(
+                //         $request->client_id,
+                //         $transaction->final_total - $request->paid_amount,
+                //         $transaction
+                //     );
+                // }
             }
 
 
