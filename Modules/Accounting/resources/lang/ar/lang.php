@@ -147,6 +147,18 @@ return [
     'no_routing' => 'بلا توجيه',
     'cancel_account' => 'إلغاء الحساب',
     'assign_to_each' => 'تعيين لكل منها',
+    "vat_calculation" => "حساب ضريبة القيمة المضافة",
+    "total_amount" => "حساب المبلغ الإجمالي",
+    "amount_before_vat" => "حساب المبلغ قبل الضريبة",
+    "discount_calculation" => "حساب الخصم",
+    'client' => 'حساب العملاء',
+    'sales' => 'حساب المبيعات',
+    'sell_return' => 'حساب مردود المبيعات',
+
+    'suppliers' => 'حساب المورديين',
+    'purchase' => 'حساب المشتريات',
+
+    'purchase_return' => 'حساب مردود المشتريات',
 
 
 

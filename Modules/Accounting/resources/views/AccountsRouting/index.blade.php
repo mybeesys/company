@@ -71,6 +71,18 @@
             $("#discount_purchases_type_route").select2();
             $("#discount_purchases_account").select2();
 
+            $("#vat_calculation_route").select2();
+            $("#vat_calculation_account").select2();
+
+            $("#total_amount_route").select2();
+            $("#total_amount_account").select2();
+
+            $("#amount_before_vat_route").select2();
+            $("#amount_before_vat_account").select2();
+
+            $("#discount_calculation_route").select2();
+            $("#discount_calculation_account").select2();
+
 
         });
     </script>

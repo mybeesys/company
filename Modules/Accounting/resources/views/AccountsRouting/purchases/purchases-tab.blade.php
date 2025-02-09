@@ -1,19 +1,25 @@
 <div class="row">
-    <div class="col-6">
-        <x-accounting::account-routing :section="'purchases_routing'" :title="__('menuItemLang.suppliers')" :typeSelectId="'suppliers_type_route'" :typeSelectName="'suppliers_type_route'"
-            :accountSelectId="'suppliers_account'" :accountSelectName="'suppliers_account'" :accounts="$accounts" :typeOptions="$options" />
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'purchases_routing'" :title="__('menuItemLang.purchases')" :typeSelectId="'purchases_type_route'" :typeSelectName="'purchases_type_route'"
-            :accountSelectId="'purchases_account'" :accountSelectName="'purchases_account'" :accounts="$accounts" :typeOptions="$options" />
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'purchases_routing'" :title="__('menuItemLang.purchases-return')" :typeSelectId="'purchases_return_type_route'" :typeSelectName="'purchases_return_type_route'"
-            :accountSelectId="'purchases_return_account'" :accountSelectName="'purchases_return_account'" :accounts="$accounts" :typeOptions="$options" />
+    @php
+        $routingMapping = [
+            'purchases_suppliers' => 'suppliers',
+            'purchases_purchase' => 'purchase',
+            'purchases_vat_calculation' => 'vat_calculation',
+            'purchases_total_amount' => 'total_amount',
+            'purchases_amount_before_vat' => 'amount_before_vat',
+            'purchases_discount_calculation' => 'discount_calculation',
+            'purchases_purchase_return' => 'purchase_return',
+        ];
+    @endphp
 
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'purchases_routing'" :title="__('accounting::lang.Earned discount')" :typeSelectId="'discount_purchases_type_route'" :typeSelectName="'discount_purchases_type_route'"
-            :accountSelectId="'discount_purchases_account'" :accountSelectName="'discount_purchases_account'" :accounts="$accounts" :typeOptions="$options" />
-    </div>
+    @foreach ($routingMapping as $type => $field)
+        @php
+            $selectedRouting = $accountsRoting->where('type', $type)->where('section', 'purchases')->first();
+        @endphp
+
+        <div class="col-6">
+            <x-accounting::account-routing :section="'purchases_routing'" :title="__('accounting::lang.' . $field)" :typeSelectId="'purchases_' . $field . '_type_route'" :typeSelectName="'purchases_' . $field . '_type_route'"
+                :accountSelectId="'purchases_' . $field . '_account'" :accountSelectName="'purchases_' . $field . '_account'" :accounts="$accounts" :typeOptions="$options" :selectedType="optional($selectedRouting)->direction ?? ''"
+                :selectedAccount="optional($selectedRouting)->account_id ?? ''" />
+        </div>
+    @endforeach
 </div>

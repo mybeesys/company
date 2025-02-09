@@ -153,7 +153,18 @@ return [
     'no_routing' => 'No routing',
     'cancel_account' => 'Cancel account',
     'assign_to_each' => 'Assign to each',
+    "vat_calculation" => "VAT Account",
+    "total_amount" => "Total Amount Account",
+    "amount_before_vat" => "Amount Before VAT",
+    "discount_calculation" => "Discount Account",
+    'client' => 'Client Account',
+    'sales' => 'Sales Account',
+    'sell_return' => 'Sell Return Account',
 
+    'suppliers' => 'Suppliers Account',
+    'purchase' => 'Purchase Account',
+
+    'purchase_return' => 'Purchase Return Account',
 
 
 

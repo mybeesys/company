@@ -109,7 +109,8 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
+        $accountUtil->accounts_route($transactionPayment, $transaction);
+        // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
 
         return true;
     }

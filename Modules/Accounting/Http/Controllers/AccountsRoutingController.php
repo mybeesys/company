@@ -3,7 +3,10 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountsRoting;
 
@@ -21,9 +24,9 @@ class AccountsRoutingController extends Controller
             'cancel_account' => 'إلغاء الحساب',
             'assign_to_each' => 'تعيين لكل منها',
         ];
+        $accountsRoting = AccountsRoting::all();
 
-
-        return view('accounting::AccountsRouting.index', compact('accounts','options'));
+        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options'));
     }
 
     /**
@@ -34,9 +37,8 @@ class AccountsRoutingController extends Controller
         return view('accounting::create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
+
     public function store(Request $request)
     {
         $data = $request->all();
@@ -44,24 +46,42 @@ class AccountsRoutingController extends Controller
         $directions = [];
 
         $mapping = [
-            'purchases' => 'expense',
-            'suppliers' => 'liability',
-            'purchases_return' => 'revenue',
-            'discount_purchases' => 'revenue',
-            'sales' => 'revenue',
-            'sell_return' => 'expense',
-            'discount_sales' => 'expense',
+            'sales_client' => 'liability',
+            'sales_sales' => 'revenue',
+            'sales_vat_calculation' => 'liability',
+            'sales_total_amount' => 'asset',
+            'sales_amount_before_vat' => 'asset',
+            'sales_discount_calculation' => 'expense',
+            'sales_sell_return' => 'expense',
+            'purchases_vat_calculation' => 'liability',
+            'purchases_total_amount' => 'asset',
+            'purchases_amount_before_vat' => 'asset',
+            'purchases_discount_calculation' => 'expense',
+            'purchases_suppliers' => 'liability',
+            'purchases_purchase' => 'expense',
+            'purchases_purchase_return' => 'expense',
         ];
+
 
         foreach ($data as $key => $value) {
             if ($value !== null) {
                 if (str_contains($key, '_type_route')) {
+                    $isSales = strpos($key, 'sales_') !== false;
+                    $isPurchases = strpos($key, 'purchases_') !== false;
+                    if ($isPurchases) {
+                        $type = str_replace('purchases_', '', $key);
+                    }
+                    if ($isSales) {
+                        $type = str_replace('sales_', '', $key);
+                    }
                     $type = str_replace('_type_route', '', $key);
                     $directionType = $mapping[$type] ?? null;
 
                     if ($directionType) {
                         $directions[$type]['type'] = $type;
-                        $directions[$type]['direction_type'] = $directionType;
+                        $directions[$type]['routing_type'] = $directionType;
+                        $directions[$type]['direction'] = $value;
+                        $directions[$type]['section'] = $isSales ? 'sales' : 'purchases';
                     }
                 } elseif (str_contains($key, '_account')) {
                     $type = str_replace('_account', '', $key);
@@ -74,13 +94,42 @@ class AccountsRoutingController extends Controller
 
         $formattedDirections = array_values($directions);
 
-        return response()->json(['directions' => $formattedDirections]);
 
+        try {
+            DB::beginTransaction();
+            foreach ($formattedDirections as $direction) {
+                if (isset($direction['type'], $direction['routing_type'], $direction['direction'], $direction['account_id'])) {
+                    if ($direction['direction'] === 'no_routing') {
+                        AccountsRoting::where('type', $direction['type'])
+                            ->where('section', $direction['section'])
+                            ->delete();
+                    } else {
+                        AccountsRoting::updateOrCreate(
+                            [
+                                'type' => $direction['type'],
+                                'section' => $direction['section']
+                            ],
+                            [
+                                'routing_type' => $direction['routing_type'],
+                                'direction' => $direction['direction'],
+                                'account_id' => $direction['account_id']
+                            ]
+                        );
+                    }
+                }
+            }
 
-        // AccountsRoting::create([
-
-        // ]);
+            DB::commit();
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
     }
+
+
+
+
 
     /**
      * Show the specified resource.
