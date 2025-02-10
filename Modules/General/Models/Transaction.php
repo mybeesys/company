@@ -4,6 +4,7 @@ namespace Modules\General\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
@@ -15,7 +16,18 @@ class Transaction extends Model
 {
     use HasFactory;
 
+
     protected $guarded = ['id'];
+    public function getIsFavoriteAttribute()
+    {
+        return $this->favorites()->where('user_id', Auth::user()->id)->exists();
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(FavoriteBills::class);
+    }
+
 
     public function client()
     {
@@ -100,6 +112,7 @@ class Transaction extends Model
     {
 
         $returns = Transaction::whereIn('type', ['sell-return', 'purchases-return'])->pluck('parent_id')->toArray();
+       
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>

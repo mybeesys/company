@@ -30,7 +30,7 @@ class Product extends Model
         'subcategory_id',
         'tax_id',
         'description_ar',
-        'description_en',  
+        'description_en',
         'active',
         'sold_by_weight',
         'track_serial_number',
@@ -48,7 +48,8 @@ class Product extends Model
         'for_sell',
         'preparation_time',
         'calories',
-        'show_in_menu'
+        'show_in_menu',
+        
     ];
 
     protected $appends = ['price_with_tax'];

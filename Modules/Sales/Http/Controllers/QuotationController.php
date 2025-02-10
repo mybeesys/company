@@ -28,13 +28,20 @@ class QuotationController extends Controller
     public function index(Request $request)
     {
 
-        $transaction = Transaction::where('type', 'quotation')->get();
+        $transactionsQuery = Transaction::where('type', 'quotation');
 
         if ($request->ajax()) {
+            if ($request->filled('favorite')) {
+                $transactionsQuery->whereHas('favorites', function ($query) {
+                    $query->where('user_id', Auth::user()->id);
+                });
+            }
 
-            $transaction = Transaction::where('type', 'quotation')->get();
-            return  Transaction::getSellsTable($transaction);
+            $transactions = $transactionsQuery->get();
+            return Transaction::getSellsTable($transactions);
         }
+
+        $transaction = $transactionsQuery->get();
 
         $columns = Transaction::getsQuotationColumns();
         return view('sales::quotation.index', compact('columns', 'transaction'));

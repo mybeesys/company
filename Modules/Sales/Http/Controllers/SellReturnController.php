@@ -22,13 +22,21 @@ class SellReturnController extends Controller
      */
     public function index(Request $request)
     {
-        $transaction = Transaction::where('type', 'sell-return')->get();
+
+        $transactionsQuery = Transaction::where('type', 'sell-return');
 
         if ($request->ajax()) {
+            if ($request->filled('favorite')) {
+                $transactionsQuery->whereHas('favorites', function ($query) {
+                    $query->where('user_id', Auth::user()->id);
+                });
+            }
 
-            $transaction = Transaction::where('type', 'sell-return')->get();
-            return  Transaction::getSellsTable($transaction);
+            $transactions = $transactionsQuery->get();
+            return Transaction::getSellsTable($transactions);
         }
+        $transaction = $transactionsQuery->get();
+
 
         $columns = Transaction::getsSellsColumns();
 
@@ -105,7 +113,7 @@ class SellReturnController extends Controller
                 $discount_type =  null;
                 TransactionePurchasesLine::create([
                     'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
+                    'product_id' => $product->product_id,
                     'qyt' => $product->qty,
                     'unit_id' => $product->unit ?? 0,
                     'unit_price_before_discount' => $product->unit_price,

@@ -37,7 +37,6 @@
             </div>
         </div>
     @else
-    
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                 <x-tables.table-header model="sell" url="create-invoice" module="sales" :addButton="false">
@@ -46,7 +45,10 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-
+                        <select id="favorite-filter" class="form-select" style="width: min-content;">
+                            <option value="">@lang('messages.view_all')</option>
+                            <option value="1">@lang('messages.view_favorite')</option>
+                        </select>
                         <div class="btn-group">
                             @if ($Latest_event->action != '#')
                                 <a href="{{ url('/create-invoice') }}"
@@ -80,6 +82,7 @@
                                 </li>
                             </ul>
                         </div>
+
 
 
                         <x-tables.export-menu id="sell" />
@@ -140,6 +143,11 @@
                     alert('@lang('sales::lang.Please select a quotation')');
                 }
             });
+
+
+            $('#favorite-filter').change(function() {
+                dataTable.ajax.reload();
+            });
         });
 
 
@@ -147,8 +155,12 @@
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: dataUrl,
-
+                ajax: {
+                    url: dataUrl,
+                    data: function(d) {
+                        d.favorite = $('#favorite-filter').val();
+                    }
+                },
                 info: false,
 
                 columns: [{
@@ -211,6 +223,7 @@
                     KTMenu.createInstances();
                 }
             });
+
         };
 
         function handleFormFiltersDatatable() {

@@ -18,11 +18,12 @@ return [
     'show_payment' => 'Show Payments',
     'invoice_no' => 'Invoice No',
     'sell-return' => 'Sell return',
-    'purchases-return'=>'Purchases return',
+    'purchases-return' => 'Purchases return',
     'transaction-parent' => 'View the Reference Invoice',
     'tooltip_inv_return' => 'A partial return has been processed for this invoice for some items.',
 
-
+    'add_to_favorites' => 'Add to Favorites',
+    'remove_from_favorites' => 'Remove from Favorites',
 
 
 

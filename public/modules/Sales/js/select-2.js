@@ -40,6 +40,7 @@ $("#cost_center").select2({
     width: "resolve",
 });
 
+$('favorite-filter').select2();
 $("#transactions").select2({
     // width: "resolve",
     placeholder: "Select transactions",
