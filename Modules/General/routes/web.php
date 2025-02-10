@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\General\Http\Controllers\FavoriteController;
 use Modules\General\Http\Controllers\GeneralController;
 use Modules\General\Http\Controllers\NotificationController;
 use Modules\General\Http\Controllers\NotificationSettingController;
@@ -64,6 +65,8 @@ Route::middleware([
 
         Route::post('save-nots-terms', [GeneralController::class, 'saveNotsTerms'])->name('save-nots-terms');
 
+
+        Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
 
     });

@@ -6,7 +6,8 @@ return [
     'inactive' => 'Inactive',
     'active' => 'Active',
     'in_active' => 'Inactive',
-
+    'view_all' => 'View All',
+'view_favorite'=>'View Favorite',
     'deactivate' => 'Deactivate',
     'cancel' => 'Cancel',
     'submit' => 'Submit',

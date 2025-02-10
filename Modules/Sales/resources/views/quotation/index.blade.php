@@ -43,6 +43,10 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
+                        <select id="favorite-filter" class="form-select" style="width: min-content;">
+                            <option value="">@lang('messages.view_all')</option>
+                            <option value="1">@lang('messages.view_favorite')</option>
+                        </select>
                         <x-tables.export-menu id="sell" />
                     </x-slot:export>
                 </x-tables.table-header>
@@ -78,6 +82,9 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
+            $('#favorite-filter').change(function() {
+                dataTable.ajax.reload();
+            });
         });
 
 
@@ -87,8 +94,12 @@
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: dataUrl,
-
+                ajax: {
+                    url: dataUrl,
+                    data: function(d) {
+                        d.favorite = $('#favorite-filter').val();
+                    }
+                },
                 info: false,
 
                 columns: [{
