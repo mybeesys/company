@@ -91,9 +91,10 @@
                                             </option>
                                         @endforeach
                                     </select> --}}
-                                    <input type="hidden" class="form-control total_before_vat-field" readonly
-                                        name="products[{{ $index }}][products_id]" style="padding: 7px"
+                                    <input type="hidden" class="form-control"
+                                        name="products[{{ $index }}][product_id]" style="padding: 7px"
                                         style="width: 107px;" value="{{ $line->product->id }}" />
+
                                     @if (app()->getLocale() == 'ar')
                                         {{ $line->product->name_ar }} - <span
                                             class="fw-semibold mx-2 text-muted fs-5">{{ $line->product->SKU }}</span>

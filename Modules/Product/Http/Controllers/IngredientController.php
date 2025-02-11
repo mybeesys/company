@@ -4,8 +4,6 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Modules\Inventory\Models\InventoryOperationItem;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
@@ -66,9 +64,6 @@ class IngredientController extends Controller
     }
 
     private function validateInUse($ingredient_id){
-        $product = InventoryOperationItem::where([['ingredient_id', '=', $ingredient_id]])->first();
-        if($product != null)
-            return response()->json(["message"=>"INGREDIENT_USED_INVENTORY"]);
         $product = RecipeProduct::where([['item_id', '=', $ingredient_id],
                                         ['item_type', '=', 'i']])->first();
         if($product != null)

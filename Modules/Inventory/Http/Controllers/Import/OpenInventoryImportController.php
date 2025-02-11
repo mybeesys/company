@@ -8,16 +8,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Modules\Inventory\Http\Controllers\InventoryOperationController;
 
 class OpenInventoryImportController extends Controller
 {
-    protected $inventoryOperationController;
-
-    public function __construct(InventoryOperationController $inventoryOperationController){
-        $this->inventoryOperationController = $inventoryOperationController;
-    }
-
     public function import()
     {
         return view('inventory::productInventory.import');
@@ -69,7 +62,7 @@ class OpenInventoryImportController extends Controller
             try {
                 
                 DB::transaction(function () use($tenantId, $uuid, &$openInventoryImport, &$import) {
-                    $import = new OpenInventoryTransactionImport($this->inventoryOperationController);
+                    $import = new OpenInventoryTransactionImport();
 
                     // Perform the import
                     Excel::import($import, public_path('storage/'.'tenant'. $tenantId.'/uploads/'.$uuid));

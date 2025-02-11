@@ -24,12 +24,16 @@ const PrepDetail = ({ dir, translations }) => {
 
     const onProductChange = (key, val) =>{
         currentObject[key] = val;
-        if(key!='product'){
+        if(key!='purshaseItems'){
             onBasicChange(key, val);
             return;
         }
-        setcurrentObject({...currentObject});
-        axios.get(`${window.location.origin}/listRecipebyProduct/${val.id}?with_ingredient=Y`).then(response => {
+
+        axios.post(`${window.location.origin}/listPrepRecipe`, 
+            {
+                data: val.map((v)=> {return { item_id: v.product.id, times : v.qty}})
+            }
+            ).then(response => {
             let items = response.data.map(obj => {
                 const { quantity, products, ...rest } = obj;
                 return { 
@@ -72,7 +76,7 @@ const PrepDetail = ({ dir, translations }) => {
 
     const validateObject = (data) =>{
         if(!!!data.establishment) return `${translations.establishment} ${translations.required}`;
-        if(!!!data.product || data.product.length ==0) return `${translations.product} ${translations.required}`;
+        if(!!!data.toEstablishment || data.toEstablishment.length ==0) return `${translations.to} ${translations.required}`;
         if(!!currentObject.items && currentObject.items.filter(x=>!!!x.unit_transfer).length >0) return translations['item_unit_error'];
         return 'Success';
     }
@@ -83,6 +87,7 @@ const PrepDetail = ({ dir, translations }) => {
         <EditRowCompnent
          defaultMenu={[
             { 
+                size: 3,
                 key: 'product', 
                 visible: true, 
                 comp : <BasicInfoComponent
@@ -92,9 +97,8 @@ const PrepDetail = ({ dir, translations }) => {
                         onBasicChange={onProductChange}
                         fields={
                             [
-                                {key:"establishment" , title:"establishment", searchUrl:"searchEstablishments", type:"Async", required : true},
-                                {key:"product" , title:"product", searchUrl:"searchPrepProducts", type:"Async", required : true},
-                                {key:"times" , title:"times1",  type:"Number", required : true, newRow:true},
+                                {key:"establishment" , title:"ingredientEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, size:12},
+                                {key:"toEstablishment" , title:"", searchUrl:"prepEstablishment", type:"Async", required : true, newRow:true, size:12},
                             ]
                         }
                        />
@@ -102,35 +106,70 @@ const PrepDetail = ({ dir, translations }) => {
             { 
                 key: 'items', 
                 visible: true, 
-                comp : 
-                <TreeTableEditorLocal
-                translations={translations}
-                dir={dir}
-                header={false}
-                type= {"items"}
-                title={translations.items}
-                currentNodes={[...currentObject.items]}
-                defaultValue={{taxed : 0}}
-                cols={[
-                    {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', 
-                        editable:false, required:true
-                    },
-                    {key : "SKU", autoFocus: true, type :"Text", width:'15%', editable:false,
-                        customCell:(data, key, editable, onChange)=>{
-                            return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
-                        }
-                    },
-                    {key : "unit_transfer", title: "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:false},                    
-                    {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
-                        onChangeValue : (row, key, val, postExecute) => {
-                            row.total = !!val && !!row.cost ? val * row.cost : null;
-                            postExecute(row);
-                        }
-                    }
-                ]}
-                actions = {[]}
-                onUpdate={(nodes)=> onBasicChange("items", nodes)}
-                onDelete={null}/>
+                comp :
+                <div>
+                    <TreeTableEditorLocal
+                        translations={translations}
+                        dir={dir}
+                        header={true}
+                        addNewRow={true}
+                        type= {"purshaseItems"}
+                        title={translations.productsModifiers}
+                        currentNodes={[...currentObject.purshaseItems]}
+                        defaultValue={{taxed : 0, qty: 1}}
+                        cols={[
+                            {
+                                key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'50%', 
+                                editable:true, required:true,
+                                onChangeValue : (nodes, key, val, rowKey, postExecute) => {
+                                    nodes[rowKey].data.SKU = val.SKU;
+                                    postExecute(nodes, true);
+                                }
+                            },
+                            {
+                                key : "SKU", autoFocus: true, type :"Text", width:'15%', editable:false,
+                                customCell:(data, key, currentEditing, editable)=>{
+                                    return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
+                                }
+                            },
+                            {
+                                key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:true, required:true,
+                            },
+                            
+                        ]}
+                        actions = {[]}
+                        onUpdate={(nodes)=> onProductChange("purshaseItems", nodes)}
+                        onDelete={null}/>
+                    <TreeTableEditorLocal
+                        translations={translations}
+                        dir={dir}
+                        header={false}
+                        type= {"items"}
+                        title={translations.items}
+                        currentNodes={[...currentObject.items]}
+                        defaultValue={{taxed : 0}}
+                        cols={[
+                            {key : "product", autoFocus: true, searchUrl:"searchProducts", type :"AsyncDropDown", width:'15%', 
+                                editable:false, required:true,
+                            },
+                            {key : "SKU", autoFocus: true, type :"Text", width:'15%', editable:false,
+                                customCell:(data, key, editable, onChange)=>{
+                                    return <span>{!!data["product"] ? data["product"].SKU : ''}</span>
+                                }
+                            },
+                            {key : "unit_transfer", title: "unit", autoFocus: true, type :"AsyncDropDown", width:'15%', editable:false},                    
+                            {key : "qty", autoFocus: true, type :"Decimal", width:'15%', editable:false, required:true,
+                                onChangeValue : (row, key, val, postExecute) => {
+                                    row.total = !!val && !!row.cost ? val * row.cost : null;
+                                    postExecute(row);
+                                }
+                            }
+                        ]}
+                        actions = {[]}
+                        onUpdate={(nodes)=> onBasicChange("items", nodes)}
+                        onDelete={null}/>
+                </div>
+                
             }
           ]}
           currentObject={currentObject}

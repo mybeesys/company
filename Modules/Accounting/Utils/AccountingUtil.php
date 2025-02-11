@@ -8,6 +8,8 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\View\Components\AccountRouting;
 
 class AccountingUtil
 {
@@ -63,7 +65,7 @@ class AccountingUtil
     //     return true;
     // }
 
-    public function saveAccountTransaction($type, $transactionPayment, $transaction)
+    public function saveAccountTransaction($type, $transactionPayment, $transaction,$acc_trans_mapping_id=null)
     {
         $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
@@ -75,6 +77,7 @@ class AccountingUtil
             'created_by' => $transactionPayment->created_by,
             'transaction_id' => $transactionPayment->transaction_id,
             'transaction_payment_id' => $transactionPayment->id,
+            'acc_trans_mapping_id'=>$acc_trans_mapping_id,
         ];
 
         if ($transaction->transaction_type == 'sell' && $transactionPayment->is_return == 1) {
@@ -85,7 +88,80 @@ class AccountingUtil
         return true;
     }
 
+    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction,$acc_trans_mapping_id=null)
+    {
+        $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
+        $account_transaction_data = [
+            'amount' => $transactionPayment->amount,
+            'accounting_account_id' => $transactionPayment->account_id,
+            'type' =>  $type,
+            'sub_type' => $sub_type,
+            'operation_date' => $transactionPayment->paid_on,
+            'created_by' => $transactionPayment->created_by,
+            'transaction_id' => $transactionPayment->transaction_id,
+            'transaction_payment_id' => $transactionPayment->id,
+            'acc_trans_mapping_id'=>$acc_trans_mapping_id,
+        ];
 
+
+        AccountingAccountsTransaction::create($account_transaction_data);
+        return true;
+    }
+
+    public function accounts_route($transactionPayment, $transaction)
+    {
+        // dd($transaction);
+
+        $route_section = match ($transaction->type) {
+            'sell' => 'sales',
+            'purchases' => 'purchases',
+            default => '',
+        };
+
+        $accountsRoute = AccountsRoting::where('section', $route_section)->get();
+        // dd($route_section,$accountsRoute);
+        if (count($accountsRoute) > 0) {
+            $acc_trans_mapping = new AccountingAccTransMapping();
+
+            $ref_number = $this->generateReferenceNumber('journal_entry');
+            $acc_trans_mapping->ref_no = $ref_number;
+            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->type = 'journal_entry';
+            $acc_trans_mapping->created_by = Auth::user()->id;
+            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->save();
+            $acc_trans_mapping_id = $acc_trans_mapping->id;
+            foreach ($accountsRoute as $accountRoute) {
+                $transactionPayment->account_id = $accountRoute->account_id;
+
+                [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
+
+                $transactionPayment->amount = $amount;
+                $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
+            }
+        }
+
+
+        return true;
+    }
+    protected function determineAmountAndType($routeType, $transaction)
+    {
+        return match ($routeType) {
+            'sales_sales' => [$transaction->final_total, 'credit'],
+            'sales_vat_calculation' => [$transaction->tax_amount, 'debit'],
+            'sales_total_amount' => [$transaction->final_total, 'credit'],
+            'sales_amount_before_vat' => [$transaction->totalAfterDiscount, 'debit'],
+            'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
+
+            'purchases_purchases' => [$transaction->final_total, 'debit'],
+            'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
+            'purchases_total_amount' => [$transaction->final_total, 'debit'],
+            'purchases_amount_before_vat' => [$transaction->totalAfterDiscount, 'debit'],
+            'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+
+            default => [0, 'debit'],
+        };
+    }
     public static function default_accounting_account_types()
     {
         return  $account_sub_types = [

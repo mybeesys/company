@@ -10,13 +10,5 @@ class Country extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = [];
-
-    // protected static function newFactory(): CountryFactory
-    // {
-    //     // return CountryFactory::new();
-    // }
+  
 }

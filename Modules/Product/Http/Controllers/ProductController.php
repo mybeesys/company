@@ -5,6 +5,7 @@ namespace Modules\Product\Http\Controllers;
 use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Models\TransactionePurchasesLine;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\Product_Attribute;
@@ -15,7 +16,7 @@ use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Modules\Inventory\Models\InventoryOperationItem;
+use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
@@ -115,47 +116,60 @@ class ProductController extends Controller
         $prodRecipes = [];
         $prodIds = [];
         $modIds = [];
-        if(isset($request['ids'])){
-            foreach ($request['ids'] as $id) {
-                $idd = explode("-",$id);
-                if($idd[1] == 'p')
-                    $prodIds [] = $idd[0];
-                else
-                    $modIds [] = $idd[0];
+        $groupedData = collect($request['data'])
+            ->groupBy('item_id')
+            ->flatMap(function ($items) {
+                $sumTimes = $items->sum('times');
+                // Modify the first item to store the summed quantity
+                $first = $items->first();
+                $first['times'] = $sumTimes;
+                return [$first];
+            });
+        $timesMap = collect($groupedData)->pluck('times', 'item_id');
+        foreach ($groupedData as $data) {
+            $idd = explode("-", $data['item_id']);
+            $data['type'] = $idd[1];
+            if($idd[1] == 'p')
+                $prodIds [] = $idd[0];
+            else
+                $modIds [] = $idd[0];
             }
-            $prodRecipes = RecipeProduct::with('unitTransfer')->whereIn('product_id', $prodIds)->get();
-            $modRecipes = RecipeModifier::with('unitTransfer')->whereIn('modifier_id', $modIds)->get();
-            foreach ($prodRecipes as $prodRecipe) {
-                $newItem = $prodRecipe->toArray();
-                $newItem["product_id"] = $prodRecipe->item_id.'-p';
-                $prod = $prodRecipe->products->toArray();
-                $prod["id"] =  $prodRecipe->item_id.'-p';
-                if(isset($prodRecipe->products))
-                    $newItem["products"] =$prod;
+            $prodRecipes = RecipeProduct::with(['products', 'unitTransfer'])->whereIn('product_id', $prodIds)->get();
+            $prodRecipes->each(function ($product) use ($timesMap) {
+                $product->quantity = $product->quantity * ($timesMap[$product->product_id.'-p'] ?? 1);
+            });
+            $modRecipes = RecipeModifier::with(['products', 'unitTransfer'])->whereIn('modifier_id', $modIds)->get();
+            $modRecipes->each(function ($modifier) use ($timesMap) {
+                $modifier->quantity = $modifier->quantity * ($timesMap[$modifier->modifier_id.'-m'] ?? 1);
+            });
+            $result = array_merge($prodRecipes->toArray(), $modRecipes->toArray());
+            $groupedResult = collect($result)
+            ->groupBy('item_id')
+            ->flatMap(function ($items) {
+                $sumQuantity = $items->sum('quantity');
+                // Modify the first item to store the summed quantity
+                $first = $items->first();
+                $first['quantity'] = $sumQuantity;
+                return [$first];
+            });
+            foreach ($groupedResult as $newItem) {
+                $newItem["product_id"] = $newItem["item_id"].'-p';
+                $prod = $newItem["products"];
+                $prod["id"] =  $newItem["item_id"].'-p';
+                $newItem["products"] =$prod;
                 $resRecipes [] =$newItem;
             }
-            foreach ($modRecipes as $modRecipe) {
-                foreach ($resRecipes as $resRecipe) {
-                    if($modRecipe->item_id.'-p' == $resRecipe['product_id'])
-                        $resRecipe['quantity'] += $modRecipe['quantity'];
-                    else{
-                        $newItem = $modRecipe->toArray();
-                        $newItem["product_id"] = $modRecipe->item_id.'-p';
-                        $prod = $modRecipe->products->toArray();
-                        $prod["id"] =  $modRecipe->item_id.'-p';
-                        if(isset($modRecipe->products))
-                            $newItem["products"] =$prod;
-                        $resRecipes [] =$newItem;
-                    }
-                }
-            }
-        }
         return response()->json($resRecipes);
     }
     
     public function index()
     {
         return view('product::product.index' ); 
+    }
+
+    public function barcode()
+    {
+        return view('product::product.barcode'); 
     }
 
     /**
@@ -182,7 +196,10 @@ class ProductController extends Controller
     }
 
     private function validateInUse($product_id){
-        $product = InventoryOperationItem::where([['product_id', '=', $product_id]])->first();
+        $product = TransactionSellLine::where([['product_id', '=', $product_id]])->first();
+        if($product != null)
+            return response()->json(["message"=>"PRODUCT_USED_INVENTORY"]);
+        $product = TransactionePurchasesLine::where([['product_id', '=', $product_id]])->first();
         if($product != null)
             return response()->json(["message"=>"PRODUCT_USED_INVENTORY"]);
         $product = ProductComboItem::where([['item_id', '=', $product_id]])->first();

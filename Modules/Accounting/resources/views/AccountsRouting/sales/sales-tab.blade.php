@@ -1,20 +1,28 @@
 <div class="row">
-    <div class="col-6">
-        <x-accounting::account-routing :section="'sales_routing'" :title="__('sales::lang.clients')" :typeSelectId="'client_type_route'" :typeSelectName="'client_type_route'"
-        :accountSelectId="'client_account'" :accountSelectName="'client_account'" :accounts="$accounts" :typeOptions="$options" />
+    @php
+        $routingMapping = [
+            'sales_client' => 'client',
+            'sales_sales' => 'sales',
+            'sales_vat_calculation' => 'vat_calculation',
+            'sales_total_amount' => 'total_amount',
+            'sales_amount_before_vat' => 'amount_before_vat',
+            'sales_discount_calculation' => 'discount_calculation',
+            'sales_sell_return' => 'sell_return',
+        ];
+    @endphp
 
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'sales_routing'" :title="__('sales::lang.sales')" :typeSelectId="'sales_type_route'" :typeSelectName="'sales_type_route'"
-            :accountSelectId="'sales_account'" :accountSelectName="'sales_account'" :accounts="$accounts" :typeOptions="$options" />
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'sales_routing'" :title="__('menuItemLang.sell-return')" :typeSelectId="'sell_return_type_route'" :typeSelectName="'sell_return_type_route'"
-        :accountSelectId="'sell_return_account'" :accountSelectName="'sell_return_account'" :accounts="$accounts" :typeOptions="$options" />
+    @foreach ($routingMapping as $type => $field)
+        @php
+            $selectedRouting = $accountsRoting->where('type', $type)->where('section', 'sales')->first();
+        @endphp
 
-    </div>
-    <div class="col-6">
-        <x-accounting::account-routing :section="'sales_routing'" :title="__('accounting::lang.Discount allowed')" :typeSelectId="'discount_sales_type_route'" :typeSelectName="'discount_sales_type_route'"
-        :accountSelectId="'discount_sales_account'" :accountSelectName="'discount_sales_account'" :accounts="$accounts" :typeOptions="$options" />
-    </div>
+        <div class="col-6">
+            <x-accounting::account-routing :section="'sales_routing'" :title="__('accounting::lang.' . $field)"
+                :typeSelectId="'sales_' . $field . '_type_route'" :typeSelectName="'sales_' . $field . '_type_route'"
+                :accountSelectId="'sales_' . $field . '_account'" :accountSelectName="'sales_' . $field . '_account'"
+                :accounts="$accounts" :typeOptions="$options"
+                :selectedType="optional($selectedRouting)->direction ?? ''"
+                :selectedAccount="optional($selectedRouting)->account_id ?? ''" />
+        </div>
+    @endforeach
 </div>

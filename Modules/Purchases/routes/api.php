@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Purchases\Http\Controllers\PurchasesController;
+use Modules\Purchases\Http\Controllers\PurchasesReturnApiController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-/*
- *--------------------------------------------------------------------------
- * API Routes
- *--------------------------------------------------------------------------
- *
- * Here is where you can register API routes for your application. These
- * routes are loaded by the RouteServiceProvider within a group which
- * is assigned the "api" middleware group. Enjoy building your API!
- *
-*/
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('purchases', PurchasesController::class)->names('purchases');
+
+Route::middleware([
+    'api',
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+    // 'auth-central',
+])->group(function () {
+
+    Route::post('stor-purchases-return', [PurchasesReturnApiController::class, 'store'])->name('stor-purchases-return');
+
 });

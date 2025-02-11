@@ -44,6 +44,11 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
+                        <select id="favorite-filter" class="form-select select-2" style="width: min-content;">
+                            <option value="">@lang('messages.view_all')</option>
+                            <option value="1">@lang('messages.view_favorite')</option>
+                        </select>
+
                         <div class="btn-group">
                             @if ($Latest_event->action != '#')
                                 <a href="{{ url('/create-purchases-invoice') }}"
@@ -100,6 +105,7 @@
 @section('script')
     @parent
     <script src="{{ url('js/table.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     {{-- <script type="text/javascript" src="vfs_fonts.js"></script> --}}
     <script>
         "use strict";
@@ -113,7 +119,9 @@
             exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_purchases_table');
             handleSearchDatatable();
             handleFormFiltersDatatable();
-
+            $('#favorite-filter').change(function() {
+                dataTable.ajax.reload();
+            });
         });
 
 
@@ -123,8 +131,12 @@
             dataTable = $(table).DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: dataUrl,
-
+                ajax: {
+                    url: dataUrl,
+                    data: function(d) {
+                        d.favorite = $('#favorite-filter').val();
+                    }
+                },
                 info: false,
 
                 columns: [{

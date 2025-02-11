@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\General\Http\Controllers\Api\GeneralController;
+use Modules\General\Http\Controllers\CashRegisterApiController;
 use Modules\General\Http\Controllers\PaymentMethodsApiController;
 use Modules\General\Http\Controllers\SellApiController;
 use Modules\General\Http\Controllers\TaxApiController;
@@ -20,4 +21,13 @@ Route::middleware([
     Route::get('payment-methods', [PaymentMethodsApiController::class, 'index'])->name('payment-methods');
 
     Route::get('/company-details', [GeneralController::class, 'companyDetails'])->middleware(['auth-central']);
+
+
+    Route::post('/shift-open', [CashRegisterApiController::class, 'store'])->name('shift-open');
+    Route::post('/shift-close', [CashRegisterApiController::class, 'postCloseRegister'])->name('shift-close');
+
+
+
+
+
 });

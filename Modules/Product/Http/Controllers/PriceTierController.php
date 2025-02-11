@@ -2,10 +2,14 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Inventory\Models\Warehouse;
+use Modules\Product\Models\Modifier;
+use Modules\Product\Models\ModifierPriceTier;
 use Modules\Product\Models\PriceTier;
+use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\TreeBuilder;
 
@@ -97,6 +101,52 @@ class PriceTierController extends Controller
                             ->take(10)
                             ->get();
         return response()->json($result);
+    }
+
+    public function searchProductPriceTiers(Request $request)
+    {
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $priceTiers =[];
+        if ($request->has('id')) {
+            $idd = explode("-",$request['id']);
+            if($idd[1] == 'p')
+                $request['product_id'] = $idd[0];
+            else if($idd[1] == 'm')
+                $request['modifier_id'] = $idd[0];
+            else
+                $request['ingredient_id'] = $idd[0];
+        }
+        $porduct_id = $request->query('product_id', '');
+        $modifier_id=  $request->query('modifier_id', '');
+        $key = $request->query('key', '');
+        $prod = null;
+        if ($request->has('product_id')) {
+            $prod = Product::find($porduct_id);
+            $priceTiers = ProductPriceTier::with('priceTier')->where('product_id', '=', $porduct_id)
+                            ->whereHas('priceTier', function($query) use($key){
+                                $query->where('name_ar', 'like', '%' . $key . '%')
+                                    ->orWhere('name_en', 'like', '%' . $key . '%');
+                            })
+                            ->take(10)
+                            ->get();
+        }
+        if ($request->has('modifier_id')) {
+            $prod = Modifier::find($modifier_id);
+            $priceTiers = ModifierPriceTier::with('priceTier')->where('modifier_id', '=', $modifier_id)
+                            ->whereHas('priceTier', function($query) use($key){
+                                $query->where('name_ar', 'like', '%' . $key . '%')
+                                    ->orWhere('name_en', 'like', '%' . $key . '%');
+                            })
+                            ->take(10)
+                            ->get();
+        }
+        foreach($priceTiers as $priceTier){
+            $priceTier->name_ar = $priceTier->priceTier->name_ar;
+            $priceTier->name_en = $priceTier->priceTier->name_en;
+            $priceTier->price_with_tax = $priceTier->price + ($prod->tax ? TaxHelper::getTax($priceTier->price, $prod->tax->amount) : 0);
+        }
+        return response()->json($priceTiers);
     }
 
 }

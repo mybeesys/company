@@ -10,18 +10,19 @@ use Modules\Inventory\Models\ProductInventoryTotal;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\UnitTransferConvertor;
 
 class TransactionUtil {
 
-    private static function generatePoNo($opType)
+    public static function generatePoNo($opType)
     {
         $prefix = [
             'PO0' => 'PO0',
             'PREP' => 'PREP',
             'RMA' => 'RMA',
             'WASTE' => 'WASTE',
-            'TRANSFER' => 'Trans'
+            'TRANSFER' => 'TRANS'
         ];
         // Get the last invoice number (if any)
         $lastPO = Transaction::where('type', '=', $opType)->orderBy('ref_no', 'desc')->first();
@@ -48,20 +49,26 @@ class TransactionUtil {
             $item->qty = $newItem['qty'];
             if($idd[1] == 'p'){
                 $item->product_id = $idd[0];
-                if(isset($newItem['unit'])) 
+                if(isset($newItem['unit']))
                     $item->unit_id = $newItem['unit']['id'];
+                else  
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null); 
                 $prods [] = $item;
             }
             else if($idd[1] == 'm'){
                 $item->modifier_id = $idd[0];
                 if(isset($newItem['unit'])) 
                     $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null); 
                 $mods [] = $item;
             }
             else{
                 $item->ingredient_id = $idd[0];
                 if(isset($newItem['unit'])) 
                     $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null); 
                 $ingrs [] = $item;
             }
         }
@@ -125,19 +132,37 @@ class TransactionUtil {
         return $result;
     }
 
+    private static function fillMainUnit($items){
+        $newItems = [];
+        foreach ($items as $newItem) {
+            $idd = explode("-", $newItem['product']['id']);
+            if($idd[1] == 'p' && !isset($newItem['unit']))
+                $newItem["unit"] = UnitTransferConvertor::getMainUnit('P', $idd[0], null); 
+            else if($idd[1] == 'm' && !isset($newItem['unit']))
+                $newItem["unit"] = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+            else if($idd[1] == 'i' && !isset($newItem['unit']))
+                $newItem["unit"]= UnitTransferConvertor::getMainUnit('I', $idd[0], null);
+            $newItems [] = $newItem;
+        }
+        return $newItems;
+    }
+
     public static function createTransaction($type, $validated, $request, $withRelated){
         $validated['type'] = $type;
         $validated['transaction_date'] = $validated['transaction_date'] ?? date("Y-m-d");
         $validated["ref_no"] = self::generatePoNo($type);
         $validated["status"] = 'draft';
         $validated["establishment_id"] = $request["establishment"]["id"];
-        $result =  self::validate($validated["establishment_id"], $request['items'] ?? []);
+        $purchaseItems = $request['purshaseItems'] ?? ($request['items'] ?? []);
+        $purchaseItems = self::fillMainUnit($purchaseItems);
+        $sellItems = $request['items'] ?? [];
+        $sellItems = self::fillMainUnit($sellItems);
+        $result =  self::validate($validated["establishment_id"], $sellItems ?? []);
         if(count($result) >0 )
             return $result;
-        $items = $request['items'] ?? [];
-        DB::transaction(function () use ($request, $validated, $items, $withRelated) {
+        DB::transaction(function () use ($request, $validated, $sellItems, $purchaseItems, $withRelated) {
             $transaction = Transaction::create($validated);
-            $sellLines = self::createSellLines($transaction->id, $items);
+            $sellLines = self::createSellLines($transaction->id, $sellItems);
             foreach ($sellLines as $sellLine)
                 $sellLine->save();
             if($withRelated){
@@ -145,7 +170,7 @@ class TransactionUtil {
                 $validated["establishment_id"] = $request["toEstablishment"]["id"];
                 $validated["parent_id"] = $transaction->id;
                 $related = Transaction::create($validated);
-                $purchaseLines = self::createPurchaseLines($related->id, $items);
+                $purchaseLines = self::createPurchaseLines($related->id, $purchaseItems);
                 foreach ($purchaseLines as $purchaseLine)
                     $purchaseLine->save();
             }
@@ -158,7 +183,11 @@ class TransactionUtil {
         $transaction->transaction_date = $validated["transaction_date"];
         $transaction->description = $validated["description"];
         $validated["establishment_id"] = $request["establishment"]["id"];
-        $result =  self::validate($validated["establishment_id"], $request['items'] ?? []);
+        $purchaseItems = $request['purshaseItems'] ?? ($request['items'] ?? []);
+        $purchaseItems = self::fillMainUnit($purchaseItems);
+        $sellItems = $request['items'] ?? [];
+        $sellItems = self::fillMainUnit($sellItems);
+        $result =  self::validate($validated["establishment_id"], $sellItems ?? []);
         if(count($result) >0 )
             return $result;
         $related = null;
@@ -169,16 +198,16 @@ class TransactionUtil {
             $related["establishment_id"] = $request["toEstablishment"]["id"];
         }
         $items = $request['items'] ?? [];
-        DB::transaction(function () use ($transaction, $items, $withRelated, $related) {
+        DB::transaction(function () use ($transaction, $sellItems, $purchaseItems, $withRelated, $related) {
             $transaction->save();
             TransactionSellLine::where('transaction_id', '=', $transaction->id)->delete();
-            $sellLines = self::createSellLines($transaction->id, $items);
+            $sellLines = self::createSellLines($transaction->id, $sellItems);
             foreach ($sellLines as $sellLine)
                 $sellLine->save();
             if($withRelated){
                 $related->save();
                 TransactionePurchasesLine::where('transaction_id', '=', $related->id)->delete();
-                $purchaseLines = self::createPurchaseLines($related->id, $items);
+                $purchaseLines = self::createPurchaseLines($related->id, $purchaseItems);
                 foreach ($purchaseLines as $purchaseLine)
                     $purchaseLine->save();
             }
@@ -263,30 +292,40 @@ class TransactionUtil {
         $resTransaction = $transaction->toArray();
         $resTransaction["items"] = [];
         foreach ($transaction->sell_lines as $item) {
-            $newItem = $item->toArray();
-            $newItem["qty"] = $item->qyt;
-            if(isset($item->product_id)){
-                $newItem["product_id"] = $item->product_id.'-p';
-                $prod = $item->product->toArray();
-                $prod["id"] =  $item->product_id.'-p';
-                $newItem["product"] =$prod;
-            }
-            if(isset($item->ingredient_id)){
-                $newItem["product_id"] = $item->ingredient_id.'-i';
-                $ingr = $item->ingredient->toArray();
-                $ingr["id"] =  $item->ingredient_id.'-i';
-                $newItem["product"] =$ingr;
-            }
-            if(isset($item->modifier_id)){
-                $newItem["product_id"] = $item->modifier_id.'-m';
-                $mod = $item->modifier->toArray();
-                $mod["id"] =  $item->modifier_id.'-m';
-                $newItem["product"] =$mod;
-            }
-            $newItem["unit"] = $item->unitTransfer?->toArray();
-            $resTransaction["items"][] =$newItem;
+            $resTransaction["items"][] = self::prepareItem($item);
+        }
+        $resTransaction["purshaseItems"] = [];
+        if($related){
+            foreach ($related->purchases_lines as $purchaseItem) {
+                $resTransaction["purshaseItems"][] = self::prepareItem($purchaseItem);
+            }   
         }
         return $resTransaction;
+    }
+    
+    private static function prepareItem($item){
+        $newItem = $item->toArray();
+        $newItem["qty"] = $item->qyt;
+        if(isset($item->product_id)){
+            $newItem["product_id"] = $item->product_id.'-p';
+            $prod = $item->product->toArray();
+            $prod["id"] =  $item->product_id.'-p';
+            $newItem["product"] =$prod;
+        }
+        if(isset($item->ingredient_id)){
+            $newItem["product_id"] = $item->ingredient_id.'-i';
+            $ingr = $item->ingredient->toArray();
+            $ingr["id"] =  $item->ingredient_id.'-i';
+            $newItem["product"] =$ingr;
+        }
+        if(isset($item->modifier_id)){
+            $newItem["product_id"] = $item->modifier_id.'-m';
+            $mod = $item->modifier->toArray();
+            $mod["id"] =  $item->modifier_id.'-m';
+            $newItem["product"] =$mod;
+        }
+        $newItem["unit"] = $item->unitTransfer?->toArray();
+        return $newItem;
     }
 
     public static function getTransactions($type){

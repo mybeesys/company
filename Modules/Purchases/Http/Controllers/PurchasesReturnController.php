@@ -22,13 +22,20 @@ class PurchasesReturnController extends Controller
      */
     public function index(Request $request)
     {
-        $transaction = Transaction::where('type', 'purchases-return')->get();
+
+        $transactionsQuery = Transaction::where('type', 'purchases-return');
 
         if ($request->ajax()) {
+            if ($request->filled('favorite')) {
+                $transactionsQuery->whereHas('favorites', function ($query) {
+                    $query->where('user_id', Auth::user()->id);
+                });
+            }
 
-            $transaction = Transaction::where('type', 'purchases-return')->get();
-            return  Transaction::getSellsTable($transaction);
+            $transactions = $transactionsQuery->get();
+            return Transaction::getSellsTable($transactions);
         }
+        $transaction = $transactionsQuery->get();
 
         $columns = Transaction::getsSellsColumns();
 
@@ -58,9 +65,9 @@ class PurchasesReturnController extends Controller
     {
         //   return $request;
         try {
-            $sell = Transaction::findOrFail($request->transaction_id);
+            $purchases = Transaction::findOrFail($request->transaction_id);
 
-            if (!$sell) {
+            if (!$purchases) {
                 return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
             }
 
@@ -78,9 +85,9 @@ class PurchasesReturnController extends Controller
                 'type' => 'purchases-return',
                 'invoice_type' => $request->invoice_type,
                 // 'due_date' => $request->due_date,
-                'parent_id' => $sell->id,
+                'parent_id' => $purchases->id,
                 'transaction_date' => now(),
-                'contact_id' => $sell->contact_id,
+                'contact_id' => $purchases->contact_id,
                 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->invoice_discount,
                 'discount_type' => $invoiced_discount_type,
@@ -104,7 +111,7 @@ class PurchasesReturnController extends Controller
                 $discount_type =  null;
                 TransactionSellLine::create([
                     'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
+                    'product_id' => $product->product_id,
                     'qyt' => $product->qty,
                     'unit_id'=>$product->unit,
                     'unit_price_before_discount' => $product->unit_price,

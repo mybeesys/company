@@ -64,4 +64,14 @@ return [
     'payment_details' => 'Payment details',
     'subscription_id' => 'Subscription id',
     'Prefix Settings' => 'Prefix Settings',
+    'invoice_settings' => 'Invoice Settings',
+    'general_settings' => 'General Settings',
+    'terms_and_conditions_en' => 'Terms and Conditions (English)',
+    'terms_and_conditions' => 'Terms and Conditions',
+    'terms_and_conditions_ar' => 'Terms and Conditions (Arabic)',
+    'note_en' => 'Notes (English)',
+    'note' => 'Notes',
+    'note_ar' => 'Notes (Arabic)',
+
+
 ];

@@ -40,6 +40,22 @@
             font-size: 14px;
             color: #333;
         }
+
+        .favorite-icon {
+            font-size: 2rem;
+            color: transparent;
+            -webkit-text-stroke: 2px gold;
+        }
+
+        .favorite-icon.active {
+            color: gold;
+        }
+
+        .star-shadow {
+    text-shadow: 0px 0px 5px rgba(255, 215, 0, 0.8),
+                 0px 0px 10px rgba(255, 215, 0, 0.5);
+}
+
     </style>
 
 
@@ -64,7 +80,15 @@
                 <p class="fs-7" style="color: #6a6a6a">{{ $company->state }} - {{ $company->city }}</p>
             </div>
         </div>
-        <div class="col-sm-4 " style="justify-content: center;display: flex;"></div>
+        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+            <button class="favorite-btn btn border-0" data-transaction-id="{{ $transaction->id }}"
+                title="{{ $transaction->is_favorite ? __('genreal::lang.remove_from_favorites') : __('genreal::lang.add_to_favorites') }}">
+                <i class="fas fa-star favorite-icon {{ $transaction->is_favorite ? 'text-warning star-shadow' : 'text-light star-shadow' }}" style="font-size: 2rem"></i>
+            </button>
+
+
+
+        </div>
     </div>
     <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
@@ -271,6 +295,34 @@
         </div>
     </div>
 
+    @if ($transaction->settings_terms_notes)
+        @php
+            $data = json_decode($transaction->settings_terms_notes ?? '{}', true);
+            $locale = app()->getLocale();
+            $terms = $locale == 'en' ? $data['terms_en'] ?? null : $data['terms_ar'] ?? null;
+            $note = $locale == 'en' ? $data['note_en'] ?? null : $data['note_ar'] ?? null;
+        @endphp
+        <div id="terms_notes_section">
+            @if ($terms)
+                <div class="align-items-center">
+                    <label class="fs-6 fw-semibold me-3">@lang('general::general.terms_and_conditions'):</label>
+                    <label class="fs-5 fw-semibold my-2 me-3">{!! $terms !!}</label>
+                </div>
+            @endif
+
+            @if ($note)
+                <div class="align-items-center mb-2">
+                    <label class="fs-6 fw-semibold my-2 me-3">@lang('general::general.note'):</label>
+                    <label class="fs-5 fw-semibold me-3">{{ $note }}</label>
+                </div>
+            @endif
+        </div>
+
+    @endif
+
+
+
+
     <div class="separator d-flex flex-center mb-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
@@ -281,7 +333,39 @@
 @stop
 
 @section('script')
-    @parent
+    <script>
+        $(document).ready(function() {
+            $('.favorite-btn').on('click', function() {
+                let button = $(this);
+                let icon = button.find('i');
+                let transactionId = button.data('transaction-id');
 
+                $.ajax({
+                    url: '/favorites/toggle',
+                    type: 'POST',
+                    data: {
+                        transaction_id: transactionId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.is_favorite) {
+                            icon.removeClass('text-dark border border-warning').addClass(
+                                'text-warning');
+                            button.attr('title',
+                                '{{ __('general::lang.remove_from_favorites') }}');
+                        } else {
+                            icon.removeClass('text-warning').addClass('text-light');
+                            button.attr('title',
+                                '{{ __('general::lang.add_to_favorites') }}');
+                        }
+
+                        button.tooltip('dispose').tooltip();
+                    }
+                });
+            });
+
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
 
 @endsection

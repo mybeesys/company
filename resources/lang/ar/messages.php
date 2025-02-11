@@ -5,7 +5,8 @@ return [
     'activate' => 'تنشيط',
     'active' => 'فعال',
     'in_active' => 'غير فعال',
-
+    'view_all' => 'عرض الكل',
+    'view_favorite' => 'عرض المفضلة',
     'deactivate' => 'إلغاء تنشيط',
     'inactive' => 'غير نشط',
     'cancel' => 'إلغاء',

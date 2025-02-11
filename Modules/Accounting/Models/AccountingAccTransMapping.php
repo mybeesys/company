@@ -5,6 +5,7 @@ namespace Modules\Accounting\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Employee\Models\Employee;
 use Yajra\DataTables\DataTables;
 // use Modules\Accounting\Database\Factories\AccountingAccTransMappingFactory;
 
@@ -18,7 +19,7 @@ class AccountingAccTransMapping extends Model
     protected $guarded = ['id'];
 
     public function added_by(){
-        return $this->belongsTo(User::class,'created_by');
+        return $this->belongsTo(Employee::class,'created_by');
     }
 
     public function transactions(){

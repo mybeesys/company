@@ -35,9 +35,9 @@ const PrepTable = ({ dir, translations }) => {
 
   const dropdownCell = (data, key, editMode, editable, refreshTree) => {
     let actions = [];
-    if(data.status == 'draft')
-      actions.push({key:"preped", action: (data, afterExecute)=>{
-        changeStatus(data, 'preped', afterExecute);
+    if(data.status != "approved")
+      actions.push({key:"approved", action: (data, afterExecute)=>{
+        changeStatus(data, 'approved', afterExecute);
       }});
     return <DropdownMenu actions={actions} data={data} translations={translations} afterExecute={refreshTree}/>;
   }

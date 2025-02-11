@@ -63,4 +63,14 @@ return [
     'payment_details' => 'تفاصيل الدفع',
     'subscription_id' => 'رقم الإشتراك',
     'Prefix Settings' => 'إعدادات البادئة (Prefix)',
+    'invoice_settings' => 'إعدادات الفواتير',
+
+    'general_settings' => 'إعدادات عامة',
+    'terms_and_conditions_en'=>'الشروط والأحكام  (بالانكليزية)',
+    'terms_and_conditions'=>'الشروط والأحكام',
+    'terms_and_conditions_ar'=>'الشروط والأحكام  (بالعربية)',
+    'note_en'=>'الملاحظات (بالانكليزية)',
+    'note'=>'الملاحظات',
+    'note_ar'=>'الملاحظات (بالعربية)',
+
 ];

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\General\Http\Controllers\FavoriteController;
 use Modules\General\Http\Controllers\GeneralController;
 use Modules\General\Http\Controllers\NotificationController;
 use Modules\General\Http\Controllers\NotificationSettingController;
@@ -61,5 +62,12 @@ Route::middleware([
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');
         Route::get('fetch-notification', [NotificationController::class, 'fetchNotification'])->name('fetch-notification');
+
+        Route::post('save-nots-terms', [GeneralController::class, 'saveNotsTerms'])->name('save-nots-terms');
+
+
+        Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+
     });
 });

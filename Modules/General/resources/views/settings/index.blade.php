@@ -121,6 +121,14 @@
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#invoice_settings_tab">@lang('general::general.invoice_settings')</a>
+            </li>
+
+
+
         </ul>
         <div class="tab-content" id="myTabContent">
             <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
@@ -134,6 +142,8 @@
             <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
             @include('general::prefix-settings.prefix-settings')
+            @include('general::invoice-setting.general-invoice-setting.invoice-tab')
+
         </div>
         @include('general::tax.create')
         @include('general::tax.edit')
@@ -448,6 +458,32 @@
 
         $(document).on('click', '.nav-link-methods', function() {
             methodDataTable.ajax.reload();
+        });
+
+
+
+        document.querySelectorAll('[id^="terms_and_conditions_"]').forEach(element => {
+            let lang = element.id.endsWith('_ar') ? 'ar' : 'en';
+            let direction = lang === 'ar' ? 'rtl' : 'ltr';
+
+            ClassicEditor
+                .create(element, {
+                    toolbar: ['heading', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo',
+                        'redo'
+                    ],
+                    language: {
+                        content: lang,
+                        ui: 'en'
+                    }
+                })
+                .then(editor => {
+                    editor.editing.view.change(writer => {
+                        writer.setAttribute('dir', direction, editor.editing.view.document.getRoot());
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
         });
     </script>
 @endsection
