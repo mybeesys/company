@@ -37,7 +37,7 @@ class ShiftService
     public function getEmployeeData($employees, $start_date, $end_date, $schedules_ids)
     {
         return $employees->map(function ($employee) use ($start_date, $end_date, $schedules_ids) {
-            $shifts_query = $employee->shifts->where('establishment_id', $this->establishment_id)->whereIn('schedule_id', $schedules_ids);
+            $shifts_query = $employee->shifts->whereIn('schedule_id', $schedules_ids);
             $shifts = $shifts_query->select('id', 'establishment_id', 'date', 'startTime', 'endTime', 'break_duration')->groupBy('date')->toArray();
             $shifts_count = $shifts_query->count();
             $employee_name = $this->lang === 'ar' ? $employee->name : $employee->name_en;
@@ -140,7 +140,7 @@ class ShiftService
             'basic_wage' => $employee->wage?->rate,
             'total_wage' => $employee->wage?->rate + PayrollAdjustment::where('employee_id', $employee->id)->always()->get()->sum('amount'),
             'role' => implode('<br>', $employee->allRoles->unique()->pluck('name')->toArray()),
-            'establishment' => $employee?->defaultEstablishment?->name,
+            'establishment' => $establishments = $employee?->shifts->pluck('establishment.name')->unique()->implode(', '),
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
                             <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
                         </div>'

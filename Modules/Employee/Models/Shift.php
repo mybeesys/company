@@ -4,6 +4,7 @@ namespace Modules\Employee\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Establishment\Models\Establishment;
 
 class Shift extends BaseScheduleModel
 {
@@ -17,6 +18,11 @@ class Shift extends BaseScheduleModel
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class);
     }
 
     public function getDateAttribute()

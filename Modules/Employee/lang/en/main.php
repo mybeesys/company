@@ -41,6 +41,8 @@ return [
     'schedules_management_module' => 'Schedules management',    
     'crm_management_module' => 'CRM management',
     'timecard' => 'Working hours',
+    'screens_management_module' => 'Screens',
+    'sales_management_module' => 'Sales',
 
     'notifications_settings' => 'Notifications settings',
     'system_settings' => 'System settings',

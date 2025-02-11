@@ -41,6 +41,9 @@ return [
     'schedules_management_module' => 'إدارة الجدولة',    
     'crm_management_module' => 'إدارة علاقات العملاء',
     'timecard' => 'وقت الدوام',
+    'screens_management_module' => 'الشاشات',
+    'sales_management_module' => 'المبيعات',
+
 
 
     'notifications_settings' => 'إعدادات الإشعارات',

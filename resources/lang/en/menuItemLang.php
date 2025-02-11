@@ -102,7 +102,7 @@ return [
     'receipt_vouchers' => 'Receipt Vouchers',
     'payment_vouchers' => 'Payment Vouchers',
 
-
+    'sales_report' => 'Sales report',
 
 
 

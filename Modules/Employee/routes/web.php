@@ -154,7 +154,7 @@ Route::middleware([
 
             Route::controller(ShiftController::class)->middleware([EnureTimeSheetRulesExists::class])->name('shifts.')->prefix('/shift')->group(function () {
                 Route::get('', 'index')->name('index')->can('viewAny', Shift::class);
-                Route::post('/store', 'store')->name('store')->can('create', Shift::class);
+                Route::post('/store', 'store')->name('store')->can('update', Shift::class);
 
                 Route::get('/get-shift', 'getShift')->name('getShift');
 
