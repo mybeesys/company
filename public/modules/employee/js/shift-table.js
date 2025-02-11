@@ -62,7 +62,7 @@ function initTable(tableUrl, startDate, endDate) {
             extend: 'colvis',
             text: Lang.get('general.column_visibility'),
             className: 'mb-5',
-            columns: ':lt(6)'
+            columns: ':lt(8)'
         },
         ...(hasPermissionToUpdate ? [{
             text: Lang.get('general.copy_shifts'),
@@ -146,7 +146,7 @@ function updateTableHeader(startDate, endDate) {
     let currentDate = moment(startDate, 'YYYY-MM-DD');
     const endMomentDate = moment(endDate, 'YYYY-MM-DD');
     // Remove all date columns immediately
-    $headerRow.find('th:gt(6)').remove();
+    $headerRow.find('th:gt(7)').remove();
 
     while (currentDate.isSameOrBefore(endDate)) {
         const formattedDate = currentDate.format('MM/DD');
@@ -206,7 +206,7 @@ function tableFooter() {
         var api = this.api();
 
         var columnsToSum = [1];
-        for (var i = 5; i <= 11; i++) {
+        for (var i = 6; i <= 12; i++) {
             columnsToSum.push(i);
         }
 

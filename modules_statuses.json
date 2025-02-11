@@ -9,5 +9,6 @@
     "General": true,
     "Purchases": true,
     "Screen": true,
-    "Reservation": true
+    "Reservation": true,
+    "Report": true
 }

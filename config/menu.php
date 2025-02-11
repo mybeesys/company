@@ -363,7 +363,13 @@ return [
         'url' => '/',
         'icon' => 'fas fa-bar-chart',
         'permission' => '',
-        'subMenu' => []
+        'subMenu' => [
+            [
+                'name' => 'sales',
+                'url' => 'sales-report',
+                'permission' => '',  
+            ]
+        ]
     ],
     [
         'name' => 'setting',
