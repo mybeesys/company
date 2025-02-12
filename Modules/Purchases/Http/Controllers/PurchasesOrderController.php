@@ -31,21 +31,37 @@ class PurchasesOrderController extends Controller
         $transactionsQuery = Transaction::where('type', 'purchases-order');
 
         if ($request->ajax()) {
-            if ($request->filled('favorite')) {
-                $transactionsQuery->whereHas('favorites', function ($query) {
-                    $query->where('user_id', Auth::user()->id);
+            $transactionsQuery
+                ->when($request->filled('favorite'), function ($query) {
+                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                })
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
                 });
-            }
-
             $transactions = $transactionsQuery->get();
             return Transaction::getSellsTable($transactions);
         }
 
         $transaction = $transactionsQuery->get();
         $columns = Transaction::getsQuotationColumns();
+        $clients =  Contact::where('business_type', 'supplier')->get();
+        $page = 'quotations';
 
-      
-        return view('purchases::purchase-order.index', compact('columns', 'transaction'));
+
+        return view('purchases::purchase-order.index', compact('columns', 'page', 'clients', 'transaction'));
     }
 
     /**
@@ -95,9 +111,8 @@ class PurchasesOrderController extends Controller
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $main_establishment = Establishment::notMain()->active()->first();
 
-            $establishment_id =$request->storehouse;
-            if ($request->storehouse == $main_establishment->id)
-            {
+            $establishment_id = $request->storehouse;
+            if ($request->storehouse == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
             $transaction =   Transaction::create([
@@ -118,7 +133,7 @@ class PurchasesOrderController extends Controller
                 'ref_no' => $ref_no,
                 'status' => 'draft',
                 'notice' => $request->notice,
-                'establishment_id'=>$establishment_id,
+                'establishment_id' => $establishment_id,
 
             ]);
 
@@ -131,7 +146,7 @@ class PurchasesOrderController extends Controller
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
                     'qyt' => $product->qty,
-                    'unit_id'=>$product->unit,
+                    'unit_id' => $product->unit,
                     'unit_price_before_discount' => $product->unit_price,
                     'unit_price' => $product->unit_price,
                     'discount_type' => $discount_type,

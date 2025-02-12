@@ -44,11 +44,11 @@
 
                     <x-slot:filters>
                     </x-slot:filters>
+
                     <x-slot:export>
-                        <select id="favorite-filter" class="form-select" style="width: min-content;">
-                            <option value="">@lang('messages.view_all')</option>
-                            <option value="1">@lang('messages.view_favorite')</option>
-                        </select>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                            <i class="bi bi-funnel fs-2"></i>
+                        </button>
                         <div class="btn-group">
                             @if ($Latest_event->action != '#')
                                 <a href="{{ url('/create-invoice') }}"
@@ -98,20 +98,31 @@
 
     @include('sales::sell.convertToInvoiceModal')
 
-
+    @include('general::filter-sales-purchases.filterModal')
 
 
 @stop
 
 @section('script')
     @parent
+
+
     <script src="{{ url('js/table.js') }}"></script>
-    {{-- <script type="text/javascript" src="vfs_fonts.js"></script> --}}
+    <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+
+
     <script>
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
         const dataUrl = '{{ route('invoices') }}';
+        let currentLang = "{{ app()->getLocale() }}";
+        let dueDateRangeValue = '';
+        let sale_date_range = '';
+
+
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -121,14 +132,10 @@
             handleFormFiltersDatatable();
 
 
-
             $("#quotation-items").select2(
-                // width: "resolve",
+
             );
-        });
 
-
-        $(document).ready(function() {
             const form = $('#create-invoice');
             const quotationSelect = $('#quotation-items');
 
@@ -145,86 +152,85 @@
             });
 
 
-            $('#favorite-filter').change(function() {
-                dataTable.ajax.reload();
-            });
+
+
+            function initDatatable() {
+                dataTable = $(table).DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: dataUrl,
+                        data: function(d) {
+                            d.favorite = $('#favorite-filter').val();
+                            d.customer = $('#customer').val();
+                            d.payment_status = $('#payment_status').val();
+                            d.due_date_range = dueDateRangeValue;
+                            d.sale_date_range = sale_date_range;
+
+                        }
+                    },
+                    info: false,
+
+                    columns: [{
+                            data: 'id',
+                            name: 'id',
+                        },
+                        {
+                            data: 'ref_no',
+                            name: 'ref_no'
+                        },
+                        {
+                            data: 'client',
+                            name: 'client'
+                        },
+                        {
+                            data: 'transaction_date',
+                            name: 'transaction_date'
+                        },
+                        {
+                            data: 'due_date',
+                            name: 'due_date'
+                        },
+                        {
+                            data: 'payment_status',
+                            name: 'payment_status'
+                        },
+
+                        {
+                            data: 'final_total',
+                            name: 'final_total'
+                        },
+                        {
+                            data: 'paid_amount',
+                            name: 'paid_amount'
+                        },
+                        {
+                            data: 'remaining_amount',
+                            name: 'remaining_amount'
+                        },
+                        {
+                            data: 'actions',
+                            name: 'actions',
+                            orderable: false,
+                            searchable: false
+                        }
+
+
+                    ],
+                    order: [],
+                    scrollX: true,
+                    pageLength: 10,
+                    drawCallback: function() {
+                        KTMenu.createInstances();
+                    }
+                });
+
+            };
+
+
         });
 
 
-        function initDatatable() {
-            dataTable = $(table).DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: dataUrl,
-                    data: function(d) {
-                        d.favorite = $('#favorite-filter').val();
-                    }
-                },
-                info: false,
-
-                columns: [{
-                        data: 'id',
-                        name: 'id',
-                    },
-                    {
-                        data: 'ref_no',
-                        name: 'ref_no'
-                    },
-                    {
-                        data: 'client',
-                        name: 'client'
-                    },
-                    {
-                        data: 'transaction_date',
-                        name: 'transaction_date'
-                    },
-                    {
-                        data: 'due_date',
-                        name: 'due_date'
-                    },
-                    {
-                        data: 'payment_status',
-                        name: 'payment_status'
-                    },
-                    // {
-                    //     data: 'total_before_tax',
-                    //     name: 'total_before_tax'
-                    // },
-                    // {
-                    //     data: 'tax_amount',
-                    //     name: 'tax_amount'
-                    // },
-                    {
-                        data: 'final_total',
-                        name: 'final_total'
-                    },
-                    {
-                        data: 'paid_amount',
-                        name: 'paid_amount'
-                    },
-                    {
-                        data: 'remaining_amount',
-                        name: 'remaining_amount'
-                    },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false
-                    }
-
-
-                ],
-                order: [],
-                scrollX: true,
-                pageLength: 10,
-                drawCallback: function() {
-                    KTMenu.createInstances();
-                }
-            });
-
-        };
 
         function handleFormFiltersDatatable() {
             const filters = $('[data-kt-filter="filter"]');
@@ -251,4 +257,7 @@
             });
         };
     </script>
+
+
+
 @endsection

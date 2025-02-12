@@ -25,6 +25,10 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="/assets/plugins/custom/formrepeater/formrepeater.bundle.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+<script src="https://cdn.jsdelivr.net/npm/moment/min/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 <script>
     window.csrfToken = '{{ csrf_token() }}';
     var hostUrl = "/assets/";
@@ -62,7 +66,7 @@
         const myTimeout = setTimeout(function() {
             const sidebarState = $('#kt_app_body').attr('data-kt-app-sidebar-minimize');
             let status;
-            if (sidebarState) {                
+            if (sidebarState) {
                 status = false;
             } else {
                 status = true;

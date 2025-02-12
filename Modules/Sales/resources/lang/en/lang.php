@@ -107,4 +107,8 @@ return [
     'allocate_payments_note' => 'It aims to allocate the paid amount in a fair and organized manner, by settling invoices with smaller amounts first, then moving to larger ones, until the full paid amount is utilized.',
     'no_sell_return' => 'You do not have any sell return',
     'suggestion_sell_return' => 'We provide you with an advanced tool for handling sales returns, allowing sellers to document product returns from customers. It records details such as returned items, their quantities, and prices to ensure accurate accounting and efficient organization of business operations.',
+    'Sales filtering' => 'Filtering',
+    'Remove filter' => 'Remove filter',
+    'Favorite invoices' => 'Favorite invoices',
+
 ];
