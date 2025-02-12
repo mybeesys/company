@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
@@ -26,11 +27,26 @@ class PurchasesReturnController extends Controller
         $transactionsQuery = Transaction::where('type', 'purchases-return');
 
         if ($request->ajax()) {
-            if ($request->filled('favorite')) {
-                $transactionsQuery->whereHas('favorites', function ($query) {
-                    $query->where('user_id', Auth::user()->id);
+            $transactionsQuery
+                ->when($request->filled('favorite'), function ($query) {
+                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                })
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
                 });
-            }
 
             $transactions = $transactionsQuery->get();
             return Transaction::getSellsTable($transactions);
@@ -39,8 +55,9 @@ class PurchasesReturnController extends Controller
 
         $columns = Transaction::getsSellsColumns();
 
+        $clients =  Contact::where('business_type', 'supplier')->get();
 
-        return view('purchases::purchases-return.index', compact('columns', 'transaction'));
+        return view('purchases::purchases-return.index', compact('columns', 'clients','transaction'));
     }
 
     /**

@@ -43,10 +43,10 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-                        <select id="favorite-filter" class="form-select" style="width: min-content;">
-                            <option value="">@lang('messages.view_all')</option>
-                            <option value="1">@lang('messages.view_favorite')</option>
-                        </select>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                            <i class="bi bi-funnel fs-2"></i>
+                        </button>
+
                         <x-tables.export-menu id="sell" />
                     </x-slot:export>
                 </x-tables.table-header>
@@ -59,6 +59,7 @@
     @endif
 
 
+    @include('general::filter-sales-purchases.filterModal')
 
 
 
@@ -68,12 +69,17 @@
 @section('script')
     @parent
     <script src="{{ url('js/table.js') }}"></script>
-    {{-- <script type="text/javascript" src="vfs_fonts.js"></script> --}}
+    <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script>
         "use strict";
         let dataTable;
         const table = $('#kt_sell_table');;
         const dataUrl = '{{ route('quotations') }}';
+        let currentLang = "{{ app()->getLocale() }}";
+        let dueDateRangeValue = '';
+        let sale_date_range = '';
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -82,9 +88,7 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
-            $('#favorite-filter').change(function() {
-                dataTable.ajax.reload();
-            });
+
         });
 
 
@@ -98,6 +102,10 @@
                     url: dataUrl,
                     data: function(d) {
                         d.favorite = $('#favorite-filter').val();
+                        d.customer = $('#customer').val();
+                        d.payment_status = $('#payment_status').val();
+                        d.due_date_range = dueDateRangeValue;
+                        d.sale_date_range = sale_date_range;
                     }
                 },
                 info: false,
