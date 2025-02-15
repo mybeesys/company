@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('product_products', function (Blueprint $table) {
             $table->unsignedBigInteger('preparation_time')->nullable();
             $table->decimal('calories')->nullable();
-            $table->boolean('show_in_menu'); 
-            
+            $table->boolean('show_in_menu')->nullable();
+
           });
     }
 
