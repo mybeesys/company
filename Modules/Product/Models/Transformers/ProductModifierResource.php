@@ -25,11 +25,23 @@ class ProductModifierResource extends JsonResource
             $modifierClass["name_en"] = $this->modifiers["name_en"];
         }
         if(isset($this->modifiers)){
-            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
-            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->collection->merge([
-                'product_id' => $this->products["id"],
-                'modifier_id' => $this->id
-            ]);
+            // $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
+            // $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->collection->merge([
+            //     'product_id' => $this->products["id"],
+            //     'modifier_id' => $this->id
+            // ]);
+            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->map(function ($modifier) {
+                $data = $modifier->toArray(request());
+
+                if (isset($data['modifier']['modifiers'])) {
+                    foreach ($data['modifier']['modifiers'] as $key => $subModifier) {
+                        $data['modifier']['modifiers'][$key]['product_id'] = $this->products["id"];
+                        $data['modifier']['modifiers'][$key]['modifier_id'] = $this->id;
+                    }
+                }
+
+                return $data;
+            });
 
 
         }
