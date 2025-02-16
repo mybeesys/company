@@ -157,6 +157,9 @@ return [
 
     'suppliers' => 'حساب المورديين',
     'purchase' => 'حساب المشتريات',
+    'account-debit' => 'الحساب المدين',
+    'account-credit' => 'الحساب الدائن',
+
 
     'purchase_return' => 'حساب مردود المشتريات',
 

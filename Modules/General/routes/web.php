@@ -67,7 +67,8 @@ Route::middleware([
 
 
         Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
-
+        Route::get('/invoice-settings', [GeneralController::class, 'getInvoiceSettings'])->name('invoice-settings-get');
+        Route::post('/invoice-settings-update', [GeneralController::class, 'updateInvoiceSetting'])->name('invoice-settings-update');
 
     });
 });

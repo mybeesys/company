@@ -85,6 +85,11 @@
             $('#cash_account').select2({
 
             });
+
+            $('#from_account').select2({
+
+            });
+
         });
 
 
@@ -107,6 +112,9 @@
                         name: 'account'
                     },
                     {
+                        data: 'type',
+                        name: 'type'
+                    }, {
                         data: 'operation_date',
                         name: 'operation_date'
                     },

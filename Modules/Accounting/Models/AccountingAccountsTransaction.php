@@ -68,6 +68,7 @@ class AccountingAccountsTransaction extends Model
         return [
 
             ["class" => "text-start min-w-150px ", "name" => "account"],
+            ["class" => "text-start min-w-150px ", "name" => "debit/credit"],
             ["class" => "text-start min-w-150px", "name" => "operation_date"],
             ["class" => "text-start min-w-80px ", "name" => "amount"],
             ["class" => "text-start min-w-150px  ", "name" => "created_by"],
@@ -90,6 +91,10 @@ class AccountingAccountsTransaction extends Model
             ->editColumn('operation_date', function ($row) {
                 return  $row->operation_date ?? '--';
             })
+            ->editColumn('type', function ($row) {
+                return  __('accounting::lang.' . $row->type);
+            })
+
             ->editColumn('amount', function ($row) {
                 return $row->amount;
             })
@@ -116,7 +121,7 @@ class AccountingAccountsTransaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'account', 'id'])
+            ->rawColumns(['actions', 'account','type', 'id'])
             ->make(true);
     }
 }

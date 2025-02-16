@@ -25,21 +25,21 @@
                     <div class="row g-3">
                         <div class="col-md-12 d-flex align-items-center ">
                             <input class="form-control form-control-solid custom-input" name="client_contact_name[]"
-                                required placeholder="@lang('clientsandsuppliers::fields.client_contact_name')" type="text">
-                            <label class="fs-3 fw-semibold me-3 mb-0  required"></label>
+                                 placeholder="@lang('clientsandsuppliers::fields.client_contact_name')" type="text">
+                            <label class="fs-3 fw-semibold me-3 mb-0 "></label>
                         </div>
                         <div class="col-md-12 d-flex align-items-center ">
                             <input class="form-control form-control-solid custom-input" name="client_contact_email[]"
-                                @if (session()->get('locale') == 'ar') style="text-align:end;" @endif required
+                                @if (session()->get('locale') == 'ar') style="text-align:end;" @endif
                                 placeholder="@lang('clientsandsuppliers::fields.client_contact_email')" type="email">
-                            <label class="fs-3 fw-semibold me-3 mb-0  required"></label>
+                            <label class="fs-3 fw-semibold me-3 mb-0  "></label>
 
                         </div>
                         <div class="col-md-12 d-flex align-items-center">
                             <input class="form-control form-control-solid custom-input"
-                                name="client_contact_mobile_number[]" required placeholder="@lang('clientsandsuppliers::fields.client_contact_mobile_number')"
+                                name="client_contact_mobile_number[]"  placeholder="@lang('clientsandsuppliers::fields.client_contact_mobile_number')"
                                 type="text">
-                            <label class="fs-3 fw-semibold me-3 mb-0  required"></label>
+                            <label class="fs-3 fw-semibold me-3 mb-0  "></label>
 
                         </div>
                         <div class="col-md-12">

@@ -18,6 +18,7 @@ return [
     'account' => 'الحساب',
     'amount' => 'المبلغ',
 
+    'debit/credit' => 'مدين / دائن',
 
 
 

@@ -15,6 +15,7 @@ class ModifierResource extends JsonResource
             $tax["name"] = $this->tax["name"];
             $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
         }
+
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,
@@ -27,6 +28,7 @@ class ModifierResource extends JsonResource
             'pricewithTax' => $this->price + ($tax!=null ? $tax["value"] : 0),
             'tax' => $tax,
             'class_id' => $this->class_id,
+            'product_id' => $this->product_id, 
         ];
     }
 }
