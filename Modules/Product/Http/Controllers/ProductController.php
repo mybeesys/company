@@ -101,7 +101,7 @@ class ProductController extends Controller
         }
         else{
             $resRecipes = RecipeProduct::where([['product_id', '=', $id]])->get();
-            foreach ( $resRecipes as $rec) 
+            foreach ( $resRecipes as $rec)
             {
                 $rec->newid = $rec->item_id."-".$rec->item_type;
             }
@@ -161,15 +161,15 @@ class ProductController extends Controller
             }
         return response()->json($resRecipes);
     }
-    
+
     public function index()
     {
-        return view('product::product.index' ); 
+        return view('product::product.index' );
     }
 
     public function barcode()
     {
-        return view('product::product.barcode'); 
+        return view('product::product.barcode');
     }
 
     /**
@@ -240,7 +240,7 @@ class ProductController extends Controller
         if(count($checkResult)>0){
             return ['message' => 'UNIQUE',
             'data' => $checkResult];
-        } 
+        }
         return $checkResult;
     }
 
@@ -268,7 +268,7 @@ class ProductController extends Controller
             $this->saveProduct($validated, $request);
         }
         else
-        { 
+        {
             $res = $this->validateProduct(null, $validated);
             if(count($res) > 0)
                 return $res;
@@ -278,7 +278,7 @@ class ProductController extends Controller
     }
 
     protected function saveProduct($validated, $request){
-        $product = Product::find($validated['id']); 
+        $product = Product::find($validated['id']);
         $product->fill($validated);
         // $product->name_ar = $validated['name_ar'];
         // $product->name_en = $validated['name_en'];
@@ -297,7 +297,7 @@ class ProductController extends Controller
         // $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
         // $product->price = $validated['price'];
         // $product->cost = $validated['cost'];
-        // $product->color = isset($validated['color'])?$validated['color']: $product->color ;  
+        // $product->color = isset($validated['color'])?$validated['color']: $product->color ;
         // $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
         // $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
         // $product->group_combo = $validated['group_combo'] ?? 0;
@@ -311,7 +311,7 @@ class ProductController extends Controller
                 File::delete($product->image);
             $product->image = null;
         }
-        if ($request->hasFile('image_file')) 
+        if ($request->hasFile('image_file'))
         {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
@@ -320,14 +320,14 @@ class ProductController extends Controller
             $tenantId = $tenant->id;
             // Get the uploaded file
             $file = $request->file('image_file');
-            
+
             // Define the path based on the tenant's ID
             $filePath =  '/product/images';
-    
+
             // Store the file
             $fileExtension = $file->getClientOriginalExtension();
             $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
-    
+
             // Optionally save the file path to the database
             $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
         }
@@ -356,7 +356,7 @@ class ProductController extends Controller
                         ProductModifier::create($modifier);
                     }
                 }
-            } 
+            }
             $oldRecipe = RecipeProduct::where('product_id' , $product->id)->get();
             foreach ($oldRecipe as $recipe)
             {
@@ -365,7 +365,7 @@ class ProductController extends Controller
             if(isset($request["recipe"]))
             {
                 $order = 0 ;
-                foreach ($request["recipe"] as $recipe) 
+                foreach ($request["recipe"] as $recipe)
                 {
                     $rec = [];
                     $rec['product_id'] =  $product->id;
@@ -377,17 +377,17 @@ class ProductController extends Controller
                     $rec['order'] =  $order++;
                     RecipeProduct::create($rec);
                 }
-            }  
-            
+            }
+
             $oldAttributes = Product_Attribute::where('product_id' , $product->id)->get();
             foreach ( $oldAttributes as $oldAttribute)
             {
                 $oldAttribute->delete();
             }
-            
+
             if(isset($request["attributes"]))
             {
-                foreach ($request["attributes"] as $attribute) 
+                foreach ($request["attributes"] as $attribute)
                 {
                     $att = [];
                     $att['product_id'] =  $product->id;
@@ -402,9 +402,9 @@ class ProductController extends Controller
                     Product_Attribute::create($att);
                 }
             }
-            
+
             $oldUnites = UnitTransfer::where('product_id' , $product->id)->get();
-        
+
             if(isset($request["transfer"])){
                 $ids=[];
                 $insertedIds=[];
@@ -412,7 +412,7 @@ class ProductController extends Controller
                 $requestIds = array_map(function($item) {
                     return $item["id"];
                 }, $request["transfer"]);
-                UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();  
+                UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();
                 foreach ($oldUnites  as $old){
                     $newid = [];
                     $newid['oldId'] = $old['id'];
@@ -461,8 +461,8 @@ class ProductController extends Controller
                             $updateObject->unit2 =  $updateId['newId'];
                             $updateObject->save();
                         }
-                    } 
-                }  
+                    }
+                }
             }
             ProductCombo::where('product_id', '=', $product->id)->delete();
             if(isset($request["combos"]))
@@ -517,7 +517,7 @@ class ProductController extends Controller
             if(isset($request["establishments"]))
             {
                 foreach ($request["establishments"] as $newEstablishment) {
-                    
+
                     $establishment = new EstablishmentProduct();
                     $wh = $newEstablishment['establishment'];
                     $establishment->product_id = $product->id;
@@ -529,7 +529,7 @@ class ProductController extends Controller
             if(isset($request["price_tiers"]))
             {
                 foreach ($request["price_tiers"] as $newPriceTier) {
-                    
+
                     $PriceTier = new ProductPriceTier();
                     $pt = $newPriceTier['price_tier'];
                     $PriceTier->product_id = $product->id;
@@ -542,7 +542,7 @@ class ProductController extends Controller
             // if(isset($request["taxIds"]))
             // {
             //     foreach ($request["taxIds"] as $newTax) {
-                    
+
             //         $tax = new ProductTax();
             //         $tax->product_id = $product->id;
             //         $tax->tax_id = $newTax;
@@ -556,7 +556,7 @@ class ProductController extends Controller
         DB::transaction(function () use ($validated, $request) {
             $product= Product::create($validated);
             if(isset($request["modifiers"]))
-            { 
+            {
                 foreach ($request["modifiers"] as $modifier) {
                     $modifier['product_id'] = $product->id;
                     $modifier['free_quantity'] = 0;
@@ -566,7 +566,7 @@ class ProductController extends Controller
             }
             if(isset($request["attributes"]))
             {
-                foreach ($request["attributes"] as $attribute) 
+                foreach ($request["attributes"] as $attribute)
                 {
                     $att = [];
                     $att['product_id'] =  $product->id;
@@ -585,7 +585,7 @@ class ProductController extends Controller
             {
                 $ids=[];
                 $insertedIds=[];
-                foreach ($request["transfer"] as $transfer) 
+                foreach ($request["transfer"] as $transfer)
                 {
                     $newid = [];
                     $inserted = [];
@@ -603,7 +603,7 @@ class ProductController extends Controller
                     $ids[] = $newid ;
                     $insertedIds[] = $inserted;
                 }
-                foreach ($insertedIds as $transfer) 
+                foreach ($insertedIds as $transfer)
                 {
                     foreach($ids as $updateId)
                     {
@@ -613,27 +613,27 @@ class ProductController extends Controller
                         $updateObject->unit2 =  $updateId['newId'];
                         $updateObject->save();
                     }
-                    } 
-                }   
-            } 
+                    }
+                }
+            }
             if ($request->hasFile('image_file')) {
 
                 $tenant = tenancy()->tenant;
                 $tenantId = $tenant->id;
                 // Get the uploaded file
                 $file = $request->file('image_file');
-        
+
                 // Define the path based on the tenant's ID
                 $filePath =  '/product/images';
-        
+
                 // Store the file
                 $fileExtension = $file->getClientOriginalExtension();
                 $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
-        
+
                 // Optionally save the file path to the database
                 $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
                 $product->save();
-            } 
+            }
             else
             {
                 $product->image =  null;
@@ -641,7 +641,7 @@ class ProductController extends Controller
             if(isset($request["recipe"]))
             {
                 $order = 0 ;
-                foreach ($request["recipe"] as $recipe) 
+                foreach ($request["recipe"] as $recipe)
                 {
                     $rec = [];
                     $rec['product_id'] =  $validated['id'];
@@ -652,8 +652,8 @@ class ProductController extends Controller
                     $rec['order'] =  $order++;
                     RecipeProduct::create($rec);
                 }
-            }   
-            
+            }
+
             if(isset($request["combos"]))
             {
                 ProductCombo::where('product_id', '=', $product->id)->delete();
@@ -706,7 +706,7 @@ class ProductController extends Controller
             if(isset($request["establishments"]))
             {
                 foreach ($request["establishments"] as $newEstablishment) {
-                    
+
                     $establishment = new EstablishmentProduct();
                     $wh = $newEstablishment['establishment'];
                     $establishment->product_id = $product->id;
@@ -717,7 +717,7 @@ class ProductController extends Controller
             if(isset($request["price_tiers"]))
             {
                 foreach ($request["price_tiers"] as $newPriceTier) {
-                    
+
                     $priceTier = new ProductPriceTier();
                     $pt = $newPriceTier['price_tier'];
                     $priceTier->product_id = $product->id;
@@ -729,7 +729,7 @@ class ProductController extends Controller
             // if(isset($request["taxIds"]))
             // {
             //     foreach ($request["taxIds"] as $newTax) {
-                    
+
             //         $tax = new ProductTax();
             //         $tax->product_id = $product->id;
             //         $tax->tax_id = $newTax;
@@ -769,17 +769,17 @@ class ProductController extends Controller
             $query->with('attribute1');
             $query->with('attribute2');
         }])->find($id);
-        $product->price_with_tax = $product->price_with_tax;
-        foreach ( $product->priceTiers as $rec) 
+        // $product->price_with_tax = $product->price_with_tax;
+        foreach ( $product->priceTiers as $rec)
         {
             $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
-        foreach ( $product->recipe as $rec) 
+        foreach ( $product->recipe as $rec)
         {
             $rec->newid = $rec->item_id."-".$rec->item_type;
             $rec->cost = $rec->detail->cost;
         }
-        foreach ( $product->attributes as $attr) 
+        foreach ( $product->attributes as $attr)
         {
             $attr->attribute1Name_en = $attr->attribute1->name_en;
             $attr->attribute1Name_ar = $attr->attribute1->name_ar;
@@ -878,7 +878,7 @@ class ProductController extends Controller
                             })
                             ->take($productCount > 10 ? 0 : 10 - $productCount)
                             ->get();
-        
+
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
             $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
