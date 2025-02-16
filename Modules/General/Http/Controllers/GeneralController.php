@@ -62,7 +62,7 @@ class GeneralController extends Controller
         $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
         $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
         $settings = Setting::getNotesAndTermsConditions();
-        return view('general::settings.index', compact('cards','settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        return view('general::settings.index', compact('cards', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()
@@ -131,5 +131,33 @@ class GeneralController extends Controller
             FacadesDB::rollBack();
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
+    }
+
+
+    public function getInvoiceSettings()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'cost_center' => Setting::where('key', 'toggleCost_center')->value('value') == 1,
+                'storehouse' => Setting::where('key', 'toggleStorehouse')->value('value') == 1,
+                'delegates' => Setting::where('key', 'toggleDelegates')->value('value') == 1
+            ]
+        ]);
+    }
+
+    public function updateInvoiceSetting(Request $request)
+    {
+        $request->validate([
+            'key' => 'required|string',
+            'value' => 'required|boolean'
+        ]);
+
+        Setting::updateOrCreate(
+            ['key' => $request->key],
+            ['value' => $request->value]
+        );
+
+        return response()->json(['success' => true]);
     }
 }

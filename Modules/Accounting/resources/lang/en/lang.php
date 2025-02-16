@@ -163,6 +163,8 @@ return [
 
     'suppliers' => 'Suppliers Account',
     'purchase' => 'Purchase Account',
+    'account-debit' => 'Account debit',
+    'account-credit' => 'Account credit',
 
     'purchase_return' => 'Purchase Return Account',
 

@@ -7,15 +7,16 @@ return [
 
     'ref_no' => 'Reference Number',
     'note' => 'Additional Notes',
-    'type'=>'Type',
-    'number'=>'Number',
-    'actions'=>'Actions',
+    'type' => 'Type',
+    'number' => 'Number',
+    'actions' => 'Actions',
     'add_journal-entry' => 'Add Journal Entry',
-    'duplication'=>'Duplication',
-    'print'=>'Print',
+    'duplication' => 'Duplication',
+    'print' => 'Print',
     'id' => 'Id',
     'account' => 'Account',
     'amount' => 'Amount',
+    'debit/credit' => 'Debit / Credit',
 
 
 
