@@ -26,6 +26,12 @@ class ProductModifierResource extends JsonResource
         }
         if(isset($this->modifiers)){
             $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
+            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->collection->merge([
+                'product_id' => $this->products["id"],
+                'modifier_id' => $this->id
+            ]);
+
+
         }
         if($this->extra['withProduct'] == 'Y' && isset($this->products)){
             $modifierClass["product"] = [];

@@ -28,7 +28,6 @@ class ModifierResource extends JsonResource
             'pricewithTax' => $this->price + ($tax!=null ? $tax["value"] : 0),
             'tax' => $tax,
             'class_id' => $this->class_id,
-            'product_id' => $this->product_id, 
         ];
     }
 }
