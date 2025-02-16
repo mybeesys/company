@@ -31,18 +31,10 @@ class ProductModifierResource extends JsonResource
             //     'modifier_id' => $this->id
             // ]);
             $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->map(function ($modifier) {
-                $data = $modifier->toArray(request());
-
-                if (isset($data) && is_array($data)) {
-                    $data = array_map(function ($subModifier) {
-                        return array_merge($subModifier, [
-                            'product_id' => $this->products["id"],
-                            'modifier_id' => $this->id
-                        ]);
-                    }, $data);
-                }
-
-                return $data;
+                return array_merge($modifier->toArray(request()), [
+                    'product_id' => $this->products["id"],
+                    'modifier_id' => $this->id
+                ]);
             });
 
 
