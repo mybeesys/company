@@ -33,15 +33,16 @@ class ProductModifierResource extends JsonResource
             $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->map(function ($modifier) {
                 $data = $modifier->toArray(request());
 
-                if (isset($data['modifier']['modifiers'])) {
-                    foreach ($data['modifier']['modifiers'] as $key => $subModifier) {
-                        $data['modifier']['modifiers'][$key]['product_id'] = $this->products["id"];
-                        $data['modifier']['modifiers'][$key]['modifier_id'] = $this->id;
+                if (isset($data['modifiers'])) {
+                    foreach ($data['modifiers'] as $key => $subModifier) {
+                        $data['modifiers'][$key]['product_id'] = $this->products["id"];
+                        $data['modifiers'][$key]['modifier_id'] = $this->id;
                     }
                 }
 
                 return $data;
             });
+
 
 
         }
