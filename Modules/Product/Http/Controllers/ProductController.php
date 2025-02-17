@@ -37,19 +37,19 @@ class ProductController extends Controller
         'subcategory_id' => 'required|numeric',
         'tax_id' => 'nullable|numeric',
         'active' => 'nullable|boolean',
-        'SKU'=> 'nullable|string',
-        'barcode'=> 'nullable|string',
-        'cost'=> 'required|numeric',
-        'price'=> 'required|numeric',
-        'description_ar'=> 'nullable|string',
-        'description_en'=> 'nullable|string',
-        'class'=> 'nullable|string',
+        'SKU' => 'nullable|string',
+        'barcode' => 'nullable|string',
+        'cost' => 'required|numeric',
+        'price' => 'required|numeric',
+        'description_ar' => 'nullable|string',
+        'description_en' => 'nullable|string',
+        'class' => 'nullable|string',
         'id' => 'nullable|numeric',
         'method' => 'nullable|string',
         'sold_by_weight' => 'nullable|boolean',
         'track_serial_number' => 'nullable|boolean',
-        'image_file' =>'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'image' =>'nullable|string',
+        'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image' => 'nullable|string',
         'color' => 'nullable|string',
         'commissions' => 'nullable|numeric',
         'recipe_yield' => 'nullable|numeric',
@@ -62,48 +62,48 @@ class ProductController extends Controller
         'for_sell' => 'required|boolean',
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
+        'show_in_menu' => 'required|boolean',
     ];
 
 
-    public function all(){
+    public function all()
+    {
         $products = Product::all();
         return response()->json($products);
-     }
+    }
 
     public function listRecipe($id, Request $request)
     {
         $key = $request->query('with_ingredient', '');
         $recipes = [];
-        if(isset($key) && $key=='Y'){
-            $idd = explode("-",$id);
-            if($idd[1] == 'p')
+        if (isset($key) && $key == 'Y') {
+            $idd = explode("-", $id);
+            if ($idd[1] == 'p')
                 $recipes = RecipeProduct::with('unitTransfer')->where([['product_id', '=', $idd[0]]])->get();
             else
                 $recipes = RecipeModifier::with('unitTransfer')->where([['modifier_id', '=', $idd[0]]])->get();
             $resRecipes = [];
             foreach ($recipes as $recipe) {
                 $newItem = $recipe->toArray();
-                if($recipe->item_type == 'p'){
-                    $newItem["product_id"] = $recipe->item_id.'-p';
+                if ($recipe->item_type == 'p') {
+                    $newItem["product_id"] = $recipe->item_id . '-p';
                     $prod = $recipe->products->toArray();
-                    $prod["id"] =  $recipe->item_id.'-p';
-                    if(isset($recipe->products))
-                        $newItem["products"] =$prod;
+                    $prod["id"] =  $recipe->item_id . '-p';
+                    if (isset($recipe->products))
+                        $newItem["products"] = $prod;
                 }
-                if($recipe->item_type == 'i'){
-                    $newItem["product_id"] = $recipe->item_id.'-i';
+                if ($recipe->item_type == 'i') {
+                    $newItem["product_id"] = $recipe->item_id . '-i';
                     $ingr = $recipe->ingredients->toArray();
-                    $ingr["id"] =  $recipe->item_id.'-i';
-                    $newItem["products"] =$ingr;
+                    $ingr["id"] =  $recipe->item_id . '-i';
+                    $newItem["products"] = $ingr;
                 }
-                $resRecipes [] =$newItem;
+                $resRecipes[] = $newItem;
             }
-        }
-        else{
+        } else {
             $resRecipes = RecipeProduct::where([['product_id', '=', $id]])->get();
-            foreach ( $resRecipes as $rec)
-            {
-                $rec->newid = $rec->item_id."-".$rec->item_type;
+            foreach ($resRecipes as $rec) {
+                $rec->newid = $rec->item_id . "-" . $rec->item_type;
             }
         }
         return response()->json($resRecipes);
@@ -129,21 +129,21 @@ class ProductController extends Controller
         foreach ($groupedData as $data) {
             $idd = explode("-", $data['item_id']);
             $data['type'] = $idd[1];
-            if($idd[1] == 'p')
-                $prodIds [] = $idd[0];
+            if ($idd[1] == 'p')
+                $prodIds[] = $idd[0];
             else
-                $modIds [] = $idd[0];
-            }
-            $prodRecipes = RecipeProduct::with(['products', 'unitTransfer'])->whereIn('product_id', $prodIds)->get();
-            $prodRecipes->each(function ($product) use ($timesMap) {
-                $product->quantity = $product->quantity * ($timesMap[$product->product_id.'-p'] ?? 1);
-            });
-            $modRecipes = RecipeModifier::with(['products', 'unitTransfer'])->whereIn('modifier_id', $modIds)->get();
-            $modRecipes->each(function ($modifier) use ($timesMap) {
-                $modifier->quantity = $modifier->quantity * ($timesMap[$modifier->modifier_id.'-m'] ?? 1);
-            });
-            $result = array_merge($prodRecipes->toArray(), $modRecipes->toArray());
-            $groupedResult = collect($result)
+                $modIds[] = $idd[0];
+        }
+        $prodRecipes = RecipeProduct::with(['products', 'unitTransfer'])->whereIn('product_id', $prodIds)->get();
+        $prodRecipes->each(function ($product) use ($timesMap) {
+            $product->quantity = $product->quantity * ($timesMap[$product->product_id . '-p'] ?? 1);
+        });
+        $modRecipes = RecipeModifier::with(['products', 'unitTransfer'])->whereIn('modifier_id', $modIds)->get();
+        $modRecipes->each(function ($modifier) use ($timesMap) {
+            $modifier->quantity = $modifier->quantity * ($timesMap[$modifier->modifier_id . '-m'] ?? 1);
+        });
+        $result = array_merge($prodRecipes->toArray(), $modRecipes->toArray());
+        $groupedResult = collect($result)
             ->groupBy('item_id')
             ->flatMap(function ($items) {
                 $sumQuantity = $items->sum('quantity');
@@ -152,19 +152,19 @@ class ProductController extends Controller
                 $first['quantity'] = $sumQuantity;
                 return [$first];
             });
-            foreach ($groupedResult as $newItem) {
-                $newItem["product_id"] = $newItem["item_id"].'-p';
-                $prod = $newItem["products"];
-                $prod["id"] =  $newItem["item_id"].'-p';
-                $newItem["products"] =$prod;
-                $resRecipes [] =$newItem;
-            }
+        foreach ($groupedResult as $newItem) {
+            $newItem["product_id"] = $newItem["item_id"] . '-p';
+            $prod = $newItem["products"];
+            $prod["id"] =  $newItem["item_id"] . '-p';
+            $newItem["products"] = $prod;
+            $resRecipes[] = $newItem;
+        }
         return response()->json($resRecipes);
     }
 
     public function index()
     {
-        return view('product::product.index' );
+        return view('product::product.index');
     }
 
     public function barcode()
@@ -195,51 +195,57 @@ class ProductController extends Controller
         return view('product::product.create', compact('product'));
     }
 
-    private function validateInUse($product_id){
+    private function validateInUse($product_id)
+    {
         $product = TransactionSellLine::where([['product_id', '=', $product_id]])->first();
-        if($product != null)
-            return response()->json(["message"=>"PRODUCT_USED_INVENTORY"]);
+        if ($product != null)
+            return response()->json(["message" => "PRODUCT_USED_INVENTORY"]);
         $product = TransactionePurchasesLine::where([['product_id', '=', $product_id]])->first();
-        if($product != null)
-            return response()->json(["message"=>"PRODUCT_USED_INVENTORY"]);
+        if ($product != null)
+            return response()->json(["message" => "PRODUCT_USED_INVENTORY"]);
         $product = ProductComboItem::where([['item_id', '=', $product_id]])->first();
-        if($product != null)
-            return response()->json(["message"=>"PRODUCT_USED_COMBO"]);
-        $product = RecipeProduct::where([['item_id', '=', $product_id],
-                                        ['item_type', '=', 'p']])->first();
-        if($product != null)
-            return response()->json(["message"=>"PRODUCT_USED_RECIPE"]);
+        if ($product != null)
+            return response()->json(["message" => "PRODUCT_USED_COMBO"]);
+        $product = RecipeProduct::where([
+            ['item_id', '=', $product_id],
+            ['item_type', '=', 'p']
+        ])->first();
+        if ($product != null)
+            return response()->json(["message" => "PRODUCT_USED_RECIPE"]);
         $product = Prep::where([['product_id', '=', $product_id]])->first();
-        if($product != null)
-            return response()->json(["message"=>"PRODUCT_USED_PREP"]);
+        if ($product != null)
+            return response()->json(["message" => "PRODUCT_USED_PREP"]);
         return null;
     }
 
-    public function validateProduct($id, $product){
+    public function validateProduct($id, $product)
+    {
         $checkResult = [];
         $uniqueFields = ['name_ar', 'name_en'];
-        if(isset($product['SKU']))
-            $uniqueFields [] = 'SKU';
-        if($id !=null)
+        if (isset($product['SKU']))
+            $uniqueFields[] = 'SKU';
+        if ($id != null)
             $query = Product::where('id', '!=', $id);
         else
             $query = Product::whereRaw('1 = 1');
-        $query = $query->where(function($subQuery) use($uniqueFields, $product) {
+        $query = $query->where(function ($subQuery) use ($uniqueFields, $product) {
             for ($i = 0; $i < count($uniqueFields); $i++) {
                 $subQuery = $subQuery->orWhere($uniqueFields[$i], '=', $product[$uniqueFields[$i]]);
             }
         });
         $products = $query->get();
         for ($i = 0; $i < count($uniqueFields); $i++) {
-            $res = array_filter($products->toArray(), function($prod)use($product, $uniqueFields, $i) {
+            $res = array_filter($products->toArray(), function ($prod) use ($product, $uniqueFields, $i) {
                 return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]]; // Keep only even numbers
             });
-            if(count($res)>0)
-                $checkResult [] = $uniqueFields[$i];
+            if (count($res) > 0)
+                $checkResult[] = $uniqueFields[$i];
         }
-        if(count($checkResult)>0){
-            return ['message' => 'UNIQUE',
-            'data' => $checkResult];
+        if (count($checkResult) > 0) {
+            return [
+                'message' => 'UNIQUE',
+                'data' => $checkResult
+            ];
         }
         return $checkResult;
     }
@@ -251,33 +257,29 @@ class ProductController extends Controller
     {
         $validated = $request->validate($this->requetsValidator);
 
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
+        if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $validateUsing = $this->validateInUse($validated['id']);
-            if($validateUsing != null)
+            if ($validateUsing != null)
                 return $validateUsing;
             $product = Product::find($validated['id']);
             $product->delete();
-            return response()->json(["message"=>"Done"]);
-        }
-        else if(isset($validated['id']))
-        {
+            return response()->json(["message" => "Done"]);
+        } else if (isset($validated['id'])) {
             $res = $this->validateProduct($validated['id'], $validated);
-            if(count($res) > 0)
+            if (count($res) > 0)
                 return $res;
             $this->saveProduct($validated, $request);
-        }
-        else
-        {
+        } else {
             $res = $this->validateProduct(null, $validated);
-            if(count($res) > 0)
+            if (count($res) > 0)
                 return $res;
             $this->createProduct($validated, $request);
         }
-        return response()->json(["message"=>"Done"]);
+        return response()->json(["message" => "Done"]);
     }
 
-    protected function saveProduct($validated, $request){
+    protected function saveProduct($validated, $request)
+    {
         $product = Product::find($validated['id']);
         $product->fill($validated);
         // $product->name_ar = $validated['name_ar'];
@@ -305,14 +307,13 @@ class ProductController extends Controller
         // $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
         // $product->linked_combo = $validated['linked_combo'] ?? 0;
         // $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
-        if(isset($request["image_deleted"])){
+        if (isset($request["image_deleted"])) {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
                 File::delete($product->image);
             $product->image = null;
         }
-        if ($request->hasFile('image_file'))
-        {
+        if ($request->hasFile('image_file')) {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
                 File::delete($product->image);
@@ -326,17 +327,16 @@ class ProductController extends Controller
 
             // Store the file
             $fileExtension = $file->getClientOriginalExtension();
-            $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
+            $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public'); // Store in public disk
 
             // Optionally save the file path to the database
-            $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
+            $product->image = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $product->id . '.' . $fileExtension;
         }
         DB::transaction(function () use ($product, $request) {
             $product->save();
-            if(isset($request["modifiers"]))
-            {
+            if (isset($request["modifiers"])) {
                 foreach ($request["modifiers"] as $modifier) {
-                    if(isset($modifier['id'])){
+                    if (isset($modifier['id'])) {
                         $mod = ProductModifier::find($modifier['id']);
                         $mod->active = $modifier['active'];
                         $mod->default = $modifier['default'];
@@ -349,28 +349,24 @@ class ProductController extends Controller
                         $mod['free_quantity'] = 0;
                         $mod['free_type'] = 0;
                         $mod->save();
-                    }
-                    else {
+                    } else {
                         $modifier['free_quantity'] = 0;
                         $modifier['free_type'] = 0;
                         ProductModifier::create($modifier);
                     }
                 }
             }
-            $oldRecipe = RecipeProduct::where('product_id' , $product->id)->get();
-            foreach ($oldRecipe as $recipe)
-            {
+            $oldRecipe = RecipeProduct::where('product_id', $product->id)->get();
+            foreach ($oldRecipe as $recipe) {
                 $recipe->delete();
             }
-            if(isset($request["recipe"]))
-            {
-                $order = 0 ;
-                foreach ($request["recipe"] as $recipe)
-                {
+            if (isset($request["recipe"])) {
+                $order = 0;
+                foreach ($request["recipe"] as $recipe) {
                     $rec = [];
                     $rec['product_id'] =  $product->id;
                     $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
@@ -379,71 +375,65 @@ class ProductController extends Controller
                 }
             }
 
-            $oldAttributes = Product_Attribute::where('product_id' , $product->id)->get();
-            foreach ( $oldAttributes as $oldAttribute)
-            {
+            $oldAttributes = Product_Attribute::where('product_id', $product->id)->get();
+            foreach ($oldAttributes as $oldAttribute) {
                 $oldAttribute->delete();
             }
 
-            if(isset($request["attributes"]))
-            {
-                foreach ($request["attributes"] as $attribute)
-                {
+            if (isset($request["attributes"])) {
+                foreach ($request["attributes"] as $attribute) {
                     $att = [];
                     $att['product_id'] =  $product->id;
                     $att['attribute_id1'] = $attribute['attribute1']['id'];
-                    $att['attribute_id2'] = isset($attribute['attribute2'])? $attribute['attribute2']['id']: null;
+                    $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
                     $att['name_ar'] = $attribute['name_ar'];
                     $att['name_en'] = $attribute['name_en'];
-                    $att['barcode'] = isset($attribute['barcode'])? $attribute['barcode']: null;
-                    $att['SKU'] = isset($attribute['SKU'])? $attribute['SKU']: null;
+                    $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
+                    $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
                     $att['price'] = $attribute['price'];
-                    $att['starting'] = isset($attribute['starting'])? $attribute['starting']: null;
+                    $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
                     Product_Attribute::create($att);
                 }
             }
 
-            $oldUnites = UnitTransfer::where('product_id' , $product->id)->get();
+            $oldUnites = UnitTransfer::where('product_id', $product->id)->get();
 
-            if(isset($request["transfer"])){
-                $ids=[];
-                $insertedIds=[];
+            if (isset($request["transfer"])) {
+                $ids = [];
+                $insertedIds = [];
                 $updatedTransfers = [];
-                $requestIds = array_map(function($item) {
+                $requestIds = array_map(function ($item) {
                     return $item["id"];
                 }, $request["transfer"]);
                 UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();
-                foreach ($oldUnites  as $old){
+                foreach ($oldUnites  as $old) {
                     $newid = [];
                     $newid['oldId'] = $old['id'];
                     $newid['newId'] = $old['id'];
-                    $ids[] = $newid ;
+                    $ids[] = $newid;
                 }
-                foreach ($request["transfer"] as $transfer){
-                    if($transfer['id'] <= 0)
-                    {
+                foreach ($request["transfer"] as $transfer) {
+                    if ($transfer['id'] <= 0) {
                         $newid = [];
                         $inserted = [];
                         $tran = [];
                         $newid['oldId'] =  $transfer['id'];
                         $tran['product_id'] =  $product->id;
-                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
-                        $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
                         $id = UnitTransfer::create($tran)->id;
                         $inserted['id'] = $id;
                         $inserted['unit2'] = $transfer['unit2'];
                         $newid['newId'] =  $id;
-                        $ids[] = $newid ;
+                        $ids[] = $newid;
                         $insertedIds[] = $inserted;
-                    }
-                    else if(!isset($transfer['unit2'])){
+                    } else if (!isset($transfer['unit2'])) {
                         $updatedTransfer = UnitTransfer::find($transfer['id']);
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer->save();
-                    }
-                    else{
+                    } else {
                         $updatedTransfer = UnitTransfer::find($transfer['id']);
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer['unit2'] = $transfer['unit2'];
@@ -452,11 +442,9 @@ class ProductController extends Controller
                         $updatedTransfer->save();
                     }
                 }
-                foreach ($insertedIds as $transfer){
-                    foreach($ids as $updateId)
-                    {
-                        if($transfer['unit2'] == $updateId['oldId'] )
-                        {
+                foreach ($insertedIds as $transfer) {
+                    foreach ($ids as $updateId) {
+                        if ($transfer['unit2'] == $updateId['oldId']) {
                             $updateObject = UnitTransfer::find($transfer['id']);
                             $updateObject->unit2 =  $updateId['newId'];
                             $updateObject->save();
@@ -465,8 +453,7 @@ class ProductController extends Controller
                 }
             }
             ProductCombo::where('product_id', '=', $product->id)->delete();
-            if(isset($request["combos"]))
-            {
+            if (isset($request["combos"])) {
                 foreach ($request["combos"] as $combo) {
                     $productCombo = new ProductCombo();
                     $productCombo->product_id = $product->id;
@@ -476,16 +463,16 @@ class ProductController extends Controller
                     $productCombo->quantity = $combo["quantity"];
                     $productCombo->price = isset($combo["price"]) ? $combo["price"] : null;
                     $productCombo->save();
-                    if(isset($combo["products"])){
+                    if (isset($combo["products"])) {
                         ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
                         foreach ($combo["products"] as $productId) {
                             $comboItem = new ProductComboItem();
                             $comboItem->item_id = $productId;
                             $comboItem->combo_id = $productCombo->id;
-                            if(isset($combo['upchargePrices'])){
+                            if (isset($combo['upchargePrices'])) {
                                 $index = array_search($productId, array_column($combo["upchargePrices"], 'product_id'));
                                 if ($index !== false) {
-                                    $comboItem->price= isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
+                                    $comboItem->price = isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
                                 }
                             }
                             $comboItem->save();
@@ -493,15 +480,14 @@ class ProductController extends Controller
                     }
                 }
             }
-            if(isset($request["linkedCombos"]))
-            {
+            if (isset($request["linkedCombos"])) {
                 ProductLinkedComboItem::where('product_id', '=', $product->id)->delete();
                 foreach ($request["linkedCombos"] as $linkedCombo) {
                     $productLinkedComboItem = new ProductLinkedComboItem();
                     $productLinkedComboItem->product_id = $product->id;
                     $productLinkedComboItem->linked_combo_id = $linkedCombo["linked_combo_id"];
                     $productLinkedComboItem->save();
-                    if(isset($linkedCombo["upchargePrices"])){
+                    if (isset($linkedCombo["upchargePrices"])) {
                         foreach ($linkedCombo["upchargePrices"] as $upchargePrice) {
                             $upcharge = new ProductLinkedComboUpcharge();
                             $upcharge->product_id = $upchargePrice["product_id"];
@@ -514,8 +500,7 @@ class ProductController extends Controller
                 }
             }
             EstablishmentProduct::where('product_id', '=', $product->id)->delete();
-            if(isset($request["establishments"]))
-            {
+            if (isset($request["establishments"])) {
                 foreach ($request["establishments"] as $newEstablishment) {
 
                     $establishment = new EstablishmentProduct();
@@ -526,8 +511,7 @@ class ProductController extends Controller
                 }
             }
             ProductPriceTier::where('product_id', '=', $product->id)->delete();
-            if(isset($request["price_tiers"]))
-            {
+            if (isset($request["price_tiers"])) {
                 foreach ($request["price_tiers"] as $newPriceTier) {
 
                     $PriceTier = new ProductPriceTier();
@@ -552,11 +536,11 @@ class ProductController extends Controller
         });
     }
 
-    protected function createProduct($validated, $request){
+    protected function createProduct($validated, $request)
+    {
         DB::transaction(function () use ($validated, $request) {
-            $product= Product::create($validated);
-            if(isset($request["modifiers"]))
-            {
+            $product = Product::create($validated);
+            if (isset($request["modifiers"])) {
                 foreach ($request["modifiers"] as $modifier) {
                     $modifier['product_id'] = $product->id;
                     $modifier['free_quantity'] = 0;
@@ -564,55 +548,48 @@ class ProductController extends Controller
                     ProductModifier::create($modifier);
                 }
             }
-            if(isset($request["attributes"]))
-            {
-                foreach ($request["attributes"] as $attribute)
-                {
+            if (isset($request["attributes"])) {
+                foreach ($request["attributes"] as $attribute) {
                     $att = [];
                     $att['product_id'] =  $product->id;
                     $att['attribute_id1'] = $attribute['attribute1']['id'];
-                    $att['attribute_id2'] = isset($attribute['attribute2'])? $attribute['attribute2']['id']: null;
+                    $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
                     $att['name_ar'] = $attribute['name_ar'];
                     $att['name_en'] = $attribute['name_en'];
-                    $att['barcode'] = isset($attribute['barcode'])? $attribute['barcode']: null;
-                    $att['SKU'] = isset($attribute['SKU'])? $attribute['SKU']: null;
+                    $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
+                    $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
                     $att['price'] = $attribute['price'];
-                    $att['starting'] = isset($attribute['starting'])? $attribute['starting']: null;
+                    $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
                     Product_Attribute::create($att);
                 }
             }
-            if(isset($request["transfer"]))
-            {
-                $ids=[];
-                $insertedIds=[];
-                foreach ($request["transfer"] as $transfer)
-                {
+            if (isset($request["transfer"])) {
+                $ids = [];
+                $insertedIds = [];
+                foreach ($request["transfer"] as $transfer) {
                     $newid = [];
                     $inserted = [];
                     $tran = [];
                     $newid['oldId'] =  $transfer['id'];
                     $tran['product_id'] =  $product->id;
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
                     $id = UnitTransfer::create($tran)->id;
                     $inserted['id'] = $id;
                     $inserted['unit2'] = $transfer['unit2'];
                     $newid['newId'] =  $id;
-                    $ids[] = $newid ;
+                    $ids[] = $newid;
                     $insertedIds[] = $inserted;
                 }
-                foreach ($insertedIds as $transfer)
-                {
-                    foreach($ids as $updateId)
-                    {
-                    if($transfer['unit2'] == $updateId['oldId'] )
-                    {
-                        $updateObject = UnitTransfer::find($transfer['id']);
-                        $updateObject->unit2 =  $updateId['newId'];
-                        $updateObject->save();
-                    }
+                foreach ($insertedIds as $transfer) {
+                    foreach ($ids as $updateId) {
+                        if ($transfer['unit2'] == $updateId['oldId']) {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
                     }
                 }
             }
@@ -628,25 +605,21 @@ class ProductController extends Controller
 
                 // Store the file
                 $fileExtension = $file->getClientOriginalExtension();
-                $file->storeAs($filePath, $product->id . '.' . $fileExtension , 'public'); // Store in public disk
+                $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public'); // Store in public disk
 
                 // Optionally save the file path to the database
-                $product->image = 'storage/'. 'tenant'. $tenantId  .$filePath . '/' . $product->id . '.' . $fileExtension ;
+                $product->image = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $product->id . '.' . $fileExtension;
                 $product->save();
-            }
-            else
-            {
+            } else {
                 $product->image =  null;
             }
-            if(isset($request["recipe"]))
-            {
-                $order = 0 ;
-                foreach ($request["recipe"] as $recipe)
-                {
+            if (isset($request["recipe"])) {
+                $order = 0;
+                foreach ($request["recipe"] as $recipe) {
                     $rec = [];
                     $rec['product_id'] =  $validated['id'];
                     $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec['order'] =  $order++;
@@ -654,8 +627,7 @@ class ProductController extends Controller
                 }
             }
 
-            if(isset($request["combos"]))
-            {
+            if (isset($request["combos"])) {
                 ProductCombo::where('product_id', '=', $product->id)->delete();
                 foreach ($request["combos"] as $combo) {
                     $productCombo = new ProductCombo();
@@ -666,16 +638,16 @@ class ProductController extends Controller
                     $productCombo->quantity = $combo["quantity"];
                     $productCombo->price = isset($combo["price"]) ? $combo["price"] : null;
                     $productCombo->save();
-                    if(isset($combo["products"])){
+                    if (isset($combo["products"])) {
                         ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
                         foreach ($combo["products"] as $productId) {
                             $comboItem = new ProductComboItem();
                             $comboItem->item_id = $productId;
                             $comboItem->combo_id = $productCombo->id;
-                            if(isset($combo['upchargePrices'])){
+                            if (isset($combo['upchargePrices'])) {
                                 $index = array_search($productId, array_column($combo["upchargePrices"], 'product_id'));
                                 if ($index !== false) {
-                                    $comboItem->price= isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
+                                    $comboItem->price = isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
                                 }
                             }
                             $comboItem->save();
@@ -683,15 +655,14 @@ class ProductController extends Controller
                     }
                 }
             }
-            if(isset($request["linkedCombos"]))
-            {
+            if (isset($request["linkedCombos"])) {
                 ProductLinkedComboItem::where('product_id', '=', $product->id)->delete();
                 foreach ($request["linkedCombos"] as $linkedCombo) {
                     $productLinkedComboItem = new ProductLinkedComboItem();
                     $productLinkedComboItem->product_id = $product->id;
                     $productLinkedComboItem->linked_combo_id = $linkedCombo["linked_combo_id"];
                     $productLinkedComboItem->save();
-                    if(isset($linkedCombo["upchargePrices"])){
+                    if (isset($linkedCombo["upchargePrices"])) {
                         ProductLinkedComboUpcharge::where('product_combo_id', '=', $productLinkedComboItem->linked_combo_id)->delete();
                         foreach ($linkedCombo["upchargePrices"] as $upchargePrice) {
                             $upcharge = new ProductLinkedComboUpcharge();
@@ -703,8 +674,7 @@ class ProductController extends Controller
                     }
                 }
             }
-            if(isset($request["establishments"]))
-            {
+            if (isset($request["establishments"])) {
                 foreach ($request["establishments"] as $newEstablishment) {
 
                     $establishment = new EstablishmentProduct();
@@ -714,8 +684,7 @@ class ProductController extends Controller
                     $establishment->save();
                 }
             }
-            if(isset($request["price_tiers"]))
-            {
+            if (isset($request["price_tiers"])) {
                 foreach ($request["price_tiers"] as $newPriceTier) {
 
                     $priceTier = new ProductPriceTier();
@@ -759,28 +728,25 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product  = Product::with('tax')
-        ->with(['establishments' => function ($query) {
-            $query->with('establishment');
-        }])->with(['priceTiers' => function ($query) {
-            $query->with('priceTier');
-        }])->with(['recipe' => function ($query) {
-            $query->with('unitTransfer');
-        }])->with(['attributes' => function ($query) {
-            $query->with('attribute1');
-            $query->with('attribute2');
-        }])->find($id);
+            ->with(['establishments' => function ($query) {
+                $query->with('establishment');
+            }])->with(['priceTiers' => function ($query) {
+                $query->with('priceTier');
+            }])->with(['recipe' => function ($query) {
+                $query->with('unitTransfer');
+            }])->with(['attributes' => function ($query) {
+                $query->with('attribute1');
+                $query->with('attribute2');
+            }])->find($id);
         // $product->price_with_tax = $product->price_with_tax;
-        foreach ( $product->priceTiers as $rec)
-        {
+        foreach ($product->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
-        foreach ( $product->recipe as $rec)
-        {
-            $rec->newid = $rec->item_id."-".$rec->item_type;
+        foreach ($product->recipe as $rec) {
+            $rec->newid = $rec->item_id . "-" . $rec->item_type;
             $rec->cost = $rec->detail->cost;
         }
-        foreach ( $product->attributes as $attr)
-        {
+        foreach ($product->attributes as $attr) {
             $attr->attribute1Name_en = $attr->attribute1->name_en;
             $attr->attribute1Name_ar = $attr->attribute1->name_ar;
             $attr->attribute2Name_en = $attr->attribute2->name_en;
@@ -792,27 +758,27 @@ class ProductController extends Controller
         //     return $item["tax_id"];
         // }, $product->taxes->toArray());
         foreach ($product->combos as $d) {
-           $d->products = array_map(function($item) {
-               return $item["item_id"];
-           }, $d->items->toArray());
-           $d->upchargePrices = array_map(function($item) {
-               $upchargePrice = [];
-               $upchargePrice["product_id"] = $item["item_id"];
-               $upchargePrice["price"] = $item["price"];
-               return $upchargePrice;
-           }, $d->items->toArray());
-       }
-       $product->linkedCombos = $product->linkedCombos;
-       foreach ($product->linkedCombos as $d1) {
-           $d1->upchargePrices = array_map(function($item) use ($d1) {
-               $upchargePrice = [];
-               $upchargePrice["product_id"] = $item["product_id"];
-               $upchargePrice["combo_id"] = $item["combo_id"];
-               $upchargePrice["product_combo_id"] = $d1["linked_combo_id"];
-               $upchargePrice["price"] = $item["price"];
-               return $upchargePrice;
-           }, $d1->upcharges->toArray());
-       }
+            $d->products = array_map(function ($item) {
+                return $item["item_id"];
+            }, $d->items->toArray());
+            $d->upchargePrices = array_map(function ($item) {
+                $upchargePrice = [];
+                $upchargePrice["product_id"] = $item["item_id"];
+                $upchargePrice["price"] = $item["price"];
+                return $upchargePrice;
+            }, $d->items->toArray());
+        }
+        $product->linkedCombos = $product->linkedCombos;
+        foreach ($product->linkedCombos as $d1) {
+            $d1->upchargePrices = array_map(function ($item) use ($d1) {
+                $upchargePrice = [];
+                $upchargePrice["product_id"] = $item["product_id"];
+                $upchargePrice["combo_id"] = $item["combo_id"];
+                $upchargePrice["product_combo_id"] = $d1["linked_combo_id"];
+                $upchargePrice["price"] = $item["price"];
+                return $upchargePrice;
+            }, $d1->upcharges->toArray());
+        }
         return view('product::product.edit', compact('product'));
     }
 
@@ -821,32 +787,32 @@ class ProductController extends Controller
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $products = Product::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
-                            ->get();
-        $productCount= count($products);
+            ->orWhere('name_en', 'like', '%' . $key . '%')
+            ->take(10)
+            ->get();
+        $productCount = count($products);
         $modifiers = Modifier::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take($productCount > 10 ? 0 : 10 - $productCount)
-                            ->get();
-        $productCount= count($products) + count($modifiers);
+            ->orWhere('name_en', 'like', '%' . $key . '%')
+            ->take($productCount > 10 ? 0 : 10 - $productCount)
+            ->get();
+        $productCount = count($products) + count($modifiers);
         $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take($productCount > 10 ? 0 : 10 - $productCount)
-                            ->get();
+            ->orWhere('name_en', 'like', '%' . $key . '%')
+            ->take($productCount > 10 ? 0 : 10 - $productCount)
+            ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
-            $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
+            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
             return $newProduct;
         });
         $modifiers = $modifiers->map(function ($modifier) {
             $newModifier = $modifier->toArray();
-            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            $newModifier["id"] = $modifier["id"] . '-m'; // Set the value of 'item_type'
             return $newModifier;
         });
         $ingredients = $ingredients->map(function ($ingredient) {
             $newIngredient = $ingredient->toArray();
-            $newIngredient["id"] = $ingredient["id"].'-i'; // Set the value of 'item_type'
+            $newIngredient["id"] = $ingredient["id"] . '-i'; // Set the value of 'item_type'
             return $newIngredient;
         });
         $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
@@ -857,36 +823,36 @@ class ProductController extends Controller
     {
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
-        $products = Product::where(function ($query) use($key) {
-                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
-                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
-                            })
-                            ->whereIn('id', function ($query) {
-                                $query->select('product_id')
-                                    ->from('product_recipe_products');
-                            })
-                            ->take(10)
-                            ->get();
-        $productCount= count($products);
-        $modifiers = Modifier::where(function ($query) use($key) {
-                                $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
-                                    ->orWhere('name_en', 'like', '%' . $key . '%') ;           // OR status = 'pending')
-                            })
-                            ->whereIn('id', function ($query) {
-                                $query->select('modifier_id')
-                                    ->from('product_recipe_modifiers');
-                            })
-                            ->take($productCount > 10 ? 0 : 10 - $productCount)
-                            ->get();
+        $products = Product::where(function ($query) use ($key) {
+            $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
+                ->orWhere('name_en', 'like', '%' . $key . '%');           // OR status = 'pending')
+        })
+            ->whereIn('id', function ($query) {
+                $query->select('product_id')
+                    ->from('product_recipe_products');
+            })
+            ->take(10)
+            ->get();
+        $productCount = count($products);
+        $modifiers = Modifier::where(function ($query) use ($key) {
+            $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
+                ->orWhere('name_en', 'like', '%' . $key . '%');           // OR status = 'pending')
+        })
+            ->whereIn('id', function ($query) {
+                $query->select('modifier_id')
+                    ->from('product_recipe_modifiers');
+            })
+            ->take($productCount > 10 ? 0 : 10 - $productCount)
+            ->get();
 
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
-            $newProduct["id"] = $product["id"].'-p'; // Set the value of 'item_type'
+            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
             return $newProduct;
         });
         $modifiers = $modifiers->map(function ($modifier) {
             $newModifier = $modifier->toArray();
-            $newModifier["id"] = $modifier["id"].'-m'; // Set the value of 'item_type'
+            $newModifier["id"] = $modifier["id"] . '-m'; // Set the value of 'item_type'
             return $newModifier;
         });
         $result = array_merge($products->toArray(), $modifiers->toArray());
