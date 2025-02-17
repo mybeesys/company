@@ -110,6 +110,7 @@ class ClientController extends Controller
                     'payment_terms' => $request->payment_terms,
                     'account_id' => $request->account_id,
                     'file_path' => $attachment_name,
+                    'credit_limit'=>$request->credit_limit,
                     'status' => 'active',
 
                 ]);
@@ -334,6 +335,8 @@ class ClientController extends Controller
                 'file_path' => $attachment_name,
                 'payment_terms' => $request->payment_terms,
                 'account_id' => $request->account_id,
+                'credit_limit'=>$request->credit_limit,
+
 
             ]);
 

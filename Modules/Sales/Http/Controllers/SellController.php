@@ -38,25 +38,25 @@ class SellController extends Controller
 
         if ($request->ajax()) {
             $transactionsQuery
-            ->when($request->filled('favorite'), function ($query) {
-                $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
-            })
-            ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-            ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
-            ->when($request->filled('due_date_range'), function ($query) use ($request) {
-                $dueDateRange = trim($request->due_date_range);
-                $dates = explode(' إلى ', $dueDateRange);
-                if (count($dates) == 2) {
-                    $query->whereBetween('due_date', [$dates[0], $dates[1]]);
-                }
-            })
-            ->when($request->filled('sale_date_range'), function ($query) use ($request) {
-                $saleDateRange = trim($request->sale_date_range);
-                $dates = explode(' إلى ', $saleDateRange);
-                if (count($dates) == 2) {
-                    $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
-                }
-            });
+                ->when($request->filled('favorite'), function ($query) {
+                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                })
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
+                });
 
 
 
@@ -198,42 +198,34 @@ class SellController extends Controller
                     'total_before_vat' => $product->total_before_vat,
                 ]);
             }
-            // return $request->paid_amount;
-            // if ($request->paid_amount) {
-            //     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            //     if($request->paid_amount != $transaction->final_total){
-            //         $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $request->paid_amount,$transaction);
 
-            //     }
-            // }
 
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
 
-                // if ($request->paid_amount != $transaction->final_total) {
-                //     $contactUtils->addRemainingAmountToCustomerAccount(
-                //         $request->client_id,
-                //         $transaction->final_total - $request->paid_amount,
-                //         $transaction
-                //     );
-                // }
             }
 
-
-            // Mail::to();
-            //Update payment status
-            // $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $request->paid_amount);
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
-            //  if(due)
+            $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
+
+            $msg = __('messages.add_successfully');
+            $status = 'success';
+            if ($totalOutstanding) {
+                $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
+                if ($credit_limit && $credit_limit < $totalOutstanding) {
+                    $msg = __('messages.Added successfully, but the customer exceeded');
+                    $status = 'error';
+                }
+            }
 
             DB::commit();
             if ($request->action == 'save_print') {
-                return redirect()->route('transaction-print', $transaction->id)->with('success', __('messages.add_successfully'));
+                return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
             } else if ($request->action == 'save_add') {
-                return redirect()->route('create-invoice')->with('success', __('messages.add_successfully'));
+                return redirect()->route('create-invoice')->with($status, $msg);
             } else {
-                return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+                return redirect()->route('invoices')->with($status, $msg);
             }
         } catch (Exception $e) {
             DB::rollBack();
