@@ -65,7 +65,7 @@ class AccountingUtil
     //     return true;
     // }
 
-    public function saveAccountTransaction($type, $transactionPayment, $transaction,$acc_trans_mapping_id=null)
+    public function saveAccountTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null)
     {
         $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
@@ -77,7 +77,7 @@ class AccountingUtil
             'created_by' => $transactionPayment->created_by,
             'transaction_id' => $transactionPayment->transaction_id,
             'transaction_payment_id' => $transactionPayment->id,
-            'acc_trans_mapping_id'=>$acc_trans_mapping_id,
+            'acc_trans_mapping_id' => $acc_trans_mapping_id,
         ];
 
         if ($transaction->transaction_type == 'sell' && $transactionPayment->is_return == 1) {
@@ -88,7 +88,7 @@ class AccountingUtil
         return true;
     }
 
-    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction,$acc_trans_mapping_id=null)
+    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null)
     {
         $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
@@ -100,10 +100,10 @@ class AccountingUtil
             'created_by' => $transactionPayment->created_by,
             'transaction_id' => $transactionPayment->transaction_id,
             'transaction_payment_id' => $transactionPayment->id,
-            'acc_trans_mapping_id'=>$acc_trans_mapping_id,
+            'acc_trans_mapping_id' => $acc_trans_mapping_id,
         ];
 
-
+        //    dd($account_transaction_data);
         AccountingAccountsTransaction::create($account_transaction_data);
         return true;
     }
@@ -137,7 +137,9 @@ class AccountingUtil
                 [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
 
                 $transactionPayment->amount = $amount;
-                $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
+                if ($amount) {
+                    $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
+                }
             }
         }
 

@@ -183,4 +183,38 @@ class TransactionUtils
 
         return $new_ref_no;
     }
+
+    public function contactTotalOutstanding($transaction)
+    {
+        if ($transaction->contact_id) {
+            $customerId = $transaction->contact_id;
+            $transactionType = $transaction->type;
+            $totalDue = Transaction::where('contact_id', $customerId)
+                ->where('type', $transactionType)
+                ->where('payment_status', 'due')
+                ->sum('final_total');
+
+
+            $totalPartial = Transaction::where('contact_id', $customerId)
+                ->where('type', $transactionType)
+                ->where('payment_status', 'partial')
+                ->get()
+                ->sum(function ($transaction) {
+                    $paidAmount = $transaction->payment()->sum('amount');
+                    return $transaction->final_total - $paidAmount;
+                });
+
+            $totalOutstanding = $totalDue + $totalPartial;
+
+            return $totalOutstanding;
+            return response()->json([
+                'customer_id' => $customerId,
+                'transaction_type' => $transactionType,
+                'total_due' => $totalDue,
+                'total_partial_due' => $totalPartial,
+                'total_outstanding' => $totalOutstanding
+            ]);
+        }
+        return false;
+    }
 }

@@ -42,7 +42,13 @@
 
 
 
-
+            <div class="col-sm">
+                <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
+                    <input class="form-control form-control-solid custom-input" dir="ltr" style="text-align: end;"
+                        name="credit_limit" placeholder="@lang('clientsandsuppliers::fields.credit_limit')" id="credit_limit"
+                        value="{{ $contact->credit_limit }}" type="number">
+                </div>
+            </div>
 
 
         </div>

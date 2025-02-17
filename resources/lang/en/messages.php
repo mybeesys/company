@@ -38,6 +38,7 @@ return [
     'no' => 'No',
     'required_fields_warning' => 'Please fill in all required fields before proceeding.',
 
+    "Added successfully, but the customer exceeded"=> "Added successfully, but the customer exceeded the credit limit.",
 
 
 

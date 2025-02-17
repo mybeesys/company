@@ -58,8 +58,7 @@ return [
     'minimum_points' => 'Minimum point',
     'maximum_redeem_point_per_order' => 'Maximum redeem point for each order',
     'points_expiration_period' => 'Points expiration period',
-
-
+    'credit_limit' => 'Credit limit',
 
 
     '1' => 'Account',

@@ -27,6 +27,16 @@
                 @lang('clientsandsuppliers::fields.bank_account_information')
             </a>
         </li>
+
+        <li class="nav-item" role="presentation">
+            <a id="financial_information_tab"
+                class="nav-link justify-content-center text-active-gray-800"
+                data-bs-toggle="tab" role="tab" href="#financial_information"
+                aria-selected="false" tabindex="-1">
+                @lang('clientsandsuppliers::fields.financial_information')
+            </a>
+        </li>
+
     </ul>
     <!--end::Tab nav-->
 </div>
@@ -75,6 +85,15 @@
         @else
             @include('clientsandsuppliers::Client.empty-data')
         @endif
+
+    </div>
+</div>
+
+<div class="tab-content" >
+    <div id="financial_information" class="card-body p-0 tab-pane fade show" role="tabpanel"
+        aria-labelledby="financial_information_tab">
+            @include('clientsandsuppliers::Client.show.financial_information')
+
 
     </div>
 </div>

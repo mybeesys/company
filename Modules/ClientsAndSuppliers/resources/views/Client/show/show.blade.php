@@ -78,7 +78,7 @@
 
 
                 </div>
-                <div class="col-6">
+                <div class="col-7">
 
                     @include('clientsandsuppliers::Client.show.nav-tabs')
 
