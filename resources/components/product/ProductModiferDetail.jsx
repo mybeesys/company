@@ -69,7 +69,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                                 <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "50px"}}>{translations.active}</label>
+                                                        style={{width: "50px !important"}}>{translations.active}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
@@ -81,7 +81,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                                 <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "50px"}}>{translations.required}</label>
+                                                        style={{width: "50px !important"}}>{translations.required}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
@@ -93,7 +93,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                             <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "50px"}}>{translations.defaultModifier}</label>
+                                                        style={{width: "50px !important"}}>{translations.defaultModifier}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
