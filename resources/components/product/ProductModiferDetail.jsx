@@ -16,19 +16,19 @@ const defaultModifierValues =[{
   }];
 
 const ProductModiferDetail = ({ translations, modifierId, title, productModifiers, onchange, onSelectAll }) => {
-    
+
     const displayOptions = [
         {label: translations.buttons , value: 0},
         {label: translations.dropdownlist , value: 1}
     ];
-    
+
     const modifierDisplayOptions = [
         {label: `${translations.name} ${translations.only}` , value: 0},
         {label: `${translations.name} ${translations.and} ${translations.price}` , value: 1}
     ];
 
-    const [modifierClass, setModifierClass] = useState({defaultModifierValues}); 
-    
+    const [modifierClass, setModifierClass] = useState({defaultModifierValues});
+
     const handleChange = (key, value) => {
         onchange(modifierId, key, value);
     }
@@ -42,7 +42,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                 productModifiers.filter(m=> m.modifier_id == modifierId) : defaultModifierValues;
         setModifierClass({...m[0]});
     }, [productModifiers]);
-    
+
     return (
         <section class="product spad">
             <div class="container mt-5">
@@ -69,7 +69,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                                 <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "150px"}}>{translations.active}</label>
+                                                        style={{width: "50px"}}>{translations.active}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
@@ -81,7 +81,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                                 <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "150px"}}>{translations.required}</label>
+                                                        style={{width: "50px"}}>{translations.required}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
@@ -93,7 +93,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                             <div class="col-4">
                                             <div class="d-flex  align-items-center ">
                                                     <label class="fs-6 fw-semibold mb-2 me-3 "
-                                                        style={{width: "150px"}}>{translations.defaultModifier}</label>
+                                                        style={{width: "50px"}}>{translations.defaultModifier}</label>
                                                     <div class="form-check">
                                                         <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
                                                             class="form-check-input my-2"
@@ -138,7 +138,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                                 components={animatedComponents}
                                                 value={displayOptions[modifierClass.button_display]}
                                                 onChange={val => handleChange('button_display', val.value, val)}
-                                                menuPortalTarget={document.body} 
+                                                menuPortalTarget={document.body}
                                                 styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                                             />
                                             </div>
@@ -152,7 +152,7 @@ const ProductModiferDetail = ({ translations, modifierId, title, productModifier
                                                     components={animatedComponents}
                                                     value={modifierDisplayOptions[modifierClass.modifier_display]}
                                                     onChange={val => handleChange('modifier_display', val.value, val)}
-                                                    menuPortalTarget={document.body} 
+                                                    menuPortalTarget={document.body}
                                                     styles={{ menuPortal: base => ({ ...base, zIndex: 100000 }) }}
                                                 />
                                             </div>

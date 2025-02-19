@@ -119,7 +119,7 @@ const ProductComponent1 = ({ translations, dir }) => {
         if (!!!productUnit.id)
           transfer.push({ id: 0, unit1: productUnit.unit1, unit2: -100, transfer: -100, primary: -100 });
         else
-          transfer.push(productUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});  
+          transfer.push(productUnit);//{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});
       }
       const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
       r["transfer"] = [...sortedItems];
