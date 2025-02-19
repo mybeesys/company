@@ -6,7 +6,7 @@ const ProductModifier = ({translations, urlList, productId, productModifiers, on
     const rootElement = document.getElementById('root');
     let dir = rootElement.getAttribute('dir');
     const [data, setData] = useState([]);
-    
+
     useEffect(() => {
         axios.get(urlList)
         .then(response => {
@@ -27,11 +27,12 @@ const ProductModifier = ({translations, urlList, productId, productModifiers, on
 
     return (
         data.filter(x=>x.data.empty!='Y').map((modifierClass) => (
-            <ProductModiferDetail 
-                translations={translations} 
-                productId ={productId} 
-                modifierId={modifierClass.data.id} 
-                title={dir== "rtl"? modifierClass.data.name_ar:  modifierClass.data.name_en} 
+            <ProductModiferDetail
+           
+                translations={translations}
+                productId ={productId}
+                modifierId={modifierClass.data.id}
+                title={dir== "rtl"? modifierClass.data.name_ar:  modifierClass.data.name_en}
                 data={!!!modifierClass.children ? [] : modifierClass.children}
                 productModifiers={productModifiers}
                 onchange={handleChange}
@@ -39,5 +40,5 @@ const ProductModifier = ({translations, urlList, productId, productModifiers, on
         ))
     );
   };
-  
+
   export default ProductModifier;
