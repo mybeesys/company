@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 
 
-const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,   
+const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,
                             currentObject, onBasicChange, dir }) => {
 
-    
+
 
     const getName = (name_en, name_ar) =>{
         if(dir == 'ltr')
@@ -16,7 +16,7 @@ const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,
 
     useEffect(() => {
         const fetchData = async () => {
-            
+
           }
           fetchData().catch(console.error);
         }, []);
@@ -41,7 +41,7 @@ const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,
                 <div class="row">
                     <div class="col-6">
                         <label for="name_ar" class="col-form-label">{translations.type}</label>
-                        <select class="form-control form-control-solid  selectpicker" value={currentObject.service_fee_type} 
+                        <select class="form-control form-control-solid  selectpicker" value={currentObject.service_fee_type}
                             onChange={(e) => onBasicChange('service_fee_type', e.target.value)} >
                             {feeTypes.map((feeType) => (
                                 <option key={feeType.value} value={feeType.value}>
@@ -61,7 +61,7 @@ const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,
                 <div class="row">
                     <div class="col-6">
                         <label for="name_ar" class="col-form-label">{translations.application_type}</label>
-                        <select class="form-control form-control-solid selectpicker" value={currentObject.application_type} 
+                        <select class="form-control form-control-solid selectpicker" value={currentObject.application_type}
                             onChange={(e) => onBasicChange('application_type', e.target.value)} >
                             {appTypes.map((appType) => (
                                 <option key={appType.value} value={appType.value}>
@@ -72,7 +72,7 @@ const ServiceFeeBasicInfo = ({ translations, feeTypes, calcMethods, appTypes,
                     </div>
                     <div class="col-6">
                         <label for="name_ar" class="col-form-label">{translations.calculation_method}</label>
-                        <select class="form-control form-control-solid selectpicker" value={currentObject.calculation_method} 
+                        <select class="form-control form-control-solid selectpicker" value={currentObject.calculation_method}
                             onChange={(e) => onBasicChange('calculation_method', e.target.value)} >
                             {calcMethods.map((calcMethod) => (
                                 <option key={calcMethod.value} value={calcMethod.value}>

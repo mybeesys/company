@@ -34,6 +34,7 @@ use Modules\Product\Http\Controllers\ServiceFeeAutoApplyTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
 use Modules\Product\Http\Controllers\ServiceFeeController;
 use Modules\Product\Http\Controllers\ServiceFeeTypeController;
+use Modules\Product\Http\Controllers\TypeServiceController;
 use Modules\Product\Http\Controllers\UnitController;
 use Modules\Product\Http\Controllers\UnitTransferController;
 use Modules\Product\Http\Controllers\VendorController;
@@ -47,15 +48,15 @@ use Modules\Product\Http\Controllers\VendorController;
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
-*/    
+*/
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group( function () {
-    
+
     Route::middleware(['auth'])->group(function () {
-        
+
         Route::resource('product', ProductController::class)->names('product');
         Route::resource('category', CategoryController::class)->names('category');
         Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
@@ -70,8 +71,8 @@ Route::middleware([
         Route::resource('attribute', AttributeController::class)->names('attribute');
         Route::resource('attributeClass', AttributesClassController::class)->names('attributeClass');
         Route::get('attributeClassList', [AttributesClassController::class, 'getAttributes'])->name('attributeClassList');
-        Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');   
-        
+        Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');
+
         Route::get('button-display-values', [ButtonDisplayController::class, 'getButtonDisplayValues'])->name('button-display-values');;
         Route::get('modifier-display-values', [ModifierDisplayController::class, 'getModifierDisplayValues'])->name('modifier-display-values');;
 
@@ -80,7 +81,7 @@ Route::middleware([
         Route::get('application-type-values', [ApplicationTypeController::class, 'getApplicationTypeValues'])->name('application-type-values');;
         Route::get('mode-values', [ModeController::class, 'getModeValues'])->name('mode-values');;
         Route::get('stations', [StationController::class, 'getStations'])->name('stationList');
-        
+
         Route::resource('ingredient', IngredientController::class)->names('ingredient');
         Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
         Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
@@ -91,7 +92,7 @@ Route::middleware([
         Route::get('getUnitsTree', [UnitController::class, 'getUnitsTree'])->name('unitTree');
         Route::get('listRecipebyProduct/{id?}', [ProductController::class, 'listRecipe'])->name('listRecipebyProduct');
         Route::post('listPrepRecipe', [ProductController::class, 'listPrepRecipe'])->name('listPrepRecipe');
-        
+
         Route::resource('serviceFee', ServiceFeeController::class)->names('serviceFee');
         Route::get('serviceFeesTree', [ServiceFeeController::class, 'getServiceFeesTree'])->name('serviceFeesTree');
         Route::get('serviceFeeTypeValues', [ServiceFeeTypeController::class, 'getServiceFeeTypeValues'])->name('serviceFeeTypeValues');
@@ -103,19 +104,19 @@ Route::middleware([
         Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
 
         Route::get('modifierClasses', [ModifierClassController::class, 'getModifierClasses'])->name('modifierClasses');
-        
+
         Route::get('discountLovs', [DiscountLOVController::class, 'getDiscountLovs'])->name('discountLovs');
         Route::get('discounts', [DiscountController::class, 'getDiscounts'])->name('discountList');
         Route::resource('discount', DiscountController::class)->names('discount');
 
         Route::get('linkedCombos', [LinkedComboController::class, 'getLinkedCombos'])->name('linkedComboList');
         Route::resource('linkedCombo', LinkedComboController::class)->names('linkedCombo');
-        
+
         Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
         Route::get('productList', [ProductController::class, 'all'])->name('productList');
-        
+
         Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
-        Route::get('units', [UnitController::class, 'units'])->name('units');    
+        Route::get('units', [UnitController::class, 'units'])->name('units');
         Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
         Route::get('searchUnitTransfers', [UnitTransferController::class, 'searchUnitTransfers'])->name('searchUnitTransfers');
 
@@ -131,14 +132,25 @@ Route::middleware([
         Route::get('searchProductPriceTiers', [PriceTierController::class, 'searchProductPriceTiers'])->name('searchProductPriceTiers');
         Route::get('priceWithTax', [GeneralController::class, 'priceWithTax'])->name('priceWithTax');
         Route::get('getPriceFromPriceWithTax', [GeneralController::class, 'getPriceFromPriceWithTax'])->name('getPriceFromPriceWithTax');
-        
+
         Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
-        
+
 
         Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
         Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
         Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
         Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])->name('productBarcode.barcode');
-        
+
+
+
+        Route::get('/type-service', [TypeServiceController::class, 'index'])->name('type-service');
+        Route::post('/type-service-store', [TypeServiceController::class, 'store'])->name('typeService.store');
+        Route::get('/type-service-create', [TypeServiceController::class, 'create'])->name('typeService.create');
+        Route::get('/type-service-edit/{id}', [TypeServiceController::class, 'edit'])->name('typeService.edit');
+        Route::put('/type-service-update', [TypeServiceController::class, 'update'])->name('typeService.update');
+
+
     });
+
+
 });

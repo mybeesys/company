@@ -36,7 +36,7 @@ const CustomMenuTable = ({dir, translations}) => {
   }, [stationUrl, applicationTypeUrl]);
 
   return (
-    <div>
+    <div >
       <TreeTableCustomMenu urlList={urlList}
         rootElement={rootElement}
         modesStations={modesStations}

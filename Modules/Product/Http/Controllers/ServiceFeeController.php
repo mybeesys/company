@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -67,7 +67,7 @@ class ServiceFeeController extends Controller
                             $paymentCard->payment_card_id = $newCard['payment_card_id'];
                             $paymentCard->service_fee_id = $serviceFee->id;
                             $paymentCard = $paymentCard->save();
-                            
+
                         }
                     }
                 }
@@ -119,7 +119,7 @@ class ServiceFeeController extends Controller
                             $paymentCard->payment_card_id = $newCard['payment_card_id'];
                             $paymentCard->service_fee_id = $serviceFee->id;
                             $paymentCard = $paymentCard->save();
-                            
+
                         }
                     }
                 }

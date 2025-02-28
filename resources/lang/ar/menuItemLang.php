@@ -79,7 +79,7 @@ return [
     'customer_receipts' => 'سندات العملاء',
     'purchase-order' => 'طلبات الشراء',
 
-    'supplier_receipts'=>'سندات الموردين',
+    'supplier_receipts' => 'سندات الموردين',
     'import' => 'الاستيراد',
 
     'screen_module' => 'الشاشات',
@@ -101,6 +101,7 @@ return [
     'receipt_vouchers' => 'سندات القبض',
     'payment_vouchers' => 'سندات الصرف',
     'sales_report' => 'تقرير المبيعات',
-    'productBarcode' => 'طباعة الباركود'
+    'productBarcode' => 'طباعة الباركود',
+    'product-sales-report' => 'تقرير مبيعات الأصناف',
+    'type-service' => 'انواع الخدمات',
 ];
-
