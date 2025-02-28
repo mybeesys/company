@@ -6,7 +6,6 @@ import Attributetree from "./attributes/attributetree";
 import CustomMenuTable from "./custommenu/CustomMenuTable";
 import CustomMenuDetail from "./custommenu/CustomMenuDetail";
 import ServiceFeeTable from "./serviceFee/ServiceFeeTable";
-import TypeOfServiceTable from "./typesOfService/TypeOfServiceTable";
 import ServiceFeeDetail from "./serviceFee/ServiceFeeDetail";
 import DiscountTable from "./discount/DiscountTable";
 import IngredientDetail from "./ingredients/IngredientDetail";
@@ -57,10 +56,7 @@ const App = ({ nodeType, dir }) => {
             <CustomMenuDetail translations={translations} dir={dir} />
         ),
         serviceFee: <ServiceFeeTable translations={translations} dir={dir} />,
-        typeService: (
-            <TypeOfServiceTable translations={translations} dir={dir} />
-        ),
-
+     
         servicefeeedit: (
             <ServiceFeeDetail translations={translations} dir={dir} />
         ),
