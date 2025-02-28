@@ -31,13 +31,13 @@ const ServiceFeeDetail = ({dir, translations}) => {
     else
         return name_ar
   }
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const res2 = await axios.get('/serviceFeeTypeValues');
       const lFeeTypes = res2.data.map(e => { return { name: translations[`service_fee_type_${e.name}`], value: e.value } });
       const res3 = await axios.get('/serviceFeeAppTypeValues');
-      const lAppTypes = res3.data.map(e => { return { name: translations[`service_fee_app_type_${e.name}`], value: e.value } }); 
+      const lAppTypes = res3.data.map(e => { return { name: translations[`service_fee_app_type_${e.name}`], value: e.value } });
       const res4 = await axios.get('/serviceFeeCalcMetheodValues');
       const lCalcMethods = res4.data.map(e => { return { name: translations[`service_fee_calc_method_${e.name}`], value: e.value } });
       const res5 = await axios.get('/serviceFeeAutoApplyValues');
@@ -99,7 +99,7 @@ const ServiceFeeDetail = ({dir, translations}) => {
     }
     setSubmitdisableButton(false);
   }
-  
+
   const handleMainSubmit = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -151,6 +151,7 @@ const ServiceFeeDetail = ({dir, translations}) => {
   const onBasicChange = (key, value) => {
     currentObject[key] = value;
     setcurrentObject({...currentObject});
+
   }
 
   const toSelectValues = (values, options, key) => {
@@ -200,7 +201,7 @@ const ServiceFeeDetail = ({dir, translations}) => {
             <div class="col-7">
               <div class="card-toolbar ">
                 <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
-                  {menu.map((m, index) => 
+                  {menu.map((m, index) =>
                     { return index == 0 ? <></>:
                     <li class="nav-item" role="presentation">
                       <a id={`${m.key}_tab`} onClick={(e)=>setCurrentTab(index)} class={`nav-link justify-content-center text-active-gray-800 ${currentTab==index ? 'active' : ''}`}
@@ -208,7 +209,7 @@ const ServiceFeeDetail = ({dir, translations}) => {
                         {translations[m.key]}
                       </a>
                     </li>}
-                  
+
                   )}
                 </ul>
               </div>

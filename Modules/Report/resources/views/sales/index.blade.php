@@ -25,27 +25,26 @@
                                 <div class="separator border-gray-200"></div>
                                 <div class="px-7 py-5" data-kt-filter="form">
                                     <x-form.input-div class="mb-5">
-                                        <x-form.select :label="__('employee::fields.establishment')" name="establishment" data_allow_clear="false" :options="[]"
-                                            value="" />
+                                        <x-form.select :label="__('employee::fields.establishment')" name="establishment" data_allow_clear="false"
+                                            :options="[]" value="" />
                                     </x-form.input-div>
                                 </div>
-                            </div> 
+                            </div>
                             <div class="border border-left w-100">
                                 <div class="px-7 py-5">
                                     <div class="fs-5 text-gray-900 fw-bold">@lang('general.filters')</div>
                                 </div>
                                 <div class="separator border-gray-200"></div>
                                 <div class="px-7 py-5" data-kt-filter="form">
-                                    
+
                                 </div>
-                            </div>  
+                            </div>
                         </div>
                         <div class="d-flex justify-content-end gap-4 py-5 px-10">
-                            <button type="reset"
-                                class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6"
+                            <button type="reset" class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6"
                                 data-kt-menu-dismiss="true" data-kt-filter="reset">@lang('general.reset')</button>
-                            <button type="submit" class="btn btn-primary fw-semibold px-6"
-                                data-kt-menu-dismiss="true" data-kt-filter="filter">@lang('general.apply')</button>
+                            <button type="submit" class="btn btn-primary fw-semibold px-6" data-kt-menu-dismiss="true"
+                                data-kt-filter="filter">@lang('general.apply')</button>
                         </div>
                     </div>
                 </div>
@@ -62,7 +61,7 @@
                                 <button class="accordion-button fs-4 fw-semibold collapsed py-4" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#net_sales_body" aria-expanded="false"
                                     aria-controls="net_sales_body">
-                                    @lang('report::general.net_sales'): 0.00
+                                    @lang('report::general.net_sales'): {{ number_format($salesSummary->net_sales, 2) }}
                                 </button>
                             </h2>
                             <div id="net_sales_body" class="accordion-collapse collapse" aria-labelledby="net_sales_header"
@@ -71,137 +70,117 @@
 
                                     <div class="accordion">
                                         <div class="accordion-item">
-                                            <h2 class="accordion-header" id="gross_sales_header">
-                                                <button class="accordion-button fs-5 fw-semibold collapsed py-4"
-                                                    type="button" data-bs-toggle="collapse"
-                                                    data-bs-target="#gross_sales_body" aria-expanded="false"
-                                                    aria-controls="gross_sales_body">
-                                                    @lang('report::general.gross_sales'): 0.00
-                                                </button>
+                                            <h2 class="accordion-header fs-5 fw-semibold  p-4" id="gross_sales_header">
+                                                {{-- <button class="accordion-button fs-5 fw-semibold collapsed py-4" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#gross_sales_body" aria-expanded="false"
+                                                    aria-controls="gross_sales_body"> --}}
+                                                    @lang('report::general.gross_sales'): {{ number_format($salesSummary->total_sales, 2) }}
+                                                {{-- </button> --}}
                                             </h2>
                                             <div id="gross_sales_body" class="accordion-collapse collapse"
                                                 aria-labelledby="gross_sales_header" data-bs-parent="#gross_sales">
                                                 <div class="accordion-body p-0">
 
-                                                    <div class="accordion">
+                                                    {{-- <div class="accordion">
                                                         <div class="accordion-item">
                                                             <h2 class="accordion-header" id="total_products_sales_header">
-                                                                <button
-                                                                    class="accordion-button fs-6 fw-semibold collapsed py-4"
+                                                                <button class="accordion-button fs-6 fw-semibold collapsed py-4"
                                                                     type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#total_products_sales_body"
-                                                                    aria-expanded="false"
+                                                                    data-bs-target="#total_products_sales_body" aria-expanded="false"
                                                                     aria-controls="total_products_sales_body">
                                                                     @lang('report::general.total_products_sales'): 0.00
                                                                 </button>
                                                             </h2>
-                                                            <div id="total_products_sales_body"
-                                                                class="accordion-collapse collapse"
+                                                            <div id="total_products_sales_body" class="accordion-collapse collapse"
                                                                 aria-labelledby="total_products_sales_header"
                                                                 data-bs-parent="#total_products_sales">
                                                                 <div class="accordion-body p-0">
                                                                     <div class="border-bottom px-6 py-4">
                                                                         <span>@lang('report::general.taxable_sales'): 0.00</span>
                                                                     </div>
-                                                                    <div class=" px-6 py-4">
+                                                                    <div class="px-6 py-4">
                                                                         <span>@lang('report::general.non_taxable_sales'): 0.00</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </div> --}}
 
-                                                    <div class="accordion">
+                                                    {{-- <div class="accordion">
                                                         <div class="accordion-item">
                                                             <h2 class="accordion-header" id="total_service_fees_header">
-                                                                <button
-                                                                    class="accordion-button fs-6 fw-semibold collapsed py-4"
+                                                                <button class="accordion-button fs-6 fw-semibold collapsed py-4"
                                                                     type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#total_service_fees_body"
-                                                                    aria-expanded="false"
+                                                                    data-bs-target="#total_service_fees_body" aria-expanded="false"
                                                                     aria-controls="total_service_fees_body">
                                                                     @lang('report::general.total_service_fees'): 0.00
                                                                 </button>
                                                             </h2>
-                                                            <div id="total_service_fees_body"
-                                                                class="accordion-collapse collapse"
+                                                            <div id="total_service_fees_body" class="accordion-collapse collapse"
                                                                 aria-labelledby="total_service_fees_header"
                                                                 data-bs-parent="#total_service_fees">
                                                                 <div class="accordion-body p-0">
                                                                     <div class="border-bottom px-6 py-4">
                                                                         <span>@lang('report::general.taxable_service_fees'): 0.00</span>
                                                                     </div>
-                                                                    <div class=" px-6 py-4">
+                                                                    <div class="px-6 py-4">
                                                                         <span>@lang('report::general.non_taxable_service_fees'): 0.00</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </div> --}}
 
                                                 </div>
                                             </div>
                                         </div>
 
-
                                         <div class="accordion-item">
-                                            <h2 class="accordion-header" id="total_discounts_header">
-                                                <button class="accordion-button fs-5 fw-semibold collapsed py-4"
-                                                    type="button" data-bs-toggle="collapse"
-                                                    data-bs-target="#total_discounts_body" aria-expanded="false"
-                                                    aria-controls="total_discounts_body">
-                                                    @lang('report::general.total_discounts'): 0.00
-                                                </button>
+                                            <h2 class="accordion-header fs-5 fw-semibold  p-4" id="total_discounts_header">
+                                                {{-- <button class="accordion-button fs-5 fw-semibold collapsed py-4" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#total_discounts_body" aria-expanded="false"
+                                                    aria-controls="total_discounts_body"> --}}
+                                                    @lang('report::general.total_discounts'): {{ number_format($salesSummary->total_discounts, 2) }}
+                                                {{-- </button> --}}
                                             </h2>
-                                            <div id="total_discounts_body" class="accordion-collapse collapse"
-                                                aria-labelledby="total_discounts_header"
-                                                data-bs-parent="#total_discounts">
+                                            {{-- <div id="total_discounts_body" class="accordion-collapse collapse"
+                                                aria-labelledby="total_discounts_header" data-bs-parent="#total_discounts">
                                                 <div class="accordion-body p-0">
                                                     <div class="border-bottom px-6 py-4">
                                                         <span>@lang('report::general.items_discounts'): 0.00</span>
                                                     </div>
-                                                    <div class=" px-6 py-4">
+                                                    <div class="px-6 py-4">
                                                         <span>@lang('report::general.orders_discounts'): 0.00</span>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                         </div>
+
                                     </div>
+
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="total_tax_and_surcharges">
-                                <button class="accordion-button fs-4 fw-semibold collapsed py-4" type="button"
+                            <h2 class="accordion-header fs-5 fw-semibold  p-4" id="total_tax_and_surcharges">
+                                {{-- <button class="accordion-button fs-4 fw-semibold collapsed py-4" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#total_tax_and_surcharges_body"
-                                    aria-expanded="false" aria-controls="total_tax_and_surcharges_body">
-                                    @lang('report::general.total_tax_and_surcharges'): 0.00
-                                </button>
+                                    aria-expanded="false" aria-controls="total_tax_and_surcharges_body"> --}}
+                                    @lang('report::general.total_tax_and_surcharges'): {{ number_format($salesSummary->total_taxes, 2) }}
+                                {{-- </button> --}}
                             </h2>
-                            <div id="total_tax_and_surcharges_body" class="accordion-collapse collapse"
-                                aria-labelledby="total_tax_and_surcharges_header"
-                                data-bs-parent="#total_tax_and_surcharges">
-                                <div class="accordion-body p-0">
-                                    <div class="border-bottom px-6 py-4">
-                                        <span class="fs-6 fw-semibold">@lang('report::general.sales_tax'): 0.00</span>
-                                    </div>
-                                    <div class="border-bottom px-6 py-4">
-                                        <span class="fs-6 fw-semibold">@lang('report::general.pass_through_fee_tax'): 0.00</span>
-                                    </div>
-                                    <div class=" px-6 py-4">
-                                        <span class="fs-6 fw-semibold">@lang('report::general.surcharges'): 0.00</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
+
                         <div class="border border-top-0">
-                            <h2 class="fs-4 fw-semibold px-6 py-4 mb-0">@lang('report::general.liabilities'): 0.00</h4>
+                            <h2 class="fs-4 fw-semibold px-6 py-4 mb-0">@lang('report::general.liabilities'): 0.00</h2>
                         </div>
+
                         <div class="border border-top-0 bg-secondary rounded-bottom">
-                            <h2 class="fs-4 fw-semibold px-6 py-4 mb-0">@lang('report::general.total_payments'): 0.00</h4>
+                            <h2 class="fs-4 fw-semibold px-6 py-4 mb-0">@lang('report::general.total_payments'): {{ number_format($salesSummary->total_payments, 2) }}</h2>
                         </div>
                     </div>
+
                 </x-form.form-card>
                 <x-form.form-card class="w-100" :title="__('report::general.analytics')">
                     <div class="accordion">

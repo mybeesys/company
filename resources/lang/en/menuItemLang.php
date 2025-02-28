@@ -79,7 +79,7 @@ return [
     'customer_receipts' => 'Customer Receipts',
     'purchase-order' => 'Purchases Order',
 
-    'supplier_receipts'=>'Supplier Receipts',
+    'supplier_receipts' => 'Supplier Receipts',
     'import' => 'Import',
 
     'screen_module' => 'Screens',
@@ -102,7 +102,11 @@ return [
     'receipt_vouchers' => 'Receipt Vouchers',
     'payment_vouchers' => 'Payment Vouchers',
     'sales_report' => 'Sales report',
-    'productBarcode' => 'Barcode Printing'
+    'productBarcode' => 'Barcode Printing',
+    'product-sales-report' => 'Product sales report',
+    'type-service' => 'Type of services',
+
+
 
 
 

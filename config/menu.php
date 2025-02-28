@@ -45,6 +45,14 @@ return [
 
             ],
             [
+                'name' => 'type-service',
+                'url' => 'type-service',
+                'permission' => '',
+
+            ],
+
+
+            [
                 'name' => 'priceTier',
                 'url' => 'priceTier',
                 'permission' => '',
@@ -367,8 +375,18 @@ return [
             [
                 'name' => 'sales',
                 'url' => 'sales-report',
-                'permission' => '',  
+                'permission' => '',
+            ],
+            [
+                'name' => 'product-sales-report',
+                'url' => 'product-sales-report',
+                'permission' => '',
             ]
+
+
+
+
+
         ]
     ],
     [

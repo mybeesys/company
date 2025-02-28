@@ -8,6 +8,8 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
  }) => {
 
     useEffect(() => {
+console.log(
+    autoApplyTypes, diningTypes, creditCardTypes, paymentCards );
 
     }, []);
 
@@ -42,7 +44,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                 </div>
                                 <div class="row ">
                                     {
-                                        currentObject.auto_apply_type == 0 ? 
+                                        currentObject.auto_apply_type == 0 ?
                                         <div class="col-12">
                                             <label for="diningTypes" class="col-form-label">{translations.diningOptions}</label>
                                             <Select
@@ -51,7 +53,7 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                             options={diningTypes}
                                             closeMenuOnSelect={false}
                                             defaultValue={serviceFeediningTypes}
-                                            onChange={val => onBasicChange('diningTypes', 
+                                            onChange={val => onBasicChange('diningTypes',
                                                 val.map(x=> { return {dining_type_id : x.value} }))}
                                             />
                                         </div>
@@ -66,22 +68,22 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                                 <label for="to_date" class="col-form-label">{translations.toDate}</label>
                                             </div>
                                             <div class="col-6">
-                                                <Calendar maxDate={currentObject.toDate} value={toDate(currentObject.from_date, 'D') } 
-                                                onChange={(e) => onBasicChange('from_date', 
-                                                    !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}` 
+                                                <Calendar maxDate={currentObject.toDate} value={toDate(currentObject.from_date, 'D') }
+                                                onChange={(e) => onBasicChange('from_date',
+                                                    !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}`
                                                     : null)}></Calendar>
                                             </div>
                                             <div class="col-6">
-                                                <Calendar midDate={currentObject.from_date} value={toDate(currentObject.to_date, 'D') } 
-                                                onChange={(e) => onBasicChange('to_date', 
-                                                    !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}` 
+                                                <Calendar midDate={currentObject.from_date} value={toDate(currentObject.to_date, 'D') }
+                                                onChange={(e) => onBasicChange('to_date',
+                                                    !!e.value ? `${e.value.getFullYear()}-${(e.value.getMonth()+1).toString().padStart(2, '0')}-${e.value.getDate().toString().padStart(2, '0')}`
                                                     : null
-                                                )}></Calendar> 
+                                                )}></Calendar>
                                             </div>
                                         </div>
                                         </>
                                          :
-                                        currentObject.auto_apply_type == 2 ? 
+                                        currentObject.auto_apply_type == 2 ?
                                         <div class="row">
                                             <div class="col-12">
                                                 <label for="credit_type" class="col-form-label">{translations.creditType}</label>
@@ -102,13 +104,13 @@ const ServiceFeeAutoApply = ({ translations, currentObject, serviceFeeCards, ser
                                                 options={paymentCards}
                                                 closeMenuOnSelect={false}
                                                 defaultValue={serviceFeeCards}
-                                                onChange={val => onBasicChange('cards', 
+                                                onChange={val => onBasicChange('cards',
                                                     val.map(x=> { return {payment_card_id : x.value} }))}
                                                 />
                                             </div>
                                         </div>
                                         :
-                                        currentObject.auto_apply_type == 1 ? 
+                                        currentObject.auto_apply_type == 1 ?
                                         <div class="col-6">
                                             <label for="guestCount" class="col-form-label">{translations.guestCountValue}</label>
                                             <input type="number" class="form-control form-control-solid custom-height" id="guestCount" value={currentObject.guestCount}

@@ -23,10 +23,10 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::controller(SalesReportController::class)->prefix('sales-report')->name('sales-reports.')->group(function(){
+    Route::controller(SalesReportController::class)->prefix('sales-report')->name('sales-reports.')->group(function () {
         Route::get('', 'index')->name('index');
 
         Route::get('sales-data', 'getSalesData')->name('get-sales-data');
     });
+    Route::get('product-sales-report', [SalesReportController::class, 'getproductSellReport'])->name('product-sales-report');
 });
-
