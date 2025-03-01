@@ -9,6 +9,7 @@ return [
     'price' => 'السعر',
     'SKU' => 'رمز التخزين',
     'customer' => 'الزبون',
+    'supplier' => 'المورد',
     'transaction_date' => 'تاريخ المعاملة',
     'unit_price' => 'سعر الوحدة',
     'unit_sale_price' => 'سعر البيع للوحدة',
@@ -18,5 +19,13 @@ return [
     'subtotal' => 'الإجمالي الفرعي',
     'no_discount' => 'لا يوجد خصم',
     'actions' => 'الاجراءات',
-    'ref_no'=>'رقم الفاتورة',
+    'ref_no' => 'رقم الفاتورة',
+    'supplier' => 'المورد',
+    'reference_number' => 'الرقم المرجعي',
+    'purchases' => 'المشتريات',
+    'payment_date' => 'تاريخ الدفع',
+    'paid_amount' => 'المبلغ المدفوع',
+    'payment_method' => 'طريقة الدفع',
+
+    'sales' => 'المبيعات',
 ];

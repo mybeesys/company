@@ -381,8 +381,25 @@ return [
                 'name' => 'product-sales-report',
                 'url' => 'product-sales-report',
                 'permission' => '',
-            ]
+            ],
 
+            [
+                'name' => 'product-purchases-report',
+                'url' => 'product-purchases-report',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'purchase-payment-report',
+                'url' => 'purchase-payment-report',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'sell-payment-report',
+                'url' => 'sell-payment-report',
+                'permission' => '',
+            ],
 
 
 

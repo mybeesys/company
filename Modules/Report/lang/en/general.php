@@ -45,5 +45,7 @@ return [
     'tax_value' => 'Tax Value',
     'subtotal' => 'Subtotal',
     'no_discount' => 'No Discount',
+    'ProductSales_search'=>'Search',
+
 
 ];

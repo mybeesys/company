@@ -45,4 +45,5 @@ return [
     'tax_value' => 'قيمة الضريبة',
     'subtotal' => 'الإجمالي الفرعي',
     'no_discount' => 'لا يوجد خصم',
+    'ProductSales_search'=>'بحث',
 ];

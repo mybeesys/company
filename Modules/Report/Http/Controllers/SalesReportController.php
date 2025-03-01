@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Report\Utils\ReportTransactionsUtile;
 
@@ -90,47 +92,8 @@ class SalesReportController extends Controller
                     DB::raw('((transaction_sell_lines.qyt) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
                 )->get();
 
-            // if (! empty($variation_id)) {
-            //     $query->where('transaction_sell_lines.variation_id', $variation_id);
-            // }
-            // $start_date = $request->get('start_date');
-            // $end_date = $request->get('end_date');
-            // if (! empty($start_date) && ! empty($end_date)) {
-            //     $query->where('t.transaction_date', '>=', $start_date)
-            //         ->where('t.transaction_date', '<=', $end_date);
-            // }
-
-
-
-            // $customer_id = $request->get('customer_id', null);
-            // if (! empty($customer_id)) {
-            //     $query->where('t.contact_id', $customer_id);
-            // }
-
-            // $customer_group_id = $request->get('customer_group_id', null);
-            // if (! empty($customer_group_id)) {
-            //     $query->leftjoin('customer_groups AS CG', 'c.customer_group_id', '=', 'CG.id')
-            //         ->where('CG.id', $customer_group_id);
-            // }
-
-            // $category_id = $request->get('category_id', null);
-            // if (! empty($category_id)) {
-            //     $query->where('p.category_id', $category_id);
-            // }
-
-            // $brand_id = $request->get('brand_id', null);
-            // if (! empty($brand_id)) {
-            //     $query->where('p.brand_id', $brand_id);
-            // }
-
-          return  $transactionUtile->getProductSalesReport($query);
+            return  $transactionUtile->getProductSalesReport($query);
         }
-
-        // $business_locations = BusinessLocation::forDropdown($business_id);
-        // $customers = Contact::customersDropdown($business_id);
-        // $categories = Category::forDropdown($business_id, 'product');
-        // $brands = Brands::forDropdown($business_id);
-        // $customer_group = CustomerGroup::forDropdown($business_id, false, true);
 
         $columns = $transactionUtile->getsProductSalesColumns();
         return view('report::sales.indexProductSalesReport')
@@ -138,4 +101,157 @@ class SalesReportController extends Controller
                 'columns'
             ));
     }
+
+    public function getproductPurchaseReport(Request $request)
+    {
+
+        $transactionUtile = new ReportTransactionsUtile();
+
+
+        if ($request->ajax()) {
+
+            $query = TransactionePurchasesLine::join(
+                'transactions as t',
+                'transactione_purchases_lines.transaction_id',
+                '=',
+                't.id'
+            )
+
+                ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+                ->join('product_products as p', 'transactione_purchases_lines.product_id', '=', 'p.id')
+                ->leftjoin('taxes', 'transactione_purchases_lines.tax_id', '=', 'taxes.id')
+                ->leftjoin('product_unit_transfer as u', 'transactione_purchases_lines.unit_id', '=', 'u.id')
+                ->where('t.type', 'purchases')
+                ->select(
+                    'p.name_ar as product_name_ar',
+                    'p.name_en as product_name_en',
+                    'p.category_id  as product_category_id ',
+                    'p.subcategory_id  as product_subcategory_id ',
+                    'p.price as product_price',
+                    'p.SKU as product_SKU',
+                    'c.name as customer',
+                    't.id as transaction_id',
+                    't.ref_no',
+                    't.transaction_date as transaction_date',
+                    'transactione_purchases_lines.unit_price_before_discount as unit_price',
+                    'transactione_purchases_lines.unit_price_inc_tax as unit_sale_price',
+                    DB::raw('(transactione_purchases_lines.qyt) as sell_qty'),
+                    'transactione_purchases_lines.discount_type as discount_type',
+                    'transactione_purchases_lines.discount_amount as discount_amount',
+                    'transactione_purchases_lines.tax_value',
+                    'taxes.name as tax',
+                    'u.unit1  as unit',
+                    DB::raw('((transactione_purchases_lines.qyt) * transactione_purchases_lines.unit_price_inc_tax) as subtotal')
+                )->get();
+            return  $transactionUtile->getProductPurchasesReport($query);
+        }
+
+        $columns = $transactionUtile->getsProductPurchasesColumns();
+        return view('report::sales.product-purchase-report')
+            ->with(compact(
+                'columns'
+            ));
+    }
+
+
+    public function purchasePaymentReport(Request $request)
+    {
+
+        $transactionUtile = new ReportTransactionsUtile();
+
+
+        if ($request->ajax()) {
+
+            $query = TransactionPayments::leftjoin('transactions as t', function ($join) {
+                $join->on('transaction_payments.transaction_id', '=', 't.id')
+                    ->whereIn('t.type', ['purchases']);
+            })
+                ->where(function ($q) {
+                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('purchases'))")
+                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('purchases'))");
+                })
+
+                ->select(
+                    DB::raw("IF(transaction_payments.transaction_id IS NULL,
+                                (SELECT c.name FROM transactions as ts
+                                JOIN cs_contacts as c ON ts.contact_id=c.id),
+                                (SELECT CONCAT(COALESCE(c.name, '')) FROM transactions as ts JOIN
+                                    cs_contacts as c ON ts.contact_id=c.id
+                                    WHERE ts.id=t.id
+                                )
+                            ) as supplier"),
+                    'transaction_payments.amount',
+                    'method',
+                    'paid_on',
+                    'transaction_payments.payment_ref_no',
+                    't.ref_no',
+                    't.id as transaction_id',
+                    // 'transaction_no',
+                    'transaction_payments.id as DT_RowId'
+                )
+                ->get();
+
+
+            return $transactionUtile->purchasePaymentReportTable($query);
+          }
+
+          $columns = $transactionUtile->purchasePaymentReportColumns();
+        return view('report::sales.purchase_payment_report')
+        ->with(compact('columns'));
+
+
+
+    }
+
+    public function salesPaymentReport(Request $request)
+    {
+
+
+        $transactionUtile = new ReportTransactionsUtile();
+
+
+        if ($request->ajax()) {
+
+            $query = TransactionPayments::leftjoin('transactions as t', function ($join) {
+                $join->on('transaction_payments.transaction_id', '=', 't.id')
+                    ->whereIn('t.type', ['sell']);
+            })
+                ->where(function ($q) {
+                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('sell'))")
+                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('sell'))");
+                })
+
+                ->select(
+                    DB::raw("IF(transaction_payments.transaction_id IS NULL,
+                                (SELECT c.name FROM transactions as ts
+                                JOIN cs_contacts as c ON ts.contact_id=c.id),
+                                (SELECT CONCAT(COALESCE(c.name, '')) FROM transactions as ts JOIN
+                                    cs_contacts as c ON ts.contact_id=c.id
+                                    WHERE ts.id=t.id
+                                )
+                            ) as supplier"),
+                    'transaction_payments.amount',
+                    'method',
+                    'paid_on',
+                    'transaction_payments.payment_ref_no',
+                    't.ref_no',
+                    't.id as transaction_id',
+                    // 'transaction_no',
+                    'transaction_payments.id as DT_RowId'
+                )
+                ->get();
+
+
+            return $transactionUtile->purchasePaymentReportTable($query);
+          }
+
+          $columns = $transactionUtile->salesPaymentReportColumns();
+        return view('report::sales.sell_payment_report')
+        ->with(compact('columns'));
+
+
+
+    }
+
+
 }
