@@ -103,7 +103,7 @@ return [
     'sales_report' => 'ملخص تقرير المبيعات',
     'productBarcode' => 'طباعة الباركود',
     'product-sales-report' => 'تقرير مبيعات الأصناف',
-    'product-purchases-report' => 'تقرير مشتريات الأصناف',
+    'product-purchase-report' => 'تقرير مشتريات الأصناف',
     'purchase-payment-report'=>'تقرير المشتريات',
     'sell-payment-report'=>'تقرير المبيعات',
     'type-service' => 'انواع الخدمات',

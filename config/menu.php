@@ -384,8 +384,8 @@ return [
             ],
 
             [
-                'name' => 'product-purchases-report',
-                'url' => 'product-purchases-report',
+                'name' => 'product-purchase-report',
+                'url' => 'product-purchase-report',
                 'permission' => '',
             ],
 
