@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.product-sales-report'))
+@section('title', __('menuItemLang.product-purchase-report'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -54,7 +54,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_ProductSales_table');;
-        const dataUrl = '{{ route('product-sales-report') }}';
+        const dataUrl = '{{ route('product-purchase-report') }}';
         let currentLang = "{{ app()->getLocale() }}";
         let dueDateRangeValue = '';
         let sale_date_range = '';
@@ -92,14 +92,6 @@
                     {
                         data: 'product_name',
                         name: 'product_name'
-                    },
-                    {
-                        data: 'category',
-                        name: 'category'
-                    },
-                    {
-                        data: 'subcategory',
-                        name: 'subcategory'
                     },
                     {
                         data: 'price',
@@ -176,7 +168,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('product-sales-report') }}?' + $.param({
+                dataTable.ajax.url('{{ route('product-purchase-report') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

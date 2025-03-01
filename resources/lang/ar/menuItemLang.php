@@ -100,8 +100,11 @@ return [
     'sell' => 'سندات العملاء',
     'receipt_vouchers' => 'سندات القبض',
     'payment_vouchers' => 'سندات الصرف',
-    'sales_report' => 'تقرير المبيعات',
+    'sales_report' => 'ملخص تقرير المبيعات',
     'productBarcode' => 'طباعة الباركود',
     'product-sales-report' => 'تقرير مبيعات الأصناف',
+    'product-purchases-report' => 'تقرير مشتريات الأصناف',
+    'purchase-payment-report'=>'تقرير المشتريات',
+    'sell-payment-report'=>'تقرير المبيعات',
     'type-service' => 'انواع الخدمات',
 ];

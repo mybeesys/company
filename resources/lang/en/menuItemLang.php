@@ -104,6 +104,11 @@ return [
     'sales_report' => 'Sales report',
     'productBarcode' => 'Barcode Printing',
     'product-sales-report' => 'Product sales report',
+    'product-purchases-report' => 'Product purchases report',
+    'purchase-payment-report'=>'Purchase report',
+    'sell-payment-report'=>'Sell report',
+
+
     'type-service' => 'Type of services',
 
 

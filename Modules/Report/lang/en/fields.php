@@ -8,6 +8,7 @@ return [
     'subcategory' => 'Subcategory',
     'price' => 'Price',
     'SKU' => 'SKU',
+    'supplier'=>'Supplier',
     'customer' => 'Customer',
     'transaction_date' => 'Transaction Date',
     'unit_price' => 'Unit Price',
@@ -19,6 +20,13 @@ return [
     'no_discount' => 'No Discount',
     'actions' => 'actions',
     'ref_no'=>'Invoice no',
+    'supplier' => 'Supplier',
+    'reference_number' => 'Reference Number',
+    'purchases' => 'Purchases',
+    'payment_date' => 'Payment Date',
+    'paid_amount' => 'Paid Amount',
+    'payment_method' => 'Payment Method',
+    'sales' => 'Sales',
 
 
 ];

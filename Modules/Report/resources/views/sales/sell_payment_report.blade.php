@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.product-sales-report'))
+@section('title', __('menuItemLang.sell-payment-report'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -54,7 +54,7 @@
         "use strict";
         let dataTable;
         const table = $('#kt_ProductSales_table');;
-        const dataUrl = '{{ route('product-sales-report') }}';
+        const dataUrl = '{{ route('sell-payment-report') }}';
         let currentLang = "{{ app()->getLocale() }}";
         let dueDateRangeValue = '';
         let sale_date_range = '';
@@ -88,66 +88,32 @@
                 },
                 info: false,
 
-                columns: [
+                columns: [{
+                        data: 'payment_ref_no',
+                        name: 'payment_ref_no'
+                    },
+
                     {
-                        data: 'product_name',
-                        name: 'product_name'
+                        data: 'supplier',
+                        name: 'supplier'
                     },
                     {
-                        data: 'category',
-                        name: 'category'
+                        data: 'paid_on',
+                        name: 'paid_on'
+                    },
+
+                    {
+                        data: 'amount',
+                        name: 'amount'
                     },
                     {
-                        data: 'subcategory',
-                        name: 'subcategory'
+                        data: 'method',
+                        name: 'method'
                     },
-                    {
-                        data: 'price',
-                        name: 'price'
-                    },
-                    {
-                        data: 'SKU',
-                        name: 'SKU'
-                    },
-                    {
-                        data: 'customer',
-                        name: 'customer'
-                    },
+
                     {
                         data: 'ref_no',
                         name: 'ref_no'
-                    },
-
-                    {
-                        data: 'transaction_date',
-                        name: 'transaction_date'
-                    },
-
-                    {
-                        data: 'unit_price',
-                        name: 'unit_price'
-                    },
-                    {
-                        data: 'unit_sale_price',
-                        name: 'unit_sale_price'
-                    },
-                    {
-                        data: 'sell_qty',
-                        name: 'sell_qty'
-                    },
-
-                    {
-                        data: 'discount_amount',
-                        name: 'discount_amount'
-                    },
-
-                    {
-                        data: 'tax_value',
-                        name: 'tax_value'
-                    },
-                    {
-                        data: 'subtotal',
-                        name: 'subtotal'
                     },
                     {
                         data: 'actions',
@@ -176,7 +142,7 @@
             filters.on('click', function(e) {
                 const deletedValue = deleted.val();
 
-                dataTable.ajax.url('{{ route('product-sales-report') }}?' + $.param({
+                dataTable.ajax.url('{{ route('sell-payment-report') }}?' + $.param({
                     deleted_records: deletedValue
                 })).load();
 

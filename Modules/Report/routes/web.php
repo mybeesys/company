@@ -29,4 +29,11 @@ Route::middleware([
         Route::get('sales-data', 'getSalesData')->name('get-sales-data');
     });
     Route::get('product-sales-report', [SalesReportController::class, 'getproductSellReport'])->name('product-sales-report');
+    Route::get('product-purchase-report', [SalesReportController::class, 'getproductPurchaseReport'])->name('product-purchase-report');
+    Route::get('purchase-payment-report', [SalesReportController::class, 'purchasePaymentReport'])->name('purchase-payment-report');
+    Route::get('sell-payment-report', [SalesReportController::class, 'salesPaymentReport'])->name('sell-payment-report');
+
+
+
+
 });
