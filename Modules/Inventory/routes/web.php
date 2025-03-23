@@ -32,7 +32,7 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class
-])->group( function () {
+])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
 
@@ -44,7 +44,7 @@ Route::middleware([
         Route::get('/productInventoryReport/{id}/productInventory_pdf', [ProductInventoryReportController::class, 'productInventory_pdf'])->name('productInventory.productInventory_pdf');
         Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');;
         Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
-        
+
         Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
         Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
         Route::get('listTransactions', [ProductInventoryController::class, 'listTransactions']);
@@ -58,6 +58,7 @@ Route::middleware([
         Route::get('wasteList', [WasteController::class, 'getWastes'])->name('wasteList');
         Route::resource('transfer', TransferController::class)->names('transfer');
         Route::get('transferList', [TransferController::class, 'getTransfer'])->name('transferList');
+        Route::get('transfer/{id1}/partial-deliveries/{id2}', [TransferController::class, 'partialDeliveries'])->name('partialDeliveries');
         Route::resource('inventoryOperation', InventoryOperationController::class)->names('inventoryOperation');
         Route::get('/inventoryOperationList/{type?}', [InventoryOperationController::class, 'getinventoryOperations'])->name('inventoryOperationList');;
         Route::post('/statusUpdate', [InventoryOperationController::class, 'statusUpdate'])->name('statusUpdate');

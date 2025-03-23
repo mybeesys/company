@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use Modules\Establishment\Models\Establishment;
 use Illuminate\Http\Request;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\TransactionUtil;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransferController extends Controller
 {
@@ -48,17 +52,20 @@ class TransferController extends Controller
             'id' => 'nullable|numeric',
             'transaction_date' => 'nullable|date',
             'description' => 'nullable|string',
+            'type' => 'nullable|string',
         ]);
         if (!isset($validated['id'])) {
             $result = TransactionUtil::createTransaction('TRANSFER', $validated, $request, true);
-            if(count($result) > 0)
+            if (count($result) > 0)
                 return response()->json($result);
             else
                 return response()->json(["message" => "Done"]);
         }
-        else {
+        if (isset($validated['type'])) {
+            return TransactionUtil::QuantityUpdate($validated, $request);
+        } else {
             $result = TransactionUtil::updateTransaction($validated, $request, true);
-            if(count($result) > 0)
+            if (count($result) > 0)
                 return response()->json($result);
             else
                 return response()->json(["message" => "Done"]);
@@ -70,10 +77,28 @@ class TransferController extends Controller
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $establishments = Establishment::where('name', 'like', '%' . $key . '%')
-                            ->take(10)
-                            ->get();
+            ->take(10)
+            ->get();
         return response()->json($establishments);
     }
+    public function partialDeliveries($id1, $id2)
+    {
+        $transaction = Transaction::with('createdBy')->where('parent_id', $id1)->firstOrFail();
 
-    
+        $transactionPurchasesLines = TransactionePurchasesLine::where('transaction_id', $transaction->id)
+            ->where('transactionsell_id', $id2)
+            ->get()
+            ->map(function ($line) use ($transaction) {
+                return [
+                    'qyt' => $line->qyt,
+                    'created_at' => $line->created_at,
+                    'created_by_name' => $transaction->createdBy ? $transaction->createdBy->name : null,
+                ];
+            });
+
+
+        return response()->json(
+            $transactionPurchasesLines,
+        );
+    }
 }

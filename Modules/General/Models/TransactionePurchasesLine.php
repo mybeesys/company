@@ -35,5 +35,8 @@ class TransactionePurchasesLine extends Model
     {
         return $this->belongsTo(Transaction::class, 'transaction_id');
     }
-
+    public function transactionSellLine()
+    {
+        return $this->belongsTo(TransactionSellLine::class, 'transactionsell_id');
+    }
 }
