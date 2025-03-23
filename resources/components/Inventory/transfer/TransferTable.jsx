@@ -11,35 +11,12 @@ const TransferTable = ({ dir, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentRow, setCurrentRow] = useState({});
 
-    const handleActionClick = (actionKey,data) => {
+    const handleActionClick = (actionKey, data) => {
         if (actionKey === "partiallyReceived") {
             const transferId = data.id;
-            const type = "partiallyReceived"; 
+            const type = "partiallyReceived";
             window.location.href = `/transfer/${transferId}/edit?type=${type}`;
         }
-    };
-    const changeStatus = (data, status, newQuantity, afterExecute) => {
-        axios
-            .post("quantity-update", {
-                id: data.id,
-                status: status,
-                newQuantity: newQuantity,
-            })
-            .then((resp) => {
-                data["status"] = resp.data.status;
-                Swal.fire({
-                    show: showAlert,
-                    title: `${data.ref_no} ${translations[data["status"]]}`,
-                    icon: "success",
-                    timer: 2000,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                }).then(() => {
-                    setShowAlert(false); // Reset the state after alert is dismissed
-                });
-                afterExecute();
-            })
-            .catch((ex) => {});
     };
 
     const statusCell = (data, key, editMode, editable) => {
@@ -58,7 +35,7 @@ const TransferTable = ({ dir, translations }) => {
             actions.push(
                 {
                     key: "partiallyReceived",
-                    action: () => handleActionClick("partiallyReceived",data),
+                    action: () => handleActionClick("partiallyReceived", data),
                 },
                 {
                     key: "fullyReceived",
@@ -71,9 +48,6 @@ const TransferTable = ({ dir, translations }) => {
                 },
                 {
                     key: "rejected",
-                    action: (data, afterExecute) => {
-                        changeStatus(data, "partial", afterExecute);
-                    },
                 }
             );
         return (

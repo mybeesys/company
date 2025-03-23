@@ -38,9 +38,9 @@ const DropdownMenu = ({ actions, data, translations, afterExecute }) => {
                             key={action.key}
                             href="javascript:void(0);"
                             onClick={(e) => {
-                                e.preventDefault(); // Prevent default anchor action
-                                toggleDropdown(); // Toggle the dropdown visibility
-                                action.action(data, afterExecute); // Call the action function
+                                toggleDropdown();
+                                action.action(data);
+                                afterExecute();
                             }}
                         >
                             {translations[action.key]}
