@@ -243,6 +243,51 @@ return [
 
         ]
     ],
+    [
+        'name' => 'accounting_reports',
+        'url' => 'accounting-reports',
+        'icon' => 'fas fa-bar-chart',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'trial-balance',
+                'url' => 'trial-balance',
+                'permission' => '',
+            ],
+            [
+                'name' => 'income-statement',
+                'url' => 'income-statement',
+                'permission' => '',
+            ],
+            [
+                'name' => 'ledger',
+                'url' => 'ledger',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'balance_sheet',
+                'url' => 'balance-sheet',
+                'permission' => '',
+            ],
+            [
+                'name' => 'journal-report',
+                'url' => 'journal-report',
+                'permission' => '',
+            ],
+            [
+                'name' => 'cash-flow',
+                'url' => 'cash-flow',
+                'permission' => '',
+            ],
+
+
+
+
+
+
+        ]
+    ],
 
     [
         'name' => 'establishments_module',
@@ -372,23 +417,17 @@ return [
         'icon' => 'fas fa-bar-chart',
         'permission' => '',
         'subMenu' => [
+
+            [
+                'name' => 'Profit-Loss',
+                'url' => 'Profit-Loss',
+                'permission' => '',
+            ],
             [
                 'name' => 'sales',
                 'url' => 'sales-report',
                 'permission' => '',
             ],
-            [
-                'name' => 'product-sales-report',
-                'url' => 'product-sales-report',
-                'permission' => '',
-            ],
-
-            [
-                'name' => 'product-purchase-report',
-                'url' => 'product-purchase-report',
-                'permission' => '',
-            ],
-
             [
                 'name' => 'purchase-payment-report',
                 'url' => 'purchase-payment-report',
@@ -398,6 +437,23 @@ return [
             [
                 'name' => 'sell-payment-report',
                 'url' => 'sell-payment-report',
+                'permission' => '',
+            ],
+            [
+                'name' => 'purchase-sell',
+                'url' => 'purchase-sell',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'product-sales-report',
+                'url' => 'product-sales-report',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'product-purchase-report',
+                'url' => 'product-purchase-report',
                 'permission' => '',
             ],
 

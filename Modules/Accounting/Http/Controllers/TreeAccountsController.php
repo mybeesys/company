@@ -232,15 +232,14 @@ class TreeAccountsController extends Controller
 
     public function ledger(Request $request)
     {
-
-        $account_id = $request->query('account_id');
+        $account_id = $request->query('account_id') ?? optional(AccountingAccount::orderBy('id')->first())->id;
 
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
-            ->findorFail($account_id);
+            ->findOrFail($account_id);
 
-        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy','transaction'])
-        // ->leftjoin('transactions as T', 'accounting_accounts_transactions.transaction_id', '=', 'T.id')
-        ->where('accounting_account_id', $account->id)->paginate(10);
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy', 'transaction'])
+            // ->leftjoin('transactions as T', 'accounting_accounts_transactions.transaction_id', '=', 'T.id')
+            ->where('accounting_account_id', $account->id)->paginate(10);
 
         $current_bal = AccountingAccount::leftjoin(
             'accounting_accounts_transactions as AAT',
@@ -301,7 +300,7 @@ class TreeAccountsController extends Controller
             'AAT.accounting_account_id',
             '=',
             'accounting_accounts.id'
-        ) ->where('accounting_accounts.id', $account->id)
+        )->where('accounting_accounts.id', $account->id)
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
 
@@ -339,12 +338,12 @@ class TreeAccountsController extends Controller
             'AAT.accounting_account_id',
             '=',
             'accounting_accounts.id'
-        ) ->where('accounting_accounts.id', $account->id)
+        )->where('accounting_accounts.id', $account->id)
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
 
-        $account['transactions']=$account_transactions;
-        $account['current_bal']=$current_bal;
+        $account['transactions'] = $account_transactions;
+        $account['current_bal'] = $current_bal;
 
         $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.xlsx';
 

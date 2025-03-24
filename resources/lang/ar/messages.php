@@ -39,8 +39,8 @@ return [
     'no' => 'لا',
     'required_fields_warning' => 'يرجى تعبئة جميع الحقول الإلزامية قبل المتابعة.',
 
-"Added successfully, but the customer exceeded"=> "تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.",
-  
+    "Added successfully, but the customer exceeded" => "تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.",
+    'print' => 'طباعة',
 
 
 

@@ -4,6 +4,7 @@ use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingController;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
+use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
@@ -72,5 +73,17 @@ Route::middleware([
 
         Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
+
+
+        Route::get('income-statement', [AccountingReportsController::class, 'incomeStatement'])->name('income-statement');
+        Route::get('trial-balance', [AccountingReportsController::class, 'trialBalance'])->name('trial-balance');
+        Route::get('balance-sheet', [AccountingReportsController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('journal-report', [AccountingReportsController::class, 'JournalReport'])->name('journal-report');
+
+        Route::get('cash-flow', [AccountingReportsController::class, 'cash_flow'])->name('cash-flow');
+
+
+        //
+
     });
 });

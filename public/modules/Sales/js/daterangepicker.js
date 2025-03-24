@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    
+
 
     $("#favorite-filter,#customer,#payment_status").change(function () {
         dataTable.ajax.reload();
