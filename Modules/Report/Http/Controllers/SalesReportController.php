@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\General\Http\Controllers\TransactionController;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Report\Utils\ReportTransactionsUtile;
+use Modules\Report\Utils\TransactionUtile;
+use Yajra\DataTables\Facades\DataTables;
 
 class SalesReportController extends Controller
 {
@@ -193,14 +196,11 @@ class SalesReportController extends Controller
 
 
             return $transactionUtile->purchasePaymentReportTable($query);
-          }
+        }
 
-          $columns = $transactionUtile->purchasePaymentReportColumns();
+        $columns = $transactionUtile->purchasePaymentReportColumns();
         return view('report::sales.purchase_payment_report')
-        ->with(compact('columns'));
-
-
-
+            ->with(compact('columns'));
     }
 
     public function salesPaymentReport(Request $request)
@@ -243,15 +243,247 @@ class SalesReportController extends Controller
 
 
             return $transactionUtile->purchasePaymentReportTable($query);
-          }
+        }
 
-          $columns = $transactionUtile->salesPaymentReportColumns();
+        $columns = $transactionUtile->salesPaymentReportColumns();
         return view('report::sales.sell_payment_report')
-        ->with(compact('columns'));
+            ->with(compact('columns'));
+    }
+
+    public function getProfitLoss(Request $request)
+    {
+        $transactionUtile = new TransactionUtile();
+
+        if ($request->ajax()) {
+            $start_date = $request->get('start_date');
+            $end_date = $request->get('end_date');
+
+            $data = $transactionUtile->getProfitLossDetails($start_date, $end_date);
+
+            return view('report::profit_loss_details', compact('data'))->render();
+        }
+        $data = $transactionUtile->getProfitLossDetails();
+
+        return view('report::profit_loss', compact('data'));
+    }
+
+    public function getPurchaseSell(Request $request)
+    {
+        $transactionUtile = new TransactionUtile();
+
+        //Return the details in ajax call
+        if ($request->ajax()) {
+            $start_date = $request->get('start_date');
+            $end_date = $request->get('end_date');
+            $location_id = $request->get('location_id');
+
+            // return $request->date_range;
+            $dueDateRange = trim($request->date_range);
+            $dates = explode(' إلى ', $dueDateRange);
+            if ($request->date_range) {
+                $start_date =   $dates[0];
+                $end_date = $dates[1];
+            }
+
+            $purchase_details = $transactionUtile->getPurchaseTotals($start_date, $end_date, $location_id);
+            $sell_details = $transactionUtile->getSellTotals($start_date, $end_date, $location_id);
+
+            $transaction_types = [
+                'purchases-return',
+                'sell-return',
+            ];
+
+            $transaction_totals = $transactionUtile->getTransactionTotals(
+                $transaction_types,
+                $start_date,
+                $end_date,
+                $location_id
+            );
+
+            $total_purchase_return_inc_tax = $transaction_totals['total_purchase_return_inc_tax'];
+            $total_sell_return_inc_tax = $transaction_totals['total_sell_return_inc_tax'];
+
+            $purchase_data = '
+            <tr>
+                <td>' . __('report::general.total_purchase_inc_tax') . '</td>
+                <td>' . ($purchase_details['total_purchase_inc_tax'] ?? 0) . '</td>
+            </tr>
+            <tr>
+                <td>' . __('report::general.total_purchase_return') . '</td>
+                <td>' . ($total_purchase_return_inc_tax ?? 0) . '</td>
+            </tr>
+            <tr>
+                <td>' . __('report::general.purchase_due') . '</td>
+                <td>' . ($purchase_details['purchase_due'] ?? 0) . '</td>
+            </tr>';
 
 
+            $sales_data = '
+            <tr>
+                <td>' . __('report::general.total_sell_inc_tax') . '</td>
+                <td>' . ($sell_details['total_sell_inc_tax'] ?? 0) . '</td>
+            </tr>
+            <tr>
+                <td>' . __('report::general.total_sell_return') . '</td>
+                <td>' . ($total_sell_return_inc_tax ?? 0) . '</td>
+            </tr>
+            <tr>
+                <td>' . __('report::general.invoice_due') . '</td>
+                <td>' . ($sell_details['invoice_due'] ?? 0) . '</td>
+            </tr>';
 
+
+            $difference = [
+                'total' => $sell_details['total_sell_inc_tax'] - $total_sell_return_inc_tax - ($purchase_details['total_purchase_inc_tax'] - $total_purchase_return_inc_tax),
+                'due' => $sell_details['invoice_due'] - $purchase_details['purchase_due'],
+            ];
+
+            return response()->json([
+                'purchase_data' => $purchase_data,
+                'sales_data' => $sales_data,
+                'difference' => $difference
+            ]);
+        }
+
+        return view('report::sales.purchase_sell');
     }
 
 
+    public function getProfit($by = null)
+    {
+        $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
+            ->leftJoin('transactione_purchases_lines as TPL', function ($join) {
+                $join->on('transaction_sell_lines.transaction_id', '=', 'TPL.transaction_id')
+                    ->on('transaction_sell_lines.product_id', '=', 'TPL.product_id');
+            })
+            ->join('product_products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
+            ->where('sale.type', 'sell')
+            ->where('sale.status', 'final');
+        $query->addSelect(DB::raw("
+            SUM(
+                (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *
+                (transaction_sell_lines.unit_price_inc_tax - COALESCE(TPL.unit_price_inc_tax, 0))
+            ) AS gross_profit
+        "));
+
+        if ($by == 'product') {
+            $query->addSelect(DB::raw("
+        CONCAT(P.name_ar, ' / ', P.name_en, ' (', P.SKU, ')') as product
+    "))->groupBy(DB::raw('P.id, P.name_ar, P.name_en, P.SKU'));
+        }
+
+        if ($by == 'category') {
+            $query->join('product_categories as C', 'C.id', '=', 'P.category_id')
+                ->addSelect(DB::raw("
+            CONCAT(C.name_ar, ' / ', C.name_en) as category
+           "))
+                ->groupBy('C.id', 'C.name_ar', 'C.name_en');
+        }
+
+
+
+        if ($by == 'location') {
+            $query->join('est_establishments as E', 'sale.establishment_id', '=', 'E.id')
+                ->addSelect('E.name as location')
+                ->groupBy('E.id', 'E.name');
+        }
+
+        if ($by == 'invoice') {
+            $query->addSelect(
+                'sale.ref_no',
+                'sale.id as transaction_id',
+                'sale.discount_type',
+                'sale.discount_amount',
+                'sale.total_before_tax'
+            )
+                ->groupBy(
+                    'sale.ref_no',
+                    'sale.id',
+                    'sale.discount_type',
+                    'sale.discount_amount',
+                    'sale.total_before_tax'
+                );
+        }
+        if ($by == 'date') {
+            $query->addSelect('sale.transaction_date')
+                ->groupBy(DB::raw('DATE(sale.transaction_date)'), 'sale.transaction_date');
+        }
+
+        if ($by == 'day') {
+            $results = $query->addSelect(DB::raw('DAYNAME(sale.transaction_date) as day'))
+                ->addSelect(DB::raw('SUM(
+                (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *
+                (transaction_sell_lines.unit_price_inc_tax - COALESCE(TPL.unit_price_inc_tax, 0))
+            ) AS gross_profit'))
+                ->groupBy(DB::raw('DAYNAME(sale.transaction_date)'))  // إضافة DAYNAME إلى GROUP BY
+                ->get();
+            $profits = [];
+            foreach ($results as $result) {
+                $profits[strtolower($result->day)] = $result->gross_profit;
+            }
+
+            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+            foreach ($days as $day) {
+                if (!isset($profits[$day])) {
+                    $profits[$day] = 0;
+                }
+            }
+
+            return view('report::profit_by_day')->with(compact('profits', 'days'));
+        }
+
+
+        if ($by == 'customer') {
+            $query->join('cs_contacts as CU', 'sale.contact_id', '=', 'CU.id')
+                ->addSelect('CU.name as customer')
+                ->groupBy('sale.contact_id', 'CU.name');
+        }
+        $datatable = DataTables::of($query);
+
+        if (in_array($by, ['invoice'])) {
+            $datatable->editColumn('gross_profit', function ($row) {
+                $discount = $row->discount_amount;
+                if ($row->discount_type == 'percentage') {
+                    $discount = ($row->discount_amount * $row->total_before_vat) / 100;
+                }
+
+                return    $profit = $row->gross_profit - $discount;
+                // return $this->transactionUtil->num_f($profit, true);
+            });
+        } else {
+            $datatable->editColumn(
+                'gross_profit',
+                function ($row) {
+                    return $row->gross_profit;
+                }
+            );
+        }
+
+        if ($by == 'category') {
+            $datatable->editColumn(
+                'category',
+                '{{$category ?? __("report::general.uncategorized")}}'
+            );
+        }
+
+
+        if ($by == 'date') {
+            $datatable->editColumn('transaction_date', '{{($transaction_date)}}');
+        }
+
+        if ($by == 'customer') {
+            $datatable->editColumn('customer', '{{$customer}}');
+        }
+
+        if ($by == 'invoice') {
+            $datatable->editColumn('ref_no', function ($row) {
+                return '<a href="' . action([TransactionController::class, 'show'], [$row->transaction_id])
+                    . '"  data-container=".view_modal" class="btn-modal">' . $row->ref_no . '</a>';
+            });
+        }
+
+        return $datatable->rawColumns(['gross_profit', 'category', 'customer', 'ref_no'])
+            ->make(true);
+    }
 }

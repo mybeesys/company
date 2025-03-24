@@ -105,11 +105,21 @@ return [
     'productBarcode' => 'Barcode Printing',
     'product-sales-report' => 'Product sales report',
     'product-purchase-report' => 'Product purchases report',
-    'purchase-payment-report'=>'Purchase report',
-    'sell-payment-report'=>'Sell report',
-
+    'purchase-payment-report' => 'Purchase report',
+    'sell-payment-report' => 'Sell report',
+    'Profit-Loss' => 'Profit and Loss',
 
     'type-service' => 'Type of services',
+    'purchase-sell' => 'Purchase and sell',
+    'accounting_reports' => 'Accounting Reports',
+    'income-statement' => 'Income statement',
+    'trial-balance' => 'Trial balance',
+    'ledger' => 'Ledger',
+    'balance_sheet' => 'Balance sheet',
+    'journal-report' => 'Journal report',
+    'cash-flow' => 'Cash Flow Statement',
+
+
 
 
 
