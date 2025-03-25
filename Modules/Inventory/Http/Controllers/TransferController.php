@@ -71,6 +71,56 @@ class TransferController extends Controller
                 return response()->json(["message" => "Done"]);
         }
     }
+    public function fullReceiving(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $transactionId = Transaction::find($request->id);
+            $transaction = Transaction::where('parent_id', $request->id)->first();
+            $transaction->status = 'fullyReceived';
+            $transactionId->status = 'fullyReceived';
+            $transaction->save();
+            $transactionId->save();
+
+            $items = TransactionSellLine::where('transaction_id', $transactionId->id)
+                ->get();
+            foreach ($items as $item) {
+                $transactionePurchasesLine = TransactionePurchasesLine::where('transaction_id', $transaction->id)
+                    ->where('transactionsell_id', $item->id)
+                    ->first();
+                $transactionePurchasesLine->qyt = $item->qyt;
+                $transactionePurchasesLine->save();
+            }
+
+            return response()->json(["message" =>  "Done"]);
+        });
+    }
+
+    public function rejected(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $transactionId = Transaction::find($request->id);
+            $transaction = Transaction::where('parent_id', $request->id)->first();
+            $transaction->status = 'rejected';
+            $transactionId->status = 'rejected';
+            $transaction->save();
+            $transactionId->save();
+
+            return response()->json(["message" =>  "Done"]);
+        });
+    }
+    public function inTransit(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $transactionId = Transaction::find($request->id);
+            $transaction = Transaction::where('parent_id', $request->id)->first();
+            $transaction->status = 'inTransit';
+            $transactionId->status = 'inTransit';
+            $transaction->save();
+            $transactionId->save();
+
+            return response()->json(["message" =>  "Done"]);
+        });
+    }
 
     public function searchEstablishments(Request $request)
     {

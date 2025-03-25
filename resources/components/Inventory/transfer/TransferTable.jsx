@@ -17,6 +17,38 @@ const TransferTable = ({ dir, translations }) => {
             const type = "partiallyReceived";
             window.location.href = `/transfer/${transferId}/edit?type=${type}`;
         }
+        if (actionKey === "fullyReceived") {
+            axios
+                .post(`${window.location.origin}/transfer/full-receiving`, {
+                    id: data.id,
+                })
+                .then((response) => {
+                    alert("Done");
+                })
+                .catch((error) => {
+                    alert("error");
+                });
+        }
+        if (actionKey === "inTransit") {
+            axios
+                .post(`${window.location.origin}/transfer/inTransit`, {
+                    id: data.id,
+                })
+                .then((response) => {})
+                .catch((error) => {
+                    alert("error");
+                });
+        }
+        if (actionKey === "rejected") {
+            axios
+                .post(`${window.location.origin}/transfer/rejected`, {
+                    id: data.id,
+                })
+                .then((response) => {})
+                .catch((error) => {
+                    alert("error");
+                });
+        }
     };
 
     const statusCell = (data, key, editMode, editable) => {
@@ -31,7 +63,11 @@ const TransferTable = ({ dir, translations }) => {
 
     const dropdownCell = (data, key, editMode, editable, refreshTree) => {
         let actions = [];
-        if (data.status != "approved")
+        if (
+            data.status !== "fullyReceived" &&
+            data.status !== "partiallyReceived" &&
+            data.status !== "rejected"
+        ) {
             actions.push(
                 {
                     key: "partiallyReceived",
@@ -39,17 +75,24 @@ const TransferTable = ({ dir, translations }) => {
                 },
                 {
                     key: "fullyReceived",
-                },
-                {
-                    key: "pending",
+                    action: () => handleActionClick("fullyReceived", data),
                 },
                 {
                     key: "inTransit",
+                    action: () => handleActionClick("inTransit", data),
                 },
                 {
                     key: "rejected",
+                    action: () => handleActionClick("rejected", data),
                 }
             );
+        } else if (data.status === "partiallyReceived") {
+            actions.push({
+                key: "partiallyReceived",
+                action: () => handleActionClick("partiallyReceived", data),
+            });
+        }
+
         return (
             <DropdownMenu
                 actions={actions}

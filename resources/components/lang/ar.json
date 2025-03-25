@@ -208,7 +208,7 @@
   "receivedQuantity":"الكمية المستلمة",
   "remainingQuantity":"الكمية المتبقية",
   "quantityToReceive":"الكمية التي تريد استلامها",
-  "draft" : "جديد",
+  "draft" : "قيد الانتظار",
   "sent" : "مرسل",
   "update":"تحديث",
   "partiallyReceived" : "استلام جزئي",
