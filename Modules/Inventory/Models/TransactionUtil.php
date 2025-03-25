@@ -14,6 +14,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\UnitTransferConvertor;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class TransactionUtil
 {
@@ -268,6 +269,7 @@ class TransactionUtil
                                 'unit_price' => $item['unit_price'],
                                 'unit_id' => $item['unit_id'],
                                 'product_id' => str_replace('-p', '', $item['product_id']),
+                                'created_at' => Carbon::now(),
                             ]);
                             $newTransaction->save();
                         }
