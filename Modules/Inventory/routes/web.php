@@ -58,6 +58,9 @@ Route::middleware([
         Route::get('wasteList', [WasteController::class, 'getWastes'])->name('wasteList');
         Route::resource('transfer', TransferController::class)->names('transfer');
         Route::get('transferList', [TransferController::class, 'getTransfer'])->name('transferList');
+        Route::post('transfer/rejected', [TransferController::class, 'rejected'])->name('rejected');
+        Route::post('transfer/inTransit', [TransferController::class, 'inTransit'])->name('inTransit');
+        Route::post('transfer/full-receiving', [TransferController::class, 'fullReceiving'])->name('fullReceiving');
         Route::get('transfer/{id1}/partial-deliveries/{id2}', [TransferController::class, 'partialDeliveries'])->name('partialDeliveries');
         Route::resource('inventoryOperation', InventoryOperationController::class)->names('inventoryOperation');
         Route::get('/inventoryOperationList/{type?}', [InventoryOperationController::class, 'getinventoryOperations'])->name('inventoryOperationList');;
