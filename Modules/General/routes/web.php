@@ -59,6 +59,10 @@ Route::middleware([
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
         Route::post('update-prefix', [GeneralController::class, 'updatePrefix'])->name('update-prefix');
 
+        Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
+
+
+
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');
         Route::get('fetch-notification', [NotificationController::class, 'fetchNotification'])->name('fetch-notification');

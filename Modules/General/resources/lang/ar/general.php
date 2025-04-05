@@ -66,11 +66,16 @@ return [
     'invoice_settings' => 'إعدادات الفواتير',
 
     'general_settings' => 'إعدادات عامة',
-    'terms_and_conditions_en'=>'الشروط والأحكام  (بالانكليزية)',
-    'terms_and_conditions'=>'الشروط والأحكام',
-    'terms_and_conditions_ar'=>'الشروط والأحكام  (بالعربية)',
-    'note_en'=>'الملاحظات (بالانكليزية)',
-    'note'=>'الملاحظات',
-    'note_ar'=>'الملاحظات (بالعربية)',
+    'terms_and_conditions_en' => 'الشروط والأحكام  (بالانكليزية)',
+    'terms_and_conditions' => 'الشروط والأحكام',
+    'terms_and_conditions_ar' => 'الشروط والأحكام  (بالعربية)',
+    'note_en' => 'الملاحظات (بالانكليزية)',
+    'note' => 'الملاحظات',
+    'note_ar' => 'الملاحظات (بالعربية)',
+    'inventory_costing' => 'تكلفة المحزون',
+    'inventory_costing_method' => 'طريقة حساب تكلفة المخزون',
+    'fifo' => 'FIFO (أول دخول أول خروج)',
+    'lifo' => 'LIFO (آخر دخول أول خروج)',
+    'average' => 'Average (المتوسط)',
 
 ];

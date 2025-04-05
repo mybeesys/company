@@ -72,6 +72,11 @@ return [
     'note_en' => 'Notes (English)',
     'note' => 'Notes',
     'note_ar' => 'Notes (Arabic)',
+    'inventory_costing' => 'Inventory costing',
+    'inventory_costing_method' => 'Inventory costing method',
+    'fifo' => 'FIFO (First in, first out)',
+    'lifo' => 'LIFO (Last in, first out)',
+    'average' => 'Average (average)',
 
 
 ];
