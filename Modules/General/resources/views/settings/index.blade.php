@@ -127,6 +127,11 @@
                     href="#invoice_settings_tab">@lang('general::general.invoice_settings')</a>
             </li>
 
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
+            </li>
+
 
 
         </ul>
@@ -142,6 +147,7 @@
             <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
             @include('general::prefix-settings.prefix-settings')
+            @include('general::inventory_costing.inventory_costing')
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
         </div>
@@ -178,6 +184,7 @@
 
 
         $(document).ready(function() {
+            $('#inventory_costing_method').select2();
             @php
                 $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order', 'low_stock_alert_notification'];
             @endphp

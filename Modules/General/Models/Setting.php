@@ -22,4 +22,12 @@ class Setting extends Model
             'note_en'
         ])->get();
     }
+
+
+    public static function getInventoryCostingMethod()
+    {
+
+        return Setting::where('key', 'inventory_costing_method')->value('value');
+
+    }
 }

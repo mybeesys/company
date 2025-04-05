@@ -62,7 +62,9 @@ class GeneralController extends Controller
         $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
         $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
         $settings = Setting::getNotesAndTermsConditions();
-        return view('general::settings.index', compact('cards', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        $inventory_costing_method = Setting::getInventoryCostingMethod();
+
+        return view('general::settings.index', compact('cards','inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()
@@ -133,6 +135,28 @@ class GeneralController extends Controller
         }
     }
 
+    public function updateInventoryCostingMethod(Request $request)
+    {
+        try {
+            $settings = [
+                ['key' => 'inventory_costing_method', 'value' => $request->input('inventory_costing_method')],
+            ];
+
+            FacadesDB::beginTransaction();
+            foreach ($settings as $setting) {
+                Setting::updateOrCreate(
+                    ['key' => $setting['key']],
+                    ['value' => $setting['value']]
+                );
+            }
+
+            FacadesDB::commit();
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (Exception $e) {
+            FacadesDB::rollBack();
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
+    }
 
     public function getInvoiceSettings()
     {
