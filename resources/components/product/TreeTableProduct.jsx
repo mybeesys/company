@@ -343,7 +343,8 @@ const TreeTableProduct = ({ urlList , categoryurl ,subcategoryurl, producturl , 
         </div>
         </div>
         </div>
-        <div class="card-body">
+        <div class="card-body"
+        >
             <TreeTable value={nodes} tableStyle={{ minWidth: '50rem' }} className={"custom-tree-table"}>
                 <Column header={translations.name_en} body={(node) => (renderTextCell(node, 'name_en', true))} sortable expander></Column>
                 <Column header={translations.name_ar} body={(node) => (renderTextCell(node, 'name_ar'))} sortable></Column>

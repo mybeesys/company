@@ -26,6 +26,18 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
+
+
+        const expandAll = () => {
+            const allKeys = getExpandedKeys(nodes);
+            setExpandedKeys(allKeys);
+        };
+    
+        const collapseAll = () => {
+            setExpandedKeys({});
+        };
+
+
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -443,24 +455,46 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const getHeader = () => {
         return (
-            <div className="col-4 flex justify-content-end">
-                <input
-                    type="Text"
-                    class="form-control text-editor"
-                    onInput={(e) => setGlobalFilter(e.target.value)}
-                    placeholder={translations.globalFilter}
-                />
+            <div className="d-flex justify-content-between align-items-center">
+                <div>
+                    <input
+                        type="text"
+                        className="form-control text-editor"
+                        onInput={(e) => setGlobalFilter(e.target.value)}
+                        placeholder={translations.globalFilter}
+                    />
+                </div>
+                <div>
+                    <a
+                        href="javascript:void(0);"
+                        className="btn btn-secondary me-2"
+                        onClick={expandAll}
+                    >
+                        {translations.ExpandAll || "Expand All"}
+                    </a>
+                    <a
+                        href="javascript:void(0);"
+                        className="btn btn-secondary"
+                        onClick={collapseAll}
+                    >
+                        {translations.CollapseAll || "Collapse All"}
+                    </a>
+                </div>
             </div>
         );
     };
+    
 
     let header = getHeader();
 
     return (
-        <div class="card mb-5 mb-xl-8">
+        <div class="card mb-5 mb-xl-8"
+        
+        >
             <SweetAlert2 />
 
-            <div class="card-header border-0 pt-5">
+            <div class="card-header border-0 pt-5"
+            >
                 <h3 class="card-title align-items-start flex-column">
                     <span class="card-label fw-bold fs-3 mb-1">
                         {translations.CategoryList}
@@ -470,7 +504,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </span>
                 </h3>
                 <div class="card-toolbar">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
+                    <div class="d-flex align-items-center gap-2 gap-lg-3"
+                    >
                         <a
                             href="javascript:void(0);"
                             class="btn btn-primary"
@@ -478,6 +513,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         >
                             {translations.Add}
                         </a>
+                     
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -489,16 +525,21 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </div>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body"            
+            >
                 <form
                     id="treeForm"
                     noValidate
                     validated={true}
                     class="needs-validation"
                     onSubmit={handleSubmit}
+                    
                 >
                     <TreeTable
-                        value={nodes}
+                        value={nodes} 
+                         scrollable
+    scrollHeight="500px"
+                        
                         tableStyle={{ minWidth: "50rem" }}
                         className={"custom-tree-table"}
                         globalFilter={globalFilter}
@@ -507,7 +548,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         expandedKeys={expandedKeys}
                         onToggle={(e) => setExpandedKeys(e.value)}
                         sortMode="multiple"
+                        
                     >
+                        
                         <Column
                             field="name_en"
                             filter
