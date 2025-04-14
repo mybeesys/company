@@ -582,7 +582,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable={true}
+                        
                         ></Column>
                         <Column
                             header={translations.cost}
@@ -594,7 +594,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable
+   
                         ></Column>
                         <Column
                             header={translations.order}
@@ -602,13 +602,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             body={(node) =>
                                 renderNumberCell(node, "order", false, false)
                             }
-                            sortable
+                       
                         ></Column>
                         <Column
                             header={translations.active}
                             style={{ width: "10%" }}
                             body={(node) => renderCheckCell(node, "active")}
-                            sortable
                         >
                             {" "}
                         </Column>
@@ -622,7 +621,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         >
                             {" "}
                         </Column>
