@@ -404,25 +404,6 @@ const ProductBasicInfo = ({
                                 }
                             ></input>
                         </div>
-                        <div class="col-6">
-                            <label for="barcode" class="col-form-label">
-                                {translations.commissions}
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                class="form-control form-control-solid custom-height"
-                                id="commissions"
-                                value={
-                                    !!currentObject.commissions
-                                        ? currentObject.commissions
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("commissions", e.target.value)
-                                }
-                            ></input>
-                        </div>
                     </div>
                 </div>
                 <div class="form-group" style={{ paddingtop: "5px" }}></div>
