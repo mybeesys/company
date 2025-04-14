@@ -71,7 +71,7 @@
         <div class="d-flex flex-column " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
             <label class="fs-6 fw-semibold mb-2">@lang('sales::lang.paid_amount')</label>
 
-            <input class="form-control form-control-solid no-spin" name="paid_amount"  value=""
+            <input class="form-control form-control-solid no-spin" name="paid_amount"  value="0"
                 placeholder="0.00" id="paid_amount" type="number">
         </div>
     </div>

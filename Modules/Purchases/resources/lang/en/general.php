@@ -18,5 +18,6 @@ return [
     'purchase_order_search' => 'Search for a purchase order',
 
     'convert-to-invoice' => 'Convert purchase order to invoice',
+    'add_purchases-retrun' => 'Create Purchases Retrun Invoice',
 
 ];

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('purchases::lang.Create a sales invoice'))
+@section('title', __('sales::general.add_sell-return'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -47,14 +47,15 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-purchases-invoice') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-sell-return-invoice') }}">
         @csrf
 
         <div class="container">
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('purchases::lang.Create a sales invoice')</h1>
+                        <h1> @lang('sales::general.add_sell-return')
+                        </h1>
 
                     </div>
                 </div>
@@ -70,12 +71,12 @@
                 <div class="col-sm">
 
                     {{-- invoice information --}}
-                    @include('purchases::purchases.create.invoice-info')
+                    @include('sales::sell.create.invoice-info')
 
                 </div>
                 <div class="col-6">
 
-                    @include('purchases::purchases.create.client-info')
+                    @include('sales::sell.create.client-info')
 
                 </div>
 
@@ -85,66 +86,25 @@
 
                 @include('sales::sell.create.line-items')
 
-
             </div>
 
-            @include('purchases::purchases.create.Tab-nav')
+            @include('sales::sell.create.Tab-nav')
+
 
             @include('general::invoice-setting.general-invoice-setting.terms-conditions-notes')
-
             <div class="separator d-flex flex-center my-6">
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>
             <div class="row">
                 <div class="col-sm-4">
-                    <div class="btn-group">
-                        @if ($Latest_event->action == 'save')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save" data-status="final">@lang('messages.save')
-                            </a>
-                        @elseif ($Latest_event->action == 'save_add')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_add" data-status="final">@lang('messages.save&add')
-                            </a>
-                        @else
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_print"
-                                data-status="final">@lang('messages.save&print')
-                            </a>
-                        @endif
-
-
-                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split "
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="visually-hidden">Toggle Dropdown</span>
-                        </button>
-
-                        <ul class="dropdown-menu p-5">
-                            <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save"
-                                    data-status="final">@lang('messages.save')
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
-                                    data-status="final">@lang('messages.save&add')
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" href="#" data-action="save_print"
-                                    data-status="final">@lang('messages.save&print')</a>
-
-                            </li>
-                        </ul>
-                    </div>
 
 
 
-                    <input type="hidden" name="status" value="draft" />
-                    <button type="submit" style="border-radius: 6px;" class="btn btn-bg-dark text-white ">
-                        @lang('messages.savedraft')
+
+
+                    {{-- <input type="hidden" name="status" value="draft" /> --}}
+                    <button type="submit" style="border-radius: 6px;width: 50%" class="btn btn-primary text-white ">
+                        @lang('messages.save')
                     </button>
                 </div>
                 <div class="col-sm " style="justify-items: end">
@@ -162,7 +122,7 @@
                                         style="    height: max-content;padding: 6px;">
                                         <div class="d-flex align-items-center">
 
-                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.remaining_balance')</span>
+                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('sales::lang.remaining_balance')</span>
                                             <div class="fs-2 fw-bold counted" data-kt-countup="true"
                                                 data-kt-countup-value="4500" data-kt-countup-prefix="$"
                                                 data-kt-initialized="1" id="remaining_balance" style="color: red;">
@@ -176,7 +136,7 @@
                                         style="    height: max-content;padding: 6px;">
                                         <div class="d-flex align-items-center">
 
-                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('purchases::lang.balance')</span>
+                                            <span class="fw-semibold mx-2 text-muted fs-7 px-2">@lang('sales::lang.balance')</span>
                                             <div class="fs-2 fw-bold counted" data-kt-countup="true"
                                                 data-kt-countup-value="4500" data-kt-countup-prefix="$"
                                                 data-kt-initialized="1" id="balance" style="color: #2cd32c;">
@@ -203,7 +163,7 @@
 
     </form>
 
-    @include('purchases::purchases.create.add-client')
+    @include('sales::sell.create.add-client')
 
 
 
@@ -301,52 +261,6 @@
             $('#addClientModal').modal('show');
         });
 
-        $(document).on('click', '.dropdown-item', function(e) {
-            e.preventDefault();
-            let action = $(this).data('action');
-            let isValid = true;
-            let requiredFields = $('#sell_save').find('[required]');
-            console.log(requiredFields);
-
-            requiredFields.each(function() {
-                if (!$(this).val()) {
-                    isValid = false;
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-            if (!isValid) {
-                const message = "@lang('messages.required_fields_warning')";
-                toastr.warning(message);
-                return;
-            }
-            if (action === 'save_add') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_add'
-                }).appendTo('#sell_save');
-            } else if (action === 'save_print') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_print'
-                }).appendTo('#sell_save');
-            } else if (action === 'save') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save'
-                }).appendTo('#sell_save');
-            }
-            $('<input>').attr({
-                type: 'hidden',
-                name: 'status',
-                value: 'approved'
-            }).appendTo('#sell_save');
-            $('#sell_save').submit();
-        });
 
 
         $(document).ready(function() {
@@ -388,11 +302,14 @@
                 unitSelect.empty();
                 unitSelect.append(`<option value="">@lang('sales::lang.unit')</option>`);
                 units.forEach(unit => {
+
                     unitSelect.append(
                         `<option value="${unit.id}" ${unit.primary ? "selected" : ""}>
                         ${unit.name_ar || unit.unit1}
                         </option>`
                     );
+
+
                 });
 
                 $('#salesTable tbody tr').each(function() {
@@ -469,25 +386,9 @@
                 updateSalesTotals();
             });
 
-            $("#payment_type").change(function() {
-                if ($(this).val() === "card") {
-                    $("#card").show();
-                } else {
-                    $("#card").hide();
-                }
-                if ($(this).val() === "bank_check") {
-                    $("#bank_check").show();
-                } else {
-                    $("#bank_check").hide();
-                }
-                if ($(this).val() === "bank_transfer") {
-                    $("#bank_transfer").show();
-                } else {
-                    $("#bank_transfer").hide();
-                }
 
-            });
-
+            $('#cash_account').attr('required', 'required');
+            $('#account_id').removeAttr('required');
 
             $("#invoice_type").change(function() {
                 if ($(this).val() === "due") {
@@ -514,6 +415,7 @@
                     $("#div-cash_account").show();
                     $('#cash_account').attr('required', 'required');
                     $('#account_id').removeAttr('required');
+                    // updateSalesTotals();
 
                 }
 

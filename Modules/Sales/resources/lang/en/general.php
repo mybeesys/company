@@ -20,5 +20,6 @@ return [
     'add_coupon' => 'Add coupon',
     'auto_generate_hint' => 'Leave the field empty for auto generation',
     'percent' => 'Percent',
-    'fixed' => 'Fixed'
+    'fixed' => 'Fixed',
+    'add_sell-return' => 'Create Sell Return Invoice',
 ];

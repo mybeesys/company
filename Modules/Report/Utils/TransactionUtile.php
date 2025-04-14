@@ -92,7 +92,7 @@ class TransactionUtile
     public function getSellTotals($start_date = null, $end_date = null, $created_by = null)
     {
         $query = Transaction::where('transactions.type', 'sell')
-            ->where('transactions.status', 'final')
+            ->where('transactions.status', 'approved')
             ->select(
                 DB::raw('SUM(final_total) as total_sell'),
                 DB::raw('SUM(final_total - tax_amount) as total_exc_tax'),
@@ -171,9 +171,9 @@ class TransactionUtile
 
         if (in_array('sell', $transaction_types)) {
             $query->addSelect(
-                DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='final', IF(discount_type = 'percentage', COALESCE(discount_amount, 0)*total_before_tax/100, COALESCE(discount_amount, 0)), 0)) as total_sell_discount"),
-                // DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='final', rp_redeemed_amount, 0)) as total_reward_amount"),
-                // DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='final', round_off_amount, 0)) as total_sell_round_off")
+                DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='approved', IF(discount_type = 'percentage', COALESCE(discount_amount, 0)*total_before_tax/100, COALESCE(discount_amount, 0)), 0)) as total_sell_discount"),
+                // DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='approved', rp_redeemed_amount, 0)) as total_reward_amount"),
+                // DB::raw("SUM(IF(transactions.type='sell' AND transactions.status='approved', round_off_amount, 0)) as total_sell_round_off")
             );
         }
 
@@ -229,7 +229,7 @@ class TransactionUtile
             })
             ->join('product_products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.type', 'sell')
-            ->where('sale.status', 'final');
+            ->where('sale.status', 'approved');
 
         $query->select(
             DB::raw("

@@ -16,7 +16,7 @@ class ReportTransactionsUtile
         return DB::table('transactions as t')
             ->leftJoin('transaction_payments as tp', 't.id', '=', 'tp.transaction_id')
             ->where('t.type', 'sell')
-            ->where('t.status', 'final')
+            ->where('t.status', 'approved')
             ->selectRaw("
             SUM(t.final_total) AS total_sales,
             SUM(t.discount_amount) AS total_discounts,
