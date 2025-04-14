@@ -26,7 +26,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
-
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -152,7 +151,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             }
         }
         try {
-            const response = await axios.post(url, editedNode.data);
+            const apiUrl = new URL(url);
+            apiUrl.searchParams.append("show_in_menu", "1");
+            const response = await axios.post(
+                apiUrl.toString(),
+                editedNode.data
+            );
             if (response.data.message != "Done") {
                 setShowAlert(true);
                 Swal.fire({
@@ -169,7 +173,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 return;
             }
         } catch (error) {
-            console.error("There was an error get the product!", error);
+            console.error(
+                "There was an error get the product!",
+                error.response.data
+            );
         }
         setEditingRow({});
         setCurrentKey("-1");
@@ -499,6 +506,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         filterMode="lenient"
                         expandedKeys={expandedKeys}
                         onToggle={(e) => setExpandedKeys(e.value)}
+                        sortMode="multiple"
                     >
                         <Column
                             field="name_en"
@@ -531,7 +539,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable
+                            sortable={true}
                         ></Column>
                         <Column
                             header={translations.cost}
