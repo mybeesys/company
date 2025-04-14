@@ -468,6 +468,31 @@ return [
                 'url' => 'general-setting',
                 'permission' => '',
             ],
+            [
+                'name' => 'establishments',
+                'url' => 'establishment',
+                'permission' => 'establishments.establishments.show',
+            ],
+            [
+                'name' => 'areas',
+                'url' => 'area',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables',
+                'url' => 'table',
+                'permission' => '',
+            ],
+            [
+                'name' => 'tables_qr',
+                'url' => 'areaQR',
+                'permission' => '',
+            ],
+            [
+                'name' => 'menu_qr',
+                'url' => 'menuQR',
+                'permission' => '',
+            ],
         ]
 
     ],

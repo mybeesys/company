@@ -167,10 +167,10 @@
             </li>
 
 
-            <li class="nav-item">
+            {{-- <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#establishments_tab">@lang('menuItemLang.establishments')</a>
-            </li>
+            </li> --}}
 
 
 
@@ -185,7 +185,7 @@
 
             @include('general::prefix-settings.prefix-settings')
             @include('general::general-setting.invoice-tab')
-            @include('general::establishments.establishments-tab')
+            {{-- @include('general::establishments.establishments-tab') --}}
             @include('general::inventory_costing.inventory_costing')
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
