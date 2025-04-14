@@ -60,6 +60,43 @@
             font-size: 14px;
             color: #333;
         }
+
+        .title {
+        font-size: 16px;
+        font-weight: bold; /* Bold the "Lounge" text */
+        color: #343a40; /* Dark gray color */
+        padding-left: 10px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 5px 10px; /* Adjust padding for size */
+        background-color: #f8f9fa; /* Light gray background */
+        border: 1px solid #ddd; /* Subtle border */
+        border-radius: 5px; /* Rounded corners */
+        font-size: 14px; /* Adjust font size */
+        font-weight: bold; /* Bold text */
+        color: #343a40; /* Text color */
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        text-align: center; /* Center the text */
+      }
+      .table-id {
+        background-color: #e7f3ff; /* Light blue background */
+        color: #004085; /* Dark blue text */
+        font-weight: bold; /* Bold text */
+        font-size: 14px; /* Adjust font size */
+        border-radius: 5px; /* Rounded corners for the badge */
+        text-align: center; /* Center align text */
+
+      }
+
+      .table-seats {
+        font-size: 14px; /* Adjust font size */
+        color: #6c757d; /* Gray color for seats info */
+        font-weight: bold; /* Make text bold */
+        text-align: end;
+      }
+
     </style>
 
 
@@ -99,12 +136,9 @@
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
             <li class="nav-item nav-link-taxes">
                 <a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
-                    href="#taxes_tab">@lang('menuItemLang.taxes')</a>
+                    href="#general_setting_tab">@lang('menuItemLang.general_setting')</a>
             </li>
-            <li class="nav-item nav-link-methods">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                    href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
-            </li>
+
             <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#notifications_tab">@lang('general::general.notifications_templates')</a>
@@ -133,12 +167,15 @@
             </li>
 
 
+            {{-- <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#establishments_tab">@lang('menuItemLang.establishments')</a>
+            </li> --}}
+
+
 
         </ul>
         <div class="tab-content" id="myTabContent">
-            <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
-
-            <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
 
             <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
 
@@ -147,13 +184,13 @@
             <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
             @include('general::prefix-settings.prefix-settings')
+            @include('general::general-setting.invoice-tab')
+            {{-- @include('general::establishments.establishments-tab') --}}
             @include('general::inventory_costing.inventory_costing')
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
         </div>
-        @include('general::tax.create')
-        @include('general::tax.edit')
-        @include('general::payment-methods.create')
+
     </div>
 @endsection
 
@@ -185,6 +222,9 @@
 
         $(document).ready(function() {
             $('#inventory_costing_method').select2();
+            $('#currency').select2();
+
+
             @php
                 $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order', 'low_stock_alert_notification'];
             @endphp

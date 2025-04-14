@@ -37,7 +37,9 @@ Route::middleware([
 
         Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');
         Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');
+        Route::get('create-sell-return-invoice', [SellReturnController::class, 'createSellReturn'])->name('create-sell-return-invoice');
         Route::post('store-sell-return', [SellReturnController::class, 'store'])->name('store-sell-return');
+        Route::post('store-sell-return-invoice', [SellReturnController::class, 'storeSellReturn'])->name('store-sell-return-invoice');
 
         Route::get('quotations', [QuotationController::class, 'index'])->name('quotations');
         Route::get('create-quotation', [QuotationController::class, 'create'])->name('create-quotation');

@@ -37,7 +37,7 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="sell-return" url="create-invoice" module="sales" :addButton="false">
+                <x-tables.table-header model="sell-return" url="create-sell-return-invoice" module="sales" >
 
 
                     <x-slot:filters>

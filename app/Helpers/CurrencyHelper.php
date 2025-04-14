@@ -3,18 +3,15 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Session;
+use Modules\General\Models\Setting;
 
 class CurrencyHelper
 {
     public static function format_currency($amount)
     {
-        $currencySymbol =  Session::get('currency');
+        $currencySymbol = Setting::where('key', 'currency')->value('value');
+            $defulteCurrency = ' ر.س';
 
-        if (app()->getLocale() == 'ar') {
-            $defulteCurrency = ' ريال ';
-        } else {
-            $defulteCurrency = ' SAR ';
-        }
 
         return $currencySymbol ?? $defulteCurrency  . number_format($amount, 2);
     }
@@ -22,13 +19,10 @@ class CurrencyHelper
 
     public static function get_format_currency()
     {
-        $currencySymbol =  Session::get('currency');
+        $currencySymbol = Setting::where('key', 'currency')->value('value');
 
-        if (app()->getLocale() == 'ar') {
-            $defulteCurrency = 'ريال';
-        } else {
-            $defulteCurrency = 'SAR';
-        }
+            $defulteCurrency = 'ر.س';
+
 
         return $currencySymbol ?? $defulteCurrency;
     }

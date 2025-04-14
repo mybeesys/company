@@ -1,6 +1,6 @@
 @props(['methodColumns'])
 <div class="tab-pane fade" id="payemnt_methods_tab" role="tabpanel">
-    <div class="card card-flush">
+    <div class="card card-flush" style="box-shadow: none;border: none;">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="payment_methods" url="#" module="general">
                 <x-slot:filters>

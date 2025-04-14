@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('purchases::lang.Create a sales invoice'))
+@section('title', __('purchases::general.add_purchases-retrun'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -47,14 +47,14 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-purchases-invoice') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-purchases-return-invoice') }}">
         @csrf
 
         <div class="container">
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('purchases::lang.Create a sales invoice')</h1>
+                        <h1> @lang('purchases::general.add_purchases-retrun')</h1>
 
                     </div>
                 </div>
@@ -97,54 +97,11 @@
             </div>
             <div class="row">
                 <div class="col-sm-4">
-                    <div class="btn-group">
-                        @if ($Latest_event->action == 'save')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save" data-status="final">@lang('messages.save')
-                            </a>
-                        @elseif ($Latest_event->action == 'save_add')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_add" data-status="final">@lang('messages.save&add')
-                            </a>
-                        @else
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_print"
-                                data-status="final">@lang('messages.save&print')
-                            </a>
-                        @endif
-
-
-                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split "
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="visually-hidden">Toggle Dropdown</span>
-                        </button>
-
-                        <ul class="dropdown-menu p-5">
-                            <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save"
-                                    data-status="final">@lang('messages.save')
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
-                                    data-status="final">@lang('messages.save&add')
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" href="#" data-action="save_print"
-                                    data-status="final">@lang('messages.save&print')</a>
-
-                            </li>
-                        </ul>
-                    </div>
 
 
 
-                    <input type="hidden" name="status" value="draft" />
-                    <button type="submit" style="border-radius: 6px;" class="btn btn-bg-dark text-white ">
-                        @lang('messages.savedraft')
+                    <button type="submit" style="border-radius: 6px;width:50%" class="btn btn-primary text-white ">
+                        @lang('messages.save')
                     </button>
                 </div>
                 <div class="col-sm " style="justify-items: end">

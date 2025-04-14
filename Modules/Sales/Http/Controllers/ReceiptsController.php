@@ -160,7 +160,7 @@ class ReceiptsController extends Controller
     {
         $transactionUtil = new TransactionUtils();
 
-        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status', 'final')->get();
+        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status', 'approved')->get();
 
         $filteredTransactions = [];
 

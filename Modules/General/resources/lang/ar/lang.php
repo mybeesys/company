@@ -11,7 +11,7 @@ return [
     'add_payment' => 'إضافة دفعة',
     'bill_payment' => 'مدفوعات الفاتورة',
     'Invoice Status' => 'حالة الفاتورة',
-    'final' => 'نهائية',
+    'approved' => 'نهائية',
     'draft' => 'مسودة',
     'Payments' => 'الدفعات',
     'payment_methods' => 'طرق الدفع',

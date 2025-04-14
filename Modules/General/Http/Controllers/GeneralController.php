@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use Modules\Employee\Models\Employee;
+use Modules\General\Models\Country;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Models\NotificationSettingParameter;
 use Modules\General\Models\PaymentMethod;
@@ -63,8 +64,41 @@ class GeneralController extends Controller
         $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
         $settings = Setting::getNotesAndTermsConditions();
         $inventory_costing_method = Setting::getInventoryCostingMethod();
+        $currencies = Country::all();
+        $setting_currency = Setting::getCurrency();
 
-        return view('general::settings.index', compact('cards','inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        $enabledModules = json_decode(Setting::where('key', 'enabled_modules')->value('value'), true) ?? [];
+
+        $modules = [
+            'categories' => 'categories',
+            'inventory' => 'inventory',
+            'sales' => 'sales',
+            'purchases' => 'purchases',
+            'accounting' => 'accounting',
+            'accounting_reports' => 'accounting_reports',
+            'facilities' => 'facilities',
+            'clients' => 'clients',
+            'suppliers' => 'suppliers',
+            'employees' => 'employees',
+            'screens' => 'screens',
+            'reports' => 'reports',
+        ];
+
+
+        if (!get_company_id()) {
+            return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
+        }
+        $company = FacadesDB::connection('mysql')->table('companies')->find(get_company_id());
+        $countries = FacadesDB::connection('mysql')->table('countries')->get(['id', 'name_en', 'name_ar']);
+        $countries = $countries->map(function ($country) {
+            return [
+                'id' => $country->id,
+                'name' => session('locale') == 'ar' ? $country->name_ar : $country->name_en,
+            ];
+        });
+        // return view('establishment::company.settings.index', compact('company', 'countries'));
+
+        return view('general::settings.index', compact('cards', 'modules','company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()
@@ -76,6 +110,23 @@ class GeneralController extends Controller
         return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
     }
 
+
+    public function updateModules(Request $request)
+    {
+        try {
+            $enabledModules = $request->input('modules', []);
+
+
+            Setting::updateOrCreate(
+                ['key' => 'enabled_modules'],
+                ['value' => json_encode($enabledModules)]
+            );
+
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
+    }
 
     public function updatePrefix(Request $request)
     {
@@ -90,6 +141,7 @@ class GeneralController extends Controller
                 ['prefix' => $prefix]
             );
         }
+
 
         foreach ($prefixes_payments as $type => $prefix) {
             PrefixSetting::updateOrCreate(
@@ -157,6 +209,30 @@ class GeneralController extends Controller
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
+
+    public function updateCurrency(Request $request)
+    {
+        try {
+            $settings = [
+                ['key' => 'currency', 'value' => $request->input('currency')],
+            ];
+
+            FacadesDB::beginTransaction();
+            foreach ($settings as $setting) {
+                Setting::updateOrCreate(
+                    ['key' => $setting['key']],
+                    ['value' => $setting['value']]
+                );
+            }
+
+            FacadesDB::commit();
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (Exception $e) {
+            FacadesDB::rollBack();
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
+    }
+
 
     public function getInvoiceSettings()
     {

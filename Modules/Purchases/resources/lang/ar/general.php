@@ -13,5 +13,6 @@ return [
     'add_purchase_order' => 'إنشاء طلب شراء',
     'purchase_order_search' => 'البحث عن طلب شراء',
     'convert-to-invoice' => 'تحويل طلب الشراء لفاتورة',
+    'add_purchases-retrun' => 'إضافة فاتورة مردود مشتريات',
 
 ];
