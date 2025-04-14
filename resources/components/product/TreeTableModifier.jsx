@@ -538,7 +538,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     <TreeTable
                         value={nodes} 
                          scrollable
-    scrollHeight="500px"
+    scrollHeight="400px"
                         
                         tableStyle={{ minWidth: "50rem" }}
                         className={"custom-tree-table"}
