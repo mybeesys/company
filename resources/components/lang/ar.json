@@ -313,7 +313,9 @@
   "priceDisplay" : "عرض السعر",
   "expiryDate" : "تاريخ انتهاء الصلاحية",
   "sellDate" : "تاريخ المبيعات",
-  "count" : "العدد"
+  "count" : "العدد",
+  "ExpandAll":"فتح الكل",
+  "CollapseAll":"إغلاق الكل"
   
 
 }
