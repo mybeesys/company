@@ -22,9 +22,7 @@ const TransferTable = ({ dir, translations }) => {
                 .post(`${window.location.origin}/transfer/full-receiving`, {
                     id: data.id,
                 })
-                .then((response) => {
-                    alert("Done");
-                })
+                .then((response) => {})
                 .catch((error) => {
                     alert("error");
                 });
@@ -64,9 +62,9 @@ const TransferTable = ({ dir, translations }) => {
     const dropdownCell = (data, key, editMode, editable, refreshTree) => {
         let actions = [];
         if (
-            data.status !== "fullyReceived" &&
-            data.status !== "partiallyReceived" &&
-            data.status !== "rejected"
+            data.transfer_status !== "fullyReceived" &&
+            data.transfer_status !== "partiallyReceived" &&
+            data.transfer_status !== "rejected"
         ) {
             actions.push(
                 {
@@ -86,7 +84,7 @@ const TransferTable = ({ dir, translations }) => {
                     action: () => handleActionClick("rejected", data),
                 }
             );
-        } else if (data.status === "partiallyReceived") {
+        } else if (data.transfer_status === "partiallyReceived") {
             actions.push({
                 key: "partiallyReceived",
                 action: () => handleActionClick("partiallyReceived", data),
@@ -155,7 +153,7 @@ const TransferTable = ({ dir, translations }) => {
                         width: "15%",
                     },
                     {
-                        key: "status",
+                        key: "transfer_status",
                         title: "op_status",
                         autoFocus: true,
                         type: "Date",
