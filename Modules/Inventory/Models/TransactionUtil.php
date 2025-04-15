@@ -172,6 +172,7 @@ class TransactionUtil
         $validated['transaction_date'] = $validated['transaction_date'] ?? date("Y-m-d");
         $validated["ref_no"] = self::generatePoNo($type);
         $validated["status"] = 'draft';
+        $validated["transfer_status"] = 'draft';
         $validated['created_by'] = Auth::user()->id;
         $validated["establishment_id"] = $request["establishment"]["id"];
         $purchaseItems = $request['purshaseItems'] ?? ($request['items'] ?? []);
@@ -243,8 +244,10 @@ class TransactionUtil
             $transactionId = Transaction::find($validated['id']);
             $transaction = Transaction::where('parent_id', $validated['id'])->first();
             $transaction->description = $validated["description"];
-            $transaction->status = 'partiallyReceived';
-            $transactionId->status = 'partiallyReceived';
+            $transaction->transfer_status = 'partiallyReceived';
+            $transactionId->transfer_status = 'partiallyReceived';
+            $transactionId->status = 'Approved';
+            $transaction->status = 'Approved';
             $transaction->save();
             $transactionId->save();
             $allConditionsMet = true;
