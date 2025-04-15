@@ -707,75 +707,62 @@ const TreeTableEditorLocal = ({
             </div>
             <div className="card-body">
                 <TreeTable value={nodes} className={"custom-tree-table"}>
-                    {cols
-                        .filter((col, index) => {
-                            if (urlPar === "partiallyReceived") {
-                                return true;   
+                    {cols.map((col, index) => (
+                        <Column
+                            key={index}
+                            style={{
+                                width: !!!col.width ? "10%" : col.width,
+                            }}
+                            header={
+                                !!col.title
+                                    ? translations[col.title]
+                                    : translations[col.key]
                             }
-                            if (cols.length > 3) {
-                                return index < cols.length - 3;
-                            }
-                            return true;
-                        })
-                        .map((col, index) => (
-                            <Column
-                                key={index}
-                                style={{
-                                    width: !!!col.width ? "10%" : col.width,
-                                }}
-                                header={
-                                    !!col.title
-                                        ? translations[col.title]
-                                        : translations[col.key]
-                                }
-                                body={(node) => {
-                                    return (
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            {index === 0 &&
-                                                urlPar ===
-                                                    "partiallyReceived" && (
-                                                    <a
-                                                        href="#"
-                                                        onClick={() => {
-                                                            togglePopup(
-                                                                node.data
-                                                                    .transaction_id,
-                                                                node.data.id
-                                                            );
-                                                        }}
+                            body={(node) => {
+                                return (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        {index === 0 &&
+                                            urlPar === "partiallyReceived" && (
+                                                <a
+                                                    href="#"
+                                                    onClick={() => {
+                                                        togglePopup(
+                                                            node.data
+                                                                .transaction_id,
+                                                            node.data.id
+                                                        );
+                                                    }}
+                                                    style={{
+                                                        textDecoration: "none",
+                                                    }}
+                                                >
+                                                    <i
+                                                        className="fas fa-file-alt"
                                                         style={{
-                                                            textDecoration:
-                                                                "none",
+                                                            marginRight: "4px",
+                                                            padding: "10px",
+                                                            cursor: "pointer",
+                                                            color: "blue",
                                                         }}
-                                                    >
-                                                        <i
-                                                            className="fas fa-file-alt"
-                                                            style={{
-                                                                marginRight:
-                                                                    "4px",
-                                                                padding: "10px",
-                                                                cursor: "pointer",
-                                                                color: "blue",
-                                                            }}
-                                                            title={
-                                                                translations[
-                                                                    "transfers"
-                                                                ]
-                                                            }
-                                                        ></i>
-                                                    </a>
-                                                )}
-                                            {renderCell(node, col, index)}
-                                        </div>
-                                    );
-                                }}
-                            />
-                        ))}
+                                                        title={
+                                                            translations[
+                                                                "transfers"
+                                                            ]
+                                                        }
+                                                    ></i>
+                                                </a>
+                                            )}
+                                        {renderCell(node, col, index)}
+                                    </div>
+                                );
+                            }}
+                        />
+                    ))}
                     <Column body={(node) => actionTemplate(node, actions)} />
                 </TreeTable>
                 <button
