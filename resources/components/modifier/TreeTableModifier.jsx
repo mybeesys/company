@@ -35,7 +35,14 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             console.error("Error fetching options:", error);
         }
     };
+    const expandAll = () => {
+        const allKeys = getExpandedKeys(nodes);
+        setExpandedKeys(allKeys);
+    };
 
+    const collapseAll = () => {
+        setExpandedKeys({});
+    };
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -414,7 +421,38 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const openAddModifier = () => {
         window.location.href = modifierCrudList + "/create";
     };
+    const getHeader = () => {
+        return (
+            <div className="d-flex justify-content-between align-items-center">
+                <div>
+                    <input
+                        type="text"
+                        className="form-control text-editor"
+                        onInput={(e) => setGlobalFilter(e.target.value)}
+                        placeholder={translations.globalFilter}
+                    />
+                </div>
+                <div>
+                    <a
+                        href="javascript:void(0);"
+                        className="btn btn-secondary me-2"
+                        onClick={expandAll}
+                    >
+                        {translations.ExpandAll || "Expand All"}
+                    </a>
+                    <a
+                        href="javascript:void(0);"
+                        className="btn btn-secondary"
+                        onClick={collapseAll}
+                    >
+                        {translations.CollapseAll || "Collapse All"}
+                    </a>
+                </div>
+            </div>
+        );
+    };
 
+    let header = getHeader();
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
@@ -459,6 +497,9 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         className={"custom-tree-table"}
                         expandedKeys={expandedKeys}
                         onToggle={(e) => setExpandedKeys(e.value)}
+                        scrollable
+                        scrollHeight="400px"
+                        header={header}
                     >
                         <Column
                             header={translations.name_en}
@@ -485,7 +526,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         ></Column>
                         <Column
                             header={translations.cost}
@@ -497,7 +537,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         ></Column>
                         <Column
                             header={translations.tax}
@@ -514,7 +553,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         ></Column>
                         <Column
                             header={translations.order}
@@ -525,7 +563,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             header={translations.active}
                             style={{ width: "10%" }}
                             body={(node) => renderCheckCell(node, "active")}
-                            sortable
                         >
                             {" "}
                         </Column>
