@@ -358,8 +358,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 onChange={(e) => handleEditorChange(e.target.value, key)}
                 autoFocus={!!autoFocus}
                 onKeyDown={(e) => e.stopPropagation()}
-                style={{ width: "100%" }}
+                style={{ width: "100%", visibility: "hidden" }}
                 required={!!required}
+                readOnly
             />
         ) : (
             <span>{node.data[key]}</span>
@@ -582,7 +583,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                        
                         ></Column>
                         <Column
                             header={translations.cost}
@@ -594,7 +594,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-   
                         ></Column>
                         <Column
                             header={translations.order}
@@ -602,7 +601,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             body={(node) =>
                                 renderNumberCell(node, "order", false, false)
                             }
-                       
                         ></Column>
                         <Column
                             header={translations.active}
