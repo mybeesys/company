@@ -451,7 +451,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                 >
                     <div class="container">
                         <div class="row">
-                            <div class="col-sm">
+                            <div class="col-6">
                                 <div
                                     class="card"
                                     data-section="contact"
@@ -474,7 +474,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-7">
+                            <div class="col-6">
                                 <div class="card-toolbar ">
                                     <ul
                                         class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold"
