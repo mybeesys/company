@@ -11,12 +11,14 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Tax;
 use Modules\General\Models\TransactionPayments;
 use Yajra\DataTables\Facades\DataTables;
 
 class AccountingReportsController extends Controller
 {
+
     public function incomeStatement()
     {
 
@@ -509,5 +511,215 @@ class AccountingReportsController extends Controller
 
 
         return view('accounting::reports.cash_flow', compact('operatingCashFlows', 'cashInflows', 'cashOutflows', 'netCashFlow', 'startDate', 'endDate')); // compact('operatingCashFlows', 'investingCashFlows', 'financingCashFlows', 'startDate', 'endDate'));
+    }
+
+
+    public function customersSuppliersStatement(Request $request)
+    {
+
+        $accountingUtil = new AccountingUtil;
+
+        $contact_id = request()->query('id') ?? Contact::pluck('id')->first();
+        $contact = Contact::with(['transactions'])
+            ->findOrFail($contact_id);
+
+
+        $start_date = request()->start_date;
+        $end_date =  request()->end_date;
+
+        if ($request->ajax()) {
+
+            $contacts = Contact::where('cs_contacts.id', $contact_id)
+                ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
+                ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
+                ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
+                ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
+                ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
+                ->select(
+                    'aat.operation_date',
+                    'aat.sub_type',
+                    'aat.type',
+                    'atm.ref_no',
+                    'atm.id as atm_id',
+                    'cc.name_ar as cost_center_name',
+                    'atm.note',
+                    'aat.amount',
+                    'u.name as added_by',
+                    't.ref_no as invoice_no',
+                )
+                ->whereDate('aat.operation_date', '>=', $start_date)
+                ->whereDate('aat.operation_date', '<=', $end_date)
+                ->groupBy(
+                    'cs_contacts.id',
+                    'aat.operation_date',
+                    'aat.sub_type',
+                    'aat.type',
+                    'atm_id',
+                    'atm.ref_no',
+                    'cc.name_ar',
+                    'atm.note',
+                    'aat.amount',
+                    't.ref_no',
+                    'u.name',
+                );
+
+
+            return DataTables::of($contacts)
+                ->editColumn('operation_date', function ($row) {
+                    return $row->operation_date;
+                })
+                ->editColumn('ref_no', function ($row) {
+                    $description = '';
+                    if ($row->sub_type == 'journal_entry') {
+                        $description =  $row->accTransMapping->ref_no;
+                    }
+
+                    if ($row->sub_type == 'sell' || $row->sub_type == 'purchases') {
+                        $description = $row->invoice_no;
+                    }
+                    if ($row->atm_id) {
+                        $description = '<a class=" btn-modal"
+                      data-container="#printJournalEntry"
+                        href="' . action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]) . '"
+                         >
+                            <i class="fa fa-print" aria-hidden="true"></i>' . $description . '
+                        </a>';
+                    }
+                    return $description;
+                })
+                ->addColumn('transaction', function ($row) {
+                    if (Lang::has('accounting::lang.' . $row->sub_type)) {
+
+                        $description = __('accounting::lang.' . $row->sub_type);
+                    } else {
+                        $description = $row->sub_type;
+                    }
+                    return $description;
+                })
+                ->addColumn('debit', function ($row) {
+                    if ($row->type == 'debit') {
+                        return '<span class="debit" data-orig-value="' . $row->amount . '">' . $row->amount . '</span>';
+                    }
+                    return '';
+                })
+                ->addColumn('credit', function ($row) {
+                    if ($row->type == 'credit') {
+                        return '<span class="credit"  data-orig-value="' . $row->amount . '">' . $row->amount . '</span>';
+                    }
+                    return '';
+                })
+                // ->filterColumn('cost_center_name', function ($query, $keyword) {
+                //     $query->whereRaw("LOWER(cc.ar_name) LIKE ?", ["%{$keyword}%"]);
+                // })
+                // ->filterColumn('added_by', function ($query, $keyword) {
+                //     $query->whereRaw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) like ?", ["%{$keyword}%"]);
+                // })
+                ->rawColumns(['ref_no', 'credit', 'debit', 'balance', 'action'])
+                ->make(true);
+        }
+
+        $contact_dropdown = Contact::all();
+
+        $current_bal = Contact::where('cs_contacts.id', $contact_id)
+            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
+            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
+            ->leftjoin(
+                'accounting_accounts as accounting_accounts',
+                'AAT.accounting_account_id',
+                '=',
+                'accounting_accounts.id'
+            )
+            ->select([DB::raw($accountingUtil->balanceFormula())]);
+
+        $current_bal = $current_bal?->first()->balance;
+
+
+        $total_debit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
+            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
+            ->leftjoin(
+                'accounting_accounts as accounting_accounts',
+                'AAT.accounting_account_id',
+                '=',
+                'accounting_accounts.id'
+            )
+
+            ->where('cs_contacts.id', $contact_id)
+            ->select(DB::raw("SUM(IF((AAT.type = 'debit'), AAT.amount, 0)) as balance"))
+            ->first();
+        $total_debit_bal = $total_debit_bal->balance;
+
+        $total_credit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
+            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
+            ->leftjoin(
+                'accounting_accounts as accounting_accounts',
+                'AAT.accounting_account_id',
+                '=',
+                'accounting_accounts.id'
+            )
+
+            ->where('cs_contacts.id', $contact_id)
+            ->select(DB::raw("SUM(IF((AAT.type = 'credit'), AAT.amount, 0)) as balance"))
+            ->first();
+
+        $total_credit_bal = $total_credit_bal->balance;
+
+
+
+        return view('accounting::reports.customers-suppliers-statement')
+            ->with(compact('contact', 'contact_dropdown', 'current_bal', 'contact_id', 'total_debit_bal', 'total_credit_bal'));
+    }
+
+
+    public function accountReceivableAgeingReport()
+    {
+        $accountingUtil = new AccountingUtil;
+
+        $report_details = $accountingUtil->getAgeingReport('sell', 'contact');
+
+
+        return view('accounting::reports.account_receivable_ageing_report')
+            ->with(compact('report_details'));
+    }
+
+
+
+
+    public function accountPayableAgeingReport()
+    {
+        $accountingUtil = new AccountingUtil;
+
+        $report_details = $accountingUtil->getAgeingReport(
+            'purchase',
+            'contact',
+        );
+
+        return view('accounting::reports.account_payable_ageing_report')
+            ->with(compact('report_details'));
+    }
+
+
+    public function accountReceivableAgeingDetails()
+    {
+        $accountingUtil = new AccountingUtil;
+
+        $report_details = $accountingUtil->getAgeingReport(
+            'sell',
+            'due_date'
+        );
+
+
+        return view('accounting::reports.account_receivable_ageing_details')
+            ->with(compact('report_details'));
+    }
+
+    public function accountPayableAgeingDetails()
+    {
+        $accountingUtil = new AccountingUtil;
+
+        $report_details = $accountingUtil->getAgeingReport('purchases','due_date');
+
+
+        return view('accounting::reports.account_payable_ageing_details')
+            ->with(compact('report_details'));
     }
 }

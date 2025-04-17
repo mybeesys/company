@@ -5,6 +5,7 @@ namespace Modules\General\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
@@ -57,6 +58,11 @@ class Transaction extends Model
     public function prefixSetting()
     {
         return $this->hasOne(PrefixSetting::class, 'type', 'type');
+    }
+
+    public function accountsTransactions()
+    {
+        return $this->hasOne(AccountingAccountsTransaction::class, 'transaction_id');
     }
 
 
@@ -112,7 +118,7 @@ class Transaction extends Model
     {
 
         $returns = Transaction::whereIn('type', ['sell-return', 'purchases-return'])->pluck('parent_id')->toArray();
-       
+
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>

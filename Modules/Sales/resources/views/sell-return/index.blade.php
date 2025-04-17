@@ -46,6 +46,8 @@
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
                             <i class="bi bi-funnel fs-2"></i>
                         </button>
+                        <button type="button" class="btn btn-warning" id="clearFilter">@lang('sales::lang.Remove filter')</button>
+
                         <x-tables.export-menu id="sell" />
                     </x-slot:export>
                 </x-tables.table-header>

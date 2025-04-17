@@ -116,5 +116,10 @@ return [
     'balance_sheet' => 'الميزانية العمومية',
     'journal-report' => 'دفتر القيود',
     'cash-flow' => 'قائمة التدفقات النقدية',
+    'customers-suppliers-statement' => 'كشف حساب العملاء والموردين',
+    'account-receivable-ageing-report' => 'تحليل تقادم الحسابات المدينة',
+    'account-payable-ageing-report' => 'تحليل تقادم الحسابات الدائنة',
+    'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
+'account-payable-ageing-details' =>'تقرير أعمار الذمم الدائنة',
 
 ];

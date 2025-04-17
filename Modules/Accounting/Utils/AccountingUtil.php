@@ -4,12 +4,14 @@ namespace Modules\Accounting\Utils;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\View\Components\AccountRouting;
+use Modules\General\Models\Transaction;
 
 class AccountingUtil
 {
@@ -571,4 +573,113 @@ class AccountingUtil
 
         return  $new_ref_no = $currentYear . '/0001';
     }
+
+
+    public function getAgeingReport( $type, $group_by)
+    {
+        $today = Carbon::now()->format('Y-m-d');
+        $query = Transaction::query();
+
+        if ($type == 'sell') {
+            $query->where('transactions.type', 'sell')
+                ->where('transactions.status', 'approved');
+        } elseif ($type == 'purchases') {
+            $query->where('transactions.type', 'purchases')
+                ->where('transactions.status', 'approved');
+        }
+
+
+        $dues = $query->whereIn('transactions.payment_status', ['partial', 'due'])
+            ->join('cs_contacts as c', 'c.id', '=', 'transactions.contact_id')
+            ->select(
+                DB::raw(
+                    'DATEDIFF("' . $today . '", transactions.transaction_date) as diff'
+
+                ),
+                DB::raw('SUM(transactions.final_total -
+                        (SELECT COALESCE(SUM(IF(tp.is_return = 1, -1*tp.amount, tp.amount)), 0)
+                        FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id) )
+                        as total_due'),
+
+                'c.name as contact_name',
+                'transactions.contact_id',
+                'transactions.invoice_no',
+                'transactions.ref_no',
+                'transactions.transaction_date',
+                DB::raw('transactions.due_date as due_date')
+                )
+                ->groupBy([
+                    'transactions.id',
+                    'transactions.contact_id',
+                    'transactions.invoice_no',
+                    'transactions.ref_no',
+                    'transactions.transaction_date',
+                    'transactions.due_date',
+                    'c.name'
+                ])
+                ->get();
+
+        $report_details = [];
+        if ($group_by == 'contact') {
+            foreach ($dues as $due) {
+                if (!isset($report_details[$due->contact_id])) {
+                    $report_details[$due->contact_id] = [
+                        'name' => $due->contact_name,
+                        '<1' => 0,
+                        '1_30' => 0,
+                        '31_60' => 0,
+                        '61_90' => 0,
+                        '>90' => 0,
+                        'total_due' => 0,
+                    ];
+                }
+
+                if ($due->diff < 1) {
+                    $report_details[$due->contact_id]['<1'] += $due->total_due;
+                } elseif ($due->diff >= 1 && $due->diff <= 30) {
+                    $report_details[$due->contact_id]['1_30'] += $due->total_due;
+                } elseif ($due->diff >= 31 && $due->diff <= 60) {
+                    $report_details[$due->contact_id]['31_60'] += $due->total_due;
+                } elseif ($due->diff >= 61 && $due->diff <= 90) {
+                    $report_details[$due->contact_id]['61_90'] += $due->total_due;
+                } elseif ($due->diff > 90) {
+                    $report_details[$due->contact_id]['>90'] += $due->total_due;
+                }
+
+                $report_details[$due->contact_id]['total_due'] += $due->total_due;
+            }
+        } elseif ($group_by == 'due_date') {
+            $report_details = [
+                'current' => [],
+                '1_30' => [],
+                '31_60' => [],
+                '61_90' => [],
+                '>90' => [],
+            ];
+            foreach ($dues as $due) {
+                $temp_array = [
+                    'transaction_date' => $due->transaction_date,
+                    'due_date' => $due->due_date,
+                    'ref_no' => $due->ref_no,
+                    'invoice_no' => $due->invoice_no,
+                    'contact_name' => $due->contact_name,
+                    'due' => $due->total_due,
+                ];
+                if ($due->diff < 1) {
+                    $report_details['current'][] = $temp_array;
+                } elseif ($due->diff >= 1 && $due->diff <= 30) {
+                    $report_details['1_30'][] = $temp_array;
+                } elseif ($due->diff >= 31 && $due->diff <= 60) {
+                    $report_details['31_60'][] = $temp_array;
+                } elseif ($due->diff >= 61 && $due->diff <= 90) {
+                    $report_details['61_90'][] = $temp_array;
+                } elseif ($due->diff > 90) {
+                    $report_details['>90'][] = $temp_array;
+                }
+            }
+        }
+
+        return $report_details;
+    }
+
 }
