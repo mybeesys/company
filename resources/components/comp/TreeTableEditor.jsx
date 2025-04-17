@@ -11,7 +11,7 @@ import MultiDropDown from "./MultiDropDown";
 import { Calendar } from "primereact/calendar";
 
 const animatedComponents = makeAnimated();
-const TreeTableEditorLocal = ({
+const TreeTableEditor = ({
     translations,
     dir,
     header,
@@ -707,66 +707,72 @@ const TreeTableEditorLocal = ({
             </div>
             <div className="card-body">
                 <TreeTable value={nodes} className={"custom-tree-table"}>
-                    {cols
-                        .map((col, index) => (
-                            <Column
-                                key={index}
-                                style={{
-                                    width: !!!col.width ? "10%" : col.width,
-                                }}
-                                header={
-                                    !!col.title
-                                        ? translations[col.title]
-                                        : translations[col.key]
-                                }
-                                body={(node) => {
-                                    return (
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            {index === 0 &&
-                                                urlPar ===
-                                                    "partiallyReceived" && (
-                                                    <a
-                                                        href="#"
-                                                        onClick={() => {
-                                                            togglePopup(
-                                                                node.data
-                                                                    .transaction_id,
-                                                                node.data.id
-                                                            );
-                                                        }}
-                                                        style={{
-                                                            textDecoration:
-                                                                "none",
-                                                        }}
-                                                    >
-                                                        <i
-                                                            className="fas fa-file-alt"
-                                                            style={{
-                                                                marginRight:
-                                                                    "4px",
-                                                                padding: "10px",
-                                                                cursor: "pointer",
-                                                                color: "blue",
+                    {cols.map(
+                        (col, index) =>
+                            !(
+                                urlPar !== "partiallyReceived" &&
+                                index >= cols.length - 3
+                            ) && (
+                                <Column
+                                    key={index}
+                                    style={{
+                                        width: !!!col.width ? "10%" : col.width,
+                                    }}
+                                    header={
+                                        !!col.title
+                                            ? translations[col.title]
+                                            : translations[col.key]
+                                    }
+                                    body={(node) => {
+                                        return (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                {index === 0 &&
+                                                    urlPar ===
+                                                        "partiallyReceived" && (
+                                                        <a
+                                                            href="#"
+                                                            onClick={() => {
+                                                                togglePopup(
+                                                                    node.data
+                                                                        .transaction_id,
+                                                                    node.data.id
+                                                                );
                                                             }}
-                                                            title={
-                                                                translations[
-                                                                    "transfers"
-                                                                ]
-                                                            }
-                                                        ></i>
-                                                    </a>
-                                                )}
-                                            {renderCell(node, col, index)}
-                                        </div>
-                                    );
-                                }}
-                            />
-                        ))}
+                                                            style={{
+                                                                textDecoration:
+                                                                    "none",
+                                                            }}
+                                                        >
+                                                            <i
+                                                                className="fas fa-file-alt"
+                                                                style={{
+                                                                    marginRight:
+                                                                        "4px",
+                                                                    padding:
+                                                                        "10px",
+                                                                    cursor: "pointer",
+                                                                    color: "blue",
+                                                                }}
+                                                                title={
+                                                                    translations[
+                                                                        "transfers"
+                                                                    ]
+                                                                }
+                                                            ></i>
+                                                        </a>
+                                                    )}
+                                                {renderCell(node, col, index)}
+                                            </div>
+                                        );
+                                    }}
+                                />
+                            )
+                    )}
                     <Column body={(node) => actionTemplate(node, actions)} />
                 </TreeTable>
                 <button
@@ -869,4 +875,4 @@ const TreeTableEditorLocal = ({
         </div>
     );
 };
-export default TreeTableEditorLocal;
+export default TreeTableEditor;

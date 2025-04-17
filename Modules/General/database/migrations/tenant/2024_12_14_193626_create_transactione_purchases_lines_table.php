@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('tax_id')->nullable();
             $table->string('tax_value')->nullable();
             $table->string('total_before_vat')->nullable();
+            $table->bigInteger('transactionsell_id')->nullable();;
             $table->timestamps();
         });
     }

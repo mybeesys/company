@@ -17,7 +17,7 @@ class ModifierClassController extends Controller
      */
     public function index()
     {
-        return view('product::modifier.index' ); 
+        return view('product::modifier.index');
     }
 
     public function getModifiers()
@@ -30,25 +30,25 @@ class ModifierClassController extends Controller
 
     public function getMiniModifierClasslist()
     {
-       $result = ModifierClass::all();
-       return response()->json($result);
+        $result = ModifierClass::all();
+        return response()->json($result);
     }
 
     public function getModifierClasses()
     {
         $Tree = [];
         $modifierClasses = ModifierClass::all();
-        $treeId ="0";
+        $treeId = "0";
         foreach ($modifierClasses as $item) {
             $treeObject = new TreeObject();
             $treeObject->key = $treeId;
             $treeObject->data = new TreeData();
-            foreach($item->getFillable() as $key) {
+            foreach ($item->getFillable() as $key) {
                 $treeObject->data->$key = $item->$key;
             }
             $treeObject->data->id = $item->id;
             $treeObject->data->type = $item->type;
-            $treeId = $treeId+1;
+            $treeId = $treeId + 1;
             $Tree[] = $treeObject;
         }
         return response()->json($Tree);
@@ -63,54 +63,67 @@ class ModifierClassController extends Controller
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
+            'order' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
-            $modifier = Modifier::where([['class_id', '=', $validated['id']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"CHILD_EXIST"]);
-            
-            $modifierClass = ModifierClass::find($validated['id']); 
-            $modifierClass->delete();
-            
-        }
-        else if(!isset($validated['id']))
-        {
-            $modifierClass = ModifierClass::where('order', $validated['order'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $modifierClass = ModifierClass::where('name_ar', $validated['name_ar'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $modifierClass = ModifierClass::where('name_en', $validated['name_en'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
 
-            ModifierClass::create($validated);
-        }
-        else
-        {
-            $modifierClass = ModifierClass::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $modifierClass = ModifierClass::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $modifierClass = ModifierClass::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
-            if($modifierClass != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+        if (isset($validated['method']) && $validated['method'] == "delete") {
+            $childExists = Modifier::where('class_id', $validated['id'])->exists();
+            if ($childExists) {
+                return response()->json(["message" => "CHILD_EXIST"], 400);
+            }
 
             $modifierClass = ModifierClass::find($validated['id']);
-            $modifierClass->name_ar  = $validated['name_ar'];
-            $modifierClass->name_en  = $validated['name_en'];
-            $modifierClass->active   = $validated['active'];
-            $modifierClass->order   = $validated['order'];
-            $modifierClass->save();
+            if ($modifierClass) {
+                $modifierClass->delete();
+                return response()->json(["message" => "Deleted successfully."]);
+            }
+            return response()->json(["message" => "ModifierClass not found."], 404);
         }
-        return response()->json(["message"=>"Done"]);
+
+        if (!isset($validated['order'])) {
+            $maxOrder = ModifierClass::where('active', true)
+                ->max('order');
+            $validated['order'] = $maxOrder !== null ? $maxOrder + 1 : 1;
+        } else {
+            $existingModifierClass = ModifierClass::where('order', $validated['order'])
+                ->where('id', '!=', $validated['id'] ?? null)
+                ->first();
+
+            if ($existingModifierClass) {
+                return response()->json(["message" => "ORDER_EXIST"], 400);
+            }
+        }
+
+        $existingModifierClass = ModifierClass::where('name_ar', $validated['name_ar'])
+            ->orWhere('name_en', $validated['name_en'])
+            ->when(isset($validated['id']), function ($query) use ($validated) {
+                return $query->where('id', '!=', $validated['id']);
+            })
+            ->first();
+
+        if ($existingModifierClass) {
+            if ($existingModifierClass->name_ar == $validated['name_ar']) {
+                return response()->json(["message" => "NAME_AR_EXIST"], 400);
+            }
+            if ($existingModifierClass->name_en == $validated['name_en']) {
+                return response()->json(["message" => "NAME_EN_EXIST"], 400);
+            }
+        }
+
+        if (!isset($validated['id'])) {
+            ModifierClass::create($validated);
+        } else {
+            $modifierClass = ModifierClass::find($validated['id']);
+            if ($modifierClass) {
+                $modifierClass->update($validated);
+            } else {
+                return response()->json(["message" => "ModifierClass not found."], 404);
+            }
+        }
+
+        return response()->json(["message" => "Done"]);
     }
 
     /**
@@ -132,8 +145,8 @@ class ModifierClassController extends Controller
      */
     public function edit($id)
     {
-         $product  = ModifierClass::find($id);
-         return view('product::product.edit', compact('product'));
+        $product  = ModifierClass::find($id);
+        return view('product::product.edit', compact('product'));
     }
 
     /**

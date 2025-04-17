@@ -11,7 +11,7 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
         "itsgoingd/clockwork": "^5.2",
-        "khaled.alshamaa/ar-php": "^6.3",
+        "khaled.alshamaa/ar-php": "^7.0",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
