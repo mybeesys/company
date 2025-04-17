@@ -22,7 +22,11 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const [validated, setValidated] = useState(false);
     const [taxOptions, setTaxOptions] = useState([]);
     const [expandedKeys, setExpandedKeys] = useState([]);
-
+    const [globalFilter, setGlobalFilter] = useState(null);
+    const [filterOptions] = useState([
+        { label: "Lenient", value: "lenient" },
+        { label: "Strict", value: "strict" },
+    ]);
     const fetchTaxOptions = async () => {
         try {
             let response = await axios.get(listTaxurl);
@@ -421,36 +425,40 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const openAddModifier = () => {
         window.location.href = modifierCrudList + "/create";
     };
-    const getHeader = () => {
-        return (
-            <div className="d-flex justify-content-between align-items-center">
-                <div>
-                    <input
-                        type="text"
-                        className="form-control text-editor"
-                        onInput={(e) => setGlobalFilter(e.target.value)}
-                        placeholder={translations.globalFilter}
-                    />
-                </div>
-                <div>
-                    <a
-                        href="javascript:void(0);"
-                        className="btn btn-secondary me-2"
-                        onClick={expandAll}
-                    >
-                        {translations.ExpandAll || "Expand All"}
-                    </a>
-                    <a
-                        href="javascript:void(0);"
-                        className="btn btn-secondary"
-                        onClick={collapseAll}
-                    >
-                        {translations.CollapseAll || "Collapse All"}
-                    </a>
-                </div>
-            </div>
-        );
+
+    const handleSearch = (value) => {
+        setGlobalFilter(value);
+        if (value) {
+            const allKeys = getExpandedKeys(nodes);
+            setExpandedKeys(allKeys);
+        } else {
+            setExpandedKeys({});
+        }
     };
+
+    const getHeader = () => (
+        <div className="d-flex justify-content-between align-items-center">
+            <input
+                type="text"
+                className="form-control text-editor"
+                onInput={(e) => handleSearch(e.target.value)}
+                placeholder={translations.globalFilter}
+                style={{ width: "400px" }}
+            />
+            <div>
+                <button
+                    className="btn btn-secondary"
+                    onClick={expandAll}
+                    style={{ margin: "5px" }}
+                >
+                    {translations.ExpandAll}
+                </button>
+                <button className="btn btn-secondary" onClick={collapseAll}>
+                    {translations.CollapseAll}
+                </button>
+            </div>
+        </div>
+    );
 
     let header = getHeader();
     return (
@@ -496,13 +504,18 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         tableStyle={{ minWidth: "50rem" }}
                         className={"custom-tree-table"}
                         expandedKeys={expandedKeys}
+                        globalFilter={globalFilter}
+                        filterMode="lenient"
                         onToggle={(e) => setExpandedKeys(e.value)}
                         scrollable
                         scrollHeight="400px"
                         header={header}
                     >
                         <Column
+                            field="name_en"
                             header={translations.name_en}
+                            filter
+                            filterPlaceholder={translations.name_en}
                             style={{ width: "20%" }}
                             body={(node) =>
                                 renderTextCell(node, "name_en", true)
@@ -511,7 +524,10 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             expander
                         ></Column>
                         <Column
+                            field="name_ar"
                             header={translations.name_ar}
+                            filter
+                            filterPlaceholder={translations.name_ar}
                             style={{ width: "20%" }}
                             body={(node) => renderTextCell(node, "name_ar")}
                             sortable
