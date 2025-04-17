@@ -30,10 +30,7 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
-                        {{-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
-                            <i class="bi bi-funnel fs-2"></i>
-                        </button> --}}
-
+                    
                         <x-tables.export-menu id="product" />
                     </x-slot:export>
                 </x-tables.table-header>

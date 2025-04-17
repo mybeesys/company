@@ -62,7 +62,10 @@ class Contact extends Model
         return $this->belongsToMany(Transaction::class, 'cs_clients_transactions_loyalty_points', 'client_id', 'transaction_id')->withPivot('points');
     }
 
-
+    public function transactions()
+    {
+        return $this->hasOne(Transaction::class, 'contact_id');
+    }
     public static function getContactsColumns()
     {
         return [
@@ -143,7 +146,7 @@ class Contact extends Model
                     // $actions .= '<div class="menu-item px-3">
                     //                 <a class="menu-link px-3 delete-btn" href="' . url("/client-destroy/{$row->id}") . '" data-id="' . $row->id . '"  data-ref_no="' . $row->name . '">'. __('employee::fields.delete') . '</a>
                     //             </div>';
-        
+
 
                     return $actions;
                 }

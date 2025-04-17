@@ -9,6 +9,6 @@
         <span class="menu-bullet">
             <span class="bullet bullet-dot"></span>
         </span>
-        <span class="menu-title">{{ __('menuItemLang.' . $name) }}</span>
+        <span class="menu-title fs-7 "  aria-hidden="true"></i>{{ __('menuItemLang.' . $name) }}</span>
     </a>
 </div>

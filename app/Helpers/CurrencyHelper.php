@@ -10,10 +10,10 @@ class CurrencyHelper
     public static function format_currency($amount)
     {
         $currencySymbol = Setting::where('key', 'currency')->value('value');
-            $defulteCurrency = ' ر.س';
+        $defulteCurrency = ' ر.س';
 
 
-        return $currencySymbol ?? $defulteCurrency  . number_format($amount, 2);
+        return    number_format($amount, 2) . '  ' . $currencySymbol;
     }
 
 
@@ -21,7 +21,7 @@ class CurrencyHelper
     {
         $currencySymbol = Setting::where('key', 'currency')->value('value');
 
-            $defulteCurrency = 'ر.س';
+        $defulteCurrency = 'ر.س';
 
 
         return $currencySymbol ?? $defulteCurrency;
