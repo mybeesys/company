@@ -26,3 +26,4 @@ storage/logs/*.log
 storage/app/public
 
 composer.lock
+.qodo

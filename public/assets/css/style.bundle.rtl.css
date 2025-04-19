@@ -5852,6 +5852,9 @@ textarea.form-control-lg {
     height: 100%;
     margin: 0;
   }
+  span {
+    font-size: 8px; 
+  }
   .modal-fullscreen-sm-down .modal-content {
     height: 100%;
     border: 0;
@@ -5872,6 +5875,12 @@ textarea.form-control-lg {
     height: 100%;
     margin: 0;
   }
+  .col-7 {
+    width: 100%;
+  }
+  span {
+    font-size: 8px; 
+  }
   .modal-fullscreen-md-down .modal-content {
     height: 100%;
     border: 0;
@@ -5891,6 +5900,9 @@ textarea.form-control-lg {
     max-width: none;
     height: 100%;
     margin: 0;
+  }
+  span {
+    font-size: 10px; 
   }
   .modal-fullscreen-lg-down .modal-content {
     height: 100%;

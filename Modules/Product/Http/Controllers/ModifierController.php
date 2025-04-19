@@ -18,7 +18,7 @@ class ModifierController extends Controller
      */
     public function index()
     {
-        return view('product::modifier.index' ); 
+        return view('product::modifier.index');
     }
 
     /**
@@ -31,10 +31,10 @@ class ModifierController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'class_id' => 'nullable|numeric',
-            'cost'=> 'nullable|numeric',
-            'price'=> 'nullable|numeric',
-            'SKU'=> 'nullable|string',
-            'barcode'=> 'nullable|string',
+            'cost' => 'nullable|numeric',
+            'price' => 'nullable|numeric',
+            'SKU' => 'nullable|string',
+            'barcode' => 'nullable|string',
             'tax_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'order' => 'nullable|numeric',
@@ -43,56 +43,51 @@ class ModifierController extends Controller
             'method' => 'nullable|string'
         ]);
 
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
-            $modifier = Modifier::find($validated['id']); 
-            $modifier->delete();
-            return response()->json(["message"=>"Done"]);
+        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+            $modifier = Modifier::find($validated['id']);
+            if ($modifier) {
+                $modifier->delete();
+                return response()->json(["message" => "Done"]);
+            }
+            return response()->json(["message" => "Modifier not found."], 404);
         }
-        else if(!isset($validated['id']))
-        {
-            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
-                                        ['order', '=', $validated['order']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
-                                        ['name_ar', '=', $validated['name_ar']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $modifier = Modifier::where([['class_id', '=', $validated['class_id']],
-                                        ['name_en', '=', $validated['name_en']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
-            $this->createModifier($validated, $request);   
+
+        if (!isset($validated['order'])) {
+            $maxOrder = Modifier::where('class_id', $validated['class_id'])->max('order');
+            $validated['order'] = $maxOrder !== null ? $maxOrder + 1 : 1;
         }
-        else
-        {
-            //dd($validated['id'].' '.$validated['class_id'].' '.$validated['name_ar']);
-            $modifier = Modifier::where([
-                ['id', '!=', $validated['id']],
-                ['class_id', '=', $validated['class_id']],
-                ['order', '=', $validated['order']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $modifier = Modifier::where([
-                ['id', '!=', $validated['id']],
-                ['class_id', '=', $validated['class_id']],
-                ['name_ar', '=', $validated['name_ar']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $modifier = Modifier::where([
-                ['id', '!=', $validated['id']],
-                ['class_id', '=', $validated['class_id']],
-                ['name_en', '=', $validated['name_en']]])->first();
-            if($modifier != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+
+        $existingModifier = Modifier::where('class_id', $validated['class_id'])
+            ->where(function ($query) use ($validated) {
+                $query->where('order', '=', $validated['order'])
+                    ->orWhere('name_ar', '=', $validated['name_ar'])
+                    ->orWhere('name_en', '=', $validated['name_en']);
+            })
+            ->first();
+
+        if ($existingModifier) {
+            if ($existingModifier->order == $validated['order']) {
+                return response()->json(["message" => "ORDER_EXIST"]);
+            }
+            if ($existingModifier->name_ar == $validated['name_ar']) {
+                return response()->json(["message" => "NAME_AR_EXIST"]);
+            }
+            if ($existingModifier->name_en == $validated['name_en']) {
+                return response()->json(["message" => "NAME_EN_EXIST"]);
+            }
+        }
+
+        if (isset($validated['id'])) {
             $this->saveModifier($validated, $request);
-            
+        } else {
+            $this->createModifier($validated, $request);
         }
-        return response()->json(["message"=>"Done"]);
+
+        return response()->json(["message" => "Done"]);
     }
 
-    protected function saveModifier($validated, $request){
+    protected function saveModifier($validated, $request)
+    {
         $modifier = Modifier::find($validated['id']);
         $modifier->name_ar  = $validated['name_ar'];
         $modifier->name_en  = $validated['name_en'];
@@ -104,33 +99,29 @@ class ModifierController extends Controller
         $modifier->order   = $validated['order'];
         $modifier->prep_recipe = $validated['prep_recipe'] ?? $modifier->prep_recipe;
         $modifier->recipe_yield = $validated['recipe_yield'] ?? $modifier->recipe_yield;
-        
+
         DB::transaction(function () use ($modifier, $request) {
             $modifier->save();
-            $oldRecipe = RecipeModifier::where('modifier_id' , $modifier->id)->get();
-            foreach ($oldRecipe as $recipe)
-            {
+            $oldRecipe = RecipeModifier::where('modifier_id', $modifier->id)->get();
+            foreach ($oldRecipe as $recipe) {
                 $recipe->delete();
             }
-            if(isset($request["recipe"]))
-            {
-                $order = 0 ;
-                foreach ($request["recipe"] as $recipe) 
-                {
+            if (isset($request["recipe"])) {
+                $order = 0;
+                foreach ($request["recipe"] as $recipe) {
                     $rec = [];
                     $rec['modifier_id'] =  $modifier->id;
                     $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
                     $rec['order'] =  $order++;
                     RecipeModifier::create($rec);
                 }
-            } 
+            }
             ModifierPriceTier::where('modifier_id', '=', $modifier->id)->delete();
-            if(isset($request["price_tiers"]))
-            {
+            if (isset($request["price_tiers"])) {
                 foreach ($request["price_tiers"] as $newPriceTier) {
                     $PriceTier = new ModifierPriceTier();
                     $pt = $newPriceTier['price_tier'];
@@ -140,47 +131,44 @@ class ModifierController extends Controller
                     $PriceTier->save();
                 }
             }
-            $oldUnites = UnitTransfer::where('modifier_id' , $modifier->id)->get();
-        
-            if(isset($request["transfer"])){
-                $ids=[];
-                $insertedIds=[];
+            $oldUnites = UnitTransfer::where('modifier_id', $modifier->id)->get();
+
+            if (isset($request["transfer"])) {
+                $ids = [];
+                $insertedIds = [];
                 $updatedTransfers = [];
-                $requestIds = array_map(function($item) {
+                $requestIds = array_map(function ($item) {
                     return $item["id"];
                 }, $request["transfer"]);
-                UnitTransfer::where('modifier_id', '=',  $modifier->id)->whereNotIn('id', $requestIds)->delete();  
-                foreach ($oldUnites  as $old){
+                UnitTransfer::where('modifier_id', '=',  $modifier->id)->whereNotIn('id', $requestIds)->delete();
+                foreach ($oldUnites  as $old) {
                     $newid = [];
                     $newid['oldId'] = $old['id'];
                     $newid['newId'] = $old['id'];
-                    $ids[] = $newid ;
+                    $ids[] = $newid;
                 }
-                foreach ($request["transfer"] as $transfer){
-                    if($transfer['id'] <= 0)
-                    {
+                foreach ($request["transfer"] as $transfer) {
+                    if ($transfer['id'] <= 0) {
                         $newid = [];
                         $inserted = [];
                         $tran = [];
                         $newid['oldId'] =  $transfer['id'];
                         $tran['modifier_id'] =  $modifier->id;
-                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
-                        $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
                         $id = UnitTransfer::create($tran)->id;
                         $inserted['id'] = $id;
                         $inserted['unit2'] = $transfer['unit2'];
                         $newid['newId'] =  $id;
-                        $ids[] = $newid ;
+                        $ids[] = $newid;
                         $insertedIds[] = $inserted;
-                    }
-                    else if(!isset($transfer['unit2'])){
+                    } else if (!isset($transfer['unit2'])) {
                         $updatedTransfer = UnitTransfer::find($transfer['id']);
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer->save();
-                    }
-                    else{
+                    } else {
                         $updatedTransfer = UnitTransfer::find($transfer['id']);
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer['unit2'] = $transfer['unit2'];
@@ -189,43 +177,39 @@ class ModifierController extends Controller
                         $updatedTransfer->save();
                     }
                 }
-                foreach ($insertedIds as $transfer){
-                    foreach($ids as $updateId)
-                    {
-                        if($transfer['unit2'] == $updateId['oldId'] )
-                        {
+                foreach ($insertedIds as $transfer) {
+                    foreach ($ids as $updateId) {
+                        if ($transfer['unit2'] == $updateId['oldId']) {
                             $updateObject = UnitTransfer::find($transfer['id']);
                             $updateObject->unit2 =  $updateId['newId'];
                             $updateObject->save();
                         }
-                    } 
-                }  
+                    }
+                }
             }
         });
     }
 
-    protected function createModifier($validated, $request){
+    protected function createModifier($validated, $request)
+    {
         DB::transaction(function () use ($validated, $request) {
-            $modifier= Modifier::create($validated);
-            if(isset($request["recipe"]))
-            {
-                $order = 0 ;
-                foreach ($request["recipe"] as $recipe) 
-                {
+            $modifier = Modifier::create($validated);
+            if (isset($request["recipe"])) {
+                $order = 0;
+                foreach ($request["recipe"] as $recipe) {
                     $rec = [];
                     $rec['modifier_id'] =  $modifier->id;
                     $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-",$recipe['newid']);
+                    $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec['order'] =  $order++;
                     RecipeModifier::create($rec);
                 }
             }
-            if(isset($request["price_tiers"]))
-            {
+            if (isset($request["price_tiers"])) {
                 foreach ($request["price_tiers"] as $newPriceTier) {
-                    
+
                     $priceTier = new ModifierPriceTier();
                     $pt = $newPriceTier['price_tier'];
                     $priceTier->modifier_id = $modifier->id;
@@ -234,41 +218,36 @@ class ModifierController extends Controller
                     $priceTier->save();
                 }
             }
-            if(isset($request["transfer"]))
-            {
-                $ids=[];
-                $insertedIds=[];
-                foreach ($request["transfer"] as $transfer) 
-                {
+            if (isset($request["transfer"])) {
+                $ids = [];
+                $insertedIds = [];
+                foreach ($request["transfer"] as $transfer) {
                     $newid = [];
                     $inserted = [];
                     $tran = [];
                     $newid['oldId'] =  $transfer['id'];
                     $tran['modifier_id'] =  $modifier->id;
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] :null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true? 1 : 0;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null ;//$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
                     $id = UnitTransfer::create($tran)->id;
                     $inserted['id'] = $id;
                     $inserted['unit2'] = $transfer['unit2'];
                     $newid['newId'] =  $id;
-                    $ids[] = $newid ;
+                    $ids[] = $newid;
                     $insertedIds[] = $inserted;
                 }
-                foreach ($insertedIds as $transfer) 
-                {
-                    foreach($ids as $updateId)
-                    {
-                    if($transfer['unit2'] == $updateId['oldId'] )
-                    {
-                        $updateObject = UnitTransfer::find($transfer['id']);
-                        $updateObject->unit2 =  $updateId['newId'];
-                        $updateObject->save();
+                foreach ($insertedIds as $transfer) {
+                    foreach ($ids as $updateId) {
+                        if ($transfer['unit2'] == $updateId['oldId']) {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
                     }
-                    } 
-                }   
-            } 
+                }
+            }
         });
     }
 
@@ -300,19 +279,17 @@ class ModifierController extends Controller
      */
     public function edit($id)
     {
-         $modifier  = Modifier::with('tax')->with(['priceTiers' => function ($query) {
+        $modifier  = Modifier::with('tax')->with(['priceTiers' => function ($query) {
             $query->with('priceTier');
         }])->with(['recipe' => function ($query) {
             $query->with('unitTransfer');
         }])->find($id);
         $modifier->price_with_tax = $modifier->price_with_tax;
-        foreach ( $modifier->priceTiers as $rec) 
-        {
+        foreach ($modifier->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $modifier->tax->amount);
         }
-        foreach ( $modifier->recipe as $rec) 
-        {
-            $rec->newid = $rec->item_id."-".$rec->item_type;
+        foreach ($modifier->recipe as $rec) {
+            $rec->newid = $rec->item_id . "-" . $rec->item_type;
             $rec->cost = $rec->detail->cost;
         }
         return view('product::modifier.edit', compact('modifier'));

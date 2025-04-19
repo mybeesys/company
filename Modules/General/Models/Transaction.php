@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
 use Yajra\DataTables\Facades\DataTables;
@@ -65,6 +66,10 @@ class Transaction extends Model
         return $this->hasOne(AccountingAccountsTransaction::class, 'transaction_id');
     }
 
+    public function createdBy()
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
+    }
 
     public static function getsSellsColumns()
     {
