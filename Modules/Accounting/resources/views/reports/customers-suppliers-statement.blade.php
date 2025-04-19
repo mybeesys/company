@@ -29,7 +29,7 @@
                     @lang('accounting::lang.balance'): @format_currency($current_bal)
                 </h5>
             </div>
-              <div class="card-body">
+            <div class="card-body">
                 <form method="GET" action="{{ route('customers-suppliers-statement') }}">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-4">
@@ -178,8 +178,8 @@
                     });
                     $('.footer_total_debit').html((totalDebit));
                     $('.footer_total_credit').html((totalCredit));
-                    $('.footer_final_total_debit').html(({{ $total_debit_bal }}));
-                    $('.footer_final_total_credit').html(({{ $total_credit_bal }}));
+                    $('.footer_final_total_debit').html({{ $total_debit_bal }});
+                    $('.footer_final_total_credit').html({{ $total_credit_bal }});
                 }
             });
 
