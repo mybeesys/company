@@ -20,7 +20,7 @@ class CategoryController extends Controller
 
     public function getminicategorylist()
     {
-        $categories = Category::all();
+        $categories = Category::where('level', 1)->get();
         return response()->json($categories);
     }
 

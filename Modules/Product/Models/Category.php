@@ -63,10 +63,10 @@ class Category extends Model
         return $this->hasMany(Product::class, 'category_id', 'id')
             ->where('for_sell', 1)->where('active', 1);
     }
-    // public function subcategories()
-    // {
-    //     return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
-    // }
+    public function subcategories()
+    {
+        return $this->hasMany(Category::class, 'parent_id', 'id')->where('level', '>', 1)->whereNotNull('parent_id');
+    }
 
     public function parent()
     {
