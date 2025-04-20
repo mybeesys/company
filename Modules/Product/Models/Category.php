@@ -11,9 +11,9 @@ class Category extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = 'product_categories';
-        
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.
@@ -21,12 +21,15 @@ class Category extends Model
     protected $fillable = [
         'name_ar',
         'name_en',
+        'type',
+        'level',
         'parent_id',
         'active',
         'order'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -38,12 +41,12 @@ class Category extends Model
 
     public function children()
     {
-        return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
+        return $this->hasMany(Category::class, 'parent_id', 'id');
     }
 
     public function childrenWithProducts()
     {
-        return $this->hasMany(Subcategory::class, 'category_id', 'id')
+        return $this->hasMany(Category::class, 'parent_id', 'id')
             ->whereNull('parent_id')->where('active', 1)
             ->whereHas('products', function ($query) {
                 $query->where('for_sell', 1)->where('active', 1);
@@ -55,25 +58,40 @@ class Category extends Model
         return $this->hasMany(Product::class, 'category_id', 'id');
     }
 
-    public function subcategories()
+    public function productsForSale()
     {
-        return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
+        return $this->hasMany(Product::class, 'category_id', 'id')
+            ->where('for_sell', 1)->where('active', 1);
     }
+    // public function subcategories()
+    // {
+    //     return $this->hasMany(Subcategory::class, 'category_id', 'id')->whereNull('parent_id');
+    // }
 
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
-
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $model->order = OrderGenerator::generateOrder($model->order, null, null, $model->table);
+            $model->order = OrderGenerator::generateOrder(
+                $model->order,
+                'level',
+                $model->level,
+                $model->table
+            );
         });
+
         static::updating(function ($model) {
-            $model->order = OrderGenerator::generateOrder($model->order, null, null, $model->table);
+            $model->order = OrderGenerator::generateOrder(
+                $model->order,
+                'level',
+                $model->level,
+                $model->table
+            );
         });
     }
 }

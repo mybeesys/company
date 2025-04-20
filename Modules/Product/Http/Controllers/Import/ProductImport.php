@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Http\Controllers\Import;
 
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -6,7 +7,6 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Modules\Product\Http\Controllers\ProductController;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\Subcategory;
 use Maatwebsite\Excel\Validators\Failure;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -32,38 +32,39 @@ class ProductImport implements ToModel, WithHeadingRow
     {
         $valid = true;
         $category = Category::where('name_ar', '=', $row['category'])
-                            ->orWhere('name_en', '=', $row['category'])->first();
+            ->orWhere('name_en', '=', $row['category'])->first();
         if (!$category) {
             $this->errors[] = [
                 'row' => [
                     'name_ar'           => $row['arabic_name'],
                     'name_en'           => $row['english_name'],
                 ],
-                'message' => ['message' => 'INVALID_category', 'data' => [ $row['category']]]
+                'message' => ['message' => 'INVALID_category', 'data' => [$row['category']]]
             ];
             $valid = false;
         }
-        $subCategory = Subcategory::where('name_ar', '=', $row['subcategory'])
-                            ->orWhere('name_en', '=', $row['subcategory'])->first();
+        // $subCategory = Subcategory::where('name_ar', '=', $row['subcategory'])
+        $subCategory = Category::where('level', '>', 1)->whereNotNull('parent_id')->where('name_ar', '=', $row['subcategory'])
+            ->orWhere('name_en', '=', $row['subcategory'])->first();
         if (!$subCategory) {
             $this->errors[] = [
                 'row' => [
                     'name_ar'           => $row['arabic_name'],
                     'name_en'           => $row['english_name'],
                 ],
-                'message' => ['message' => 'INVALID_subcategory', 'data' => [ $row['subcategory']]]
+                'message' => ['message' => 'INVALID_subcategory', 'data' => [$row['subcategory']]]
             ];
             $valid = false;
         }
         $tax = Tax::where('name', '=', $row['tax'])
-                            ->orWhere('name_en', '=', $row['tax'])->first();
+            ->orWhere('name_en', '=', $row['tax'])->first();
         if (!$tax) {
             $this->errors[] = [
                 'row' => [
                     'name_ar'           => $row['arabic_name'],
                     'name_en'           => $row['english_name'],
                 ],
-                'message' => ['message' => 'INVALID_tax', 'data' => [ $row['tax']]]
+                'message' => ['message' => 'INVALID_tax', 'data' => [$row['tax']]]
             ];
             $valid = false;
         }
@@ -73,7 +74,7 @@ class ProductImport implements ToModel, WithHeadingRow
             'deacription_ar'    => $row['arabic_description'],
             'deacription_en'    => $row['english_description'],
             'category_id'       => $category->id,
-            'subcategory_id'    => $subCategory->id,
+            // 'subcategory_id'    => $subCategory->id,
             'active'            => $row['active'],
             'for_sell'          => $row['for_sell'],
             'sku'               => $row['sku'],
@@ -85,8 +86,8 @@ class ProductImport implements ToModel, WithHeadingRow
             'tax_id'            => $tax->id
         ]);
         $res = $this->productController->validateProduct(null, $product);
-        
-        if(!isset($row['main_unit']) || $row['main_unit'] ==null){
+
+        if (!isset($row['main_unit']) || $row['main_unit'] == null) {
             $this->errors[] = [
                 'row' => [
                     'name_ar'           => $row['arabic_name'],
@@ -96,7 +97,7 @@ class ProductImport implements ToModel, WithHeadingRow
             ];
             $valid = false;
         }
-        if(count($res) > 0){
+        if (count($res) > 0) {
             $this->errors[] = [
                 'row' => [
                     'name_ar'           => $row['arabic_name'],
@@ -106,9 +107,9 @@ class ProductImport implements ToModel, WithHeadingRow
             ];
             $valid = false;
         }
-        if(!$valid)
+        if (!$valid)
             throw new Exception("Validation failed for row: " . json_encode($row));
-        
+
         DB::transaction(function () use ($product, $row) {
             $product = Product::create($product->toArray());
             $unitTransfer = new UnitTransfer([
@@ -119,7 +120,7 @@ class ProductImport implements ToModel, WithHeadingRow
             $unitTransfer = UnitTransfer::create($unitTransfer->toArray());
         });
     }
-/**
+    /**
      * Handle validation failures
      *
      * @param Failure[] $failures
@@ -145,5 +146,4 @@ class ProductImport implements ToModel, WithHeadingRow
     {
         return $this->errors;
     }
-
 }

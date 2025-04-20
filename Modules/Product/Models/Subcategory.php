@@ -11,24 +11,25 @@ class Subcategory extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = 'product_subcategories';
-        
+
     public $timestamps = true;
-    
+
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [   
-    'name_ar',
-    'name_en',
-    'category_id',
-    'parent_id',
-    'active',
-    'order'
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'category_id',
+        'parent_id',
+        'active',
+        'order'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -47,33 +48,33 @@ class Subcategory extends Model
 
     public function children()
     {
-        return $this->hasMany(SubCategory::class, 'parent_id');
+        return $this->hasMany(Category::class, 'parent_id');
     }
 
     public function children1()
     {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id');
+        return $this->hasMany(Product::class, 'category_id', 'id');
     }
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id');
+        return $this->hasMany(Product::class, 'category_id', 'id');
     }
 
     public function productsForSale()
     {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id')
-            ->where('for_sell', 1)->where('active' , 1);
+        return $this->hasMany(Product::class, 'category_id', 'id')
+            ->where('for_sell', 1)->where('active', 1);
     }
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id' , 'id');
+        return $this->belongsTo(Category::class, 'category_id', 'id');
     }
 
     public function parent()
     {
-        return $this->belongsTo(Subcategory::class, 'parent_id');
+        return $this->belongsTo(Category::class, 'parent_id');
     }
 
     protected static function boot()

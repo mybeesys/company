@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
+
 class Product extends Model
 {
     protected $table = 'product_products';
@@ -27,7 +28,7 @@ class Product extends Model
         'cost',
         'price',
         'category_id',
-        'subcategory_id',
+        // 'subcategory_id',
         'tax_id',
         'description_ar',
         'description_en',
@@ -49,21 +50,23 @@ class Product extends Model
         'preparation_time',
         'calories',
         'show_in_menu',
-        
+
     ];
 
     protected $appends = ['price_with_tax'];
 
     public function getPriceWithTaxAttribute()
     {
-        return $this->price + TaxHelper::getTax($this->price,$this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
+        return $this->price + TaxHelper::getTax($this->price, $this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
     }
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -72,11 +75,13 @@ class Product extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id', 'id');
+        return $this->belongsTo(Category::class, 'category_id', 'id')
+            ->where('level', 1);
     }
     public function subcategory()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
+        return $this->belongsTo(Category::class, 'category_id', 'id')
+            ->where('level', '>', 1);
     }
     public function serial_numbers()
     {
@@ -132,7 +137,7 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if($model->SKU == null){
+            if ($model->SKU == null) {
                 // Generate a unique random number
                 do {
                     $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
@@ -140,17 +145,22 @@ class Product extends Model
 
                 $model->SKU = $SKU;
             }
-            if($model->barcode == null){
+            if ($model->barcode == null) {
                 do {
                     $barcode = Barcode::generateUPCA();
                 } while (self::where('barcode', $barcode)->exists());
 
                 $model->barcode = $barcode;
             }
-            $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
+            $model->order = OrderGenerator::generateOrder(
+                $model->order,
+                'category_id',
+                $model->category_id,
+                $model->table
+            );
         });
         static::updating(function ($model) {
-            if($model->SKU == null){
+            if ($model->SKU == null) {
                 // Generate a unique random number
                 do {
                     $SKU = str_pad(mt_rand(0, 99999), 5, '0', STR_PAD_LEFT);
@@ -158,14 +168,19 @@ class Product extends Model
 
                 $model->SKU = $SKU;
             }
-            if($model->barcode == null){
+            if ($model->barcode == null) {
                 do {
                     $barcode = Barcode::generateUPCA();
                 } while (self::where('barcode', $barcode)->exists());
 
                 $model->barcode = $barcode;
             }
-            $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
+            $model->order = OrderGenerator::generateOrder(
+                $model->order,
+                'category_id',
+                $model->category_id,
+                $model->table
+            );
         });
     }
 }
