@@ -281,6 +281,36 @@ return [
                 'permission' => '',
             ],
 
+            [
+                'name' => 'customers-suppliers-statement',
+                'url' => 'customers-suppliers-statement',
+                'permission' => '',
+            ],
+
+
+            [
+                'name' => 'account-receivable-ageing-report',
+                'url' => 'account-receivable-ageing-report',
+                'permission' => '',
+            ],
+            [
+                'name' => 'account-receivable-ageing-details',
+                'url' => 'account-receivable-ageing-details',
+                'permission' => '',
+            ],
+            [
+                'name' => 'account-payable-ageing-report',
+                'url' => 'account-payable-ageing-report',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'account-payable-ageing-details',
+                'url' => 'account-payable-ageing-details',
+                'permission' => '',
+            ],
+
+
 
 
 
@@ -289,44 +319,39 @@ return [
         ]
     ],
 
-    [
-        'name' => 'establishments_module',
-        'url' => '',
-        'permission' => '',
-        'icon' => 'fas fa-building',
-        'subMenu' => [
-            [
-                'name' => 'company_settings',
-                'url' => 'company/setting',
-                'permission' => 'establishments.company.show',
-            ],
-            [
-                'name' => 'establishments',
-                'url' => 'establishment',
-                'permission' => 'establishments.establishments.show',
-            ],
-            [
-                'name' => 'areas',
-                'url' => 'area',
-                'permission' => '',
-            ],
-            [
-                'name' => 'tables',
-                'url' => 'table',
-                'permission' => '',
-            ],
-            [
-                'name' => 'tables_qr',
-                'url' => 'areaQR',
-                'permission' => '',
-            ],
-            [
-                'name' => 'menu_qr',
-                'url' => 'menuQR',
-                'permission' => '',
-            ],
-        ]
-    ],
+    // [
+    //     'name' => 'establishments_module',
+    //     'url' => '',
+    //     'permission' => '',
+    //     'icon' => 'fas fa-building',
+    //     'subMenu' => [
+    //         [
+    //             'name' => 'establishments',
+    //             'url' => 'establishment',
+    //             'permission' => 'establishments.establishments.show',
+    //         ],
+    //         [
+    //             'name' => 'areas',
+    //             'url' => 'area',
+    //             'permission' => '',
+    //         ],
+    //         [
+    //             'name' => 'tables',
+    //             'url' => 'table',
+    //             'permission' => '',
+    //         ],
+    //         [
+    //             'name' => 'tables_qr',
+    //             'url' => 'areaQR',
+    //             'permission' => '',
+    //         ],
+    //         [
+    //             'name' => 'menu_qr',
+    //             'url' => 'menuQR',
+    //             'permission' => '',
+    //         ],
+    //     ]
+    // ],
 
 
     [
@@ -472,7 +497,42 @@ return [
                 'name' => 'general_setting',
                 'url' => 'general-setting',
                 'permission' => '',
+
             ],
+            [
+                'name' => 'establishments',
+                'url' => 'establishment',
+                'permission' => 'establishments.establishments.show',
+            ],
+            [
+                'name' => 'tables',
+                'url' => 'table',
+                'permission' => '',
+                'subMenu' => [
+                    [
+                        'name' => 'tables',
+                        'url' => 'table',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'areas',
+                        'url' => 'area',
+                        'permission' => 'establishments.establishments.show',
+                    ],
+                    [
+                        'name' => 'tables_qr',
+                        'url' => 'areaQR',
+                        'permission' => '',
+                    ],
+                    [
+                        'name' => 'menu_qr',
+                        'url' => 'menuQR',
+                        'permission' => '',
+                    ],
+                ],
+
+            ],
+
         ]
 
     ],

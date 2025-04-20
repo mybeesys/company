@@ -77,6 +77,21 @@ return [
     'fifo' => 'FIFO (First in, first out)',
     'lifo' => 'LIFO (Last in, first out)',
     'average' => 'Average (average)',
+    'currency' => 'Currency',
+
+    'categories' => 'Category Management',
+    'inventory' => 'Inventory',
+    'sales' => 'Sales',
+    'purchases' => 'Purchases',
+    'accounting' => 'Accounting',
+    'accounting_reports' => 'Accounting Reports',
+    'facilities' => 'Facilities',
+    'clients' => 'Clients',
+    'suppliers' => 'Suppliers',
+    'employees' => 'Employee Management',
+    'screens' => 'Screens',
+    'reports' => 'Reports',
+    'Module Management'=>'Module Management',
 
 
 ];

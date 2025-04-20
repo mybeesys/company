@@ -708,13 +708,6 @@ const TreeTableEditorLocal = ({
             <div className="card-body">
                 <TreeTable value={nodes} className={"custom-tree-table"}>
                     {cols
-                        .filter(
-                            (col, index) =>
-                                !(
-                                    urlPar !== "partiallyReceived" &&
-                                    index >= cols.length - 3
-                                )
-                        )
                         .map((col, index) => (
                             <Column
                                 key={index}

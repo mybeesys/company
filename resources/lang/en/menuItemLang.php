@@ -44,8 +44,10 @@ return [
     'clients_suppliers_settings' => 'clients and suppliers settings',
     'coupons' => 'Coupons',
 
-
-
+    'account-receivable-ageing-report' => 'Accounts Receivable Aging Analysis',
+    'account-payable-ageing-report' => 'Accounts Payable Ageing Analysis',
+    'account-receivable-ageing-details' => 'Accounts Receivable Ageing Report',
+    'account-payable-ageing-details' => 'Accounts Payable Ageing Report',
 
     'customMenu' => 'Custom Menu',
     'discount' => 'Discount',
@@ -118,6 +120,7 @@ return [
     'balance_sheet' => 'Balance sheet',
     'journal-report' => 'Journal report',
     'cash-flow' => 'Cash Flow Statement',
+    'customers-suppliers-statement' => 'Customers and suppliers statement of account',
 
 
 

@@ -5,6 +5,7 @@ namespace Modules\General\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
@@ -58,6 +59,11 @@ class Transaction extends Model
     public function prefixSetting()
     {
         return $this->hasOne(PrefixSetting::class, 'type', 'type');
+    }
+
+    public function accountsTransactions()
+    {
+        return $this->hasOne(AccountingAccountsTransaction::class, 'transaction_id');
     }
 
     public function createdBy()

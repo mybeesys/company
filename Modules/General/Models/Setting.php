@@ -30,4 +30,14 @@ class Setting extends Model
         return Setting::where('key', 'inventory_costing_method')->value('value');
 
     }
+
+    public static function getCurrency()
+    {
+
+        return Setting::where('key', 'currency')->value('value');
+
+    }
+
+
+    
 }

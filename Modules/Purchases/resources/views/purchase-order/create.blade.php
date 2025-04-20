@@ -261,7 +261,7 @@
             $('<input>').attr({
                 type: 'hidden',
                 name: 'status',
-                value: 'final'
+                value: 'approved'
             }).appendTo('#sell_save');
             $('#sell_save').submit();
         });

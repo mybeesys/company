@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('type')->nullable();
             $table->string('status');
+            $table->string('transfer_status')->nullable();
             $table->string('payment_status')->nullable();
             $table->bigInteger('contact_id')->nullable();
             $table->bigInteger('cost_center')->nullable();

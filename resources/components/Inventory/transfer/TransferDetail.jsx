@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import EditRowCompnent from "../../comp/EditRowCompnent";
 import BasicInfoComponent from "../../comp/BasicInfoComponent";
-import TreeTableEditorLocal from "../../comp/TreeTableEditorLocal";
+import TreeTableEditor from "../../comp/TreeTableEditor";
 import { getName } from "../../lang/Utils";
 import SweetAlert2 from "react-sweetalert2";
 
@@ -136,7 +136,7 @@ const TransferDetail = ({ dir, translations }) => {
                         key: "items",
                         visible: true,
                         comp: (
-                            <TreeTableEditorLocal
+                            <TreeTableEditor
                                 translations={translations}
                                 dir={dir}
                                 header={false}

@@ -71,7 +71,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-warning" id="clearFilter">@lang('sales::lang.Remove filter')</button>
+                        {{-- <button type="button" class="btn btn-warning" id="clearFilter">@lang('sales::lang.Remove filter')</button> --}}
                         <button type="button" class="btn btn-secondary"
                             data-bs-dismiss="modal">@lang('messages.cancel')</button>
                     </div>

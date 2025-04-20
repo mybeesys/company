@@ -58,6 +58,9 @@ Route::middleware([
 
         Route::get('general-setting', [GeneralController::class, 'setting'])->name('general-setting');
         Route::post('update-prefix', [GeneralController::class, 'updatePrefix'])->name('update-prefix');
+        Route::post('update-currency', [GeneralController::class, 'updateCurrency'])->name('update-currency');
+        Route::post('update-modules', [GeneralController::class, 'updateModules'])->name('update-modules');
+
 
         Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
 

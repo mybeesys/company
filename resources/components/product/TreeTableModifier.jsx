@@ -27,16 +27,14 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         { label: "Strict", value: "strict" },
     ]);
 
+    const expandAll = () => {
+        const allKeys = getExpandedKeys(nodes);
+        setExpandedKeys(allKeys);
+    };
 
-        const expandAll = () => {
-            const allKeys = getExpandedKeys(nodes);
-            setExpandedKeys(allKeys);
-        };
-    
-        const collapseAll = () => {
-            setExpandedKeys({});
-        };
-
+    const collapseAll = () => {
+        setExpandedKeys({});
+    };
 
     const handleDelete = (message) => {
         if (message != "Done") {
@@ -358,8 +356,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 onChange={(e) => handleEditorChange(e.target.value, key)}
                 autoFocus={!!autoFocus}
                 onKeyDown={(e) => e.stopPropagation()}
-                style={{ width: "100%" }}
+                style={{ width: "100%", visibility: "hidden" }}
                 required={!!required}
+                readOnly
             />
         ) : (
             <span>{node.data[key]}</span>
@@ -453,48 +452,47 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         window.location.href = productCrudList + "/create";
     };
 
-    const getHeader = () => {
-        return (
-            <div className="d-flex justify-content-between align-items-center">
-                <div>
-                    <input
-                        type="text"
-                        className="form-control text-editor"
-                        onInput={(e) => setGlobalFilter(e.target.value)}
-                        placeholder={translations.globalFilter}
-                    />
-                </div>
-                <div>
-                    <a
-                        href="javascript:void(0);"
-                        className="btn btn-secondary me-2"
-                        onClick={expandAll}
-                    >
-                        {translations.ExpandAll || "Expand All"}
-                    </a>
-                    <a
-                        href="javascript:void(0);"
-                        className="btn btn-secondary"
-                        onClick={collapseAll}
-                    >
-                        {translations.CollapseAll || "Collapse All"}
-                    </a>
-                </div>
-            </div>
-        );
+    const handleSearch = (value) => {
+        setGlobalFilter(value);
+        if (value) {
+            const allKeys = getExpandedKeys(nodes);
+            setExpandedKeys(allKeys);
+        } else {
+            setExpandedKeys({});
+        }
     };
-    
+
+    const getHeader = () => (
+        <div className="d-flex justify-content-between align-items-center">
+            <input
+                type="text"
+                className="form-control text-editor"
+                onInput={(e) => handleSearch(e.target.value)}
+                placeholder={translations.globalFilter}
+                style={{ width: "400px" }}
+            />
+            <div>
+                <button
+                    className="btn btn-secondary"
+                    onClick={expandAll}
+                    style={{ margin: "5px" }}
+                >
+                    {translations.ExpandAll}
+                </button>
+                <button className="btn btn-secondary" onClick={collapseAll}>
+                    {translations.CollapseAll}
+                </button>
+            </div>
+        </div>
+    );
 
     let header = getHeader();
 
     return (
-        <div class="card mb-5 mb-xl-8"
-        
-        >
+        <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />
 
-            <div class="card-header border-0 pt-5"
-            >
+            <div class="card-header border-0 pt-5">
                 <h3 class="card-title align-items-start flex-column">
                     <span class="card-label fw-bold fs-3 mb-1">
                         {translations.CategoryList}
@@ -504,8 +502,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </span>
                 </h3>
                 <div class="card-toolbar">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3"
-                    >
+                    <div class="d-flex align-items-center gap-2 gap-lg-3">
                         <a
                             href="javascript:void(0);"
                             class="btn btn-primary"
@@ -513,7 +510,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         >
                             {translations.Add}
                         </a>
-                     
+
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -525,21 +522,18 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </div>
                 </div>
             </div>
-            <div class="card-body"            
-            >
+            <div class="card-body">
                 <form
                     id="treeForm"
                     noValidate
                     validated={true}
                     class="needs-validation"
                     onSubmit={handleSubmit}
-                    
                 >
                     <TreeTable
-                        value={nodes} 
-                         scrollable
-    scrollHeight="400px"
-                        
+                        value={nodes}
+                        scrollable
+                        scrollHeight="400px"
                         tableStyle={{ minWidth: "50rem" }}
                         className={"custom-tree-table"}
                         globalFilter={globalFilter}
@@ -548,9 +542,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         expandedKeys={expandedKeys}
                         onToggle={(e) => setExpandedKeys(e.value)}
                         sortMode="multiple"
-                        
                     >
-                        
                         <Column
                             field="name_en"
                             filter
@@ -582,7 +574,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable={true}
                         ></Column>
                         <Column
                             header={translations.cost}
@@ -594,7 +585,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         ></Column>
                         <Column
                             header={translations.order}
@@ -602,13 +592,11 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             body={(node) =>
                                 renderNumberCell(node, "order", false, false)
                             }
-                            sortable
                         ></Column>
                         <Column
                             header={translations.active}
                             style={{ width: "10%" }}
                             body={(node) => renderCheckCell(node, "active")}
-                            sortable
                         >
                             {" "}
                         </Column>
@@ -622,7 +610,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     <></>
                                 )
                             }
-                            sortable
                         >
                             {" "}
                         </Column>

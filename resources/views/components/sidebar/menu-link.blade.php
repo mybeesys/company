@@ -9,7 +9,7 @@
             <i class='{{ $icon }}'></i>
         </span>
     @endif
-    <span class="menu-title">{{ __('menuItemLang.' . $name) }}</span>
+    <span class="menu-title fs-6">{{ __('menuItemLang.' . $name) }}</span>
     @if ($subMenuCount)
         <span class="menu-arrow"></span>
     @endif

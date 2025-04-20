@@ -48,6 +48,7 @@
                             <i class="bi bi-funnel fs-2"></i>
                         </button>
 
+                        <button type="button" class="btn btn-warning" id="clearFilter">@lang('sales::lang.Remove filter')</button>
 
                         <x-tables.export-menu id="purchase_order" />
                     </x-slot:export>

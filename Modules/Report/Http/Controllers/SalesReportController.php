@@ -72,7 +72,7 @@ class SalesReportController extends Controller
                 ->leftjoin('taxes', 'transaction_sell_lines.tax_id', '=', 'taxes.id')
                 ->leftjoin('product_unit_transfer as u', 'transaction_sell_lines.unit_id', '=', 'u.id')
                 ->where('t.type', 'sell')
-                ->where('t.status', 'final')
+                ->where('t.status', 'approved')
                 ->select(
                     'p.name_ar as product_name_ar',
                     'p.name_en as product_name_en',
@@ -358,7 +358,7 @@ class SalesReportController extends Controller
             })
             ->join('product_products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.type', 'sell')
-            ->where('sale.status', 'final');
+            ->where('sale.status', 'approved');
         $query->addSelect(DB::raw("
             SUM(
                 (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *

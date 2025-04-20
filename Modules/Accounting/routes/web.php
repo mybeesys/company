@@ -81,6 +81,13 @@ Route::middleware([
         Route::get('journal-report', [AccountingReportsController::class, 'JournalReport'])->name('journal-report');
 
         Route::get('cash-flow', [AccountingReportsController::class, 'cash_flow'])->name('cash-flow');
+        Route::get('customers-suppliers-statement', [AccountingReportsController::class, 'customersSuppliersStatement'])->name('customers-suppliers-statement');
+
+        Route::get('account-receivable-ageing-report', [AccountingReportsController::class, 'accountReceivableAgeingReport'])->name('account-receivable-ageing-report');
+        Route::get('account-receivable-ageing-details', [AccountingReportsController::class, 'accountReceivableAgeingDetails'])->name('account-receivable-ageing-details');
+
+        Route::get('account-payable-ageing-report', [AccountingReportsController::class, 'accountPayableAgeingReport'])->name('account-payable-ageing-report');
+        Route::get('account-payable-ageing-details', [AccountingReportsController::class, 'accountPayableAgeingDetails'])->name('account-payable-ageing-details');
 
 
         //

@@ -41,6 +41,13 @@ Route::middleware([
         Route::get('create-purchases-return/{id}', [PurchasesReturnController::class, 'create'])->name('create-purchases-return');
         Route::post('store-purchases-return', [PurchasesReturnController::class, 'store'])->name('store-purchases-return');
 
+
+        Route::get('create-purchases-return-invoice', [PurchasesReturnController::class, 'createReturnInvoice'])->name('create-purchases-return-invoice');
+        Route::post('store-purchases-return-invoice', [PurchasesReturnController::class, 'storeReturnInvoice'])->name('store-purchases-return-invoice');
+
+
+
+
         Route::get('purchases-order', [PurchasesOrderController::class, 'index'])->name('purchases-order');
         Route::get('create-purchase-order', [PurchasesOrderController::class, 'create'])->name('create-purchase-order');
         Route::post('store-purchase-order', [PurchasesOrderController::class, 'store'])->name('store-purchase-order');

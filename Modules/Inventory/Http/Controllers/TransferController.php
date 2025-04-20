@@ -76,8 +76,10 @@ class TransferController extends Controller
         return DB::transaction(function () use ($request) {
             $transactionId = Transaction::find($request->id);
             $transaction = Transaction::where('parent_id', $request->id)->first();
-            $transaction->status = 'fullyReceived';
-            $transactionId->status = 'fullyReceived';
+            $transaction->transfer_status = 'fullyReceived';
+            $transactionId->transfer_status = 'fullyReceived';
+            $transactionId->status = 'Approved';
+            $transaction->status = 'Approved';
             $transaction->save();
             $transactionId->save();
 
@@ -102,6 +104,10 @@ class TransferController extends Controller
             $transaction = Transaction::where('parent_id', $request->id)->first();
             $transaction->status = 'rejected';
             $transactionId->status = 'rejected';
+            $transaction->transfer_status = 'rejected';
+            $transactionId->transfer_status = 'rejected';
+            $transaction->status = 'cancel';
+            $transactionId->status = 'cancel';
             $transaction->save();
             $transactionId->save();
 
@@ -113,8 +119,10 @@ class TransferController extends Controller
         return DB::transaction(function () use ($request) {
             $transactionId = Transaction::find($request->id);
             $transaction = Transaction::where('parent_id', $request->id)->first();
-            $transaction->status = 'inTransit';
-            $transactionId->status = 'inTransit';
+            $transaction->transfer_status = 'inTransit';
+            $transactionId->transfer_status = 'inTransit';
+            $transaction->status = 'draft';
+            $transactionId->status = 'draft';
             $transaction->save();
             $transactionId->save();
 

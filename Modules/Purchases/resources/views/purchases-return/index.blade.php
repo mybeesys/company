@@ -37,7 +37,7 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchases-retrun" url="create-invoice" module="purchases" :addButton="false">
+                <x-tables.table-header model="purchases-retrun" url="create-purchases-return-invoice" module="purchases" >
 
 
                     <x-slot:filters>
@@ -46,6 +46,7 @@
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
                             <i class="bi bi-funnel fs-2"></i>
                         </button>
+                        <button type="button" class="btn btn-warning" id="clearFilter">@lang('sales::lang.Remove filter')</button>
 
                         <x-tables.export-menu id="sell" />
                     </x-slot:export>

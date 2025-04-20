@@ -2,6 +2,7 @@
 
 @section('title', __('establishment::general.company_settings'))
 
+
 @section('css')
     <style>
         @media (min-width: 1300px) {
