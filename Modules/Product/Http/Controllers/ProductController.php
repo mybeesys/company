@@ -27,6 +27,8 @@ use Modules\Product\Models\ProductTax;
 use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
 
+use function Laravel\Prompts\error;
+
 class ProductController extends Controller
 {
     protected $requetsValidator = [
@@ -255,6 +257,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        error_log(json_encode($request->all()));
         $validated = $request->validate($this->requetsValidator);
 
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
@@ -538,6 +541,7 @@ class ProductController extends Controller
 
     protected function createProduct($validated, $request)
     {
+
         DB::transaction(function () use ($validated, $request) {
             $product = Product::create($validated);
             if (isset($request["modifiers"])) {
@@ -617,7 +621,7 @@ class ProductController extends Controller
                 $order = 0;
                 foreach ($request["recipe"] as $recipe) {
                     $rec = [];
-                    $rec['product_id'] =  $validated['id'];
+                    $rec['product_id'] =  $validated['id'] ?? $product->id;
                     $rec['quantity'] = $recipe['quantity'];
                     $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
