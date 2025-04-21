@@ -16,6 +16,7 @@ use Modules\Product\Models\ProductLinkedComboItem;
 use Modules\Product\Models\ProductLinkedComboUpcharge;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
@@ -180,13 +181,15 @@ class ProductController extends Controller
     public function create()
     {
         $product  = new Product();
+        $priceTier = PriceTier::get();
+        $establishments = Establishment::where('is_main', 0)->get();
         $product->group_combo = 0;
         $product->linked_combo = 0;
         $product->set_price = 0;
         $product->use_upcharge = 0;
         $product->combos = [];
         $product->linkedCombos = [];
-        $product->establishments = [];
+        $product->establishments = $establishments;
         $product->price_tiers = [];
         $product->recipe = [];
         $product->attributes = [];
@@ -682,9 +685,8 @@ class ProductController extends Controller
                 foreach ($request["establishments"] as $newEstablishment) {
 
                     $establishment = new EstablishmentProduct();
-                    $wh = $newEstablishment['establishment'];
                     $establishment->product_id = $product->id;
-                    $establishment->establishment_id = $wh["id"];
+                    $establishment->establishment_id = $newEstablishment["id"];;
                     $establishment->save();
                 }
             }
