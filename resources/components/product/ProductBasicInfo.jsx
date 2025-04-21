@@ -91,8 +91,13 @@ const ProductBasicInfo = ({
     // Clean up object URLs to avoid memory leaks
     React.useEffect(() => {
         fetchCategoryOptions(); // Trigger the fetch
+        const tooltipTriggerList = [].slice.call(
+            document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        tooltipTriggerList.map(
+            (tooltipTriggerEl) => new window.bootstrap.Tooltip(tooltipTriggerEl)
+        );
     }, []);
-
     return (
         <>
             <div
@@ -102,10 +107,18 @@ const ProductBasicInfo = ({
             >
                 <div class="d-flex  align-items-center pt-3">
                     <label
-                        class="fs-6 fw-semibold mb-2 me-0 "
+                        className="fs-6 fw-semibold mb-2 me-0"
                         style={{ width: "50px" }}
                     >
                         {translations.active}
+                        <span
+                            className="ms-1"
+                            data-bs-toggle="tooltip"
+                            aria-label={translations.active_status}
+                            data-bs-original-title={translations.active_status}
+                        >
+                            <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                        </span>
                     </label>
                     <div class="form-check p-0 form-switch">
                         <InputSwitch
@@ -122,6 +135,14 @@ const ProductBasicInfo = ({
                         style={{ width: "120px" }}
                     >
                         {translations.forSell}
+                        <span
+                            className="ms-1"
+                            data-bs-toggle="tooltip"
+                            aria-label={translations.forSell_status}
+                            data-bs-original-title={translations.forSell_status}
+                        >
+                            <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                        </span>
                     </label>
                     <div class="form-check form-switch p-0">
                         <InputSwitch
@@ -138,6 +159,16 @@ const ProductBasicInfo = ({
                         style={{ width: "150px" }}
                     >
                         {translations.showInMenu}
+                        <span
+                            className="ms-1"
+                            data-bs-toggle="tooltip"
+                            aria-label={translations.showInMenu_status}
+                            data-bs-original-title={
+                                translations.showInMenu_status
+                            }
+                        >
+                            <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                        </span>
                     </label>
                     <div class="form-check form-switch p-0">
                         <InputSwitch

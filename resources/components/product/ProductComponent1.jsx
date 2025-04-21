@@ -57,6 +57,11 @@ const ProductComponent1 = ({ translations, dir }) => {
         linkedComboLOV: [],
     });
 
+    const [selectedEstablishments, setSelectedEstablishments] = useState([]);
+
+    const handleEstablishmentChange = (selectedIds) => {
+        setSelectedEstablishments(selectedIds);
+    };
     const parentHandlechanges = (childproduct) => {
         if (childproduct.for_sell != currentObject.for_sell)
             handleForSellChange(childproduct);
@@ -85,7 +90,6 @@ const ProductComponent1 = ({ translations, dir }) => {
     const onProductFieldChange = (key, value) => {
         currentObject[key] = value;
         setcurrentObject({ ...currentObject });
-        console.log("nn", currentObject);
         return {
             message: "Done",
         };
@@ -146,7 +150,12 @@ const ProductComponent1 = ({ translations, dir }) => {
             }
             const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
             r["transfer"] = [...sortedItems];
-
+            const payload = {
+                ...r,
+                establishments: selectedEstablishments.map((id) => ({
+                    id: id,
+                })),
+            };
             const response = await axios.post(producturl, r, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -653,7 +662,9 @@ const ProductComponent1 = ({ translations, dir }) => {
                                             translations={translations}
                                             dir={dir}
                                             currentObject={currentObject}
-                                            onBasicChange={onProductFieldChange}
+                                            onEstablishmentChange={
+                                                handleEstablishmentChange
+                                            }
                                         />
                                     </div>
                                 </div>

@@ -15,7 +15,6 @@ const ProductPriceTier = ({
     const listTaxurl = JSON.parse(rootElement.getAttribute("listTax-url"));
     const [taxOptions, setTaxOptions] = useState([]);
     const timeoutRef = useRef(null);
-    console.log("currentObject", currentObject);
     const fetchTaxOptions = async () => {
         try {
             let response = await axios.get(listTaxurl);

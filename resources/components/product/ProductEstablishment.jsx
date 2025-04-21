@@ -1,7 +1,21 @@
-import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
+import { useEffect, useState } from "react";
+import EstablishmentTable from "../comp/EstablishmentTable";
 
-const ProductEstablishment = ({ translations, dir, currentObject, onBasicChange }) => {
+const ProductEstablishment = ({
+    translations,
+    dir,
+    currentObject,
+    onEstablishmentChange,
+}) => {
+    const [selectedEstablishments, setSelectedEstablishments] = useState([]);
 
+    useEffect(() => {
+        const allEstablishmentIds = currentObject.establishments.map(
+            (establishment) => establishment.id
+        );
+        setSelectedEstablishments(allEstablishmentIds);
+        onEstablishmentChange(allEstablishmentIds);
+    }, [currentObject.establishments]);
 
     const handleDelete = (row) =>{
         let index = currentObject.establishments.findIndex(x=>x.id == row.id);
@@ -10,26 +24,25 @@ const ProductEstablishment = ({ translations, dir, currentObject, onBasicChange 
         return { message : 'Done'};
     }
 
+    const handleSelectChange = (id) => {
+        setSelectedEstablishments((prevSelected) => {
+            const newSelected = prevSelected.includes(id)
+                ? prevSelected.filter((item) => item !== id)
+                : [...prevSelected, id];
+            onEstablishmentChange(newSelected);
+            return newSelected;
+        });
+    };
+
     return (
-        <TreeTableEditorLocal
+        <EstablishmentTable
             translations={translations}
-            dir={dir}
-            header={false}
-            addNewRow={true}
-            type={"establishment"}
-            title={translations.establishments}
-            currentNodes={[...currentObject.establishments]}
-            defaultValue={{ }}
-            cols={[
-                {
-                    key: "establishment", autoFocus: true, searchUrl: "searchEstablishments", type: "AsyncDropDown", width: '80%',
-                    editable: true, required: true
-                }
-            ]}
-            actions={[]}
-            onUpdate={(nodes) => onBasicChange("establishments", nodes)}
-            onDelete={handleDelete} />
-    )
-}
+            establishments={currentObject.establishments}
+            onDelete={handleDelete}
+            onSelectChange={handleSelectChange}
+            selectedEstablishments={selectedEstablishments}
+        />
+    );
+};
 
 export default ProductEstablishment;
