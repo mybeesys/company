@@ -98,7 +98,7 @@ const PrepDetail = ({ dir, translations }) => {
                         fields={
                             [
                                 {key:"establishment" , title:"ingredientEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, size:12},
-                                {key:"toEstablishment" , title:"", searchUrl:"prepEstablishment", type:"Async", required : true, newRow:true, size:12},
+                                {key:"toEstablishment" , title:"prepEstablishment", searchUrl:"searchEstablishments", type:"Async", required : true, newRow:true, size:12},
                             ]
                         }
                        />

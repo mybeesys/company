@@ -13,11 +13,14 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransferConvertor;
 
+use function Laravel\Prompts\error;
+
 class ProductInventoryController extends Controller
 {
 
     protected function fillProduct($establishment, $key)
     {
+
         if ($establishment["is_main"] == 1) {
             $children = [];
             foreach ($establishment["children"] as $childEstablishment) {
@@ -57,6 +60,7 @@ class ProductInventoryController extends Controller
                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
         })->get();
         $children = [];
+
         foreach ($productInventories as $productInventory) {
             $productInventory->addToFillable('inventory');
             $productInventory->addToFillable('qty');
@@ -64,7 +68,10 @@ class ProductInventoryController extends Controller
             $pp["type"] = "product";
             $pp["establishment_id"] = $establishment["id"];
             $children[] = $pp;
+            // error_log(json_encode($pp));
+            // error_log(",");
         }
+
         $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use ($establishment) {
             $join->on('modifier_inventories.modifier_id', '=', 'product_modifiers.id')
                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
@@ -78,6 +85,7 @@ class ProductInventoryController extends Controller
             $children[] = $pp;
         }
         $establishment["children"] = $children;
+
         return $establishment;
     }
 
@@ -92,7 +100,7 @@ class ProductInventoryController extends Controller
             $sellLines = TransactionSellLine::with(
                 [
                     'product' => function ($query) {
-                        $query->with('unitTransfers');
+                        $query->with('unit');
                     },
                     'unitTransfer',
                     'transaction'
@@ -101,7 +109,7 @@ class ProductInventoryController extends Controller
             $purchaseLines = TransactionePurchasesLine::with(
                 [
                     'product' => function ($query) {
-                        $query->with('unitTransfers');
+                        $query->with('unit');
                     },
                     'unitTransfer',
                     'transaction'
@@ -110,7 +118,7 @@ class ProductInventoryController extends Controller
         } else {
             $sellLines = TransactionSellLine::with(relations: [
                 'modifier' => function ($query) {
-                    $query->with('unitTransfers');
+                    $query->with('unit');
                 },
                 'unitTransfer',
                 'transaction'
@@ -118,7 +126,7 @@ class ProductInventoryController extends Controller
             $purchaseLines = TransactionePurchasesLine::with(
                 [
                     'product' => function ($query) {
-                        $query->with('unitTransfers');
+                        $query->with('unit');
                     },
                     'unitTransfer',
                     'transaction'

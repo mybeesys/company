@@ -37,7 +37,8 @@ class ProductInventory extends Model
         'primary_vendor_default_price'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -77,5 +78,4 @@ class ProductInventory extends Model
     {
         return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
     }
-
 }
