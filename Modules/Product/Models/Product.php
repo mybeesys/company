@@ -130,8 +130,6 @@ class Product extends Model
         return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
     }
 
-
-
     protected static function boot()
     {
         parent::boot();
