@@ -106,6 +106,7 @@ return [
     'product-purchase-report' => 'تقرير مشتريات الأصناف',
     'purchase-payment-report' => 'تقرير المشتريات',
     'sell-payment-report' => 'تقرير المبيعات',
+    'product-inventory-report' => 'تقرير المخزون',
     'type-service' => 'انواع الخدمات',
     'Profit-Loss' => 'الربح والخسارة',
     'purchase-sell' => 'المشتريات والمبيعات',

@@ -348,7 +348,6 @@ class SalesReportController extends Controller
         return view('report::sales.purchase_sell');
     }
 
-
     public function getProfit($by = null)
     {
         $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
@@ -485,5 +484,52 @@ class SalesReportController extends Controller
 
         return $datatable->rawColumns(['gross_profit', 'category', 'customer', 'ref_no'])
             ->make(true);
+    }
+    public function productInventoryReport(Request $request)
+    {
+        $transactionUtile = new ReportTransactionsUtile();
+
+        if ($request->ajax()) {
+            $query = DB::table('transactions as t')
+                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
+                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
+                ->leftJoin('product_products as p', function ($join) {
+                    $join->on('pl.product_id', '=', 'p.id')
+                        ->orOn('sl.product_id', '=', 'p.id');
+                })
+                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+                ->select(
+                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
+                    app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
+                    DB::raw("CASE 
+                        WHEN sl.id IS NOT NULL THEN '-'
+                        ELSE '+' 
+                    END as transfer_in_out"),
+                    't.transfer_status as process',
+                    DB::raw("CASE 
+                        WHEN sl.id IS NOT NULL THEN sl.qyt 
+                        ELSE pl.qyt 
+                    END as quantity"),
+                    't.created_at as transfer_date',
+                    't.type as type'
+                )
+                ->where(function ($query) {
+                    $query->whereIn('t.type', ['purchases-order', 'WASTE'])
+                        ->orWhere(function ($query) {
+                            $query->where('t.type', 'TRANSFER')
+                                ->where(function ($q) {
+                                    $q->where('t.transfer_status', 'partiallyReceived')
+                                        ->orWhere('t.transfer_status', 'fullyReceived');
+                                });
+                        });
+                })
+                ->get();
+
+            return $transactionUtile->productInventoryReportTable($query);
+        }
+
+        $columns = $transactionUtile->productInventoryReportColumns();
+        return view('report::sales.product_inventory_report')
+            ->with(compact('columns'));
     }
 }

@@ -18,5 +18,5 @@ return [
     'buyerSig' => 'Buyer Signature',
     'productInventory' => 'Inventory (Product)',
     'ingredientInventory' => 'Inventory (Ingredient)',
-    'description' => 'Description'
+    'description' => 'Description',
 ];
