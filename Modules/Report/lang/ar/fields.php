@@ -26,6 +26,12 @@ return [
     'payment_date' => 'تاريخ الدفع',
     'paid_amount' => 'المبلغ المدفوع',
     'payment_method' => 'طريقة الدفع',
-
     'sales' => 'المبيعات',
+    'establishment_name' => 'اسم الفرع',
+    'transfer_in_out' => 'تحويل (من/إلى)',
+    'process' => 'العملية',
+    'quantity' => 'الكمية',
+    'type' => 'نوع العملية',
+    'transfer_date' => 'تاريخ التحويل',
+
 ];

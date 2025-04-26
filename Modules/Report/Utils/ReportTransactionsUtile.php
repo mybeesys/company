@@ -79,6 +79,21 @@ class ReportTransactionsUtile
         ];
     }
 
+
+    public function productInventoryReportColumns()
+    {
+        return [
+            ["class" => "text-start min-w-150px", "name" => "product_name"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
+            ["class" => "text-start min-w-150px", "name" => "transfer_in_out"],
+            ["class" => "text-start min-w-150px", "name" => "process"],
+            ["class" => "text-start min-w-150px", "name" => "type"],
+            ["class" => "text-start min-w-150px", "name" => "quantity"],
+            ["class" => "text-start min-w-150px", "name" => "transfer_date"],
+
+        ];
+    }
+
     public function purchasePaymentReportColumns()
     {
         return [
@@ -230,6 +245,61 @@ class ReportTransactionsUtile
                 return "--";
             })
             ->rawColumns(['ref_no', 'amount', 'method', 'action', 'supplier'])
+            ->make(true);
+    }
+    public function productInventoryReportTable($query)
+    {
+        return Datatables::of($query)
+            ->editColumn('product_name', function ($row) {
+                return $row->product_name;
+            })
+            ->editColumn('establishment_name', function ($row) {
+                return  $row->establishment_name;
+            })
+            ->editColumn('transfer_in_out', function ($row) {
+                $icon = $row->transfer_in_out === '-' ? '🔽' : '➕';
+                $title = app()->getLocale() === 'ar' ?
+                    ($row->transfer_in_out === '-' ? 'خارج من المخزون' : 'داخل إلى المخزون') : ($row->transfer_in_out === '-' ? 'Out of stock' : 'In stock');
+
+                return "<span  title='{$title}'>{$icon} {$title}</span>";
+                return "<span >{$icon} {$title}</span>";
+            })
+            ->editColumn('transfer_date', function ($row) {
+                return \Carbon\Carbon::parse($row->transfer_date)->format('Y-m-d');
+            })
+            ->editColumn('process', function ($row) {
+                $locale = app()->getLocale();
+
+                if ($row->process === 'partiallyReceived') {
+                    return $locale === 'ar' ? 'تحويل جزئي' : 'Partially Received';
+                } elseif ($row->process === 'fullyReceived') {
+                    return $locale === 'ar' ? 'تحويل كلي' : 'Fully Received';
+                } else {
+                    return '';
+                }
+            })
+            ->editColumn('type', function ($row) {
+                $tooltipText = app()->getLocale() === 'ar' ?
+                    ($row->type === 'WASTE' ? 'إتلاف' : ($row->type === 'TRANSFER' ? 'تحويل' : 'طلب شراء')) : ($row->type === 'WASTE' ? 'Waste' : ($row->type === 'TRANSFER' ? 'Transfer' : 'Purchase Order'));
+
+                if ($row->type === 'WASTE') {
+                    return "<span  title='{$tooltipText}'><i class='fas fa-trash' style='color: red;'></i> $tooltipText</span>";
+                } elseif ($row->type === 'TRANSFER') {
+                    return "<span  title='{$tooltipText}'><i class='fas fa-exchange-alt' style='color: green;'></i> $tooltipText</span>";
+                } elseif ($row->type === 'purchases-order') {
+                    return "<span  title='{$tooltipText}'><i class='fas fa-shopping-cart' style='color: orange;'></i> $tooltipText</span>";
+                }
+
+                return $row->type;
+            })
+            ->editColumn('quantity', function ($row) {
+                return $row->quantity;
+            })
+
+            ->editColumn('actions', function ($row) {
+                return "--";
+            })
+            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'process', 'type', 'quantity', 'transfer_date', 'actions'])
             ->make(true);
     }
 }

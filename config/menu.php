@@ -482,6 +482,23 @@ return [
                 'permission' => '',
             ],
 
+            [
+                'name' => 'purchase-payment-report',
+                'url' => 'purchase-payment-report',
+                'permission' => '',
+            ],
+
+            [
+                'name' => 'sell-payment-report',
+                'url' => 'sell-payment-report',
+                'permission' => '',
+            ],
+            [
+                'name' => 'product-inventory-report',
+                'url' => 'product-inventory-report',
+                'permission' => '',
+            ],
+
 
 
 

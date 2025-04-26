@@ -18,5 +18,5 @@ return [
     'buyerSig' => 'توقيع البائع',
     'productInventory' => 'جرد المستودع (منتجات)',
     'ingredientInventory' => 'جرد المستودع (مواد)',
-    'description' => 'الوصف'
+    'description' => 'الوصف',
 ];
