@@ -13,7 +13,6 @@ const ProductEstablishment = ({
         const allEstablishmentIds = currentObject.establishments.map(
             (establishment) => establishment.id
         );
-        console.log("allEstablishmentIds", allEstablishmentIds);
         setSelectedEstablishments(allEstablishmentIds);
         onEstablishmentChange(allEstablishmentIds);
     }, [currentObject.establishments]);

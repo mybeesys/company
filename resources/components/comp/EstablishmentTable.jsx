@@ -27,7 +27,6 @@ const EstablishmentTable = ({
                     </thead>
                     <tbody>
                         {establishments.map((establishment) => {
-                            console.log("Establishment Data:", establishment);
                             return (
                                 <tr key={establishment.id}>
                                     <td>
