@@ -33,11 +33,17 @@ const EstablishmentTable = ({
                                         <input
                                             type="checkbox"
                                             checked={selectedEstablishments.includes(
-                                                establishment.id
+                                                isEditMode
+                                                    ? establishment
+                                                          .establishment.id
+                                                    : establishment.id
                                             )}
                                             onChange={() =>
                                                 handleSelectChange(
-                                                    establishment.id
+                                                    isEditMode
+                                                        ? establishment
+                                                              .establishment.id
+                                                        : establishment.id
                                                 )
                                             }
                                         />
