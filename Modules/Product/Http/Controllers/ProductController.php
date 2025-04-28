@@ -507,9 +507,8 @@ class ProductController extends Controller
                 foreach ($request["establishments"] as $newEstablishment) {
 
                     $establishment = new EstablishmentProduct();
-                    $wh = $newEstablishment['establishment'];
                     $establishment->product_id = $product->id;
-                    $establishment->establishment_id = $wh["id"];
+                    $establishment->establishment_id = $newEstablishment["id"];
                     $establishment->save();
                 }
             }

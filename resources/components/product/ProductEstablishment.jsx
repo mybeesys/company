@@ -8,10 +8,11 @@ const ProductEstablishment = ({
     onEstablishmentChange,
 }) => {
     const [selectedEstablishments, setSelectedEstablishments] = useState([]);
-
+    const isEditMode = window.location.href.includes("edit");
     useEffect(() => {
         const allEstablishmentIds = currentObject.establishments.map(
-            (establishment) => establishment.id
+            (establishment) =>
+                isEditMode ? establishment.establishment.id : establishment.id
         );
         console.log("allEstablishmentIds", allEstablishmentIds);
         setSelectedEstablishments(allEstablishmentIds);
