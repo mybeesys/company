@@ -13,16 +13,10 @@ const ProductEstablishment = ({
         const allEstablishmentIds = currentObject.establishments.map(
             (establishment) => establishment.id
         );
+        console.log("allEstablishmentIds", allEstablishmentIds);
         setSelectedEstablishments(allEstablishmentIds);
         onEstablishmentChange(allEstablishmentIds);
     }, [currentObject.establishments]);
-
-    const handleDelete = (row) =>{
-        let index = currentObject.establishments.findIndex(x=>x.id == row.id);
-        currentObject.establishments.splice(index, 1); // Removes 1 element at index 2
-        onBasicChange("establishment", currentObject.establishments);
-        return { message : 'Done'};
-    }
 
     const handleSelectChange = (id) => {
         setSelectedEstablishments((prevSelected) => {
@@ -38,7 +32,6 @@ const ProductEstablishment = ({
         <EstablishmentTable
             translations={translations}
             establishments={currentObject.establishments}
-            onDelete={handleDelete}
             onSelectChange={handleSelectChange}
             selectedEstablishments={selectedEstablishments}
         />

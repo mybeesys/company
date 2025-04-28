@@ -150,12 +150,9 @@ const ProductComponent1 = ({ translations, dir }) => {
             }
             const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
             r["transfer"] = [...sortedItems];
-            const payload = {
-                ...r,
-                establishments: selectedEstablishments.map((id) => ({
-                    id: id,
-                })),
-            };
+            r["establishments"] = selectedEstablishments.map((id) => ({
+                id: id,
+            }));
             const response = await axios.post(producturl, r, {
                 headers: {
                     "Content-Type": "multipart/form-data",
