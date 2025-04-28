@@ -14,7 +14,7 @@
     </form>
 
 
-  
+
 </div>
 
 
@@ -28,7 +28,7 @@
             return 'height: 36.05px !important;  min-height: 36.05px !important;';
         });
 
-        $('form').on('submit', function(e) {
+        $('#company_settings_form').on('submit', function(e) {
             e.preventDefault();
 
             ajaxRequest("{{ route('companies.update', ['id' => $company->id]) }}", "PATCH", $(this)

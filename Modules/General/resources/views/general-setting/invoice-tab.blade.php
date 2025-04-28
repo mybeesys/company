@@ -17,12 +17,10 @@
                 </li>
 
                 <li class="nav-item w-md-200px me-0 py-1 nav-link-taxes">
-                    <a class="nav-link py-3" data-bs-toggle="tab"
-                        href="#taxes_tab">@lang('menuItemLang.taxes')</a>
+                    <a class="nav-link py-3" data-bs-toggle="tab" href="#taxes_tab">@lang('menuItemLang.taxes')</a>
                 </li>
                 <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
-                    <a class="nav-link py-3" data-bs-toggle="tab"
-                        href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
+                    <a class="nav-link py-3" data-bs-toggle="tab" href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
                 </li>
                 <li class="nav-item w-md-200px me-0 py-1">
                     <a class="nav-link py-3 " data-bs-toggle="tab" href="#sales-tab">
@@ -61,7 +59,7 @@
                     @lang('menuItemLang.purchases')
                 </div>
                 <div class="tab-pane fade" id="enabledModules-tab" role="tabpanel">
-                   @include('general::general-setting.enabledModules')
+                    @include('general::general-setting.enabledModules')
                 </div>
 
 
@@ -69,13 +67,13 @@
                 <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
                 <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
 
-                @include('general::tax.create')
-                @include('general::tax.edit')
-                @include('general::payment-methods.create')
+
             </div>
         </div>
 
 
     </div>
-
+    @include('general::tax.create')
+    @include('general::tax.edit')
+    @include('general::payment-methods.create')
 </div>
