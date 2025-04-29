@@ -76,7 +76,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             const response = axios.get(urlList).then((response) => {
                 let result = response.data;
                 setNodes(result);
-                setExpandedKeys(getExpandedKeys(result));
             });
         } catch (error) {
             console.error("There was an error get the product!", error);
