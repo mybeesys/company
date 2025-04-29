@@ -64,9 +64,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         try {
             const response = axios.get(urlList).then((response) => {
                 let result = response.data;
-                console.log(result, "result");
                 setNodes(result);
-                setExpandedKeys(getExpandedKeys(result));
             });
         } catch (error) {
             console.error("There was an error get the product!", error);
