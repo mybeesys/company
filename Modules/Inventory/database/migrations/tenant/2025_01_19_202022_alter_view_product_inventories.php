@@ -12,7 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("CREATE OR REPLACE VIEW product_inventories AS
+        DB::statement(
+            "CREATE OR REPLACE VIEW product_inventories AS
         SELECT 
         pp.id AS product_id,
         establishment_id,

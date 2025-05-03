@@ -307,7 +307,7 @@
                 unitSelect.append(`<option value="">@lang('sales::lang.unit')</option>`);
                 units.forEach(unit => {
                     unitSelect.append(
-                        `<option value="${unit.id}">${unit.name_ar || unit.unit1}</option>`
+                        `<option value="${unit.id}">${unit.unit1}</option>`
                     );
                 });
 

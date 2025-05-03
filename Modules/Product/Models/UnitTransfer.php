@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +31,8 @@ class UnitTransfer extends Model
         'primary'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -60,13 +62,11 @@ class UnitTransfer extends Model
 
     public function products()
     {
-        return $this->belongsTo(Product::class, 'productId', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
     public function ingredients()
     {
         return $this->belongsTo(Ingredient::class, 'ingredientId', 'id');
     }
-
 }
-?>

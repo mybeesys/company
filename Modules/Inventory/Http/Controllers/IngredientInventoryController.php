@@ -120,6 +120,7 @@ class IngredientInventoryController extends Controller
      */
     public function store(Request $request)
     {
+        error_log("flag_1");
         $validated = $request->validate([
             'threshold' => 'nullable|numeric',
             'ingredient_id' => 'required|numeric',

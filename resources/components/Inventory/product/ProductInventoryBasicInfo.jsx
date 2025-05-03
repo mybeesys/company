@@ -6,7 +6,7 @@ import AsyncSelectComponent from "../../comp/AsyncSelectComponent";
 const ProductInventoryBasicInfo = ({ translations, currentObject, onBasicChange, dir, p_type}) => {
 
     return (
-        <div class="card-body" dir={dir}>
+        <div  class="card-body" dir={dir}>
             <div class="form-group">
                 <div class="row">
                     <div class="col-12">

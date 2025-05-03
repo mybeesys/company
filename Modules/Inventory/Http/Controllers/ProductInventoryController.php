@@ -30,6 +30,7 @@ class ProductInventoryController extends Controller
             $establishment["children"] = $children;
             return $establishment;
         }
+
         $productInventories = [];
         $modifierInventories = [];
         if ($key != null) {
@@ -55,10 +56,25 @@ class ProductInventoryController extends Controller
                 $query->with('unit');
             }]);
         }
-        $productInventories = $productInventories->Join('product_inventories', function ($join) use ($establishment) {
-            $join->on('product_inventories.product_id', '=', 'product_products.id')
+        //modified it from inventory_product_inventories to product_establishment_products
+        $productInventories = $productInventories->Join('product_establishment_products', function ($join) use ($establishment) {
+            $join->on('product_establishment_products.product_id', '=', 'product_products.id')
                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
-        })->get();
+
+        })
+            ->join('product_inventories', function ($join) use ($establishment) {
+                $join->on('product_inventories.product_id',       '=', 'product_products.id')
+                    ->where('product_inventories.establishment_id', '=', $establishment["id"]);
+            })
+            ->leftJoin(
+                'product_unit_transfer',
+                'product_unit_transfer.id',
+                '=',
+                'product_inventories.unit_id'
+            )
+
+            ->get();
+
         $children = [];
 
         foreach ($productInventories as $productInventory) {
@@ -207,6 +223,7 @@ class ProductInventoryController extends Controller
             $establishments = Establishment::whereNull('parent_id')->with('children')->get();
         }
         $establishmentArray = $establishments->toArray();
+        // error_log(json_encode($establishmentArray));
         $details = [];
         foreach ($establishmentArray as $establishment) {
             if ($by == 1) {
@@ -214,6 +231,9 @@ class ProductInventoryController extends Controller
                 $details[] = $est;
             } else {
                 $est = $this->fillProduct($establishment, null);
+                error_log(" --------- ");
+                error_log(json_encode($est));
+                error_log(" +++++++++ ");
                 $details[] = $est;
             }
         }
@@ -276,6 +296,7 @@ class ProductInventoryController extends Controller
      */
     public function store(Request $request)
     {
+        error_log("flag_2");
         $validated = $request->validate([
             'threshold' => 'nullable|numeric',
             'product_id' => 'required|numeric',
@@ -292,6 +313,7 @@ class ProductInventoryController extends Controller
             if ($request["vendor_unit"]) {
                 $validated["primary_vendor_unit_id"] = $request["vendor_unit"]["id"];
             }
+            error_log("flag_3");
             ProductInventory::create($validated);
         } else {
             $productInventory = ProductInventory::find($validated['id']);
@@ -308,6 +330,7 @@ class ProductInventoryController extends Controller
                 $productInventory["primary_vendor_unit_id"] = $request["vendor_unit"]["id"];
             }
             $productInventory->save();
+            error_log("flag_4");
         }
         return response()->json(["message" => "Done"]);
     }

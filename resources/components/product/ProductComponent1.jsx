@@ -423,7 +423,7 @@ const ProductComponent1 = ({ translations, dir }) => {
     return (
         <div>
             <SweetAlert2 />
-            <div class="container">
+            <div class="container"  >
                 <div class="row">
                     <div class="col-6">
                         <div class="d-flex align-items-center gap-2 gap-lg-3">

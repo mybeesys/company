@@ -260,6 +260,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        //storing product
         error_log(json_encode($request->all()));
         $validated = $request->validate($this->requetsValidator);
 

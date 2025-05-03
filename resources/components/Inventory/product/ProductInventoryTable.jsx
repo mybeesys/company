@@ -49,7 +49,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
   }
 
   return (
-    <div>
+    <div >
       <div class="form-group">
           <div class="row">
             <div class="col-3">
@@ -102,7 +102,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
             </div>
           </div>
         </div>
-        <div className="pt-3">
+        <div className="pt-3" >
         <TreeTableComponent
           translations={translations}
           dir={dir}
@@ -117,12 +117,20 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
             {
               key: "name", autoFocus: true, options: [], type: "Text", width: '16%',
               customCell: (data, key, editMode, editable) => {
+                    console.log("row data is:", data);
                 return  (<>
                       <span>{getRowName(data, dir)}</span>
                   </>);
               },
             },
-            {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%'},
+            {key: "qty", autoFocus: false, options: [], type: "Decimal", width: '16%',
+          customCell: (data, key, editMode, editable) => {
+                return  (<>
+                       {data.qty}
+                  </>);
+              },
+              
+            },
             { key: "vendor", autoFocus: false, options: [], type: "Text", width: '30%',
               customCell: (data, key, editMode, editable) => {
                 return  (
@@ -134,11 +142,9 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
             },
             { key: "inventoryUOM", autoFocus: false, options: [], type: "Text", width: '30%',
               customCell: (data, key, editMode, editable) => {
-                return  (
-                      (!!data.inventory && !!data.inventory.unit) ? 
-                      <span>{getName(data.inventory.unit.name_en, data.inventory.unit.name_ar, dir)}</span>
-                      : <></>
-                  );
+                return  (<>
+                  {data.unit1}
+             </>);
               },
             },
             {key: "threshold", autoFocus: false, options: [], type: "Decimal", width: '16%',
