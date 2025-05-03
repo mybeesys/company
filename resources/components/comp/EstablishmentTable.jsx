@@ -4,28 +4,13 @@ import { Table } from "react-bootstrap";
 const EstablishmentTable = ({
     translations,
     establishments,
-    onDelete,
     onSelectChange,
     selectedEstablishments,
 }) => {
     const handleSelectChange = (id) => {
         onSelectChange(id);
     };
-
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: translations.confirmDelete,
-            text: translations.confirmDeleteMessage,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: translations.yes,
-            cancelButtonText: translations.no,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                onDelete(id);
-            }
-        });
-    };
+    const isEditMode = window.location.href.includes("edit");
 
     return (
         <div className="card mb-5 mb-xl-8">
@@ -38,40 +23,39 @@ const EstablishmentTable = ({
                         <tr>
                             <th>{translations.select}</th>
                             <th>{translations.establishment_name}</th>
-                            <th>{translations.actions}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {establishments.map((establishment) => (
-                            <tr key={establishment.id}>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedEstablishments.includes(
-                                            establishment.id
-                                        )}
-                                        onChange={() =>
-                                            handleSelectChange(establishment.id)
-                                        }
-                                    />
-                                </td>
-                                <td>{establishment.name}</td>
-                                <td>
-                                    <div className="flex flex-wrap gap-2">
-                                        <a
-                                            href="javascript:void(0)"
-                                            className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                                            onClick={() =>
-                                                handleDelete(establishment.id)
+                        {establishments.map((establishment) => {
+                            return (
+                                <tr key={establishment.id}>
+                                    <td>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedEstablishments.includes(
+                                                isEditMode
+                                                    ? establishment
+                                                          .establishment.id
+                                                    : establishment.id
+                                            )}
+                                            onChange={() =>
+                                                handleSelectChange(
+                                                    isEditMode
+                                                        ? establishment
+                                                              .establishment.id
+                                                        : establishment.id
+                                                )
                                             }
-                                        >
-                                            <i className="ki-outline ki-trash fs-2"></i>
-                                        </a>
-                                        <span>{translations.delete}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                        />
+                                    </td>
+                                    <td>
+                                        {isEditMode
+                                            ? establishment.establishment.name
+                                            : establishment.name}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </Table>
             </div>

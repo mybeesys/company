@@ -74,10 +74,10 @@ class TaxController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('taxes')->with('success', __('messages.add_successfully'));
+            return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->route('taxes')->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
 
@@ -129,10 +129,10 @@ class TaxController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('taxes')->with('success', __('messages.updated_successfully'));
+            return redirect()->back()->with('success', __('messages.updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->route('taxes')->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
 

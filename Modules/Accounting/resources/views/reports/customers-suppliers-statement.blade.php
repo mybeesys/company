@@ -178,8 +178,8 @@
                     });
                     $('.footer_total_debit').html((totalDebit));
                     $('.footer_total_credit').html((totalCredit));
-                    $('.footer_final_total_debit').html({{ $total_debit_bal }});
-                    $('.footer_final_total_credit').html({{ $total_credit_bal }});
+                    $('.footer_final_total_debit').html(total_debit_bal);
+                    $('.footer_final_total_credit').html(total_credit_bal);
                 }
             });
 
