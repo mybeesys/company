@@ -5,7 +5,9 @@ namespace Modules\General\Utils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 
@@ -82,11 +84,11 @@ class TransactionUtils
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
         $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
-        $due_account_id='';
-        $cash_account_id='';
+        $due_account_id = '';
+        $cash_account_id = '';
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
-            $cash_account_id= $request->cash_account;
+            $cash_account_id = $request->cash_account;
             $payment_method = 'cash';
             $type = 'sell_cash';
         } elseif ($transaction->invoice_type == 'due') {
@@ -112,8 +114,83 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->accounts_route($transactionPayment, $transaction,$cash_account_id,$due_account_id);
+        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id);
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
+
+        return true;
+    }
+
+    public function addPaymentLines_journalEntry($transaction, $request)
+    {
+        $accountUtil = new AccountingUtil();
+
+        if ($transaction->status == 'draft') {
+            return true;
+        }
+
+        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+        $date = Carbon::parse($request->payment_on);
+        $payment_on = $date->format('Y-m-d H:i:s');
+        $account_id = $request->account_id;
+
+        if ($transaction->invoice_type == 'cash') {
+            $payment_method = 'cash';
+           } elseif ($transaction->invoice_type == 'due') {
+            $payment_method = 'due';
+         }
+
+        $payment_ref_no = $this->generateReferenceNumber($prefix_type);
+
+        $transactionPayment = TransactionPayments::create([
+            'transaction_id' => $transaction->id,
+            'payment_type' => $transaction->invoice_type,
+            'amount' => $request->paid_amount,
+            'method' => $payment_method,
+            'is_return' => $request->is_return ?? 0,
+            'note' => $request->additionalNotes,
+            'paid_on' => $payment_on,
+            'created_by' => Auth::user()->id,
+            'payment_for' => $transaction->contact_id,
+            'payment_ref_no' => $payment_ref_no,
+            'account_id' => $account_id,
+        ]);
+
+        $acc_trans_mapping = new AccountingAccTransMapping();
+
+        $ref_number = $this->generateReferenceNumber('journal_entry');
+        $acc_trans_mapping->ref_no = $ref_number;
+        $acc_trans_mapping->note = '';
+        $acc_trans_mapping->type = 'journal_entry';
+        $acc_trans_mapping->created_by = Auth::user()->id;
+        $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->save();
+        $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+        if ($transaction->type == 'sell') {
+            $transaction->type = 'receipt_voucher';
+
+            $client = Contact::find($transactionPayment->payment_for);
+            if ($client) {
+                $transactionPayment->account_id = $client->account_id;
+                $transactionPayment->amount = $transaction->final_total;
+                $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+            }
+            $transactionPayment->account_id = $account_id;
+            $transactionPayment->amount = $transaction->final_total;
+            $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+        } elseif ($transaction->type == 'purchases') {
+
+            $transaction->type = 'payment_voucher';
+            $client = Contact::find($transactionPayment->payment_for);
+            if ($client) {
+                $transactionPayment->account_id = $client->account_id;
+                $transactionPayment->amount = $transaction->final_total;
+                $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+            }
+            $transactionPayment->account_id = $account_id;
+            $transactionPayment->amount = $transaction->final_total;
+            $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+        }
 
         return true;
     }

@@ -93,7 +93,7 @@ class AccountingUtil
 
     public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null)
     {
-        dd($transactionPayment);
+        // dd($transactionPayment);
         // $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
             'amount' => $transactionPayment->amount,

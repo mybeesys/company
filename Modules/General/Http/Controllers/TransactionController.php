@@ -142,7 +142,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::find($request->id);
         if ($request->paid_amount) {
-            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            $transactionUtil->addPaymentLines_journalEntry($transaction, $request);
         }
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
