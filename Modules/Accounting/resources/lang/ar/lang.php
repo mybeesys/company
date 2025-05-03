@@ -152,7 +152,7 @@ return [
     "amount_before_vat" => "حساب المبلغ قبل الضريبة",
     "discount_calculation" => "حساب الخصم",
     'client' => 'حساب العملاء',
-    'sales' => 'حساب المبيعات',
+    'sales' => 'حساب ايراد المبيعات',
     'sell_return' => 'حساب مردود المبيعات',
 
     'suppliers' => 'حساب المورديين',

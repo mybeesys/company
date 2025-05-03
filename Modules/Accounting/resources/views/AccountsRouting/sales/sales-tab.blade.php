@@ -4,8 +4,8 @@
             'sales_client' => 'client',
             'sales_sales' => 'sales',
             'sales_vat_calculation' => 'vat_calculation',
-            'sales_total_amount' => 'total_amount',
-            'sales_amount_before_vat' => 'amount_before_vat',
+            // 'sales_total_amount' => 'total_amount',
+            // 'sales_amount_before_vat' => 'amount_before_vat',
             'sales_discount_calculation' => 'discount_calculation',
             'sales_sell_return' => 'sell_return',
         ];

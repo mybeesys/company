@@ -21,8 +21,7 @@ class AccountsRoutingController extends Controller
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',
-            'cancel_account' => 'إلغاء الحساب',
-            'assign_to_each' => 'تعيين لكل منها',
+            // 'assign_to_each' => 'تعيين لكل منها',
         ];
         $accountsRoting = AccountsRoting::all();
 
@@ -49,13 +48,13 @@ class AccountsRoutingController extends Controller
             'sales_client' => 'liability',
             'sales_sales' => 'revenue',
             'sales_vat_calculation' => 'liability',
-            'sales_total_amount' => 'asset',
-            'sales_amount_before_vat' => 'asset',
+            // 'sales_total_amount' => 'asset',
+            // 'sales_amount_before_vat' => 'asset',
             'sales_discount_calculation' => 'expense',
             'sales_sell_return' => 'expense',
             'purchases_vat_calculation' => 'liability',
-            'purchases_total_amount' => 'asset',
-            'purchases_amount_before_vat' => 'asset',
+            // 'purchases_total_amount' => 'asset',
+            // 'purchases_amount_before_vat' => 'asset',
             'purchases_discount_calculation' => 'expense',
             'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',

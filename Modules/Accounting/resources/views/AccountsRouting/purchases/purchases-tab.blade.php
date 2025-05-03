@@ -4,8 +4,8 @@
             'purchases_suppliers' => 'suppliers',
             'purchases_purchase' => 'purchase',
             'purchases_vat_calculation' => 'vat_calculation',
-            'purchases_total_amount' => 'total_amount',
-            'purchases_amount_before_vat' => 'amount_before_vat',
+            // 'purchases_total_amount' => 'total_amount',
+            // 'purchases_amount_before_vat' => 'amount_before_vat',
             'purchases_discount_calculation' => 'discount_calculation',
             'purchases_purchase_return' => 'purchase_return',
         ];
