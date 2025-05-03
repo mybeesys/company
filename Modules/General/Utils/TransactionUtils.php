@@ -82,13 +82,16 @@ class TransactionUtils
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
         $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
-
+        $due_account_id='';
+        $cash_account_id='';
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
+            $cash_account_id= $request->cash_account;
             $payment_method = 'cash';
             $type = 'sell_cash';
         } elseif ($transaction->invoice_type == 'due') {
             $account_id = $request->account_id;
+            $due_account_id = $request->account_id;
             $payment_method = 'due';
             $type = 'sales_revenue';
         }
@@ -109,7 +112,7 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->accounts_route($transactionPayment, $transaction);
+        $accountUtil->accounts_route($transactionPayment, $transaction,$cash_account_id,$due_account_id);
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
 
         return true;

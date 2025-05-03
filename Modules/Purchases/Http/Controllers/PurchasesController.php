@@ -110,7 +110,7 @@ class PurchasesController extends Controller
         $actionUtil = new ActionUtil();
         $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
 
-        try {
+        // try {
             $transactionUtil = new TransactionUtils();
             // return $request;
             DB::beginTransaction();
@@ -205,10 +205,10 @@ class PurchasesController extends Controller
             } else {
                 return redirect()->route('purchase-invoices')->with($status, $msg);
             }
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
+        // }
     }
 
     /**
