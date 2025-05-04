@@ -44,6 +44,7 @@ return [
     'main_info' => 'Main info',
     'ceo_name' => 'Ceo name',
     'tax_name' => 'Tax name',
+    'tax_number' => 'Tax number',
     'logo' => 'Logo',
     'zip_code' => 'Zip code',
     'national_address' => 'National address',

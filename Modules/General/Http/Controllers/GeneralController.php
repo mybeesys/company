@@ -88,7 +88,13 @@ class GeneralController extends Controller
         if (!get_company_id()) {
             return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
         }
-        $company = FacadesDB::connection('mysql')->table('companies')->find(get_company_id());
+        // $company = FacadesDB::connection('mysql')->table('companies')->find(get_company_id());
+        $company = FacadesDB::connection('mysql')
+            ->table('companies')
+            ->join('users', 'companies.user_id', '=', 'users.id')
+            ->select('companies.*', 'users.email')
+            ->where('companies.id', get_company_id())
+            ->first();
         $countries = FacadesDB::connection('mysql')->table('countries')->get(['id', 'name_en', 'name_ar']);
         $countries = $countries->map(function ($country) {
             return [
@@ -97,8 +103,7 @@ class GeneralController extends Controller
             ];
         });
         // return view('establishment::company.settings.index', compact('company', 'countries'));
-
-        return view('general::settings.index', compact('cards', 'modules','company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
     }
 
     public function subscription()

@@ -2,11 +2,13 @@
 
 namespace Modules\Establishment\Http\Controllers;
 
-use DB;
 use Log;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\Establishment\Http\Requests\UpdateCompanyRequest;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
@@ -30,9 +32,7 @@ class CompanyController extends Controller
     }
 
 
-    public function updateLiveValidation(UpdateCompanyRequest $request)
-    {
-    }
+    public function updateLiveValidation(UpdateCompanyRequest $request) {}
 
     /**
      * Store a newly created resource in storage.
@@ -41,14 +41,24 @@ class CompanyController extends Controller
     {
         if (request()->ajax()) {
             try {
-                DB::connection('mysql')->table('companies')->where('id', $id)->update($request->safe()->all());
+                $company = DB::connection('mysql')->table('companies')->where('id', $id)->first();
+                if (!$company) {
+                    return response()->json(['error' => 'Company not found'], 404);
+                }
+                $dataToUpdate = $request->safe()->except('email');
+                DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
+                $userId = $company->user_id;
+                if ($request->has('email') && $request->input('email')) {
+                    DB::connection('mysql')->table('users')->where('id', $userId)->update(['email' => $request->input('email')]);
+                }
+
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             } catch (\Throwable $e) {
                 Log::error('company update failed', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                return redirect()->back()->with('error', __('establishment::responses.something_wrong_happened'));
+                return response()->json(['error' => __('establishment::responses.something_wrong_happened')], 500);
             }
         }
     }

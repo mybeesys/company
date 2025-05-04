@@ -2,12 +2,17 @@
 <x-form.form-card :headerDiv="false" class="mb-5">
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2 mt-10">
         <x-form.input readonly :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.name')"
-            placeholder="{{ __('establishment::fields.name') }} ({{ __('establishment::fields.required') }})"
+            placeholder="{{ __('establishment::fields.name') }}"
             value="{{ $company?->name }}" name="name" />
     </x-form.input-div>
+    <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2 mt-10">
+        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.email')"
+            placeholder="{{ __('establishment::fields.email') }}"
+            value="{{ $company->email  }}" name="email" />
+    </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
-        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.ceo_name')"
-            placeholder="{{ __('establishment::fields.ceo_name') }} ({{ __('establishment::fields.required') }})"
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.ceo_name')"
+            placeholder="{{ __('establishment::fields.ceo_name') }}"
             value="{{ $company?->ceo_name }}" name="ceo_name" />
     </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
@@ -18,22 +23,22 @@
         <div class="w-100 d-flex mb-5 mb-md-0">
             <label class="form-label mb-lg-0" for="country">@lang('establishment::fields.country')</label>
         </div>
-        <x-form.select required name="country_id" :options="$countries" :errors="$errors" data_allow_clear="false"
+        <x-form.select name="country_id" :options="$countries" :errors="$errors" data_allow_clear="false"
             :placeholder="__('establishment::fields.country')" value="{{ $company?->country_id }}" />
     </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
-        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.country_state')"
-            placeholder="{{ __('establishment::fields.state') }} ({{ __('establishment::fields.required') }})"
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.country_state')"
+            placeholder="{{ __('establishment::fields.state') }} "
             value="{{ $company?->state }}" name="state" />
     </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
-        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.city')"
-            placeholder="{{ __('establishment::fields.city') }} ({{ __('establishment::fields.required') }})"
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.city')"
+            placeholder="{{ __('establishment::fields.city') }} "
             value="{{ $company?->city }}" name="city" />
     </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
-        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.zipcode')"
-            placeholder="{{ __('establishment::fields.phone') }} ({{ __('establishment::fields.required') }})"
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.zipcode')"
+            placeholder="{{ __('establishment::fields.phone') }}"
             value="{{ $company?->zipcode }}" name="zipcode" />
     </x-form.input-div>
 
@@ -47,9 +52,14 @@
             placeholder="{{ __('establishment::fields.website') }}" value="{{ $company?->website }}" name="website" />
     </x-form.input-div>
     <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
-        <x-form.input required :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.tax_name')"
-            placeholder="{{ __('establishment::fields.tax_name') }} ({{ __('establishment::fields.required') }})"
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.tax_name')"
+            placeholder="{{ __('establishment::fields.tax_name') }}"
             value="{{ $company?->tax_name }}" name="tax_name" />
+    </x-form.input-div>
+    <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-5 gap-2">
+        <x-form.input :errors=$errors class="py-2" labelClass="mb-lg-0" :label="__('establishment::fields.tax_number')"
+            placeholder="{{ __('establishment::fields.tax_number') }}"
+            value="{{ $company?->tax_number }}" name="tax_number" />
     </x-form.input-div>
 </x-form.form-card>
 <x-form.form-buttons id="company_settings_form" />
