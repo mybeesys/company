@@ -1,7 +1,7 @@
 <div class="row">
     @php
         $routingMapping = [
-            'purchases_suppliers' => 'suppliers',
+            // 'purchases_suppliers' => 'suppliers',
             'purchases_purchase' => 'purchase',
             'purchases_vat_calculation' => 'vat_calculation',
             // 'purchases_total_amount' => 'total_amount',

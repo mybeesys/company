@@ -45,7 +45,7 @@ class AccountsRoutingController extends Controller
         $directions = [];
 
         $mapping = [
-            'sales_client' => 'liability',
+            // 'sales_client' => 'liability',
             'sales_sales' => 'revenue',
             'sales_vat_calculation' => 'liability',
             // 'sales_total_amount' => 'asset',
@@ -56,40 +56,35 @@ class AccountsRoutingController extends Controller
             // 'purchases_total_amount' => 'asset',
             // 'purchases_amount_before_vat' => 'asset',
             'purchases_discount_calculation' => 'expense',
-            'purchases_suppliers' => 'liability',
+            // 'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
         ];
 
 
         foreach ($data as $key => $value) {
-            if ($value !== null) {
-                if (str_contains($key, '_type_route')) {
-                    $isSales = strpos($key, 'sales_') !== false;
-                    $isPurchases = strpos($key, 'purchases_') !== false;
-                    if ($isPurchases) {
-                        $type = str_replace('purchases_', '', $key);
-                    }
-                    if ($isSales) {
-                        $type = str_replace('sales_', '', $key);
-                    }
-                    $type = str_replace('_type_route', '', $key);
-                    $directionType = $mapping[$type] ?? null;
+            if ($value !== null && str_contains($key, '_account')) {
+                $type = str_replace('_account', '', $key);
+                $accountId = $value;
 
-                    if ($directionType) {
-                        $directions[$type]['type'] = $type;
-                        $directions[$type]['routing_type'] = $directionType;
-                        $directions[$type]['direction'] = $value;
-                        $directions[$type]['section'] = $isSales ? 'sales' : 'purchases';
-                    }
-                } elseif (str_contains($key, '_account')) {
-                    $type = str_replace('_account', '', $key);
-                    $accountId = $value;
-
-                    $directions[$type]['account_id'] = $accountId;
+                $directionType = $mapping[$type] ?? null;
+                if (!$directionType) {
+                    continue;
                 }
+
+                $isSales = strpos($key, 'sales_') !== false;
+                $isPurchases = strpos($key, 'purchases_') !== false;
+
+                $directions[$type] = [
+                    'type' => $type,
+                    'routing_type' => $directionType,
+                    'direction' => 'auto_assign',
+                    'section' => $isSales ? 'sales' : 'purchases',
+                    'account_id' => $accountId,
+                ];
             }
         }
+
 
         $formattedDirections = array_values($directions);
 
@@ -98,23 +93,18 @@ class AccountsRoutingController extends Controller
             DB::beginTransaction();
             foreach ($formattedDirections as $direction) {
                 if (isset($direction['type'], $direction['routing_type'], $direction['direction'], $direction['account_id'])) {
-                    if ($direction['direction'] === 'no_routing') {
-                        AccountsRoting::where('type', $direction['type'])
-                            ->where('section', $direction['section'])
-                            ->delete();
-                    } else {
-                        AccountsRoting::updateOrCreate(
-                            [
-                                'type' => $direction['type'],
-                                'section' => $direction['section']
-                            ],
-                            [
-                                'routing_type' => $direction['routing_type'],
-                                'direction' => $direction['direction'],
-                                'account_id' => $direction['account_id']
-                            ]
-                        );
-                    }
+
+                    AccountsRoting::updateOrCreate(
+                        [
+                            'type' => $direction['type'],
+                            'section' => $direction['section']
+                        ],
+                        [
+                            'routing_type' => $direction['routing_type'],
+                            'direction' => 'auto_assign',
+                            'account_id' => $direction['account_id']
+                        ]
+                    );
                 }
             }
 

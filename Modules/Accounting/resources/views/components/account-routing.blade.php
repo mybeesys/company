@@ -6,7 +6,7 @@
     </div>
     <div class="card-body">
         <div class="fv-row mb-2">
-            <label class="fs-6 fw-semibold form-label">
+            {{-- <label class="fs-6 fw-semibold form-label">
                 <span>@lang('accounting::lang.routing_type')</span>
             </label>
             <select class="form-select select-2 form-select-solid routing-type-select" name="{{ $typeSelectName }}" id="{{ $typeSelectName }}"
@@ -19,7 +19,7 @@
                         </option>
                     @endforeach
                 @endisset
-            </select>
+            </select> --}}
         </div>
 
         <div class="fv-row mb-5 account-field" data-section="{{ $accountSelectName }}">

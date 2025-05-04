@@ -1,7 +1,7 @@
 <div class="row">
     @php
         $routingMapping = [
-            'sales_client' => 'client',
+            // 'sales_client' => 'client',
             'sales_sales' => 'sales',
             'sales_vat_calculation' => 'vat_calculation',
             // 'sales_total_amount' => 'total_amount',
