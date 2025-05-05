@@ -280,13 +280,13 @@ class ReportTransactionsUtile
             })
             ->editColumn('type', function ($row) {
                 $tooltipText = app()->getLocale() === 'ar' ?
-                    ($row->type === 'WASTE' ? 'إتلاف' : ($row->type === 'TRANSFER' ? 'تحويل' : 'طلب شراء')) : ($row->type === 'WASTE' ? 'Waste' : ($row->type === 'TRANSFER' ? 'Transfer' : 'Purchase Order'));
+                    ($row->type === 'WASTE' ? 'إتلاف' : ($row->type === 'TRANSFER' ? 'تحويل' : ' شراء')) : ($row->type === 'WASTE' ? 'Waste' : ($row->type === 'TRANSFER' ? 'Transfer' : 'Purchase'));
 
                 if ($row->type === 'WASTE') {
                     return "<span  title='{$tooltipText}'><i class='fas fa-trash' style='color: red;'></i> $tooltipText</span>";
                 } elseif ($row->type === 'TRANSFER') {
                     return "<span  title='{$tooltipText}'><i class='fas fa-exchange-alt' style='color: green;'></i> $tooltipText</span>";
-                } elseif ($row->type === 'purchases-order') {
+                } elseif ($row->type === 'purchases') {
                     return "<span  title='{$tooltipText}'><i class='fas fa-shopping-cart' style='color: orange;'></i> $tooltipText</span>";
                 }
 
