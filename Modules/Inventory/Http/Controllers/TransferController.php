@@ -78,8 +78,8 @@ class TransferController extends Controller
             $transaction = Transaction::where('parent_id', $request->id)->first();
             $transaction->transfer_status = 'fullyReceived';
             $transactionId->transfer_status = 'fullyReceived';
-            $transactionId->status = 'Approved';
-            $transaction->status = 'Approved';
+            $transactionId->status = 'approved';
+            $transaction->status = 'approved';
             $transaction->save();
             $transactionId->save();
 

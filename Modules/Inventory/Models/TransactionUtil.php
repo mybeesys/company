@@ -246,8 +246,8 @@ class TransactionUtil
             $transaction->description = $validated["description"];
             $transaction->transfer_status = 'partiallyReceived';
             $transactionId->transfer_status = 'partiallyReceived';
-            $transactionId->status = 'Approved';
-            $transaction->status = 'Approved';
+            $transactionId->status = 'approved';
+            $transaction->status = 'approved';
             $transaction->save();
             $transactionId->save();
             $allConditionsMet = true;

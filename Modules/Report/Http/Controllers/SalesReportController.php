@@ -514,7 +514,7 @@ class SalesReportController extends Controller
                     't.type as type'
                 )
                 ->where(function ($query) {
-                    $query->whereIn('t.type', ['purchases-order', 'WASTE'])
+                    $query->whereIn('t.type', ['purchases', 'WASTE'])
                         ->orWhere(function ($query) {
                             $query->where('t.type', 'TRANSFER')
                                 ->where(function ($q) {
