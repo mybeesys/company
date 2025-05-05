@@ -52,7 +52,7 @@ const ProductDisplay = ({ translations, parentHandlechanges, product, saveChange
   }
 
   const handleChange = async (key, value) => {
-    let r = { ...currentObject };
+    let r = { ...product };
     r[key] = value;
     if(!!!value)
       r['image_deleted'] = 1;
