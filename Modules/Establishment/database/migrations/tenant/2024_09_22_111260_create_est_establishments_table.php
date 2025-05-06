@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('region')->nullable();
             $table->string('contact_details')->nullable();
             $table->string('logo')->nullable();
-            $table->string('timezone')->nullable();
-            $table->string('language')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
