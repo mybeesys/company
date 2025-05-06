@@ -5,6 +5,7 @@ namespace Modules\Purchases\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Country;
 use Modules\General\Models\TransactionPayments;
@@ -55,9 +56,10 @@ class SuppliersReceiptsController extends Controller
         $accounts =  AccountingAccount::forDropdown();
         $countries = Country::all();
         $supplier=true;
+        $cost_centers = AccountingCostCenter::forDropdown();
 
 
-        return view('sales::receipts.create', compact('clients', 'supplier','accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients','cost_centers', 'supplier','accounts', 'countries'));
     }
     /**
      * Store a newly created resource in storage.

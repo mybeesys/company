@@ -114,7 +114,7 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id);
+        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id,$request);
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
 
         return true;
@@ -132,7 +132,7 @@ class TransactionUtils
         $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
         $account_id = $request->account_id;
-
+        // $payment_method ='';
         if ($transaction->invoice_type == 'cash') {
             $payment_method = 'cash';
            } elseif ($transaction->invoice_type == 'due') {
@@ -173,11 +173,11 @@ class TransactionUtils
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
                 $transactionPayment->amount = $transaction->final_total;
-                $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
             }
             $transactionPayment->account_id = $account_id;
             $transactionPayment->amount = $transaction->final_total;
-            $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+            $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
         } elseif ($transaction->type == 'purchases') {
 
             $transaction->type = 'payment_voucher';
@@ -185,11 +185,11 @@ class TransactionUtils
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
                 $transactionPayment->amount = $transaction->final_total;
-                $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
             }
             $transactionPayment->account_id = $account_id;
             $transactionPayment->amount = $transaction->final_total;
-            $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+            $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
         }
 
         return true;

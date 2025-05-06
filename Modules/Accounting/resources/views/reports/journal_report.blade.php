@@ -8,11 +8,11 @@
         <form method="GET" action="{{ route('journal-report') }}" class="my-6">
             <div class="row">
                 <div class="col-md-4">
-                    <label>{{ __('accounting::lang.from_date') }}:</label>
+                    <label>{{ __('accounting::lang.from_date') }}</label>
                     <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                 </div>
                 <div class="col-md-4">
-                    <label>{{ __('accounting::lang.to_date') }}:</label>
+                    <label>{{ __('accounting::lang.to_date') }}</label>
                     <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                 </div>
                 <div class="col-md-2">

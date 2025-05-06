@@ -74,7 +74,7 @@ class PurchasesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $actionUtil = new ActionUtil();
         $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
@@ -91,6 +91,10 @@ class PurchasesController extends Controller
         $transaction = Transaction::find(0);
         $taxes = Tax::all();
         $po = false;
+        $po_id = 0;
+        $po_id = $request->input('po_id');
+        $transaction = Transaction::find($po_id);
+
         $settings = Setting::getNotesAndTermsConditions();
 
         $products = Product::where('active', 1)->take(25)->get();

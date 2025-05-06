@@ -5,8 +5,8 @@
 @section('content')
 
 
-  
-    <section class="content-header">
+
+    <section class="content-header py-3">
         <h1>@lang('accounting::lang.trial_balance')</h1>
     </section>
 

@@ -233,7 +233,7 @@
 
                                         @foreach ($cost_centers as $cost_center)
                                             <option value="{{ $cost_center->id }}"
-                                                @if ($transaction->accounting_account_id == $cost_center->id) selected @endif>
+                                                @if ($transaction->cost_center_id == $cost_center->id) selected @endif>
                                                 @if (app()->getLocale() == 'ar')
                                                     {{ $cost_center->name_ar }} - <span
                                                         class="fw-semibold mx-2 text-muted fs-7">

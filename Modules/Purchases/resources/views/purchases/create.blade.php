@@ -350,6 +350,8 @@
 
 
         $(document).ready(function() {
+            $('#cash_account').attr('required', 'required');
+                
             updateSalesTotals();
             $('#products').select2({
                 tags: true,
