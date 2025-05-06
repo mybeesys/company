@@ -18,6 +18,8 @@ class StoreEstablishmentRequest extends FormRequest
             'name_en' => [Rule::requiredIf($notAjaxValidate), 'string'],
             'address' => ['nullable', 'string'],
             'city' => ['nullable', 'string'],
+            'region' => ['nullable', 'string'],
+            'code' => ['nullable', 'string'],
             'contact_details' => ['nullable', 'digits_between:10,15'],
             'logo' => ['nullable', 'image', 'max:3072'],
             'is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],

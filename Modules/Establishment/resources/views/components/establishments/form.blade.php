@@ -17,11 +17,20 @@
                     placeholder="{{ __('establishment::fields.address') }}" value="{{ $establishment?->address }}"
                     name="address" />
             </x-form.input-div>
-
+            <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-10 gap-2">
+                <x-form.input :errors=$errors class="py-2" labelClass="mb-0" :label="__('establishment::fields.code')"
+                    placeholder="{{ __('establishment::fields.code') }}" value="{{ $establishment?->code}}"
+                    name="code" />
+            </x-form.input-div>
             <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-10 gap-2">
                 <x-form.input :errors=$errors class="py-2" labelClass="mb-0" :label="__('establishment::fields.city')"
                     placeholder="{{ __('establishment::fields.city') }}" value="{{ $establishment?->city }}"
                     name="city" />
+            </x-form.input-div>
+            <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-10 gap-2">
+                <x-form.input :errors=$errors class="py-2" labelClass="mb-0" :label="__('establishment::fields.region')"
+                    placeholder="{{ __('establishment::fields.region') }}" value="{{ $establishment?->region }}"
+                    name="region" />
             </x-form.input-div>
 
             <x-form.input-div class="w-lg-50 d-md-flex align-items-center fw-bold mb-10 gap-2">
@@ -30,19 +39,19 @@
                     value="{{ $establishment?->contact_details }}" name="contact_details" />
             </x-form.input-div>
             @php
-                if ($establishment?->hasAnyRelation()) {
-                    $disabled = true;
-                } else {
-                    $disabled = false;
-                }
+            if ($establishment?->hasAnyRelation()) {
+            $disabled = true;
+            } else {
+            $disabled = false;
+            }
             @endphp
             <x-form.input-div
                 class="w-lg-50 d-md-flex align-items-center fw-bold mb-10 gap-2 form-check form-check-custom form-check-solid">
                 @if ($disabled)
-                    <input type="hidden" name="is_main" value="1">
-                    <x-form.field-hint :hint="__('establishment::general.est_has_children_note')" />
+                <input type="hidden" name="is_main" value="1">
+                <x-form.field-hint :hint="__('establishment::general.est_has_children_note')" />
                 @else
-                    <input type="hidden" name="is_main" value="0">
+                <input type="hidden" name="is_main" value="0">
                 @endif
                 <x-form.input type="checkbox" :errors=$errors class="form-check-input" labelClass="mb-0"
                     :label="__('establishment::fields.is_main_establishment')" :disabled="$disabled" checked="{{ $establishment?->is_main }}" :form_control="false"
