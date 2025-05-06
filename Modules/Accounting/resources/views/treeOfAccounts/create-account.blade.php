@@ -50,7 +50,7 @@
                         </select>
                     </div>
 
-                    <div class="fv-row mb-5">
+                    {{-- <div class="fv-row mb-5">
                         <label class="fs-6 fw-semibold form-label mt-3">
                             <span class="required">@lang('accounting::lang.account_category')</span>
                         </label>
@@ -61,7 +61,7 @@
                                 <option value="{{ $key }}">{{ $vale }}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
                     <input type="text" id="account_id_" hidden class="form-control form-control-solid"
                         name="account_id" value="">

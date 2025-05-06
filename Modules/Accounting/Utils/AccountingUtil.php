@@ -91,7 +91,7 @@ class AccountingUtil
         return true;
     }
 
-    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null)
+    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null, $request = null)
     {
         // dd($transactionPayment);
         // $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
@@ -99,6 +99,7 @@ class AccountingUtil
             'amount' => $transactionPayment->amount,
             'accounting_account_id' => $transactionPayment->account_id,
             'type' =>  $type,
+            'cost_center_id' => $request->cost_center_id,
             'sub_type' => $transaction->type,
             'operation_date' => $transactionPayment->paid_on,
             'created_by' => $transactionPayment->created_by,
@@ -112,7 +113,7 @@ class AccountingUtil
         return true;
     }
 
-    public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id)
+    public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
 
         $route_section = match ($transaction->type) {
@@ -138,20 +139,20 @@ class AccountingUtil
                 if ($transaction->invoice_type == 'cash') {
                     $transactionPayment->account_id = $cash_account_id;
                     $transactionPayment->amount = $transaction->final_total;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
                     $client = Contact::find($transactionPayment->payment_for);
                     if ($client) {
                         $transactionPayment->account_id = $client->account_id;
                         $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $accountsRoute = AccountsRoting::where('type', 'sales_client')->first();
                         if ($accountsRoute) {
                             if ($accountsRoute->direction == 'auto_assign') {
                                 $transactionPayment->account_id = $accountsRoute->account_id;
                                 $transactionPayment->amount = $transaction->final_total;
-                                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                             }
                         }
                     }
@@ -162,20 +163,20 @@ class AccountingUtil
                 if ($transaction->invoice_type == 'cash') {
                     $transactionPayment->account_id = $cash_account_id;
                     $transactionPayment->amount = $transaction->final_total;
-                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
                     $client = Contact::find($transactionPayment->payment_for);
                     if ($client) {
                         $transactionPayment->account_id = $client->account_id;
                         $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $accountsRoute = AccountsRoting::where('type', 'purchases_suppliers')->first();
                         if ($accountsRoute) {
                             if ($accountsRoute->direction == 'auto_assign') {
                                 $transactionPayment->account_id = $accountsRoute->account_id;
                                 $transactionPayment->amount = $transaction->final_total;
-                                $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+                                $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request, $request);
                             }
                         }
                     }
@@ -190,7 +191,7 @@ class AccountingUtil
 
                 $transactionPayment->amount = $amount;
                 if ($amount) {
-                    $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
+                    $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
             }
         }
@@ -218,148 +219,148 @@ class AccountingUtil
 
 
 
-//     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id)
-// {
-//     // تحديد القسم بناءً على نوع المعاملة
-//     $route_section = $this->getRouteSection($transaction->type);
+    //     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id)
+    // {
+    //     // تحديد القسم بناءً على نوع المعاملة
+    //     $route_section = $this->getRouteSection($transaction->type);
 
-//     // الحصول على حسابات التوجيه المتعلقة بالقسم
-//     $accountsRoute = AccountsRoting::where('section', $route_section)->get();
+    //     // الحصول على حسابات التوجيه المتعلقة بالقسم
+    //     $accountsRoute = AccountsRoting::where('section', $route_section)->get();
 
-//     if ($accountsRoute->isEmpty()) {
-//         return false;
-//     }
+    //     if ($accountsRoute->isEmpty()) {
+    //         return false;
+    //     }
 
-//     // إنشاء سجل في جدول AccountingAccTransMapping
-//     $acc_trans_mapping_id = $this->createAccountingTransMapping();
+    //     // إنشاء سجل في جدول AccountingAccTransMapping
+    //     $acc_trans_mapping_id = $this->createAccountingTransMapping();
 
-//     // التعامل مع نوع المعاملة
-//     if ($transaction->type === 'sell') {
-//         $this->handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id);
-//     } elseif ($transaction->type === 'purchases') {
-//         $this->handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id);
-//     }
+    //     // التعامل مع نوع المعاملة
+    //     if ($transaction->type === 'sell') {
+    //         $this->handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id);
+    //     } elseif ($transaction->type === 'purchases') {
+    //         $this->handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id);
+    //     }
 
-//     // معالجة حسابات التوجيه
-//     foreach ($accountsRoute as $accountRoute) {
-//         $this->processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id);
-//     }
+    //     // معالجة حسابات التوجيه
+    //     foreach ($accountsRoute as $accountRoute) {
+    //         $this->processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id);
+    //     }
 
-//     return true;
-// }
+    //     return true;
+    // }
 
-// // دالة لتحديد قسم المعاملة
-// protected function getRouteSection($transactionType)
-// {
-//     return match ($transactionType) {
-//         'sell' => 'sales',
-//         'purchases' => 'purchases',
-//         default => '',
-//     };
-// }
+    // // دالة لتحديد قسم المعاملة
+    // protected function getRouteSection($transactionType)
+    // {
+    //     return match ($transactionType) {
+    //         'sell' => 'sales',
+    //         'purchases' => 'purchases',
+    //         default => '',
+    //     };
+    // }
 
-// // دالة لإنشاء سجل في جدول AccountingAccTransMapping
-// protected function createAccountingTransMapping()
-// {
-//     $acc_trans_mapping = new AccountingAccTransMapping();
-//     $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
-//     $acc_trans_mapping->note = '';
-//     $acc_trans_mapping->type = 'journal_entry';
-//     $acc_trans_mapping->created_by = Auth::user()->id;
-//     $acc_trans_mapping->operation_date = Carbon::now()->format('Y-m-d H:i:s');
-//     $acc_trans_mapping->save();
+    // // دالة لإنشاء سجل في جدول AccountingAccTransMapping
+    // protected function createAccountingTransMapping()
+    // {
+    //     $acc_trans_mapping = new AccountingAccTransMapping();
+    //     $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
+    //     $acc_trans_mapping->note = '';
+    //     $acc_trans_mapping->type = 'journal_entry';
+    //     $acc_trans_mapping->created_by = Auth::user()->id;
+    //     $acc_trans_mapping->operation_date = Carbon::now()->format('Y-m-d H:i:s');
+    //     $acc_trans_mapping->save();
 
-//     return $acc_trans_mapping->id;
-// }
+    //     return $acc_trans_mapping->id;
+    // }
 
-// // دالة للتعامل مع المعاملات من نوع "بيع"
-// protected function handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id)
-// {
-//     if ($transaction->invoice_type === 'cash') {
-//         $transactionPayment->account_id = $cash_account_id;
-//         $transactionPayment->amount = $transaction->final_total;
-//         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     } else {
-//         $this->handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    // // دالة للتعامل مع المعاملات من نوع "بيع"
+    // protected function handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id)
+    // {
+    //     if ($transaction->invoice_type === 'cash') {
+    //         $transactionPayment->account_id = $cash_account_id;
+    //         $transactionPayment->amount = $transaction->final_total;
+    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     } else {
+    //         $this->handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة للتعامل مع المعاملات من نوع "بيع" بخصوص الائتمان
-// protected function handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
-// {
-//     $client = Contact::find($transactionPayment->payment_for);
-//     if ($client) {
-//         $transactionPayment->account_id = $client->account_id;
-//         $transactionPayment->amount = $transaction->final_total;
-//         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     } else {
-//         $this->handleAutoAssignAccount($transactionPayment, 'sales_client', $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    // // دالة للتعامل مع المعاملات من نوع "بيع" بخصوص الائتمان
+    // protected function handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
+    // {
+    //     $client = Contact::find($transactionPayment->payment_for);
+    //     if ($client) {
+    //         $transactionPayment->account_id = $client->account_id;
+    //         $transactionPayment->amount = $transaction->final_total;
+    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     } else {
+    //         $this->handleAutoAssignAccount($transactionPayment, 'sales_client', $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة للتعامل مع المعاملات من نوع "شراء"
-// protected function handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id)
-// {
-//     if ($transaction->invoice_type === 'cash') {
-//         $transactionPayment->account_id = $due_account_id;
-//         $transactionPayment->amount = $transaction->final_total;
-//         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     } else {
-//         $this->handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    // // دالة للتعامل مع المعاملات من نوع "شراء"
+    // protected function handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id)
+    // {
+    //     if ($transaction->invoice_type === 'cash') {
+    //         $transactionPayment->account_id = $due_account_id;
+    //         $transactionPayment->amount = $transaction->final_total;
+    //         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     } else {
+    //         $this->handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة للتعامل مع المعاملات من نوع "شراء" بخصوص الائتمان
-// protected function handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
-// {
-//     $client = Contact::find($transactionPayment->payment_for);
-//     if ($client) {
-//         $transactionPayment->account_id = $client->account_id;
-//         $transactionPayment->amount = $transaction->final_total;
-//         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     } else {
-//         $this->handleAutoAssignAccount($transactionPayment, 'purchases_suppliers', $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    // // دالة للتعامل مع المعاملات من نوع "شراء" بخصوص الائتمان
+    // protected function handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
+    // {
+    //     $client = Contact::find($transactionPayment->payment_for);
+    //     if ($client) {
+    //         $transactionPayment->account_id = $client->account_id;
+    //         $transactionPayment->amount = $transaction->final_total;
+    //         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     } else {
+    //         $this->handleAutoAssignAccount($transactionPayment, 'purchases_suppliers', $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة للتعامل مع التوجيه التلقائي للحسابات
-// protected function handleAutoAssignAccount($transactionPayment, $accountType, $transaction, $acc_trans_mapping_id)
-// {
-//     $accountsRoute = AccountsRoting::where('type', $accountType)->first();
-//     if ($accountsRoute && $accountsRoute->direction === 'auto_assign') {
-//         $transactionPayment->account_id = $accountsRoute->account_id;
-//         $transactionPayment->amount = $transaction->final_total;
-//         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    // // دالة للتعامل مع التوجيه التلقائي للحسابات
+    // protected function handleAutoAssignAccount($transactionPayment, $accountType, $transaction, $acc_trans_mapping_id)
+    // {
+    //     $accountsRoute = AccountsRoting::where('type', $accountType)->first();
+    //     if ($accountsRoute && $accountsRoute->direction === 'auto_assign') {
+    //         $transactionPayment->account_id = $accountsRoute->account_id;
+    //         $transactionPayment->amount = $transaction->final_total;
+    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة لمعالجة حسابات التوجيه
-// protected function processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id)
-// {
-//     $transactionPayment->account_id = $accountRoute->account_id;
-//     [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
-//     $transactionPayment->amount = $amount;
+    // // دالة لمعالجة حسابات التوجيه
+    // protected function processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id)
+    // {
+    //     $transactionPayment->account_id = $accountRoute->account_id;
+    //     [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
+    //     $transactionPayment->amount = $amount;
 
-//     if ($amount) {
-//         $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
-//     }
-// }
+    //     if ($amount) {
+    //         $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
+    //     }
+    // }
 
-// // دالة لتحديد المبلغ والنوع بناءً على نوع التوجيه
-// protected function determineAmountAndType($routeType, $transaction)
-// {
-//     return match ($routeType) {
-//         'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
-//         'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
-//         'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
+    // // دالة لتحديد المبلغ والنوع بناءً على نوع التوجيه
+    // protected function determineAmountAndType($routeType, $transaction)
+    // {
+    //     return match ($routeType) {
+    //         'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
+    //         'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
+    //         'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
 
-//         'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
-//         'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
-//         'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+    //         'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
+    //         'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
+    //         'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
 
-//         default => [0, 'debit'],
-//     };
-// }
+    //         default => [0, 'debit'],
+    //     };
+    // }
 
     public static function default_accounting_account_types()
     {

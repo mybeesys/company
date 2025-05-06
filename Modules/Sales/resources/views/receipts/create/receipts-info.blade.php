@@ -43,6 +43,27 @@
                 value="" placeholder="0.00" id="paid_amount" type="number">
         </div>
 
+        <div class="align-items-center mb-5" id="dev-costCenter" >
+            <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('accounting::lang.cost_center')</label>
+            <select class="form-select select-2 form-select-solid  kt_ecommerce_select2_cost_center" name="cost_center_id"
+                id="cost_center" style="width: 60%!important">
+                <option value=""></option>
+
+                @foreach ($cost_centers as $cost_center)
+                    <option value="{{ $cost_center->id }}" >
+                        @if (app()->getLocale() == 'ar')
+                            {{ $cost_center->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-7">
+                                {{ $cost_center->account_center_number }}</span>
+                        @else
+                            {{ $cost_center->name_en }} - <span
+                                class="fw-semibold mx-2 text-muted fs-7">{{ $cost_center->account_center_number }}</span>
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+
 
         <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('purchases::lang.description')</label>

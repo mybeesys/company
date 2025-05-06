@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\General\Models\Country;
@@ -60,10 +61,12 @@ class ReceiptsController extends Controller
         $accounts =  AccountingAccount::forDropdown();
         $countries = Country::all();
         $supplier = false;
+        $cost_centers = AccountingCostCenter::forDropdown();
 
 
 
-        return view('sales::receipts.create', compact('clients', 'supplier', 'accounts', 'countries'));
+
+        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries'));
     }
 
     /**
@@ -72,22 +75,33 @@ class ReceiptsController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        try {
+        // try {
+            $contact = Contact::find($request->client_id);
+
             DB::beginTransaction();
             if ($request->allocation_option == 'specified_invoices') {
                 $transactions = Transaction::whereIn('id', $request->transactions)->get();
                 $this->settleTransactions($transactions, $request);
             } else {
-                $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+                if ($contact->business_type == 'customer') {
+                    $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+                } else {
+                    $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['purchases'])->get();
+                }
                 $this->settleTransactions($transactions, $request);
             }
 
             DB::commit();
-            return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->route('receipts')->with('error', __('messages.something_went_wrong'));
-        }
+            if ($contact->business_type == 'customer')
+                return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
+            return redirect()->route('suppliers-receipts')->with('success', __('messages.add_successfully'));
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     if ($contact->business_type == 'customer')
+
+        //     return redirect()->route('receipts')->with('error', __('messages.something_went_wrong'));
+        //     return redirect()->route('suppliers-receipts')->with('error', __('messages.something_went_wrong'));
+        // }
     }
 
 
@@ -127,12 +141,12 @@ class ReceiptsController extends Controller
                 $paid_amount -= $remaining_amount;
                 $request->merge(['paid_amount' => $remaining_amount]);
                 // Paid in full
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                $transactionUtil->addPaymentLines_journalEntry($transaction, $request);
                 $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
             } else {
                 // Partial payment of the bill
                 $request->merge(['paid_amount' => $paid_amount]);
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                $transactionUtil->addPaymentLines_journalEntry($transaction, $request);
                 $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
                 $paid_amount = 0;

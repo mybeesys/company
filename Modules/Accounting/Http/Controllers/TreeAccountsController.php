@@ -130,7 +130,7 @@ class TreeAccountsController extends Controller
         $input = $request->only([
             'name_ar',
             'name_en',
-            'account_category',
+            // 'account_category',
             'account_id',
             'account_type'
         ]);
@@ -213,7 +213,7 @@ class TreeAccountsController extends Controller
             $data = $request->only([
                 'name_ar',
                 'name_en',
-                'account_category',
+                'gl_code',
                 'account_type'
             ]);
 

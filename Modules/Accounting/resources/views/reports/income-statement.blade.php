@@ -2,10 +2,14 @@
 @section('title', __('accounting::lang.income_list'))
 
 @section('content')
+    <section class="content-header py-3">
+        <h1>@lang('accounting::lang.income_list')</h1>
+    </section>
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
-                <h2 class="text-center mb-10">@lang('accounting::lang.income_list')</h2>
+                {{-- <h2 class="text-center mb-10">@lang('accounting::lang.income_list')</h2> --}}
 
                 {{-- <hr style="width:100%;text-align:left;margin-left:0"> --}}
 

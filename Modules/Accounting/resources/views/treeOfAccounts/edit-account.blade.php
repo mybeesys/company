@@ -36,6 +36,13 @@
                         <input type="text" class="form-control form-control-solid" id="name_en" required
                             name="name_en" value="">
                     </div>
+                    <div class="fv-row mb-5 fv-plugins-icon-container">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('accounting::lang.gl_code')</span>
+                        </label>
+                        <input type="text" class="form-control form-control-solid" id="gl_code" required
+                            name="gl_code" value="">
+                    </div>
 
                     <div class="fv-row mb-5">
                         <label class="fs-6 fw-semibold form-label mt-3">
@@ -51,7 +58,7 @@
                         </select>
                     </div>
 
-                    <div class="fv-row mb-5">
+                    {{-- <div class="fv-row mb-5">
                         <label class="fs-6 fw-semibold form-label mt-3">
                             <span class="required">@lang('accounting::lang.account_category')</span>
                         </label>
@@ -63,7 +70,7 @@
                                     {{ $vale }}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
                     <input type="text" id="account_id" hidden class="form-control form-control-solid" required
                         name="account_id" value="">

@@ -51,7 +51,7 @@ Route::middleware([
         Route::get('purchases-order', [PurchasesOrderController::class, 'index'])->name('purchases-order');
         Route::get('create-purchase-order', [PurchasesOrderController::class, 'create'])->name('create-purchase-order');
         Route::post('store-purchase-order', [PurchasesOrderController::class, 'store'])->name('store-purchase-order');
-        Route::get('convert-po-to-invoice', [PurchasesOrderController::class, 'create'])->name('convert-po-to-invoice');
+        Route::get('convert-po-to-invoice', [PurchasesController::class, 'create'])->name('convert-po-to-invoice');
 
 
         Route::get('suppliers-receipts', [SuppliersReceiptsController::class, 'index'])->name('suppliers-receipts');

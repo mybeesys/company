@@ -21,7 +21,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('messages.cancel')</button>
-                    <button type="submit" class="btn btn-primary">@lang('purchases::lang.Create a purchase order')</button>
+                    <button type="submit" class="btn btn-primary">@lang('purchases::lang.Create a sales invoice')</button>
                 </div>
             </form>
         </div>

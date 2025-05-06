@@ -157,6 +157,7 @@
             sessionStorage.setItem('account_type', account.account_type);
             sessionStorage.setItem('account_id', account.id);
             sessionStorage.setItem('status', account.status);
+            sessionStorage.setItem('gl_code', account.gl_code);
 
         }
         $(document).ready(function() {
@@ -258,6 +259,7 @@
 
                 // console.log(sessionStorage.getItem('kt_ecommerce_select2_account_type'));
 
+                $('#gl_code').val(sessionStorage.getItem('gl_code'));
                 $('#name_ar').val(sessionStorage.getItem('name_ar'));
                 $('#name_en').val(sessionStorage.getItem('name_en'));
                 var selectedValue = sessionStorage.getItem('account_type');

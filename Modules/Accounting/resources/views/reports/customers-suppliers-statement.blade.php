@@ -3,8 +3,19 @@
 @section('title', __('accounting::lang.customers_and_suppliers_statement_of_account_report'))
 
 @section('content')
+<section class="content-header py-3">
+    <h1 class="card-title ">
+        {{ __('accounting::lang.customers_and_suppliers_statement_of_account_report') }}
+        -
+        @if (Lang::has('accounting::lang.' . $contact->name))
+            @lang('accounting::lang.' . $contact->name) ({{ $contact->contact_id }})
+        @else
+            {{ $contact->name }}
+        @endif
+    </h1></section>
+
     <div class="">
-        <div class="card shadow-sm mb-5">
+        {{-- <div class="card shadow-sm mb-5">
             <div class="card-body">
                 <h2 class="card-title text-primary">
                     {{ __('accounting::lang.customers_and_suppliers_statement_of_account_report') }}
@@ -16,7 +27,7 @@
                     @endif
                 </h2>
             </div>
-        </div>
+        </div> --}}
         <hr>
 
 
