@@ -51,6 +51,7 @@ return [
     'country' => 'Country',
     'state' => 'State',
     'city' => 'City',
+    'region' => 'Region',
     'website' => 'Website',
     'has_subscription' => 'Has subscription',
     'user' => 'User',
