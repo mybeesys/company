@@ -14,21 +14,21 @@ class DiningTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        // DiningType::updateOrCreate([
-        //     'name_ar' => 'ديلفيري',
-        //     'name_en' => 'Delivery',
-        //     'active' => 1,
-        // ]);
-        // DiningType::updateOrCreate([
-        //     'name_ar' => 'داين إن',
-        //     'name_en' => 'Dine In',
-        //     'active' => 1,
-        // ]);
-        // DiningType::updateOrCreate([
-        // 'name_ar' => 'تيك أوت',
-        // 'name_en' => 'Takeout',
-        // 'active' => 1,
-        // ]);
+        DiningType::updateOrCreate([
+            'name_ar' => 'توصيل',
+            'name_en' => 'Delivery',
+            'active' => 1,
+        ]);
+        DiningType::updateOrCreate([
+            'name_ar' => 'محلي',
+            'name_en' => 'Dine In',
+            'active' => 1,
+        ]);
+        DiningType::updateOrCreate([
+            'name_ar' => 'سفري',
+            'name_en' => 'Takeout',
+            'active' => 1,
+        ]);
 
         // PaymentCard::updateOrCreate([
         //     'name_ar' => 'فيزا',
@@ -46,6 +46,4 @@ class DiningTypeSeeder extends Seeder
         //     'name_en' => 'Default',
         //     ]);
     }
-
-
 }

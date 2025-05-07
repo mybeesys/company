@@ -23,8 +23,8 @@ return new class extends Migration
             $table->boolean('active');
             $table->integer('minimum')->nullable();
             $table->tinyInteger('auto_apply_type')->nullable();
-            $table->date('from_date')->nullable();
-            $table->date('to_date')->nullable();
+            $table->timestamp('from_date')->nullable();
+            $table->timestamp('to_date')->nullable();
             $table->tinyInteger('creditType')->nullable();
             $table->integer('guestCount')->nullable();
             $table->timestamps();
@@ -35,7 +35,5 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 };

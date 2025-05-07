@@ -49,11 +49,12 @@ use Modules\Product\Http\Controllers\VendorController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-])->group( function () {
+])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
 
@@ -101,6 +102,7 @@ Route::middleware([
         Route::get('serviceFeeAutoApplyValues', [ServiceFeeAutoApplyTypeController::class, 'getServiceFeeAutoApplyValues'])->name('serviceFeeAutoApplyValues');
         Route::get('creditCardTypeValues', [CreditCardTypeController::class, 'getCreditCardTypeValues'])->name('creditCardTypeValues');
         Route::get('paymentCards', [PaymentCardController::class, 'getPaymentCards'])->name('paymentCards');
+        Route::get('paymentMethods', [PaymentCardController::class, 'getPaymentMethods'])->name('paymentMethods');
         Route::get('diningTypes', [DiningTypeController::class, 'getDiningTypes'])->name('diningTypes');
 
         Route::get('modifierClasses', [ModifierClassController::class, 'getModifierClasses'])->name('modifierClasses');
@@ -148,9 +150,5 @@ Route::middleware([
         Route::get('/type-service-create', [TypeServiceController::class, 'create'])->name('typeService.create');
         Route::get('/type-service-edit/{id}', [TypeServiceController::class, 'edit'])->name('typeService.edit');
         Route::put('/type-service-update', [TypeServiceController::class, 'update'])->name('typeService.update');
-
-
     });
-
-
 });
