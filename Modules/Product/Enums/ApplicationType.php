@@ -1,11 +1,12 @@
 <?php
+
 namespace Modules\Product\Enums;
 
 enum ApplicationType: string
 {
     case timeSlotOnly = '0';
     case manual = '1';
-    case Mode = '2';
+        //case Mode = '2';
     case posStation = '3';
 
     public static function values(): array
@@ -26,4 +27,3 @@ enum ApplicationType: string
         );
     }
 }
-?>

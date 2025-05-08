@@ -32,7 +32,7 @@ const CustomMenuBasicInfo = ({
                     value: e.value,
                 })),
                 stations: res4.data.map((e) => ({
-                    name: getName(e.name_en, e.name_ar),
+                    name: getName(e.name_en, e.name),
                     value: e.id,
                 })),
             };
