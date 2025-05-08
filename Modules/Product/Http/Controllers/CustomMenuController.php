@@ -85,7 +85,7 @@ class CustomMenuController extends Controller
 
     public function store(Request $request)
     {
-           $validated = $request->validate([
+        $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'application_type' => 'required|numeric',
