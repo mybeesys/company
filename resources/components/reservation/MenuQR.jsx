@@ -1,56 +1,115 @@
 import { QRCodeCanvas } from "qrcode.react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AsyncSelectComponent from "../comp/AsyncSelectComponent";
 import { BlockPicker } from "react-color";
 import { getRowName } from "../lang/Utils";
-import SweetAlert2 from 'react-sweetalert2';
+import SweetAlert2 from "react-sweetalert2";
 import { InputSwitch } from "primereact/inputswitch";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
 
+const animatedComponents = makeAnimated();
 const MenuQR = ({ translations, dir }) => {
-    const rootElement = document.getElementById('root');
-    const logourl = rootElement.getAttribute('logo-url');
+    const rootElement = document.getElementById("root");
+    const logourl = rootElement.getAttribute("logo-url");
+    const urlList = JSON.parse(rootElement.getAttribute("list-url"));
     const [showAlert, setShowAlert] = useState(false);
-    const [currentObject, setCurrrentObject] = useState({ color: '#000000' });
+    const [currentObject, setCurrentObject] = useState({
+        selectedProducts: [],
+    });
     const [qrInfo, setQrInfo] = useState({});
+    const [products, setProducts] = useState([]);
+    useEffect(() => {
+        getProducts();
+    }, []);
+
+    const getProducts = async () => {
+        try {
+            const response = await axios.get(urlList);
+            const result = response.data;
+            let accumulatedProducts = [];
+
+            result.forEach((category) => {
+                if (Array.isArray(category.children_with_products)) {
+                    category.children_with_products.forEach((subCategory) => {
+                        if (Array.isArray(subCategory.products_for_sale)) {
+                            accumulatedProducts = [
+                                ...accumulatedProducts,
+                                ...subCategory.products_for_sale,
+                            ];
+                        }
+                    });
+                }
+            });
+
+            setProducts(
+                accumulatedProducts.map((product) => ({
+                    value: product.id,
+                    label: dir === "rtl" ? product.name_ar : product.name_en,
+                    price: product.price,
+                    category_id: product.category_id,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
 
     const onChange = (key, val) => {
-        currentObject[key] = val;
-        setCurrrentObject({ ...currentObject });
-    }
+        setCurrentObject((prev) => {
+            const updatedObject = { ...prev, [key]: val };
+            return updatedObject;
+        });
+    };
 
-    const generateQR = () =>{
-        if(!!!currentObject.establishment){
+    const generateQR = () => {
+        if (!currentObject.establishment) {
             setShowAlert(true);
             Swal.fire({
                 show: showAlert,
-                title: 'Error',
+                title: "Error",
                 html: `${translations.establishment} ${translations.required}`,
                 icon: "error",
                 timer: 4000,
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
             return;
         }
+
+        const selectedProducts = Array.isArray(currentObject.selectedProducts)
+            ? currentObject.selectedProducts
+            : [];
+
+        const productIds = selectedProducts
+            .map((product) => product.value)
+            .join(",");
+        console.log("productIds", productIds);
         setQrInfo({
-            id : `qr-${getRowName(currentObject.establishment, dir)}`,
-            url : `${window.location.origin}/menuSimple?est_id=${currentObject.establishment.id}&title=${currentObject.title ?? ''}&sub_title=${currentObject.subTitle ?? ''}`,
-            color : !!!currentObject.color? '#000000' : currentObject.color,
-            logo : !!!currentObject.showLogo ? {} : {
-                src: logourl, // URL of the logo to embed
-                x: undefined, // X-coordinate of the logo (centered by default)
-                y: undefined, // Y-coordinate of the logo (centered by default)
-                height: 56, // Height of the logo
-                width: 56, // Width of the logo
-                excavate: true, // Whether to "excavate" (clear the area behind the logo)
-            }
+            id: `qr-${getRowName(currentObject.establishment, dir)}`,
+            url: `${window.location.origin}/menuSimple?est_id=${
+                currentObject.establishment.id
+            }&title=${currentObject.title ?? ""}&sub_title=${
+                currentObject.subTitle ?? ""
+            }&products=${productIds}`,
+            color: !currentObject.color ? "#000000" : currentObject.color,
+            logo: !currentObject.showLogo
+                ? {}
+                : {
+                      src: logourl,
+                      x: undefined,
+                      y: undefined,
+                      height: 56,
+                      width: 56,
+                      excavate: true,
+                  },
         });
-    }
+    };
 
     const downloadQRCode = () => {
-        const canvas = document.getElementById(qrId);
+        const canvas = document.getElementById(qrInfo.id);
         canvas.toBlob((blob) => {
             saveAs(blob, `qr-menu.png`);
         });
@@ -59,47 +118,102 @@ const MenuQR = ({ translations, dir }) => {
     return (
         <div class="row">
             <div class="col-5">
-                <div class="card-body" dir={dir} >
-                    <div class="d-flex  align-items-center pt-3">
-                        <label class="fs-6 fw-semibold mb-2 me-3 "
-                            style={{ width: "150px" }}>{translations.showLogo}</label>
+                <div class="card-body" dir={dir}>
+                    <div class="d-flex align-items-center pt-3">
+                        <label
+                            class="fs-6 fw-semibold mb-2 me-3"
+                            style={{ width: "150px" }}
+                        >
+                            {translations.showLogo}
+                        </label>
                         <div class="form-check form-switch">
-                            <InputSwitch checked={!!currentObject.showLogo ? !!currentObject.showLogo : false}
-                                onChange={(e) => onChange('showLogo', e.value)} />
+                            <InputSwitch
+                                checked={!!currentObject.showLogo}
+                                onChange={(e) => onChange("showLogo", e.value)}
+                            />
                         </div>
-                    </div>  
+                    </div>
                     <div class="form-group">
                         <div class="row">
                             <div class="col-12">
-                                <label for="name_ar" class="col-form-label">{translations.establishment}</label>
+                                <label for="name_ar" class="col-form-label">
+                                    {translations.establishment}
+                                </label>
                                 <AsyncSelectComponent
-                                    field='establishment'
+                                    field="establishment"
                                     dir={dir}
-                                    searchUrl={'searchEstablishments'}
+                                    searchUrl={"searchEstablishments"}
                                     currentObject={currentObject.establishment}
                                     onBasicChange={(field, val) => {
                                         onChange(field, val);
-                                    }} />
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="col-form-label">
+                                    {translations.products}
+                                </label>
+                                <Select
+                                    options={products}
+                                    isMulti
+                                    value={currentObject.selectedProducts}
+                                    onChange={(selected) => {
+                                        onChange(
+                                            "selectedProducts",
+                                            selected || []
+                                        );
+                                    }}
+                                    components={animatedComponents}
+                                    className="basic-multi-select"
+                                    classNamePrefix="select"
+                                    required
+                                />
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="row">
                             <div class="col-6">
-                            <label for="name_ar" class="col-form-label">{translations.title}</label>
-                            <input type="text" class="form-control form-control-solid custom-height" id="name_ar" value={!!currentObject.title ? currentObject.title : ''}
-                                onChange={(e) => onChange('title', e.target.value)} required></input>
+                                <label for="name_ar" class="col-form-label">
+                                    {translations.title}
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control form-control-solid custom-height"
+                                    id="name_ar"
+                                    value={currentObject.title || ""}
+                                    onChange={(e) =>
+                                        onChange("title", e.target.value)
+                                    }
+                                    required
+                                />
                             </div>
                             <div class="col-6">
-                            <label for="name_en" class="col-form-label">{translations.subTitle}</label>
-                            <input type="text" class="form-control form-control-solid custom-height" id="name_en" value={!!currentObject.subTitle ? currentObject.subTitle : ''}
-                                onChange={(e) => onChange('subTitle', e.target.value)} required></input>
+                                <label for="name_en" class="col-form-label">
+                                    {translations.subTitle}
+                                </label>
+                                <input
+                                    type="text"
+                                    class="form-control form-control-solid custom-height"
+                                    id="name_en"
+                                    value={currentObject.subTitle || ""}
+                                    onChange={(e) =>
+                                        onChange("subTitle", e.target.value)
+                                    }
+                                    required
+                                />
                             </div>
                         </div>
                     </div>
                     <div class="row pt-5">
                         <div class="col-3">
-                            <label for="name_ar" class="col-form-label">{translations.color}</label>
+                            <label for="name_ar" class="col-form-label">
+                                {translations.color}
+                            </label>
                         </div>
                         <div class="col-8">
                             <div>
@@ -111,21 +225,25 @@ const MenuQR = ({ translations, dir }) => {
                                             height: 50,
                                             border: "2px solid white",
                                         }}
-                                    ></div>
-                                    {/* Block Picker from react-color and handling color on onChange event */}
+                                    />
                                     <BlockPicker
                                         color={currentObject.color}
                                         onChange={(color) => {
-                                            onChange('color', color.hex)
+                                            onChange("color", color.hex);
                                         }}
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-left pt-3" style={{ "display": "flex" }}>
-                        <button onClick={generateQR} class="btn btn-primary mx-2"
-                            style={{ "width": "12rem" }}>{translations.generateQr}</button>
+                    <div class="flex-left pt-3" style={{ display: "flex" }}>
+                        <button
+                            onClick={generateQR}
+                            class="btn btn-primary mx-2"
+                            style={{ width: "12rem" }}
+                        >
+                            {translations.generateQr}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -143,19 +261,15 @@ const MenuQR = ({ translations, dir }) => {
                             margin: "10px",
                         }}
                     >
-
-                        {/* QR Code */}
                         <QRCodeCanvas
                             id={qrInfo.id}
                             value={qrInfo.url}
                             size={300}
-                            bgColor='#FFFFFF'
+                            bgColor="#FFFFFF"
                             fgColor={qrInfo.color}
-                            level={"H"} // Error correction level (supports L, M, Q, H)
+                            level={"H"}
                             imageSettings={qrInfo.logo}
                         />
-
-                        {/* Buttons */}
                         <div
                             style={{
                                 display: "flex",
@@ -164,9 +278,8 @@ const MenuQR = ({ translations, dir }) => {
                                 marginTop: "10px",
                             }}
                         >
-                            {/* Download Button */}
                             <button
-                                onClick={(e) => downloadQRCode()}
+                                onClick={downloadQRCode}
                                 style={{
                                     border: "none",
                                     backgroundColor: "#f8f9fa",
@@ -179,8 +292,6 @@ const MenuQR = ({ translations, dir }) => {
                             >
                                 📥
                             </button>
-
-                            {/* Visit Link Button */}
                             <a
                                 href={qrInfo.url}
                                 target="_blank"
@@ -203,9 +314,7 @@ const MenuQR = ({ translations, dir }) => {
                 </div>
             </div>
         </div>
-
     );
-
-}
+};
 
 export default MenuQR;
