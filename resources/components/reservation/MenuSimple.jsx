@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getRowName } from "../lang/Utils";
-import { useSearchParams } from "react-router-dom";
 
 const MenuSimple = ({ translations, dir }) => {
     const rootElement = document.getElementById("root");
