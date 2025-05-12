@@ -96,6 +96,7 @@ class TreeAccountsController extends Controller
             AccountingAccount::insert($default_accounts);
         }
 
+        AccountingUtil::default_accounting_route();
         //redirect back
         $output = [
             'success' => 1,

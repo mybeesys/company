@@ -113,6 +113,7 @@ class AccountingUtil
         return true;
     }
 
+
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
 
@@ -214,153 +215,74 @@ class AccountingUtil
         };
     }
 
+    public static function default_accounting_route()
+    {
+        $vat_acc = AccountingAccount::where('glcode', '522')->first();
+        $purchases_acc = AccountingAccount::where('glcode', '513')->first();
+        $sales_acc = AccountingAccount::where('glcode', '411')->first();
+        $discount_acc = AccountingAccount::where('glcode', '523')->first();
 
+        AccountsRoting::truncate();
 
+        $data = [
+            [
+                'type' => 'sales_vat_calculation',
+                'section' => 'sales',
+                'routing_type' => 'liability',
+                'account_id' => $vat_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_purchase',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $purchases_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_vat_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'liability',
+                'account_id' => $vat_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'sales_sales',
+                'section' => 'sales',
+                'routing_type' => 'revenue',
+                'account_id' => $sales_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'sales_discount_calculation',
+                'section' => 'sales',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_discount_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
 
-
-
-    //     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id)
-    // {
-    //     // تحديد القسم بناءً على نوع المعاملة
-    //     $route_section = $this->getRouteSection($transaction->type);
-
-    //     // الحصول على حسابات التوجيه المتعلقة بالقسم
-    //     $accountsRoute = AccountsRoting::where('section', $route_section)->get();
-
-    //     if ($accountsRoute->isEmpty()) {
-    //         return false;
-    //     }
-
-    //     // إنشاء سجل في جدول AccountingAccTransMapping
-    //     $acc_trans_mapping_id = $this->createAccountingTransMapping();
-
-    //     // التعامل مع نوع المعاملة
-    //     if ($transaction->type === 'sell') {
-    //         $this->handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id);
-    //     } elseif ($transaction->type === 'purchases') {
-    //         $this->handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id);
-    //     }
-
-    //     // معالجة حسابات التوجيه
-    //     foreach ($accountsRoute as $accountRoute) {
-    //         $this->processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id);
-    //     }
-
-    //     return true;
-    // }
-
-    // // دالة لتحديد قسم المعاملة
-    // protected function getRouteSection($transactionType)
-    // {
-    //     return match ($transactionType) {
-    //         'sell' => 'sales',
-    //         'purchases' => 'purchases',
-    //         default => '',
-    //     };
-    // }
-
-    // // دالة لإنشاء سجل في جدول AccountingAccTransMapping
-    // protected function createAccountingTransMapping()
-    // {
-    //     $acc_trans_mapping = new AccountingAccTransMapping();
-    //     $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
-    //     $acc_trans_mapping->note = '';
-    //     $acc_trans_mapping->type = 'journal_entry';
-    //     $acc_trans_mapping->created_by = Auth::user()->id;
-    //     $acc_trans_mapping->operation_date = Carbon::now()->format('Y-m-d H:i:s');
-    //     $acc_trans_mapping->save();
-
-    //     return $acc_trans_mapping->id;
-    // }
-
-    // // دالة للتعامل مع المعاملات من نوع "بيع"
-    // protected function handleSellTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $cash_account_id)
-    // {
-    //     if ($transaction->invoice_type === 'cash') {
-    //         $transactionPayment->account_id = $cash_account_id;
-    //         $transactionPayment->amount = $transaction->final_total;
-    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     } else {
-    //         $this->handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة للتعامل مع المعاملات من نوع "بيع" بخصوص الائتمان
-    // protected function handleSellCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
-    // {
-    //     $client = Contact::find($transactionPayment->payment_for);
-    //     if ($client) {
-    //         $transactionPayment->account_id = $client->account_id;
-    //         $transactionPayment->amount = $transaction->final_total;
-    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     } else {
-    //         $this->handleAutoAssignAccount($transactionPayment, 'sales_client', $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة للتعامل مع المعاملات من نوع "شراء"
-    // protected function handlePurchaseTransaction($transaction, $transactionPayment, $acc_trans_mapping_id, $due_account_id)
-    // {
-    //     if ($transaction->invoice_type === 'cash') {
-    //         $transactionPayment->account_id = $due_account_id;
-    //         $transactionPayment->amount = $transaction->final_total;
-    //         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     } else {
-    //         $this->handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة للتعامل مع المعاملات من نوع "شراء" بخصوص الائتمان
-    // protected function handlePurchaseCreditTransaction($transactionPayment, $transaction, $acc_trans_mapping_id)
-    // {
-    //     $client = Contact::find($transactionPayment->payment_for);
-    //     if ($client) {
-    //         $transactionPayment->account_id = $client->account_id;
-    //         $transactionPayment->amount = $transaction->final_total;
-    //         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     } else {
-    //         $this->handleAutoAssignAccount($transactionPayment, 'purchases_suppliers', $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة للتعامل مع التوجيه التلقائي للحسابات
-    // protected function handleAutoAssignAccount($transactionPayment, $accountType, $transaction, $acc_trans_mapping_id)
-    // {
-    //     $accountsRoute = AccountsRoting::where('type', $accountType)->first();
-    //     if ($accountsRoute && $accountsRoute->direction === 'auto_assign') {
-    //         $transactionPayment->account_id = $accountsRoute->account_id;
-    //         $transactionPayment->amount = $transaction->final_total;
-    //         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة لمعالجة حسابات التوجيه
-    // protected function processAccountRouteTransaction($accountRoute, $transaction, $transactionPayment, $acc_trans_mapping_id)
-    // {
-    //     $transactionPayment->account_id = $accountRoute->account_id;
-    //     [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
-    //     $transactionPayment->amount = $amount;
-
-    //     if ($amount) {
-    //         $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id);
-    //     }
-    // }
-
-    // // دالة لتحديد المبلغ والنوع بناءً على نوع التوجيه
-    // protected function determineAmountAndType($routeType, $transaction)
-    // {
-    //     return match ($routeType) {
-    //         'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
-    //         'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
-    //         'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
-
-    //         'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
-    //         'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
-    //         'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
-
-    //         default => [0, 'debit'],
-    //     };
-    // }
+        AccountsRoting::insert($data);
+    }
 
     public static function default_accounting_account_types()
     {
@@ -471,12 +393,12 @@ class AccountingUtil
         $services_id = AccountingAccountTypes::where('name_en', 'Services')->first()->id;
         $operating_expenses_id = AccountingAccountTypes::where('name_en', 'Operating Expenses')->first()->id;
         $non_operating_expenses_id = AccountingAccountTypes::where('name_en', 'Non-Operating Expenses')->first()->id;
-
         return [
             [
                 'name_en' => 'Bank Accounts and Cash on Hand',
                 'name_ar' => 'حسابات البنوك والنقد في اليد',
                 'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
                 'gl_code' => '111',
@@ -489,6 +411,7 @@ class AccountingUtil
                 'name_en' => 'Accounts Receivable',
                 'name_ar' => 'الحسابات المدينة',
                 'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
                 'gl_code' => '112',
@@ -501,6 +424,7 @@ class AccountingUtil
                 'name_en' => 'Inventory',
                 'name_ar' => 'المخزون',
                 'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
                 'account_sub_type_id' => $current_assets_id,
                 'detail_type_id' => null,
                 'gl_code' => '113',
@@ -513,6 +437,7 @@ class AccountingUtil
                 'name_en' => 'Equipment',
                 'name_ar' => 'المعدات',
                 'account_primary_type' => 'asset',
+                'account_type' => 'fixed_assets',
                 'account_sub_type_id' => $fixed_assets_id,
                 'detail_type_id' => null,
                 'gl_code' => '121',
@@ -525,6 +450,7 @@ class AccountingUtil
                 'name_en' => 'Buildings',
                 'name_ar' => 'المباني',
                 'account_primary_type' => 'asset',
+                'account_type' => 'fixed_assets',
                 'account_sub_type_id' => $fixed_assets_id,
                 'detail_type_id' => null,
                 'gl_code' => '122',
@@ -537,6 +463,7 @@ class AccountingUtil
                 'name_en' => 'Accounts Payable',
                 'name_ar' => 'الحسابات الدائنة',
                 'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
                 'account_sub_type_id' => $current_liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '211',
@@ -549,6 +476,7 @@ class AccountingUtil
                 'name_en' => 'Short-Term Loans',
                 'name_ar' => 'القروض قصيرة الأجل',
                 'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
                 'account_sub_type_id' => $current_liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '212',
@@ -561,6 +489,7 @@ class AccountingUtil
                 'name_en' => 'Long-Term Loans',
                 'name_ar' => 'القروض طويلة الأجل',
                 'account_primary_type' => 'liabilities',
+                'account_type' => 'non_current_liabilities',
                 'account_sub_type_id' => $long_term_liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '221',
@@ -573,6 +502,7 @@ class AccountingUtil
                 'name_en' => 'Tax Liabilities',
                 'name_ar' => 'الالتزامات الضريبية',
                 'account_primary_type' => 'liabilities',
+                'account_type' => 'non_current_liabilities',
                 'account_sub_type_id' => $long_term_liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '222',
@@ -585,6 +515,7 @@ class AccountingUtil
                 'name_en' => 'Salaries',
                 'name_ar' => 'الرواتب',
                 'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
                 'gl_code' => '511',
@@ -597,6 +528,7 @@ class AccountingUtil
                 'name_en' => 'Rent',
                 'name_ar' => 'الإيجار',
                 'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
                 'gl_code' => '512',
@@ -609,6 +541,7 @@ class AccountingUtil
                 'name_en' => 'Purchases',
                 'name_ar' => 'المشتريات',
                 'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
                 'account_sub_type_id' => $operating_expenses_id,
                 'detail_type_id' => null,
                 'gl_code' => '513',
@@ -621,6 +554,7 @@ class AccountingUtil
                 'name_en' => 'Interest Expenses',
                 'name_ar' => 'مصاريف الفوائد',
                 'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
                 'account_sub_type_id' => $non_operating_expenses_id,
                 'detail_type_id' => null,
                 'gl_code' => '521',
@@ -633,9 +567,36 @@ class AccountingUtil
                 'name_en' => 'Taxes',
                 'name_ar' => 'الضرائب',
                 'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
                 'account_sub_type_id' => $non_operating_expenses_id,
                 'detail_type_id' => null,
                 'gl_code' => '522',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Discount',
+                'name_ar' => 'الخصم',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $non_operating_expenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '523',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Sales Revenue',
+                'name_ar' => 'ايراد المبيعات',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $sales_id,
+                'detail_type_id' => null,
+                'gl_code' => '411',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -709,14 +670,16 @@ class AccountingUtil
     public static function account_type()
     {
         return [
-            'normal' => __('accounting::lang.normal'),
-            'customer_receivables_main_account' => __('accounting::lang.customer_receivables_main_account'),
-            'suppliers_receivables_main_account' => __('accounting::lang.suppliers_receivables_main_account'),
-            'main_account_employee_receivables' => __('accounting::lang.main_account_employee_receivables'),
-            'main_account_requests_approvals' => __('accounting::lang.main_account_requests_approvals'),
-            'main_account_other_receivables' => __('accounting::lang.main_account_other_receivables'),
+            'fixed_assets' => __('accounting::lang.account_types.fixed_assets'),
+            'current_assets' => __('accounting::lang.account_types.current_assets'),
+            'current_liabilities' => __('accounting::lang.account_types.current_liabilities'),
+            'non_current_liabilities' => __('accounting::lang.account_types.non_current_liabilities'),
+            'equity' => __('accounting::lang.account_types.equity'),
+            'income' => __('accounting::lang.account_types.income'),
+            'expenses' => __('accounting::lang.account_types.expenses'),
         ];
     }
+
 
     public static function account_category()
     {
