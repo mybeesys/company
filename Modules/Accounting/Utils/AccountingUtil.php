@@ -217,10 +217,10 @@ class AccountingUtil
 
     public static function default_accounting_route()
     {
-        $vat_acc = AccountingAccount::where('glcode', '522')->first();
-        $purchases_acc = AccountingAccount::where('glcode', '513')->first();
-        $sales_acc = AccountingAccount::where('glcode', '411')->first();
-        $discount_acc = AccountingAccount::where('glcode', '523')->first();
+        $vat_acc = AccountingAccount::where('gl_code', '522')->first();
+        $purchases_acc = AccountingAccount::where('gl_code', '513')->first();
+        $sales_acc = AccountingAccount::where('gl_code', '411')->first();
+        $discount_acc = AccountingAccount::where('gl_code', '523')->first();
 
         AccountsRoting::truncate();
 
