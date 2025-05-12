@@ -266,7 +266,7 @@ return [
     '61_90_days' => '61 to 90 days',
     '91_and_over' => '91 days and over',
     'account_receivable_ageing_details' => 'Accounts Receivable Ageing Report',
-    'account_payable_ageing_details'=>'Accounts Payable Ageing Report',
+    'account_payable_ageing_details' => 'Accounts Payable Ageing Report',
 
     'account_receivable_ageing_details_description' => 'This report shows details of all the sales pending
     invoices in mentioned days range as per the due date.',
@@ -287,6 +287,16 @@ return [
 
 
 
+    'account_types' => [
+        'fixed_assets' => 'Fixed Assets',
+        'current_assets' => 'Current Assets',
+        'current_liabilities' => 'Current Liabilities',
+        'non_current_liabilities' => 'Non-current Liabilities',
+        'equity' => 'Equity',
+        'income' => 'Income',
+        'expenses' => 'Expenses',
+    ],
+    
 
 
 

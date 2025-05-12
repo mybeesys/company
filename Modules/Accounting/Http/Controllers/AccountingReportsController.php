@@ -19,56 +19,8 @@ use Yajra\DataTables\Facades\DataTables;
 class AccountingReportsController extends Controller
 {
 
-    public function incomeStatement()
-    {
-
-        if (!empty(request()->start_date) && !empty(request()->end_date)) {
-            $start_date = request()->start_date;
-            $end_date =  request()->end_date;
-        }
-        $accounts = AccountingAccount::join(
-            'accounting_accounts_transactions as AAT',
-            'AAT.accounting_account_id',
-            '=',
-            'accounting_accounts.id'
-        )
-            ->where(function ($qu) {
-                $qu->where('accounting_accounts.account_primary_type', '!=', 'asset')
-                    ->where('accounting_accounts.account_primary_type', '!=', 'liabilities');
-            })
-            ->select(
-                DB::raw("SUM(IF(AAT.type = 'credit' , AAT.amount, 0)) as credit_balance"),
-                DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
-                'accounting_accounts.name_ar',
-                'accounting_accounts.name_en',
-                'accounting_accounts.gl_code',
-                'accounting_accounts.account_primary_type as acc_type'
-            )
-
-            ->groupBy(
-                'accounting_accounts.name_ar',
-                'accounting_accounts.name_en',
-                'accounting_accounts.gl_code',
-                'accounting_accounts.account_primary_type'
-            )->orderBy('accounting_accounts.gl_code')
-            ->get();
-
-        $data = $this->getIcomeStatementData($accounts);
-        $start_date = now();
-        $end_date =  now();
-
-        return view('accounting::reports.income-statement')
-            ->with(compact(
-                'accounts',
-                'start_date',
-                'end_date',
-                'data'
-            ));
-    }
-
     public function getIcomeStatementData($accounts)
     {
-        $total_balances = [];
         $revenue_net = 0;
         $cost_of_revenue = 0;
         $total_expense = 0;
@@ -76,23 +28,40 @@ class AccountingReportsController extends Controller
         $total_other_expense = 0;
 
         foreach ($accounts as $account) {
-            if (str_starts_with($account->gl_code, '4') || str_starts_with($account->gl_code, '5')) {
-                $debit_balance = $account->debit_balance;
-                $credit_balance = $account->credit_balance;
+            $debit = $account->debit_balance;
+            $credit = $account->credit_balance;
 
-                $balance = $credit_balance - $debit_balance;
+            // نحسب الرصيد بناءً على النوع
+            $balance = 0;
 
-                $total_balances[$account->gl_code] = $balance;
-            }
-        }
+            // حسب القاعدة المحاسبية:
+            // - الإيرادات => دائن
+            // - المصروفات => مدين
+            switch ($account->acc_type) {
+                case 'income':
+                    $balance = $credit - $debit;
+                    $revenue_net += $balance;
+                    break;
 
-        foreach ($total_balances as $key => $total_balance) {
-            if (str_starts_with($key, '4')) {
-                $revenue_net += $total_balance;
-            } elseif (str_starts_with($key, '51')) {
-                $cost_of_revenue += abs($total_balance);
-            } elseif (str_starts_with($key, '52')) {
-                $total_expense += abs($total_balance);
+                case 'cost_of_sales':
+                    $balance = $debit - $credit;
+                    $cost_of_revenue += $balance;
+                    break;
+
+                case 'expenses':
+                    $balance = $debit - $credit;
+                    $total_expense += $balance;
+                    break;
+
+                case 'other_income':
+                    $balance = $credit - $debit;
+                    $total_other_income += $balance;
+                    break;
+
+                case 'other_expenses':
+                    $balance = $debit - $credit;
+                    $total_other_expense += $balance;
+                    break;
             }
         }
 
@@ -115,6 +84,104 @@ class AccountingReportsController extends Controller
             'total_other_expense' => $total_other_expense
         ]);
     }
+
+    public function incomeStatement()
+    {
+        $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
+        $end_date = request()->end_date ?? now()->format('Y-m-d');
+
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
+
+        $accounts = AccountingAccount::join(
+            'accounting_accounts_transactions as AAT',
+            'AAT.accounting_account_id',
+            '=',
+            'accounting_accounts.id'
+        )
+            ->whereBetween('AAT.operation_date', [$start_date, $end_date])
+            ->where(function ($qu) {
+                $qu->where('accounting_accounts.account_type', '=', 'income')
+                    ->orWhere('accounting_accounts.account_type', '=', 'expenses');
+            })
+            ->select(
+                DB::raw("SUM(IF(AAT.type = 'credit' , AAT.amount, 0)) as credit_balance"),
+                DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
+                'accounting_accounts.name_ar',
+                'accounting_accounts.name_en',
+                'accounting_accounts.gl_code',
+                'accounting_accounts.account_type as acc_type'
+            )
+            ->groupBy(
+                'accounting_accounts.name_ar',
+                'accounting_accounts.name_en',
+                'accounting_accounts.gl_code',
+                'accounting_accounts.account_type'
+            )
+            ->orderBy('accounting_accounts.gl_code')
+            ->get();
+
+        $data = $this->getIcomeStatementData($accounts);
+
+        return view('accounting::reports.income-statement')
+            ->with(compact(
+                'accounts',
+                'start_date',
+                'end_date',
+                'data',
+                'company'
+            ));
+    }
+
+    // public function getIcomeStatementData($accounts)
+    // {
+    //     $total_balances = [];
+    //     $revenue_net = 0;
+    //     $cost_of_revenue = 0;
+    //     $total_expense = 0;
+    //     $total_other_income = 0;
+    //     $total_other_expense = 0;
+
+    //     foreach ($accounts as $account) {
+    //         if (str_starts_with($account->gl_code, '4') || str_starts_with($account->gl_code, '5')) {
+    //             $debit_balance = $account->debit_balance;
+    //             $credit_balance = $account->credit_balance;
+
+    //             $balance = $credit_balance - $debit_balance;
+
+    //             $total_balances[$account->gl_code] = $balance;
+    //         }
+    //     }
+
+    //     foreach ($total_balances as $key => $total_balance) {
+    //         if (str_starts_with($key, '4')) {
+    //             $revenue_net += $total_balance;
+    //         } elseif (str_starts_with($key, '51')) {
+    //             $cost_of_revenue += abs($total_balance);
+    //         } elseif (str_starts_with($key, '52')) {
+    //             $total_expense += abs($total_balance);
+    //         }
+    //     }
+
+    //     $gross_profit = $revenue_net - $cost_of_revenue;
+    //     $operation_income = $gross_profit - $total_expense;
+    //     $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
+
+    //     $tax = Tax::first()->amount ?? 0;
+    //     $tax_amount = ($tax * $income_before_tax) / 100;
+
+    //     return response()->json([
+    //         'gross_profit' => $gross_profit,
+    //         'operation_income' => $operation_income,
+    //         'income_before_tax' => $income_before_tax,
+    //         'tax_amount' => $tax_amount,
+    //         'revenue_net' => $revenue_net,
+    //         'cost_of_revenue' => $cost_of_revenue,
+    //         'total_expense' => $total_expense,
+    //         'total_other_income' => $total_other_income,
+    //         'total_other_expense' => $total_other_expense
+    //     ]);
+    // }
 
 
 
@@ -716,7 +783,7 @@ class AccountingReportsController extends Controller
     {
         $accountingUtil = new AccountingUtil;
 
-        $report_details = $accountingUtil->getAgeingReport('purchases','due_date');
+        $report_details = $accountingUtil->getAgeingReport('purchases', 'due_date');
 
 
         return view('accounting::reports.account_payable_ageing_details')

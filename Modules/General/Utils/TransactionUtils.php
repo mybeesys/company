@@ -176,7 +176,7 @@ class TransactionUtils
                 $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
             }
             $transactionPayment->account_id = $account_id;
-            $transactionPayment->amount = $transaction->final_total;
+            $transactionPayment->amount = $request->paid_amount;
             $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
         } elseif ($transaction->type == 'purchases') {
 
@@ -188,7 +188,7 @@ class TransactionUtils
                 $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
             }
             $transactionPayment->account_id = $account_id;
-            $transactionPayment->amount = $transaction->final_total;
+            $transactionPayment->amount = $request->paid_amount;
             $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
         }
 

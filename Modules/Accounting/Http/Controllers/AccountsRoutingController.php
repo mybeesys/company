@@ -17,7 +17,11 @@ class AccountsRoutingController extends Controller
      */
     public function index()
     {
+
         $accounts =  AccountingAccount::forDropdown();
+        if (count($accounts) == 0) {
+            return redirect()->route('tree-of-accounts')->with('error', __('accounting::lang.no_accounts'));
+        }
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',

@@ -254,8 +254,8 @@ return [
     'cs' => 'العملاء والموردين',
     'name' => 'الاسـم',
     'account_recievable_ageing_report' => 'تحليل تقادم الحسابات المدينة (ملخص)',
-    'account_payable_ageing_report'=>'تحليل تقادم الحسابات الدائنة (ملخص)',
-    'current'=>'الحالــي',
+    'account_payable_ageing_report' => 'تحليل تقادم الحسابات الدائنة (ملخص)',
+    'current' => 'الحالــي',
     '1_30_days' => '1 الى 30 يوم',
     '31_60_days' => '31 الى 60 يوم',
     '61_90_days' => '61 الى 90 يوم',
@@ -267,15 +267,24 @@ return [
     'account_payable_ageing_details' => 'تقرير أعمار الذمم الدائنة ',
     'account_payable_ageing_details_description' => 'يظهر هذا التقرير تفاصيل جميع المشتريات المعلقة في الفواتير ضمن نطاق الأيام المحددة حسب تاريخ الاستحقاق.',
     '91_and_over_past_due' => 'أكثر من 91 يومًا من المتأخرات',
-    'account_receivable_ageing_details'=>'تقرير أعمار الذمم المدينة',
-'account_receivable_ageing_details_description' => 'يظهر هذا التقرير تفاصيل جميع المبيعات المعلقة في الفواتير ضمن نطاق الأيام المحددة حسب تاريخ الاستحقاق.',
+    'account_receivable_ageing_details' => 'تقرير أعمار الذمم المدينة',
+    'account_receivable_ageing_details_description' => 'يظهر هذا التقرير تفاصيل جميع المبيعات المعلقة في الفواتير ضمن نطاق الأيام المحددة حسب تاريخ الاستحقاق.',
 
 
-'invoice' => 'فاتورة',
+    'invoice' => 'فاتورة',
 
 
 
 
+    'account_types' => [
+        'fixed_assets' => 'أصول ثابتة',
+        'current_assets' => 'أصول متداولة',
+        'current_liabilities' => 'التزامات متداولة',
+        'non_current_liabilities' => 'إلتزامات غير متداولة',
+        'equity' => 'حقوق الملكية',
+        'income' => 'الإيرادات',
+        'expenses' => 'المصروفات',
+    ],
 
 
 
