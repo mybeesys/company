@@ -86,7 +86,6 @@ const MenuQR = ({ translations, dir }) => {
         const productIds = selectedProducts
             .map((product) => product.value)
             .join(",");
-        console.log("productIds", productIds);
         setQrInfo({
             id: `qr-${getRowName(currentObject.establishment, dir)}`,
             url: `${window.location.origin}/menuSimple?est_id=${

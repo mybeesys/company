@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -6,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuItem;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Establishment\Models\Establishment;
 
 class CustomMenu extends Model
 {
@@ -26,12 +28,13 @@ class CustomMenu extends Model
         'name_ar',
         'application_type',
         'mode',
-        'station_id',
+        'station_id', // establishment_id
         'active'
         // add more fields as needed
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -47,5 +50,8 @@ class CustomMenu extends Model
     {
         return $this->hasMany(CustomMenuItem::class, 'custommenu_id', 'id');
     }
+    public function establishments()
+    {
+        return $this->belongsTo(Establishment::class, 'station_id', 'id');
+    }
 }
-?>

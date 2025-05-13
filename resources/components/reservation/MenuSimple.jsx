@@ -34,7 +34,6 @@ const MenuSimple = ({ translations, dir }) => {
                 setAllProducts(allProducts1);
 
                 if (selectedProductsParam) {
-                    console.log("selectedProductsParam", selectedProductsParam);
                     const selectedProductIds = selectedProductsParam.split(",");
                     const filtered = allProducts1
                         .map((subCategory) => {

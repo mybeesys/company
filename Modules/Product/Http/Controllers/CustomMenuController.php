@@ -46,14 +46,12 @@ class CustomMenuController extends Controller
     public function getCustomMenus()
     {
         $TreeBuilder = new TreeBuilder();
-        $customMenues = CustomMenu::all();
-
+        $customMenues = CustomMenu::with('establishments')->get();
         // تحميل ملف الترجمة JSON
         $translationFilePath = resource_path('components/lang/ar.json');
         $translations = File::exists($translationFilePath)
             ? json_decode(File::get($translationFilePath), true)
             : [];
-
         // تحويل mode من القيم الرقمية إلى الترجمة
         $customMenues->transform(function ($menu) use ($translations) {
             if (!empty($menu->mode)) {
@@ -69,6 +67,13 @@ class CustomMenuController extends Controller
                     $menu->mode = implode(', ', $translatedModes);
                 }
             }
+            if ($menu->establishments) {
+                $menu->establishment = [
+                    'id' => $menu->establishments->id,
+                    'name' => app()->getLocale() === 'ar' ? $menu->establishments->name : $menu->establishments->name_en,
+                ];
+            }
+
             return $menu;
         });
 
@@ -85,6 +90,7 @@ class CustomMenuController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['active' => $request->input('active', 0)]);
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
@@ -95,8 +101,21 @@ class CustomMenuController extends Controller
             'id' => 'nullable|numeric',
             'method' => 'nullable|string'
         ]);
-        $validated['mode'] = json_encode($validated['mode']);
-        $validated['station_id'] = json_encode($validated['station_id']);
+        if (isset($validated['mode'])) {
+            if (!is_array($validated['mode'])) {
+                $validated['mode'] = [$validated['mode']];
+            }
+
+            $validated['mode'] = json_encode($validated['mode']);
+        }
+
+
+
+        if (isset($validated['station_id'])) {
+            if (is_array($validated['station_id'])) {
+                $validated['station_id'] = implode(',', $validated['station_id']);
+            }
+        }
 
 
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
@@ -211,7 +230,7 @@ class CustomMenuController extends Controller
 
     public function edit($id)
     {
-        $custommenu  = CustomMenu::find($id);
+        $custommenu = CustomMenu::with('establishments')->find($id);
         $custommenu->dates = $custommenu->dates;
         foreach ($custommenu->dates as $d) {
             $d->times = $d->times;
