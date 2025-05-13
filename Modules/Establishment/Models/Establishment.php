@@ -11,6 +11,7 @@ use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
+use Modules\Product\Models\CustomMenu;
 use Modules\Sales\Models\Coupon;
 
 class Establishment extends Model
@@ -25,7 +26,7 @@ class Establishment extends Model
 
     public function posRoles()
     {
-        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'establishment_id', 'role_id' )->withTimestamps()->withPivot('employee_id');
+        return $this->belongsToMany(PosRole::class, 'emp_employee_establishments_roles', 'establishment_id', 'role_id')->withTimestamps()->withPivot('employee_id');
     }
 
     public function main()
@@ -98,5 +99,9 @@ class Establishment extends Model
     public function coupons()
     {
         return $this->belongsToMany(Coupon::class, 'sales_coupons_establishments');
+    }
+    public function customMenus()
+    {
+        return $this->hasMany(CustomMenu::class, 'station_id', 'id');
     }
 }
