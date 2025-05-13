@@ -13,7 +13,7 @@ class StationController extends Controller
     public function getStations()
     {
         //$stations = Station::all();
-        $stations = Establishment::select('name', 'name_en')->get();
+        $stations = Establishment::select('name', 'name_en','id')->get();
         return response()->json($stations);
     }
 }

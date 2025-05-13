@@ -79,7 +79,7 @@
   "nodata": "----------",
   "timeSlotOnly": "Time Slot Only",
   "manual": "Manual",
-  "Mode": "Mode",
+  "Mode": "",
   "posStation": "POS Station",
   "application_type": "Application Type",
   "mode_station_name": "Mode/Station",
