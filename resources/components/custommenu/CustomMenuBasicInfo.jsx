@@ -15,11 +15,9 @@ const CustomMenuBasicInfo = ({
     const [applicationType, setApplicationType] = useState(
         currentObject.application_type
     );
-
     const getName = (name_en, name_ar) => {
         return dir === "ltr" ? name_en : name_ar;
     };
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -28,13 +26,13 @@ const CustomMenuBasicInfo = ({
                 const res3 = await axios.get("/mode-values");
                 const res4 = await axios.get("/stations");
                 const ms = {
-                    modes: res3.data.map((e) => ({
-                        name: e.name,
-                        value: e.value,
-                    })),
                     stations: res4.data.map((e) => ({
                         name: getName(e.name_en, e.name),
                         value: e.id,
+                    })),
+                    modes: res3.data.map((e) => ({
+                        name: e.name,
+                        value: e.value,
                     })),
                 };
                 setApplicationTypeValues(appType);
@@ -45,7 +43,6 @@ const CustomMenuBasicInfo = ({
         };
         fetchData();
     }, []);
-
     const getStationsModesSource = () => {
         return applicationType === "3"
             ? modesStations.stations
@@ -57,12 +54,16 @@ const CustomMenuBasicInfo = ({
     };
 
     const getStationsModesKey = () => {
-        return applicationType === "3" ? "establishment" : "mode";
+        return applicationType === "3" ? "station_id" : "mode";
     };
 
     const handleApplicationTypeChange = (value) => {
         setApplicationType(value);
         onBasicChange("application_type", value);
+    };
+
+    const handleStationChange = (selectedValues) => {
+        onBasicChange(getStationsModesKey(), selectedValues);
     };
 
     return (
@@ -138,32 +139,29 @@ const CustomMenuBasicInfo = ({
                         <select
                             className="form-control form-control-solid custom-height selectpicker"
                             style={{ height: "50px" }}
-                            disabled={applicationType === "1"||applicationType === "2"}
+                            disabled={
+                                applicationType === "1" ||
+                                applicationType === "2"
+                            }
                             value={currentObject[getStationsModesKey()] || []}
                             onChange={(e) => {
                                 const selectedValues = Array.from(
                                     e.target.selectedOptions,
                                     (option) => option.value
                                 );
-                                onBasicChange(
-                                    getStationsModesKey(),
-                                    selectedValues
-                                );
+                                handleStationChange(selectedValues);
                             }}
                         >
-                            {applicationType !== "1" && applicationType !== "2" && 
-                                getStationsModesSource().map((option) => {
-                                    return (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {getStationsModesValues(
-                                                option.name
-                                            )}
-                                        </option>
-                                    );
-                                })}
+                            {applicationType !== "1" &&
+                                applicationType !== "2" &&
+                                getStationsModesSource().map((option) => (
+                                    <option
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {getStationsModesValues(option.name)}
+                                    </option>
+                                ))}
                         </select>
                     </div>
                 </div>
@@ -181,9 +179,11 @@ const CustomMenuBasicInfo = ({
                         style={{ border: "1px solid #9f9f9f" }}
                         className="form-check-input my-2"
                         id="active"
-                        onChange={(e) =>
-                            onBasicChange("active", e.target.checked ? 1 : 0)
-                        }
+                        checked={currentObject.active === 1}
+                        onChange={(e) => {
+                            const isChecked = e.target.checked ? 1 : 0;
+                            onBasicChange("active", isChecked);
+                        }}
                     />
                 </div>
             </div>
