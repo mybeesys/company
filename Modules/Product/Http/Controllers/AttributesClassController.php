@@ -15,7 +15,7 @@ class AttributesClassController extends Controller
      */
     public function index()
     {
-        return view('product::attribute.index' ); 
+        return view('product::attribute.index');
     }
 
     public function getAttributes()
@@ -35,53 +35,45 @@ class AttributesClassController extends Controller
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'order' => 'required|numeric',
             'active' => 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
-            $attr = Attribute::where([['class_id', '=', $validated['id']]])->first();
-            if($attr != null)
-                return response()->json(["message"=>"CHILD_EXIST"]);
-            
-            $attributeClass = AttributeClass::find($validated['id']); 
-            $attributeClass->delete();
-            
-        }
-        else if(!isset($validated['id']))
-        {
-            $attributeClass = AttributeClass::where('order', $validated['order'])->first();
-            if($attributeClass != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $attributeClass = AttributeClass::where('name_ar', $validated['name_ar'])->first();
-            if($attributeClass != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $attributeClass = AttributeClass::where('name_en', $validated['name_en'])->first();
-            if($attributeClass != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
-            AttributeClass::create($validated);
-        }
-        else
-        {
-            $AttributeClass = AttributeClass::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-            if($AttributeClass != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $AttributeClass = AttributeClass::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
-            if($AttributeClass != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $AttributeClass = AttributeClass::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
-            if($AttributeClass != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
 
-            $AttributeClass = AttributeClass::find($validated['id']);
-            $AttributeClass->name_ar  = $validated['name_ar'];
-            $AttributeClass->name_en  = $validated['name_en'];
-            $AttributeClass->active   = $validated['active'];
-            $AttributeClass->order   = $validated['order'];
-            $AttributeClass->save();
+        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+            $attr = Attribute::where([['parent_id', '=', $validated['id']]])->first();
+            if ($attr != null)
+                return response()->json(["message" => "CHILD_EXIST"]);
+
+            $attributeClass = AttributeClass::find($validated['id']);
+            $attributeClass->delete();
+        } else if (!isset($validated['id'])) {
+            $validated['order'] = AttributeClass::whereNull('deleted_at')->max('order') + 1;
+            if (AttributeClass::where('order', $validated['order'])->first())
+                return response()->json(["message" => "ORDER_EXIST"]);
+
+            if (AttributeClass::where('name_ar', $validated['name_ar'])->first())
+                return response()->json(["message" => "NAME_AR_EXIST"]);
+
+            if (AttributeClass::where('name_en', $validated['name_en'])->first())
+                return response()->json(["message" => "NAME_EN_EXIST"]);
+
+            AttributeClass::create($validated);
+        } else {
+            $attributeClass = AttributeClass::find($validated['id']);
+
+            if (AttributeClass::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first())
+                return response()->json(["message" => "NAME_AR_EXIST"]);
+
+            if (AttributeClass::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first())
+                return response()->json(["message" => "NAME_EN_EXIST"]);
+
+            $attributeClass->name_ar = $validated['name_ar'];
+            $attributeClass->name_en = $validated['name_en'];
+            $attributeClass->active = $validated['active'];
+            $attributeClass->save();
         }
-        return response()->json(["message"=>"Done"]);
+
+        return response()->json(["message" => "Done"]);
     }
 
     /**
@@ -103,8 +95,8 @@ class AttributesClassController extends Controller
      */
     public function edit($id)
     {
-         $product  = AttributeClass::find($id);
-         return view('product::product.edit', compact('product'));
+        $product  = AttributeClass::find($id);
+        return view('product::product.edit', compact('product'));
     }
 
     /**

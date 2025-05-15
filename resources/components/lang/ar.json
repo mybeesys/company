@@ -45,7 +45,7 @@
   "NAME_AR_EXIST": "الاسم العربي مكرر",
   "NAME_EN_EXIST": "الاسم الانكليزي مكرر",
   "CHILD_EXIST": "يوجد متغيرات مرتبطة بالتصنيف",
-  "AttributeList": "قائمة المعاملات",
+  "AttributeList": "قائمة خصائص المنتجات",
   "attributeClass" : "تصنيف معامل",
   "attribute" : "متغير",
   "attr_set2": "قائمة المعاملات الثانية",

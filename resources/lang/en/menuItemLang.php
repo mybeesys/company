@@ -28,7 +28,7 @@ return [
     'modifiers' => 'Modifiers',
     'pos_roles' => 'POS roles',
     'dashboard_roles' => 'Dashboard roles',
-    'attribute' => 'Attribute',
+    'attribute' => 'Products Features',
     'employees_working_hours' => 'Employees working hours',
     'timesheet_rule' => 'Timesheet settings',
     'shift_schedule' => 'Shift schedules',
