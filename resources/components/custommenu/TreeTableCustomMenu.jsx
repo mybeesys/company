@@ -83,6 +83,7 @@ const TreeTableCustomMenu = ({
     const refreshTree = () => {
         try {
             const response = axios.get(urlList).then((response) => {
+                //console.log("res",response.data);
                 let result = response.data;
                 setNodes(result);
             });
@@ -342,7 +343,7 @@ const TreeTableCustomMenu = ({
                       (node.data.establishment
                           ? node.data.establishment.name
                           : "")
-                    : key === "establishment"
+                    : key === "station_id"
                     ? node.data.establishment
                         ? node.data.establishment.name
                         : ""
@@ -435,7 +436,7 @@ const TreeTableCustomMenu = ({
             options = modesStations.modes;
         }
 
-        const valKey = application_type === "3" ? "establishment" : "mode";
+        const valKey = application_type === "3" ? "station_id" : "mode";
 
         return renderDropDownCell(
             node,

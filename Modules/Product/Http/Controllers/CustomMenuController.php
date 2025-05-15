@@ -109,8 +109,6 @@ class CustomMenuController extends Controller
             $validated['mode'] = json_encode($validated['mode']);
         }
 
-
-
         if (isset($validated['station_id'])) {
             if (is_array($validated['station_id'])) {
                 $validated['station_id'] = implode(',', $validated['station_id']);
@@ -178,8 +176,19 @@ class CustomMenuController extends Controller
             $customMenu->name_ar = $validated['name_ar'];
             $customMenu->name_en = $validated['name_en'];
             $customMenu->application_type = $validated['application_type'];
-            $customMenu->mode = $validated['mode'];
-            $customMenu->station_id = $validated['station_id'];
+            if ($validated['application_type'] == 3 || $validated['application_type'] == 1 && $validated['application_type'] == 2) {
+                $customMenu->mode = null;
+            }
+            if ($validated['application_type'] != 3 || $validated['application_type'] == 1 && $validated['application_type'] == 2) {
+                $customMenu->station_id = null;
+            }
+            if ($validated['application_type'] == 0) {
+                $customMenu->mode = $validated['mode'];
+            }
+            if ($validated['application_type'] == 3) {
+                $customMenu->station_id = $validated['station_id'];
+            }
+
             $customMenu->active = $validated['active'];
             //try {
             DB::transaction(function () use ($customMenu, $request) {
@@ -231,6 +240,16 @@ class CustomMenuController extends Controller
     public function edit($id)
     {
         $custommenu = CustomMenu::with('establishments')->find($id);
+        if (isset($custommenu->application_type)) {
+            $custommenu->application_type = (string) $custommenu->application_type;
+        }
+
+        if (!empty($custommenu->mode)) {
+            $custommenu->mode = json_decode($custommenu->mode)[0];
+        }
+        if (!empty($custommenu->station_id)) {
+            $custommenu->station_id = $custommenu->station_id;
+        }
         $custommenu->dates = $custommenu->dates;
         foreach ($custommenu->dates as $d) {
             $d->times = $d->times;
