@@ -28,7 +28,7 @@ return [
     'modifiers' => 'المتغيرات',
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
-    'attribute' => 'المعاملات',
+    'attribute' => 'خصائص المنتجات',
     'employees_working_hours' => 'دوام الموظفين',
     'timesheet_rule' => 'إعدادات الجدولة',
     'shift_schedule' => 'جداول العمل',
@@ -121,6 +121,6 @@ return [
     'account-receivable-ageing-report' => 'تحليل تقادم الحسابات المدينة',
     'account-payable-ageing-report' => 'تحليل تقادم الحسابات الدائنة',
     'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
-'account-payable-ageing-details' =>'تقرير أعمار الذمم الدائنة',
+    'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
 
 ];

@@ -16,27 +16,25 @@ class AttributeController extends Controller
      */
     public function index()
     {
-        return view('product::attribute.index' ); 
-
+        return view('product::attribute.index');
     }
 
     public function getProductMatrix($id)
     {
-      $product_att = Product_Attribute::where('product_id', $id)->get();
+        $product_att = Product_Attribute::where('product_id', $id)->get();
 
-      foreach($product_att as $att)
-       {
-            $att->load(['attribute1','attribute2']);
-    
-           /* 
+        foreach ($product_att as $att) {
+            $att->load(['attribute1', 'attribute2']);
+
+            /* 
              if(isset($att->attribute1))
              $att->attribute1->load('attributeClass');
                   
             if(isset($att->attribute2))
              $att->attribute2->load('attributeClass');
             */
-       }
-      return $product_att;
+        }
+        return $product_att;
     }
 
     public function store(Request $request)
@@ -47,75 +45,78 @@ class AttributeController extends Controller
             'name_en' => 'required|string',
             'parent_id' => 'required|numeric',
             'active' => 'nullable|boolean',
-            'order' => 'nullable|numeric',
             'method' => 'nullable|string'
         ]);
 
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
-            $Attribute = Attribute::find($validated['id']); 
-            $Attribute->delete();
-            return response()->json(["message"=>"Done"]);
+        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+            $attribute = Attribute::find($validated['id']);
+            if ($attribute) {
+                $attribute->delete();
+                return response()->json(["message" => "Done"]);
+            }
+            return response()->json(["message" => "NOT_FOUND"], 404);
         }
-        else if(!isset($validated['id']))
-        {
-            $Attribute = Attribute::where([['parent_id', '=', $validated['parent_id']],
-                                        ['order', '=', $validated['order']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $Attribute = Attribute::where([['parent_id', '=', $validated['parent_id']],
-                                        ['name_ar', '=', $validated['name_ar']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $Attribute = Attribute::where([['parent_id', '=', $validated['parent_id']],
-                                        ['name_en', '=', $validated['name_en']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
-                Attribute::create($validated);
-        }
-        else
-        {
-            //dd($validated['id'].' '.$validated['class_id'].' '.$validated['name_ar']);
-            $Attribute = Attribute::where([
-                ['id', '!=', $validated['id']],
-                ['parent_id', '=', $validated['parent_id']],
-                ['order', '=', $validated['order']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
-            $Attribute = Attribute::where([
-                ['id', '!=', $validated['id']],
-                ['parent_id', '=', $validated['parent_id']],
-                ['name_ar', '=', $validated['name_ar']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
-            $Attribute = Attribute::where([
-                ['id', '!=', $validated['id']],
-                ['parent_id', '=', $validated['parent_id']],
-                ['name_en', '=', $validated['name_en']]])->first();
-            if($Attribute != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
 
-            $Attribute = Attribute::find($validated['id']);
-            $Attribute->name_ar  = $validated['name_ar'];
-            $Attribute->name_en  = $validated['name_en'];
-            $Attribute->cost     = $validated['cost'];
-            $Attribute->price    = $validated['price'];
-            $Attribute->active   = $validated['active'];
-            $Attribute->order   = $validated['order'];
-            $Attribute->save();
+        if (!isset($validated['id'])) {
+            $validated['order'] = Attribute::where('parent_id', $validated['parent_id'])->max('order') + 1;
+            if (Attribute::where([
+                ['parent_id', '=', $validated['parent_id']],
+                ['order', '=', $validated['order']]
+            ])->first())
+                return response()->json(["message" => "ORDER_EXIST"]);
+
+            if (Attribute::where([
+                ['parent_id', '=', $validated['parent_id']],
+                ['name_ar', '=', $validated['name_ar']]
+            ])->first())
+                return response()->json(["message" => "NAME_AR_EXIST"]);
+
+            if (Attribute::where([
+                ['parent_id', '=', $validated['parent_id']],
+                ['name_en', '=', $validated['name_en']]
+            ])->first())
+                return response()->json(["message" => "NAME_EN_EXIST"]);
+
+            Attribute::create($validated);
+        } else {
+            $attribute = Attribute::find($validated['id']);
+            if (!$attribute) {
+                return response()->json(["message" => "NOT_FOUND"], 404);
+            }
+
+            if (Attribute::where([
+                ['id', '!=', $validated['id']],
+                ['parent_id', '=', $validated['parent_id']],
+                ['name_ar', '=', $validated['name_ar']]
+            ])->first())
+                return response()->json(["message" => "NAME_AR_EXIST"]);
+
+            if (Attribute::where([
+                ['id', '!=', $validated['id']],
+                ['parent_id', '=', $validated['parent_id']],
+                ['name_en', '=', $validated['name_en']]
+            ])->first())
+                return response()->json(["message" => "NAME_EN_EXIST"]);
+            $attribute->name_ar = $validated['name_ar'];
+            $attribute->name_en = $validated['name_en'];
+            $attribute->cost = $validated['cost'] ?? $attribute->cost;
+            $attribute->price = $validated['price'] ?? $attribute->price;
+            $attribute->active = $validated['active'];
+            $attribute->save();
         }
-        return response()->json(["message"=>"Done"]);
+
+        return response()->json(["message" => "Done"]);
     }
 
-    
+
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit($id)
     {
-         $product  = Modifier::find($id);
-         return view('product::product.edit', compact('product'));
+        $product  = Modifier::find($id);
+        return view('product::product.edit', compact('product'));
     }
 
     /**
