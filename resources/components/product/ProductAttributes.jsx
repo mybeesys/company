@@ -43,9 +43,38 @@ const ProductAttribute = ({
         event.preventDefault();
         setshowConfirmation(false);
     };
+    const generateSKU = () => {
+        const randomNum = Math.floor(Math.random() * 100000);
+        return String(randomNum).padStart(5, "0");
+    };
+    const generateUPCA = () => {
+        let data = "";
+        for (let i = 0; i < 11; i++) {
+            data += Math.floor(Math.random() * 10).toString();
+        }
+        let oddSum = 0;
+        let evenSum = 0;
 
+        for (let i = 0; i < 11; i++) {
+            if (i % 2 === 0) {
+                oddSum += parseInt(data[i]);
+            } else {
+                evenSum += parseInt(data[i]);
+            }
+        }
+
+        const total = oddSum * 3 + evenSum;
+        const checkDigit = (10 - (total % 10)) % 10;
+
+        return data + checkDigit;
+    };
     const findChildrenById = (ids) => {
         const children = [];
+        if (!Array.isArray(ids)) {
+            console.error("Expected 'ids' to be an array");
+            return children;
+        }
+
         ids.forEach((id) => {
             const item = AttributesTree.find((item) => item.data.id === id);
             if (item && item.children) {
@@ -54,7 +83,6 @@ const ProductAttribute = ({
         });
         return children;
     };
-
     const onConfirm = (evt) => {
         evt.preventDefault();
         var newMstrix = [];
@@ -127,12 +155,12 @@ const ProductAttribute = ({
                             parent_id: attributeClass1Ids,
                             id: element1.data.id,
                         },
-                        price: autoObject.price ? product.price : 0,
-                        barcode: autoObject.barcode ? product.barcode : "",
-                        SKU: autoObject.SKU ? product.SKU : "",
-                        starting: autoObject.startingCheck
+                        price: autoObject.price ? product.price_with_tax : 0,
+                        barcode: autoObject.barcode ? generateUPCA() : "",
+                        SKU: autoObject.SKU ? generateSKU() : "",
+                        /* starting: autoObject.startingCheck
                             ? autoObject.starting
-                            : 0,
+                            : 0, */
                         id: id + 1,
                     };
 
@@ -402,7 +430,7 @@ const ProductAttribute = ({
                                 key: "name_ar",
                                 autoFocus: true,
                                 type: "Text",
-                                width: "25%",
+                                width: "30%",
                                 editable: true,
                                 required: true,
                             },
@@ -410,7 +438,7 @@ const ProductAttribute = ({
                                 key: "name_en",
                                 autoFocus: true,
                                 type: "Text",
-                                width: "20%",
+                                width: "25%",
                                 editable: true,
                                 required: true,
                             },
@@ -418,7 +446,7 @@ const ProductAttribute = ({
                                 key: "price",
                                 autoFocus: true,
                                 type: "Decimal",
-                                width: "15%",
+                                width: "30%",
                                 editable: true,
                                 required: true,
                             },
@@ -426,7 +454,7 @@ const ProductAttribute = ({
                                 key: "barcode",
                                 autoFocus: true,
                                 type: "Text",
-                                width: "20%",
+                                width: "25%",
                                 editable: true,
                                 required: false,
                             },
@@ -434,7 +462,7 @@ const ProductAttribute = ({
                                 key: "SKU",
                                 autoFocus: true,
                                 type: "Text",
-                                width: "10%",
+                                width: "25%",
                                 editable: true,
                                 required: false,
                             },
