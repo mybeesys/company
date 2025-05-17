@@ -754,8 +754,8 @@ class ProductController extends Controller
         foreach ($product->attributes as $attr) {
             $attr->attribute1Name_en = $attr->attribute1->name_en;
             $attr->attribute1Name_ar = $attr->attribute1->name_ar;
-            $attr->attribute2Name_en = $attr->attribute2->name_en;
-            $attr->attribute2Name_ar = $attr->attribute2->name_ar;
+            $attr->attribute2Name_en = $attr->attribute2 && $attr->attribute2->name_en ? $attr->attribute2->name_en : "";
+            $attr->attribute2Name_ar = $attr->attribute2 && $attr->attribute2->name_ar ? $attr->attribute2->name_ar : "";
         }
         $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
