@@ -147,11 +147,13 @@ const ProductAttribute = ({
             Children1.forEach((element1) => {
                 if (element1.data.empty !== "Y") {
                     let newObject = {
-                        name_ar: element1.data.name_ar,
-                        name_en: element1.data.name_en,
+                        name_ar: product.name_ar + " " + element1.data.name_ar,
+                        name_en: product.name_en + " " + element1.data.name_en,
                         attribute1: {
-                            name_ar: element1.data.name_ar,
-                            name_en: element1.data.name_en,
+                            name_ar:
+                                product.name_ar + " " + element1.data.name_ar,
+                            name_en:
+                                product.name_en + " " + element1.data.name_en,
                             parent_id: attributeClass1Ids,
                             id: element1.data.id,
                         },
