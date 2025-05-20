@@ -568,7 +568,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                 renderTextCell(node, "name_en", true)
                             }
                             sortable
-                            expander
                             onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column
