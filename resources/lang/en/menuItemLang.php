@@ -25,7 +25,7 @@ return [
     'employees-dashboard' => 'Employees dashboard',
     'pos_permissions' => 'POS permissions',
     'dashboard_permissions' => 'Dashboard permissions',
-    'modifiers' => 'Modifiers',
+    'modifiers' => 'Add-ons',
     'pos_roles' => 'POS roles',
     'dashboard_roles' => 'Dashboard roles',
     'attribute' => 'Products Features',

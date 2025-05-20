@@ -20,13 +20,11 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
     const [expandedKeys, setExpandedKeys] = useState([]);
-
     const [globalFilter, setGlobalFilter] = useState(null);
     const [filterOptions] = useState([
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
-
     const expandAll = () => {
         const allKeys = getExpandedKeys(nodes);
         setExpandedKeys(allKeys);
@@ -219,7 +217,14 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         else return findNodeByKey(nodes, parentKey);
     };
 
-    const addInline = (key, type, parentKeyName, type1, parentKeyName1) => {
+    const addInline = (
+        key,
+        type,
+        parentKeyName,
+        type1,
+        parentKeyName1,
+        isNew = false
+    ) => {
         let parentNode = getParentNode(key);
         let node = findNodeByKey(nodes, key);
         key = key.toString();
@@ -249,6 +254,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 type1: type1,
                 parentKey1: parentKeyName1,
                 empty: "Y",
+                isNew: isNew,
             },
         };
         if (!!!parentKey) nodes.push(newNode);
@@ -263,37 +269,36 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const renderTextCell = (node, key, autoFocus) => {
         let indent = node.key.toString().split("-").length;
-        if (key == "name_en") {
-            indent = indent + 1;
-        }
-        if (key == "name_en" && !!node.data.empty) {
+        if (key == "name_ar" && !!node.data.empty) {
             return (
                 <a
                     href="javascript:void(0);"
-                    onClick={(e) =>
+                    onClick={(e) => {
                         addInline(
                             node.key,
                             node.data.type,
                             node.data.parentKey,
                             node.data.type1,
-                            node.data.parentKey1
-                        )
-                    }
+                            node.data.parentKey1,
+                            true
+                        );
+                    }}
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
             );
         } else if (key == "name_ar" && !!node.data.empty && !!node.data.type1) {
             return (
                 <a
                     href="javascript:void(0);"
-                    onClick={(e) =>
+                    onClick={(e) => {
                         addInline(
                             node.key,
+                            node.data.type,
+                            node.data.parentKey,
                             node.data.type1,
                             node.data.parentKey1,
-                            node.data.type,
-                            node.data.parentKey
-                        )
-                    }
+                            true
+                        );
+                    }}
                 >{`${translations.Add} ${translations[node.data.type1]}`}</a>
             );
         } else {
@@ -428,13 +433,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                <a
-                    href="javascript:void(0);"
-                    onClick={() => openDeleteModel(data)}
-                    class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                >
-                    <i class="ki-outline ki-trash fs-2"></i>
-                </a>
+                {!data.isNew && data.id && (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={() => openDeleteModel(data)}
+                        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                    >
+                        <i className="ki-outline ki-trash fs-2"></i>
+                    </a>
+                )}
                 <button
                     id="btnSubmit"
                     type="submit"
@@ -449,7 +456,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const openAddCategory = () => {
         window.location.href = productCrudList + "/create";
     };
-
     const handleSearch = (value) => {
         setGlobalFilter(value);
         if (value) {
@@ -542,6 +548,17 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         sortMode="multiple"
                     >
                         <Column
+                            field="name_ar"
+                            filter
+                            filterPlaceholder={translations.name_ar}
+                            header={translations.name_ar}
+                            style={{ width: "20%" }}
+                            body={(node) => renderTextCell(node, "name_ar")}
+                            sortable
+                            expander
+                            onFilter={(e) => handleSearch(e.value)}
+                        ></Column>
+                        <Column
                             field="name_en"
                             filter
                             filterPlaceholder={translations.name_en}
@@ -552,15 +569,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             }
                             sortable
                             expander
-                        ></Column>
-                        <Column
-                            field="name_ar"
-                            filter
-                            filterPlaceholder={translations.name_ar}
-                            header={translations.name_ar}
-                            style={{ width: "20%" }}
-                            body={(node) => renderTextCell(node, "name_ar")}
-                            sortable
+                            onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column
                             header={translations.price}
