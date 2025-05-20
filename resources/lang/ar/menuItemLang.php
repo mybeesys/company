@@ -25,7 +25,7 @@ return [
     'employees-dashboard' => 'لوحة تحكم الموظفين',
     'pos_permissions' => 'أذونات نقاط البيع',
     'dashboard_permissions' => 'أذونات لوحة التحكم',
-    'modifiers' => 'المتغيرات',
+    'modifiers' => 'الإضافات',
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
     'attribute' => 'خصائص المنتجات',

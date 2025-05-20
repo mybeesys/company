@@ -188,7 +188,7 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
 
     const renderTextCell = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
-        if (key == "name_en" && !!node.data.empty) {
+        if (key == "name_ar" && !!node.data.empty) {
             return (
                 <a
                     href="#"
@@ -328,13 +328,15 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                <a
-                    href="#"
-                    onClick={() => openDeleteModel(data)}
-                    class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                >
-                    <i class="ki-outline ki-trash fs-2"></i>
-                </a>
+                {data.id && (
+                    <a
+                        href="#"
+                        onClick={() => openDeleteModel(data)}
+                        class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                    >
+                        <i class="ki-outline ki-trash fs-2"></i>
+                    </a>
+                )}
                 <button
                     id="btnSubmit"
                     type="submit"
@@ -383,6 +385,12 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                         className={"custom-tree-table"}
                     >
                         <Column
+                            header={translations.name_ar}
+                            style={{ width: "20%" }}
+                            body={(node) => renderTextCell(node, "name_ar")}
+                            sortable
+                        ></Column>
+                        <Column
                             header={translations.name_en}
                             style={{ width: "20%" }}
                             body={(node) =>
@@ -390,12 +398,6 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                             }
                             sortable
                             expander
-                        ></Column>
-                        <Column
-                            header={translations.name_ar}
-                            style={{ width: "20%" }}
-                            body={(node) => renderTextCell(node, "name_ar")}
-                            sortable
                         ></Column>
                         <Column
                             header={translations.order}

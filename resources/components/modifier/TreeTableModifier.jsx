@@ -209,7 +209,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         else return findNodeByKey(nodes, parentKey);
     };
 
-    const addInline = (key, type, parentKeyName) => {
+    const addInline = (key, type, parentKeyName, isNew = false) => {
         let node = findNodeByKey(nodes, key);
         key = key.toString();
         let seg = key.split("-");
@@ -225,7 +225,12 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             key: !!!parentKey
                 ? Number(seg[0]) + 1
                 : parentKey + "-" + (Number(seg[seg.length - 1]) + 1),
-            data: { type: type, parentKey: parentKeyName, empty: "Y" },
+            data: {
+                type: type,
+                parentKey: parentKeyName,
+                empty: "Y",
+                isNew: isNew,
+            },
         };
         if (!!!parentKey) nodes.push(newNode);
         else {
@@ -242,12 +247,17 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         if (key == "name_en") {
             indent = indent + 1;
         }
-        if (key == "name_en" && !!node.data.empty) {
+        if (key == "name_ar" && !!node.data.empty) {
             return (
                 <a
                     href="javascript:void(0);"
                     onClick={(e) =>
-                        addInline(node.key, node.data.type, node.data.parentKey)
+                        addInline(
+                            node.key,
+                            node.data.type,
+                            node.data.parentKey,
+                            true
+                        )
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
             );
@@ -403,13 +413,15 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                <a
-                    href="javascript:void(0);"
-                    onClick={() => openDeleteModel(data)}
-                    class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                >
-                    <i class="ki-outline ki-trash fs-2"></i>
-                </a>
+                {!data.isNew && data.id && (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={() => openDeleteModel(data)}
+                        class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                    >
+                        <i class="ki-outline ki-trash fs-2"></i>
+                    </a>
+                )}
                 <button
                     id="btnSubmit"
                     type="submit"
@@ -511,6 +523,15 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         header={header}
                     >
                         <Column
+                            field="name_ar"
+                            header={translations.name_ar}
+                            filter
+                            filterPlaceholder={translations.name_ar}
+                            style={{ width: "20%" }}
+                            body={(node) => renderTextCell(node, "name_ar")}
+                            sortable
+                        ></Column>
+                        <Column
                             field="name_en"
                             header={translations.name_en}
                             filter
@@ -521,26 +542,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             }
                             sortable
                             expander
-                        ></Column>
-                        <Column
-                            field="name_ar"
-                            header={translations.name_ar}
-                            filter
-                            filterPlaceholder={translations.name_ar}
-                            style={{ width: "20%" }}
-                            body={(node) => renderTextCell(node, "name_ar")}
-                            sortable
-                        ></Column>
-                        <Column
-                            header={translations.price}
-                            style={{ width: "10%" }}
-                            body={(node) =>
-                                node.data.type == "modifier" ? (
-                                    renderDecimalCell(node, "price")
-                                ) : (
-                                    <></>
-                                )
-                            }
                         ></Column>
                         <Column
                             header={translations.cost}
@@ -554,16 +555,11 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             }
                         ></Column>
                         <Column
-                            header={translations.tax}
+                            header={translations.price}
                             style={{ width: "10%" }}
                             body={(node) =>
                                 node.data.type == "modifier" ? (
-                                    renderDropDownCell(
-                                        node,
-                                        "tax_id",
-                                        false,
-                                        taxOptions
-                                    )
+                                    renderDecimalCell(node, "price")
                                 ) : (
                                     <></>
                                 )
