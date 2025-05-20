@@ -389,6 +389,7 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                             style={{ width: "20%" }}
                             body={(node) => renderTextCell(node, "name_ar")}
                             sortable
+                            expander
                         ></Column>
                         <Column
                             header={translations.name_en}
@@ -397,7 +398,7 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                                 renderTextCell(node, "name_en", true)
                             }
                             sortable
-                            expander
+                            
                         ></Column>
                         <Column
                             header={translations.order}
