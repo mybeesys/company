@@ -11,7 +11,7 @@ return [
     'Inventory' => 'Inventory',
     'Fixed Assets' => 'Fixed Assets',
     'Equipment' => 'Equipment',
-    'analytical_accounts'=>'Analytical accounts',
+    'analytical_accounts' => 'Analytical accounts',
 
     'Buildings' => 'Buildings',
     'Current Liabilities' => 'Current Liabilities',
@@ -297,6 +297,8 @@ return [
         'equity' => 'Equity',
         'income' => 'Income',
         'expenses' => 'Expenses',
+        'analytical_accounts' => 'Analytical Accounts'
+
     ],
 
 

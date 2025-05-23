@@ -164,7 +164,7 @@ class GeneralTreeAccUtil
                 'account_primary_type' => 'expenses',
                 'parent_id' => null
             ],
-              [
+            [
                 'name_en' => 'Analytical accounts',
                 'name_ar' => 'الحسابات التحليلية',
                 'gl_code' => '61',
@@ -383,7 +383,7 @@ class GeneralTreeAccUtil
                 'name_ar' => 'القروض طويلة الأجل',
                 'account_primary_type' => 'liabilities',
                 'account_type' => 'Long_term_liabilities',
-                'account_sub_type_id' => $current_liabilities_id,
+                'account_sub_type_id' => $Long_Term_Liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '221',
                 'status' => 'active',
@@ -391,12 +391,12 @@ class GeneralTreeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-             [
+            [
                 'name_en' => 'Owner’s Payables',
                 'name_ar' => 'السلف الدائنة من المالك',
                 'account_primary_type' => 'liabilities',
                 'account_type' => 'Long_term_liabilities',
-                'account_sub_type_id' => $current_liabilities_id,
+                'account_sub_type_id' => $Long_Term_Liabilities_id,
                 'detail_type_id' => null,
                 'gl_code' => '222',
                 'status' => 'active',
@@ -447,7 +447,7 @@ class GeneralTreeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-             [
+            [
                 'name_en' => 'Net Profit / Loss',
                 'name_ar' => 'صافي الربح / الخسارة',
                 'account_primary_type' => 'equity',
@@ -540,7 +540,7 @@ class GeneralTreeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-             [
+            [
                 'name_en' => 'Purchases',
                 'name_ar' => 'مشتريات',
                 'account_primary_type' => 'expenses',
@@ -658,7 +658,7 @@ class GeneralTreeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-[
+            [
                 'name_en' => 'Sales Returns',
                 'name_ar' => 'مردودات مبيعات',
                 'account_primary_type' => 'income',

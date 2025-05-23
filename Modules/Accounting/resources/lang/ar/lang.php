@@ -285,6 +285,7 @@ return [
         'equity' => 'حقوق الملكية',
         'income' => 'الإيرادات',
         'expenses' => 'المصروفات',
+        'analytical_accounts'=>'حسابات تحليلية'
     ],
 
 
