@@ -677,6 +677,7 @@ class AccountingUtil
             'equity' => __('accounting::lang.account_types.equity'),
             'income' => __('accounting::lang.account_types.income'),
             'expenses' => __('accounting::lang.account_types.expenses'),
+            'analytical_accounts'=> __('accounting::lang.account_types.analytical_accounts'),
         ];
     }
 
