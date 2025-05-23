@@ -29,4 +29,20 @@ class AccountingAccountTypes extends Model
 
         return $accounting_primary_type;
     }
+
+
+    public static function contractors_accounting_primary_type()
+    {
+        $accounting_primary_type = [
+            'asset' => ['label' => __('accounting::lang.asset'), 'GLC' => 1, 'color' => '#006ae6'],
+            'liabilities' => ['label' => __('accounting::lang.liabilities'), 'GLC' => 2, 'color' => '#00a261'],
+            'equity' => ['label' => __('accounting::lang.equity'), 'GLC' => 3, 'color' => '#e42855'],
+            'income' => ['label' => __('accounting::lang.income'), 'GLC' => 4, 'color' => '#c59a00'],
+            'expenses' => ['label' => __('accounting::lang.expenses'), 'GLC' => 5, 'color' => '#7239ea'],
+            'analytical_accounts' => ['label' => __('accounting::lang.analytical_accounts'), 'GLC' => 6, 'color' => '#7239ea'],
+
+        ];
+
+        return $accounting_primary_type;
+    }
 }

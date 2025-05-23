@@ -11,6 +11,7 @@ return [
     'Inventory' => 'المخزون',
     'Fixed Assets' => 'الأصول الثابتة',
     'Equipment' => 'المعدات',
+    'analytical_accounts'=>'الحسابات التحليلية',
     'Buildings' => 'المباني',
     'Current Liabilities' => 'الالتزامات المتداولة',
     'Accounts Payable' => 'الحسابات المستحقة الدفع',

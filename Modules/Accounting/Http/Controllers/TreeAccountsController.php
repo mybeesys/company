@@ -14,6 +14,11 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\ContractorsAccUtil;
+use Modules\Accounting\Utils\E_commerceAccUtil;
+use Modules\Accounting\Utils\GeneralTreeAccUtil;
+use Modules\Accounting\Utils\RestaurantCafeAccUtil;
+use Modules\Accounting\Utils\ServicesAccUtil;
 use Mpdf\Mpdf;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
@@ -83,20 +88,45 @@ class TreeAccountsController extends Controller
 
     public function createDefaultAccounts()
     {
-        $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
-        $accountingAccountType = AccountingAccountTypes::all();
-        if (count($accountingAccountType) == 0) {
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
+        $business_type = $company->business_type ?? 'general';
+
+        $utils = [
+            "contractors" => ContractorsAccUtil::class,
+            "e-commerce" => E_commerceAccUtil::class,
+            "restaurant-cafe" => RestaurantCafeAccUtil::class,
+            "services" => ServicesAccUtil::class,
+            "general" => GeneralTreeAccUtil::class,
+        ];
+
+        $utilClass = $utils[$business_type] ?? $utils['general'];
+
+        $default_accounting_account_types = $utilClass::default_accounting_account_types();
+        if (AccountingAccountTypes::count() === 0) {
             AccountingAccountTypes::insert($default_accounting_account_types);
         }
 
-        $default_accounts = AccountingUtil::Default_Accounts();
-
-
+        $default_accounts = $utilClass::Default_Accounts();
         if (AccountingAccount::doesntExist()) {
             AccountingAccount::insert($default_accounts);
         }
 
-        AccountingUtil::default_accounting_route();
+        $utilClass::default_accounting_route();
+
+        // $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
+        // $accountingAccountType = AccountingAccountTypes::all();
+        // if (count($accountingAccountType) == 0) {
+        //     AccountingAccountTypes::insert($default_accounting_account_types);
+        // }
+        // $default_accounts = AccountingUtil::Default_Accounts();
+        // if (AccountingAccount::doesntExist()) {
+        //     AccountingAccount::insert($default_accounts);
+        // }
+        // AccountingUtil::default_accounting_route();
+
+
+
         //redirect back
         $output = [
             'success' => 1,
