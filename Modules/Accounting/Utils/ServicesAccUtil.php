@@ -1,0 +1,623 @@
+<?php
+
+namespace Modules\Accounting\Utils;
+
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccountTypes;
+use Modules\Accounting\Models\AccountsRoting;
+
+class ServicesAccUtil
+{
+
+     public static function default_accounting_route()
+    {
+        $vat_acc = AccountingAccount::where('gl_code', '213')->first();
+        $purchases_acc = AccountingAccount::where('gl_code', '517')->first();
+        $sales_acc = AccountingAccount::where('gl_code', '411')->first();
+        $discount_acc = AccountingAccount::where('gl_code', '421')->first();
+
+        AccountsRoting::truncate();
+
+        $data = [
+            [
+                'type' => 'sales_vat_calculation',
+                'section' => 'sales',
+                'routing_type' => 'liability',
+                'account_id' => $vat_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_purchase',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $purchases_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_vat_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'liability',
+                'account_id' => $vat_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'sales_sales',
+                'section' => 'sales',
+                'routing_type' => 'revenue',
+                'account_id' => $sales_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'sales_discount_calculation',
+                'section' => 'sales',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_discount_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        AccountsRoting::insert($data);
+    }
+
+    public static function default_accounting_account_types()
+    {
+        return  $account_sub_types = [
+            [
+                'name_en' => 'Current Assets',
+                'name_ar' => 'الأصول المتداولة',
+                'gl_code' => '11',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'asset',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Fixed Assets',
+                'name_ar' => 'الأصول الثابتة',
+                'gl_code' => '12',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'asset',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Current Liabilities',
+                'name_ar' => 'الالتزامات المتداولة',
+                'gl_code' => '21',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'liabilities',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Liabilities',
+                'name_ar' => 'الالتزامات',
+                'gl_code' => '22',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'liabilities',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Equity',
+                'name_ar' => 'حقوق الملكية',
+                'gl_code' => '31',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'equity',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Service Revenues',
+                'name_ar' => 'إيرادات الخدمات',
+                'gl_code' => '41',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'income',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Revenues',
+                'name_ar' => 'الإيرادات',
+                'gl_code' => '42',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'income',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Operating Expenses',
+                'name_ar' => 'مصاريف التشغيل',
+                'gl_code' => '51',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'expenses',
+                'parent_id' => null
+            ],
+            [
+                'name_en' => 'Analytical accounts',
+                'name_ar' => 'الحسابات التحليلية',
+                'gl_code' => '61',
+                'show_balance' => 1,
+                'account_type' => 'sub_type',
+                'account_primary_type' => 'analytical_accounts',
+                'parent_id' => null
+            ],
+
+
+
+
+
+
+        ];
+    }
+
+    public static function Default_Accounts()
+    {
+        $user_id = Auth::user()->id;
+
+        $current_assets_id = AccountingAccountTypes::where('name_en', 'Current Assets')->first()->id;
+        $fixed_assets_id = AccountingAccountTypes::where('name_en', 'Fixed Assets')->first()->id;
+        $current_liabilities_id = AccountingAccountTypes::where('name_en', 'Current Liabilities')->first()->id;
+        $liabilities_id = AccountingAccountTypes::where('name_en', 'Liabilities')->first()->id;
+
+        $Equity_id = AccountingAccountTypes::where('name_en', 'Equity')->first()->id;
+        $service_revenues_id = AccountingAccountTypes::where('name_en', 'Service Revenues')->first()->id;
+        $Revenues_id = AccountingAccountTypes::where('name_en', 'Revenues')->first()->id;
+        // $Expenses_id = AccountingAccountTypes::where('name_en', 'Expenses')->first()->id;
+        $OperatingExpenses_id = AccountingAccountTypes::where('name_en', 'Operating Expenses')->first()->id;
+        $Analytical_accounts_id = AccountingAccountTypes::where('name_en', 'Analytical accounts')->first()->id;
+
+
+        return [
+            [
+                'name_en' => 'Office and IT Equipment',
+                'name_ar' => 'أجهزة مكتبية وتقنية',
+                'account_primary_type' => 'asset',
+                'account_type' => 'fixed_assets',
+                'account_sub_type_id' => $fixed_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '111',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Office Furniture and Fixtures',
+                'name_ar' => 'أثاث وتجهيزات مكتبية',
+                'account_primary_type' => 'asset',
+                'account_type' => 'fixed_assets',
+                'account_sub_type_id' => $fixed_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '112',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Licensed Software and Applications',
+                'name_ar' => 'برمجيات وتطبيقات مرخصة',
+                'account_primary_type' => 'asset',
+                'account_type' => 'fixed_assets',
+                'account_sub_type_id' => $fixed_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '113',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            //-----------
+            [
+                'name_en' => 'Cash on Hand',
+                'name_ar' => 'الصندوق',
+                'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
+                'account_sub_type_id' => $current_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '121',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Bank Accounts',
+                'name_ar' => 'الحسابات البنكية',
+                'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
+                'account_sub_type_id' => $current_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '122',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Accounts Receivable (Customers)',
+                'name_ar' => 'ذمم مدينة (عملاء)',
+                'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
+                'account_sub_type_id' => $current_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '123',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Prepaid Expenses',
+                'name_ar' => 'مصاريف مدفوعة مقدماً',
+                'account_primary_type' => 'asset',
+                'account_type' => 'current_assets',
+                'account_sub_type_id' => $current_assets_id,
+                'detail_type_id' => null,
+                'gl_code' => '124',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            //----------
+            [
+                'name_en' => 'Accounts Payable – Services and Supplies',
+                'name_ar' => 'موردون خدمات وأدوات',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
+                'account_sub_type_id' => $current_liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '211',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Accrued Salaries',
+                'name_ar' => 'رواتب مستحقة',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
+                'account_sub_type_id' => $current_liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '212',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Taxes and Zakat Payable',
+                'name_ar' => 'ضرائب وزكاة',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
+                'account_sub_type_id' => $current_liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '213',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'External Contractual Obligations',
+                'name_ar' => 'التزامات عقود خارجية',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
+                'account_sub_type_id' => $current_liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '214',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Long-term Loans',
+                'name_ar' => 'قروض طويلة الأجل',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'liabilities',
+                'account_sub_type_id' => $liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '221',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            //------------------
+            [
+                'name_en' => 'Capital',
+                'name_ar' => 'رأس المال',
+                'account_primary_type' => 'equity',
+                'account_type' => 'equity',
+                'account_sub_type_id' => $Equity_id,
+                'detail_type_id' => null,
+                'gl_code' => '311',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+            [
+                'name_en' => 'Owner’s/Partners’ Equity Account',
+                'name_ar' => 'حساب المالك/الشركاء',
+                'account_primary_type' => 'equity',
+                'account_type' => 'equity',
+                'account_sub_type_id' => $Equity_id,
+                'detail_type_id' => null,
+                'gl_code' => '312',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+            [
+                'name_en' => 'Retained Earnings',
+                'name_ar' => 'الأرباح المحتجزة',
+                'account_primary_type' => 'equity',
+                'account_type' => 'equity',
+                'account_sub_type_id' => $Equity_id,
+                'detail_type_id' => null,
+                'gl_code' => '313',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+
+            [
+                'name_en' => 'Net Profit / Loss',
+                'name_ar' => 'صافي الربح / الخسارة',
+                'account_primary_type' => 'equity',
+                'account_type' => 'equity',
+                'account_sub_type_id' => $Equity_id,
+                'detail_type_id' => null,
+                'gl_code' => '314',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+            //-------------
+            [
+                'name_en' => 'Salaries and Wages',
+                'name_ar' => 'رواتب وأجور',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '511',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Office Rent',
+                'name_ar' => 'إيجار مكتبي',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '512',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Software and Tools',
+                'name_ar' => 'برمجيات وأدوات',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '513',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Communication and Internet',
+                'name_ar' => 'اتصالات وإنترنت',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '514',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Travel and Transportation',
+                'name_ar' => 'سفر وتنقل',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '515',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Marketing and Advertising Expenses',
+                'name_ar' => 'مصاريف تسويق وإعلانات',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '516',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Consulting or Outsourced Services',
+                'name_ar' => 'مصاريف استشارية أو عقود خارجية',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '517',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Depreciation of Assets',
+                'name_ar' => 'إهلاك الأصول',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $OperatingExpenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '518',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Consulting Services',
+                'name_ar' => 'استشارات',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $service_revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '411',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Design and Development Services',
+                'name_ar' => 'تصميم وتطوير',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $service_revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '412',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => ' Recurring Subscriptions / SaaS Revenue',
+                'name_ar' => 'اشتراكات دورية / SaaS',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $service_revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '413',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Training and Courses',
+                'name_ar' => 'دورات وتدريب',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $service_revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '414',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Implementation Services (Projects)',
+                'name_ar' => 'خدمات تنفيذية (مشاريع)',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $service_revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '415',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Discounts / Adjustments',
+                'name_ar' => 'خصومات / تسويات',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $Revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '421',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+            [
+                'name_en' => 'Service Returns',
+                'name_ar' => 'مردودات خدمات',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $Revenues_id,
+                'detail_type_id' => null,
+                'gl_code' => '422',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
+            [
+                'name_en' => 'Analytical accounts',
+                'name_ar' => 'الحسابات التحليلية',
+                'account_primary_type' => 'analytical_accounts',
+                'account_type' => 'analytical_accounts',
+                'account_sub_type_id' => $Analytical_accounts_id,
+                'detail_type_id' => null,
+                'gl_code' => '611',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+        ];
+    }
+}

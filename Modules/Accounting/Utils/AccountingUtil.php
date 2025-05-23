@@ -307,7 +307,7 @@ class AccountingUtil
             ],
             [
                 'name_en' => 'Current Liabilities',
-                'name_ar' => 'الخصوم المتداولة',
+                'name_ar' => 'الالتزامات المتداولة',
                 'gl_code' => '21',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
@@ -316,7 +316,7 @@ class AccountingUtil
             ],
             [
                 'name_en' => 'Long-Term Liabilities',
-                'name_ar' => 'الخصوم طويلة الأجل',
+                'name_ar' => 'الالتزامات طويلة الأجل',
                 'gl_code' => '22',
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
