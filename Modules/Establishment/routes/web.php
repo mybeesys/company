@@ -46,7 +46,7 @@ Route::middleware([
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
     Route::get('/devices', [DeviceController::class, 'index'])->name('devices.index');
-    Route::post('/devices/store', [DeviceController::class, 'store'])->name('devices.store');
+    Route::post('/devices/store', [DeviceController::class, 'store'])->name('device.store');
     Route::get('/establishment', [DeviceController::class, 'getEstablishment'])->name('devices.establishment');
     Route::delete('/devices/{id}', [DeviceController::class, 'destroy']);
 });
