@@ -153,7 +153,7 @@
     });
     $(document).ready(function() {
         $.ajax({
-            url: '/establishment',
+            url: '/devices/establishment',
             method: 'GET',
             success: function(data) {
                 data.forEach(function(item) {
