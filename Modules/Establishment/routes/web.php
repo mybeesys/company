@@ -45,8 +45,8 @@ Route::middleware([
         Route::patch('/{id}', 'update')->name('update')->can('update', Company::class);
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
-    Route::get('/devices', [DeviceController::class, 'index'])->name('devices.index');
+    Route::get('/devices', [DeviceController::class, 'index'])->name('device.index');
     Route::post('/devices/store', [DeviceController::class, 'store'])->name('device.store');
-    Route::get('/establishment', [DeviceController::class, 'getEstablishment'])->name('devices.establishment');
+    Route::get('/establishment', [DeviceController::class, 'getEstablishment'])->name('device.establishment');
     Route::delete('/devices/{id}', [DeviceController::class, 'destroy']);
 });
