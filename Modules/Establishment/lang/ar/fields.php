@@ -87,4 +87,8 @@ return [
     'name_en' => 'الإسم بالإنجليزي',
     'main_establishment' => 'الفرع الرئيسي التابع له',
     'is_main_establishment' => 'هل الفرع رئيسي',
+    'device_name' => 'اسم الجهاز',
+    'device_type' => 'نوع الجهاز',
+    'ref' => 'الرقم المرجعي',
+    'generate'=>'إنشاء',
 ];

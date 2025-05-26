@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\Company;
+use App\Models\EstPos;
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\CompanyController;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Http\Controllers\DeviceController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -43,5 +45,8 @@ Route::middleware([
         Route::patch('/{id}', 'update')->name('update')->can('update', Company::class);
         Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
     });
-
+    Route::get('/devices', [DeviceController::class, 'index'])->name('devices.index');
+    Route::post('/devices/store', [DeviceController::class, 'store'])->name('devices.store');
+    Route::get('/establishment', [DeviceController::class, 'getEstablishment'])->name('devices.establishment');
+    Route::delete('/devices/{id}', [DeviceController::class, 'destroy']);
 });
