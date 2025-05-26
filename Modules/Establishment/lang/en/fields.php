@@ -86,4 +86,8 @@ return [
     'name_en' => 'Name in english',
     'main_establishment' => 'Main establishment',
     'is_main_establishment' => 'Is this main establishment',
+    'device_name' => 'Device name',
+    'device_type' => 'Device type',
+    'ref' => 'Reference number',
+    'generate' => 'generate',
 ];

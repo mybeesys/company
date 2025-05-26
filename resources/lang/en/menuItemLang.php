@@ -27,6 +27,7 @@ return [
     'dashboard_permissions' => 'Dashboard permissions',
     'modifiers' => 'Add-ons',
     'pos_roles' => 'POS roles',
+    'devices' => 'Devices',
     'dashboard_roles' => 'Dashboard roles',
     'attribute' => 'Products Features',
     'employees_working_hours' => 'Employees working hours',

@@ -104,4 +104,8 @@ class Establishment extends Model
     {
         return $this->hasMany(CustomMenu::class, 'station_id', 'id');
     }
+    public function estPos()
+    {
+        return $this->hasMany(EstPos::class, 'establishment_id', 'id');
+    }
 }
