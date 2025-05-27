@@ -59,6 +59,7 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
 
         Route::resource('product', ProductController::class)->names('product');
+        Route::get('/products/details', [ProductController::class, 'getProductsDetails'])->name('products.details');
         Route::resource('category', CategoryController::class)->names('category');
         Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
         Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
