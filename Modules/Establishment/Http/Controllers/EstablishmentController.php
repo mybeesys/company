@@ -5,11 +5,12 @@ namespace Modules\Establishment\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Services\EstablishmentActions;
+use Modules\Establishment\Models\EstPos;
 
 class EstablishmentController extends Controller
 {
@@ -26,17 +27,20 @@ class EstablishmentController extends Controller
                     ? $establishments->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $establishments->withTrashed() : null);
             }
+            if ($request->has('type') && $request->type === 'devices') {
+                $devices = Estpos::with('establishment')->get();
+                return EstablishmentTable::getDeviceTable($devices);
+            }
             return EstablishmentTable::getEstablishmentTable($establishments);
         }
-        $establishments = $this->getLevels();
+        $establishments = $this->getEstablishment();
         $columns = EstablishmentTable::getEstablishmentColumns();
-        return view('establishment::establishment.index', compact('columns', 'establishments'));
+        $deviceColumns = EstablishmentTable::getDeviceColumns();
+        return view('establishment::establishment.index', compact('columns', 'establishments', 'deviceColumns'));
     }
 
 
-    public function createLiveValidation(StoreEstablishmentRequest $request)
-    {
-    }
+    public function createLiveValidation(StoreEstablishmentRequest $request) {}
 
 
     /**
@@ -84,6 +88,26 @@ class EstablishmentController extends Controller
                 $establishment,
                 ...$establishment->getAllDescendants()
                     ->whereNull('parent_id')
+            ]);
+        }
+
+        return $allWithChildren;
+    }
+    public function getEstablishment()
+    {
+        $establishments = Establishment::with('children')->whereNull('parent_id')->get();
+        $allWithChildren = [];
+
+        foreach ($establishments as $establishment) {
+            $establishment->makeHidden(['name_en', 'city', 'address', 'id']);
+
+            $allWithChildren = array_merge($allWithChildren, [
+                $establishment,
+                ...$establishment->getAllDescendants()
+                    ->whereNull('parent_id')
+                    ->each(function ($descendant) {
+                        $descendant->makeHidden(['name_en', 'city', 'address', 'id']);
+                    })
             ]);
         }
 

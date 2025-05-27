@@ -5,6 +5,6 @@
     </x-cards.card-header>
 
     <x-cards.card-body class="table-responsive">
-        <x-tables.table :columns="$columns" model="establishment" module="establishment" />
+        <x-tables.table :columns="$columns" model="devices" module="establishment" />
     </x-cards.card-body>
 </x-cards.card>

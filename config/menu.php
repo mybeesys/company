@@ -521,11 +521,11 @@ return [
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
             ],
-            [
+            /*      [
                 'name' => 'devices',
                 'url' => 'devices',
                 'permission' => '',
-            ],
+            ],*/
             [
                 'name' => 'tables',
                 'url' => 'table',
