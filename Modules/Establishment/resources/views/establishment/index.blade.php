@@ -109,6 +109,32 @@
         // Initialize both DataTables
         initDatatable('establishments');
         initDatatable('devices');
+        handleFormFiltersDatatable();
+        $('[name="status"], [name="deleted_records"]').select2({
+            minimumResultsForSearch: -1
+        });
+
+        $(document).on('click', '.delete-btn', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            let deleteUrl = $(this).data('deleted') ?
+                `{{ url('/establishment/force-delete/${id}') }}` :
+                `{{ url('/establishment/${id}') }}`;
+
+            showAlert(`{{ __('establishment::general.delete_confirm', ['name' => ':name']) }}`.replace(
+                    ':name',
+                    name),
+                "{{ __('establishment::general.delete') }}",
+                "{{ __('establishment::general.cancel') }}", undefined,
+                true, "warning").then(function(t) {
+                if (t.isConfirmed) {
+                    ajaxRequest(deleteUrl, 'DELETE').done(function() {
+                        dataTableEstablishments.ajax.reload();
+                    });
+                }
+            });
+        });
 
         $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
             const target = $(e.target).attr('href');
@@ -365,5 +391,67 @@
             }
         });
     }
+    $(document).on('click', '#expand_all', function(e) {
+
+        $('#est_tree').jstree("open_all");
+
+    })
+
+    $(document).on('click', '#collapse_all', function(e) {
+
+        $('#est_tree').jstree("close_all");
+
+    });
+    $(document).on('click', '.restore-btn', function(e) {
+
+        var id = $(this).data('id');
+
+        ajaxRequest(`{{ url('/establishment/restore/${id}') }}`, 'POST').done(function() {
+
+            dataTableEstablishments.ajax.reload();
+
+        });
+
+    })
+
+    function handleFormFiltersDatatable() {
+
+        const filters = $('[data-kt-filter="filter"]');
+
+        const resetButton = $('[data-kt-filter="reset"]');
+
+        const status = $('[data-kt-filter="status"]');
+
+        const deleted = $('[data-kt-filter="deleted_records"]');
+
+        filters.on('click', function(e) {
+
+            const deletedValue = deleted.val();
+
+            dataTableEstablishments.ajax.url("{{ url('establishment') }}?" + $.param({
+
+                deleted_records: deletedValue
+
+            })).load();
+
+            const statusValue = status.val();
+
+            dataTableEstablishments.column(4).search(statusValue).draw();
+
+        });
+
+        resetButton.on('click', function(e) {
+
+            status.val(null).trigger('change');
+
+            deleted.val(null).trigger('change');
+
+            dataTableEstablishments.search('').columns().search('').ajax.url(dataUrl)
+
+                .load();
+
+        });
+
+    };
 </script>
 @endsection
