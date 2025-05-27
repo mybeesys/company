@@ -157,8 +157,38 @@
             const deviceType = $('#deviceType').val();
             const deviceRef = $('#deviceRef').val();
             const newEstablishment = $('#newEstablishment').val();
+            let valid = true;
 
-            if (deviceName && deviceType && deviceRef && newEstablishment) {
+            if (!deviceName) {
+                $('#deviceName').addClass('is-invalid');
+                valid = false;
+            } else {
+                $('#deviceName').removeClass('is-invalid');
+            }
+
+            if (!deviceType) {
+                $('#deviceType').addClass('is-invalid');
+                $('#deviceTypeError').show();
+                valid = false;
+            } else {
+                $('#deviceType').removeClass('is-invalid');
+                $('#deviceTypeError').hide();
+            }
+
+            if (!deviceRef) {
+                $('#deviceRef').addClass('is-invalid');
+                valid = false;
+            } else {
+                $('#deviceRef').removeClass('is-invalid');
+            }
+            if (!newEstablishment) {
+                $('#newEstablishment').addClass('is-invalid');
+                valid = false;
+            } else {
+                $('#newEstablishment').removeClass('is-invalid');
+            }
+
+            if (valid) {
                 $.ajax({
                     url: '/devices/store',
                     method: 'POST',
