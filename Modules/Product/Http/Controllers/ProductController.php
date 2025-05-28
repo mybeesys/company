@@ -863,4 +863,17 @@ class ProductController extends Controller
         $result = array_merge($products->toArray(), $modifiers->toArray());
         return response()->json($result);
     }
+
+    public function getProductsDetails()
+    {
+        $products = Product::with(['unitTransfers' => function ($query) {
+            $query->select('id', 'product_id', 'unit1',  'transfer');
+        }])
+            ->select('id', 'name_ar', 'name_en', 'sku', 'price', 'cost')
+            ->get();
+        $products->each(function ($product) {
+            $product->unitTransfers->makeHidden(['name_ar', 'name_en']);
+        });
+        return response()->json($products);
+    }
 }

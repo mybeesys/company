@@ -4,7 +4,7 @@ namespace Modules\Product\Enums;
 
 enum ApplicationType: string
 {
-    case Mode = '2';
+
     case timeSlotOnly = '0';
     case manual = '1';
     case posStation = '3';
