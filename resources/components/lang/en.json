@@ -77,7 +77,7 @@
   "MatrixConfirmation": "Do you confirm to delete all previous matrix related to this product, and create new matrix",
   "technicalerror": "Technical Error",
   "nodata": "----------",
-  "timeSlotOnly": "Time Slot Only",
+  "timeSlotOnly": "Self-orders",
   "manual": "Manual",
   "Mode": "",
   "posStation": "POS Station",

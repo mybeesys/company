@@ -9,7 +9,7 @@ import Select from "react-select";
 
 const defaultValue = {
     application_type: 0,
-    mode: null,
+    mode: 0,
     station_id: null,
     active: 1,
     dates: defaultMenuTime[0],
@@ -30,32 +30,7 @@ const TreeTableCustomMenu = ({
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
-    const [stations, setStations] = useState([]);
 
-    const getName = (name_en, name_ar) => {
-        return dir === "ltr" ? name_en : name_ar;
-    };
-    const fetchStations = async () => {
-        try {
-            const res = await axios.get("/stations");
-            return res.data.map((e) => ({
-                name: getName(e.name_en, e.name),
-                value: e.id,
-            }));
-        } catch (error) {
-            console.error("Error fetching stations:", error);
-            return [];
-        }
-    };
-
-    useEffect(() => {
-        const loadStations = async () => {
-            const fetchedStations = await fetchStations();
-            setStations(fetchedStations);
-        };
-        loadStations();
-        refreshTree();
-    }, []);
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -83,8 +58,9 @@ const TreeTableCustomMenu = ({
     const refreshTree = () => {
         try {
             const response = axios.get(urlList).then((response) => {
-                //console.log("res",response.data);
+                console.log("res", response.data);
                 let result = response.data;
+
                 setNodes(result);
             });
         } catch (error) {
@@ -92,14 +68,18 @@ const TreeTableCustomMenu = ({
         }
     };
 
+    useEffect(() => {
+        refreshTree();
+    }, []);
+
     const openAddCustomMenu = () => {
         window.location.href = "customMenu/create";
     };
 
     const editRow = (data, key) => {
         window.location.href = "/customMenu" + "/" + data.id + "/edit";
-        setCurrentKey(key);
-        setEditingRow({ ...data });
+        //setCurrentKey(key);
+        //setEditingRow({ ...data });
     };
 
     const cancelEdit = (key) => {
@@ -223,7 +203,7 @@ const TreeTableCustomMenu = ({
 
     const renderTextCell = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
-        if (key == "name_en" && !!node.data.empty) {
+        if (key == "name_ar" && !!node.data.empty) {
             return (
                 <a
                     href="#"
@@ -318,12 +298,11 @@ const TreeTableCustomMenu = ({
         );
     };
 
-    const renderDropDownCell = (node, key, autoFocus, options, isDisabled) => {
+    const renderDropDownCell = (node, key, autoFocus, options) => {
         const val = options.find((x) => x.value == node.data[key]);
         const indent = node.key.toString().split("-").length;
         return node.key == currentKey ? (
             <select
-                disabled={isDisabled}
                 class={`form-control number-indent-${indent}`}
                 defaultValue={node.data[key]}
                 onChange={(e) => handleEditorChange(e.target.value, key)}
@@ -337,20 +316,7 @@ const TreeTableCustomMenu = ({
                 ))}
             </select>
         ) : (
-            <span>
-                {key === "mode"
-                    ? node.data.mode ||
-                      (node.data.establishment
-                          ? node.data.establishment.name
-                          : "")
-                    : key === "station_id"
-                    ? node.data.establishment
-                        ? node.data.establishment.name
-                        : ""
-                    : val
-                    ? val.name
-                    : ""}
-            </span>
+            <span>{!!val ? val.name : ""}</span>
         );
     };
 
@@ -359,10 +325,20 @@ const TreeTableCustomMenu = ({
         key,
         autoFocus,
         options = [],
-        isDisabled
+        isDisabled = false
     ) => {
         if (!Array.isArray(options) || options.length === 0) {
-            return <span></span>;
+            return (
+                <span>
+                    {key === "mode"
+                        ? node.data.mode
+                        : key === "station_id"
+                        ? Array.isArray(node.data.station_id)
+                            ? node.data.station_id.join(", ")
+                            : node.data.station_id
+                        : ""}
+                </span>
+            );
         }
 
         const selectedValues = Array.isArray(node.data[key])
@@ -371,7 +347,6 @@ const TreeTableCustomMenu = ({
 
         return node.key == currentKey ? (
             <Select
-                disabled={isDisabled}
                 isMulti
                 options={options.map((opt) => ({
                     value: String(opt.value),
@@ -391,6 +366,7 @@ const TreeTableCustomMenu = ({
                 autoFocus={!!autoFocus}
                 closeMenuOnSelect={false}
                 menuPortalTarget={document.body}
+                isDisabled={isDisabled}
                 styles={{
                     control: (base) => ({
                         ...base,
@@ -408,42 +384,38 @@ const TreeTableCustomMenu = ({
             />
         ) : (
             <span>
-                {options
-                    .filter((opt) => selectedValues.includes(String(opt.value)))
-                    .map((opt) => opt.name)
-                    .join(", ")}
+                {key === "mode"
+                    ? node.data.mode
+                    : key === "station_id"
+                    ? Array.isArray(node.data.station_id)
+                        ? node.data.station_id.join(", ")
+                        : node.data.station_id
+                    : ""}
             </span>
         );
     };
 
-    const renderModeStationCell = (node, key, autoFocus) => {
-        let application_type =
-            node.data.application_type || editingRow.application_type;
-        let options = [];
+    const renderModeStationCell = (node, key, autoFocus, modesStations) => {
+        let application_type;
+        if (node.key == currentKey && !!editingRow.application_type)
+            application_type = editingRow.application_type;
+        else application_type = node.data.application_type;
+        const options =
+            !!application_type && application_type == "3"
+                ? modesStations.stations
+                : modesStations.modes;
 
-        if (application_type === "1") {
-            options = [];
-        } else if (application_type === "2") {
-            options = [];
-        } else if (application_type === "3") {
-            {
-                options = stations.map((station) => ({
-                    value: station.value,
-                    name: station.name,
-                }));
-            }
-        } else {
-            options = modesStations.modes;
-        }
-
-        const valKey = application_type === "3" ? "station_id" : "mode";
-
-        return renderDropDownCell(
+        const valKey =
+            !!application_type && application_type == "3"
+                ? "station_id"
+                : "mode";
+        const isDisabled = application_type === "1";
+        return renderMultipleDropDownCell(
             node,
             valKey,
             autoFocus,
             options,
-            application_type === "1" || application_type === "2"
+            isDisabled
         );
     };
 
@@ -492,13 +464,15 @@ const TreeTableCustomMenu = ({
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                <a
-                    href="#"
-                    onClick={() => openDeleteModel(data)}
-                    class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                >
-                    <i class="ki-outline ki-trash fs-2"></i>
-                </a>
+                {!data.isNew && data.id && (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={() => openDeleteModel(data)}
+                        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                    >
+                        <i className="ki-outline ki-trash fs-2"></i>
+                    </a>
+                )}
                 <button
                     id="btnSubmit"
                     type="submit"
@@ -554,17 +528,17 @@ const TreeTableCustomMenu = ({
                         className={"custom-tree-table"}
                     >
                         <Column
+                            header={translations.name_ar}
+                            style={{ width: "15%" }}
+                            body={(node) => renderTextCell(node, "name_ar")}
+                            sortable
+                        ></Column>
+                        <Column
                             header={translations.name_en}
                             style={{ width: "15%" }}
                             body={(node) =>
                                 renderTextCell(node, "name_en", true)
                             }
-                            sortable
-                        ></Column>
-                        <Column
-                            header={translations.name_ar}
-                            style={{ width: "15%" }}
-                            body={(node) => renderTextCell(node, "name_ar")}
                             sortable
                         ></Column>
                         <Column
@@ -586,7 +560,7 @@ const TreeTableCustomMenu = ({
                             body={(node) =>
                                 renderModeStationCell(
                                     node,
-                                    "mode",
+                                    "mode_station_id",
                                     false,
                                     modesStations
                                 )
