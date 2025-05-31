@@ -47,7 +47,7 @@ const ProductComponent1 = ({ translations, dir }) => {
     const [ingredientTree, setIngredientTree] = useState([]);
     const [categories, setCategories] = useState([]);
     const [showAlert, setShowAlert] = useState(false);
-    const [currentModifiers, setcurrentModifiers] = useState(
+    const [currentModifiers, setCurrentModifiers] = useState(
         !!product.modifiers ? product.modifiers : []
     );
     const [disableSubmitButton, setSubmitdisableButton] = useState(false);
@@ -118,11 +118,13 @@ const ProductComponent1 = ({ translations, dir }) => {
             setShowAlert(false); // Reset the state after alert is dismissed
         });
     };
-
+    console.log("cureewnt", ...currentModifiers);
     const saveChanges = async () => {
         try {
             setSubmitdisableButton(true);
             let r = { ...currentObject };
+            console.log("cureewnt", ...currentModifiers);
+
             r["active"] ? (r["active"] = 1) : (r["active"] = 0);
             r["for_sell"] ? (r["for_sell"] = 1) : (r["for_sell"] = 0);
             r["show_in_menu"]
@@ -314,52 +316,16 @@ const ProductComponent1 = ({ translations, dir }) => {
         setUnitTransfers([...result]);
     };
 
-    const handleModifierChange = (modifierId, key, value) => {
-        let modifier = {
-            active: 0,
-            required: 0,
-            default: 0,
-            min_modifiers: 0,
-            max_modifiers: 0,
-            display_order: 0,
-            button_display: 0,
-            modifier_display: 0,
-            product_id: currentObject.id,
-            modifier_id: modifierId,
-        };
-        let m = currentModifiers.filter((m) => m.modifier_id == modifierId);
-        if (!!m && !!m.length) {
-            modifier = m[0];
-            modifier[key] = value;
-        } else {
-            modifier[key] = value;
-            currentModifiers.push(modifier);
-        }
-        setcurrentModifiers([...currentModifiers]);
+    const handleModifierChange = (updatedModifiers) => {
+        setCurrentModifiers(updatedModifiers);
     };
 
-    const handleSelectAll = (allModifiers) => {
-        let modifier = {
+    const handleSelectAll = (selectedModifiers) => {
+        const allModifiers = selectedModifiers.map((mod) => ({
+            ...mod,
             active: 1,
-            required: 0,
-            default: 0,
-            min_modifiers: 0,
-            max_modifiers: 0,
-            display_order: 0,
-            button_display: 0,
-            modifier_display: 0,
-            product_id: currentObject.id,
-        };
-        allModifiers.forEach((m) => {
-            if (
-                currentModifiers.filter((x) => x.modifier_id == m.data.id)
-                    .length == 0
-            ) {
-                modifier.modifier_id = m.data.id;
-                currentModifiers.push({ ...modifier });
-            }
-        });
-        setcurrentModifiers([...currentModifiers]);
+        }));
+        setCurrentModifiers(allModifiers);
     };
 
     const validProduct = () => {
@@ -580,11 +546,37 @@ const ProductComponent1 = ({ translations, dir }) => {
                                     >
                                         <ProductModifier
                                             translations={translations}
-                                            productId={currentObject.id}
-                                            productModifiers={currentModifiers}
+                                            productId={currentObject?.id || 0}
+                                            productModifiers={
+                                                currentModifiers || []
+                                            }
                                             urlList={modifierClassUrl}
-                                            onChange={handleModifierChange}
-                                            onSelectAll={handleSelectAll}
+                                            onChange={(updatedModifiers) => {
+                                                const formattedModifiers =
+                                                    updatedModifiers.map(
+                                                        (mod) => ({
+                                                            class: {
+                                                                ...mod.class,
+                                                            },
+                                                            modifiers:
+                                                                mod.modifiers.map(
+                                                                    (m) => ({
+                                                                        ...m,
+                                                                    })
+                                                                ),
+                                                        })
+                                                    );
+                                                handleModifierChange(
+                                                    formattedModifiers
+                                                );
+                                            }}
+                                            onSelectAll={(
+                                                selectedModifiers
+                                            ) => {
+                                                handleSelectAll(
+                                                    selectedModifiers
+                                                );
+                                            }}
                                         />
                                     </div>
                                 </div>
