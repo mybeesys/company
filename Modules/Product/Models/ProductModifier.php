@@ -23,6 +23,7 @@ class ProductModifier extends Model
      */
     protected $fillable = [
         'product_id',
+        'modifier_class_id',
         'modifier_id',
         'active',
         'default',
@@ -38,7 +39,11 @@ class ProductModifier extends Model
 
     public function modifiers()
     {
-        return $this->belongsTo(ModifierClass::class, 'modifier_id', 'id');
+        return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
+    }
+    public function modifierClass()
+    {
+        return $this->belongsTo(Modifier::class, 'modifier_class_id', 'id');
     }
     public function products()
     {

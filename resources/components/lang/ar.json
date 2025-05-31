@@ -30,7 +30,7 @@
   "Close": "إغلاق",
   "Doyouwanttodelete": " هل أنت متأكد من حذف",
   "basicInfo": "المعلومات الأساسية",
-  "advancedInfo": "الخصائص",
+  "advancedInfo": "المتغيرات",
   "inventory": "المستودع",
   "recipe": "الوصفة",
   "modifiers": "الإضافات",
@@ -45,12 +45,12 @@
   "NAME_AR_EXIST": "الاسم العربي مكرر",
   "NAME_EN_EXIST": "الاسم الانكليزي مكرر",
   "CHILD_EXIST": "يوجد متغيرات مرتبطة بالتصنيف",
-  "AttributeList": "قائمة خصائص المنتجات",
+  "AttributeList": "قائمة المتغيرات",
   "attributeClass" : "تصنيف معامل",
   "attribute" : "متغير",
   "attr_set2": "قائمة المعاملات الثانية",
   "attr_set2_value": "قيم معاملات الثانية",
-  "attr_set1": "قائمة الخصائص",
+  "attr_set1": "قائمة المتغيرات",
   "attr_set1_value": "قيم معاملات الأولى",
   "attr_value1": "المعامل 1",
   "attr_value2": "المعامل 2",
@@ -321,7 +321,15 @@
   "sellDate" : "تاريخ المبيعات",
   "count" : "العدد",
   "ExpandAll":"فتح الكل",
-  "CollapseAll":"إغلاق الكل"
-  
-
+  "CollapseAll":"إغلاق الكل",
+  "free_type":"النوع المجاني",
+  "free_quantity":"الكمية المجانية",
+  "price_type":"السعر",
+  "quantity_type":"الكمية",
+  "available_add_ons":"الإضافات المتاحة",
+  "by_default":"افتراضي",
+  "arranging":"الترتيب",
+  "select_all":"تحديد الكل",
+  "deselect_all":"إلغاء التحديد",
+  "no_modifiers_available":"لايوجد إضافات متاحة"
 }
