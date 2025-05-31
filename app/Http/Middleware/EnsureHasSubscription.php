@@ -17,7 +17,7 @@ class EnsureHasSubscription
     public function handle(Request $request, Closure $next): Response
     {
         $company = Company::find(get_company_id());
-        if ($company->subscription) {
+        if (!$company->subscription) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => __('responses.no_subscription_found')
