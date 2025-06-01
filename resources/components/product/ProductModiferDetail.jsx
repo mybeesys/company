@@ -23,10 +23,10 @@ const ProductModiferDetail = ({
     const [modifiers, setModifiers] = useState(
         productModifiers.modifiers
             ?.filter((mod) => mod && mod.id)
-            .map((mod) => ({
+            .map((mod, index) => ({
                 ...mod,
                 checked: mod.active || 0,
-                display_order: mod.display_order || 0,
+                display_order: mod.display_order || index + 1,
                 default: mod.default || 0,
             })) || []
     );
@@ -123,72 +123,64 @@ const ProductModiferDetail = ({
                                     <form onSubmit={(e) => e.preventDefault()}>
                                         <div className="form-group">
                                             <div className="row">
-                                                <div className="col-12 col-md-6">
-                                                    <div className="d-flex align-items-center">
-                                                        <label
-                                                            htmlFor="free_quantity"
-                                                            className="col-form-label"
-                                                        >
-                                                            {
-                                                                translations.free_quantity
-                                                            }
-                                                        </label>
-                                                        <input
-                                                            type="number"
-                                                            id="free_quantity"
-                                                            min="0"
-                                                            className="form-control form-control-solid custom-height"
-                                                            value={
-                                                                modifierClass.free_quantity
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleChange(
-                                                                    "free_quantity",
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
+                                                <div className="col-6">
+                                                    <label
+                                                        htmlFor="free_quantity"
+                                                        className="col-form-label"
+                                                    >
+                                                        {
+                                                            translations.free_quantity
+                                                        }
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        id="free_quantity"
+                                                        min="0"
+                                                        className="form-control form-control-solid custom-height"
+                                                        value={
+                                                            modifierClass.free_quantity
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                "free_quantity",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
                                                 </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className="col-12 col-md-6">
-                                                    <div className="d-flex align-items-center">
-                                                        <label
-                                                            htmlFor="free_type"
-                                                            className="col-form-label mr-4"
-                                                        >
-                                                            {translations.free_type ||
-                                                                "Free Type"}
-                                                        </label>
-                                                        <select
-                                                            id="free_type"
-                                                            className="form-control form-control-solid custom-height"
-                                                            value={
-                                                                modifierClass.free_type
-                                                            }
-                                                            style={{
-                                                                height: "43px",
-                                                            }}
-                                                            onChange={(e) =>
-                                                                handleChange(
-                                                                    "free_type",
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        >
-                                                            <option value="0">
-                                                                {translations.price_type ||
-                                                                    "Price Type"}
-                                                            </option>
-                                                            <option value="1">
-                                                                {translations.quantity_type ||
-                                                                    "Quantity Type"}
-                                                            </option>
-                                                        </select>
-                                                    </div>
+                                                <div className="col-6">
+                                                    <label
+                                                        htmlFor="free_type"
+                                                        className="col-form-label"
+                                                    >
+                                                        {translations.free_type ||
+                                                            "Free Type"}
+                                                    </label>
+                                                    <select
+                                                        id="free_type"
+                                                        className="form-control form-control-solid custom-height"
+                                                        value={
+                                                            modifierClass.free_type
+                                                        }
+                                                        style={{
+                                                            height: "43px",
+                                                        }}
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                "free_type",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    >
+                                                        <option value="0">
+                                                            {translations.price_type ||
+                                                                "Price Type"}
+                                                        </option>
+                                                        <option value="1">
+                                                            {translations.quantity_type ||
+                                                                "Quantity Type"}
+                                                        </option>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <div className="row">
@@ -375,20 +367,52 @@ const ProductModiferDetail = ({
                                                                             value={
                                                                                 item.display_order
                                                                             }
+                                                                            disabled 
                                                                             style={{
                                                                                 width: "60px",
                                                                                 height: "30px",
                                                                             }}
                                                                             onChange={(
                                                                                 e
-                                                                            ) =>
+                                                                            ) => {
+                                                                                const newValue =
+                                                                                    parseInt(
+                                                                                        e
+                                                                                            .target
+                                                                                            .value
+                                                                                    ) ||
+                                                                                    0;
                                                                                 handleOrderChange(
                                                                                     index,
-                                                                                    e
-                                                                                        .target
-                                                                                        .value
-                                                                                )
-                                                                            }
+                                                                                    newValue
+                                                                                );
+                                                                                const updatedModifiers =
+                                                                                    [
+                                                                                        ...modifiers,
+                                                                                    ];
+                                                                                updatedModifiers.forEach(
+                                                                                    (
+                                                                                        mod,
+                                                                                        i
+                                                                                    ) => {
+                                                                                        if (
+                                                                                            i !==
+                                                                                                index &&
+                                                                                            mod.display_order >=
+                                                                                                newValue
+                                                                                        ) {
+                                                                                            mod.display_order += 1;
+                                                                                        }
+                                                                                    }
+                                                                                );
+                                                                                setModifiers(
+                                                                                    updatedModifiers
+                                                                                );
+                                                                                sendUpdatesToParent(
+                                                                                    modifierId,
+                                                                                    updatedModifiers
+                                                                                );
+                                                                            }}
                                                                         />
                                                                     </td>
                                                                 </tr>
