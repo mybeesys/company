@@ -22,7 +22,7 @@ const ProductModiferDetail = ({
 
     const [modifiers, setModifiers] = useState(
         productModifiers.modifiers
-            ?.filter((mod) => mod && mod.id) 
+            ?.filter((mod) => mod && mod.id)
             .map((mod) => ({
                 ...mod,
                 checked: mod.active || 0,
@@ -65,7 +65,7 @@ const ProductModiferDetail = ({
             updatedModifiers[index].checked = updatedModifiers[index].checked
                 ? 0
                 : 1;
-            //updatedModifiers[index].active = updatedModifiers[index].checked; 
+            //updatedModifiers[index].active = updatedModifiers[index].checked;
         } else if (type === "default") {
             updatedModifiers[index].default = updatedModifiers[index].default
                 ? 0
@@ -90,11 +90,12 @@ const ProductModiferDetail = ({
                 product_id: productId,
                 modifier_class_id: modifierId.modifier_class_id,
                 modifier_id: m.modifier_id || m.id,
-                //active: m.checked ? 1 : 0, 
+                //active: m.checked ? 1 : 0,
             }));
 
         onchange(
             {
+                modifier_class_id: modifierId.modifier_class_id,
                 ...modifierId,
                 product_id: productId,
                 ...modifierClass,
@@ -273,7 +274,9 @@ const ProductModiferDetail = ({
                                                             }}
                                                         >
                                                             <i className="fas fa-times-circle me-1"></i>
-                                                            {translations.deselect_all}
+                                                            {
+                                                                translations.deselect_all
+                                                            }
                                                         </a>
                                                     </div>
                                                 </div>
