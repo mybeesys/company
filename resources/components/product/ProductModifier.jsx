@@ -18,7 +18,31 @@ const ProductModifier = ({
     let dir = rootElement.getAttribute("dir");
     const [modifierClasses, setModifierClasses] = useState([]);
     const [selectedModifiers, setSelectedModifiers] = useState([]);
+    const queryParams = new URLSearchParams(window.location.search);
+    const initialModifierGroups = () => {
+        try {
+            const queryParams = new URLSearchParams(window.location.search);
+            const groups = queryParams.get("modifierGroups");
+            return groups ? JSON.parse(decodeURIComponent(groups)) : [];
+        } catch (e) {
+            return [];
+        }
+    };
 
+    const [modifierGroups, setModifierGroups] = useState(() => {
+        return initialModifierGroups().map((group) => ({
+            class: group.class || {
+                product_id: productId,
+                modifier_class_id: group.modifier_class_id || group.id,
+                min_modifiers: group.min_modifiers || 0,
+                max_modifiers: group.max_modifiers || 0,
+                free_quantity: group.free_quantity || 0,
+                free_type: group.free_type || 0,
+                modifier_id: null,
+            },
+            modifiers: group.modifiers || [],
+        }));
+    });
     useEffect(() => {
         axios
             .get(urlList)
@@ -31,13 +55,41 @@ const ProductModifier = ({
     }, [urlList]);
 
     const handleModifierChange = (modifierClass, key, value) => {
-        console.log("Received modifiers data:", { modifierClass, key, value });
+        //console.log("Received modifiers data:", { modifierClass, key, value });
+        if (!modifierClass || modifierClass.modifier_class_id === undefined) {
+            //  console.error("Invalid modifierClass:", modifierClass);
+            return;
+        }
 
-        const updatedModifiers = [...productModifiers];
+        const updatedModifiers = selectedModifiers.map((selected) => {
+            const found = productModifiers.find(
+                (m) =>
+                    (m.class?.modifier_class_id || m.modifier_class_id) ===
+                    selected.value
+            );
+            return (
+                found || {
+                    class: {
+                        product_id: productId,
+                        modifier_class_id: selected.value,
+                        min_modifiers: 0,
+                        max_modifiers: 0,
+                        free_quantity: 0,
+                        free_type: 0,
+                        modifier_id: null,
+                    },
+                    modifiers: [],
+                }
+            );
+        });
+
         const classIndex = updatedModifiers.findIndex(
-            (m) => m.class.modifier_class_id === modifierClass.modifier_class_id
+            (m) =>
+                (m.class?.modifier_class_id || m.modifier_class_id) ===
+                modifierClass.modifier_class_id
         );
 
+        if (classIndex === -1) return;
         const baseModifier = {
             product_id: productId,
             modifier_class_id: modifierClass.modifier_class_id,
@@ -98,7 +150,7 @@ const ProductModifier = ({
             }
         }
 
-        console.log("Final data to be saved:", updatedModifiers);
+        //console.log("Final data to be saved:", updatedModifiers);
         onChange(updatedModifiers);
     };
 
@@ -118,6 +170,33 @@ const ProductModifier = ({
 
     const handleMultiSelectChange = (selectedOptions) => {
         setSelectedModifiers(selectedOptions);
+
+        if (onChange) {
+            const newModifiers = selectedOptions.map((option) => {
+                const existing = productModifiers.find(
+                    (m) =>
+                        (m.class?.modifier_class_id || m.modifier_class_id) ===
+                        option.value
+                );
+
+                return (
+                    existing || {
+                        class: {
+                            product_id: productId,
+                            modifier_class_id: option.value,
+                            min_modifiers: 0,
+                            max_modifiers: 0,
+                            free_quantity: 0,
+                            free_type: 0,
+                            modifier_id: null,
+                        },
+                        modifiers: [],
+                    }
+                );
+            });
+
+            onChange(newModifiers);
+        }
     };
 
     return (
@@ -150,8 +229,9 @@ const ProductModifier = ({
 
                 if (!modifierClass) return null;
 
-                const existingData = productModifiers.find(
-                    (m) => m.class.modifier_class_id === modifierClass.data.id
+                const existingData = modifierGroups?.find(
+                    (group) =>
+                        group.class.modifier_class_id == modifierClass.data.id
                 ) || {
                     class: {
                         product_id: productId,

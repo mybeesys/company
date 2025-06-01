@@ -89,8 +89,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     }, []);
 
     const editRow = (data, key) => {
-        if (data.type == "product") {
-            window.location.href = productCrudList + "/" + data.id + "/edit";
+        if (data.type === "product") {
+            window.location.href = `${productCrudList}/${data.id}/edit`;
         } else {
             setCurrentKey(key);
             setEditingRow({ ...data });
@@ -555,7 +555,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             style={{ width: "20%" }}
                             body={(node) => renderTextCell(node, "name_ar")}
                             sortable
-                            expander 
+                            expander
                             onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column

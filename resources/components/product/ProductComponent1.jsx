@@ -118,12 +118,10 @@ const ProductComponent1 = ({ translations, dir }) => {
             setShowAlert(false); // Reset the state after alert is dismissed
         });
     };
-    console.log("cureewnt", ...currentModifiers);
     const saveChanges = async () => {
         try {
             setSubmitdisableButton(true);
             let r = { ...currentObject };
-            console.log("cureewnt", ...currentModifiers);
 
             r["active"] ? (r["active"] = 1) : (r["active"] = 0);
             r["for_sell"] ? (r["for_sell"] = 1) : (r["for_sell"] = 0);

@@ -37,7 +37,7 @@ class ProductModifier extends Model
         'display_order'
     ];
 
-    public function modifiers()
+    public function modifierItem()
     {
         return $this->belongsTo(Modifier::class, 'modifier_id', 'id');
     }

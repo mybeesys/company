@@ -315,6 +315,7 @@ class ProductController extends Controller
         // $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
         // $product->linked_combo = $validated['linked_combo'] ?? 0;
         // $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
+        Log::info("mod", $request["modifiers"]);
         if (isset($request["image_deleted"])) {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
@@ -343,26 +344,7 @@ class ProductController extends Controller
         DB::transaction(function () use ($product, $request) {
             $product->save();
             if (isset($request["modifiers"])) {
-                foreach ($request["modifiers"] as $modifier) {
-                    if (isset($modifier['id'])) {
-                        $mod = ProductModifier::find($modifier['id']);
-                        $mod->active = $modifier['active'];
-                        $mod->default = $modifier['default'];
-                        $mod->required = $modifier['required'];
-                        $mod->min_modifiers = $modifier['min_modifiers'];
-                        $mod->max_modifiers = $modifier['max_modifiers'];
-                        $mod->display_order = $modifier['display_order'];
-                        $mod->button_display = $modifier['button_display'];
-                        $mod->modifier_display = $modifier['modifier_display'];
-                        $mod['free_quantity'] = $modifier['free_quantity'];
-                        $mod['free_type'] = $modifier['free_type'];
-                        $mod->save();
-                    } else {
-                        $modifier['free_quantity'] = $modifier['free_quantity'];
-                        $modifier['free_type'] = $modifier['free_type'];
-                        ProductModifier::create($modifier);
-                    }
-                }
+                $this->saveModifiers($request["modifiers"], $product->id);
             }
             $oldRecipe = RecipeProduct::where('product_id', $product->id)->get();
             foreach ($oldRecipe as $recipe) {
@@ -632,7 +614,7 @@ class ProductController extends Controller
                         'product_id' => $productId,
                         'modifier_class_id' => $modifier['modifier_class_id'],
                         'modifier_id' => $modifier['modifier_id'],
-                        'active' => $modifier['active'] ?? 0,
+                        'active' => 1,
                         'default' => $modifier['default'] ?? 0,
                         'required' => $modifier['required'] ?? 0,
                         'display_order' => $modifier['display_order'] ?? 0,
@@ -640,8 +622,8 @@ class ProductController extends Controller
                         'modifier_display' => $modifier['modifier_display'] ?? 0,
                         'free_quantity' => $modifier['free_quantity'] ?? 0,
                         'free_type' => $modifier['free_type'] ?? 0,
-                        'min_modifiers' => $classData['min_modifiers'] ?? 0,
-                        'max_modifiers' => $classData['max_modifiers'] ?? 0,
+                        'min_modifiers' =>  0,
+                        'max_modifiers' =>  0,
                     ]);
                 }
             }
@@ -825,18 +807,19 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with('tax')
-            ->with(['establishments' => function ($query) {
-                $query->with('establishment');
-            }])->with(['priceTiers' => function ($query) {
-                $query->with('priceTier');
-            }])->with(['recipe' => function ($query) {
-                $query->with('unitTransfer');
-            }])->with(['attributes' => function ($query) {
-                $query->with('attribute1');
-                $query->with('attribute2');
-            }])->find($id);
-        // $product->price_with_tax = $product->price_with_tax;
+        $product = Product::with([
+            'tax',
+            'establishments.establishment',
+            'priceTiers.priceTier',
+            'recipe.unitTransfer',
+            'attributes.attribute1',
+            'attributes.attribute2',
+            'modifiers.modifierClass',
+            'modifiers.modifierItem',
+            'combos.items',
+            'linkedCombos.upcharges'
+        ])->findOrFail($id);
+
         foreach ($product->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
@@ -847,10 +830,9 @@ class ProductController extends Controller
         foreach ($product->attributes as $attr) {
             $attr->attribute1Name_en = $attr->attribute1->name_en;
             $attr->attribute1Name_ar = $attr->attribute1->name_ar;
-            $attr->attribute2Name_en = $attr->attribute2 && $attr->attribute2->name_en ? $attr->attribute2->name_en : "";
-            $attr->attribute2Name_ar = $attr->attribute2 && $attr->attribute2->name_ar ? $attr->attribute2->name_ar : "";
+            $attr->attribute2Name_en = $attr->attribute2->name_en;
+            $attr->attribute2Name_ar = $attr->attribute2->name_ar;
         }
-        $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
         // $product->taxIds = array_map(function($item) {
         //     return $item["tax_id"];
@@ -877,7 +859,39 @@ class ProductController extends Controller
                 return $upchargePrice;
             }, $d1->upcharges->toArray());
         }
-        return view('product::product.edit', compact('product'));
+        $modifierGroups = $product->modifiers->groupBy('modifier_class_id')->map(function ($modifiers, $classId) use ($product) {
+            $firstModifier = $modifiers->first();
+            $class = optional($firstModifier)->modifierClass;
+
+            return [
+                'class' => [
+                    'modifier_class_id' => $classId,
+                    'product_id' => $product->id,
+                    'name_ar' => $class->name_ar ?? '',
+                    'name_en' => $class->name_en ?? '',
+                    'min_modifiers' => $firstModifier->min_modifiers ?? 0,
+                    'max_modifiers' => $firstModifier->max_modifiers ?? 0,
+                    'free_quantity' => $firstModifier->free_quantity ?? 0,
+                    'free_type' => $firstModifier->free_type ?? 0
+                ],
+                'modifiers' => $modifiers->map(function ($mod) {
+                    return [
+                        'id' => $mod->id,
+                        'modifier_id' => $mod->modifier_id,
+                        'name_ar' => optional($mod->modifierItem)->name_ar ?? '',
+                        'name_en' => optional($mod->modifierItem)->name_en ?? '',
+                        'active' => $mod->active,
+                        'default' => $mod->default,
+                        'display_order' => $mod->display_order
+                    ];
+                })->toArray()
+            ];
+        })->values()->toArray();
+
+        return view('product::product.edit', [
+            'product' => $product,
+            'modifierGroups' => $modifierGroups
+        ]);
     }
 
     public function searchProducts(Request $request)
