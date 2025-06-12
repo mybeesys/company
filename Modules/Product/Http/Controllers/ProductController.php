@@ -828,10 +828,21 @@ class ProductController extends Controller
             $rec->cost = $rec->detail->cost;
         }
         foreach ($product->attributes as $attr) {
-            $attr->attribute1Name_en = $attr->attribute1->name_en;
-            $attr->attribute1Name_ar = $attr->attribute1->name_ar;
-            $attr->attribute2Name_en = $attr->attribute2->name_en;
-            $attr->attribute2Name_ar = $attr->attribute2->name_ar;
+            if ($attr->attribute1) {
+                $attr->attribute1Name_en = $attr->attribute1->name_en;
+                $attr->attribute1Name_ar = $attr->attribute1->name_ar;
+            } else {
+                $attr->attribute1Name_en = null;
+                $attr->attribute1Name_ar = null;
+            }
+
+            if ($attr->attribute2) {
+                $attr->attribute2Name_en = $attr->attribute2->name_en;
+                $attr->attribute2Name_ar = $attr->attribute2->name_ar;
+            } else {
+                $attr->attribute2Name_en = null;
+                $attr->attribute2Name_ar = null;
+            }
         }
         $product->combos = $product->combos;
         // $product->taxIds = array_map(function($item) {
