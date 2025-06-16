@@ -87,23 +87,29 @@ const ProductCombo = ({
         setShowUpchargeDialog(false);
     };
     React.useEffect(() => {
-        const tooltipTriggerList = [].slice.call(
-            document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        );
-        tooltipTriggerList.map(
-            (tooltipTriggerEl) => new window.bootstrap.Tooltip(tooltipTriggerEl)
-        );
-
-        return () => {
-            tooltipTriggerList.forEach((tooltipTriggerEl) => {
-                const tooltip =
-                    window.bootstrap.Tooltip.getInstance(tooltipTriggerEl);
-                if (tooltip) {
-                    tooltip.dispose();
-                }
+        const initTooltips = () => {
+            const tooltipElements = document.querySelectorAll(
+                '[data-bs-toggle="tooltip"]'
+            );
+            tooltipElements.forEach((el) => {
+                const instance = window.bootstrap.Tooltip.getInstance(el);
+                if (instance) instance.dispose();
+            });
+            tooltipElements.forEach((el) => {
+                new window.bootstrap.Tooltip(el, {
+                    trigger: "hover focus",
+                });
             });
         };
-    }, [translations]);
+        const timer = setTimeout(initTooltips, 50);
+
+        return () => clearTimeout(timer);
+    }, [
+        translations,
+        product.group_combo,
+        product.set_price,
+        product.use_upcharge,
+    ]);
     return (
         <div class="card-body" dir={dir}>
             <div class="form-group">
