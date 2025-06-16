@@ -37,7 +37,7 @@ const ProductComponent1 = ({ translations, dir }) => {
         { key: "priceTier", visible: true },
         { key: "modifiers", visible: !!currentObject.for_sell },
         { key: "recipe", visible: true },
-        { key: "groupCombo", visible: !!currentObject.for_sell },
+        { key: "group", visible: !!currentObject.for_sell },
         //{ key: 'linkedCombo', visible: false },
         { key: "inventory", visible: true },
         { key: "Unit", visible: true },
@@ -288,7 +288,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             { key: "priceTier", visible: true },
             { key: "modifiers", visible: childproduct.for_sell },
             { key: "recipe", visible: true },
-            { key: "groupCombo", visible: childproduct.for_sell },
+            { key: "group", visible: childproduct.for_sell },
             //{ key: 'linkedCombo', visible: false },
             { key: "inventory", visible: true },
             { key: "Unit", visible: true },
@@ -347,7 +347,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             if (totalPrice != currentObject.price) {
                 valid = false;
                 errorMessage = translations.ComboPriceError;
-                document.getElementById("groupCombo_tab").click();
+                document.getElementById("group_tab").click();
             }
         }
         if (
@@ -598,10 +598,10 @@ const ProductComponent1 = ({ translations, dir }) => {
                                 </div>
                                 <div class="tab-content">
                                     <div
-                                        id="groupCombo"
+                                        id="group"
                                         class="card-body p-0 tab-pane fade show "
                                         role="tabpanel"
-                                        aria-labelledby="groupCombo_tab"
+                                        aria-labelledby="group_tab"
                                     >
                                         <ProductCombo
                                             translations={translations}
