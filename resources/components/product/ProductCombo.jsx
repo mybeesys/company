@@ -24,15 +24,6 @@ const ProductCombo = ({
 
     const handleInputChange = useCallback(
         (key, value, rowKey, onChangeValue) => {
-            console.log(
-                "Input changed - Key:",
-                key,
-                "Value:",
-                value,
-                "Row:",
-                rowKey
-            );
-
             let newWidth;
             if (key === "products") {
                 newWidth = Math.max(value.length * 8 + 100, 200);
