@@ -315,7 +315,6 @@ class ProductController extends Controller
         // $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
         // $product->linked_combo = $validated['linked_combo'] ?? 0;
         // $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
-        Log::info("mod", $request["modifiers"]);
         if (isset($request["image_deleted"])) {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
@@ -819,7 +818,7 @@ class ProductController extends Controller
             'combos.items',
             'linkedCombos.upcharges'
         ])->findOrFail($id);
-
+        $product->allEstablishments = Establishment::where('is_main', 0)->get();
         foreach ($product->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
@@ -901,7 +900,7 @@ class ProductController extends Controller
 
         return view('product::product.edit', [
             'product' => $product,
-            'modifierGroups' => $modifierGroups
+            'modifierGroups' => $modifierGroups,
         ]);
     }
 
