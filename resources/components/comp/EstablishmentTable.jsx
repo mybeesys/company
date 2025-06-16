@@ -37,7 +37,13 @@ const EstablishmentTable = ({
                                 <tr key={establishmentId}>
                                     <td>
                                         <input
-                                        
+                                            style={{
+                                                transform: "scale(1.5)",
+                                                margin: "5px",
+                                                cursor: "pointer",
+                                                width: "17px",
+                                                height: "17px",
+                                            }}
                                             type="checkbox"
                                             checked={selectedEstablishments.includes(
                                                 establishmentId
