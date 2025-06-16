@@ -17,7 +17,7 @@ const ProductCombo = ({
     const [columnWidths, setColumnWidths] = useState({
         name_ar: "50px",
         name_en: "70px",
-        products: "200px",
+        products: "300px",
         quantity: "100px",
         price: !!product.set_price ? "100px" : "100px",
     });
@@ -93,7 +93,17 @@ const ProductCombo = ({
         tooltipTriggerList.map(
             (tooltipTriggerEl) => new window.bootstrap.Tooltip(tooltipTriggerEl)
         );
-    }, []);
+
+        return () => {
+            tooltipTriggerList.forEach((tooltipTriggerEl) => {
+                const tooltip =
+                    window.bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                if (tooltip) {
+                    tooltip.dispose();
+                }
+            });
+        };
+    }, [translations]);
     return (
         <div class="card-body" dir={dir}>
             <div class="form-group">
@@ -147,6 +157,9 @@ const ProductCombo = ({
                                         <span
                                             className="ms-1"
                                             data-bs-toggle="tooltip"
+                                            aria-label={
+                                                translations.setPriceInCombo_status
+                                            }
                                             data-bs-original-title={
                                                 translations.setPriceInCombo_status
                                             }
