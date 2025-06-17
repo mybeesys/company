@@ -37,9 +37,11 @@
 
 @section('content')
 
-   						
-      <div id="root" type="ingredientedit" 
+
+      <div id="root" type="ingredientedit"
         ingredient="{{json_encode($ingredient)}}"
+        listTax-url ="{{json_encode(route('taxList'))}}"
+
         dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
      </div>
 

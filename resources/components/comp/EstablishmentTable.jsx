@@ -13,9 +13,9 @@ const EstablishmentTable = ({
     const isEditMode = window.location.href.includes("edit");
 
     return (
-        <div className="card mb-5 mb-xl-8">
+        <div className="card1 m-5 m-xl-5">
             <div className="card-header">
-                <h3 className="card-title">{translations.establishments}</h3>
+                <h3 className="card-title my-4">{translations.establishments}</h3>
             </div>
             <div className="card-body">
                 <Table striped bordered hover>

@@ -102,8 +102,13 @@ class GeneralController extends Controller
                 'name' => session('locale') == 'ar' ? $country->name_ar : $country->name_en,
             ];
         });
-        // return view('establishment::company.settings.index', compact('company', 'countries'));
-        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters'));
+
+        $policy = Setting::where('key', 'inventory_tracking_policy')->value('value') ?? 'perpetual';
+        $allowSaleWithoutStock = Setting::where('key', 'allow_sale_without_stock')->value('value');
+        // dd($allowSaleWithoutStock);
+        $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
+
+        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency'));
     }
 
     public function subscription()
@@ -264,5 +269,41 @@ class GeneralController extends Controller
         );
 
         return response()->json(['success' => true]);
+    }
+
+    public function updateInventorySettings(Request $request)
+    {
+        // return $request;
+        try {
+            $trackingPolicy = $request->input('inventory_tracking_policy');
+            $allowSaleWithoutStock = $request->input('allow_sale_without_stock', false);
+            // return  $allowSaleWithoutStock ? 'true' : 'false';
+            $inventoryCountFrequency = $request->input('inventory_count_frequency');
+
+            Setting::updateOrCreate(
+                ['key' => 'inventory_tracking_policy'],
+                ['value' => $trackingPolicy]
+            );
+
+            if ($trackingPolicy === 'perpetual') {
+                Setting::updateOrCreate(
+                    ['key' => 'allow_sale_without_stock'],
+                    ['value' => $allowSaleWithoutStock ? 'true' : 'false']
+                );
+
+                Setting::where('key', 'inventory_count_frequency')->delete();
+            } elseif ($trackingPolicy === 'periodic') {
+                Setting::updateOrCreate(
+                    ['key' => 'inventory_count_frequency'],
+                    ['value' => $inventoryCountFrequency]
+                );
+
+                Setting::where('key', 'allow_sale_without_stock')->delete();
+            }
+
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
     }
 }

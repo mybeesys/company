@@ -24,7 +24,8 @@ return [
 
     'add_to_favorites' => 'Add to Favorites',
     'remove_from_favorites' => 'Remove from Favorites',
-
+ 'inventory_tracking_policy' => 'Inventory Tracking Policy',
+   
 
 
 

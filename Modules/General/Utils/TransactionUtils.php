@@ -5,11 +5,15 @@ namespace Modules\General\Utils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
+use Modules\Product\Models\Product;
 
 class TransactionUtils
 {
@@ -114,10 +118,37 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id,$request);
+        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
 
+        $inventoryMethod = Setting::where('key', 'inventory_tracking_policy')->first()->value;
+        if ($inventoryMethod == 'perpetual' && $transaction->type == 'sell') {
+            $this->recordCOGS($transaction);
+        }
+
         return true;
+    }
+
+    protected function recordCOGS($transaction)
+    {
+        $cogsAmount = 0;
+        foreach ($transaction->sell_lines as $line) {
+            $product = Product::find($line->product_id);
+            $cogsAmount += $product->cost_price * $line->quantity;
+        }
+
+        //  COGS (521)
+        $cogsAccount = AccountingAccount::where('gl_code', '521')->first();
+
+        if ($cogsAccount) {
+            AccountingAccountsTransaction::create([
+                'accounting_account_id' => $cogsAccount->id,
+                'amount' => $cogsAmount,
+                'type' => 'debit',
+                'transaction_id' => $transaction->id,
+                'operation_date' => $transaction->transaction_date
+            ]);
+        }
     }
 
     public function addPaymentLines_journalEntry($transaction, $request)
@@ -135,9 +166,9 @@ class TransactionUtils
         // $payment_method ='';
         if ($transaction->invoice_type == 'cash') {
             $payment_method = 'cash';
-           } elseif ($transaction->invoice_type == 'due') {
+        } elseif ($transaction->invoice_type == 'due') {
             $payment_method = 'due';
-         }
+        }
 
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
 
@@ -173,11 +204,11 @@ class TransactionUtils
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
                 $transactionPayment->amount = $transaction->final_total;
-                $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
+                $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             }
             $transactionPayment->account_id = $account_id;
             $transactionPayment->amount = $request->paid_amount;
-            $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
+            $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
         } elseif ($transaction->type == 'purchases') {
 
             $transaction->type = 'payment_voucher';
@@ -185,11 +216,11 @@ class TransactionUtils
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
                 $transactionPayment->amount = $transaction->final_total;
-                $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
+                $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             }
             $transactionPayment->account_id = $account_id;
             $transactionPayment->amount = $request->paid_amount;
-            $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id,$request);
+            $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
         }
 
         return true;

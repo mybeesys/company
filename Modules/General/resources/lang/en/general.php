@@ -91,7 +91,21 @@ return [
     'employees' => 'Employee Management',
     'screens' => 'Screens',
     'reports' => 'Reports',
-    'Module Management'=>'Module Management',
+    'Module Management' => 'Module Management',
+    'inventory_tracking_policy' => 'Inventory Tracking Policy',
+    'periodic' => 'Periodic Inventory',
+    'perpetual' => 'Perpetual Inventory',
+    'next_inventory_date' => 'Next Inventory Date',
+    'alert_before_inventory' => 'Alert Before Inventory (Days)',
+    'allow_sale_without_stock' => 'Allow Sale Without Stock',
+    'yes' => 'Yes',
+    'no' => 'No',
+       'inventory_frequency' => 'Inventory Frequency',
+    'daily' => 'Daily',
+    'weekly' => 'Weekly',
+    'monthly' => 'Monthly',
+    'quarterly' => 'Quarterly',
+    'yearly' => 'Yearly',
 
 
 ];

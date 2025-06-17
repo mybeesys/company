@@ -30,6 +30,9 @@ class TreeAccountsController extends Controller
 
     public function index()
     {
+        // if(auth()->user()->hasDashboardPermission('')){
+        //     return;
+        // }
         // return  view('usermanagement::index');
         $account_types = AccountingAccountTypes::accounting_primary_type();
         $balance_formula = AccountingUtil::balanceFormula('AA');

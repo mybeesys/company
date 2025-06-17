@@ -38,12 +38,15 @@ return [
     'accounting_management_module' => 'المحاسبة',
     'establishments_management_module' => 'إدارة المنشآت',
     'reports_management_module' => 'إدارة التقارير',
-    'schedules_management_module' => 'إدارة الجدولة',    
+    'schedules_management_module' => 'إدارة الجدولة',
     'crm_management_module' => 'إدارة علاقات العملاء',
     'timecard' => 'وقت الدوام',
     'screens_management_module' => 'الشاشات',
     'sales_management_module' => 'المبيعات',
-
+    'purchases_management_module' => 'المشتريات',
+    'accountingReports_management_module' => 'التقارير المحاسبية',
+    'setting_management_module' => 'الإعدادات',
+//
 
 
     'notifications_settings' => 'إعدادات الإشعارات',
