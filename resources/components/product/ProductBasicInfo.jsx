@@ -130,7 +130,7 @@ const ProductBasicInfo = ({
                             onChange={(e) => handleChange("active", e.value)}
                         />
                     </div>
-                    <label
+                    {/* <label
                         class="ps-10 fs-6 fw-semibold mb-2 me-3 "
                         style={{ width: "120px" }}
                     >
@@ -143,8 +143,8 @@ const ProductBasicInfo = ({
                         >
                             <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                         </span>
-                    </label>
-                    <div class="form-check form-switch p-0">
+                    </label> */}
+                    {/* <div class="form-check form-switch p-0">
                         <InputSwitch
                             checked={
                                 !!currentObject.for_sell
@@ -153,7 +153,7 @@ const ProductBasicInfo = ({
                             }
                             onChange={(e) => handleChange("for_sell", e.value)}
                         />
-                    </div>
+                    </div> */}
                     <label
                         class="ps-10 fs-6 fw-semibold mb-2 me-3"
                         style={{ width: "150px" }}

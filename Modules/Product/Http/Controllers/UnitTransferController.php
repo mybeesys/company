@@ -17,10 +17,10 @@ class UnitTransferController extends Controller
          {
             $prodTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($prodTransfer);
-         } 
+         }
         else if ($type == "ingredient")
         {
-            $ingTransfer = UnitTransfer::where('ingredient_id', '=', $id)->get();
+            $ingTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($ingTransfer);
         }
         else
@@ -36,7 +36,7 @@ class UnitTransferController extends Controller
         $key = $request->query('key', '');
         $units =[];
         if ($request->has('id')) {
-            
+
             $recipeIngredient = explode("-",$request['id']);
             if($recipeIngredient[1] == 'p')
                 $request['product_id'] = $recipeIngredient[0];
@@ -78,7 +78,7 @@ class UnitTransferController extends Controller
 
     public function index()
     {
-        return view('product::unit.index' ); 
+        return view('product::unit.index' );
     }
 
     public function edit($id)
@@ -90,7 +90,7 @@ class UnitTransferController extends Controller
     public function create()
     {
         $ingredient  = new Unit();
-    
+
         return view('product::unit.create', compact('unit'));
     }
 
@@ -116,9 +116,9 @@ class UnitTransferController extends Controller
             $unit = Unit::where('name_en', $validated['name_en'])->first();
             if($unit != null)
                 return response()->json(["message"=>"NAME_EN_EXIST"]);
-            
+
                 Unit::create($validated);
-            
+
         } else {
             $unit = Unit::where([
                 ['id', '!=', $validated['id']],

@@ -64,7 +64,7 @@ class ProductController extends Controller
         'use_upcharge' => 'nullable|boolean',
         'linked_combo' => 'nullable|boolean',
         'promot_upsell' => 'nullable|numeric',
-        'for_sell' => 'required|boolean',
+        // 'for_sell' => 'required|boolean',
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
         'show_in_menu' => 'required|boolean',

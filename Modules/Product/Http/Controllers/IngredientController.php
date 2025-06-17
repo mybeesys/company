@@ -4,9 +4,15 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\Establishment;
+use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\Product_Attribute;
+use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
@@ -14,9 +20,11 @@ use Modules\Product\Models\Vendor;
 
 class IngredientController extends Controller
 {
+
     public function getIngredientsTree()
     {
-        $ingredients = Ingredient::all();
+        // $ingredients = Ingredient::all();
+        $ingredients = Product::where('type', 'ingredint')->get();
         $treeBuilder = new TreeBuilder();
         $tree = $treeBuilder->buildTree($ingredients, null, 'Ingredient', null, null, null);
         return response()->json($tree);
@@ -45,7 +53,7 @@ class IngredientController extends Controller
 
     public function getVendors()
     {
-        $units = Vendor::all();
+        $units = Contact::where('business_type', 'supplier')->get();
         return response()->json($units);
     }
 
@@ -56,13 +64,22 @@ class IngredientController extends Controller
 
     public function edit($id)
     {
-        $ingredient  = Ingredient::find($id);
+        $ingredient  = Product::with(['establishments' => function ($query) {
+            $query->with('establishment');
+        }])->with(['unitTransfers' => function ($query) {
+            // $query->with('unitTransfer');
+        }])->find($id);
+    // return $ingredient;
         return view('product::ingredient.edit', compact('ingredient'));
     }
 
     public function create()
     {
-        $ingredient  = new Ingredient();
+        $ingredient  = new Product();
+        $establishments = Establishment::where('is_main', 0)->get();
+        $ingredient->establishments = $establishments;
+
+
         $ingredient->active = 1;
         return view('product::ingredient.create', compact('ingredient'));
     }
@@ -78,99 +95,74 @@ class IngredientController extends Controller
         return null;
     }
 
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name_ar' => 'required|string|max:255',
-            'name_en' => 'required|string',
-            'cost' => 'required|numeric',
-            'active' => 'required|boolean',
-            'SKU' => 'nullable|string',
-            'barcode' => 'nullable|string',
-            'vendor_id' => 'nullable|numeric',
-            'reorder_point' => 'nullable|numeric',
-            'reorder_quantity' => 'nullable|numeric',
-            'yield_percentage' => 'nullable|numeric',
-            'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
-        ]);
-
+        error_log(json_encode($request->all()));
+        $validated = $request->all();
+        $validated['tax_id'] = $validated['order_tax_id'];
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $validateUsing = $this->validateInUse($validated['id']);
             if ($validateUsing != null)
                 return $validateUsing;
-            $serviceFee = Ingredient::find($validated['id']);
-            $serviceFee->delete();
+            $product = Product::find($validated['id']);
+            $product->delete();
             return response()->json(["message" => "Done"]);
-        }
-
-        if (!isset($validated['id'])) {
-            $serviceFee = Ingredient::where('name_ar', $validated['name_ar'])->first();
-            if ($serviceFee != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
-            $serviceFee = Ingredient::where('name_en', $validated['name_en'])->first();
-            if ($serviceFee != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
-
-            $ingredient = Ingredient::create($validated);
-
-            if (isset($request["transfer"])) {
-                $ids = [];
-                $insertedIds = [];
-                foreach ($request["transfer"] as $transfer) {
-                    $newid = [];
-                    $inserted = [];
-                    $tran = [];
-                    $newid['oldId'] =  $transfer['id'];
-                    $tran['ingredient_id'] =  $ingredient->id;
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
-                    $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                    $id = UnitTransfer::create($tran)->id;
-                    $inserted['id'] = $id;
-                    $inserted['unit2'] = $transfer['unit2'];
-                    $newid['newId'] =  $id;
-                    $ids[] = $newid;
-                    $insertedIds[] = $inserted;
-                }
-                foreach ($insertedIds as $transfer) {
-                    foreach ($ids as $updateId) {
-                        if ($transfer['unit2'] == $updateId['oldId']) {
-                            $updateObject = UnitTransfer::find($transfer['id']);
-                            $updateObject->unit2 =  $updateId['newId'];
-                            $updateObject->save();
-                        }
-                    }
-                }
-            }
+        } else if (isset($validated['id'])) {
+            $res = $this->validateProduct($validated['id'], $validated);
+            if (count($res) > 0)
+                return $res;
+            $this->saveProduct($validated, $request);
         } else {
-            $ingredient = Ingredient::where([
-                ['id', '!=', $validated['id']],
-                ['name_ar', '=', $validated['name_ar']]
-            ])->first();
-            if ($ingredient != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
-            $ingredient = Ingredient::where([
-                ['id', '!=', $validated['id']],
-                ['name_en', '=', $validated['name_en']]
-            ])->first();
-            if ($ingredient != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            $res = $this->validateProduct(null, $validated);
+            if (count($res) > 0)
+                return $res;
+            $this->createProduct($validated, $request);
+        }
+        return response()->json(["message" => "Done"]);
+    }
 
-            $Ingredient = Ingredient::find($validated['id']);
-            $Ingredient->name_ar = $validated['name_ar'];
-            $Ingredient->name_en = $validated['name_en'];
-            $Ingredient->cost = $validated['cost'];
-            $Ingredient->active = $validated['active'];
-            $Ingredient->SKU = isset($validated['SKU']) ? $validated['SKU'] : null;
-            $Ingredient->barcode = isset($validated['barcode']) ? $validated['barcode'] : null;
-            $Ingredient->vendor_id =  isset($validated['vendor_id']) ? $validated['vendor_id'] : null;
-            $Ingredient->reorder_point = isset($validated['reorder_point']) ? $validated['reorder_point'] : null;
-            $Ingredient->reorder_quantity = isset($validated['reorder_quantity']) ? $validated['reorder_quantity'] : null;
-            $Ingredient->yield_percentage = isset($validated['yield_percentage']) ? $validated['yield_percentage'] : null;
+    public function validateProduct($id, $product)
+    {
+        $checkResult = [];
+        $uniqueFields = ['name_ar', 'name_en'];
+        if (isset($product['SKU']))
+            $uniqueFields[] = 'SKU';
+        if ($id != null)
+            $query = Product::where('id', '!=', $id);
+        else
+            $query = Product::whereRaw('1 = 1');
+        $query = $query->where(function ($subQuery) use ($uniqueFields, $product) {
+            for ($i = 0; $i < count($uniqueFields); $i++) {
+                $subQuery = $subQuery->orWhere($uniqueFields[$i], '=', $product[$uniqueFields[$i]]);
+            }
+        });
+        $products = $query->get();
+        for ($i = 0; $i < count($uniqueFields); $i++) {
+            $res = array_filter($products->toArray(), function ($prod) use ($product, $uniqueFields, $i) {
+                return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]]; // Keep only even numbers
+            });
+            if (count($res) > 0)
+                $checkResult[] = $uniqueFields[$i];
+        }
+        if (count($checkResult) > 0) {
+            return [
+                'message' => 'UNIQUE',
+                'data' => $checkResult
+            ];
+        }
+        return $checkResult;
+    }
 
-            $oldUnites = UnitTransfer::where('ingredient_id', $validated['id'])->get();
+    protected function saveProduct($validated, $request)
+    {
+        $product = Product::find($validated['id']);
+        // $validated['type'] = 'ingredint';
+        $product->fill($validated);
+        DB::transaction(function () use ($product, $request) {
+            $product->save();
+
+            $oldUnites = UnitTransfer::where('product_id', $product->id)->get();
 
             if (isset($request["transfer"])) {
                 $ids = [];
@@ -179,7 +171,7 @@ class IngredientController extends Controller
                 $requestIds = array_map(function ($item) {
                     return $item["id"];
                 }, $request["transfer"]);
-                UnitTransfer::where('ingredient_id', '=',  $validated['id'])->whereNotIn('id', $requestIds)->delete();
+                UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();
                 foreach ($oldUnites  as $old) {
                     $newid = [];
                     $newid['oldId'] = $old['id'];
@@ -192,7 +184,7 @@ class IngredientController extends Controller
                         $inserted = [];
                         $tran = [];
                         $newid['oldId'] =  $transfer['id'];
-                        $tran['ingredient_id'] =  $validated['id'];
+                        $tran['product_id'] =  $product->id;
                         $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
                         $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
@@ -226,8 +218,92 @@ class IngredientController extends Controller
                     }
                 }
             }
-            $Ingredient->save();
-        }
-        return response()->json(["message" => "Done"]);
+            EstablishmentProduct::where('product_id', '=', $product->id)->delete();
+            if (isset($request["establishments"])) {
+                foreach ($request["establishments"] as $newEstablishment) {
+
+                    $establishment = new EstablishmentProduct();
+                    $establishment->product_id = $product->id;
+                    $establishment->establishment_id = $newEstablishment["establishment_id"];
+                    $establishment->save();
+                }
+            }
+            ProductPriceTier::where('product_id', '=', $product->id)->delete();
+            if (isset($request["price_tiers"])) {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+
+                    $PriceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $PriceTier->product_id = $product->id;
+                    $PriceTier->price_tier_id = $pt["id"];
+                    $PriceTier->price = $newPriceTier["price"];
+                    $PriceTier->save();
+                }
+            }
+        });
+    }
+
+
+    protected function createProduct($validated, $request)
+    {
+
+        DB::transaction(function () use ($validated, $request) {
+            $validated['type'] = 'ingredint';
+
+            $product = Product::create($validated);
+
+            if (isset($request["transfer"])) {
+                $ids = [];
+                $insertedIds = [];
+                foreach ($request["transfer"] as $transfer) {
+                    $newid = [];
+                    $inserted = [];
+                    $tran = [];
+                    $newid['oldId'] =  $transfer['id'];
+                    $tran['product_id'] =  $product->id;
+                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
+                    $tran['unit1'] = $transfer['unit1'];
+                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $id = UnitTransfer::create($tran)->id;
+                    $inserted['id'] = $id;
+                    $inserted['unit2'] = $transfer['unit2'];
+                    $newid['newId'] =  $id;
+                    $ids[] = $newid;
+                    $insertedIds[] = $inserted;
+                }
+                foreach ($insertedIds as $transfer) {
+                    foreach ($ids as $updateId) {
+                        if ($transfer['unit2'] == $updateId['oldId']) {
+                            $updateObject = UnitTransfer::find($transfer['id']);
+                            $updateObject->unit2 =  $updateId['newId'];
+                            $updateObject->save();
+                        }
+                    }
+                }
+            }
+            $product->save();
+
+            if (isset($request["establishments"])) {
+                foreach ($request["establishments"] as $newEstablishment) {
+
+                    $establishment = new EstablishmentProduct();
+                    $establishment->product_id = $product->id;
+                    $establishment->establishment_id = $newEstablishment["id"];;
+                    $establishment->save();
+                }
+            }
+            if (isset($request["price_tiers"])) {
+                foreach ($request["price_tiers"] as $newPriceTier) {
+
+                    $priceTier = new ProductPriceTier();
+                    $pt = $newPriceTier['price_tier'];
+                    $priceTier->product_id = $product->id;
+                    $priceTier->price_tier_id = $pt["id"];
+                    $priceTier->price = $newPriceTier["price"];
+                    $priceTier->save();
+                }
+            }
+        });
     }
 }

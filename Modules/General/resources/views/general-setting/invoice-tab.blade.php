@@ -22,6 +22,10 @@
                 <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
                     <a class="nav-link py-3" data-bs-toggle="tab" href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
                 </li>
+                <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
+                    <a class="nav-link py-3" data-bs-toggle="tab" href="#inventory_policy_tab">@lang('general::lang.inventory_tracking_policy')</a>
+                </li>
+
                 <li class="nav-item w-md-200px me-0 py-1">
                     <a class="nav-link py-3 " data-bs-toggle="tab" href="#sales-tab">
                         @lang('menuItemLang.sales')
@@ -61,6 +65,10 @@
                 <div class="tab-pane fade" id="enabledModules-tab" role="tabpanel">
                     @include('general::general-setting.enabledModules')
                 </div>
+
+                 <div class="tab-pane fade" id="inventory_policy_tab" role="tabpanel">
+               @include('general::general-setting.inventory_policy_tab')
+     </div>
 
 
 

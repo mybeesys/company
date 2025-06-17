@@ -11,15 +11,25 @@ return [
         'name' => 'product_module',
         'url' => 'category',
         'icon' => 'fas fa-shopping-cart',
-        'permission' => '',
+        'permission' => 'products.all.show',
         'subMenu' => [
             [
 
                 'name' => 'products',
                 'url' => 'category',
-                'permission' => 'products.product.show',
+                'permission' => 'products.category.show',
 
             ],
+
+                 [
+
+                'name' => 'ingredient',
+                'url' => 'ingredient',
+                'permission' => 'products.ingredient.show',
+
+            ],
+
+
             [
                 'name' => 'modifiers',
                 'url' => 'modifier',
@@ -127,38 +137,38 @@ return [
         'name' => 'sales',
         'url' => '#',
         'icon' => 'fas fa-dollar-sign',
-        'permission' => '',
+        'permission' => 'sales.all.show',
         'subMenu' => [
             [
                 'name' => 'clients',
                 'url' => 'clients',
-                'permission' => '',
+                'permission' => 'sales.Customers.show',
             ],
             [
                 'name' => 'quotations',
                 'url' => 'quotations',
-                'permission' => '',
+                'permission' => 'sales.Quotations.show',
             ],
 
             [
                 'name' => 'invoices',
                 'url' => 'invoices',
-                'permission' => '',
+                'permission' => 'sales.Sell invoices.show',
             ],
             [
                 'name' => 'sell-return',
                 'url' => 'sell-return',
-                'permission' => '',
+                'permission' => 'sales.Sell returns.show',
             ],
             [
                 'name' => 'customer_receipts',
                 'url' => 'receipts',
-                'permission' => '',
+                'permission' => 'sales.Customer receipts.show',
             ],
             [
                 'name' => 'coupons',
                 'url' => 'coupon',
-                'permission' => ''
+                'permission' => 'sales.coupons.show'
             ]
         ]
     ],
@@ -166,32 +176,32 @@ return [
         'name' => 'purchases',
         'url' => '#',
         'icon' => 'fas fa-shopping-cart',
-        'permission' => '',
+        'permission' => 'purchases.all.show',
         'subMenu' => [
             [
                 'name' => 'suppliers',
                 'url' => 'suppliers',
-                'permission' => '',
+                'permission' => 'purchases.Suppliers.show',
             ],
             [
                 'name' => 'purchase-order',
                 'url' => 'purchases-order',
-                'permission' => '',
+                'permission' => 'purchases.Purchase Orders.show',
             ],
             [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
-                'permission' => '',
+                'permission' => 'purchases.Purchase invoices.show',
             ],
             [
                 'name' => 'purchases-return',
                 'url' => 'purchases-return',
-                'permission' => '',
+                'permission' => 'purchases.Purchase returns.show',
             ],
             [
                 'name' => 'supplier_receipts',
                 'url' => 'suppliers-receipts',
-                'permission' => '',
+                'permission' => 'purchases.Supplier vouchers.show',
             ],
 
 
@@ -203,42 +213,42 @@ return [
         'name' => 'accounting_module',
         'url' => 'dashboard',
         'icon' => 'fas fa-calculator',
-        'permission' => '',
+        'permission' => 'accounting.all.show',
         'subMenu' => [
             [
                 'name' => 'accounting_dashboard',
                 'url' => 'accounting-dashboard',
-                'permission' => '',
+                'permission' => 'accounting.Dashboard.show',
             ],
             [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
-                'permission' => '',
+                'permission' => 'accounting.Accounts tree.show',
             ],
             [
                 'name' => 'accounts-routing',
                 'url' => 'accounts-routing',
-                'permission' => '',
+                'permission' => 'accounting.Accounts routing.show',
             ],
             [
                 'name' => 'journalEntry',
                 'url' => 'journal-entry-index',
-                'permission' => '',
+                'permission' => 'accounting.Daily entries.show',
             ],
             [
                 'name' => 'costCenter',
                 'url' => 'cost-center-index',
-                'permission' => '',
+                'permission' => 'accounting.Cost center.show',
             ],
             [
                 'name' => 'receipt_vouchers',
                 'url' => 'receipt-vouchers',
-                'permission' => '',
+                'permission' => 'accounting.Receipt vouchers.show',
             ],
             [
                 'name' => 'payment_vouchers',
                 'url' => 'payment-vouchers',
-                'permission' => '',
+                'permission' => 'accounting.Payment vouchers.show',
             ],
 
         ]
@@ -252,56 +262,56 @@ return [
             [
                 'name' => 'trial-balance',
                 'url' => 'trial-balance',
-                'permission' => '',
+                'permission' => 'accountingReports.Trial balance.show',
             ],
             [
                 'name' => 'income-statement',
                 'url' => 'income-statement',
-                'permission' => '',
+                'permission' => 'accountingReports.Income statement.show',
             ],
             [
                 'name' => 'ledger',
                 'url' => 'ledger',
-                'permission' => '',
+                'permission' => 'accountingReports.Journal ledger.show',
             ],
 
             [
                 'name' => 'balance_sheet',
                 'url' => 'balance-sheet',
-                'permission' => '',
+                'permission' => 'accountingReports.Balance sheet.show',
             ],
             [
                 'name' => 'journal-report',
                 'url' => 'journal-report',
-                'permission' => '',
+                'permission' => 'accountingReports.Journal ledger.show',
             ],
             [
                 'name' => 'cash-flow',
                 'url' => 'cash-flow',
-                'permission' => '',
+                'permission' => 'accountingReports.Cash flow.show',
             ],
 
             [
                 'name' => 'customers-suppliers-statement',
                 'url' => 'customers-suppliers-statement',
-                'permission' => '',
+                'permission' => 'accountingReports.Customers suppliers statement.show',
             ],
 
 
             [
                 'name' => 'account-receivable-ageing-report',
                 'url' => 'account-receivable-ageing-report',
-                'permission' => '',
+                'permission' => 'accountingReports.Receivables aging.show',
             ],
             [
                 'name' => 'account-receivable-ageing-details',
                 'url' => 'account-receivable-ageing-details',
-                'permission' => '',
+                'permission' => 'accountingReports.Payables aging.show',
             ],
             [
                 'name' => 'account-payable-ageing-report',
                 'url' => 'account-payable-ageing-report',
-                'permission' => '',
+                'permission' => 'accountingReports.Payables age report.show',
             ],
 
             [
@@ -508,12 +518,12 @@ return [
         'name' => 'setting',
         'url' => '',
         'icon' => 'fas fa-cog',
-        'permission' => '',
+        'permission' => 'setting.all.show',
         'subMenu' => [
             [
                 'name' => 'general_setting',
                 'url' => 'general-setting',
-                'permission' => '',
+                'permission' => 'setting.General setting.show',
 
             ],
             [

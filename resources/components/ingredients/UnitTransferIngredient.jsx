@@ -19,11 +19,16 @@ const UnitTransferIngredient = ({ translations, unitTransfer, unitTree, parentHa
 
     const handleDelete = (row) =>{
         let index = nodes.findIndex(x=>x.id == row.id);
-        if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+        if(index != -1)
         {
-            return { message : 'relatedUnitTransfer'}
+            if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
+            {
+                return { message : 'relatedUnitTransfer'}
+            }
+            nodes.splice(index, 1); // Removes 1 element at index 2
+            let index1 = innerUnits.findIndex((object) => object.value == row.id);
+            innerUnits.splice(index1, 1); // Removes 1 element at index 2
         }
-        nodes.splice(index, 1); // Removes 1 element at index 2
         setNodes([...nodes]);
         parentHandle(nodes);
         return { message : 'Done'};
@@ -38,7 +43,7 @@ const UnitTransferIngredient = ({ translations, unitTransfer, unitTree, parentHa
     const handleChange = (value) => {
         if(!!!value)
         {
-            
+
         }
         let main = { ...mainUnit }
         main.unit1 = value;
@@ -77,24 +82,24 @@ const UnitTransferIngredient = ({ translations, unitTransfer, unitTree, parentHa
                 dir={dir}
                 header={false}
                 addNewRow={true}
-                type={"recipe"}
+                type={"unit"}
                 title={translations.recipe}
                 currentNodes={[...nodes]}
-                defaultValue={{ }}
+                defaultValue={{ primary : 0}}
                 rowTitle= "unit1"
                 cols={[
                     {
                         key: "unit2", title: "Unit", autoFocus: true, options: innerUnits, type: "DropDown", width: '25%',
                         editable: true, required: true
                     },
-                    {key : "transfer", autoFocus: false, type :"Decimal", width:'25%', 
+                    {key : "transfer", title: "transfer1", autoFocus: false, type :"Decimal", width:'25%',
                         editable:true, required:true
                     },
                     {
-                    key: "unit1", autoFocus: false, type: "Text", width: '20%',
+                    key: "unit1", title: "newUnit", autoFocus: false, type: "Text", width: '20%',
                     editable: true, required: true,
                     onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            if(!!!nodes[rowKey].data.id){
+                            if(nodes[rowKey].data.id >= 0 && nodes[rowKey].data.newItem == 1){
                                 nodes[rowKey].data.id = globalId - 1;
                                 setGlobalId(globalId - 1);
                             }

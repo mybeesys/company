@@ -37,7 +37,7 @@
             );
         @endphp
 
-        {{-- @if ($visibleSubmenuItems->isNotEmpty()) --}}
+        @if ($visibleSubmenuItems->isNotEmpty())
         <x-sidebar.main-menu :isSubmenuActive=$isSubmenuActive>
             <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="/* $visibleSubmenuItems->count() */ 1" />
             <x-sidebar.submenu>
@@ -54,10 +54,10 @@
                                         ->hasDashboardPermission($submenuItem['permission']);
                             @endphp
 
-                            {{-- @if ($hasPermission)
+                            @if ($hasPermission)
                                     <x-sidebar.menu-item :url="$submenuItem['url']" :name="$submenuItem['name']" />
-                                @endif --}}
-                            <x-sidebar.menu-item :url="$submenuItem['url']" :name="$submenuItem['name']" />
+                                @endif
+                            {{-- <x-sidebar.menu-item :url="$submenuItem['url']" :name="$submenuItem['name']" /> --}}
                         @endif
                     @else
                         @php
@@ -98,11 +98,11 @@
                                                         ->hasDashboardPermission($item['permission']);
                                             @endphp
 
-                                            {{-- @if ($hasPermission)
+                                            @if ($hasPermission)
                                                     <x-sidebar.menu-item :url="$item['url']" :name="$item['name']" />
-                                                @endif --}}
+                                                @endif
                                         @endif
-                                        <x-sidebar.menu-item :url="$item['url']" :name="$item['name']" />
+                                        {{-- <x-sidebar.menu-item :url="$item['url']" :name="$item['name']" /> --}}
                                     @endforeach
                                 </x-sidebar.submenu>
                             </x-sidebar.main-menu>
@@ -111,6 +111,6 @@
                 @endforeach
             </x-sidebar.submenu>
         </x-sidebar.main-menu>
-        {{-- @endif --}}
+        @endif
     @endforeach
 </div>

@@ -64,6 +64,10 @@ class Ingredient extends Model
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'ingredient_id');
     }
+    // public function establishments()
+    // {
+    //     return $this->hasMany(EstablishmentProduct::class, 'ingredient_id', 'id');
+    // }
     public function unitTransfers()
     {
         return $this->hasMany(UnitTransfer::class, 'ingredient_id', 'id');

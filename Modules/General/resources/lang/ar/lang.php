@@ -26,7 +26,8 @@ return [
     'add_to_favorites' => 'إضافة إلى المفضلة',
     'remove_from_favorites' => 'إزالة من المفضلة',
 
-
+   'inventory_tracking_policy' => 'سياسة الجرد',
+   
 
 
 

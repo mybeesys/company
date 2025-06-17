@@ -25,6 +25,7 @@ class Product extends Model
         'SKU',
         'barcode',
         'class',
+        'type',
         'cost',
         'price',
         'category_id',
@@ -50,6 +51,12 @@ class Product extends Model
         'preparation_time',
         'calories',
         'show_in_menu',
+
+        'vendor_id',
+        'alertQuantity',
+        'defaultOrderQuantity',
+        'orderPriceWithTax',
+        'track_inventory',
 
     ];
 

@@ -60,7 +60,8 @@ Route::middleware([
         Route::post('update-prefix', [GeneralController::class, 'updatePrefix'])->name('update-prefix');
         Route::post('update-currency', [GeneralController::class, 'updateCurrency'])->name('update-currency');
         Route::post('update-modules', [GeneralController::class, 'updateModules'])->name('update-modules');
-
+        Route::post('/update-inventory-policy', [GeneralController::class, 'updateInventorySettings'])
+            ->name('update-inventory-policy');
 
         Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
 
@@ -76,6 +77,5 @@ Route::middleware([
         Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
         Route::get('/invoice-settings', [GeneralController::class, 'getInvoiceSettings'])->name('invoice-settings-get');
         Route::post('/invoice-settings-update', [GeneralController::class, 'updateInvoiceSetting'])->name('invoice-settings-update');
-
     });
 });
