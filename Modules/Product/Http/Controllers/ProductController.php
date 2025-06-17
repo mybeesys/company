@@ -2,6 +2,8 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
+use Exception;
 use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -341,26 +343,7 @@ class ProductController extends Controller
         DB::transaction(function () use ($product, $request) {
             $product->save();
             if (isset($request["modifiers"])) {
-                foreach ($request["modifiers"] as $modifier) {
-                    if (isset($modifier['id'])) {
-                        $mod = ProductModifier::find($modifier['id']);
-                        $mod->active = $modifier['active'];
-                        $mod->default = $modifier['default'];
-                        $mod->required = $modifier['required'];
-                        $mod->min_modifiers = $modifier['min_modifiers'];
-                        $mod->max_modifiers = $modifier['max_modifiers'];
-                        $mod->display_order = $modifier['display_order'];
-                        $mod->button_display = $modifier['button_display'];
-                        $mod->modifier_display = $modifier['modifier_display'];
-                        $mod['free_quantity'] = 0;
-                        $mod['free_type'] = 0;
-                        $mod->save();
-                    } else {
-                        $modifier['free_quantity'] = 0;
-                        $modifier['free_type'] = 0;
-                        ProductModifier::create($modifier);
-                    }
-                }
+                $this->saveModifiers($request["modifiers"], $product->id);
             }
             $oldRecipe = RecipeProduct::where('product_id', $product->id)->get();
             foreach ($oldRecipe as $recipe) {
@@ -543,174 +526,265 @@ class ProductController extends Controller
 
     protected function createProduct($validated, $request)
     {
-
         DB::transaction(function () use ($validated, $request) {
+            // 1. Create the product
             $product = Product::create($validated);
+
+            // 2. Save modifiers if they exist
             if (isset($request["modifiers"])) {
-                foreach ($request["modifiers"] as $modifier) {
-                    $modifier['product_id'] = $product->id;
-                    $modifier['free_quantity'] = 0;
-                    $modifier['free_type'] = 0;
-                    ProductModifier::create($modifier);
-                }
+                $this->saveModifiers($request["modifiers"], $product->id);
             }
+
+            // 3. Save attributes if they exist
             if (isset($request["attributes"])) {
-                foreach ($request["attributes"] as $attribute) {
-                    $att = [];
-                    $att['product_id'] =  $product->id;
-                    $att['attribute_id1'] = $attribute['attribute1']['id'];
-                    $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
-                    $att['name_ar'] = $attribute['name_ar'];
-                    $att['name_en'] = $attribute['name_en'];
-                    $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
-                    $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
-                    $att['price'] = $attribute['price'];
-                    $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
-                    Product_Attribute::create($att);
-                }
+                $this->saveAttributes($request["attributes"], $product->id);
             }
+
+            // 4. Save transfer details if they exist
             if (isset($request["transfer"])) {
-                $ids = [];
-                $insertedIds = [];
-                foreach ($request["transfer"] as $transfer) {
-                    $newid = [];
-                    $inserted = [];
-                    $tran = [];
-                    $newid['oldId'] =  $transfer['id'];
-                    $tran['product_id'] =  $product->id;
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
-                    $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                    $id = UnitTransfer::create($tran)->id;
-                    $inserted['id'] = $id;
-                    $inserted['unit2'] = $transfer['unit2'];
-                    $newid['newId'] =  $id;
-                    $ids[] = $newid;
-                    $insertedIds[] = $inserted;
-                }
-                foreach ($insertedIds as $transfer) {
-                    foreach ($ids as $updateId) {
-                        if ($transfer['unit2'] == $updateId['oldId']) {
-                            $updateObject = UnitTransfer::find($transfer['id']);
-                            $updateObject->unit2 =  $updateId['newId'];
-                            $updateObject->save();
-                        }
-                    }
-                }
+                $this->saveTransferDetails($request["transfer"], $product->id);
             }
+
+            // 5. Handle image upload if a file is provided
             if ($request->hasFile('image_file')) {
-
-                $tenant = tenancy()->tenant;
-                $tenantId = $tenant->id;
-                // Get the uploaded file
-                $file = $request->file('image_file');
-
-                // Define the path based on the tenant's ID
-                $filePath =  '/product/images';
-
-                // Store the file
-                $fileExtension = $file->getClientOriginalExtension();
-                $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public'); // Store in public disk
-
-                // Optionally save the file path to the database
-                $product->image = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $product->id . '.' . $fileExtension;
-                $product->save();
+                $this->handleImageUpload($request->file('image_file'), $product);
             } else {
-                $product->image =  null;
+                $product->image = null;
             }
+
+            // 6. Save recipe details if they exist
             if (isset($request["recipe"])) {
-                $order = 0;
-                foreach ($request["recipe"] as $recipe) {
-                    $rec = [];
-                    $rec['product_id'] =  $validated['id'] ?? $product->id;
-                    $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-", $recipe['newid']);
-                    $rec['item_id'] = $recipeIngredient[0];
-                    $rec['item_type'] = $recipeIngredient[1];
-                    $rec['order'] =  $order++;
-                    RecipeProduct::create($rec);
-                }
+                $this->saveRecipe($request["recipe"], $product->id);
             }
 
+            // 7. Save combos if they exist
             if (isset($request["combos"])) {
-                ProductCombo::where('product_id', '=', $product->id)->delete();
-                foreach ($request["combos"] as $combo) {
-                    $productCombo = new ProductCombo();
-                    $productCombo->product_id = $product->id;
-                    $productCombo->name_ar = $combo["name_ar"];
-                    $productCombo->name_en = $combo["name_en"];
-                    $productCombo->combo_saving = $combo["combo_saving"];
-                    $productCombo->quantity = $combo["quantity"];
-                    $productCombo->price = isset($combo["price"]) ? $combo["price"] : null;
-                    $productCombo->save();
-                    if (isset($combo["products"])) {
-                        ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
-                        foreach ($combo["products"] as $productId) {
-                            $comboItem = new ProductComboItem();
-                            $comboItem->item_id = $productId;
-                            $comboItem->combo_id = $productCombo->id;
-                            if (isset($combo['upchargePrices'])) {
-                                $index = array_search($productId, array_column($combo["upchargePrices"], 'product_id'));
-                                if ($index !== false) {
-                                    $comboItem->price = isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
-                                }
-                            }
-                            $comboItem->save();
-                        }
-                    }
-                }
+                $this->saveCombos($request["combos"], $product->id);
             }
+
+            // 8. Save linked combos if they exist
             if (isset($request["linkedCombos"])) {
-                ProductLinkedComboItem::where('product_id', '=', $product->id)->delete();
-                foreach ($request["linkedCombos"] as $linkedCombo) {
-                    $productLinkedComboItem = new ProductLinkedComboItem();
-                    $productLinkedComboItem->product_id = $product->id;
-                    $productLinkedComboItem->linked_combo_id = $linkedCombo["linked_combo_id"];
-                    $productLinkedComboItem->save();
-                    if (isset($linkedCombo["upchargePrices"])) {
-                        ProductLinkedComboUpcharge::where('product_combo_id', '=', $productLinkedComboItem->linked_combo_id)->delete();
-                        foreach ($linkedCombo["upchargePrices"] as $upchargePrice) {
-                            $upcharge = new ProductLinkedComboUpcharge();
-                            $upcharge->product_id = $upchargePrice["product_id"];
-                            $upcharge->combo_id =  $upchargePrice["combo_id"];
-                            $upcharge->combo_id =  $productLinkedComboItem->id;
-                            $upcharge->save();
-                        }
-                    }
-                }
+                $this->saveLinkedCombos($request["linkedCombos"], $product->id);
             }
+
+            // 9. Save establishments if they exist
             if (isset($request["establishments"])) {
-                foreach ($request["establishments"] as $newEstablishment) {
-
-                    $establishment = new EstablishmentProduct();
-                    $establishment->product_id = $product->id;
-                    $establishment->establishment_id = $newEstablishment["id"];;
-                    $establishment->save();
-                }
+                $this->saveEstablishments($request["establishments"], $product->id);
             }
+
+            // 10. Save price tiers if they exist
             if (isset($request["price_tiers"])) {
-                foreach ($request["price_tiers"] as $newPriceTier) {
-
-                    $priceTier = new ProductPriceTier();
-                    $pt = $newPriceTier['price_tier'];
-                    $priceTier->product_id = $product->id;
-                    $priceTier->price_tier_id = $pt["id"];
-                    $priceTier->price = $newPriceTier["price"];
-                    $priceTier->save();
-                }
+                $this->savePriceTiers($request["price_tiers"], $product->id);
             }
-            // if(isset($request["taxIds"]))
-            // {
-            //     foreach ($request["taxIds"] as $newTax) {
 
-            //         $tax = new ProductTax();
-            //         $tax->product_id = $product->id;
-            //         $tax->tax_id = $newTax;
-            //         $tax->save();
-            //     }
+            // Optionally: Handle taxes if they exist (uncomment if needed)
+            // if (isset($request["taxIds"])) {
+            //     $this->saveTaxes($request["taxIds"], $product->id);
             // }
         });
+    }
+
+    // Method to save modifiers
+    private function saveModifiers($modifiers, $productId)
+    {
+        ProductModifier::where('product_id', $productId)->delete();
+
+        foreach ($modifiers as $modifierGroup) {
+            $classData = $modifierGroup['class'];
+            $mainModifier = ProductModifier::create([
+                'product_id' => $productId,
+                'modifier_class_id' => $classData['modifier_class_id'],
+                'modifier_id' => null,
+                'min_modifiers' => $classData['min_modifiers'] ?? 0,
+                'max_modifiers' => $classData['max_modifiers'] ?? 0,
+                'free_quantity' => $classData['free_quantity'] ?? 0,
+                'free_type' => $classData['free_type'] ?? 0,
+                'active' => 1,
+                'default' => 0,
+                'required' => 0,
+                'display_order' => 0,
+                'button_display' => 0,
+                'modifier_display' => 0,
+            ]);
+
+            if (isset($modifierGroup['modifiers']) && is_array($modifierGroup['modifiers'])) {
+                foreach ($modifierGroup['modifiers'] as $modifier) {
+                    ProductModifier::create([
+                        'product_id' => $productId,
+                        'modifier_class_id' => $modifier['modifier_class_id'],
+                        'modifier_id' => $modifier['modifier_id'],
+                        'active' => 1,
+                        'default' => $modifier['default'] ?? 0,
+                        'required' => $modifier['required'] ?? 0,
+                        'display_order' => $modifier['display_order'] ?? 0,
+                        'button_display' => $modifier['button_display'] ?? 0,
+                        'modifier_display' => $modifier['modifier_display'] ?? 0,
+                        'free_quantity' => $modifier['free_quantity'] ?? 0,
+                        'free_type' => $modifier['free_type'] ?? 0,
+                        'min_modifiers' =>  0,
+                        'max_modifiers' =>  0,
+                    ]);
+                }
+            }
+        }
+    }
+
+    // Method to save attributes
+    private function saveAttributes($attributes, $productId)
+    {
+        foreach ($attributes as $attribute) {
+            $att = [
+                'product_id' => $productId,
+                'attribute_id1' => $attribute['attribute1']['id'],
+                'attribute_id2' => $attribute['attribute2']['id'] ?? null,
+                'name_ar' => $attribute['name_ar'],
+                'name_en' => $attribute['name_en'],
+                'barcode' => $attribute['barcode'] ?? null,
+                'SKU' => $attribute['SKU'] ?? null,
+                'price' => $attribute['price'],
+                'starting' => $attribute['starting'] ?? null,
+            ];
+            Product_Attribute::create($att);
+        }
+    }
+
+    // Method to save transfer details
+    private function saveTransferDetails($transfers, $productId)
+    {
+        $ids = [];
+        $insertedIds = [];
+
+        foreach ($transfers as $transfer) {
+            $tran = [
+                'product_id' => $productId,
+                'transfer' => $transfer['transfer'] ?? null,
+                'primary' => $transfer['primary'] ?? 0,
+                'unit1' => $transfer['unit1'],
+                'unit2' => null,
+            ];
+            $newId = UnitTransfer::create($tran)->id;
+            $insertedIds[] = ['id' => $newId, 'unit2' => $transfer['unit2']];
+            $ids[] = ['oldId' => $transfer['id'], 'newId' => $newId];
+        }
+
+        foreach ($insertedIds as $transfer) {
+            foreach ($ids as $updateId) {
+                if ($transfer['unit2'] == $updateId['oldId']) {
+                    $updateObject = UnitTransfer::find($transfer['id']);
+                    $updateObject->unit2 = $updateId['newId'];
+                    $updateObject->save();
+                }
+            }
+        }
+    }
+
+    // Method to handle image upload
+    private function handleImageUpload($file, $product)
+    {
+        $tenant = tenancy()->tenant;
+        $tenantId = $tenant->id;
+        $filePath = '/product/images';
+        $fileExtension = $file->getClientOriginalExtension();
+        $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public');
+
+        // Save the file path to the database
+        $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $product->id . '.' . $fileExtension;
+        $product->save();
+    }
+
+    // Method to save recipe details
+    private function saveRecipe($recipes, $productId)
+    {
+        $order = 0;
+        foreach ($recipes as $recipe) {
+            $recipeIngredient = explode("-", $recipe['newid']);
+            RecipeProduct::create([
+                'product_id' => $productId,
+                'quantity' => $recipe['quantity'],
+                'item_id' => $recipeIngredient[0],
+                'item_type' => $recipeIngredient[1],
+                'order' => $order++,
+            ]);
+        }
+    }
+
+    // Method to save combos
+    private function saveCombos($combos, $productId)
+    {
+        ProductCombo::where('product_id', '=', $productId)->delete();
+
+        foreach ($combos as $combo) {
+            $productCombo = ProductCombo::create([
+                'product_id' => $productId,
+                'name_ar' => $combo["name_ar"],
+                'name_en' => $combo["name_en"],
+                'combo_saving' => $combo["combo_saving"],
+                'quantity' => $combo["quantity"],
+                'price' => $combo["price"] ?? null,
+            ]);
+
+            if (isset($combo["products"])) {
+                ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
+                foreach ($combo["products"] as $comboProductId) {
+                    $comboItem = new ProductComboItem();
+                    $comboItem->item_id = $comboProductId;
+                    $comboItem->combo_id = $productCombo->id;
+                    if (isset($combo['upchargePrices'])) {
+                        $index = array_search($comboProductId, array_column($combo["upchargePrices"], 'product_id'));
+                        if ($index !== false) {
+                            $comboItem->price = $combo['upchargePrices'][$index]["price"] ?? null;
+                        }
+                    }
+                    $comboItem->save();
+                }
+            }
+        }
+    }
+
+    // Method to save linked combos
+    private function saveLinkedCombos($linkedCombos, $productId)
+    {
+        ProductLinkedComboItem::where('product_id', '=', $productId)->delete();
+
+        foreach ($linkedCombos as $linkedCombo) {
+            $productLinkedComboItem = ProductLinkedComboItem::create([
+                'product_id' => $productId,
+                'linked_combo_id' => $linkedCombo["linked_combo_id"],
+            ]);
+
+            if (isset($linkedCombo["upchargePrices"])) {
+                ProductLinkedComboUpcharge::where('product_combo_id', '=', $productLinkedComboItem->linked_combo_id)->delete();
+                foreach ($linkedCombo["upchargePrices"] as $upchargePrice) {
+                    ProductLinkedComboUpcharge::create([
+                        'product_id' => $upchargePrice["product_id"],
+                        'combo_id' => $productLinkedComboItem->linked_combo_id,
+                    ]);
+                }
+            }
+        }
+    }
+
+    // Method to save establishments
+    private function saveEstablishments($establishments, $productId)
+    {
+        foreach ($establishments as $newEstablishment) {
+            EstablishmentProduct::create([
+                'product_id' => $productId,
+                'establishment_id' => $newEstablishment["id"],
+            ]);
+        }
+    }
+
+    // Method to save price tiers
+    private function savePriceTiers($priceTiers, $productId)
+    {
+        foreach ($priceTiers as $newPriceTier) {
+            ProductPriceTier::create([
+                'product_id' => $productId,
+                'price_tier_id' => $newPriceTier['price_tier']['id'],
+                'price' => $newPriceTier["price"],
+            ]);
+        }
     }
 
 
@@ -732,18 +806,19 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with('tax')
-            ->with(['establishments' => function ($query) {
-                $query->with('establishment');
-            }])->with(['priceTiers' => function ($query) {
-                $query->with('priceTier');
-            }])->with(['recipe' => function ($query) {
-                $query->with('unitTransfer');
-            }])->with(['attributes' => function ($query) {
-                $query->with('attribute1');
-                $query->with('attribute2');
-            }])->find($id);
-        // $product->price_with_tax = $product->price_with_tax;
+        $product = Product::with([
+            'tax',
+            'establishments.establishment',
+            'priceTiers.priceTier',
+            'recipe.unitTransfer',
+            'attributes.attribute1',
+            'attributes.attribute2',
+            'modifiers.modifierClass',
+            'modifiers.modifierItem',
+            'combos.items',
+            'linkedCombos.upcharges'
+        ])->findOrFail($id);
+        $product->allEstablishments = Establishment::where('is_main', 0)->get();
         foreach ($product->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + ($product->tax ? TaxHelper::getTax($rec->price, $product->tax->amount) : 0);
         }
@@ -752,12 +827,22 @@ class ProductController extends Controller
             $rec->cost = $rec->detail->cost;
         }
         foreach ($product->attributes as $attr) {
-            $attr->attribute1Name_en = $attr->attribute1->name_en;
-            $attr->attribute1Name_ar = $attr->attribute1->name_ar;
-            $attr->attribute2Name_en = $attr->attribute2 && $attr->attribute2->name_en ? $attr->attribute2->name_en : "";
-            $attr->attribute2Name_ar = $attr->attribute2 && $attr->attribute2->name_ar ? $attr->attribute2->name_ar : "";
+            if ($attr->attribute1) {
+                $attr->attribute1Name_en = $attr->attribute1->name_en;
+                $attr->attribute1Name_ar = $attr->attribute1->name_ar;
+            } else {
+                $attr->attribute1Name_en = null;
+                $attr->attribute1Name_ar = null;
+            }
+
+            if ($attr->attribute2) {
+                $attr->attribute2Name_en = $attr->attribute2->name_en;
+                $attr->attribute2Name_ar = $attr->attribute2->name_ar;
+            } else {
+                $attr->attribute2Name_en = null;
+                $attr->attribute2Name_ar = null;
+            }
         }
-        $product->modifiers = $product->modifiers;
         $product->combos = $product->combos;
         // $product->taxIds = array_map(function($item) {
         //     return $item["tax_id"];
@@ -784,8 +869,39 @@ class ProductController extends Controller
                 return $upchargePrice;
             }, $d1->upcharges->toArray());
         }
-        // return $product;
-        return view('product::product.edit', compact('product'));
+        $modifierGroups = $product->modifiers->groupBy('modifier_class_id')->map(function ($modifiers, $classId) use ($product) {
+            $firstModifier = $modifiers->first();
+            $class = optional($firstModifier)->modifierClass;
+
+            return [
+                'class' => [
+                    'modifier_class_id' => $classId,
+                    'product_id' => $product->id,
+                    'name_ar' => $class->name_ar ?? '',
+                    'name_en' => $class->name_en ?? '',
+                    'min_modifiers' => $firstModifier->min_modifiers ?? 0,
+                    'max_modifiers' => $firstModifier->max_modifiers ?? 0,
+                    'free_quantity' => $firstModifier->free_quantity ?? 0,
+                    'free_type' => $firstModifier->free_type ?? 0
+                ],
+                'modifiers' => $modifiers->map(function ($mod) {
+                    return [
+                        'id' => $mod->id,
+                        'modifier_id' => $mod->modifier_id,
+                        'name_ar' => optional($mod->modifierItem)->name_ar ?? '',
+                        'name_en' => optional($mod->modifierItem)->name_en ?? '',
+                        'active' => $mod->active,
+                        'default' => $mod->default,
+                        'display_order' => $mod->display_order
+                    ];
+                })->toArray()
+            ];
+        })->values()->toArray();
+
+        return view('product::product.edit', [
+            'product' => $product,
+            'modifierGroups' => $modifierGroups,
+        ]);
     }
 
     public function searchProducts(Request $request)
@@ -863,5 +979,18 @@ class ProductController extends Controller
         });
         $result = array_merge($products->toArray(), $modifiers->toArray());
         return response()->json($result);
+    }
+
+    public function getProductsDetails()
+    {
+        $products = Product::with(['unitTransfers' => function ($query) {
+            $query->select('id', 'product_id', 'unit1',  'transfer');
+        }])
+            ->select('id', 'name_ar', 'name_en', 'sku', 'price', 'cost')
+            ->get();
+        $products->each(function ($product) {
+            $product->unitTransfers->makeHidden(['name_ar', 'name_en']);
+        });
+        return response()->json($products);
     }
 }

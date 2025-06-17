@@ -25,7 +25,6 @@ class EnsureHasSubscription
             }
             $domain = tenant()->domains->first()->domain;
             $protocol = request()->secure() ? 'https://' : 'http://';
-
             return redirect(str_replace(tenant('id') . '.', $protocol, $domain));
         }
         return $next($request);

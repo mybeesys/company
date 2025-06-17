@@ -89,8 +89,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     }, []);
 
     const editRow = (data, key) => {
-        if (data.type == "product") {
-            window.location.href = productCrudList + "/" + data.id + "/edit";
+        if (data.type === "product") {
+            window.location.href = `${productCrudList}/${data.id}/edit`;
         } else {
             setCurrentKey(key);
             setEditingRow({ ...data });

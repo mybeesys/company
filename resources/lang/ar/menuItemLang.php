@@ -29,7 +29,7 @@ return [
     'devices' => 'الأجهزة',
     'pos_roles' => 'أدوار نقاط البيع',
     'dashboard_roles' => 'أدوار لوحة التحكم',
-    'attribute' => 'خصائص المنتجات',
+    'attribute' => 'المتغيرات',
     'employees_working_hours' => 'دوام الموظفين',
     'timesheet_rule' => 'إعدادات الجدولة',
     'shift_schedule' => 'جداول العمل',

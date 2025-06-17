@@ -9,6 +9,7 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\RecipeModifier;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\ModifierPriceTier;
+use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\UnitTransfer;
 
 class ModifierController extends Controller
@@ -309,5 +310,20 @@ class ModifierController extends Controller
     public function destroy($id)
     {
         //
+    }
+    public function getModifiersList($id)
+    {
+        $language = app()->getLocale();
+
+        $modifiers = Modifier::where('class_id', $id)->get();
+
+        $result = $modifiers->map(function ($modifier) use ($language) {
+            return [
+                'id' => $modifier->id,
+                'name' => $language === 'ar' ? $modifier->name_ar : $modifier->name_en,
+            ];
+        });
+
+        return response()->json($result);
     }
 }

@@ -45,19 +45,19 @@ return [
             [
                 'name' => 'customMenu',
                 'url' => 'customMenu',
-                'permission' => '',
+                'permission' => 'products.custom menu.show',
 
             ],
             [
                 'name' => 'serviceFee',
                 'url' => 'serviceFee',
-                'permission' => '',
+                'permission' => 'products.service fee.show',
 
             ],
             [
                 'name' => 'type-service',
                 'url' => 'type-service',
-                'permission' => '',
+                'permission' => 'products.type service.show',
 
             ],
 
@@ -65,13 +65,13 @@ return [
             [
                 'name' => 'priceTier',
                 'url' => 'priceTier',
-                'permission' => '',
+                'permission' => 'products.price tier.show',
 
             ],
             [
                 'name' => 'discount',
                 'url' => 'discount',
-                'permission' => '',
+                'permission' => 'products.discount.show',
 
             ],
             // [
@@ -83,13 +83,13 @@ return [
             [
                 'name' => 'productBarcode',
                 'url' => 'productBarcode/barcode',
-                'permission' => '',
+                'permission' => 'products.product barcode.show',
 
             ],
             [
                 'name' => 'import',
                 'url' => 'importProduct/import',
-                'permission' => '',
+                'permission' => 'products.import.show',
 
             ]
 
@@ -119,7 +119,7 @@ return [
             [
                 'name' => 'transfer',
                 'url' => 'transfer',
-                'permission' => 'inventory.rma.show',
+                'permission' => 'inventory.transfer.show',
             ],
             [
                 'name' => 'waste',
@@ -129,7 +129,7 @@ return [
             [
                 'name' => 'import',
                 'url' => 'openInventoryImport/import',
-                'permission' => 'inventory.transfer.show',
+                'permission' => 'inventory.import.show',
             ]
         ]
     ],
@@ -531,11 +531,11 @@ return [
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
             ],
-            [
+            /*      [
                 'name' => 'devices',
                 'url' => 'devices',
                 'permission' => '',
-            ],
+            ],*/
             [
                 'name' => 'tables',
                 'url' => 'table',

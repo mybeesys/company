@@ -46,7 +46,7 @@ class CustomMenuController extends Controller
     public function getCustomMenus()
     {
         $TreeBuilder = new TreeBuilder();
-        $customMenues = CustomMenu::with('establishments')->get();
+        $customMenues = CustomMenu::get();
         // تحميل ملف الترجمة JSON
         $translationFilePath = resource_path('components/lang/ar.json');
         $translations = File::exists($translationFilePath)
@@ -67,11 +67,26 @@ class CustomMenuController extends Controller
                     $menu->mode = implode(', ', $translatedModes);
                 }
             }
-            if ($menu->establishments) {
-                $menu->establishment = [
-                    'id' => $menu->establishments->id,
-                    'name' => app()->getLocale() === 'ar' ? $menu->establishments->name : $menu->establishments->name_en,
-                ];
+            if (!empty($menu->station_id)) {
+                $stationArray = json_decode($menu->station_id, true);
+
+                if (is_array($stationArray) && !empty($stationArray)) {
+                    $establishments = DB::table('est_establishments')
+                        ->whereIn('id', $stationArray)
+                        ->get();
+
+
+                    $translatedModes = $establishments->map(function ($establishment) {
+                        return app()->getLocale() === 'ar' ? $establishment->name : $establishment->name_en;
+                    })->toArray();
+
+
+                    $menu->station_id = !empty($translatedModes) ? implode(', ', $translatedModes) : '';
+                } else {
+                    $menu->station_id = '';
+                }
+            } else {
+                $menu->station_id = '';
             }
 
             return $menu;
@@ -94,13 +109,14 @@ class CustomMenuController extends Controller
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
-            'application_type' => 'required|numeric',
+            'application_type' => 'nullable|numeric',
             'mode' => 'nullable',
             'station_id' => 'nullable',
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
             'method' => 'nullable|string'
         ]);
+        $validated['application_type'] = $validated['application_type'] ?? 0;
         if (isset($validated['mode'])) {
             if (!is_array($validated['mode'])) {
                 $validated['mode'] = [$validated['mode']];
@@ -108,11 +124,12 @@ class CustomMenuController extends Controller
 
             $validated['mode'] = json_encode($validated['mode']);
         }
-
         if (isset($validated['station_id'])) {
-            if (is_array($validated['station_id'])) {
-                $validated['station_id'] = implode(',', $validated['station_id']);
+            if (!is_array($validated['station_id'])) {
+                $validated['station_id'] = [$validated['station_id']];
             }
+
+            $validated['station_id'] = json_encode($validated['station_id']);
         }
 
 
@@ -132,6 +149,19 @@ class CustomMenuController extends Controller
                 return response()->json(["message" => "NAME_EN_EXIST"]);
             DB::transaction(function () use ($validated, $request) {
                 $customMenu = CustomMenu::create($validated);
+                if ($validated['application_type'] == 3) {
+                    $customMenu->mode = null;
+                    $customMenu->save();
+                }
+                if ($validated['application_type'] == 0) {
+                    $customMenu->station_id = null;
+                    $customMenu->save();
+                }
+                if ($validated['application_type'] == 1) {
+                    $customMenu->mode = null;
+                    $customMenu->station_id = null;
+                    $customMenu->save();
+                }
                 if (isset($request["dates"])) {
                     $customMenuDate = $request["dates"];
                     $customMenuDate['custommenu_id'] = $customMenu->id;
@@ -239,7 +269,7 @@ class CustomMenuController extends Controller
 
     public function edit($id)
     {
-        $custommenu = CustomMenu::with('establishments')->find($id);
+        $custommenu = CustomMenu::find($id);
         if (isset($custommenu->application_type)) {
             $custommenu->application_type = (string) $custommenu->application_type;
         }

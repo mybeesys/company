@@ -172,6 +172,7 @@ const TreeTableEditorLocal = ({
             );
         }
         let firstCell = index == "0" ? true : false;
+
         if (col.type == "Text") return renderTextCell(node, col, firstCell);
         //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Number")
@@ -196,7 +197,6 @@ const TreeTableEditorLocal = ({
     };
 
     const renderTextCell = (node, col, firstCell) => {
-        //key, autoFocus, editable, required, firstCell) => {
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
             if (!!firstCell)
@@ -210,29 +210,34 @@ const TreeTableEditorLocal = ({
                                 node.data.parentKey
                             )
                         }
-                    >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                    >
+                        {`${translations.Add} ${translations[node.data.type]}`}
+                    </a>
                 );
         } else {
             return !!col.editable ? (
                 <input
                     type="text"
-                    class={`form-control form-control-solid custom-height text-indent-${indent}`}
+                    className={`form-control form-control-solid custom-height text-indent-${indent}`}
                     style={{ width: `${100 - 10 * indent}%!important` }}
                     value={node.data[col.key]}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                        if (col.onChange) {
+                            col.onChange(e, node.key);
+                        }
                         handleEditorChange(
                             e.target.value,
                             col.key,
                             node.key,
                             col.onChangeValue
-                        )
-                    }
+                        );
+                    }}
                     autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     required={!!col.required}
                 />
             ) : (
-                <apan>{node.data[col.key]}</apan>
+                <span>{node.data[col.key]}</span>
             );
         }
     };
@@ -707,66 +712,63 @@ const TreeTableEditorLocal = ({
             </div>
             <div className="card-body">
                 <TreeTable value={nodes} className={"custom-tree-table"}>
-                    {cols
-                        .map((col, index) => (
-                            <Column
-                                key={index}
-                                style={{
-                                    width: !!!col.width ? "10%" : col.width,
-                                }}
-                                header={
-                                    !!col.title
-                                        ? translations[col.title]
-                                        : translations[col.key]
-                                }
-                                body={(node) => {
-                                    return (
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            {index === 0 &&
-                                                urlPar ===
-                                                    "partiallyReceived" && (
-                                                    <a
-                                                        href="#"
-                                                        onClick={() => {
-                                                            togglePopup(
-                                                                node.data
-                                                                    .transaction_id,
-                                                                node.data.id
-                                                            );
-                                                        }}
+                    {cols.map((col, index) => (
+                        <Column
+                            key={index}
+                            style={{
+                                width: !!!col.width ? "10%" : col.width,
+                            }}
+                            header={
+                                col.header ||
+                                (!!col.title
+                                    ? translations[col.title]
+                                    : translations[col.key])
+                            }
+                            body={(node) => {
+                                return (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        {index === 0 &&
+                                            urlPar === "partiallyReceived" && (
+                                                <a
+                                                    href="#"
+                                                    onClick={() => {
+                                                        togglePopup(
+                                                            node.data
+                                                                .transaction_id,
+                                                            node.data.id
+                                                        );
+                                                    }}
+                                                    style={{
+                                                        textDecoration: "none",
+                                                    }}
+                                                >
+                                                    <i
+                                                        className="fas fa-file-alt"
                                                         style={{
-                                                            textDecoration:
-                                                                "none",
+                                                            marginRight: "4px",
+                                                            padding: "10px",
+                                                            cursor: "pointer",
+                                                            color: "blue",
                                                         }}
-                                                    >
-                                                        <i
-                                                            className="fas fa-file-alt"
-                                                            style={{
-                                                                marginRight:
-                                                                    "4px",
-                                                                padding: "10px",
-                                                                cursor: "pointer",
-                                                                color: "blue",
-                                                            }}
-                                                            title={
-                                                                translations[
-                                                                    "transfers"
-                                                                ]
-                                                            }
-                                                        ></i>
-                                                    </a>
-                                                )}
-                                            {renderCell(node, col, index)}
-                                        </div>
-                                    );
-                                }}
-                            />
-                        ))}
+                                                        title={
+                                                            translations[
+                                                                "transfers"
+                                                            ]
+                                                        }
+                                                    ></i>
+                                                </a>
+                                            )}
+                                        {renderCell(node, col, index)}
+                                    </div>
+                                );
+                            }}
+                        />
+                    ))}
                     <Column body={(node) => actionTemplate(node, actions)} />
                 </TreeTable>
                 <button

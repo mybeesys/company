@@ -3,12 +3,15 @@ import { Table } from "react-bootstrap";
 
 const EstablishmentTable = ({
     translations,
+    dir,
     establishments,
     onSelectChange,
     selectedEstablishments,
 }) => {
     const handleSelectChange = (id) => {
-        onSelectChange(id);
+        if (onSelectChange) {
+            onSelectChange(id);
+        }
     };
     const isEditMode = window.location.href.includes("edit");
 
@@ -27,32 +30,32 @@ const EstablishmentTable = ({
                     </thead>
                     <tbody>
                         {establishments.map((establishment) => {
+                            const establishmentId = isEditMode
+                                ? establishment.id
+                                : establishment.id;
                             return (
-                                <tr key={establishment.id}>
+                                <tr key={establishmentId}>
                                     <td>
                                         <input
+                                            style={{
+                                                transform: "scale(1.5)",
+                                                margin: "5px",
+                                                cursor: "pointer",
+                                                width: "17px",
+                                                height: "17px",
+                                            }}
                                             type="checkbox"
                                             checked={selectedEstablishments.includes(
-                                                isEditMode
-                                                    ? establishment
-                                                          .establishment.id
-                                                    : establishment.id
+                                                establishmentId
                                             )}
                                             onChange={() =>
                                                 handleSelectChange(
-                                                    isEditMode
-                                                        ? establishment
-                                                              .establishment.id
-                                                        : establishment.id
+                                                    establishmentId
                                                 )
                                             }
                                         />
                                     </td>
-                                    <td>
-                                        {isEditMode
-                                            ? establishment.establishment.name
-                                            : establishment.name}
-                                    </td>
+                                    <td>{establishment.name}</td>
                                 </tr>
                             );
                         })}

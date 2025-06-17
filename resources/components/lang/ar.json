@@ -322,7 +322,6 @@
     "count": "العدد",
     "ExpandAll": "فتح الكل",
     "CollapseAll": "إغلاق الكل",
-
     "trackInventory": "تتبع المخزون",
     "alertQuantity": "تنبيه المخزون",
     "mainVendor": "المورد الرئيسي",
@@ -330,4 +329,14 @@
     "orderDefaultPrice": "سعر الطلب الافتراضي",
     "orderTax": "ضريبة السعر",
     "orderPriceWithTax": "سعر الطلب شامل الضريبة"
+  "free_type":"النوع المجاني",
+  "free_quantity":"الكمية المجانية",
+  "price_type":"السعر",
+  "quantity_type":"الكمية",
+  "available_add_ons":"الإضافات المتاحة",
+  "by_default":"افتراضي",
+  "arranging":"الترتيب",
+  "select_all":"تحديد الكل",
+  "deselect_all":"إلغاء التحديد",
+  "no_modifiers_available":"لايوجد إضافات متاحة"
 }

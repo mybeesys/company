@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
+
+const animatedComponents = makeAnimated();
 
 const CustomMenuBasicInfo = ({
     translations,
@@ -15,6 +19,15 @@ const CustomMenuBasicInfo = ({
     const [applicationType, setApplicationType] = useState(
         currentObject.application_type
     );
+    const getStationsModesKey = () => {
+        return applicationType === "3" ? "station_id" : "mode";
+    };
+    const selectedValues = currentObject[getStationsModesKey()] || [];
+    const [valueArray, setValueArray] = useState([]);
+    const normalizedValueArray = Array.isArray(selectedValues)
+        ? selectedValues
+        : [selectedValues];
+
     const getName = (name_en, name_ar) => {
         return dir === "ltr" ? name_en : name_ar;
     };
@@ -53,13 +66,10 @@ const CustomMenuBasicInfo = ({
         return applicationType === "3" ? name : translations[name];
     };
 
-    const getStationsModesKey = () => {
-        return applicationType === "3" ? "station_id" : "mode";
-    };
-
     const handleApplicationTypeChange = (value) => {
         setApplicationType(value);
         onBasicChange("application_type", value);
+        setValueArray([]);
     };
 
     const handleStationChange = (selectedValues) => {
@@ -136,33 +146,49 @@ const CustomMenuBasicInfo = ({
                         >
                             {translations.mode_station_name}
                         </label>
-                        <select
-                            className="form-control form-control-solid custom-height selectpicker"
-                            style={{ height: "50px" }}
-                            disabled={
-                                applicationType === "1" ||
-                                applicationType === "2"
-                            }
-                            value={currentObject[getStationsModesKey()] || []}
-                            onChange={(e) => {
-                                const selectedValues = Array.from(
-                                    e.target.selectedOptions,
+                        <Select
+                            isMulti
+                            options={getStationsModesSource().map((option) => ({
+                                value: option.value,
+                                label: getStationsModesValues(option.name),
+                            }))}
+                            className="basic-multi-select"
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    minHeight: "50px",
+                                    height: "auto",
+                                    minWidth: "200px",
+                                    flexWrap: "wrap",
+                                    display: "flex",
+                                    backgroundColor: "#F9F9F9",
+                                }),
+                            }}
+                            classNamePrefix="select"
+                            isDisabled={applicationType === "1"}
+                            value={valueArray.map((value) => {
+                                const originalOption =
+                                    getStationsModesSource().find(
+                                        (option) => option.value === value
+                                    );
+                                const label = originalOption
+                                    ? getStationsModesValues(
+                                          originalOption.name
+                                      )
+                                    : "";
+                                return {
+                                    value,
+                                    label,
+                                };
+                            })}
+                            onChange={(selectedOptions) => {
+                                const selectedValues = selectedOptions.map(
                                     (option) => option.value
                                 );
+                                setValueArray(selectedValues);
                                 handleStationChange(selectedValues);
                             }}
-                        >
-                            {applicationType !== "1" &&
-                                applicationType !== "2" &&
-                                getStationsModesSource().map((option) => (
-                                    <option
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {getStationsModesValues(option.name)}
-                                    </option>
-                                ))}
-                        </select>
+                        />
                     </div>
                 </div>
             </div>

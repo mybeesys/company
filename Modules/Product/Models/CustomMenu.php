@@ -50,8 +50,4 @@ class CustomMenu extends Model
     {
         return $this->hasMany(CustomMenuItem::class, 'custommenu_id', 'id');
     }
-    public function establishments()
-    {
-        return $this->belongsTo(Establishment::class, 'station_id', 'id');
-    }
 }
