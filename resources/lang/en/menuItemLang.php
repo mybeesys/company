@@ -67,7 +67,7 @@ return [
 
 
     'po' => 'PO',
-    'prep' => 'Prep',
+    'prep' => 'Prep Recipe',
     'rma' => 'RMA',
     'ingredientInventory' => 'Ingredients',
     'waste' => 'Waste',
