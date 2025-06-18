@@ -318,15 +318,15 @@
     "defaultOrderQuantity": "Default Order Quantity",
     "orderDefaultPrice": "Default Order Price",
     "orderTax": "Order Tax",
-    "orderPriceWithTax": "Order Price with Tax"
-  "free_type":"Free Type",
-  "free_quantity":"Free Quantity",
-  "price_type":"Price",
-  "quantity_type":"Quantity",
-  "available_add_ons":"Available add-ons",
-   "by_default":"Default",
-   "arranging":"Order",
-  "select_all":"Select all",
-  "deselect_all":"Deselect all",
-  "no_modifiers_available":"No modifiers available"
+    "orderPriceWithTax": "Order Price with Tax",
+    "free_type": "Free Type",
+    "free_quantity": "Free Quantity",
+    "price_type": "Price",
+    "quantity_type": "Quantity",
+    "available_add_ons": "Available add-ons",
+    "by_default": "Default",
+    "arranging": "Order",
+    "select_all": "Select all",
+    "deselect_all": "Deselect all",
+    "no_modifiers_available": "No modifiers available"
 }
