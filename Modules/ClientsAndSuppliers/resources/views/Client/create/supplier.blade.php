@@ -167,7 +167,7 @@
                         <!--begin::Tab nav-->
                         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 active"
+                                <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
                                     data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
@@ -194,7 +194,7 @@
                             </li>
 
                             <li class="nav-item" role="presentation">
-                                <a id="financial_information_tab" class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                                <a id="financial_information_tab" class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
                                     role="tab" href="#financial_information" aria-selected="false" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.financial_information')
                                 </a>
@@ -205,7 +205,7 @@
                     </div>
 
                     <div class="tab-content">
-                        <div id="payment_info" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+                        <div id="payment_info" class="card-body p-0 tab-pane fade " role="tabpanel"
                             aria-labelledby="payment_info_tab">
 
                             @include('clientsandsuppliers::Client.create.billingCard')
@@ -238,7 +238,7 @@
 
 
                     <div class="tab-content">
-                        <div id="financial_information" class="card-body p-0 tab-pane fade show " role="tabpanel" aria-labelledby="financial_information_tab">
+                        <div id="financial_information" class="card-body p-0 tab-pane fade show active " role="tabpanel" aria-labelledby="financial_information_tab">
                             @include('clientsandsuppliers::Client.create.financial_information')
 
                         </div>
