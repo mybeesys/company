@@ -87,6 +87,7 @@ Route::middleware([
 
         Route::resource('ingredient', IngredientController::class)->names('ingredient');
         Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
+        Route::get('delete-ingredient', [IngredientController::class, 'delete'])->name('delete-ingredient');
         Route::get('ingredientList', [IngredientController::class, 'getIngredientsTree'])->name('ingredientList');
         Route::get('ingredientProductList', [IngredientController::class, 'ingredientProductList'])->name('ingredientProductList');
         Route::get('unitTypeList', [IngredientController::class, 'getUnitTypeList'])->name('unitTypeList');

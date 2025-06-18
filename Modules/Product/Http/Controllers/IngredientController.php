@@ -64,12 +64,20 @@ class IngredientController extends Controller
 
     public function edit($id)
     {
-        $ingredient  = Product::with(['establishments' => function ($query) {
-            $query->with('establishment');
-        }])->with(['unitTransfers' => function ($query) {
-            // $query->with('unitTransfer');
-        }])->find($id);
-    // return $ingredient;
+        // $ingredient  = Product::with(['establishments' => function ($query) {
+        //     $query->with('establishment');
+        // }])->with(['unitTransfers' => function ($query) {
+        //     // $query->with('unitTransfer');
+        // }])->find($id);
+        // return $ingredient;
+
+        $ingredient = Product::with([
+            'tax',
+            'establishments.establishment',
+            'recipe.unitTransfer',
+        ])->findOrFail($id);
+        $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
+        // return $ingredient;
         return view('product::ingredient.edit', compact('ingredient'));
     }
 
@@ -100,7 +108,6 @@ class IngredientController extends Controller
     {
         error_log(json_encode($request->all()));
         $validated = $request->all();
-        $validated['tax_id'] = $validated['order_tax_id'];
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $validateUsing = $this->validateInUse($validated['id']);
             if ($validateUsing != null)
@@ -109,11 +116,14 @@ class IngredientController extends Controller
             $product->delete();
             return response()->json(["message" => "Done"]);
         } else if (isset($validated['id'])) {
+            $validated['tax_id'] = $validated['order_tax_id'];
+
             $res = $this->validateProduct($validated['id'], $validated);
             if (count($res) > 0)
                 return $res;
             $this->saveProduct($validated, $request);
         } else {
+
             $res = $this->validateProduct(null, $validated);
             if (count($res) > 0)
                 return $res;
@@ -228,18 +238,6 @@ class IngredientController extends Controller
                     $establishment->save();
                 }
             }
-            ProductPriceTier::where('product_id', '=', $product->id)->delete();
-            if (isset($request["price_tiers"])) {
-                foreach ($request["price_tiers"] as $newPriceTier) {
-
-                    $PriceTier = new ProductPriceTier();
-                    $pt = $newPriceTier['price_tier'];
-                    $PriceTier->product_id = $product->id;
-                    $PriceTier->price_tier_id = $pt["id"];
-                    $PriceTier->price = $newPriceTier["price"];
-                    $PriceTier->save();
-                }
-            }
         });
     }
 
@@ -291,17 +289,6 @@ class IngredientController extends Controller
                     $establishment->product_id = $product->id;
                     $establishment->establishment_id = $newEstablishment["id"];;
                     $establishment->save();
-                }
-            }
-            if (isset($request["price_tiers"])) {
-                foreach ($request["price_tiers"] as $newPriceTier) {
-
-                    $priceTier = new ProductPriceTier();
-                    $pt = $newPriceTier['price_tier'];
-                    $priceTier->product_id = $product->id;
-                    $priceTier->price_tier_id = $pt["id"];
-                    $priceTier->price = $newPriceTier["price"];
-                    $priceTier->save();
                 }
             }
         });

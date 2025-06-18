@@ -8,15 +8,30 @@ const IngredinsEstablishment = ({
     onEstablishmentChange,
 }) => {
     const [selectedEstablishments, setSelectedEstablishments] = useState([]);
+    const [allEstablishments, setAllEstablishments] = useState([]);
     const isEditMode = window.location.href.includes("edit");
     useEffect(() => {
-        const allEstablishmentIds = currentObject.establishments.map(
-            (establishment) =>
-                isEditMode ? establishment.establishment.id : establishment.id
-        );
-        setSelectedEstablishments(allEstablishmentIds);
-        onEstablishmentChange(allEstablishmentIds);
-    }, [currentObject.establishments]);
+        if (isEditMode && currentObject.allEstablishments) {
+            const productEstablishmentIds = currentObject.establishments
+                .map((est) => est.establishment?.id)
+                .filter((id) => id !== undefined);
+
+            setSelectedEstablishments(productEstablishmentIds);
+            onEstablishmentChange(productEstablishmentIds);
+            setAllEstablishments(currentObject.allEstablishments);
+        } else {
+            const allEstablishmentIds = currentObject.establishments.map(
+                (est) => est.id
+            );
+            setSelectedEstablishments(allEstablishmentIds);
+            onEstablishmentChange(allEstablishmentIds);
+            setAllEstablishments(currentObject.establishments);
+        }
+    }, [
+        currentObject.establishments,
+        currentObject.allEstablishments,
+        isEditMode,
+    ]);
 
     const handleSelectChange = (id) => {
         setSelectedEstablishments((prevSelected) => {
@@ -31,7 +46,10 @@ const IngredinsEstablishment = ({
     return (
         <EstablishmentTable
             translations={translations}
-            establishments={currentObject.establishments}
+            dir={dir}
+            establishments={
+                isEditMode ? allEstablishments : currentObject.establishments
+            }
             onSelectChange={handleSelectChange}
             selectedEstablishments={selectedEstablishments}
         />
