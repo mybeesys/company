@@ -43,7 +43,7 @@ class ClientController extends Controller
     public function create()
     {
         // dd(env('DB_CONNECTION')) ;
-        $countries = Country::all();//DB::connection('mysql')->table('countries')->get();
+        $countries = Country::all(); //DB::connection('mysql')->table('countries')->get();
         $payment_terms = SalesUtile::paymentTerms();
         $accounts =  AccountingAccount::forDropdown();
 
@@ -110,7 +110,7 @@ class ClientController extends Controller
                     'payment_terms' => $request->payment_terms,
                     'account_id' => $request->account_id,
                     'file_path' => $attachment_name,
-                    'credit_limit'=>$request->credit_limit,
+                    'credit_limit' => $request->credit_limit,
                     'status' => 'active',
 
                 ]);
@@ -248,13 +248,14 @@ class ClientController extends Controller
                 }
             }
 
-            if ($request->client_contact_name) {
+            if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
                 foreach ($request->client_contact_name as $index => $name) {
                     $contact->clientContacts()->create([
                         'name' => $name,
                         'email' => $request->client_contact_email[$index],
                         'mobile_number' => $request->client_contact_mobile_number[$index],
                         'alternative_mobile_number' => $request->alternative_mobile_number[$index],
+
                         'department' => $request->client_contact_department[$index],
                         'position' => $request->client_contact_position[$index],
                     ]);
@@ -291,11 +292,11 @@ class ClientController extends Controller
         }
 
         if (!empty($contact->billingAddress) && !empty($contact->billingAddress->country)) {
-            $country_billingAddress =Country::find($contact->billingAddress->country);
+            $country_billingAddress = Country::find($contact->billingAddress->country);
         }
 
         if (!empty($contact->shippingAddress) && !empty($contact->shippingAddress->country)) {
-            $country_shippingAddress =Country::find($contact->shippingAddress->country);
+            $country_shippingAddress = Country::find($contact->shippingAddress->country);
         }
 
         $previous = Contact::where('id', '<', $id)->where('business_type', $contact->business_type)->orderBy('id', 'desc')->first();
@@ -335,7 +336,7 @@ class ClientController extends Controller
                 'file_path' => $attachment_name,
                 'payment_terms' => $request->payment_terms,
                 'account_id' => $request->account_id,
-                'credit_limit'=>$request->credit_limit,
+                'credit_limit' => $request->credit_limit,
 
 
             ]);
@@ -443,8 +444,8 @@ class ClientController extends Controller
                 }
             }
 
-            if ($request->client_contact_name) {
-                $contact->clientContacts()->delete();
+          if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
+                  $contact->clientContacts()->delete();
                 foreach ($request->client_contact_name as $index => $name) {
                     $contact->clientContacts()->create([
                         'name' => $name,
@@ -460,9 +461,8 @@ class ClientController extends Controller
 
             DB::commit();
             if ($contact->business_type == 'customer')
-            return redirect()->route('clients')->with('success', __('messages.updated_successfully'));
-        return redirect()->route('suppliers')->with('success', __('messages.updated_successfully'));
-
+                return redirect()->route('clients')->with('success', __('messages.updated_successfully'));
+            return redirect()->route('suppliers')->with('success', __('messages.updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
             return redirect()->route('clients')->with('error', __('messages.something_went_wrong'));
