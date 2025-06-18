@@ -64,7 +64,7 @@ return [
 
 
     'po' => 'طلبات الشراء',
-    'prep' => 'التحضيرات',
+    'prep' => 'تحضير الوصفات',
     'rma' => 'RMA',
     'ingredientInventory' => 'المكونات',
     'waste' => 'الاتلاف',

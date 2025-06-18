@@ -542,7 +542,7 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-    /*    [
+    [
         'name' => 'products.ingredient.show',
         'name_ar' => 'المكونات',
         'description' => '',
@@ -569,7 +569,7 @@ return [
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
-    ],*/
+    ],
     [
         'name' => 'products.custom menu.show',
         'name_ar' => 'القوائم المخصصة',
