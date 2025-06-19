@@ -39,8 +39,8 @@ class IngredientController extends Controller
         // $tree = array_merge($ingredients , $product);
         // return response()->json($tree);
 
-        $product = Product::where('for_sell', 0)->get();
-        $product = array_map(fn($item) => $item + ['type' => "-p"], $product->toArray());
+        $product = Product::where('type', 'ingredint')->get();
+        $product = array_map(fn($item) => $item + ['type' => "{$item['id']}-ingredint"], $product->toArray());
         return response()->json($product);
     }
 
@@ -69,7 +69,7 @@ class IngredientController extends Controller
         }])->with(['unitTransfers' => function ($query) {
             // $query->with('unitTransfer');
         }])->find($id);
-    // return $ingredient;
+        // return $ingredient;
         return view('product::ingredient.edit', compact('ingredient'));
     }
 

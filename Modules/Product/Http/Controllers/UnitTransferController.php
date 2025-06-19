@@ -13,59 +13,73 @@ class UnitTransferController extends Controller
 {
     public function getUnitsTransferList($type, $id)
     {
-        if($type == "product")
-         {
+        if ($type == "product") {
             $prodTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($prodTransfer);
-         }
-        else if ($type == "ingredient")
-        {
+        } else if ($type == "ingredint") {
             $ingTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($ingTransfer);
-        }
-        else
-        {
+        } else {
             $modTransfer = UnitTransfer::where('modifier_id', '=', $id)->get();
             return response()->json($modTransfer);
         }
     }
 
+    public function getUnitTransfer($id)
+    {
+        $unit = UnitTransfer::where('id', $id)->first();
+
+        return response()->json($unit);
+    }
     public function searchUnitTransfers(Request $request)
     {
-        $query = $request->query('query');  // Get 'query' parameter
+        $query = $request->query('query');
         $key = $request->query('key', '');
-        $units =[];
-        if ($request->has('id')) {
 
-            $recipeIngredient = explode("-",$request['id']);
-            if($recipeIngredient[1] == 'p')
+        $units = [];
+
+        if ($request->has('id')) {
+            $id = $request['id'];
+            if (!str_contains($id, '-')) {
+                $id = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $id);
+                $request['id'] = $id;
+            }
+
+            $recipeIngredient = explode("-", $id);
+            if ($recipeIngredient[1] == 'p') {
                 $request['product_id'] = $recipeIngredient[0];
-            else if($recipeIngredient[1] == 'm')
+            } else if ($recipeIngredient[1] == 'm') {;
                 $request['modifier_id'] = $recipeIngredient[0];
-            else
-                $request['ingredient_id'] = $recipeIngredient[0];
+            } else {
+                $request['ingredient_id'] = intval($recipeIngredient[0]);
+            }
         }
+
         $porduct_id = $request->query('product_id', '');
         $ingredient_id = $request->query('ingredient_id', '');
-        $modifier_id=  $request->query('modifier_id', '');
+        $modifier_id = $request->query('modifier_id', '');
+
         if ($request->has('product_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
-                            ->where('product_id', '=', $porduct_id)
-                            ->take(10)
-                            ->get();
+                ->where('product_id', '=', $porduct_id)
+                ->take(10)
+                ->get();
         }
-        if($request->has('ingredient_id')){
+
+        if ($request->has('ingredient_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
-                            ->where('ingredient_id', '=', $ingredient_id)
-                            ->take(10)
-                            ->get();
+                ->where('product_id', '=', $ingredient_id)
+                ->take(10)
+                ->get();
         }
+
         if ($request->has('modifier_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
-                            ->where('modifier_id', '=', $modifier_id)
-                            ->take(10)
-                            ->get();
+                ->where('modifier_id', '=', $modifier_id)
+                ->take(10)
+                ->get();
         }
+
         return response()->json($units);
     }
 
@@ -78,7 +92,7 @@ class UnitTransferController extends Controller
 
     public function index()
     {
-        return view('product::unit.index' );
+        return view('product::unit.index');
     }
 
     public function edit($id)
@@ -111,25 +125,26 @@ class UnitTransferController extends Controller
 
         if (!isset($validated['id'])) {
             $unit = Unit::where('name_ar', $validated['name_ar'])->first();
-            if($unit != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            if ($unit != null)
+                return response()->json(["message" => "NAME_AR_EXIST"]);
             $unit = Unit::where('name_en', $validated['name_en'])->first();
-            if($unit != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            if ($unit != null)
+                return response()->json(["message" => "NAME_EN_EXIST"]);
 
-                Unit::create($validated);
-
+            Unit::create($validated);
         } else {
             $unit = Unit::where([
                 ['id', '!=', $validated['id']],
-                ['name_ar', '=', $validated['name_ar']]])->first();
-            if($unit != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+                ['name_ar', '=', $validated['name_ar']]
+            ])->first();
+            if ($unit != null)
+                return response()->json(["message" => "NAME_AR_EXIST"]);
             $unit = Unit::where([
                 ['id', '!=', $validated['id']],
-                ['name_en', '=', $validated['name_en']]])->first();
-            if($unit != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+                ['name_en', '=', $validated['name_en']]
+            ])->first();
+            if ($unit != null)
+                return response()->json(["message" => "NAME_EN_EXIST"]);
 
             $Ingredient = Unit::find($validated['id']);
             $Ingredient->name_ar = $validated['name_ar'];
@@ -138,5 +153,4 @@ class UnitTransferController extends Controller
         }
         return response()->json(["message" => "Done"]);
     }
-
 }

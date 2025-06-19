@@ -2,7 +2,6 @@
 
 namespace Modules\Product\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
@@ -29,7 +28,7 @@ use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
 use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
-
+use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
 
 class ProductController extends Controller
@@ -697,7 +696,13 @@ class ProductController extends Controller
     {
         $order = 0;
         foreach ($recipes as $recipe) {
-            $recipeIngredient = explode("-", $recipe['newid']);
+            $newid = $recipe['newid'];
+            if (!str_contains($newid, '-')) {
+                $newid = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $newid);
+            }
+
+            $recipeIngredient = explode("-", $newid);
+            Log::info("Request data:", $recipeIngredient);
             RecipeProduct::create([
                 'product_id' => $productId,
                 'quantity' => $recipe['quantity'],

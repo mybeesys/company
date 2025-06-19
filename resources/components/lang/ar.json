@@ -352,5 +352,6 @@
   "deselect_all":"إلغاء التحديد",
   "no_modifiers_available":"لايوجد إضافات متاحة",
   "error":"خطأ",
-  "qyt_error":"لم يتمكن من جلب المكونات"
+  "qyt_error":"لم يتمكن من جلب المكونات",
+  "preparation_saved":"تم التحضير بنجاح"
 }
