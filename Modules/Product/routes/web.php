@@ -124,7 +124,7 @@ Route::middleware([
         Route::get('units', [UnitController::class, 'units'])->name('units');
         Route::get('searchUnits', [UnitController::class, 'searchUnits'])->name('searchUnits');
         Route::get('searchUnitTransfers', [UnitTransferController::class, 'searchUnitTransfers'])->name('searchUnitTransfers');
-
+        Route::get('getUnitTransfer/{id}', [UnitTransferController::class, 'getUnitTransfer'])->name('getUnitTransfer');
         Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
         Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
         Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
