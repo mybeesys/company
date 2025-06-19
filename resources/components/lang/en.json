@@ -342,5 +342,6 @@
   "deselect_all":"Deselect all",
   "no_modifiers_available":"No modifiers available",
   "error":"Error",
-  "qyt_error":"Could not bring the ingredients"
+  "qyt_error":"Could not bring the ingredients",
+  "preparation_saved":"Prepared successfully"
 }
