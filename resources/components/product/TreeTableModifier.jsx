@@ -549,8 +549,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     >
                         <Column
                             field="name_ar"
-                            filter
-                            filterPlaceholder={translations.name_ar}
                             header={translations.name_ar}
                             style={{ width: "20%" }}
                             body={(node) => renderTextCell(node, "name_ar")}
@@ -560,8 +558,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         ></Column>
                         <Column
                             field="name_en"
-                            filter
-                            filterPlaceholder={translations.name_en}
                             header={translations.name_en}
                             style={{ width: "20%" }}
                             body={(node) =>

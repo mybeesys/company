@@ -343,6 +343,9 @@
   "no_modifiers_available":"No modifiers available",
   "error":"Error",
   "qyt_error":"Could not bring the ingredients",
-  "preparation_saved":"Prepared successfully"
+  "preparation_saved":"Prepared successfully",
+  "production_quantity":"Production quantity",
+  "production_qty_error": "Production quantity must be greater than 0",
+  "ingredient_qty_error": "Ingredient quantities cannot be negative"
 
 }

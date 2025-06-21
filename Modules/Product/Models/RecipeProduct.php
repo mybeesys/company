@@ -37,7 +37,8 @@ class RecipeProduct extends Model
     ];
 
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -58,23 +59,14 @@ class RecipeProduct extends Model
     {
         return $this->belongsTo(UnitTransfer::class, 'unit_transfer_id', 'id');
     }
-
     public function detail()
     {
-
         $relatedModel = $this->relatedModels[$this->item_type] ?? null;
-        
-        if(!$relatedModel)
-            return null;
 
-        if ($relatedModel) {
-            return $this->belongsTo($relatedModel, 'item_id', 'id');//->with('vendor');
+        if (!$relatedModel) {
+            return $this->belongsTo(Product::class, 'item_id', 'id');
         }
 
-        //return $this->belongsTo($currentRelatedModel, 'operation_id', 'id');
-        // Return null if no valid model is found
-        //throw ex;
+        return $this->belongsTo($relatedModel, 'item_id', 'id');
     }
-
 }
-?>

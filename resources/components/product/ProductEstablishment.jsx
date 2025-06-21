@@ -16,7 +16,13 @@ const ProductEstablishment = ({
                 .map((est) => est.establishment?.id)
                 .filter((id) => id !== undefined);
 
-            setSelectedEstablishments(productEstablishmentIds);
+            if (productEstablishmentIds.length === 0) {
+                setSelectedEstablishments(
+                    currentObject.allEstablishments.map((est) => est.id)
+                );
+            } else {
+                setSelectedEstablishments(productEstablishmentIds);
+            }
             onEstablishmentChange(productEstablishmentIds);
             setAllEstablishments(currentObject.allEstablishments);
         } else {
