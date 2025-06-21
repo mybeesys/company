@@ -75,110 +75,187 @@ const PrepTable = ({ dir, translations }) => {
                     `products/getIngredientList/${data.id}`
                 );
                 const ingredientsList = response.data.products;
-                const unit = response.data.unit;
-                const quantities = response.data.quantities || [];
+                const qyt = response.data.recipeQyt;
+
                 const warehousesHtml = `
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label>${translations.from}</label>
-                            <select id="from-warehouse" class="form-control">
-                                ${warehouses
-                                    .map(
-                                        (wh) => `
-                                    <option value="${wh.id}">
-                                        ${dir === "rtl" ? wh.name : wh.name_en}
-                                    </option>
-                                `
-                                    )
-                                    .join("")}
-                            </select>
+                <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 8px; color: #495057; font-weight: 500;">${
+                            translations.from
+                        }</label>
+                        <select id="from-warehouse" class="form-control" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; width: 100%;">
+                            ${warehouses
+                                .map(
+                                    (wh) => `
+                                <option value="${wh.id}">
+                                    ${dir === "rtl" ? wh.name : wh.name_en}
+                                </option>
+                            `
+                                )
+                                .join("")}
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 8px; color: #495057; font-weight: 500;">${
+                            translations.to
+                        }</label>
+                        <select id="to-warehouse" class="form-control" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; width: 100%;">
+                            ${warehouses
+                                .map(
+                                    (wh) => `
+                                <option value="${wh.id}">
+                                    ${dir === "rtl" ? wh.name : wh.name_en}
+                                </option>
+                            `
+                                )
+                                .join("")}
+                        </select>
+                    </div>
+                </div>
+            `;
+                const ingredientsHtml = `
+                <div style="display: flex; margin-bottom: 20px; gap: 20px;">
+                    <div style="flex: 1; display: flex; flex-direction: column; border: 1px solid #dee2e6; border-radius: 4px;">
+                        <div style="background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 4px 4px 0 0;">
+                            <i class="fas fa-list-ul" style="margin-right: 8px;"></i>
+                            ${translations.ingredients}
                         </div>
-                        <div style="flex: 1;">
-                            <label>${translations.to}</label>
-                            <select id="to-warehouse" class="form-control">
-                                ${warehouses
-                                    .map(
-                                        (wh) => `
-                                    <option value="${wh.id}">
-                                        ${dir === "rtl" ? wh.name : wh.name_en}
-                                    </option>
-                                `
-                                    )
-                                    .join("")}
-                            </select>
+                        <div style="flex: 1; display: flex; flex-direction: column;">
+                            ${ingredientsList
+                                .map(
+                                    (ingredient) => `
+                                <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef; flex: 1;">
+                                    ${
+                                        dir === "rtl"
+                                            ? ingredient.products.name_ar
+                                            : ingredient.products.name_en
+                                    }
+                                </div>
+                            `
+                                )
+                                .join("")}
+                        </div>
+                    </div>
+                    
+                    <div style="width: 150px; display: flex; flex-direction: column; border: 1px solid #dee2e6; border-radius: 4px;">
+                        <div style="background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 4px 4px 0 0; text-align: center;">
+                            <i class="fas fa-hashtag" style="margin-right: 8px;"></i>
+                            ${translations.quantity}
+                        </div>
+                        <div style="flex: 1; display: flex; flex-direction: column;">
+                            ${ingredientsList
+                                .map(
+                                    (ingredient) => `
+                                <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef; text-align: center; flex: 1;">
+                                    <input 
+                                        type="number" 
+                                        class="form-control ingredient-qty" 
+                                        style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; text-align: center; width: 100%;"
+                                        value="${ingredient.quantity || 0}"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                            `
+                                )
+                                .join("")}
                         </div>
                     </div>
                 </div>
             `;
-                const ingredientsHtml = ingredientsList
-                    .map(
-                        (ingredient, index, unit) => `
-                <tr>
-                    <td>${
-                        dir === "rtl" ? ingredient.name_ar : ingredient.name_en
-                    }</td>
-                    <td>
-                        <div style="text-align: left;">
-                            <input type="number" class="form-control" style="width: 200px;"
-                            value="${quantities[index]?.quantity || 0}"
-                            }" 
-                            }"
-                            }" />
-                        </div>
-                    </td>
-                </tr>
-            `
-                    )
-                    .join("");
+
+                const productionQtyHtml = `
+                <div style="margin-top: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label style="min-width: 120px; color: #495057; font-weight: 500;">${
+                            translations.production_quantity
+                        }</label>
+                        <input 
+                            type="number" 
+                            id="production-qty" 
+                            class="form-control" 
+                            style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; width: 250px;"
+                            value="${qyt.recipe_yield || 1}"
+                            min="1"
+                            step="1"
+                            required
+                        />
+                    </div>
+                </div>
+            `;
 
                 const { value: formValues } = await Swal.fire({
-                    title: translations.recipe_ingredient,
-
+                    title: `<div style="display: flex; align-items: center; gap: 10px;">
+                          <i class="fas fa-utensils" style="font-size: 24px; color: #ffc107;"></i>
+                          <span style="font-size: 1.25rem;">${translations.recipe_ingredient}</span>
+                        </div>`,
                     html: `
-                        <div style="max-height: 90vh; overflow-y: auto;">
-                            ${warehousesHtml}
-
-                    <table class="table">
-                        <thead style="background-color: lightgray; color: black;">
-                            <tr>
-                              <th>${translations.ingredients}</th>
-                              <th>${translations.quantity}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ingredients-table">
-                            ${ingredientsHtml}
-                        </tbody>
-                    </table>
-                </div>
-            `,
+                    <div>
+                        ${warehousesHtml}
+                        ${ingredientsHtml}
+                        ${productionQtyHtml}
+                    </div>
+                `,
                     showCancelButton: true,
-                    confirmButtonText: translations.prepare,
-                    cancelButtonText: translations.Close,
-                    width: "600px",
+                    confirmButtonText: `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> ${translations.prepare}`,
+                    cancelButtonText: `<i class="fas fa-times-circle" style="margin-right: 8px;"></i> ${translations.Close}`,
+                    width: "650px",
                     customClass: {
-                        confirmButton: "btn btn-warning",
-                        cancelButton: "btn btn-secondary",
+                        confirmButton: "btn btn-warning btn-lg",
+                        cancelButton: "btn btn-secondary btn-lg",
                     },
                     preConfirm: () => {
                         const fromWh =
                             document.getElementById("from-warehouse").value;
                         const toWh =
                             document.getElementById("to-warehouse").value;
+                        const productionQty =
+                            document.getElementById("production-qty").value;
 
-                        const ingredientsData = Array.from(
-                            document.querySelectorAll("#ingredients-table tr")
-                        ).map((row, index) => ({
-                            id: ingredientsList[index].id,
-                            name: row.cells[0].innerText,
-                            quantity: row.querySelector("input").value,
-                        }));
+                        if (productionQty <= 0) {
+                            Swal.showValidationMessage(
+                                translations.production_qty_error ||
+                                    "Production quantity must be greater than 0"
+                            );
+                            return false;
+                        }
+
+                        const quantityInputs =
+                            document.querySelectorAll(".ingredient-qty");
+                        let validQuantities = true;
+
+                        quantityInputs.forEach((input) => {
+                            if (input.value < 0) {
+                                validQuantities = false;
+                            }
+                        });
+
+                        if (!validQuantities) {
+                            Swal.showValidationMessage(
+                                translations.ingredient_qty_error ||
+                                    "Ingredient quantities cannot be negative"
+                            );
+                            return false;
+                        }
+
+                        const ingredientsData = Array.from(quantityInputs).map(
+                            (input, index) => ({
+                                id: ingredientsList[index].products.id,
+                                name: ingredientsList[index].products[
+                                    dir === "rtl" ? "name_ar" : "name_en"
+                                ],
+                                quantity: input.value,
+                                order: ingredientsList[index].order,
+                            })
+                        );
 
                         return {
                             productId: data.id,
                             from: fromWh,
                             to: toWh,
                             ingredients: ingredientsData,
+                            productionQty: productionQty,
                         };
                     },
                 });
@@ -203,7 +280,20 @@ const PrepTable = ({ dir, translations }) => {
         };
 
         return (
-            <button onClick={handlePrepare} className="btn btn-sm btn-warning">
+            <button
+                onClick={handlePrepare}
+                className="btn btn-warning"
+                style={{
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    borderRadius: "4px",
+                }}
+            >
+                <i
+                    className="fas fa-utensils"
+                    style={{ marginRight: "8px" }}
+                ></i>
                 {translations.prepare_recipe}
             </button>
         );

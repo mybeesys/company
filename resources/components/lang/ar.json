@@ -353,5 +353,8 @@
   "no_modifiers_available":"لايوجد إضافات متاحة",
   "error":"خطأ",
   "qyt_error":"لم يتمكن من جلب المكونات",
-  "preparation_saved":"تم التحضير بنجاح"
+  "preparation_saved":"تم التحضير بنجاح",
+  "production_quantity":"كمية الإنتاج",
+  "production_qty_error": "يجب أن تكون كمية الإنتاج أكبر من الصفر",
+  "ingredient_qty_error": "لا يمكن أن تكون كميات المكونات سالبة"
 }

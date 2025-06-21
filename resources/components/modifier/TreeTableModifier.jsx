@@ -525,8 +525,6 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         <Column
                             field="name_ar"
                             header={translations.name_ar}
-                            filter
-                            filterPlaceholder={translations.name_ar}
                             style={{ width: "20%" }}
                             body={(node) => renderTextCell(node, "name_ar")}
                             sortable
@@ -535,14 +533,11 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         <Column
                             field="name_en"
                             header={translations.name_en}
-                            filter
-                            filterPlaceholder={translations.name_en}
                             style={{ width: "20%" }}
                             body={(node) =>
                                 renderTextCell(node, "name_en", true)
                             }
                             sortable
-                        
                         ></Column>
                         <Column
                             header={translations.cost}

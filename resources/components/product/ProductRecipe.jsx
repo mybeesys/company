@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
 
 const ProductRecipe = ({
@@ -9,6 +9,14 @@ const ProductRecipe = ({
     onBasicChange,
     dir,
 }) => {
+    const [isRecipeYieldRequired, setIsRecipeYieldRequired] = useState(false);
+
+    const handleCheckboxChange = (e) => {
+        const checked = e.target.checked;
+        onBasicChange("prep_recipe", checked ? 1 : 0);
+        setIsRecipeYieldRequired(checked);
+    };
+
     useEffect(() => {
         const tooltipTriggerList = [].slice.call(
             document.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -69,7 +77,7 @@ const ProductRecipe = ({
                         autoFocus: true,
                         options: ingredientTree,
                         type: "DropDown",
-                        width: "25%",
+                        width: "35%",
                         editable: true,
                         required: true,
                         onChangeValue: (
@@ -156,17 +164,16 @@ const ProductRecipe = ({
                         step=".01"
                         class="form-control form-control-solid custom-height"
                         id="recipe_yield"
-                        value={
-                            !!product.recipe_yield ? product.recipe_yield : ""
-                        }
+                        value={product.recipe_yield}
                         onChange={(e) =>
                             onBasicChange("recipe_yield", e.target.value)
                         }
+                        required={isRecipeYieldRequired}
                     ></input>
                 </div>
             </div>
             <div class="d-flex  align-items-center pt-3">
-               <label
+                <label
                     class="fs-6 fw-semibold mb-2 me-3 "
                     style={{ width: "150px" }}
                 >
@@ -186,13 +193,8 @@ const ProductRecipe = ({
                         style={{ border: "1px solid #9f9f9f" }}
                         class="form-check-input my-2"
                         id="prep_recipe"
-                        checked={product.prep_recipe}
-                        onChange={(e) =>
-                            onBasicChange(
-                                "prep_recipe",
-                                e.target.checked ? 1 : 0
-                            )
-                        }
+                        checked={product.prep_recipe === 1}
+                        onChange={handleCheckboxChange}
                     />
                 </div>
             </div>

@@ -64,15 +64,12 @@ class PrepController extends Controller
     public function getIngredientList($id)
     {
 
-        $products = Product::where('type', 'ingredint')->get();
+        $recipeQyt = Product::where('id', $id)->first();
 
-
-        $quantities = RecipeProduct::where('product_id', $id)->get();
-
-
+        $products = RecipeProduct::where('product_id', $id)->with('products')->get();
         $response = [
             'products' => $products,
-            'quantities' => $quantities,
+            'recipeQyt' => $recipeQyt,
         ];
 
         return response()->json($response);
@@ -107,17 +104,22 @@ class PrepController extends Controller
             'from' => 'required|numeric',
             'to' => 'required|numeric',
             'productId' => 'required|numeric',
+            'productionQty' => 'required|numeric',
             'ingredients' => 'required|array',
             'ingredients.*.id' => 'required|numeric',
+            'ingredients.*.order' => 'required|numeric',
             'ingredients.*.quantity' => 'required|numeric|min:0.01'
+
         ]);
         $from = $validated['from'];
         $to = $validated['to'];
         $productId = $validated['productId'];
+        $productionQty = $validated['productionQty'];
         $ingredients = $validated['ingredients'];
-
-        DB::transaction(function () use ($from, $to, $ingredients, $productId) {
-            foreach ($ingredients as $ingredient) {
+        $product = Product::where('id', $productId)->first();
+        $price = $product->price;
+        DB::transaction(
+            function () use ($from, $to, $ingredients, $productId, $productionQty, $price) {
                 $transactionPurchasesId = Transaction::create([
                     'type' => "PREP",
                     'status' => "approved",
@@ -136,30 +138,43 @@ class PrepController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transaction_date' => now(),
-                    'establishment_id' => $to
+                    'establishment_id' => $to,
+                    'parent_id' => $transactionPurchasesId->id
                 ]);
-                $sellId = TransactionSellLine::create([
-                    'transaction_id' => $transactionSellId->id,
-                    'unit_price_before_discount' => 0,
-                    'unit_price' => 0,
-                    'product_id' => $ingredient['id'],
-                    'qyt' => $ingredient['quantity'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
+                foreach ($ingredients as $ingredient) {
+                    $recipeProduct = RecipeProduct::with('unitTransfer')->where("item_id", $ingredient['id'])
+                        ->where('order', $ingredient['order'])
+                        ->where('product_id', $productId)
+                        ->first();
+                    $unit2 = $recipeProduct->unitTransfer->unit2;
+                    $ingredientId = Product::where("id", $ingredient['id'])->first();
+                    $ingredientCost = $ingredientId->cost;
+                    if ($unit2 != null)
+                        $unitPrice = $ingredient['quantity'] / $ingredientCost;
+                    else
+                        $unitPrice = $ingredient['quantity'] * $ingredientCost;
+                    $sellId = TransactionSellLine::create([
+                        'transaction_id' => $transactionSellId->id,
+                        'unit_price_before_discount' => $unitPrice,
+                        'unit_price' => $unitPrice,
+                        'product_id' => $ingredient['id'],
+                        'qyt' => $ingredient['quantity'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
                 TransactionePurchasesLine::create([
                     'transaction_id' => $transactionPurchasesId->id,
-                    'unit_price_before_discount' => 0,
-                    'unit_price' => 0,
-                    'product_id' =>  $ingredient['id'],
-                    'qyt' => $ingredient['quantity'],
+                    'unit_price_before_discount' => $price,
+                    'unit_price' => $price,
+                    'product_id' =>  $productId,
+                    'qyt' => $productionQty,
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transactionsell_id' => $sellId->id,
                 ]);
             }
-        });
+        );
 
 
 

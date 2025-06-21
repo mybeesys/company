@@ -354,7 +354,13 @@ class ProductController extends Controller
                     $rec = [];
                     $rec['product_id'] =  $product->id;
                     $rec['quantity'] = $recipe['quantity'];
-                    $recipeIngredient = explode("-", $recipe['newid']);
+                    $newid = $recipe['newid'];
+                    if (!str_contains($newid, '-')) {
+                        $newid = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $newid);
+                    }
+                    $recipeIngredient = explode("-", $newid);
+
+                    Log::info("Request data recipe:", $recipeIngredient);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
@@ -702,12 +708,13 @@ class ProductController extends Controller
             }
 
             $recipeIngredient = explode("-", $newid);
-            Log::info("Request data:", $recipeIngredient);
+            //Log::info("Request data recipe:", $recipe);
             RecipeProduct::create([
                 'product_id' => $productId,
                 'quantity' => $recipe['quantity'],
                 'item_id' => $recipeIngredient[0],
                 'item_type' => $recipeIngredient[1],
+                'unit_transfer_id' => $recipe["unit_transfer"]["id"],
                 'order' => $order++,
             ]);
         }
