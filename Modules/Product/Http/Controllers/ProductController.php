@@ -287,6 +287,7 @@ class ProductController extends Controller
 
     protected function saveProduct($validated, $request)
     {
+        $image = null;
         $product = Product::find($validated['id']);
         $product->fill($validated);
         // $product->name_ar = $validated['name_ar'];
@@ -338,8 +339,9 @@ class ProductController extends Controller
 
             // Optionally save the file path to the database
             $product->image = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $product->id . '.' . $fileExtension;
+            $image = $product->image;
         }
-        DB::transaction(function () use ($product, $request) {
+        DB::transaction(function () use ($product, $request, $image) {
             $product->save();
             if (isset($request["modifiers"])) {
                 $this->saveModifiers($request["modifiers"], $product->id);
@@ -369,15 +371,16 @@ class ProductController extends Controller
                 }
             }
 
-            $oldAttributes = Product_Attribute::where('product_id', $product->id)->get();
+            $oldAttributes = Product::where('parent_id', $product->id)->get();
             foreach ($oldAttributes as $oldAttribute) {
                 $oldAttribute->delete();
             }
-
             if (isset($request["attributes"])) {
+                $product->type = "variable";
+                $product->for_sell = 0;
+                $product->save();
                 foreach ($request["attributes"] as $attribute) {
                     $att = [];
-                    $att['product_id'] =  $product->id;
                     $att['attribute_id1'] = $attribute['attribute1']['id'];
                     $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
                     $att['name_ar'] = $attribute['name_ar'];
@@ -385,8 +388,16 @@ class ProductController extends Controller
                     $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
                     $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
                     $att['price'] = $attribute['price'];
+                    $att['cost'] = $attribute['price'];
+                    $att['active'] = 1;
                     $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
-                    Product_Attribute::create($att);
+                    $att['type'] = "product";
+                    $att['parent_id'] = $product->id;
+                    $att['tax_id'] = $product->tax_id;
+                    $att['image'] = $image;
+                    $att['category_id'] = $product->category_id;
+                    $att['subcategory_id'] = $product->subcategory_id;
+                    Product::create($att);
                 }
             }
 
@@ -535,6 +546,12 @@ class ProductController extends Controller
             // 1. Create the product
             $product = Product::create($validated);
 
+            // 5. Handle image upload if a file is provided
+            if ($request->hasFile('image_file')) {
+                $this->handleImageUpload($request->file('image_file'), $product);
+            } else {
+                $product->image = null;
+            }
             // 2. Save modifiers if they exist
             if (isset($request["modifiers"])) {
                 $this->saveModifiers($request["modifiers"], $product->id);
@@ -542,19 +559,15 @@ class ProductController extends Controller
 
             // 3. Save attributes if they exist
             if (isset($request["attributes"])) {
-                $this->saveAttributes($request["attributes"], $product->id);
+                $product->type = "variable";
+                $product->for_sell = 0;
+                $product->save();
+                $this->saveAttributes($request["attributes"], $product->id, $product);
             }
 
             // 4. Save transfer details if they exist
             if (isset($request["transfer"])) {
                 $this->saveTransferDetails($request["transfer"], $product->id);
-            }
-
-            // 5. Handle image upload if a file is provided
-            if ($request->hasFile('image_file')) {
-                $this->handleImageUpload($request->file('image_file'), $product);
-            } else {
-                $product->image = null;
             }
 
             // 6. Save recipe details if they exist
@@ -613,6 +626,7 @@ class ProductController extends Controller
             ]);
 
             if (isset($modifierGroup['modifiers']) && is_array($modifierGroup['modifiers'])) {
+                Log::info("Request data modifiers:", $modifierGroup['modifiers']);
                 foreach ($modifierGroup['modifiers'] as $modifier) {
                     ProductModifier::create([
                         'product_id' => $productId,
@@ -635,21 +649,27 @@ class ProductController extends Controller
     }
 
     // Method to save attributes
-    private function saveAttributes($attributes, $productId)
+    private function saveAttributes($attributes, $productId, $product)
     {
         foreach ($attributes as $attribute) {
-            $att = [
-                'product_id' => $productId,
-                'attribute_id1' => $attribute['attribute1']['id'],
-                'attribute_id2' => $attribute['attribute2']['id'] ?? null,
-                'name_ar' => $attribute['name_ar'],
-                'name_en' => $attribute['name_en'],
-                'barcode' => $attribute['barcode'] ?? null,
-                'SKU' => $attribute['SKU'] ?? null,
-                'price' => $attribute['price'],
-                'starting' => $attribute['starting'] ?? null,
-            ];
-            Product_Attribute::create($att);
+            $att = [];
+            $att['attribute_id1'] = $attribute['attribute1']['id'];
+            $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
+            $att['name_ar'] = $attribute['name_ar'];
+            $att['name_en'] = $attribute['name_en'];
+            $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
+            $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
+            $att['price'] = $attribute['price'];
+            $att['active'] = 1;
+            $att['cost'] = $attribute['price'];
+            $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
+            $att['type'] = "product";
+            $att['tax_id'] = $product->tax_id;
+            $att['parent_id'] = $productId;
+            $att['image'] = $product->image;
+            $att['category_id'] = $product->category_id;
+            $att['subcategory_id'] = $product->subcategory_id;
+            Product::create($att);
         }
     }
 
@@ -925,7 +945,7 @@ class ProductController extends Controller
             ->take(10)
             ->get();
         $productCount = count($products);
-        $modifiers = Modifier::where('name_ar', 'like', '%' . $key . '%')
+        $modifiers = Product::where('type', 'modifier')->where('name_ar', 'like', '%' . $key . '%')
             ->orWhere('name_en', 'like', '%' . $key . '%')
             ->take($productCount > 10 ? 0 : 10 - $productCount)
             ->get();
@@ -968,7 +988,7 @@ class ProductController extends Controller
             ->take(10)
             ->get();
         $productCount = count($products);
-        $modifiers = Modifier::where(function ($query) use ($key) {
+        $modifiers = Product::where('type', 'modifier')->where(function ($query) use ($key) {
             $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
                 ->orWhere('name_en', 'like', '%' . $key . '%');           // OR status = 'pending')
         })

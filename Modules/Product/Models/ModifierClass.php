@@ -12,7 +12,7 @@ class ModifierClass extends Model
     use HasFactory;
     use SoftDeletes;
     protected $table = 'product_modifierclasses';
-        
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.
@@ -24,7 +24,8 @@ class ModifierClass extends Model
         'active'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -34,7 +35,7 @@ class ModifierClass extends Model
 
     public function children()
     {
-        return $this->hasMany(Modifier::class, 'class_id', 'id');
+        return $this->hasMany(Product::class, 'class_id', 'id');
     }
 
     public function products()
