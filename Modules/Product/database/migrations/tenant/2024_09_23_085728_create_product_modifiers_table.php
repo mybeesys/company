@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('modifier_id');
             $table->foreign('modifier_id')              // Foreign key constraint
                 ->references('id')                    // References the id on the categories table
-                ->on('product_modifiers');
+                ->on('product_products');
 
             $table->unsignedBigInteger('modifier_class_id');
             $table->foreign('modifier_class_id')

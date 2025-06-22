@@ -9,6 +9,7 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\RecipeModifier;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\ModifierPriceTier;
+use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\UnitTransfer;
 
@@ -45,7 +46,9 @@ class ModifierController extends Controller
         ]);
 
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
-            $modifier = Modifier::find($validated['id']);
+            $modifier = Product::where('id', $validated['id'])
+                ->where('type', 'modifier')
+                ->first();
             if ($modifier) {
                 $modifier->delete();
                 return response()->json(["message" => "Done"]);
@@ -54,11 +57,11 @@ class ModifierController extends Controller
         }
 
         if (!isset($validated['order'])) {
-            $maxOrder = Modifier::where('class_id', $validated['class_id'])->max('order');
+            $maxOrder = Product::where('type', 'modifier')->where('class_id', $validated['class_id'])->max('order');
             $validated['order'] = $maxOrder !== null ? $maxOrder + 1 : 1;
         }
 
-        $existingModifier = Modifier::where('class_id', $validated['class_id'])
+        $existingModifier = Product::where('type', 'modifier')->where('class_id', $validated['class_id'])
             ->where(function ($query) use ($validated) {
                 $query->where('order', '=', $validated['order'])
                     ->orWhere('name_ar', '=', $validated['name_ar'])
@@ -89,7 +92,7 @@ class ModifierController extends Controller
 
     protected function saveModifier($validated, $request)
     {
-        $modifier = Modifier::find($validated['id']);
+        $modifier = Product::find($validated['id']);
         $modifier->name_ar  = $validated['name_ar'];
         $modifier->name_en  = $validated['name_en'];
         $modifier->class_id  = $validated['class_id'];
@@ -100,6 +103,7 @@ class ModifierController extends Controller
         $modifier->order   = $validated['order'];
         $modifier->prep_recipe = $validated['prep_recipe'] ?? $modifier->prep_recipe;
         $modifier->recipe_yield = $validated['recipe_yield'] ?? $modifier->recipe_yield;
+        $modifier->type = "modifier";
 
         DB::transaction(function () use ($modifier, $request) {
             $modifier->save();
@@ -194,7 +198,9 @@ class ModifierController extends Controller
     protected function createModifier($validated, $request)
     {
         DB::transaction(function () use ($validated, $request) {
-            $modifier = Modifier::create($validated);
+            $modifier = Product::create(array_merge($validated, [
+                'type' => 'modifier'
+            ]));
             if (isset($request["recipe"])) {
                 $order = 0;
                 foreach ($request["recipe"] as $recipe) {
@@ -254,10 +260,11 @@ class ModifierController extends Controller
 
     public function create()
     {
-        $modifier  = new Modifier();
+        $modifier  = new Product();
         $modifier->price_tiers = [];
         $modifier->recipe = [];
         $modifier->active = 1;
+        $modifier->type = "modifier";
         return view('product::modifier.create', compact('modifier'));
     }
 
@@ -266,7 +273,9 @@ class ModifierController extends Controller
      */
     public function show($id)
     {
-        $item = Modifier::find($id);
+        $item = Product::where('id', $id)
+            ->where('type', 'modifier')
+            ->first();
 
         if ($item) {
             return response()->json($item);
@@ -280,7 +289,7 @@ class ModifierController extends Controller
      */
     public function edit($id)
     {
-        $modifier  = Modifier::with('tax')->with(['priceTiers' => function ($query) {
+        $modifier  = Product::where('type', 'modifier')->with('tax')->with(['priceTiers' => function ($query) {
             $query->with('priceTier');
         }])->with(['recipe' => function ($query) {
             $query->with('unitTransfer');
@@ -315,7 +324,7 @@ class ModifierController extends Controller
     {
         $language = app()->getLocale();
 
-        $modifiers = Modifier::where('class_id', $id)->get();
+        $modifiers = Product::where('class_id', $id)->where('type', 'modifier')->get();
 
         $result = $modifiers->map(function ($modifier) use ($language) {
             return [

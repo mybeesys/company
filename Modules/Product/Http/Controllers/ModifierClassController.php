@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Product\Models\ModifierClass;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Modifier;
+use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeData;
 use Modules\Product\Models\TreeObject;
 
@@ -69,7 +70,7 @@ class ModifierClassController extends Controller
         ]);
 
         if (isset($validated['method']) && $validated['method'] == "delete") {
-            $childExists = Modifier::where('class_id', $validated['id'])->exists();
+            $childExists = Product::where('type', 'modifier')::where('class_id', $validated['id'])->exists();
             if ($childExists) {
                 return response()->json(["message" => "CHILD_EXIST"], 400);
             }

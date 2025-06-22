@@ -11,17 +11,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product_Attribute extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'product_product_attribute';
-        
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'product_id', 
+        'product_id',
         'attribute_id1',
-        'attribute_id2',          
+        'attribute_id2',
         'name_ar',
         'name_en',
         'barcode',
@@ -30,20 +30,13 @@ class Product_Attribute extends Model
         'starting'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
 
-    public function attribute1()
-    {
-        return $this->belongsTo(Attribute::class, 'attribute_id1', 'id');
-    }
 
-    public function attribute2()
-    {
-        return $this->belongsTo(Attribute::class, 'attribute_id2', 'id');
-    }
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');

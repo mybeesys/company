@@ -57,6 +57,10 @@ class Product extends Model
         'defaultOrderQuantity',
         'orderPriceWithTax',
         'track_inventory',
+        'attribute_id1',
+        'attribute_id2',
+        'parent_id',
+        'class_id',
 
     ];
 
@@ -77,7 +81,9 @@ class Product extends Model
         return array_push($this->fillable, $key);
     }
 
-    public $type = 'product';
+    protected $attributes = [
+        'type' => 'product'
+    ];
     public $parentKey = 'subcategory_id';
 
     public function category()
@@ -177,5 +183,19 @@ class Product extends Model
             }
             $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
         });
+    }
+    public function attribute1()
+    {
+        return $this->belongsTo(Attribute::class, 'attribute_id1', 'id');
+    }
+
+    public function attribute2()
+    {
+        return $this->belongsTo(Attribute::class, 'attribute_id2', 'id');
+    }
+
+    public function modifierClass()
+    {
+        return $this->belongsTo(ModifierClass::class, 'class_id', 'id');
     }
 }
