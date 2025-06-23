@@ -123,5 +123,6 @@ return [
     'account-payable-ageing-report' => 'تحليل تقادم الحسابات الدائنة',
     'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
     'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
+    'periodic' => 'الجرد الدوري',
 
 ];

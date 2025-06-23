@@ -147,9 +147,13 @@
                                 </td>
                                 <td>
                                     <select id="tax_vat" required class="form-select form-select-solid select-2"
-                                        name="products[{{ $index }}][tax_vat]" style="width: 200px;">
+                                        name="products[{{ $index }}][tax_vat]" style="width: 200px;"
+                                        data-is-tax-group="{{ $tax->is_tax_group }}"
+                                        data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}">
                                         @foreach ($taxes as $tax)
                                             <option value="{{ $tax->amount }}"
+                                                data-is-tax-group="{{ $tax->is_tax_group }}"
+                                                data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
                                                 @if ($tax->default == 1 || $line->tax_id == $tax->amount) selected @endif>
                                                 @if (app()->getLocale() == 'en')
                                                     {{ $tax->name_en }}
@@ -159,6 +163,10 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    <input type="hidden" name="products[{{ $index }}][is_tax_group]"
+                                        value="{{ $tax->is_tax_group ?? 0 }}" class="is-tax-group">
+                                    <input type="hidden" name="products[{{ $index }}][sub_taxes]"
+                                        value="{{ json_encode($tax->sub_taxes ?? []) }}" class="sub-taxes">
                                 </td>
                                 <td><input type="number" step="any" readonly
                                         class="form-control vat_value-field"
@@ -240,6 +248,8 @@
                                     name="products[0][tax_vat]" style="width: 200px;">
                                     @foreach ($taxes as $tax)
                                         <option value="{{ $tax->amount }}"
+                                            data-is-tax-group="{{ $tax->is_tax_group }}"
+                                            data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
                                             @if ($tax->default == 1) selected @endif>
                                             @if (app()->getLocale() == 'en')
                                                 {{ $tax->name_en }}
@@ -247,6 +257,10 @@
                                                 {{ $tax->name }}
                                             @endif
                                         </option>
+                                        {{-- <input type="hidden" name="products[0][is_tax_group]"
+                                            value="{{ $tax->is_tax_group ?? 0 }}" class="is-tax-group">
+                                        <input type="hidden" name="products[0][sub_taxes]"
+                                            value="{{ json_encode($tax->sub_taxes ?? []) }}" class="sub-taxes"> --}}
                                     @endforeach
                                 </select>
                             </td>

@@ -23,11 +23,12 @@ return [
     'transaction-parent' => 'عرض الفاتورة المرجعية',
     'tooltip_inv_return' => 'تمت معالجة مردود جزئي على هذه الفاتورة لبعض الأصناف.',
 
+    'tax' => 'ضريبة',
     'add_to_favorites' => 'إضافة إلى المفضلة',
     'remove_from_favorites' => 'إزالة من المفضلة',
 
-   'inventory_tracking_policy' => 'سياسة الجرد',
-   
+    'inventory_tracking_policy' => 'سياسة الجرد',
+
 
 
 
