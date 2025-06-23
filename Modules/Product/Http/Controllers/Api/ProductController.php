@@ -26,11 +26,15 @@ class ProductController extends Controller
         // })
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
             ->with(['modifiers' => function ($query) {
-                $query->with(['modifierClass.children', 'modifierItem']);
+                $query->with([
+                    'modifierClass' => function ($q) {
+                        $q->with(['children' => function ($q) {
+                            $q->where('active', 1);
+                        }]);
+                    },
+                    'modifierItem'
+                ]);
             }])
-            // ->with(['modifiers' => function ($query) {
-            //     $query->with(['modifierItem']);
-            // }])
             // ->with(['attributes' => function ($query) {
             //     $query->with('attribute1');
             //     $query->with('attribute2');
