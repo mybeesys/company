@@ -34,7 +34,8 @@ class ProductResource extends JsonResource
         }
 
         $tax = [];
-        $$price_withtax = $this->price;
+        $price_withtax = 0;
+        $price_withtax = $this->price;
 
         if ($this->tax) {
             $tax["id"] = $this->tax["id"];
