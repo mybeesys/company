@@ -26,20 +26,46 @@ class ProductResource extends JsonResource
             $subcategory["product_id"] = $this->id;
         }
 
-        $unit = null;
+        $unit = [];
         if (!empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
             $unit["id"] = $this->unitTransfers[0]->id;
             $unit["name"] = $this->unitTransfers[0]->unit1;
             $unit["product_id"] = $this->unitTransfers[0]->product_id;
         }
 
-        $tax = null;
+        $tax = [];
+        $$price_withtax = $this->price;
+
         if ($this->tax) {
             $tax["id"] = $this->tax["id"];
             $tax["name"] = $this->tax["name"];
             $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
             $tax["is_tax_group"] = $this->tax["is_tax_group"];
             $tax["sub_taxes"] = $this->sub_taxes ? TaxResource::collection($this->sub_taxes) : [];
+            $tax_1 = 0;
+            $tax_2 = 0;
+
+            if (!empty($this->sub_taxes)) {
+                $firstTax = $this->sub_taxes->first();
+                if ($firstTax) {
+                    $tax_1 = $firstTax->amount;
+                }
+
+                if ($this->sub_taxes->count() > 1) {
+                    $secondTax = $this->sub_taxes->skip(1)->first();
+                    $tax_2 = $secondTax->amount;
+                }
+
+                if (!empty($this->tax_1)) {
+                    $price_withtax += $price_withtax * ($this->tax_1 / 100);
+                }
+
+                if (!empty($this->tax_2)) {
+                    $price_withtax += $price_withtax * ($this->tax_2 / 100);
+                }
+            } else {
+                $price_withtax = $this->price + ($tax ? $tax["value"] : 0);
+            }
         }
 
         $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
@@ -55,7 +81,9 @@ class ProductResource extends JsonResource
             'color' => $this->color,
             'order' => $this->order,
             'price' => $this->price,
-            'pricewithTax' => $this->price + ($tax ? $tax["value"] : 0),
+            'pricewithTax' => $price_withtax,
+            'tax_1' => $tax_1,
+            'tax_2' => $tax_2,
             'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,

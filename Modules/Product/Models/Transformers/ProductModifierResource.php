@@ -64,7 +64,7 @@ class ProductModifierResource extends JsonResource
                 'name_en' => $this->modifierItem->name_en,
                 'price' => $this->modifierItem->price,
                 'price_with_tax' => $this->modifierItem->price_with_tax
-            ] : null,
+            ] : 0,
             'modifier_class' => $modifierClass,
             // 'product' => $productData
         ];
