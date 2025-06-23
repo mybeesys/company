@@ -38,6 +38,8 @@ class ProductResource extends JsonResource
         $price_withtax = $this->price;
         $tax_1 = 0;
         $tax_2 = 0;
+        $tax_1_minimum_limit = 0;
+        $tax_2_minimum_limit = 0;
 
         if ($this->tax) {
             $tax["id"] = $this->tax["id"];
@@ -50,22 +52,34 @@ class ProductResource extends JsonResource
                 $firstTax = $this->sub_taxes->first();
                 if ($firstTax) {
                     $tax_1 = $firstTax->amount;
+                    $tax_1_minimum_limit = $firstTax->minimum_limit;
                 }
 
                 if ($this->sub_taxes->count() > 1) {
                     $secondTax = $this->sub_taxes->skip(1)->first();
                     $tax_2 = $secondTax->amount;
+                    $tax_2_minimum_limit = $secondTax->minimum_limit;
                 }
 
                 if (!empty($this->tax_1)) {
                     $price_withtax += $price_withtax * ($this->tax_1 / 100);
+                    if ($price_withtax < $tax_1_minimum_limit) {
+                        $price_withtax = $price_withtax + $tax_1_minimum_limit;
+                    }
                 }
 
                 if (!empty($this->tax_2)) {
                     $price_withtax += $price_withtax * ($this->tax_2 / 100);
+                    if ($price_withtax < $tax_2_minimum_limit) {
+                        $price_withtax = $price_withtax + $tax_2_minimum_limit;
+                    }
                 }
             } else {
                 $price_withtax = $this->price + ($tax ? $tax["value"] : 0);
+                if ($price_withtax < $this->minimum_limit) {
+                    $price_withtax = $price_withtax + $this->minimum_limit;
+                }
+
                 $tax_1 = $tax["value"];
             }
         }
