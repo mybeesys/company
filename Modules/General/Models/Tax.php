@@ -22,6 +22,8 @@ class Tax extends Model
             ["class" => "text-start min-w-150px ", "name" => "tax_name_en"],
             ["class" => "text-start min-w-150px  ", "name" => "tax_amount"],
             ["class" => "text-start min-w-150px  ", "name" => "create_group_tax"],
+            ["class" => "text-start min-w-150px  ", "name" => "minimum_limit"],
+            ["class" => "text-start min-w-75px  ", "name" => "minimum_limit"],
 
         ];
     }
@@ -57,6 +59,9 @@ class Tax extends Model
                 return  $row->sub_taxes ?? '--';
             })
 
+            ->addColumn('minimum_limit', function ($row) {
+                return $row->minimum_limit;
+            })
 
 
             ->addColumn(

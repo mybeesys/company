@@ -66,6 +66,14 @@
                         </select>
                     </div>
 
+                     <div class="fv-row mb-5 fv-plugins-icon-container">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span>@lang('general::fields.minimum_limit')</span>
+                        </label>
+                        <input type="number" class="form-control form-control-solid" name="minimum_limit" value="">
+                        <div class="text-muted fs-7">@lang('general::fields.minimum_limit_hint')</div>
+                    </div>
+
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">
                             @lang('messages.cancel')
