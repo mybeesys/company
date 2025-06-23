@@ -63,12 +63,19 @@ class IngredientController extends Controller
     }
 
     public function edit($id)
+
     {
-        $ingredient  = Product::with(['establishments' => function ($query) {
-            $query->with('establishment');
-        }])->with(['unitTransfers' => function ($query) {
-            // $query->with('unitTransfer');
-        }])->find($id);
+         $ingredient = Product::with([
+            'establishments.establishment',
+            'unitTransfers',
+         ])->findOrFail($id);
+        $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
+
+        // $ingredient  = Product::with(['establishments' => function ($query) {
+        //     $query->with('establishment');
+        // }])->with(['unitTransfers' => function ($query) {
+        //     // $query->with('unitTransfer');
+        // }])->find($id);
         // return $ingredient;
         return view('product::ingredient.edit', compact('ingredient'));
     }
