@@ -36,6 +36,8 @@ class ProductResource extends JsonResource
         $tax = [];
         $price_withtax = 0;
         $price_withtax = $this->price;
+        $tax_1 = 0;
+        $tax_2 = 0;
 
         if ($this->tax) {
             $tax["id"] = $this->tax["id"];
@@ -43,8 +45,6 @@ class ProductResource extends JsonResource
             $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
             $tax["is_tax_group"] = $this->tax["is_tax_group"];
             $tax["sub_taxes"] = $this->sub_taxes ? TaxResource::collection($this->sub_taxes) : [];
-            $tax_1 = 0;
-            $tax_2 = 0;
 
             if (!empty($this->sub_taxes)) {
                 $firstTax = $this->sub_taxes->first();
