@@ -39,7 +39,7 @@ class ProductResource extends JsonResource
             $tax["name"] = $this->tax["name"];
             $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
             $tax["is_tax_group"] = $this->tax["is_tax_group"];
-            $tax["sub_taxes"] = TaxResource::collection($this->sub_taxes);
+            $tax["sub_taxes"] = $this->sub_taxes ? TaxResource::collection($this->sub_taxes) : [];
         }
 
         $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
