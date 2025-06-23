@@ -18,7 +18,6 @@ class ProductModifierResource extends JsonResource
 
     public function toArray($request)
     {
-        // تحضير بيانات الفئة المعدلة
         $modifierClass = null;
         if ($this->modifierClass) {
             $modifierClass = [
@@ -39,7 +38,6 @@ class ProductModifierResource extends JsonResource
             ];
         }
 
-        // تحضير بيانات المنتج إذا مطلوب
         $productData = [];
         if ($this->extra['withProduct'] == 'Y' && $this->products) {
             $productData = [
@@ -68,7 +66,7 @@ class ProductModifierResource extends JsonResource
                 'price_with_tax' => $this->modifierItem->price_with_tax
             ] : null,
             'modifier_class' => $modifierClass,
-            'product' => $productData
+            // 'product' => $productData
         ];
     }
 }
