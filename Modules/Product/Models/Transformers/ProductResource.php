@@ -19,7 +19,7 @@ class ProductResource extends JsonResource
         $subcategory["product_id"] = $this->id;
         $unit = null;
         if(count($this->unitTransfers) > 0){
-            $unit["id"] = $this->unitTransfers[0]->id; 
+            $unit["id"] = $this->unitTransfers[0]->id;
             $unit["name"] = $this->unitTransfers[0]->unit1;
             $unit["product_id"] = $this->unitTransfers[0]->product_id;
         }
@@ -49,7 +49,7 @@ class ProductResource extends JsonResource
             'modifiers' => ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
                 return new ProductModifierResource($product, $extraData);
             })),
-            'attributes' => ProductAttributeResource::collection($this->attributes),
+            // 'attributes' => ProductAttributeResource::collection($this->attributes),
             'combos' => ComboResource::collection($this->combos),
             'unit' => $unit,//UnitTransferResource::collection($this->unitTransfers),
             'image' => $this->image,
