@@ -57,10 +57,9 @@ class ProductResource extends JsonResource
             'category' => $category,
             'subcategory' => $subcategory,
             'inventory' => $this->qty ?? 0,
-            'modifiers' => $this->modifiers,
-            // ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
-            //     return new ProductModifierResource($product, $extraData);
-            // })),
+            'modifiers' =>  ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
+                return new ProductModifierResource($product, $extraData);
+            })),
             'combos' => ComboResource::collection($this->combos ?? []),
             'unit' => $unit,
             'image' => $this->image,

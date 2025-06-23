@@ -18,46 +18,57 @@ class ProductModifierResource extends JsonResource
 
     public function toArray($request)
     {
+        // تحضير بيانات الفئة المعدلة
         $modifierClass = null;
-        if(isset($this->modifiers)){
-            $modifierClass["id"] = $this->modifiers["id"];
-            $modifierClass["name_ar"] = $this->modifiers["name_ar"];
-            $modifierClass["name_en"] = $this->modifiers["name_en"];
+        if ($this->modifierClass) {
+            $modifierClass = [
+                'id' => $this->modifierClass->id,
+                'name_ar' => $this->modifierClass->name_ar,
+                'name_en' => $this->modifierClass->name_en,
+                'modifiers' => $this->modifierClass->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name_ar' => $child->name_ar,
+                        'name_en' => $child->name_en,
+                        'price' => $child->price,
+                        'price_with_tax' => $child->price_with_tax,
+                        'product_id' => $this->product_id,
+                        'modifier_id' => $this->id
+                    ];
+                })
+            ];
         }
-        if(isset($this->modifiers)){
-            // $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children);
-            // $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->collection->merge([
-            //     'product_id' => $this->products["id"],
-            //     'modifier_id' => $this->id
-            // ]);
-            $modifierClass["modifiers"] = ModifierResource::collection($this->modifiers->children)->map(function ($modifier) {
-                return array_merge($modifier->toArray(request()), [
-                    'product_id' => $this->products["id"],
-                    'modifier_id' => $this->id
-                ]);
-            });
 
-
-
+        // تحضير بيانات المنتج إذا مطلوب
+        $productData = [];
+        if ($this->extra['withProduct'] == 'Y' && $this->products) {
+            $productData = [
+                'id' => $this->products->id,
+                'name_ar' => $this->products->name_ar,
+                'name_en' => $this->products->name_en
+            ];
         }
-        if($this->extra['withProduct'] == 'Y' && isset($this->products)){
-            $modifierClass["product"] = [];
-            $modifierClass["product"]["id"] = $this->products["id"];
-            $modifierClass["product"]["name_ar"] = $this->products["name_ar"];
-            $modifierClass["product"]["name_en"] = $this->products["name_en"];
-        }
+
         return [
             'id' => $this->id,
-            'default' => $this->default,
-            'required' => $this->required,
+            'default' => (bool)$this->default,
+            'required' => (bool)$this->required,
             'free_quantity' => $this->free_quantity,
             'display_order' => $this->display_order,
             'min_modifiers' => $this->min_modifiers,
             'max_modifiers' => $this->max_modifiers,
-            'button_display' => ButtonDisplay::getEnumNameByValue($this->modifier_display),
-            'modifier_display' => ModifierDisplay::getEnumNameByValue($this->button_display),
-            'product_id' => $this->products["id"],
-            'modifier' => $modifierClass,
+            'button_display' => ButtonDisplay::getEnumNameByValue($this->button_display),
+            'modifier_display' => ModifierDisplay::getEnumNameByValue($this->modifier_display),
+            'product_id' => $this->product_id,
+            'modifier_item' => $this->modifierItem ? [
+                'id' => $this->modifierItem->id,
+                'name_ar' => $this->modifierItem->name_ar,
+                'name_en' => $this->modifierItem->name_en,
+                'price' => $this->modifierItem->price,
+                'price_with_tax' => $this->modifierItem->price_with_tax
+            ] : null,
+            'modifier_class' => $modifierClass,
+            'product' => $productData
         ];
     }
 }
