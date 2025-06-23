@@ -8,63 +8,64 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProductResource extends JsonResource
 {
     public function toArray($request)
-{
-    $category = [];
-    if ($this->category) {
-        $category["id"] = $this->category["id"];
-        $category["name_ar"] = $this->category["name_ar"];
-        $category["name_en"] = $this->category["name_en"];
-        $category["product_id"] = $this->id;
+    {
+        $category = [];
+        if ($this->category) {
+            $category["id"] = $this->category["id"];
+            $category["name_ar"] = $this->category["name_ar"];
+            $category["name_en"] = $this->category["name_en"];
+            $category["product_id"] = $this->id;
+        }
+
+        $subcategory = [];
+        if ($this->subcategory) {
+            $subcategory["id"] = $this->subcategory["id"];
+            $subcategory["name_ar"] = $this->subcategory["name_ar"];
+            $subcategory["name_en"] = $this->subcategory["name_en"];
+            $subcategory["product_id"] = $this->id;
+        }
+
+        $unit = null;
+        if (!empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
+            $unit["id"] = $this->unitTransfers[0]->id;
+            $unit["name"] = $this->unitTransfers[0]->unit1;
+            $unit["product_id"] = $this->unitTransfers[0]->product_id;
+        }
+
+        $tax = null;
+        if ($this->tax) {
+            $tax["id"] = $this->tax["id"];
+            $tax["name"] = $this->tax["name"];
+            $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
+        }
+
+        $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
+
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'name_ar' => $this->name_ar,
+            'name_en' => $this->name_en,
+            'SKU' => $this->SKU,
+            'description_ar' => $this->description_ar,
+            'description_en' => $this->description_en,
+            'color' => $this->color,
+            'order' => $this->order,
+            'price' => $this->price,
+            'pricewithTax' => $this->price + ($tax ? $tax["value"] : 0),
+            'tax' => $tax,
+            'category' => $category,
+            'subcategory' => $subcategory,
+            'inventory' => $this->qty ?? 0,
+            'modifiers' => $this->modifiers,
+            // ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
+            //     return new ProductModifierResource($product, $extraData);
+            // })),
+            'combos' => ComboResource::collection($this->combos ?? []),
+            'unit' => $unit,
+            'image' => $this->image,
+        ];
     }
-
-    $subcategory = [];
-    if ($this->subcategory) {
-        $subcategory["id"] = $this->subcategory["id"];
-        $subcategory["name_ar"] = $this->subcategory["name_ar"];
-        $subcategory["name_en"] = $this->subcategory["name_en"];
-        $subcategory["product_id"] = $this->id;
-    }
-
-    $unit = null;
-    if (!empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
-        $unit["id"] = $this->unitTransfers[0]->id;
-        $unit["name"] = $this->unitTransfers[0]->unit1;
-        $unit["product_id"] = $this->unitTransfers[0]->product_id;
-    }
-
-    $tax = null;
-    if ($this->tax) {
-        $tax["id"] = $this->tax["id"];
-        $tax["name"] = $this->tax["name"];
-        $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
-    }
-
-    $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
-
-    return [
-        'id' => $this->id,
-        'type' => $this->type,
-        'name_ar' => $this->name_ar,
-        'name_en' => $this->name_en,
-        'SKU' => $this->SKU,
-        'description_ar' => $this->description_ar,
-        'description_en' => $this->description_en,
-        'color' => $this->color,
-        'order' => $this->order,
-        'price' => $this->price,
-        'pricewithTax' => $this->price + ($tax ? $tax["value"] : 0),
-        'tax' => $tax,
-        'category' => $category,
-        'subcategory' => $subcategory,
-        'inventory' => $this->qty ?? 0,
-        'modifiers' => ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
-            return new ProductModifierResource($product, $extraData);
-        })),
-        'combos' => ComboResource::collection($this->combos ?? []),
-        'unit' => $unit,
-        'image' => $this->image,
-    ];
-}
     // public function toArray($request)
     // {
     //     $category["id"] = $this->category["id"];
