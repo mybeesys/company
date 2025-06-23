@@ -840,7 +840,7 @@ class ProductController extends Controller
     {
         $product = Product::with([
             'tax',
-            'establishments.establishment',
+            'establishments.establishment', 
             'priceTiers.priceTier',
             'recipe.unitTransfer',
             'attributes.attribute1',
