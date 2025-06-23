@@ -16,7 +16,7 @@ class TaxController extends Controller
      */
     public function index(Request $request)
     {
-      
+
 
         if ($request->ajax()) {
 
@@ -48,6 +48,7 @@ class TaxController extends Controller
                     'name' => $request->tax_name . ' (' . $request->tax_amount . '%)',
                     'name_en' => '(' . $request->tax_amount . '%) ' . $request->tax_name_en,
                     'amount' => $request->tax_amount,
+                    'minimum_limit' => $request->minimum_limit,
                     'for_tax_group' => 0,
                     'is_tax_group' => 0,
                     'created_by' => Auth::user()->id,
@@ -67,6 +68,8 @@ class TaxController extends Controller
                     'name' => $request->tax_name . ' (' . $amount . '%)',
                     'name_en' => '(' . $amount . '%) ' . $request->tax_name_en,
                     'amount' => $amount,
+                    'minimum_limit' => $request->minimum_limit,
+
                     'for_tax_group' => 0,
                     'is_tax_group' => 1,
                     'created_by' => Auth::user()->id,
@@ -119,6 +122,8 @@ class TaxController extends Controller
                 $tax_rate->name = preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $amount . '%)';
                 $tax_rate->name_en = '(' . $amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en);
                 $tax_rate->amount = $amount;
+                $tax_rate->minimum_limit = $request->minimum_limit;
+
                 $tax_rate->save();
                 $tax_rate->sub_taxes()->sync($sub_tax_ids);
             } else {
@@ -126,6 +131,7 @@ class TaxController extends Controller
                     'name' => preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $request->tax_amount . '%)',
                     'name_en' => '(' . $request->tax_amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en),
                     'amount' => $request->tax_amount,
+                    'minimum_limit' =>  $request->minimum_limit
                 ]);
             }
 

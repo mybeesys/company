@@ -161,6 +161,7 @@
                 const taxNameEn = row.find('td:nth-child(3)').text().trim();
                 const taxAmount = row.find('td:nth-child(4)').text().trim();
                 const isGroup = row.find('td:nth-child(5)').text().trim();
+                const minimum_limit = row.find('td:nth-child(4)').text().trim();
                 const taxAmountContainer = $('#tax-amount-container-edit');
                 const groupTaxContainer = $('#group-tax-container-edit');
                 let group_tax_checkbox = 0;
@@ -178,8 +179,13 @@
                 $('#kt_modal_edit_tax input[name="tax_name_en"]').val(taxNameEn.replace(/\([^)]*\)\s*/g,
                     ''));
                 $('#kt_modal_edit_tax input[name="tax_amount"]').val(taxAmount);
+                $('#kt_modal_edit_tax input[name="tax_amount"]').val(taxAmount);
                 $('#kt_modal_edit_tax input[name="id"]').val(id);
                 $('#kt_modal_edit_tax input[name="group_tax_checkbox"]').val(group_tax_checkbox);
+                $('#kt_modal_edit_tax input[name="minimum_limit"]').val(minimum_limit);
+                // $('#kt_modal_edit_tax input[name="minimum_limit"]').val(minimum_limit);
+
+                console.log('Minimum Limit:', minimum_limit);
 
 
 
@@ -264,6 +270,10 @@
                         visible: false
                     },
 
+                    {
+                        data: 'minimum_limit',
+                        name: 'minimum_limit',
+                     },
 
                     {
                         data: 'actions',
