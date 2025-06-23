@@ -31,7 +31,7 @@ class ProductController extends Controller
             //     }]);
             // }])
             ->with(['modifiers' => function ($query) {
-                $query->with(['modifierClass.children', 'modifierItem']);
+                $query->with(['modifierClass', 'modifierItem']);
             }])
             // ->with(['attributes' => function ($query) {
             //     $query->with('attribute1');
