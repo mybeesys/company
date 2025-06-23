@@ -9,6 +9,7 @@ use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
 use Modules\Accounting\Http\Controllers\PaymentVouchersController;
+use Modules\Accounting\Http\Controllers\PeriodicInventoryController;
 use Modules\Accounting\Http\Controllers\ReceiptVouchersController;
 use Modules\Accounting\Http\Controllers\TreeAccountsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -90,6 +91,17 @@ Route::middleware([
         Route::get('account-payable-ageing-details', [AccountingReportsController::class, 'accountPayableAgeingDetails'])->name('account-payable-ageing-details');
 
 
+        // routes/web.php
+        Route::prefix('inventory')->group(function () {
+            Route::resource('periodic-inventory', PeriodicInventoryController::class)
+                ->except(['edit', 'update', 'destroy'])
+                ->names([
+                    'index' => 'periodic-inventory.index',
+                    'create' => 'periodic-inventory.create',
+                    'store' => 'periodic-inventory.store',
+                    'show' => 'periodic-inventory.show'
+                ]);
+        });
         //
 
     });

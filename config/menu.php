@@ -251,6 +251,13 @@ return [
                 'permission' => 'accounting.Payment vouchers.show',
             ],
 
+            //   [
+            //     'name' => 'periodic',
+            //     'url' => 'inventory/periodic-inventory',
+            //     'permission' => 'accounting.Payment vouchers.show',
+            // ],
+
+
         ]
     ],
     [

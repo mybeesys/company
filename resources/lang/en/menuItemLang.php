@@ -123,6 +123,7 @@ return [
     'journal-report' => 'Journal report',
     'cash-flow' => 'Cash Flow Statement',
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
+    'periodic' => 'Periodic',
 
 
 

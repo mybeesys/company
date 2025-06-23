@@ -6,28 +6,14 @@ function updateSalesTotals() {
     let finalTotalAfterVat = 0;
 
     $("#salesTable tbody tr").each(function (index) {
-        const qty =
-            parseFloat(
-                $(this).find(`[name="products[${index}][qty]"]`).val()
-            ) || 0;
-        const unitPriceOriginal =
-            parseFloat(
-                $(this).find(`[name="products[${index}][unit_price]"]`).val()
-            ) || 0;
-        const discountValue =
-            parseFloat(
-                $(this).find(`[name="products[${index}][discount]"]`).val()
-            ) || 0;
-        const discountType = $(this)
-            .find(`[name="products[${index}][discount_type]"]`)
-            .val();
-        const taxType =
-            parseFloat(
-                $(this).find(`[name="products[${index}][tax_vat]"]`).val()
-            ) || 0;
-        const isInclusive = $(this)
-            .find(`[name="products[${index}][inclusive]"]`)
-            .is(":checked");
+        const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+        const unitPriceOriginal = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
+        const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
+        const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
+        const isTaxGroup = $(this).find(`[name="products[${index}][is_tax_group]"]`).val() === "1";
+        const subTaxes = JSON.parse($(this).find(`[name="products[${index}][sub_taxes]"]`).val() || "[]");
+        const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(":checked");
 
         let unitPrice = unitPriceOriginal;
 
@@ -40,23 +26,43 @@ function updateSalesTotals() {
 
         let totalBeforeDiscount = qty * unitPrice - discountAmount;
 
-        if (isInclusive && taxType > 0) {
-            unitPrice =
-                (unitPriceOriginal - discountAmount) / (1 + taxType / 100);
-            totalBeforeDiscount = qty * unitPrice;
+        if (isInclusive) {
+            if (isTaxGroup && subTaxes.length > 0) {
+                // حساب الضريبة الشاملة للضريبة المركبة
+                let priceBeforeTax = unitPriceOriginal;
+                for (let i = subTaxes.length - 1; i >= 0; i--) {
+                    priceBeforeTax = priceBeforeTax / (1 + subTaxes[i].amount / 100);
+                }
+                unitPrice = priceBeforeTax;
+                totalBeforeDiscount = qty * unitPrice;
+            } else if (taxType > 0) {
+                unitPrice = (unitPriceOriginal - discountAmount) / (1 + taxType / 100);
+                totalBeforeDiscount = qty * unitPrice;
+            }
         }
 
         let vatAmount = 0;
-        if (taxType > 0) {
+        if (isTaxGroup && subTaxes.length > 0) {
+            // حساب الضريبة المركبة
+            let currentAmount = totalBeforeDiscount;
+            let totalVatForRow = 0;
+
+            for (const subTax of subTaxes) {
+                const subVatAmount = currentAmount * (subTax.amount / 100);
+                totalVatForRow += subVatAmount;
+                currentAmount += subVatAmount;
+            }
+
+            vatAmount = totalVatForRow;
+            totalBeforeDiscountForVat += totalBeforeDiscount;
+        } else if (taxType > 0) {
             vatAmount = totalBeforeDiscount * (taxType / 100);
             totalBeforeDiscountForVat += totalBeforeDiscount;
         }
 
         const totalRow = totalBeforeDiscount + vatAmount;
 
-        $(this)
-            .find(".total_before_vat-field")
-            .val(totalBeforeDiscount.toFixed(2));
+        $(this).find(".total_before_vat-field").val(totalBeforeDiscount.toFixed(2));
         $(this).find(".vat_value-field").val(vatAmount.toFixed(2));
         $(this).find(".total_after_vat-field").val(totalRow.toFixed(2));
 
@@ -79,24 +85,35 @@ function updateSalesTotals() {
 
     let adjustedVat = 0;
     $("#salesTable tbody tr").each(function (index) {
-        const taxType =
-            parseFloat(
-                $(this).find(`[name="products[${index}][tax_vat]"]`).val()
-            ) || 0;
-        const rowTotalBeforeDiscount =
-            parseFloat($(this).find(".total_before_vat-field").val()) || 0;
+        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
+        const isTaxGroup = $(this).find(`[name="products[${index}][is_tax_group]"]`).val() === "1";
+        const subTaxes = JSON.parse($(this).find(`[name="products[${index}][sub_taxes]"]`).val() || "[]");
+        const rowTotalBeforeDiscount = parseFloat($(this).find(".total_before_vat-field").val()) || 0;
 
-        if (taxType > 0) {
-            const rowDiscountShare =
-                (rowTotalBeforeDiscount / totalBeforeVat) * totalDiscountAmount;
+        if (taxType > 0 || isTaxGroup) {
+            const rowDiscountShare = (rowTotalBeforeDiscount / totalBeforeVat) * totalDiscountAmount;
             const rowAdjustedTotal = rowTotalBeforeDiscount - rowDiscountShare;
-            adjustedVat += rowAdjustedTotal * (taxType / 100);
+
+            if (isTaxGroup && subTaxes.length > 0) {
+                let currentAmount = rowAdjustedTotal;
+                let totalVatForRow = 0;
+
+                for (const subTax of subTaxes) {
+                    const subVatAmount = currentAmount * (subTax.amount / 100);
+                    totalVatForRow += subVatAmount;
+                    currentAmount += subVatAmount;
+                }
+
+                adjustedVat += totalVatForRow;
+            } else {
+                adjustedVat += rowAdjustedTotal * (taxType / 100);
+            }
         }
     });
 
     const totalAfterDiscount = totalBeforeVat - totalDiscountAmount;
     finalTotalAfterVat = totalAfterDiscount + adjustedVat;
-    finalTotalAfterVat= isNaN(finalTotalAfterVat) ? 0 : finalTotalAfterVat;
+    finalTotalAfterVat = isNaN(finalTotalAfterVat) ? 0 : finalTotalAfterVat;
 
     adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
 
