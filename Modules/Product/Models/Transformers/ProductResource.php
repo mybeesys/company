@@ -18,21 +18,23 @@ class ProductResource extends JsonResource
         $subcategory["name_en"] = $this->subcategory["name_en"];
         $subcategory["product_id"] = $this->id;
         $unit = null;
-        if(count($this->unitTransfers) > 0){
+        if (count($this->unitTransfers) > 0) {
             $unit["id"] = $this->unitTransfers[0]->id;
             $unit["name"] = $this->unitTransfers[0]->unit1;
             $unit["product_id"] = $this->unitTransfers[0]->product_id;
         }
         $tax = null;
-        if(isset($this->tax)){
+        if (isset($this->tax)) {
             $tax["id"] = $this->tax["id"];
             $tax["name"] = $this->tax["name"];
             $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
         }
-        $extraData =['withProduct' => 'N', 'parent_id' => $this->id];
+        $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
         return [
             'id' => $this->id,
-            'type' => isset($this->combos) && count($this->combos) >0 ? 'combo' : (isset($this->attributes) && count($this->attributes) > 0 ? 'variant' : 'single'),
+            // 'type' => isset($this->combos) && count($this->combos) >0 ? 'combo' : (isset($this->attributes) && count($this->attributes) > 0 ? 'variant' : 'single'),
+            //    'type' => isset($this->combos) && count($this->combos) > 0 ? 'combo' : 'single',
+            'type' => $this->type,
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
             'SKU' => $this->SKU,
@@ -41,7 +43,7 @@ class ProductResource extends JsonResource
             'color' => $this->color,
             'order' => $this->order,
             'price' => $this->price,
-            'pricewithTax' => $this->price + ($tax!=null ? $tax["value"] : 0),
+            'pricewithTax' => $this->price + ($tax != null ? $tax["value"] : 0),
             'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
@@ -51,7 +53,7 @@ class ProductResource extends JsonResource
             })),
             // 'attributes' => ProductAttributeResource::collection($this->attributes),
             'combos' => ComboResource::collection($this->combos),
-            'unit' => $unit,//UnitTransferResource::collection($this->unitTransfers),
+            'unit' => $unit, //UnitTransferResource::collection($this->unitTransfers),
             'image' => $this->image,
             //'image1' => isset($this->image) ? base64_encode(file_get_contents(public_path($this->image))): null
         ];
