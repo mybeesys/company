@@ -39,8 +39,8 @@ class ProductModifier extends Model
 
     public function modifierItem()
     {
-        return $this->belongsTo(Product::class, 'modifier_id', 'id')
-            ->where('type', 'modifier');
+        return $this->belongsTo(Product::class, 'modifier_id', 'id');
+            // ->where('type', 'modifier');
     }
     public function modifierClass()
     {
