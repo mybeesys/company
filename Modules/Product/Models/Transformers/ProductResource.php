@@ -66,6 +66,7 @@ class ProductResource extends JsonResource
                 }
             } else {
                 $price_withtax = $this->price + ($tax ? $tax["value"] : 0);
+                $tax_1 = $tax["value"];
             }
         }
 
@@ -85,6 +86,7 @@ class ProductResource extends JsonResource
             'pricewithTax' => $price_withtax,
             'tax_1' => $tax_1,
             'tax_2' => $tax_2,
+            'tax_total' => $tax_1 + $tax_2,
             'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
