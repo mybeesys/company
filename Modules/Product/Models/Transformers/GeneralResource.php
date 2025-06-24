@@ -19,7 +19,8 @@ class GeneralResource extends JsonResource
                 'id' => $this->product->id,
                 'name_ar' => $this->product->name_ar,
                 'name_en' => $this->product->name_en,
-                'price' => $this->product->price,
+                'price' => $this->price,
+                // 'price' => $this->product->price,
                 'parent_id' => $this->extra["parent_id"]
             ];
         }
@@ -27,6 +28,7 @@ class GeneralResource extends JsonResource
             'id' => $this->product->id,
             'name_ar' => $this->product->name_ar,
             'name_en' => $this->product->name_en,
+            'combo_price' => $this->price,
             'price' => $this->product->price,
 
         ];

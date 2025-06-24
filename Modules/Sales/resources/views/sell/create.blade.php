@@ -271,14 +271,27 @@
                                                 </div>
 
                                         </td>
-                        <td>
-                            <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
-                                @foreach ($taxes as $tax)
-                                                <option value="{{ $tax->amount }}" @if ($tax->default == 1) selected @endif>{{ $tax->name }}</option>
-
-                                                @endforeach
-                            </select>
-                        </td>
+                       <td>
+            <select id="tax_vat" required class="form-select form-select-solid select-2"
+                name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
+                @foreach ($taxes as $tax)
+                <option value="{{ $tax->amount }}"
+                    data-is-tax-group="{{ $tax->is_tax_group }}"
+                    data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
+                    data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
+                    @if ($tax->default == 1) selected @endif>
+                    @if (app()->getLocale() == 'en')
+                        {{ $tax->name_en }}
+                    @else
+                        {{ $tax->name }}
+                    @endif
+                </option>
+                @endforeach
+            </select>
+            <input type="hidden" class="is-tax-group" name="products[${salesRowIndex}][is_tax_group]">
+            <input type="hidden" class="sub-taxes" name="products[${salesRowIndex}][sub_taxes]">
+            <input type="hidden" class="minimum-limits" name="products[${salesRowIndex}][minimum_limits]">
+        </td>
                         <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
                         <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
                         <td>
@@ -298,6 +311,8 @@
             console.log("salesRowIndex " + salesRowIndex);
         });
 
+
+
         $(document).on("click", ".delete-sales-row", function() {
             $(this).closest("tr").remove();
             updateSalesTotals();
@@ -307,6 +322,29 @@
             $('#addClientModal').modal('show');
         });
 
+
+        $(document).on('change', '[name*="[tax_vat]"]', function() {
+    var selectedOption = $(this).find('option:selected');
+    var row = $(this).closest('tr');
+    var index = row.index();
+  const subTaxes = selectedOption.data('sub-taxes') || [];
+    const minimumLimits = selectedOption.data('minimum-limits') || [];
+
+    if (row.find('.is-tax-group').length === 0) {
+        row.append('<input type="hidden" class="is-tax-group" name="products['+index+'][is_tax_group]">');
+    }
+    if (row.find('.sub-taxes').length === 0) {
+        row.append('<input type="hidden" class="sub-taxes" name="products['+index+'][sub_taxes]">');
+    }
+    if (row.find('.minimum-limits').length === 0) {
+        row.append('<input type="hidden" class="minimum-limits" name="products['+index+'][minimum_limits]">');
+    }
+
+    row.find('.is-tax-group').val(selectedOption.data('is-tax-group') || 0);
+    row.find('.sub-taxes').val(typeof subTaxes === 'string' ? subTaxes : JSON.stringify(subTaxes));
+    row.find('.minimum-limits').val(typeof minimumLimits === 'string' ? minimumLimits : JSON.stringify(minimumLimits));
+    updateSalesTotals();
+});
         $(document).on('click', '.dropdown-item', function(e) {
             e.preventDefault();
             let action = $(this).data('action');

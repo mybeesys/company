@@ -146,14 +146,17 @@
 
                                 </td>
                                 <td>
-                                    <select id="tax_vat" required class="form-select form-select-solid select-2"
+                                    <select id="tax_vat" required
+                                        class="form-select form-select-solid select-2 tax-select"
                                         name="products[{{ $index }}][tax_vat]" style="width: 200px;"
                                         data-is-tax-group="{{ $tax->is_tax_group }}"
-                                        data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}">
+                                        data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
+                                        data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}">
                                         @foreach ($taxes as $tax)
                                             <option value="{{ $tax->amount }}"
                                                 data-is-tax-group="{{ $tax->is_tax_group }}"
                                                 data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
+                                                data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
                                                 @if ($tax->default == 1 || $line->tax_id == $tax->amount) selected @endif>
                                                 @if (app()->getLocale() == 'en')
                                                     {{ $tax->name_en }}
@@ -167,6 +170,9 @@
                                         value="{{ $tax->is_tax_group ?? 0 }}" class="is-tax-group">
                                     <input type="hidden" name="products[{{ $index }}][sub_taxes]"
                                         value="{{ json_encode($tax->sub_taxes ?? []) }}" class="sub-taxes">
+                                    <input type="hidden" name="products[{{ $index }}][minimum_limits]"
+                                        value="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
+                                        class="minimum-limits">
                                 </td>
                                 <td><input type="number" step="any" readonly
                                         class="form-control vat_value-field"
@@ -244,12 +250,14 @@
 
                             </td>
                             <td>
-                                <select id="tax_vat" required class="form-select form-select-solid select-2"
+                                <select id="tax_vat" required
+                                    class="form-select form-select-solid select-2 tax-select"
                                     name="products[0][tax_vat]" style="width: 200px;">
                                     @foreach ($taxes as $tax)
                                         <option value="{{ $tax->amount }}"
                                             data-is-tax-group="{{ $tax->is_tax_group }}"
                                             data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
+                                            data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
                                             @if ($tax->default == 1) selected @endif>
                                             @if (app()->getLocale() == 'en')
                                                 {{ $tax->name_en }}
@@ -257,12 +265,14 @@
                                                 {{ $tax->name }}
                                             @endif
                                         </option>
-                                        {{-- <input type="hidden" name="products[0][is_tax_group]"
-                                            value="{{ $tax->is_tax_group ?? 0 }}" class="is-tax-group">
-                                        <input type="hidden" name="products[0][sub_taxes]"
-                                            value="{{ json_encode($tax->sub_taxes ?? []) }}" class="sub-taxes"> --}}
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="products[0][is_tax_group]" value="0"
+                                    class="is-tax-group">
+                                <input type="hidden" name="products[0][sub_taxes]" value="[]"
+                                    class="sub-taxes">
+                                <input type="hidden" name="products[0][minimum_limits]" value="[]"
+                                    class="minimum-limits">
                             </td>
                             <td><input type="number" step="any" readonly class="form-control vat_value-field"
                                     name="products[0][vat_value]" placeholder="0.00" style="width: 80px;"></td>
