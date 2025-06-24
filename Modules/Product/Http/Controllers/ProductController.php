@@ -468,8 +468,10 @@ class ProductController extends Controller
                     $productCombo->quantity = $combo["quantity"];
                     $productCombo->price = isset($combo["price"]) ? $combo["price"] : null;
                     $productCombo->save();
+
                     if (isset($combo["products"])) {
                         ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
+
                         foreach ($combo["products"] as $productId) {
                             $comboItem = new ProductComboItem();
                             $comboItem->item_id = $productId;
@@ -477,7 +479,7 @@ class ProductController extends Controller
                             if (isset($combo['upchargePrices'])) {
                                 $index = array_search($productId, array_column($combo["upchargePrices"], 'product_id'));
                                 if ($index !== false) {
-                                    $comboItem->price = isset($combo['upchargePrices'][$index]["price"]) ? $combo['upchargePrices'][$index]["price"] : null;
+                                    $comboItem->price = $combo['upchargePrices'][$index]["price"] ?? null; // تعيين السعر إذا كان موجودًا
                                 }
                             }
                             $comboItem->save();
@@ -485,6 +487,7 @@ class ProductController extends Controller
                     }
                 }
             }
+
             if (isset($request["linkedCombos"])) {
                 ProductLinkedComboItem::where('product_id', '=', $product->id)->delete();
                 foreach ($request["linkedCombos"] as $linkedCombo) {
@@ -626,7 +629,6 @@ class ProductController extends Controller
             ]);
 
             if (isset($modifierGroup['modifiers']) && is_array($modifierGroup['modifiers'])) {
-                Log::info("Request data modifiers:", $modifierGroup['modifiers']);
                 foreach ($modifierGroup['modifiers'] as $modifier) {
                     ProductModifier::create([
                         'product_id' => $productId,
@@ -744,34 +746,39 @@ class ProductController extends Controller
     private function saveCombos($combos, $productId)
     {
         ProductCombo::where('product_id', '=', $productId)->delete();
-
         foreach ($combos as $combo) {
             $productCombo = ProductCombo::create([
                 'product_id' => $productId,
-                'name_ar' => $combo["name_ar"],
-                'name_en' => $combo["name_en"],
-                'combo_saving' => $combo["combo_saving"],
-                'quantity' => $combo["quantity"],
+                'name_ar' => $combo["name_ar"] ?? '',
+                'name_en' => $combo["name_en"] ?? '',
+                'combo_saving' => $combo["combo_saving"] ?? 0,
+                'quantity' => $combo["quantity"] ?? 1,
                 'price' => $combo["price"] ?? null,
             ]);
 
             if (isset($combo["products"])) {
                 ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
+
                 foreach ($combo["products"] as $comboProductId) {
                     $comboItem = new ProductComboItem();
                     $comboItem->item_id = $comboProductId;
                     $comboItem->combo_id = $productCombo->id;
                     if (isset($combo['upchargePrices'])) {
-                        $index = array_search($comboProductId, array_column($combo["upchargePrices"], 'product_id'));
-                        if ($index !== false) {
-                            $comboItem->price = $combo['upchargePrices'][$index]["price"] ?? null;
+                        foreach ($combo['upchargePrices'] as $upcharge) {
+                            if ($upcharge['product_id'] == $comboProductId) {
+                                $comboItem->price = $upcharge['price'];
+                                break;
+                            }
                         }
                     }
+
                     $comboItem->save();
                 }
             }
         }
     }
+
+
 
     // Method to save linked combos
     private function saveLinkedCombos($linkedCombos, $productId)

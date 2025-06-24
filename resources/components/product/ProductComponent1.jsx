@@ -344,7 +344,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                     sum + (!!item.price ? parseFloat(item.price) : 0),
                 0
             );
-            if (totalPrice != currentObject.price) {
+            if (totalPrice > currentObject.price) {
                 valid = false;
                 errorMessage = translations.ComboPriceError;
                 document.getElementById("group_tab").click();

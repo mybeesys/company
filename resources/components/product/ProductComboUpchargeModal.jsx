@@ -13,11 +13,36 @@ const ProductComboUpchargeModal = ({
     const [upchargeProducts, setUpchargeProducts] = useState([]);
 
     useEffect(() => {
-        setUpchargeProducts([...combo.products]);
+        if (combo?.products) {
+            const productsWithPrices = combo.products.map((product) => ({
+                ...product,
+                price:
+                    combo.upchargePrices?.find(
+                        (p) => p.product_id === product.value
+                    )?.price || 0,
+            }));
+            setUpchargeProducts(productsWithPrices);
+        }
     }, [combo]);
 
     const handleClose = () => {
-        onClose(combo, upchargeProducts);
+        const productsWithPrices = upchargeProducts.map((product) => ({
+            value: product.value,
+            price: product.price,
+        }));
+        onClose(combo.id, productsWithPrices);
+    };
+
+    const handleUpdate = (nodes) => {
+        const updatedProducts = upchargeProducts.map((product) => {
+            const updatedNode = nodes.find((n) => n.value === product.value);
+            return updatedNode
+                ? { ...product, price: updatedNode.price }
+                : product;
+        });
+
+        setUpchargeProducts(updatedProducts);
+        return { message: "Done" };
     };
 
     return (
@@ -29,9 +54,9 @@ const ProductComboUpchargeModal = ({
                 <Modal.Header>
                     <Modal.Title>{translations.useUpCharge}</Modal.Title>
                 </Modal.Header>
-                <form class="needs-validation">
+                <form className="needs-validation">
                     <Modal.Body>
-                        <div class="container">
+                        <div className="container">
                             <TreeTableComponentLocal
                                 translations={translations}
                                 dir={dir}
@@ -50,19 +75,17 @@ const ProductComboUpchargeModal = ({
                                         editable: false,
                                     },
                                     {
-                                        key: "size",
+                                        key: "price",
                                         autoFocus: false,
                                         options: [],
                                         type: "Decimal",
                                         width: "40%",
                                         editable: true,
+                                        required: true,
                                     },
                                 ]}
                                 actions={[]}
-                                onUpdate={(nodes) => {
-                                    setUpchargeProducts(nodes);
-                                    return { message: "Done" };
-                                }}
+                                onUpdate={handleUpdate}
                                 onDelete={null}
                             />
                         </div>
