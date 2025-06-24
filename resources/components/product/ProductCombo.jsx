@@ -165,7 +165,7 @@ const ProductCombo = ({
                                             checked={true}
                                             disabled
                                             onChange={(e) =>
-                                                onComboChange("set_price", 1)
+                                                onComboChange("set_price", 0)
                                             }
                                         />
                                     </div>
@@ -285,14 +285,10 @@ const ProductCombo = ({
                                         ),
                                 },
                                 {
-                                    key: !!product.set_price
-                                        ? "price"
-                                        : "combo_saving",
+                                    key: "price",
                                     autoFocus: false,
                                     options: [],
-                                    type: !!product.set_price
-                                        ? "Decimal"
-                                        : "Check",
+                                    type: "Decimal",
                                     width: columnWidths.price,
                                     editable: true,
                                     required: false,
@@ -309,21 +305,7 @@ const ProductCombo = ({
                                                 alignItems: "center",
                                             }}
                                         >
-                                            {!!product.set_price
-                                                ? translations.price
-                                                : translations.combo_saving}
-                                            {!product.set_price && (
-                                                <span
-                                                    className="ms-1"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
-                                                    title={
-                                                        translations.combo_saving_status
-                                                    }
-                                                >
-                                                    <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
-                                                </span>
-                                            )}
+                                            {translations.price}
                                         </div>
                                     ),
                                 },
