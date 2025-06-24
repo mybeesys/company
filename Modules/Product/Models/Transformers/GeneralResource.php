@@ -14,18 +14,21 @@ class GeneralResource extends JsonResource
     }
     public function toArray($request)
     {
-        if(isset($this->extra)){
+        if (isset($this->extra)) {
             return [
                 'id' => $this->product->id,
                 'name_ar' => $this->product->name_ar,
                 'name_en' => $this->product->name_en,
+                'price' => $this->product->price,
                 'parent_id' => $this->extra["parent_id"]
-            ];    
+            ];
         }
         return [
             'id' => $this->product->id,
             'name_ar' => $this->product->name_ar,
             'name_en' => $this->product->name_en,
+            'price' => $this->product->price,
+
         ];
     }
 }
