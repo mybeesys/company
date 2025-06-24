@@ -258,7 +258,7 @@
   "combo_saving" :"Saving",
   "combo_saving_status":"If group-level pricing is not selected, at least one group (saving) must be selected. This group will be discounted so that the total price of the combo does not exceed the sale price. For example: If the sale price of the group is $15 and includes a $13 burger and a $3 Pepsi, the total becomes $16. In this case, the sale price exceeds the sale price. When Tawfiri is added to any product, the excess amount will be deducted.",
   "setPriceInCombo" : "Set Price in group",
-  "setPriceInCombo_status":"To set the price for the bundle, choose - Yes - if you want to specify the exact price for each product bundle in the group.",
+  "setPriceInCombo_status":"Select the precise price for each product group in the collection.",
   "useUpCharge" : "Additional fees",
   "useUpCharge_status":"To use an upcharge, select - Yes - if you want to add additional amounts for the sub-products to the main bundle cost.",
   "ComboPriceError" : "Sum of combo prices not equal prodcut price",

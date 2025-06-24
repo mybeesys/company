@@ -46,35 +46,25 @@ const ProductCombo = ({
         []
     );
 
-    const onClose = (id, products) => {
-        let comboUpcharge = [];
-        for (let index = 0; index < product.combos.length; index++) {
-            const combo = product.combos[index];
-            if (combo.id == id) {
-                for (
-                    let index1 = 0;
-                    index1 < product.combos[index].products.length;
-                    index1++
-                ) {
-                    let prod = combo.products[index1];
-                    if (
-                        products.filter((x) => x.value == prod && !!x.price)
-                            .length > 0
-                    ) {
-                        const p = products.find(
-                            (x) => x.value == prod && !!x.price
-                        );
-                        comboUpcharge.push({
-                            product_id: prod,
-                            price: p.price,
-                        });
-                    }
-                }
-                product.combos[index].upchargePrices = comboUpcharge;
-                continue;
+    const onClose = (id, updatedProducts) => {
+        const updatedCombos = product.combos.map((combo) => {
+            if (combo.id === id) {
+                const upchargePrices = updatedProducts
+                    .filter((product) => product.price > 0)
+                    .map((product) => ({
+                        product_id: product.value,
+                        price: product.price,
+                    }));
+
+                return {
+                    ...combo,
+                    upchargePrices: upchargePrices,
+                };
             }
-        }
-        onComboChange("combos", product.combos);
+            return combo;
+        });
+
+        onComboChange("combos", updatedCombos);
         setShowUpchargeDialog(false);
     };
     React.useEffect(() => {
@@ -172,16 +162,10 @@ const ProductCombo = ({
                                             }}
                                             class="form-check-input my-2"
                                             id="active"
-                                            checked={
-                                                !!product.set_price == 0
-                                                    ? false
-                                                    : true
-                                            }
+                                            checked={true}
+                                            disabled
                                             onChange={(e) =>
-                                                onComboChange(
-                                                    "set_price",
-                                                    e.target.checked ? 1 : 0
-                                                )
+                                                onComboChange("set_price", 1)
                                             }
                                         />
                                     </div>
@@ -419,7 +403,6 @@ const ProductCombo = ({
                                           },
                                       ]
                                     : []),
-                                // أيقونة الحذف (تظهر دائماً)
                                 {
                                     execute: (data) => {
                                         const updatedCombos =
