@@ -8,7 +8,7 @@ class ComboResource extends JsonResource
 {
     public function toArray($request)
     {
-        $extraData =['parent_id' => $this->id];
+        $extraData = ['parent_id' => $this->id];
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,
@@ -16,6 +16,9 @@ class ComboResource extends JsonResource
             'quantity' => $this->quantity,
             'price' => $this->price,
             'product_id' => $this->product_id,
+            'items_price_total' => $this->items->sum(function ($item) {
+                return $item->product->price;
+            }),
             'items' => GeneralResource::collection($this->items->map(function ($product) use ($extraData) {
                 return new GeneralResource($product, $extraData);
             })),
