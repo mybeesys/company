@@ -1,3 +1,4 @@
+//  ممنوع من الحذف  -- مراجعة محمد امين قبل الحذف :)
 function updateSalesTotals() {
     let totalBeforeVat = 0;
     let totalVat = 0;
@@ -50,16 +51,34 @@ function updateSalesTotals() {
 
         let totalBeforeDiscount = qty * unitPrice - discountAmount;
 
-        if (isInclusive && taxType > 0) {
-            unitPrice =
-                (unitPriceOriginal - discountAmount) / (1 + taxType / 100);
-            totalBeforeDiscount = qty * unitPrice;
+        if (isInclusive) {
+            if (isTaxGroup && subTaxes.length > 0) {
+                let priceBeforeTax = unitPriceOriginal;
+                for (let i = subTaxes.length - 1; i >= 0; i--) {
+                    priceBeforeTax =
+                        priceBeforeTax / (1 + subTaxes[i].amount / 100);
+                }
+                unitPrice = priceBeforeTax;
+                totalBeforeDiscount = qty * unitPrice;
+            } else if (taxType > 0) {
+                unitPrice =
+                    (unitPriceOriginal - discountAmount) / (1 + taxType / 100);
+                totalBeforeDiscount = qty * unitPrice;
+            }
         }
 
+
+
         let vatAmount = 0;
+
+        if (isTaxGroup && subTaxes.length === 2) {}
+
         if (taxType > 0) {
             vatAmount = totalBeforeDiscount * (taxType / 100);
             totalBeforeDiscountForVat += totalBeforeDiscount;
+            if(totalBeforeDiscount + vatAmount < minimumLimits[0]){
+
+            }
         }
 
         const totalRow = totalBeforeDiscount + vatAmount;
