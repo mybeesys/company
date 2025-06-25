@@ -377,6 +377,8 @@ class ProductController extends Controller
             }
             if (isset($request["attributes"])) {
                 $product->type = "variable";
+                $product->category_id = null;
+                $product->subcategory_id = null;
                 $product->for_sell = 0;
                 $product->save();
                 foreach ($request["attributes"] as $attribute) {
@@ -563,6 +565,8 @@ class ProductController extends Controller
             // 3. Save attributes if they exist
             if (isset($request["attributes"])) {
                 $product->type = "variable";
+                $product->category_id = null;
+                $product->subcategory_id = null;
                 $product->for_sell = 0;
                 $product->save();
                 $this->saveAttributes($request["attributes"], $product->id, $product);
@@ -847,7 +851,7 @@ class ProductController extends Controller
     {
         $product = Product::with([
             'tax',
-            'establishments.establishment', 
+            'establishments.establishment',
             'priceTiers.priceTier',
             'recipe.unitTransfer',
             'attributes.attribute1',

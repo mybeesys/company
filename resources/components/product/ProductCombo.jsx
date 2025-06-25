@@ -291,7 +291,7 @@ const ProductCombo = ({
                                     type: "Decimal",
                                     width: columnWidths.price,
                                     editable: true,
-                                    required: false,
+                                    required: true,
                                     onChange: (e, rowKey) =>
                                         handleInputChange(
                                             "price",
