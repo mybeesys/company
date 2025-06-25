@@ -110,5 +110,6 @@ return [
     'Sales filtering' => 'Filtering',
     'Remove filter' => 'Remove filter',
     'Favorite invoices' => 'Favorite invoices',
+    'add_new_product' => 'Add Product',
 
 ];

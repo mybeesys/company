@@ -198,4 +198,26 @@ class Product extends Model
     {
         return $this->belongsTo(ModifierClass::class, 'class_id', 'id');
     }
+
+
+    public static function productsForSell()
+    {
+        return Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+            ->whereIn('type', ['product', 'variation'])
+            ->with(['unitTransfers' => function ($query) {
+                $query->whereNull('unit2');
+            }])
+            ->get();
+    }
+
+     public static function productsForPurchese()
+    {
+        return Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+            ->whereIn('type', ['product', 'variation'])
+            ->with(['unitTransfers' => function ($query) {
+                $query->whereNull('unit2');
+            }])
+            ->get();
+    }
+
 }

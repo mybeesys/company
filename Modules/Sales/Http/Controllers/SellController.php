@@ -112,6 +112,9 @@ class SellController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
+
+          $products = Product::productsForSell();
+
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
         if (!$Latest_event) {
             $actionUtil = new ActionUtil();
@@ -202,7 +205,6 @@ class SellController extends Controller
 
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-
             }
 
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);

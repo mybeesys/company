@@ -394,22 +394,78 @@
 
 
         $(document).ready(function() {
+
+
+             $('.select-2-products-id').select2({
+        placeholder: "Select a product",
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return `<a href="#" class="add-new-product" data-bs-toggle="modal" data-bs-target="#addProductModal">@lang('sales::lang.add_new_product')</a>`;
+            }
+        },
+        escapeMarkup: function(markup) {
+            return markup;
+        }
+    });
+
+    $(document).on('click', '.add-new-product', function(e) {
+        e.preventDefault();
+        $('#addProductModal').modal('show');
+    });
+
+
+    function fetchProducts() {
+    $.ajax({
+        url: '/api/products-for-sale',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            updateSelect2WithProducts(response.data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching products:', error);
+        }
+    });
+}
+
+function updateSelect2WithProducts(products) {
+    $('.select-2-products-id').empty().append('<option value="">@lang('sales::lang.select_products')</option>');
+
+    products.forEach(function(product) {
+        var optionText = (appLocale === 'ar') ?
+            `${product.name_ar} - <span class="fw-semibold mx-2 text-muted fs-5">${product.SKU}</span>` :
+            `${product.name_en} - <span class="fw-semibold mx-2 text-muted fs-7">${product.SKU}</span>`;
+
+        var option = new Option(optionText, product.id, false, false);
+        option.dataset.price = product.price;
+        option.dataset.units = JSON.stringify(product.unit_transfers);
+
+        $('.select-2-products-id').append(option);
+    });
+
+    $('.select-2-products-id').trigger('change');
+}
+
+
+
+
             updateSalesTotals();
-            $('#products').select2({
-                tags: true,
-                language: {
-                    noResults: function() {
-                        return `
-                    <button id="add-new-product" class="btn btn-link">
-                        @lang('sales::lang.new_product')
-                    </button>
-                `;
-                    },
-                },
-                escapeMarkup: function(markup) {
-                    return markup;
-                },
-            });
+            // $('#products').select2({
+            //     tags: true,
+            //     language: {
+            //         noResults: function() {
+            //             return `
+            //         <button id="add-new-product" class="btn btn-link">
+            //             @lang('sales::lang.new_product')
+            //         </button>
+            //     `;
+            //         },
+            //     },
+            //     escapeMarkup: function(markup) {
+            //         return markup;
+            //     },
+            // });
 
 
             $(document).on('change', '[name*="[inclusive]"]', function() {
