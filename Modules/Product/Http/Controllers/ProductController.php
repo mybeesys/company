@@ -398,10 +398,10 @@ class ProductController extends Controller
                     $att['category_id'] = $product->category_id;
                     $att['subcategory_id'] = $product->subcategory_id;
                     Product::create($att);
-                    $product->category_id = null;
-                    $product->subcategory_id = null;
-                    $product->save();
                 }
+                $product->category_id = null;
+                $product->subcategory_id = null;
+                $product->save();
             }
 
             $oldUnites = UnitTransfer::where('product_id', $product->id)->get();
@@ -675,10 +675,10 @@ class ProductController extends Controller
             $att['category_id'] = $product->category_id;
             $att['subcategory_id'] = $product->subcategory_id;
             Product::create($att);
-            $product->category_id = null;
-            $product->subcategory_id = null;
-            $product->save();
         }
+        $product->category_id = null;
+        $product->subcategory_id = null;
+        $product->save();
     }
 
     // Method to save transfer details
