@@ -1038,4 +1038,36 @@ class ProductController extends Controller
         });
         return response()->json($products);
     }
+    public function productFastSave(Request $request)
+    {
+        $validated = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'category_id' => 'nullable|numeric',
+            'subcategory_id' => 'nullable|numeric',
+            'price' => 'nullable|numeric|min:0',
+            'cost' => 'nullable|numeric|min:0',
+            'order' => 'nullable|numeric',
+            'unit1' => 'nullable|string|max:255',
+        ]);
+
+        // Create product
+        $lastOrder = Product::max('order') ?? 0;
+        $validated['order'] = $lastOrder + 1;
+        $validated['price'] = $validated['price'] ?? 0;
+        $validated['cost'] = $validated['cost'] ?? 0;
+        $product = Product::create($validated);
+
+        if (isset($validated['unit1'])) {
+            UnitTransfer::create([
+                'unit1' => $validated['unit1'],
+                'product_id' => $product->id
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Product saved successfully',
+            'product' => $product
+        ], 201);
+    }
 }

@@ -119,6 +119,7 @@ Route::middleware([
 
         Route::get('productLOVs/{id?}', [ProductLOVController::class, 'getProductLOVs'])->name('productLOVs');
         Route::get('productList', [ProductController::class, 'all'])->name('productList');
+        Route::post('productFastSave', [ProductController::class, 'productFastSave'])->name('productFastSave');
 
         Route::get('getUnitsTransferList/{type?}/{id?}', [UnitTransferController::class, 'getUnitsTransferList'])->name('getUnitsTransferList');
         Route::get('units', [UnitController::class, 'units'])->name('units');
