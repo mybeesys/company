@@ -62,5 +62,7 @@ Route::middleware([
 
             Route::get('/generate-code', 'generateCode')->name('generate-code');
         });
+
+
     });
 });

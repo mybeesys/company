@@ -113,7 +113,7 @@ return [
     'Sales filtering' => 'فلترة',
     'Remove filter' => 'إزالة الفلتر',
     'Favorite invoices' => 'الفواتير المفضلة',
-
+    'add_new_product' => 'إضافة منتج',
 
 
 ];

@@ -73,7 +73,25 @@
                         @foreach ($lines as $index => $line)
                             <tr>
                                 <td>
-                                    <select id="products" required class="form-select form-select-solid select-2"
+                                    {{-- <select id="products" required class="form-select form-select-solid select-2"
+                                        name="products[{{ $index }}][products_id]" style="padding: 7px">
+                                        <option value="">@lang('sales::lang.select_products')</option>
+                                        @foreach ($products as $product)
+                                            <option value="{{ $product->id }}"
+                                                @if ($line->product_id == $product->id) selected @endif
+                                                data-price="{{ $product->price }}"
+                                                data-units="{{ json_encode($product->unitTransfers) }}">
+                                                @if (app()->getLocale() == 'ar')
+                                                    {{ $product->name_ar }} - <span
+                                                        class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
+                                                @else
+                                                    {{ $product->name_en }} - <span
+                                                        class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select> --}}
+                                    <select id="products" required class="form-select form-select-solid select-2 select-2-products-id"
                                         name="products[{{ $index }}][products_id]" style="padding: 7px">
                                         <option value="">@lang('sales::lang.select_products')</option>
                                         @foreach ($products as $product)
@@ -187,11 +205,29 @@
                     @else
                         <tr>
                             <td>
-                                <select id="products" required class="form-select form-select-solid select-2"
+                                {{-- <select id="products" required class="form-select form-select-solid select-2"
                                     name="products[0][products_id]" style="padding: 7px">
                                     <option value="">@lang('sales::lang.select_products')</option>
                                     @foreach ($products as $product)
                                         <option value="{{ $product->id }}" data-price="{{ $product->price }}"
+                                            data-units="{{ json_encode($product->unitTransfers) }}">
+                                            @if (app()->getLocale() == 'ar')
+                                                {{ $product->name_ar }} - <span
+                                                    class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
+                                            @else
+                                                {{ $product->name_en }} - <span
+                                                    class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select> --}}
+
+                                <select id="products" required class="form-select form-select-solid select-2 select-2-products-id"
+                                    name="products[0][products_id]" style="padding: 7px">
+                                    <option value="">@lang('sales::lang.select_products')</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->id }}"
+                                            data-price="{{ $product->price }}"
                                             data-units="{{ json_encode($product->unitTransfers) }}">
                                             @if (app()->getLocale() == 'ar')
                                                 {{ $product->name_ar }} - <span
