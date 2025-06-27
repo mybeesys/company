@@ -58,13 +58,13 @@ class ProductModifierResource extends JsonResource
             'button_display' => ButtonDisplay::getEnumNameByValue($this->button_display),
             'modifier_display' => ModifierDisplay::getEnumNameByValue($this->modifier_display),
             'product_id' => $this->product_id,
-            'modifier_item' => $this->modifierItem ? [
-                'id' => $this->modifierItem->id,
-                'name_ar' => $this->modifierItem->name_ar,
-                'name_en' => $this->modifierItem->name_en,
-                'price' => $this->modifierItem->price,
-                'price_with_tax' => $this->modifierItem->price_with_tax
-            ] : 0,
+            // 'modifier_item' => $this->modifierItem ? [
+            //     'id' => $this->modifierItem->id,
+            //     'name_ar' => $this->modifierItem->name_ar,
+            //     'name_en' => $this->modifierItem->name_en,
+            //     'price' => $this->modifierItem->price,
+            //     'price_with_tax' => $this->modifierItem->price_with_tax
+            // ] : 0,
             'modifier_class' => $modifierClass,
             // 'product' => $productData
         ];
