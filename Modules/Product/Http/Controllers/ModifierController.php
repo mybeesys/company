@@ -68,18 +68,6 @@ class ModifierController extends Controller
             })
             ->first();
 
-        if ($existingModifier) {
-            if ($existingModifier->order == $validated['order']) {
-                return response()->json(["message" => "ORDER_EXIST"]);
-            }
-            if ($existingModifier->name_ar == $validated['name_ar']) {
-                return response()->json(["message" => "NAME_AR_EXIST"]);
-            }
-            if ($existingModifier->name_en == $validated['name_en']) {
-                return response()->json(["message" => "NAME_EN_EXIST"]);
-            }
-        }
-
         if (isset($validated['id'])) {
             $this->saveModifier($validated, $request);
         } else {
