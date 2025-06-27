@@ -63,9 +63,16 @@ const ProductComponent1 = ({ translations, dir }) => {
         setSelectedEstablishments(selectedIds);
     };
     const parentHandlechanges = (childproduct) => {
-        if (childproduct.for_sell != currentObject.for_sell)
-            handleForSellChange(childproduct);
-        setcurrentObject({ ...childproduct });
+        const mergedProduct = {
+            ...currentObject,
+            ...childproduct,
+        };
+
+        if (childproduct.for_sell !== currentObject.for_sell) {
+            handleForSellChange(mergedProduct);
+        }
+
+        setcurrentObject(mergedProduct);
     };
 
     const clickSubmit = () => {

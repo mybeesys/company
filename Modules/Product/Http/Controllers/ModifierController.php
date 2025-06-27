@@ -55,7 +55,6 @@ class ModifierController extends Controller
             }
             return response()->json(["message" => "Modifier not found."], 404);
         }
-
         if (!isset($validated['order'])) {
             $maxOrder = Product::where('type', 'modifier')->where('class_id', $validated['class_id'])->max('order');
             $validated['order'] = $maxOrder !== null ? $maxOrder + 1 : 1;

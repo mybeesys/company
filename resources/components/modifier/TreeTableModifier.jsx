@@ -27,18 +27,20 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
+
     const fetchTaxOptions = async () => {
         try {
             let response = await axios.get(listTaxurl);
             const taxes = response.data.map((tax) => ({
-                label: getRowName(tax, dir), // The text shown in the select options
-                value: tax.id, // The value of the selected option
+                label: getRowName(tax, dir),
+                value: tax.id,
             }));
             setTaxOptions(taxes);
         } catch (error) {
             console.error("Error fetching options:", error);
         }
     };
+
     const expandAll = () => {
         const allKeys = getExpandedKeys(nodes);
         setExpandedKeys(allKeys);
@@ -47,6 +49,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const collapseAll = () => {
         setExpandedKeys({});
     };
+
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -59,7 +62,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
             return;
         }
@@ -82,14 +85,13 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         }
     };
 
-    // Generate the expandedKeys object to expand all nodes by default
     const getExpandedKeys = (nodes) => {
         let expandedKeys = {};
         const expandAll = (nodes) => {
             nodes.forEach((node) => {
-                expandedKeys[node.key] = true; // Mark this node as expanded
+                expandedKeys[node.key] = true;
                 if (node.children) {
-                    expandAll(node.children); // Recursively expand children
+                    expandAll(node.children);
                 }
             });
         };
@@ -107,7 +109,10 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             window.location.href = modifierCrudList + "/" + data.id + "/edit";
         } else {
             setCurrentKey(key);
-            setEditingRow({ ...data });
+            setEditingRow({
+                ...data,
+                class_id: data.class_id || null,
+            });
         }
     };
 
@@ -149,36 +154,59 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             form.classList.add("was-validated");
             return;
         }
+
         let editedNode = findNodeByKey(nodes, currentKey);
+
         for (var key in editingRow) {
             editedNode.data[key] = editingRow[key];
+        }
+
+        if (!editedNode.data.class_id) {
+            const parentNode = getParentNode(editedNode.key);
+            if (parentNode?.data?.id) {
+                editedNode.data.class_id = parentNode.data.id;
+            }
         }
 
         let url = JSON.parse(
             rootElement.getAttribute(`${editedNode.data.type}-url`)
         );
-        let parentNode = getParentNode(editedNode.key);
-        if (!!parentNode)
-            editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
-        const response = await axios.post(url, editedNode.data);
-        if (response.data.message != "Done") {
+
+        try {
+            const response = await axios.post(url, editedNode.data);
+            if (response.data.message != "Done") {
+                setShowAlert(true);
+                Swal.fire({
+                    show: showAlert,
+                    title: "Error",
+                    text: translations[response.data.message],
+                    icon: "error",
+                    timer: 2000,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                }).then(() => {
+                    setShowAlert(false);
+                });
+                return;
+            }
+            setEditingRow({});
+            setCurrentKey("-1");
+            refreshTree();
+        } catch (error) {
+            console.error("Error submitting data:", error);
             setShowAlert(true);
             Swal.fire({
                 show: showAlert,
                 title: "Error",
-                text: translations[response.data.message],
+                text: translations.technicalerror,
                 icon: "error",
                 timer: 2000,
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
-            return;
         }
-        setEditingRow({});
-        setCurrentKey("-1");
-        refreshTree();
     };
 
     const findNodeByKey = (nodes, key) => {
@@ -221,6 +249,9 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         for (const key in defaultObjectValue) {
             node.data[key] = defaultObjectValue[key];
         }
+        const parentNode = parentKey ? findNodeByKey(nodes, parentKey) : null;
+        const class_id = parentNode?.data?.id || null;
+
         let newNode = {
             key: !!!parentKey
                 ? Number(seg[0]) + 1
@@ -230,16 +261,23 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                 parentKey: parentKeyName,
                 empty: "Y",
                 isNew: isNew,
+                class_id: class_id,
             },
         };
-        if (!!!parentKey) nodes.push(newNode);
-        else {
+
+        if (!!!parentKey) {
+            nodes.push(newNode);
+        } else {
             let parentNode = findNodeByKey(nodes, parentKey);
             parentNode.children.push(newNode);
         }
+
         setCurrentKey(key);
         setNodes([...nodes]);
-        setEditingRow({ ...node.data });
+        setEditingRow({
+            ...node.data,
+            class_id: class_id,
+        });
     };
 
     const renderTextCell = (node, key, autoFocus) => {
