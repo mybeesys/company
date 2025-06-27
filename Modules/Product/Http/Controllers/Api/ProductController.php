@@ -27,11 +27,8 @@ class ProductController extends Controller
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
         ->whereIn('type', ['product', 'variation'])
             ->with(['modifiers' => function ($query) {
-                $query->with([
-                    'modifierClass' => function ($q) {
-                        $q->with(['children' => function ($q) {
+                        $query->with(['children' => function ($q) {
                             $q->where('active', 1);
-                        }]);
                     }
                     // 'modifierItem'
                 ]);

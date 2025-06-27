@@ -100,7 +100,9 @@ class Product extends Model
     }
     public function modifiers()
     {
-        return $this->hasMany(ProductModifier::class, 'product_id', 'id');
+        // return $this->hasMany(ProductModifier::class, 'product_id', 'id');
+        return $this->belongsTo(ModifierClass::class, 'modifier_class_id', 'id');
+
     }
     public function recipe()
     {
