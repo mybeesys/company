@@ -40,11 +40,12 @@ const ProductDisplay = ({
                     preview: URL.createObjectURL(file),
                 })
             );
+
             setFiles((prevFiles) => [...prevFiles, ...mappedFiles]);
-            handleChange("image_file", mappedFiles[0], currentObject);
+            handleChange("image_file", mappedFiles[0]);
             setimageSrc(mappedFiles[0].preview);
         },
-        [currentObject]
+        [product] 
     );
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -58,13 +59,15 @@ const ProductDisplay = ({
         setimageSrc(blankurl);
         handleChange("image_file", null);
     };
-
     const handleChange = async (key, value) => {
-        let r = { ...product };
-        r[key] = value;
-        if (!!!value) r["image_deleted"] = 1;
-        setcurrentObject({ ...r });
-        parentHandlechanges({ ...r });
+        const updatedProduct = {
+            ...product,
+            [key]: value,
+            ...(!!!value && { image_deleted: 1 }),
+        };
+
+        setcurrentObject(updatedProduct);
+        parentHandlechanges(updatedProduct);
     };
 
     const clickSubmit = (event) => {
