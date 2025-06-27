@@ -32,8 +32,8 @@ class ProductController extends Controller
                         $q->with(['children' => function ($q) {
                             $q->where('active', 1);
                         }]);
-                    },
-                    'modifierItem'
+                    }
+                    // 'modifierItem'
                 ]);
             }])
             // ->with(['attributes' => function ($query) {
