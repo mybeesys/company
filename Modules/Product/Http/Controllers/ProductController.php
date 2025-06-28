@@ -1038,6 +1038,7 @@ class ProductController extends Controller
         });
         return response()->json($products);
     }
+
     public function productFastSave(Request $request)
     {
         $validated = $request->validate([
@@ -1049,25 +1050,36 @@ class ProductController extends Controller
             'cost' => 'nullable|numeric|min:0',
             'order' => 'nullable|numeric',
             'unit1' => 'nullable|string|max:255',
+            'primary' => 'nullable|boolean'
         ]);
 
-        // Create product
-        $lastOrder = Product::max('order') ?? 0;
-        $validated['order'] = $lastOrder + 1;
-        $validated['price'] = $validated['price'] ?? 0;
-        $validated['cost'] = $validated['cost'] ?? 0;
-        $product = Product::create($validated);
+        try {
+            return DB::transaction(function () use ($validated) {
+                $lastOrder = Product::max('order') ?? 0;
+                $productData = $validated;
+                $productData['order'] = $lastOrder + 1;
+                $productData['price'] = $productData['price'] ?? 0;
+                $productData['cost'] = $productData['cost'] ?? 0;
+                $product = Product::create($productData);
 
-        if (isset($validated['unit1'])) {
-            UnitTransfer::create([
-                'unit1' => $validated['unit1'],
-                'product_id' => $product->id
-            ]);
+                if (isset($validated['unit1'])) {
+                    UnitTransfer::create([
+                        'unit1' => $validated['unit1'],
+                        'product_id' => $product->id,
+                        'primary' => 1
+                    ]);
+                }
+
+                return response()->json([
+                    'message' => 'Product saved successfully',
+                    'product' => $product
+                ], 201);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to save product',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Product saved successfully',
-            'product' => $product
-        ], 201);
     }
 }
