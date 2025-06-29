@@ -1083,4 +1083,19 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+
+    public function productsForSale(){
+           $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+                ->whereIn('type', ['product', 'variation'])
+                ->with(['unitTransfers' => function ($query) {
+                    $query->whereNull('unit2');
+                }])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $products
+            ]);
+    }
 }
