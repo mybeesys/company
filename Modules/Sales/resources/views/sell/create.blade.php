@@ -417,7 +417,7 @@
 
     function fetchProducts() {
     $.ajax({
-        url: '/api/products-for-sale',
+        url: '/products-for-sale',
         method: 'GET',
         dataType: 'json',
         success: function(response) {

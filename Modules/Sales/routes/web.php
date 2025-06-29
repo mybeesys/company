@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateJWT;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
+use Modules\Product\Http\Controllers\ProductController;
 use Modules\Sales\Http\Controllers\CouponController;
 use Modules\Sales\Http\Controllers\QuotationController;
 use Modules\Sales\Http\Controllers\ReceiptsController;
@@ -34,6 +35,7 @@ Route::middleware([
         Route::get('create-invoice', [SellController::class, 'create'])->name('create-invoice');
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
+        Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
 
         Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');
         Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');
@@ -62,7 +64,5 @@ Route::middleware([
 
             Route::get('/generate-code', 'generateCode')->name('generate-code');
         });
-
-
     });
 });
