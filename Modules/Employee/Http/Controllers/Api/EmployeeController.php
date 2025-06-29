@@ -12,9 +12,9 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         try {
-            // $request->validate([
-            //     'establishment_id' => ['nullable', 'exists:est_establishments,id']
-            // ]);
+            $request->validate([
+                'establishment_id' => ['nullable', 'exists:est_establishments,id']
+            ]);
             $employees = Employee::with(['posRoles', 'defaultEstablishment', 'wage', 'allowances', 'deductions'])
                 ->when($request->query('establishment_id'), function ($query) use ($request) {
                     $query->whereHas('defaultEstablishment', fn($query) => $query->where('id', $request->query('establishment_id')));
