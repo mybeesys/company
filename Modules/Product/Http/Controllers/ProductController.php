@@ -1060,6 +1060,7 @@ class ProductController extends Controller
                 $productData['order'] = $lastOrder + 1;
                 $productData['price'] = $productData['price'] ?? 0;
                 $productData['cost'] = $productData['cost'] ?? 0;
+                $productData['active'] = 1;
                 $product = Product::create($productData);
 
                 if (isset($validated['unit1'])) {
