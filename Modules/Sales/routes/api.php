@@ -25,7 +25,7 @@ Route::middleware([
 
 
 
-        Route::get('/api/products-for-sale', function () {
+        Route::get('/products-for-sale', function () {
             $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
                 ->whereIn('type', ['product', 'variation'])
                 ->with(['unitTransfers' => function ($query) {
