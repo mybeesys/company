@@ -31,7 +31,7 @@ class ProductResource extends JsonResource
 
             $temp = Product::where('parent_id', $this->id)->first();
             if ($temp) {
-                if ($temp->category && is_array($temp->category)) {
+                if ($temp->category) {
                     $category = [
                         "id" => $temp->category["id"],
                         "name_ar" => $temp->category["name_ar"],
@@ -40,7 +40,7 @@ class ProductResource extends JsonResource
                     ];
                 }
 
-                if ($temp->subcategory && is_array($temp->subcategory)) {
+                if ($temp->subcategory) {
                     $subcategory = [
                         "id" => $temp->subcategory["id"],
                         "name_ar" => $temp->subcategory["name_ar"],
