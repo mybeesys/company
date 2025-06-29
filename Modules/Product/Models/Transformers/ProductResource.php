@@ -5,6 +5,7 @@ namespace Modules\Product\Models\Transformers;
 use App\Helpers\TaxHelper;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\General\Transformers\TaxResource;
+use Modules\Product\Models\Product;
 
 class ProductResource extends JsonResource
 {
@@ -18,13 +19,38 @@ class ProductResource extends JsonResource
             $category["product_id"] = $this->id;
         }
 
-        $subcategory = [];
+        $subcategory = null;
         if ($this->subcategory) {
             $subcategory["id"] = $this->subcategory["id"];
             $subcategory["name_ar"] = $this->subcategory["name_ar"];
             $subcategory["name_en"] = $this->subcategory["name_en"];
             $subcategory["product_id"] = $this->id;
         }
+
+        if ($this->type == 'variable') {
+
+            $temp = Product::where('parent_id', $this->id)->first();
+            if ($temp) {
+                if ($temp->category && is_array($temp->category)) {
+                    $category = [
+                        "id" => $temp->category["id"],
+                        "name_ar" => $temp->category["name_ar"],
+                        "name_en" => $temp->category["name_en"],
+                        "product_id" => $temp->id,
+                    ];
+                }
+
+                if ($temp->subcategory && is_array($temp->subcategory)) {
+                    $subcategory = [
+                        "id" => $temp->subcategory["id"],
+                        "name_ar" => $temp->subcategory["name_ar"],
+                        "name_en" => $temp->subcategory["name_en"],
+                        "product_id" => $temp->id,
+                    ];
+                }
+            }
+        }
+
 
         $unit = [];
         if (!empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
