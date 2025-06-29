@@ -24,7 +24,4 @@ Route::middleware([
     Route::post('stor-sell-return', [SellReturnApiController::class, 'store'])->name('stor-sell-return');
 
 
-
-
-    Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
 });
