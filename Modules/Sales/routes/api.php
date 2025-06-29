@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Product\Http\Controllers\ProductController;
 use Modules\Product\Models\Product;
 use Modules\Sales\Http\Controllers\SellApiController;
 use Modules\Sales\Http\Controllers\SellReturnApiController;
@@ -25,17 +26,5 @@ Route::middleware([
 
 
 
-        Route::get('products-for-sale', function () {
-            $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-                ->whereIn('type', ['product', 'variation'])
-                ->with(['unitTransfers' => function ($query) {
-                    $query->whereNull('unit2');
-                }])
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $products
-            ]);
-        });
+    Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
 });
