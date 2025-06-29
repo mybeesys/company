@@ -30,8 +30,7 @@ class ProductResource extends JsonResource
         if ($this->type == 'variable') {
 
             $temp = Product::where('parent_id', $this->id)->first();
-            if ($temp) {
-                if ($temp->category) {
+             if ($temp->category) {
                     $category = [
                         "id" => $temp->category["id"],
                         "name_ar" => $temp->category["name_ar"],
@@ -48,7 +47,7 @@ class ProductResource extends JsonResource
                         "product_id" => $temp->id,
                     ];
                 }
-            }
+            
         }
 
 
