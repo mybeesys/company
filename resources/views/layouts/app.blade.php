@@ -24,6 +24,7 @@
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
     <meta property="og:title" content="MyBee" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta property="og:url" content="https://keenthemes.com/metronic" />
     <meta property="og:site_name" content="Metronic by Keenthemes" />
     @include('layouts.css-references')
@@ -176,7 +177,7 @@
     <!--end::App-->
     <div id="kt_scrolltop" class="scrolltop" data-kt-scrolltop="true">
         <i class="ki-outline ki-arrow-up"></i>
-    </div>  
+    </div>
 
     @include('layouts.js-references')
 

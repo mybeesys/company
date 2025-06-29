@@ -111,5 +111,9 @@ return [
     'Remove filter' => 'Remove filter',
     'Favorite invoices' => 'Favorite invoices',
     'add_new_product' => 'Add Product',
-
+   'add_new_product' => 'Add New Product',
+        'select_category' => 'Select Category',
+        'select_subcategory' => 'Select Subcategory',
+        'close' => 'Close',
+        'save' => 'Save',
 ];
