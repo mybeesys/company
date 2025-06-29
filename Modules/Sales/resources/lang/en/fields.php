@@ -52,7 +52,15 @@ return [
     'product' => 'Product',
     'all' => 'All',
     'apply_to_clients_groups' => 'Apply to clients groups',
-    'is_active' => 'Is active'
+    'is_active' => 'Is active',
+     'name_ar' => 'Name in Arabic',
+        'name_en' => 'Name in English',
+        'category' => 'Category',
+        'subcategory' => 'Subcategory',
+        'price' => 'Price',
+        'cost' => 'Cost',
+        'order' => 'Order',
+        'unit' => 'Unit',
 
 
 

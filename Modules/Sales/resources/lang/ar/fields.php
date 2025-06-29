@@ -39,7 +39,7 @@ return [
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
     'supplier' => 'المورد',
-    
+
     'name' => 'الاسم',
     'code' => 'الكود',
     'type' => 'النوع',
@@ -54,7 +54,15 @@ return [
     'product' => 'صنف',
     'all' => 'الكل',
     'apply_to_clients_groups' => 'تطبيق على مجموعات العملاء',
-    'is_active' => 'مفعًّل؟'
+    'is_active' => 'مفعًّل؟',
+    'name_ar' => 'الاسم بالعربية',
+    'name_en' => 'الاسم بالإنجليزية',
+    'category' => 'الفئة',
+    'subcategory' => 'الفئة الفرعية',
+    'price' => 'السعر',
+    'cost' => 'التكلفة',
+    'order' => 'الترتيب',
+    'unit' => 'الوحدة',
 
 
 

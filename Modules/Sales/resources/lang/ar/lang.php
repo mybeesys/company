@@ -114,6 +114,10 @@ return [
     'Remove filter' => 'إزالة الفلتر',
     'Favorite invoices' => 'الفواتير المفضلة',
     'add_new_product' => 'إضافة منتج',
-
+    'add_new_product' => 'إضافة منتج جديد',
+    'select_category' => 'اختر الفئة',
+    'select_subcategory' => 'اختر الفئة الفرعية',
+    'close' => 'إغلاق',
+    'save' => 'حفظ',
 
 ];
