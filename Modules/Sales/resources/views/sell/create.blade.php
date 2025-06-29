@@ -448,6 +448,113 @@ function updateSelect2WithProducts(products) {
 }
 
 
+$.ajax({
+            url: "{{ route('categoryList') }}",
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                $('#category_id').empty();
+                $('#category_id').append('<option value="">@lang('sales::lang.select_category')</option>');
+
+                const validCategories = response.filter(item => item.data && item.data.id && !item
+                    .data.empty);
+
+                $.each(validCategories, function(index, category) {
+                    $('#category_id').append(
+                        `<option value="${category.data.id}">
+                        ${category.data.name_ar} - ${category.data.name_en}
+                    </option>`
+                    );
+                });
+            },
+            error: function(xhr) {
+                console.error('Error loading categories:', xhr.responseText);
+            }
+        });
+
+        $('#category_id').change(function() {
+            var categoryId = $(this).val();
+            if (categoryId) {
+                $('#subcategory_id').prop('disabled', false);
+
+                $.ajax({
+                    url: "{{ route('categoryList') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        const selectedCategory = response.find(cat =>
+                            cat.data && cat.data.id == categoryId && !cat.data.empty
+                        );
+
+                        $('#subcategory_id').empty();
+                        $('#subcategory_id').append(
+                            '<option value="">@lang('sales::lang.select_subcategory')</option>');
+
+                        if (selectedCategory && selectedCategory.children) {
+                            const validSubcategories = selectedCategory.children.filter(
+                                child => child.data && child.data.id && !child.data
+                                .empty
+                            );
+
+                            $.each(validSubcategories, function(index, subcategory) {
+                                $('#subcategory_id').append(
+                                    `<option value="${subcategory.data.id}">
+                                    ${subcategory.data.name_ar} - ${subcategory.data.name_en}
+                                </option>`
+                                );
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error loading subcategories:', xhr.responseText);
+                    }
+                });
+            } else {
+                $('#subcategory_id').prop('disabled', true);
+                $('#subcategory_id').empty();
+                $('#subcategory_id').append('<option value="">@lang('sales::lang.select_subcategory')</option>');
+            }
+        });
+
+        $('#saveProductBtn').click(function(e) {
+            e.preventDefault();
+            $('#saveProductBtn').prop('disabled', true);
+
+            let formData = {
+                name_ar: $('#name_ar').val(),
+                name_en: $('#name_en').val(),
+                category_id: $('#category_id').val(),
+                subcategory_id: $('#subcategory_id').val(),
+                price: $('#price').val(),
+                cost: $('#cost').val(),
+                order: $('#order').val(),
+                unit1: $('#unit1').val()
+            };
+
+            $.ajax({
+                url: "{{ route('productFastSave') }}",
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('تم حفظ المنتج بنجاح');
+                    $('#addProductModal').modal('hide');
+                    fetchProducts();
+
+                },
+                error: function(xhr) {
+                    let errors = xhr.responseJSON.errors;
+                    $.each(errors, function(key, value) {
+                        toastr.error(value[0]);
+                    });
+                },
+                complete: function() {
+                    $('#saveProductBtn').prop('disabled', false);
+                }
+            });
+        });
 
 
             updateSalesTotals();
