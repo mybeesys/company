@@ -36,11 +36,11 @@ class CentralAppAuthenticate
                 return $this->unauthenticatedResponse($request);
             }
         // } catch (RequestException $e) {
-            Log::error('HTTP request failed: ' . $e->getMessage());
+        //     Log::error('HTTP request failed: ' . $e->getMessage());
 
-            return response()->json([
-                "message" => "Unable to verify token. Please try again later."
-            ], 500);
+        //     return response()->json([
+        //         "message" => "Unable to verify token. Please try again later."
+        //     ], 500);
         // } catch (\Exception $e) {
         //     Log::error('An unexpected error occurred: ' . $e->getMessage());
 
