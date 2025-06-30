@@ -19,7 +19,7 @@ class CentralAppAuthenticate
      */
     public function handle(Request $request, Closure $next): Response
     {
-        try {
+        // try {
             $bearerToken = $request->bearerToken();
             if (empty($bearerToken)) {
                 $response_success = false;
@@ -35,19 +35,19 @@ class CentralAppAuthenticate
             } else {
                 return $this->unauthenticatedResponse($request);
             }
-        } catch (RequestException $e) {
-            Log::error('HTTP request failed: ' . $e->getMessage());
+        // } catch (RequestException $e) {
+        //     Log::error('HTTP request failed: ' . $e->getMessage());
 
-            return response()->json([
-                "message" => "Unable to verify token. Please try again later."
-            ], 500);
-        } catch (\Exception $e) {
-            Log::error('An unexpected error occurred: ' . $e->getMessage());
+        //     return response()->json([
+        //         "message" => "Unable to verify token. Please try again later."
+        //     ], 500);
+        // } catch (\Exception $e) {
+        //     Log::error('An unexpected error occurred: ' . $e->getMessage());
 
-            return response()->json([
-                "message" => "An unexpected error occurred. Please try again later."
-            ], 500);
-        }
+        //     return response()->json([
+        //         "message" => "An unexpected error occurred. Please try again later."
+        //     ], 500);
+        // }
 
     }
 
