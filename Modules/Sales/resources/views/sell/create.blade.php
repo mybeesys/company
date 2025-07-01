@@ -221,8 +221,7 @@
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
-    <script src="{{ url('/modules/Sales/js/product-management.js') }}"></script>
-
+   
 
     <script>
         let salesRowIndex = 1;

@@ -173,82 +173,165 @@
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script>
-        let salesRowIndex = 0;
+             let salesRowIndex = 1;
 
-        $("#addSalesRow").on("click", function() {
-            salesRowIndex++;
+      $("#addSalesRow").on("click", function() {
+    salesRowIndex++;
 
-            const newSalesRow = `
-                    <tr>
-                        <td>
-                            <select id="products-${salesRowIndex}" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][products_id]">
-                                                <option value="">@lang('sales::lang.select_products')</option>
-                                    @foreach ($products as $product)
-                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}">
-                                        @if (app()->getLocale() == 'ar')
-                                            {{ $product->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
-                                        @else
-                                            {{ $product->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
-                                        @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td class="product-description" style="display:none">
-                            <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
-                        </td>
-                        <td style="white-space: nowrap;"><input type="number" step="any" class="form-control qty-field" name="products[${salesRowIndex}][qty]" placeholder="0" min="1" style="width: 80px; display: inline-block;">
-                            <select id="unit"
-                                                class="form-select form-select-solid select-2 d-inline-block unit"
-                                                name="products[${salesRowIndex}][unit]" style="width: 100px; display: inline-block;">
-                                                <option value="">@lang('sales::lang.unit')</option>
-                                            </select>
-                            </td>
-                        <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
-                        <td style="white-space: nowrap;">
-                            <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
-                            <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
-                                <option value="fixed">@get_format_currency()</option>
-                                <option value="percent">%</option>
-                            </select>
-                        </td>
+    const newSalesRow = `
+        <tr>
+              <td>
+                <select id="products-${salesRowIndex}" required
+                        class="form-select form-select-solid select-2 product-select"
+                        name="products[${salesRowIndex}][products_id]">
+                    <option value="">@lang('sales::lang.select_products')</option>
+                </select>
+            </td>
+            <td class="product-description" style="display:none">
+                <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
+            </td>
+         <td>
+    <div class="d-flex align-items-center gap-2">
+        <input type="number"
+               step="any"
+               class="form-control qty-field flex-shrink-0"
+               name="products[${salesRowIndex}][qty]"
+               placeholder="0"
+               min="1"
+               style="width: 80px;">
 
-                        <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
+        <select class="form-select form-select-solid select-2 unit flex-grow-1"
+                name="products[${salesRowIndex}][unit]"
+                style="min-width: 100px;">
+            <option value="">@lang('sales::lang.unit')</option>
+        </select>
+    </div>
+</td>  <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
+            <td style="white-space: nowrap;">
+                <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
+                <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
+                    <option value="fixed">@get_format_currency()</option>
+                    <option value="percent">%</option>
+                </select>
+            </td>
+            <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
+            <td class="d-flex justify-content-center">
+                <div class="form-check">
+                    <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]" class="form-check-input my-2">
+                </div>
+            </td>
+               <td>
+            <select id="tax_vat" required class="form-select form-select-solid select-2"
+                name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
+                @foreach ($taxes as $tax)
+                <option value="{{ $tax->amount }}"
+                    data-is-tax-group="{{ $tax->is_tax_group }}"
+                    data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
+                    data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
+                    @if ($tax->default == 1) selected @endif>
+                    @if (app()->getLocale() == 'en')
+                        {{ $tax->name_en }}
+                    @else
+                        {{ $tax->name }}
+                    @endif
+                </option>
+                @endforeach
+            </select>
+            <input type="hidden" class="is-tax-group" name="products[${salesRowIndex}][is_tax_group]">
+            <input type="hidden" class="sub-taxes" name="products[${salesRowIndex}][sub_taxes]">
+            <input type="hidden" class="minimum-limits" name="products[${salesRowIndex}][minimum_limits]">
+        </td>                       <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
+            <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
+            <td>
+                <button type="button" class="btn btn-icon btn-danger delete-sales-row">
+                    <i class="ki-outline ki-trash fs-2"></i>
+                </button>
+            </td>
+        </tr>
+    `;
 
-                        <td class="d-flex justify-content-center">
-                                            <div class="form-check">
-                                                <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]"
-                                                    class="form-check-input  my-2">
-                                                </div>
+    $("#salesTable tbody").append(newSalesRow);
 
-                                        </td>
-                        <td>
-                            <select id="tax_vat" required class="form-select form-select-solid select-2" name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
-                                @foreach ($taxes as $tax)
-                                                <option value="{{ $tax->amount }}" @if ($tax->default == 1) selected @endif>{{ $tax->name }}</option>
+    $(`#products-${salesRowIndex}`).select2({
+        ajax: {
+            url: '/products-for-sale',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    search: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function(response, params) {
+                 const lang = localStorage.getItem('lang') || 'ar';
+                return {
+                    results: response.data.map(product => ({
+                        id: product.id,
+                         text: lang === 'ar'
+                ? `${product.SKU} - ${product.name_ar}`
+                : `${product.SKU} - ${product.name_en}`,
+                 price: product.price,
+                        units: product.unit_transfers,
+                    })),
+                    pagination: {
+                        more: response.meta?.next_page_url ? true : false
+                    }
+                };
+            },
+            cache: true
+        }
+    }).on('select2:select', function(e) {
+    const selectedData = e.params.data;
+    const $row = $(this).closest('tr');
 
-                                                @endforeach
-                            </select>
-                        </td>
-                        <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
-                        <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
-                        <td>
-                            <button type="button" class="btn btn-icon btn-danger delete-sales-row">
-                                <i class="ki-outline ki-trash fs-2"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    `;
+    $row.find('.unit_price-field').val(selectedData.price);
 
-            $("#salesTable tbody").append(newSalesRow);
+    const $unitSelect = $row.find('.unit');
+    $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
 
-            $("#salesTable tbody tr:last").find(".select-2").select2();
+    if (selectedData.units && Array.isArray(selectedData.units)) {
+        console.log('Units Data:', selectedData.units);
 
+        selectedData.units.forEach((unit, index)  => {
+            const unitId = unit.id || unit.unit_id || unit.unit1;
+            const unitName = unit.name || unit.unit_name || unit.unit1 || 'وحدة غير معروفة';
+            const unitValue = unit.transfer || unit.unit1_value || 1;
+
+            if (!unitId || !unitName) {
+                console.warn('Invalid unit data:', unit);
+                return;
+            }
+
+            const $option = $('<option></option>')
+                .val(unitId)
+                .text(unitName)
+                .attr('data-value', unitValue);
+
+                 if (index === 0) {
+        $option.attr('selected', 'selected');
+    }
+            $unitSelect.append($option);
             updateSalesTotals();
-
-            console.log("salesRowIndex " + salesRowIndex);
         });
 
+        $unitSelect.select2('destroy').select2({
+            width: '100%',
+            dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
+        });
+    updateSalesTotals();
+
+    } else {
+        console.error('No units data found for product:', selectedData.id);
+        $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
+    }
+});
+
+    $("#salesTable tbody tr:last").find(".select-2:not(.product-select)").select2();
+
+    updateSalesTotals();
+    console.log("salesRowIndex " + salesRowIndex);
+});
         $(document).on("click", ".delete-sales-row", function() {
             $(this).closest("tr").remove();
             updateSalesTotals();
