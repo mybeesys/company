@@ -1085,13 +1085,21 @@ class ProductController extends Controller
     }
 
 
-    public function productsForSale(){
-           $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-                ->whereIn('type', ['product', 'variation'])
-                ->with(['unitTransfers' => function ($query) {
-                    $query->whereNull('unit2');
-                }])
-                ->get();
+    public function productsForSale(Request $request){
+       $search = $request->input('search');
+        $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+        ->whereIn('type', ['product', 'variation'])
+        ->when($search, function($query) use ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name_ar', 'like', "%$search%")
+                  ->orWhere('name_en', 'like', "%$search%")
+                  ->orWhere('SKU', 'like', "%$search%");
+            });
+        })
+        ->with(['unitTransfers' => function ($query) {
+            $query->whereNull('unit2');
+        }])
+        ->get();
 
             return response()->json([
                 'success' => true,
