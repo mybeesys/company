@@ -258,14 +258,14 @@
 
                 </tbody>
                 <tfoot>
-                    {{-- <tr>
+                    <tr>
                         <td colspan="1" class="total">
                             <a class="btn btn-xs btn-default text-primary" id="addSalesRow">
                                 <i class="ki-outline ki-plus fs-2"></i>
                                 @lang('accounting::lang.new_row')
                             </a>
                         </td>
-                    </tr> --}}
+                    </tr>
                 </tfoot>
 
 
