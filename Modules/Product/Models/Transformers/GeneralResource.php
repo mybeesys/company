@@ -20,7 +20,7 @@ class GeneralResource extends JsonResource
                 'name_ar' => $this->product->name_ar,
                 'name_en' => $this->product->name_en,
                 'price' => $this->price,
-                // 'price' => $this->product->price,
+                'price' => $this->product->price,
                 'parent_id' => $this->extra["parent_id"]
             ];
         }
