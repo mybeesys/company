@@ -221,7 +221,7 @@
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
-   
+
 
     <script>
         let salesRowIndex = 1;
@@ -434,7 +434,7 @@
             if (!isValid) {
                 const message = "@lang('messages.required_fields_warning')";
                 toastr.warning(message);
-                return;
+               return;
             }
             if (action === 'save_add') {
                 $('<input>').attr({

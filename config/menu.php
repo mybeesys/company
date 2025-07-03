@@ -324,7 +324,7 @@ return [
             [
                 'name' => 'account-payable-ageing-details',
                 'url' => 'account-payable-ageing-details',
-                'permission' => '',
+                'permission' => 'accountingReports.Payables age report.show',
             ],
 
 

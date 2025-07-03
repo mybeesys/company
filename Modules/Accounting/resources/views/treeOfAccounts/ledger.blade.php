@@ -130,24 +130,12 @@
                         </div>
                     </div>
 
-                    <div class="row-cols">
-                        <div class="text-gray-800 fw-semibold fs-5">
-                            @lang('accounting::lang.account_category'):
-                            <span class="text-gray-500 fw-semibold fs-5">
-                                @if ($account->account_category)
-                                    @lang('accounting::lang.' . $account->account_category)
-                                @else
-                                    --
-                                @endif
-                            </span>
-                        </div>
-                    </div>
 
                     <div class="text-gray-800 fw-semibold fs-5">
                         @lang('accounting::lang.account_type'):
                         <span class="text-gray-500 fw-semibold fs-4">
                             @if ($account->account_type)
-                                @lang('accounting::lang.' . $account->account_type)
+                                @lang('accounting::lang.account_types.' . $account->account_type)
                             @else
                                 --
                             @endif

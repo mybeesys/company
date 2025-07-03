@@ -14,7 +14,7 @@
                             <!-- Arabic Name -->
                             <div class="mb-3">
                                 <label for="name_ar" class="form-label">@lang('sales::fields.name_ar') *</label>
-                                <input type="text" class="form-control" id="name_ar" name="name_ar" required
+                                <input type="text" class="form-control" id="name_ar" name="name_ar"
                                     maxlength="255">
                             </div>
 
@@ -46,7 +46,7 @@
                             <!-- English Name -->
                             <div class="mb-3">
                                 <label for="name_en" class="form-label">@lang('sales::fields.name_en') *</label>
-                                <input type="text" class="form-control" id="name_en" name="name_en" required
+                                <input type="text" class="form-control" id="name_en" name="name_en" 
                                     maxlength="255">
                             </div>
 

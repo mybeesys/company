@@ -30,7 +30,7 @@
     <section class="content">
         <div class="row">
             <div class="col-md-12 col-md-offset-1">
-                <div class="card shadow-lg">
+                <div class="card ">
                     <div class="card-header py-7 d-flex justify-content-between align-items-start flex-wrap">
                         <div>
                             <h3 class="card-title mb-1">

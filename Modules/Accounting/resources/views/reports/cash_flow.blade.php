@@ -17,7 +17,7 @@
                 <input type="date" name="end_date" value="{{ request('end_date', $endDate) }}" class="form-control">
             </div>
             <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">{{ __('accounting::lang.search_report') }}</button>
+                <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
             </div>
         </div>
     </form>
