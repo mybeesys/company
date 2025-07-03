@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\App;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionPayments;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\Accounting\Database\Factories\AccountingAccountsTransactionFactory;
@@ -27,6 +28,11 @@ class AccountingAccountsTransaction extends Model
     public function accTransMapping()
     {
         return $this->belongsTo(AccountingAccTransMapping::class, 'acc_trans_mapping_id');
+    }
+
+    public function transactionPayments()
+    {
+        return $this->belongsTo(TransactionPayments::class, 'transaction_payment_id');
     }
 
     public function transaction()

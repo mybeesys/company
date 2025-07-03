@@ -31,12 +31,8 @@ class AccountingReportsController extends Controller
             $debit = $account->debit_balance;
             $credit = $account->credit_balance;
 
-            // نحسب الرصيد بناءً على النوع
             $balance = 0;
 
-            // حسب القاعدة المحاسبية:
-            // - الإيرادات => دائن
-            // - المصروفات => مدين
             switch ($account->acc_type) {
                 case 'income':
                     $balance = $credit - $debit;
@@ -88,7 +84,7 @@ class AccountingReportsController extends Controller
     public function incomeStatement()
     {
         $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
-        $end_date = request()->end_date ?? now()->format('Y-m-d');
+        $end_date = request()->end_date ?? now()->addDay(1)->format('Y-m-d');
 
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
@@ -100,10 +96,10 @@ class AccountingReportsController extends Controller
             'accounting_accounts.id'
         )
             ->whereBetween('AAT.operation_date', [$start_date, $end_date])
-            ->where(function ($qu) {
-                $qu->where('accounting_accounts.account_type', '=', 'income')
-                    ->orWhere('accounting_accounts.account_type', '=', 'expenses');
-            })
+            ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
+            // $qu->whereIn('accounting_accounts.account_type',['income','expenses']);
+            // ->orWhere('accounting_accounts.account_type', '=', 'expenses');
+            // })
             ->select(
                 DB::raw("SUM(IF(AAT.type = 'credit' , AAT.amount, 0)) as credit_balance"),
                 DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
@@ -462,13 +458,8 @@ class AccountingReportsController extends Controller
     {
         $accountingUtil = new AccountingUtil();
 
-        if (!empty(request()->start_date) && !empty(request()->end_date)) {
-            $start_date = request()->start_date;
-            $end_date = request()->end_date;
-        } else {
-            $start_date = now()->startOfYear();
-            $end_date = now();
-        }
+        $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
+        $end_date = request()->end_date ?? now()->addDay(1)->format('Y-m-d');
 
         $balance_formula = $accountingUtil->balanceFormula();
 
@@ -641,6 +632,10 @@ class AccountingReportsController extends Controller
                         $description =  $row->accTransMapping->ref_no;
                     }
 
+                    if ($row->sub_type == 'payment_voucher' || $row->sub_type == 'receipt_voucher') {
+                        $description =  $row?->transactionPayments?->payment_ref_no;
+                    }
+
                     if ($row->sub_type == 'sell' || $row->sub_type == 'purchases') {
                         $description = $row->invoice_no;
                     }
@@ -649,7 +644,7 @@ class AccountingReportsController extends Controller
                       data-container="#printJournalEntry"
                         href="' . action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]) . '"
                          >
-                            <i class="fa fa-print" aria-hidden="true"></i>' . $description . '
+                            ' . $description . '
                         </a>';
                     }
                     return $description;

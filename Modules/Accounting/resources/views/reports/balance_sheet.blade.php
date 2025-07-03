@@ -12,77 +12,88 @@
     <section class="content">
         <div class="row">
             <!-- Date Range Filter -->
-            <div class="col-md-3 mt-5" >
-                <div class="form-group">
-                    <label for="date_range_filter">@lang('accounting::lang.date_range'):</label>
-                    <input type="text" name="date_range_filter" id="date_range_filter" class="form-control"
-                        placeholder="@lang('accounting::lang.select_a_date_range')" readonly>
-                </div>
+            <div class="col-md-12 mt-12">
+                <form method="GET" class="mb-4 no-print">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="date" name="start_date" class="form-control"
+                                value="{{ request('start_date') ?? $start_date }}">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" name="end_date" class="form-control"
+                                value="{{ request('end_date') ?? $end_date }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
+                        </div>
+                    </div>
+                </form>
+
             </div>
 
-            <!-- Balance Sheet Table -->
-            <div class="col-md-12 my-5 col-md-offset-1">
-                <div class="box box-warning shadow-lg rounded-lg p-4">
-                    <div class="box-header with-border text-center mb-4">
-                        <h2 class="box-title text-2xl font-bold">@lang('accounting::lang.balance_sheet')</h2>
-                        <p>{{ \Carbon\Carbon::parse($start_date)->format('Y-m-d') }} ~
-                            {{ \Carbon\Carbon::parse($end_date)->format('Y-m-d') }}</p>
-                    </div>
-
-                    <div class="box-body">
+            <div class="col-md-12 my-4">
+                <div class="card shadow-sm border-0 rounded-lg">
+                 
+                    <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table align-middle table-row-bordered fs-6 gy-5" id="kt_accounts_table">
-                                <thead>
-                                    <tr class="text-start text-gray-600 fw-bold fs-7 text-uppercase gs-0 w-100"
-                                        style="background: rgb(219 226 247);">
-                                        <th class="success">@lang('accounting::lang.assets')</th>
-                                        <th class="warning">@lang('accounting::lang.liab_owners_capital')</th>
+                            <table class="table table-borderless mb-0" id="kt_accounts_table">
+                                <thead class="bg-light-primary">
+                                    <tr class="text-start text-gray-700 fw-bold fs-6 text-uppercase bg-light-blue">
+                                        <th class="py-3 ps-4 w-50">@lang('accounting::lang.assets')</th>
+                                        <th class="py-3 w-50">@lang('accounting::lang.liab_owners_capital')</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     <tr>
-                                        <td class="col-md-6">
-                                            <table class="table">
-                                                @php $total_assets = 0; @endphp
-                                                @foreach ($assets as $asset)
-                                                    @php $total_assets += $asset->balance; @endphp
-                                                    <tr>
-                                                        <th>{{ $asset->name_ar }}</th>
-                                                        <td>@format_currency($asset->balance)</td>
-                                                    </tr>
-                                                @endforeach
-                                            </table>
+                                        <td class="align-top pe-4" style="border-right: 1px solid #eee;">
+                                            <div class="d-flex flex-column h-100">
+                                                <table class="table table-hover table-borderless mb-0">
+                                                    @php $total_assets = 0; @endphp
+                                                    @foreach ($assets as $asset)
+                                                        @php $total_assets += $asset->balance; @endphp
+                                                        <tr class="border-bottom">
+                                                            <td class="ps-3 py-2 fw-semibold">{{ $asset->name_ar }}</td>
+                                                            <td class="text-end pe-3 py-2">@format_currency($asset->balance)</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </table>
+                                            </div>
                                         </td>
-                                        <td class="col-md-6">
-                                            <table class="table">
-                                                @php $total_liab_owners = 0; @endphp
-                                                @foreach ($liabilities as $liability)
-                                                    @php $total_liab_owners += $liability->balance; @endphp
-                                                    <tr>
-                                                        <th>{{ $liability->name_ar }}</th>
-                                                        <td>@format_currency($liability->balance)</td>
-                                                    </tr>
-                                                @endforeach
-                                                @foreach ($equities as $equity)
-                                                    @php $total_liab_owners += $equity->balance; @endphp
-                                                    <tr>
-                                                        <th>{{ $equity->name_ar }}</th>
-                                                        <td>@format_currency($equity->balance)</td>
-                                                    </tr>
-                                                @endforeach
-                                            </table>
+
+                                        <td class="align-top ps-4">
+                                            <div class="d-flex flex-column h-100">
+                                                <table class="table table-hover table-borderless mb-0">
+                                                    @php $total_liab_owners = 0; @endphp
+                                                    @foreach ($liabilities as $liability)
+                                                        @php $total_liab_owners += $liability->balance; @endphp
+                                                        <tr class="border-bottom">
+                                                            <td class="ps-3 py-2 fw-semibold">{{ $liability->name_ar }}</td>
+                                                            <td class="text-end pe-3 py-2">@format_currency($liability->balance)</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @foreach ($equities as $equity)
+                                                        @php $total_liab_owners += $equity->balance; @endphp
+                                                        <tr class="border-bottom">
+                                                            <td class="ps-3 py-2 fw-semibold">{{ $equity->name_ar }}</td>
+                                                            <td class="text-end pe-3 py-2">@format_currency($equity->balance)</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </table>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td class="col-md-6">
-                                            <span><strong>@lang('accounting::lang.total_assets'): </strong></span>
-                                            <span>@format_currency($total_assets)</span>
+
+                                <tfoot class="border-top">
+                                    <tr class="bg-light-gray">
+                                        <td class="py-3 ps-4 fw-bold">
+                                            <span>@lang('accounting::lang.total_assets'): </span>
+                                            <span class="float-end me-3">@format_currency($total_assets)</span>
                                         </td>
-                                        <td class="col-md-6">
-                                            <span><strong>@lang('accounting::lang.total_liab_owners'): </strong></span>
-                                            <span>@format_currency($total_liab_owners)</span>
+                                        <td class="py-3 ps-4 fw-bold">
+                                            <span>@lang('accounting::lang.total_liab_owners'): </span>
+                                            <span class="float-end me-3">@format_currency($total_liab_owners)</span>
                                         </td>
                                     </tr>
                                 </tfoot>

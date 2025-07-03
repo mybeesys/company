@@ -57,7 +57,7 @@
                                 @php $total_revenues += $account->credit_balance - $account->debit_balance; @endphp
                                 <tr>
                                     <td>{{ $account->name_ar }}</td>
-                                    <td>@format_currency($account->credit_balance - $account->debit_balance)</td>
+                                    <td>@format_currency($total_revenues)</td>
                                 </tr>
                             @endif
                         @endforeach
