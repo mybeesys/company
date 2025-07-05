@@ -128,7 +128,7 @@ class PrepController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transaction_date' => now(),
-                    'establishment_id' => $from
+                    'establishment_id' => $to
                 ]);
                 $transactionSellId = Transaction::create([
                     'type' => "PREP",
@@ -138,7 +138,7 @@ class PrepController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transaction_date' => now(),
-                    'establishment_id' => $to,
+                    'establishment_id' => $from,
                     'parent_id' => $transactionPurchasesId->id
                 ]);
                 foreach ($ingredients as $ingredient) {
