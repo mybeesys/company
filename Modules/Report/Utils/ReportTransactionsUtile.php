@@ -288,6 +288,8 @@ class ReportTransactionsUtile
                     return "<span  title='{$tooltipText}'><i class='fas fa-exchange-alt' style='color: green;'></i> $tooltipText</span>";
                 } elseif ($row->type === 'purchases') {
                     return "<span  title='{$tooltipText}'><i class='fas fa-shopping-cart' style='color: orange;'></i> $tooltipText</span>";
+                } elseif ($row->type === 'PREP') {
+                    return "<span  title='{$tooltipText}'><i class='fas fa-utensils' style='color: yellow;'></i> $tooltipText</span>";
                 }
 
                 return $row->type;
