@@ -2238,8 +2238,37 @@ return [
         'type' => 'ems',
     ],
 
-[
+    [
         'name' => 'reports_module.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+   [
+        'name' => 'reports_module.all.print',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+     [
+        'name' => 'reports_module.all.create',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'reports_module.all.update',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+  [
+        'name' => 'reports_module.all.delete',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
