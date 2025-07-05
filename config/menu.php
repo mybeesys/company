@@ -506,11 +506,6 @@ return [
             ],
 
             [
-                'name' => 'sell-payment-report',
-                'url' => 'sell-payment-report',
-                'permission' => 'reports_module.all.show',
-            ],
-            [
                 'name' => 'product-inventory-report',
                 'url' => 'product-inventory-report',
                 'permission' => 'reports_module.all.show',
