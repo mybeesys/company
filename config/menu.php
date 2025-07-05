@@ -457,63 +457,63 @@ return [
         'name' => 'reports_module',
         'url' => '/',
         'icon' => 'fas fa-bar-chart',
-        'permission' => '',
+        'permission' => 'reports_module.all.show',
         'subMenu' => [
 
             [
                 'name' => 'Profit-Loss',
                 'url' => 'Profit-Loss',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
             [
                 'name' => 'sales',
                 'url' => 'sales-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
             [
                 'name' => 'purchase-payment-report',
                 'url' => 'purchase-payment-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
             [
                 'name' => 'sell-payment-report',
                 'url' => 'sell-payment-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
             [
                 'name' => 'purchase-sell',
                 'url' => 'purchase-sell',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
             [
                 'name' => 'product-sales-report',
                 'url' => 'product-sales-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
             [
                 'name' => 'product-purchase-report',
                 'url' => 'product-purchase-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
             [
                 'name' => 'purchase-payment-report',
                 'url' => 'purchase-payment-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
             [
                 'name' => 'sell-payment-report',
                 'url' => 'sell-payment-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
             [
                 'name' => 'product-inventory-report',
                 'url' => 'product-inventory-report',
-                'permission' => '',
+                'permission' => 'reports_module.all.show',
             ],
 
 

@@ -2238,5 +2238,12 @@ return [
         'type' => 'ems',
     ],
 
+[
+        'name' => 'reports_module.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
 
 ];
