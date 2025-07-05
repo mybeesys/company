@@ -46,6 +46,7 @@ return [
     'purchases_management_module' => 'Purchases',
     'accountingReports_management_module' => 'Accounting Reports',
     'setting_management_module' => 'Setting',
+    'reports_module_management_module' => 'General Reports',
 
     'notifications_settings' => 'Notifications settings',
     'system_settings' => 'System settings',

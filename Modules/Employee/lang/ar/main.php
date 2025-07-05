@@ -60,4 +60,5 @@ return [
     'users_management' => 'إدارة المستخدمين',
     'subscriptions_management' => 'إدارة الإشتراكات',
     'coupons_management' => 'إدارة الكوبونات',
+    'reports_module_management_module' => 'التقارير العامة',
 ];
