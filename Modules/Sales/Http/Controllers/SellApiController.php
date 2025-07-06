@@ -167,7 +167,7 @@ class SellApiController extends Controller
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'something went wrong'], 500);
+            return response()->json(['message' => 'something went wrong \n'.$e], 500);
         }
     }
 
