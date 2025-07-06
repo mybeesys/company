@@ -165,6 +165,9 @@ class SellApiController extends Controller
                 if ($payment->ammount) {
                     $request['paid_amount'] = $payment->ammount;
                     $request['payment_method_id'] = $payment->id;
+                    $request['invoice_type'] = $request->payment_status;
+
+              
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
                 }
             }
