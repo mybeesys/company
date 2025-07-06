@@ -118,13 +118,15 @@ class TransactionUtils
             'is_return' => $request->is_return ?? 0,
             'note' => $request->additionalNotes,
             'paid_on' => $payment_on,
-            'created_by' => Auth::user()->id,
+           'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
             'payment_for' => $transaction->contact_id,
             'payment_ref_no' => $payment_ref_no,
             'account_id' => $account_id,
         ]);
 
-        $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
+        if (!$request->has('shift_number')) {
+            $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
+        }
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
 
         // $inventoryMethod = Setting::where('key', 'inventory_tracking_policy')->first()->value;
