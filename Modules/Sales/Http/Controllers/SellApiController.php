@@ -142,6 +142,13 @@ class SellApiController extends Controller
                     'product_id' => $combo->id,
                     'qyt' => $combo->quantity,
                     'unit_price' => $combo->price,
+                    'unit_price_before_discount' => 0,
+                    'discount_type' => 'fixed',
+                    'discount_amount' => 0,
+                    'unit_price_inc_tax' => 0,
+                    // 'tax_id' => $product->tax_id,
+                    'tax_value' => 0,
+
                 ]);
             }
 
