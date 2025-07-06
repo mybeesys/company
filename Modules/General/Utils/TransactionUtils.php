@@ -103,12 +103,18 @@ class TransactionUtils
         }
 
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
+        $payment_method_id = null;
+
+        if (!$request->has('payment_method_id')) {
+            $payment_method_id = $request->payment_method_id;
+        }
 
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
             'amount' => $request->paid_amount,
             'method' => $payment_method,
+            'payment_method_id' => $payment_method_id,
             'is_return' => $request->is_return ?? 0,
             'note' => $request->additionalNotes,
             'paid_on' => $payment_on,
