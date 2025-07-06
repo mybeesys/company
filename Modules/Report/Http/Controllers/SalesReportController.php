@@ -514,13 +514,17 @@ class SalesReportController extends Controller
                     't.type as type'
                 )
                 ->where(function ($query) {
-                    $query->whereIn('t.type', ['purchases', 'WASTE', 'PREP'])
-                        ->orWhere(function ($query) {
-                            $query->where('t.type', 'TRANSFER')
+                    $query->where(function ($subQuery) {
+                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return'])
+                            ->where('t.status', 'approved');
+                    })
+                        ->orWhere(function ($subQuery) {
+                            $subQuery->where('t.type', 'TRANSFER')
                                 ->where(function ($q) {
                                     $q->where('t.transfer_status', 'partiallyReceived')
                                         ->orWhere('t.transfer_status', 'fullyReceived');
-                                });
+                                })
+                                ->where('t.status', 'approved');
                         });
                 })
                 ->get();

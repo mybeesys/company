@@ -279,18 +279,56 @@ class ReportTransactionsUtile
                 }
             })
             ->editColumn('type', function ($row) {
-                $tooltipText = app()->getLocale() === 'ar' ?
-                    ($row->type === 'WASTE' ? 'إتلاف' : ($row->type === 'TRANSFER' ? 'تحويل' : ($row->type === 'PREP' ? 'تحضير' :
-                        'شراء'))) : ($row->type === 'WASTE' ? 'Waste' : ($row->type === 'TRANSFER' ? 'Transfer' : ($row->type === 'PREP' ? 'Prepare' :
-                        'Purchase')));
-                if ($row->type === 'WASTE') {
-                    return "<span  title='{$tooltipText}'><i class='fas fa-trash' style='color: red;'></i> $tooltipText</span>";
-                } elseif ($row->type === 'TRANSFER') {
-                    return "<span  title='{$tooltipText}'><i class='fas fa-exchange-alt' style='color: green;'></i> $tooltipText</span>";
-                } elseif ($row->type === 'purchases') {
-                    return "<span  title='{$tooltipText}'><i class='fas fa-shopping-cart' style='color: orange;'></i> $tooltipText</span>";
-                } elseif ($row->type === 'PREP') {
-                    return "<span  title='{$tooltipText}'><i class='fas fa-utensils' style='color: yellow;'></i> $tooltipText</span>";
+                $locale = app()->getLocale();
+                $typeMap = [
+                    'WASTE' => [
+                        'ar' => 'إتلاف',
+                        'en' => 'Waste',
+                        'icon' => 'fas fa-trash',
+                        'color' => 'red'
+                    ],
+                    'TRANSFER' => [
+                        'ar' => 'تحويل',
+                        'en' => 'Transfer',
+                        'icon' => 'fas fa-exchange-alt',
+                        'color' => 'green'
+                    ],
+                    'purchases' => [
+                        'ar' => 'شراء',
+                        'en' => 'Purchase',
+                        'icon' => 'fas fa-shopping-cart',
+                        'color' => 'orange'
+                    ],
+                    'PREP' => [
+                        'ar' => 'تحضير',
+                        'en' => 'Prepare',
+                        'icon' => 'fas fa-utensils',
+                        'color' => '#FFD700'
+                    ],
+                    'sell' => [
+                        'ar' => 'بيع',
+                        'en' => 'Sale',
+                        'icon' => 'fas fa-cash-register',
+                        'color' => 'blue'
+                    ],
+                    'purchases-return' => [
+                        'ar' => 'إرجاع مشتريات',
+                        'en' => 'Purchase Return',
+                        'icon' => 'fas fa-undo',
+                        'color' => 'purple'
+                    ],
+                    'sell-return' => [
+                        'ar' => 'إرجاع مبيعات',
+                        'en' => 'Sale Return',
+                        'icon' => 'fas fa-undo',
+                        'color' => '#8B4513'
+                    ]
+                ];
+
+                if (array_key_exists($row->type, $typeMap)) {
+                    $typeData = $typeMap[$row->type];
+                    $text = $locale === 'ar' ? $typeData['ar'] : $typeData['en'];
+                    return "<span title='{$text}'><i class='{$typeData['icon']}' style='color: {$typeData['color']};'></i> {$text}</span>";
                 }
 
                 return $row->type;
