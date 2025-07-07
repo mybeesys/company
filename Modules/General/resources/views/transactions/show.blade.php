@@ -52,10 +52,9 @@
         }
 
         .star-shadow {
-    text-shadow: 0px 0px 5px rgba(255, 215, 0, 0.8),
-                 0px 0px 10px rgba(255, 215, 0, 0.5);
-}
-
+            text-shadow: 0px 0px 5px rgba(255, 215, 0, 0.8),
+                0px 0px 10px rgba(255, 215, 0, 0.5);
+        }
     </style>
 
 
@@ -83,7 +82,8 @@
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
             <button class="favorite-btn btn border-0" data-transaction-id="{{ $transaction->id }}"
                 title="{{ $transaction->is_favorite ? __('genreal::lang.remove_from_favorites') : __('genreal::lang.add_to_favorites') }}">
-                <i class="fas fa-star favorite-icon {{ $transaction->is_favorite ? 'text-warning star-shadow' : 'text-light star-shadow' }}" style="font-size: 2rem"></i>
+                <i class="fas fa-star favorite-icon {{ $transaction->is_favorite ? 'text-warning star-shadow' : 'text-light star-shadow' }}"
+                    style="font-size: 2rem"></i>
             </button>
 
 
@@ -190,60 +190,62 @@
                         @endphp
 
                         @foreach ($lines as $index => $line)
-                            <tr>
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $index + 1 }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->product->SKU . ' / ' . $line->product->name_ar }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->qyt }}
-                                    </a>
-                                </td>
+                            @if ($line->product)
+                                <tr>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $index + 1 }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->product->SKU . ' / ' . $line->product->name_ar }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->qyt }}
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->unit_price_before_discount }}
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->unit_price_before_discount }}
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->discount_amount ?? 0 }}
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->discount_amount ?? 0 }}
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->total_before_vat }}
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->total_before_vat }}
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->tax_id }} %
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->tax_id }} %
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->tax_value }}
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->tax_value }}
+                                        </a>
+                                    </td>
 
-                                <td>
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ $line->unit_price_inc_tax }}
-                                    </a>
-                                </td>
+                                    <td>
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ $line->unit_price_inc_tax }}
+                                        </a>
+                                    </td>
 
-                            </tr>
+                                </tr>
+                            @endif
                         @endforeach
 
                     </tbody>
