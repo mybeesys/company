@@ -50,11 +50,11 @@
 
                             <td>
                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                    ({{ $line->account->gl_code }})
+                                    ({{ $line?->account?->gl_code }})
                                     - @if (app()->getLocale() == 'ar')
-                                        {{ $line->account->name_ar }}
+                                        {{ $line?->account?->name_ar }}
                                     @else
-                                        {{ $line->account->name_en }}
+                                        {{ $line?->account?->name_en }}
                                     @endif
 
                                 </a>
