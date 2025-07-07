@@ -1088,7 +1088,7 @@ class ProductController extends Controller
     public function productsForSale(Request $request){
        $search = $request->input('search');
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-        ->whereIn('type', ['product', 'variation'])
+        ->whereIn('type', ['product', 'variable','ingredint'])
         ->when($search, function($query) use ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('name_ar', 'like', "%$search%")
