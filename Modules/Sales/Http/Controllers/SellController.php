@@ -131,7 +131,7 @@ class SellController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
+        // return $request;
 
         try {
             $actionUtil = new ActionUtil();
