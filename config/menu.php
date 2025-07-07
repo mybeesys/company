@@ -375,12 +375,12 @@ return [
         'name' => 'clients_suppliers_module',
         'url' => '/',
         'icon' => 'fas fa-users',
-        'permission' => '',
+        'permission' => 'sales.Customers.show',
         'subMenu' => [
             [
                 'name' => 'clients_suppliers_settings',
                 'url' => 'client-supplier-setting',
-                'permission' => ''
+                'permission' => 'sales.Customers.show'
             ],
         ]
     ],
@@ -444,12 +444,12 @@ return [
         'name' => 'screen_module',
         'url' => '/',
         'icon' => 'fas fa-desktop',
-        'permission' => '',
+        'permission' => 'screen_module.all.show',
         'subMenu' => [
             [
                 'name' => 'main',
                 'url' => 'main',
-                'permission' => '',
+                'permission' => 'screen_module.all.show',
             ],
         ]
     ],
@@ -546,7 +546,7 @@ return [
                     [
                         'name' => 'tables',
                         'url' => 'table',
-                        'permission' => '',
+                        'permission' => 'setting.tables.show',
                     ],
                     [
                         'name' => 'areas',
@@ -556,12 +556,12 @@ return [
                     [
                         'name' => 'tables_qr',
                         'url' => 'areaQR',
-                        'permission' => '',
+                        'permission' => 'setting.tables_qr.show',
                     ],
                     [
                         'name' => 'menu_qr',
                         'url' => 'menuQR',
-                        'permission' => '',
+                        'permission' => 'setting.menu_qr.show',
                     ],
                 ],
 

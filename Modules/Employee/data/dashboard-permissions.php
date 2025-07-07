@@ -2245,7 +2245,7 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-   [
+    [
         'name' => 'reports_module.all.print',
         'name_ar' => '',
         'description' => '',
@@ -2253,7 +2253,7 @@ return [
         'type' => 'ems',
     ],
 
-     [
+    [
         'name' => 'reports_module.all.create',
         'name_ar' => '',
         'description' => '',
@@ -2267,8 +2267,172 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-  [
+    [
         'name' => 'reports_module.all.delete',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
+    [
+        'name' => 'setting.tables.show',
+        'name_ar' => 'الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables.print',
+        'name_ar' => 'الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'setting.tables.create',
+        'name_ar' => 'الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables.update',
+        'name_ar' => 'الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables.delete',
+        'name_ar' => 'الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
+    [
+        'name' => 'setting.tables_qr.show',
+        'name_ar' => 'QR الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables_qr.print',
+        'name_ar' => 'QR الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'setting.tables_qr.create',
+        'name_ar' => 'QR الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables_qr.update',
+        'name_ar' => 'QR الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.tables_qr.delete',
+        'name_ar' => 'QR الطاولات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
+
+
+
+
+
+      [
+        'name' => 'setting.menu_qr.show',
+        'name_ar' => 'QR قائمة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.menu_qr.print',
+        'name_ar' => 'QR قائمة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'setting.menu_qr.create',
+        'name_ar' => 'QR قائمة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.menu_qr.update',
+        'name_ar' => 'QR قائمة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'setting.menu_qr.delete',
+        'name_ar' => 'QR قائمة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
+
+     [
+        'name' => 'screen_module.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'screen_module.all.create',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'screen_module.all.update',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'screen_module.all.delete',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'screen_module.all.print',
         'name_ar' => '',
         'description' => '',
         'description_ar' => '',
