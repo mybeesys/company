@@ -61,4 +61,7 @@ return [
     'subscriptions_management' => 'إدارة الإشتراكات',
     'coupons_management' => 'إدارة الكوبونات',
     'reports_module_management_module' => 'التقارير العامة',
+    'screen_module_management_module' => 'الشاشات',
+
+
 ];

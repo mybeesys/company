@@ -59,4 +59,6 @@ return [
     'users_management' => 'Users management',
     'subscriptions_management' => 'Subscriptions management',
     'coupons_management' => 'Coupons management',
+     'screen_module_management_module' => 'Scereen',
+
 ];
