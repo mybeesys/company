@@ -19,9 +19,9 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
     const [isTransactionModalVisible, setIsTransactionModalVisible] =
         useState(false);
     const [productTrnsaction, setProductTransaction] = useState([]);
-    const canEditRow = (data) => {
+    /*    const canEditRow = (data) => {
         return data.type == "product" || data.type == "Ingredient";
-    };
+    };*/
 
     useEffect(() => {
         setUrlList(urlList);
@@ -80,7 +80,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
     const handleClose = () => {
         setIsTransactionModalVisible(false);
     };
-
+    const canEditRow = () => false;
     return (
         <div>
             <div class="form-group">
@@ -181,7 +181,6 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                     translations={translations}
                     dir={dir}
                     urlList={urlList}
-                    editUrl={`${p_type}Inventory/%/edit`}
                     addUrl={null}
                     canAddInline={false}
                     canEditRow={canEditRow}
@@ -193,7 +192,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                             autoFocus: true,
                             options: [],
                             type: "Text",
-                            width: "30%",
+                            width: "50%",
                             customCell: (data, key, editMode, editable) => {
                                 return (
                                     <>
@@ -207,9 +206,12 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                             autoFocus: false,
                             options: [],
                             type: "Decimal",
-                            width: "16%",
+                            width: "50%",
                         },
                     ]}
+                    actions={[]}
+                    onUpdate={null}
+                    onDelete={null}
                 />
             </div>
         </div>

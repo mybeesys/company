@@ -17,9 +17,7 @@
     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
         <x-tables.table-header model="ProductSales" url="create-purchases-invoice" :addButton="false" module="report">
             <x-slot:export>
-
-
-                <x-tables.export-menu id="purchases" />
+                <x-tables.export-menu id="ProductSales" />
             </x-slot:export>
         </x-tables.table-header>
     </x-cards.card-header>
@@ -44,6 +42,7 @@
 <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script>
+<script type="text/javascript" src="/vfs_fonts.js"></script>
 
 <script>
     "use strict";
