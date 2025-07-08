@@ -3,8 +3,8 @@ import { getRowName } from "../lang/Utils";
 import io from 'socket.io-client';
 import SweetAlert2 from 'react-sweetalert2';
 
-//const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
-const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
+const socket = io('http://3.95.164.155:3000'); // Connect to the Socket.IO server
+// const socket = io('http://localhost:3000'); // Connect to the Socket.IO server
 
 const Menu = ({ translations, dir }) => {
     const rootElement = document.getElementById('root');
@@ -155,13 +155,13 @@ const Menu = ({ translations, dir }) => {
                     {
                       order.items.map((item)=> (
                             renderProduct(allProductList.find(x=>x.id == item.item_id), item)
-                      )  
+                      )
                     )}
                     <div class="row">
                     <div class="row border-bottom py-2">
                         <div class="col-4 d-flex align-items-center" style={{"font-size" : "large", "font-weight" : "800"}}>{translations.total}</div>
                             <div class="col-5">
-                                
+
                             </div>
                             <div class="col-3 d-flex align-items-center justify-content-center" style={{"font-size" : "large", "font-weight" : "800"}}>{order.items.reduce((sum, item) => sum + item.item_price, 0)}</div>
                         </div>
