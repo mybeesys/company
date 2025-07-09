@@ -47,7 +47,7 @@ class ProductResource extends JsonResource
                         "product_id" => $temp->id,
                     ];
                 }
-            
+
         }
 
 
@@ -133,6 +133,7 @@ class ProductResource extends JsonResource
             // 'modifiers' =>  ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
             //     return new ProductModifierResource($product, $extraData);
             // })),
+            'parent_id'=>$this->parent_id,
             'modifiers' => ProductModifierResource::collection($this->modifiers->map(function ($modifier) use ($extraData) {
                 return new ProductModifierResource($modifier, $extraData);
             })),
