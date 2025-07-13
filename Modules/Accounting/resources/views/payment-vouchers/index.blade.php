@@ -83,7 +83,7 @@
             handleFormFiltersDatatable();
 
             $('#cash_account').select2({
-              
+
             });
         });
 
