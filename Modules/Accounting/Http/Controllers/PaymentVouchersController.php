@@ -49,7 +49,7 @@ class PaymentVouchersController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        try {
+        // try {
             DB::beginTransaction();
             $account_id = $request->input('account_id');
             $note = $request->input('additionalNotes');
@@ -81,10 +81,10 @@ class PaymentVouchersController extends Controller
             }
             DB::commit();
             return redirect()->route('payment-vouchers')->with('success', __('messages.add_successfully'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->route('payment-vouchers')->with('error', __('messages.something_went_wrong'));
-        }
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->route('payment-vouchers')->with('error', __('messages.something_went_wrong'));
+        // }
     }
 
     /**
