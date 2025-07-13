@@ -30,6 +30,9 @@
                         <span class="fw-bolder"> @lang('purchases::lang.no_purchases_return')</span> <br>
                         @lang('purchases::lang.suggestion_purchases_return')
                     </h4>
+                            <a href="{{ route('create-purchases-return-invoice') }}"
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('purchases::general.add_purchases-retrun')</a>
+
                 </div>
 
             </div>
