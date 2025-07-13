@@ -85,6 +85,10 @@
             $('#cash_account').select2({
 
             });
+
+            $('#from_account').select2({
+
+            });
         });
 
 
