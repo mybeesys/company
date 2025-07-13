@@ -216,7 +216,7 @@ class Transaction extends Model
             </div>';
                     }
 
-                    if ($row->type == 'sell-return' || $row->type == 'purchases-return') {
+                    if (($row->type == 'sell-return' || $row->type == 'purchases-return') && $row->parent_id) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="' . url("/transaction-print/{$row->parent_id}") . '" class="menu-link px-3">' . __('general::lang.transaction-parent') . '</a>
             </div>';
