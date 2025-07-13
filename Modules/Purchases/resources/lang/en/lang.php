@@ -87,7 +87,7 @@ return [
     'no_invoice' => 'You do not have any sales invoices.',
     'select_products' => 'Search by name or SKU',
     'Create a purchase order' => 'Create a purchase order',
-    'no_purchase-order' => 'ليس لديك أي طلبات شراء',
+    'no_purchase-order' => 'You do not have any purchases order',
     'create_suggestion_purchase-order' => 'We provide you with an advanced tool for managing purchase orders, which are official business documents that allow the buyer to request specific products or services in an organized and detailed manner. These documents include details such as quantities, prices, payment terms, and delivery conditions, ensuring clear business transactions and enhancing efficient communication between parties, leading to improved productivity and timely execution.',
 
     'purchase order' => 'Purchase order',
