@@ -30,6 +30,9 @@
                         <span class="fw-bolder"> @lang('sales::lang.no_sell_return')</span> <br>
                         @lang('sales::lang.suggestion_sell_return')
                     </h4>
+                         <a href="{{ route('create-sell-return-invoice') }}"
+                        class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_sell-return')</a>
+
                 </div>
 
             </div>
