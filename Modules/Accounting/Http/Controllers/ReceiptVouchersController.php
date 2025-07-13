@@ -61,7 +61,7 @@ class ReceiptVouchersController extends Controller
                     'accounting_account_id' => $account_id,
                     'type' => 'debit',
                     'sub_type' => 'receipt_voucher',
-                    'operation_date' => $request->input('paid_on'),
+                    'operation_date' => $request->input('pament_on'),
                     'created_by' => Auth::user()->id,
                     'note' => $note,
                 ];
