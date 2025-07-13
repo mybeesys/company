@@ -82,13 +82,9 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
-            $('#cash_account').select2({
+            $('#cash_account').select2();
 
-            });
-
-            $('#from_account').select2({
-
-            });
+            $('#from_account').select2();
         });
 
 
