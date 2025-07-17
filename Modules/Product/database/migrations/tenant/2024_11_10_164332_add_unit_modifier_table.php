@@ -14,16 +14,10 @@ return new class extends Migration
         Schema::create('product_unit_transfer', function (Blueprint $table) {
             $table->id();
             $table->decimal('transfer');
-            $table->unsignedBigInteger('unit1');  
-            $table->foreign('unit1')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_unit');
-            $table->unsignedBigInteger('unit2');  
-            $table->foreign('unit2')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_unit');
-            $table->unsignedBigInteger('objectId'); 
-            $table->string('objectType'); 
+            $table->unsignedBigInteger('unit1');
+            $table->unsignedBigInteger('unit2');
+            $table->unsignedBigInteger('objectId');
+            $table->string('objectType');
             $table->boolean('primary');
             $table->timestamps();
             $table->softDeletes();
@@ -35,8 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('', function (Blueprint $table) {
-            
-        });
+        Schema::table('', function (Blueprint $table) {});
     }
 };
