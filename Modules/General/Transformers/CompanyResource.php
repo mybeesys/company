@@ -6,6 +6,7 @@ use App\Models\User;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Modules\General\Models\Country;
 
 class CompanyResource extends JsonResource
@@ -15,6 +16,7 @@ class CompanyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+       $subscriptions= FacadesDB::connection('mysql')->table('subscriptions')->where('subscriber_id',$this->id)->first();
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -25,6 +27,8 @@ class CompanyResource extends JsonResource
             'zipcode' => $this->zipcode,
             'address' => 'national_address',
             'country' => Country::on('mysql')->find($this->country_id),
+            'subscriptions'=> $subscriptions,
+            'plans'=> FacadesDB::connection('mysql')->table('plans')->where('subscriber_id',$subscriptions->plan_id)->first(),
             'state' => $this->state,
             'city' => $this->city,
             'tax_name' => $this->tax_name,
