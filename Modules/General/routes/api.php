@@ -20,7 +20,7 @@ Route::middleware([
     Route::get('taxes', [TaxApiController::class, 'taxes'])->name('taxes');
     Route::get('payment-methods', [PaymentMethodsApiController::class, 'index'])->name('payment-methods');
 
-    Route::get('/company-details', [GeneralController::class, 'companyDetails'])->middleware(['auth-central']);
+    Route::get('/company-details', [GeneralController::class, 'companyDetails']);
 
 
     Route::post('/shift-open', [CashRegisterApiController::class, 'store'])->name('shift-open');
