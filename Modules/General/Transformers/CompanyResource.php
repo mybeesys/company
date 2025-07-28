@@ -28,7 +28,7 @@ class CompanyResource extends JsonResource
             'address' => 'national_address',
             'country' => Country::on('mysql')->find($this->country_id),
             'subscriptions'=> $subscriptions,
-            'plans'=> FacadesDB::connection('mysql')->table('plans')->where('plan_id',$subscriptions->plan_id)->first(),
+            'plans'=> FacadesDB::connection('mysql')->table('plans')->where('id',$subscriptions->plan_id)->first(),
             'state' => $this->state,
             'city' => $this->city,
             'tax_name' => $this->tax_name,
