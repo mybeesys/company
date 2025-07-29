@@ -498,13 +498,6 @@ return [
                 'url' => 'product-purchase-report',
                 'permission' => 'reports_module.all.show',
             ],
-
-            [
-                'name' => 'purchase-payment-report',
-                'url' => 'purchase-payment-report',
-                'permission' => 'reports_module.all.show',
-            ],
-
             [
                 'name' => 'product-inventory-report',
                 'url' => 'product-inventory-report',
