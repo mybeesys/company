@@ -56,7 +56,7 @@
     "use strict";
     let dataTable;
     const table = $('#kt_ProductSales_table');;
-    const dataUrl = "{{ route('product-purchase-report') }}";
+    const dataUrl = "{{ url('product-purchase-report') }}";
     let currentLang = "{{ app()->getLocale() }}";
     let dueDateRangeValue = '';
     let sale_date_range = '';
@@ -169,7 +169,7 @@
         filters.on('click', function(e) {
             const deletedValue = deleted.val();
 
-            dataTable.ajax.url("{{ route('product-purchase-report ') }}?" + $.param({
+            dataTable.ajax.url("{{ url('product-purchase-report ') }}?" + $.param({
                 deleted_records: deletedValue
             })).load();
 
