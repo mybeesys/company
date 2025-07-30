@@ -12,4 +12,8 @@ class CashRegister extends Model
 
     protected $guarded = ['id'];
 
+    public function cash_register_transactions()
+    {
+        return $this->hasMany(CashRegisterTransaction::class);
+    }
 }
