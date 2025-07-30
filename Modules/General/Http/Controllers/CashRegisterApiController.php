@@ -73,11 +73,11 @@ class CashRegisterApiController extends Controller
 
             $input = $request->only(['close_amount', 'shift_number', 'close_at', 'transaction_ids']);
             $input['close_amount'] = $input['close_amount'];
-            $user_id = Auth::user()->id;
+            // $user_id = Auth::user()->id;
             $input['status'] = 'close';
 
             DB::beginTransaction();
-            CashRegister::where('user_id', $user_id)
+            CashRegister::where('user_id', $request->shift_number)
                 ->where('status', 'open')
                 ->update($input);
 
