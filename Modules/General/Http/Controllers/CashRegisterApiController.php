@@ -34,7 +34,7 @@ class CashRegisterApiController extends Controller
      */
     public function store(Request $request)
     {
-        try {
+        // try {
             $initial_amount = 0;
             if (! empty($request->input('initial_amount'))) {
                 $initial_amount = $request->input('initial_amount');
@@ -58,10 +58,10 @@ class CashRegisterApiController extends Controller
             }
             DB::commit();
             return response()->json(['message' => 'Added successfully'], 200);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'something went wrong'], 500);
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json(['message' => 'something went wrong'], 500);
+        // }
     }
 
 
