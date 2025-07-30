@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
 use Mpdf\Mpdf;
 
@@ -46,6 +47,17 @@ class TransactionController extends Controller
 
         $transaction = Transaction::find($id);
         return view('general::transactions.show', compact('transaction','company'));
+    }
+
+    public function showReceiptsPayments($id)
+    {
+
+          $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+
+         $transaction = TransactionPayments::find($id);
+    //   return   $transaction->transaction;
+        $title = 'sdfsf';
+        return view('general::transactions.show-receipts-payments', compact('transaction','title','company'));
     }
 
 

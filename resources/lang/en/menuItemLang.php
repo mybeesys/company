@@ -80,9 +80,12 @@ return [
     'quotations' => 'Quotations',
 
     'customer_receipts' => 'Customer Receipts',
+    'customer_receipt' => 'Customer Receipt',
     'purchase-order' => 'Purchases Order',
+    'tel'=>'Tel',
 
     'supplier_receipts' => 'Supplier Receipts',
+    'supplier_receipt' => 'Supplier Receipt',
     'import' => 'Import',
 
     'screen_module' => 'Screens',

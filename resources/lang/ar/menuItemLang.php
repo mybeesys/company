@@ -78,10 +78,13 @@ return [
     'quotations' => 'عروض الأسعار',
 
     'customer_receipts' => 'سندات العملاء',
+    'customer_receipt' => 'سند العملاء',
     'purchase-order' => 'طلبات الشراء',
 
     'supplier_receipts' => 'سندات الموردين',
+    'supplier_receipt' => 'سند الموردين',
     'import' => 'الاستيراد',
+    'tel'=>'هاتف',
 
     'screen_module' => 'الشاشات',
     'main' => 'الرئيسية',
@@ -101,6 +104,8 @@ return [
     'sell' => 'سندات العملاء',
     'receipt_vouchers' => 'سندات القبض',
     'payment_vouchers' => 'سندات الصرف',
+    'receipt_voucher' => 'سند القبض',
+    'payment_voucher' => 'سند الصرف',
     'sales_report' => 'ملخص تقرير المبيعات',
     'productBarcode' => 'طباعة الباركود',
     'product-sales-report' => 'تقرير مبيعات الأصناف',

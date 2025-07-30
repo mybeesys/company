@@ -69,7 +69,7 @@ class CashRegisterApiController extends Controller
     {
 
 
-        try {
+        // try {
 
             $input = $request->only(['close_amount', 'shift_number', 'close_at', 'transaction_ids']);
             $input['close_amount'] = $input['close_amount'];
@@ -83,10 +83,10 @@ class CashRegisterApiController extends Controller
 
             DB::commit();
             return response()->json(['message' => 'Added successfully'], 200);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'something went wrong'], 500);
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json(['message' => 'something went wrong'], 500);
+        // }
         return redirect()->back()->with('status', $output);
     }
 
