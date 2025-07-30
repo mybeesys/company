@@ -26,9 +26,11 @@ return [
     'tax' => 'ضريبة',
     'add_to_favorites' => 'إضافة إلى المفضلة',
     'remove_from_favorites' => 'إزالة من المفضلة',
-
+    'discount_type' => 'نوع الخصم',
     'inventory_tracking_policy' => 'سياسة الجرد',
 
+
+    'invoice_info'=>'معلومات الفاتورة',
 
 
 
