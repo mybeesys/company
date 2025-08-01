@@ -41,8 +41,7 @@ class SellApiController extends Controller
 
     public function store(Request $request)
     {
-        return $request;
-
+     
         try {
 
 
