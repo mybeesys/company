@@ -91,6 +91,7 @@ class TransactionUtils
         $due_account_id = '';
         $cash_account_id = '';
         $payment_method = 'cash';
+        $account_id = null;
 
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
