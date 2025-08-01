@@ -41,7 +41,7 @@ class SellApiController extends Controller
 
     public function store(Request $request)
     {
-     
+
         try {
 
 
@@ -129,15 +129,15 @@ class SellApiController extends Controller
                 foreach ($order_item_combos as $order_item_combo) {
                     $find_product = ProductCombo::where('product_id', $order_item_combo->option_id)->first();
                     if (!$find_product) {
-                        return response()->json(['message' => 'Modifier not found id =' . $order_item_combo->option_id], 404);
+                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->option_id], 404);
                     }
 
                     TransactionSellLine::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $find_product->product_id,
-                        'qyt' => $order_item_combo->quantity,
-                        'unit_price_before_discount' => $order_item_combo->price,
-                        'unit_price' => $order_item_combo->price,
+                        'qyt' => $find_product->quantity,
+                        'unit_price_before_discount' => $find_product->price,
+                        'unit_price' => $find_product->price,
                         'discount_type' => null,
                         'discount_amount' => null,
                         'unit_price_inc_tax' => null,
