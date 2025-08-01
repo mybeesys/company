@@ -156,6 +156,7 @@ class SellApiController extends Controller
                 }
 
                 $request['payment_method_id'] =$request->method;
+                $request['created_by'] =$request->user_id;
                 if ($payment->amount) {
                     $request['paid_amount'] = $payment->amount;
                     $request['payment_method_id'] = $payment->method_id;
