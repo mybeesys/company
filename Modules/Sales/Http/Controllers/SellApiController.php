@@ -54,7 +54,7 @@ class SellApiController extends Controller
             if ($request->establishment_id == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
-            $created_by = Employee::find($request->user_id);
+         return   $created_by = Employee::find($request->user_id);
             if (!$created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
             }
