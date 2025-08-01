@@ -111,6 +111,9 @@ class TransactionUtils
             $payment_method_id = $request->payment_method_id;
         }
 
+        if (!$request->has('shift_id')) {
+            $account_id = null;
+        }
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
@@ -126,7 +129,7 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        if (!$request->has('shift_number')) {
+        if (!$request->has('shift_id')) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
         // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
