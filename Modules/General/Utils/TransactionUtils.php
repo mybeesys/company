@@ -90,6 +90,8 @@ class TransactionUtils
         $payment_on = $date->format('Y-m-d H:i:s');
         $due_account_id = '';
         $cash_account_id = '';
+        $payment_method = 'cash';
+
         if ($transaction->invoice_type == 'cash') {
             $account_id = $request->cash_account;
             $cash_account_id = $request->cash_account;
@@ -118,7 +120,7 @@ class TransactionUtils
             'is_return' => $request->is_return ?? 0,
             'note' => $request->additionalNotes,
             'paid_on' => $payment_on,
-           'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
+            'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
             'payment_for' => $transaction->contact_id,
             'payment_ref_no' => $payment_ref_no,
             'account_id' => $account_id,
