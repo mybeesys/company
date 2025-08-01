@@ -155,6 +155,7 @@ class SellApiController extends Controller
                     return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
                 }
 
+                $request['payment_method_id'] =$request->method;
                 if ($payment->amount) {
                     $request['paid_amount'] = $payment->amount;
                     $request['payment_method_id'] = $payment->method_id;
