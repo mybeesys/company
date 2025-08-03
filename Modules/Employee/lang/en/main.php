@@ -59,4 +59,5 @@ return [
     'users_management' => 'Users management',
     'subscriptions_management' => 'Subscriptions management',
     'coupons_management' => 'Coupons management',
+    'view_franchisees' => 'View franchisees',
 ];
