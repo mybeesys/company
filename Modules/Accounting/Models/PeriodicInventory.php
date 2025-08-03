@@ -17,7 +17,8 @@ class PeriodicInventory extends Model
         'cogs',
         'adjustment_entry_id',
         'notes',
-        'created_by'
+        'created_by',
+        'establishment_id'
     ];
 
     public function items()
