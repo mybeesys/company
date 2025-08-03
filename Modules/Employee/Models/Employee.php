@@ -12,6 +12,7 @@ use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Modules\Franchisee\Models\Agreement;
 use Spatie\Permission\Models\Role;
 
 class Employee extends Authenticatable
@@ -142,5 +143,14 @@ class Employee extends Authenticatable
 
         return ($permissionRoles && $this->dashboardRoles->pluck('name')->intersect($permissionRoles)->isNotEmpty()) ||
             $allPermissionRoles && $this->dashboardRoles->pluck('name')->intersect($allPermissionRoles)->isNotEmpty();
+    }
+    public function parent()
+    {
+        return $this->belongsTo(Employee::class, 'parent_id');
+    }
+
+    public function agreement()
+    {
+        return $this->belongsTo(Agreement::class, 'agreement_id');
     }
 }

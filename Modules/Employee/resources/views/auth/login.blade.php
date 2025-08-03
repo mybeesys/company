@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 @php
-    $local = app()->currentLocale();
-    $dir = $local == 'ar' ? 'rtl' : 'ltr';
-    $rtl_files = $local == 'ar' ? '.rtl' : '';
-    $menu_placement_x = $local == 'ar' ? 'left-start' : 'right-start';
-    $menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
+$local = app()->currentLocale();
+$dir = $local == 'ar' ? 'rtl' : 'ltr';
+$rtl_files = $local == 'ar' ? '.rtl' : '';
+$menu_placement_x = $local == 'ar' ? 'left-start' : 'right-start';
+$menu_placement_y = $local == 'ar' ? 'bottom-end' : 'bottom-start';
 @endphp
 <html lang="{{ $local }}" direction="{{ $dir }}" dir="{{ $dir }}"
     style="direction: {{ $dir }}">
@@ -67,30 +67,30 @@
                 <div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-550px py-20 px-15">
                     <!--begin::Wrapper-->
                     <div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-10">
+                        @if ($errors->any())
+                        <div class="alert alert-danger mb-10">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                <li>
+                                    @if ($error === 'subscription_expired')
+                                    {{ __('employee::responses.subscription_expired') }}
+                                    @else
+                                    {{ $error }}
+                                    @endif
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
                         <!--begin::Form-->
                         <form action="{{ route('login.postLogin') }}" method="POST" class="form w-100"
                             novalidate="novalidate" id="kt_sign_in_form">
                             @csrf
                             <div class="text-center mb-11">
                                 <h1 class="text-gray-900 fw-bolder mb-3">{{ ucfirst(tenant('id')) }}</h1>
-                                {{-- <div class="text-gray-500 fw-semibold fs-6">Your Social Campaigns</div> --}}
                             </div>
-                            {{-- <div class="row g-3 mb-9">
-                                <div class="col-md-6">
-                                    <a href="#"
-                                        class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100">
-                                        <img alt="Logo" src="assets/media/svg/brand-logos/google-icon.svg"
-                                            class="h-15px me-3" />Sign in with Google</a>
-                                </div>
-                                <div class="col-md-6">
-                                    <a href="#"
-                                        class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100">
-                                        <img alt="Logo" src="assets/media/svg/brand-logos/apple-black.svg"
-                                            class="theme-light-show h-15px me-3" />
-                                        <img alt="Logo" src="assets/media/svg/brand-logos/apple-black-dark.svg"
-                                            class="theme-dark-show h-15px me-3" />Sign in with Apple</a>
-                                </div>
-                            </div> --}}
+
                             <div class="separator separator-content mt-14 mb-20">
                                 <span class="w-125px text-gray-500 fw-semibold fs-6">@lang('employee::general.login_to_your_company')</span>
                             </div>
@@ -122,15 +122,15 @@
                                 data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start"
                                 data-kt-menu-offset="0px, 0px">
                                 @if (session('locale') === 'ar')
-                                    <img data-kt-element="current-lang-flag" class="w-20px h-20px rounded me-3"
-                                        src="/assets/media/flags/saudi-arabia.svg" alt="" />
-                                    <span data-kt-element="current-lang-name" class="me-1">العربية</span>
-                                    <i class="ki-outline ki-down fs-5 text-muted rotate-180 m-0"></i>
+                                <img data-kt-element="current-lang-flag" class="w-20px h-20px rounded me-3"
+                                    src="/assets/media/flags/saudi-arabia.svg" alt="" />
+                                <span data-kt-element="current-lang-name" class="me-1">العربية</span>
+                                <i class="ki-outline ki-down fs-5 text-muted rotate-180 m-0"></i>
                                 @else
-                                    <img data-kt-element="current-lang-flag" class="w-20px h-20px rounded me-3"
-                                        src="assets/media/flags/united-states.svg" alt="" />
-                                    <span data-kt-element="current-lang-name" class="me-1">English</span>
-                                    <i class="ki-outline ki-down fs-5 text-muted rotate-180 m-0"></i>
+                                <img data-kt-element="current-lang-flag" class="w-20px h-20px rounded me-3"
+                                    src="assets/media/flags/united-states.svg" alt="" />
+                                <span data-kt-element="current-lang-name" class="me-1">English</span>
+                                <i class="ki-outline ki-down fs-5 text-muted rotate-180 m-0"></i>
                                 @endif
                             </button>
                             <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4 fs-7"
@@ -167,9 +167,17 @@
         </div>
     </div>
     @include('layouts.js-references')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertElement = document.querySelector('.alert-danger');
 
-
+            if (alertElement) {
+                setTimeout(function() {
+                    alertElement.style.display = 'none';
+                }, 40000);
+            }
+        });
+    </script>
 </body>
-<!--end::Body-->
 
 </html>
