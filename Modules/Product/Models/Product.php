@@ -60,7 +60,7 @@ class Product extends Model
         'attribute_id1',
         'attribute_id2',
         'parent_id',
-        'class_id',
+        'class_id','last_counted_quantity','last_counted_date'
 
     ];
 

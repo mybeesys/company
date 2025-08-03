@@ -92,6 +92,7 @@ Route::middleware([
 
 
         // routes/web.php
+     Route::get('/get-products-by-establishment/{establishmentId}', [PeriodicInventoryController::class, 'getProductsByEstablishment']);
         Route::prefix('inventory')->group(function () {
             Route::resource('periodic-inventory', PeriodicInventoryController::class)
                 ->except(['edit', 'update', 'destroy'])

@@ -55,6 +55,9 @@ class SalesUtile
         $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
         $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
 
+        if($type=='period'){
+          $prefix ='PERIOD';
+        }
         $transaction = Transaction::where('type', $type)
             ->whereYear('created_at', $currentYear)
             ->latest()

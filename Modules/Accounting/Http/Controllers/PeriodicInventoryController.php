@@ -12,42 +12,64 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\PeriodicInventory;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Models\TransactionSellLine;
+use Modules\Inventory\Models\ProductInventory;
 use Modules\Product\Models\Product;
+use Modules\Sales\Utils\SalesUtile;
 
 class PeriodicInventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $inventories = PeriodicInventory::with('items')->latest()->get();
-        return view('accounting::inventory.periodic.index', compact('inventories'));
+        $query = PeriodicInventory::with(['items'])->latest();
+
+        if ($request->filled('from_date')) {
+            $query->where('end_date', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->where('start_date', '<=', $request->to_date);
+        }
+
+        if ($request->filled('establishment')) {
+            $query->where('establishment_id', $request->establishment);
+        }
+
+        $inventories = $query->paginate(10);
+        $establishments = Establishment::all();
+
+        return view('accounting::inventory.periodic.index', compact('inventories', 'establishments'));
     }
 
     public function create()
     {
         $lastInventory = PeriodicInventory::latest()->first();
-        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear();
-        $products = Product::where('type', 'product')->leftJoin('product_inventories', function ($join) {
-            $join->on('product_inventories.product_id', '=', 'product_products.id')
-                ->where('establishment_id', '=', 1);
-        })->get();
+        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
+        $first_establishment = Establishment::first();
 
+        $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
+            ->join('product_inventories', function ($join) use ($first_establishment) {
+                $join->on('product_inventories.product_id', '=', 'product_products.id')
+                    ->where('product_inventories.establishment_id', $first_establishment->id)
+                    ->whereNotNull('product_inventories.qty');
+            })
+            ->get();
+        $establishments = Establishment::all();
         return view('accounting::inventory.periodic.create', [
             'start_date' => $start_date,
             'end_date' => now(),
-            'products' => $products
+            'products' => $products,
+            'establishments' => $establishments
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'end_date' => 'required|date',
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:product_products,id',
-            'items.*.physical_quantity' => 'required|numeric|min:0'
-        ]);
 
+        $establishment_id = $request->establishment;
         $data = $this->calculateInventoryValues($request);
 
         $inventory = PeriodicInventory::create([
@@ -57,27 +79,54 @@ class PeriodicInventoryController extends Controller
             'purchases_value' => $data['purchases_value'],
             'closing_stock_value' => $data['closing_value'],
             'cogs' => $data['cogs'],
-            'created_by' => Auth::user()->id
+            'created_by' => Auth::user()->id,
+            'establishment_id' => $establishment_id
         ]);
+            $ref_no =  SalesUtile::generateReferenceNumber('period');
 
+        $transaction =   Transaction::create([
+            'type' => 'period',
+            'due_date' => now(),
+            'transaction_date' => now(),
+            'created_by' => Auth::user()->id,
+            'ref_no' => $ref_no,
+            'status' => 'approved',
+            'notice' => 'تسوية جرد مخزون للفترة من ' . $inventory->start_date . ' إلى ' . $inventory->end_date,
+            'establishment_id' => $establishment_id,
+
+        ]);
         foreach ($request->items as $item) {
-            $product = Product::where('id',$item['product_id'])->leftJoin('product_inventories', function ($join) {
-            $join->on('product_inventories.product_id', '=', 'product_products.id')
-                ->where('establishment_id', '=', 1);
-        })->first();
+            $product = Product::where('id', $item['product_id'])->leftJoin('product_inventories', function ($join) use ($establishment_id) {
+                $join->on('product_inventories.product_id', '=', 'product_products.id')
+                    ->where('establishment_id', '=', $establishment_id);
+            })->first();
+
+            $product->update([
+                'last_counted_quantity' => $item['physical_quantity'],
+                'last_counted_date' => now()
+            ]);
+
+            TransactionePurchasesLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $item['product_id'],
+                'qyt' => $item['physical_quantity'] - $product->qty,
+                'unit_price_before_discount' => $product->price,
+                'unit_price' => $product->price,
+            ]);
+
 
             $inventory->items()->create([
                 'product_id' => $item['product_id'],
                 'system_quantity' => $product->qty,
                 'physical_quantity' => $item['physical_quantity'],
-                'unit_cost' => $product->cost_price,
+                'unit_cost' => $product->cost,
                 'variance' => $item['physical_quantity'] - $product->qty
             ]);
         }
 
         $this->postInventoryAdjustments($inventory);
 
-        return redirect()->route('periodic-inventory.show', $inventory->id)
+        return redirect()->route('periodic-inventory.index')
             ->with('success', 'تم تنفيذ الجرد بنجاح');
     }
 
@@ -101,6 +150,7 @@ class PeriodicInventoryController extends Controller
 
     protected function postInventoryAdjustments($inventory)
     {
+
         $variance = $inventory->closing_stock_value -
             ($inventory->opening_stock_value + $inventory->purchases_value - $inventory->cogs);
 
@@ -191,5 +241,20 @@ class PeriodicInventoryController extends Controller
     protected function calculateCOGS($openingStockValue, $purchasesValue, $closingStockValue)
     {
         return $openingStockValue + $purchasesValue - $closingStockValue;
+    }
+
+
+
+    public function getProductsByEstablishment($establishmentId)
+    {
+        $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
+            ->join('product_inventories', function ($join) use ($establishmentId) {
+                $join->on('product_inventories.product_id', '=', 'product_products.id')
+                    ->where('product_inventories.establishment_id', $establishmentId)
+                    ->whereNotNull('product_inventories.qty');
+            })
+            ->get();
+
+        return response()->json($products);
     }
 }
