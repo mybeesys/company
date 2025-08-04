@@ -30,24 +30,23 @@ class ProductResource extends JsonResource
         if ($this->type == 'variable') {
 
             $temp = Product::where('parent_id', $this->id)->first();
-             if ($temp->category) {
-                    $category = [
-                        "id" => $temp->category["id"],
-                        "name_ar" => $temp->category["name_ar"],
-                        "name_en" => $temp->category["name_en"],
-                        "product_id" => $temp->id,
-                    ];
-                }
+            if ($temp->category) {
+                $category = [
+                    "id" => $temp->category["id"],
+                    "name_ar" => $temp->category["name_ar"],
+                    "name_en" => $temp->category["name_en"],
+                    "product_id" => $temp->id,
+                ];
+            }
 
-                if ($temp->subcategory) {
-                    $subcategory = [
-                        "id" => $temp->subcategory["id"],
-                        "name_ar" => $temp->subcategory["name_ar"],
-                        "name_en" => $temp->subcategory["name_en"],
-                        "product_id" => $temp->id,
-                    ];
-                }
-
+            if ($temp->subcategory) {
+                $subcategory = [
+                    "id" => $temp->subcategory["id"],
+                    "name_ar" => $temp->subcategory["name_ar"],
+                    "name_en" => $temp->subcategory["name_en"],
+                    "product_id" => $temp->id,
+                ];
+            }
         }
 
 
@@ -133,13 +132,13 @@ class ProductResource extends JsonResource
             // 'modifiers' =>  ProductModifierResource::collection($this->modifiers->map(function ($product) use ($extraData) {
             //     return new ProductModifierResource($product, $extraData);
             // })),
-            'parent_id'=>$this->parent_id,
+            'parent_id' => $this->parent_id,
             'modifiers' => ProductModifierResource::collection($this->modifiers->map(function ($modifier) use ($extraData) {
                 return new ProductModifierResource($modifier, $extraData);
             })),
             'combos' => ComboResource::collection($this->combos ?? []),
             'unit' => $unit,
-            'image' => asset($this->image),
+            'image' => $this->image ? asset($this->image) : asset("images.png"),
         ];
     }
     // public function toArray($request)
