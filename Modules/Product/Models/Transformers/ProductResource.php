@@ -139,7 +139,7 @@ class ProductResource extends JsonResource
             })),
             'combos' => ComboResource::collection($this->combos ?? []),
             'unit' => $unit,
-            'image' => $this->image,
+            'image' => asset($this->image),
         ];
     }
     // public function toArray($request)
