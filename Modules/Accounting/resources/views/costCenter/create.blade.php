@@ -35,6 +35,8 @@
                         </label>
                         <input type="text" class="form-control form-control-solid" required name="name_en"
                             value="">
+                        <input type="hidden" class="form-control form-control-solid" required name="is_main"
+                            value="1">
                     </div>
 
                     <input type="text" id="parent_account_id" hidden class="form-control form-control-solid"

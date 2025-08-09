@@ -76,6 +76,7 @@ Route::middleware([
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
 
 
+        Route::get('accounting-reports', [AccountingReportsController::class, 'index'])->name('accounting-reports');
         Route::get('income-statement', [AccountingReportsController::class, 'incomeStatement'])->name('income-statement');
         Route::get('trial-balance', [AccountingReportsController::class, 'trialBalance'])->name('trial-balance');
         Route::get('balance-sheet', [AccountingReportsController::class, 'balanceSheet'])->name('balance-sheet');

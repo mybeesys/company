@@ -10,6 +10,7 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Tax;
@@ -18,6 +19,11 @@ use Yajra\DataTables\Facades\DataTables;
 
 class AccountingReportsController extends Controller
 {
+
+    public function index()
+    {
+        return view('accounting::reports.reports');
+    }
 
     public function getIcomeStatementData($accounts)
     {
@@ -85,9 +91,9 @@ class AccountingReportsController extends Controller
     {
         $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
         $end_date = request()->end_date ?? now()->addDay(1)->format('Y-m-d');
-
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
-
+        $choose_cost_center_select = [];
+        $choose_cost_center_select = request()->choose_cost_center_select;
 
         $accounts = AccountingAccount::join(
             'accounting_accounts_transactions as AAT',
@@ -96,6 +102,10 @@ class AccountingReportsController extends Controller
             'accounting_accounts.id'
         )
             ->whereBetween('AAT.operation_date', [$start_date, $end_date])
+            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
+                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            })
+
             ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
             // $qu->whereIn('accounting_accounts.account_type',['income','expenses']);
             // ->orWhere('accounting_accounts.account_type', '=', 'expenses');
@@ -118,6 +128,7 @@ class AccountingReportsController extends Controller
             ->get();
 
         $data = $this->getIcomeStatementData($accounts);
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.income-statement')
             ->with(compact(
@@ -125,60 +136,11 @@ class AccountingReportsController extends Controller
                 'start_date',
                 'end_date',
                 'data',
-                'company'
+                'company',
+                'costCenters',
+                'choose_cost_center_select'
             ));
     }
-
-    // public function getIcomeStatementData($accounts)
-    // {
-    //     $total_balances = [];
-    //     $revenue_net = 0;
-    //     $cost_of_revenue = 0;
-    //     $total_expense = 0;
-    //     $total_other_income = 0;
-    //     $total_other_expense = 0;
-
-    //     foreach ($accounts as $account) {
-    //         if (str_starts_with($account->gl_code, '4') || str_starts_with($account->gl_code, '5')) {
-    //             $debit_balance = $account->debit_balance;
-    //             $credit_balance = $account->credit_balance;
-
-    //             $balance = $credit_balance - $debit_balance;
-
-    //             $total_balances[$account->gl_code] = $balance;
-    //         }
-    //     }
-
-    //     foreach ($total_balances as $key => $total_balance) {
-    //         if (str_starts_with($key, '4')) {
-    //             $revenue_net += $total_balance;
-    //         } elseif (str_starts_with($key, '51')) {
-    //             $cost_of_revenue += abs($total_balance);
-    //         } elseif (str_starts_with($key, '52')) {
-    //             $total_expense += abs($total_balance);
-    //         }
-    //     }
-
-    //     $gross_profit = $revenue_net - $cost_of_revenue;
-    //     $operation_income = $gross_profit - $total_expense;
-    //     $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
-
-    //     $tax = Tax::first()->amount ?? 0;
-    //     $tax_amount = ($tax * $income_before_tax) / 100;
-
-    //     return response()->json([
-    //         'gross_profit' => $gross_profit,
-    //         'operation_income' => $operation_income,
-    //         'income_before_tax' => $income_before_tax,
-    //         'tax_amount' => $tax_amount,
-    //         'revenue_net' => $revenue_net,
-    //         'cost_of_revenue' => $cost_of_revenue,
-    //         'total_expense' => $total_expense,
-    //         'total_other_income' => $total_other_income,
-    //         'total_other_expense' => $total_other_expense
-    //     ]);
-    // }
-
 
 
     public function trialBalance(Request $request)
@@ -198,6 +160,7 @@ class AccountingReportsController extends Controller
         $aggregated = $request->input('aggregated', 0);
 
         $choose_accounts_select = $request->input('choose_accounts_select');
+        $choose_cost_center_select = $request->input('choose_cost_center_select');
 
         $level_filter = $request->input('level_filter');
 
@@ -255,10 +218,13 @@ class AccountingReportsController extends Controller
                         ->where(function ($query) use ($start_date, $end_date) {
                             $query->whereBetween('AAT.operation_date', [$start_date, $end_date]);
                         })
+
                         ->orWhere(function ($query) use ($start_date, $end_date) {
                             $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
                                 ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                        });
+                        })
+
+                    ;
                 }
             );
         } elseif ($with_zero_balances == 2) {
@@ -290,6 +256,7 @@ class AccountingReportsController extends Controller
         }
 
 
+        // return $accounts->get();
         $accounts->when($choose_accounts_select, function ($query, $choose_accounts_select) {
             return $query->where(function ($query) use ($choose_accounts_select) {
                 foreach ($choose_accounts_select as $type) {
@@ -297,6 +264,10 @@ class AccountingReportsController extends Controller
                 }
             });
         })
+
+            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
+                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            })
             ->when($level_filter, function ($query, $level_filter) {
 
                 return $query
@@ -377,10 +348,15 @@ class AccountingReportsController extends Controller
                 $totalClosingCreditBalance += $closing_balance['closing_credit_balance'];
             }
 
+            // dd($accounts->get());
             return DataTables::of($accounts)
                 ->editColumn('gl_code', function ($account) {
                     return $account->gl_code;
                 })
+                ->editColumn('gl_code', function ($account) {
+                    // return $account->;
+                })
+
                 ->editColumn('name', function ($account) {
                     return $account->name;
                 })
@@ -432,15 +408,15 @@ class AccountingReportsController extends Controller
                 ->make(true);
         }
 
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
         return view('accounting::reports.trial_balance')
-            ->with(compact('levelsArray', 'accounts_array'));
+            ->with(compact('levelsArray', 'accounts_array', 'costCenters'));
         // } catch (\Exception $e) {
         //     // Log::error('Error in trialBalance method: ' . $e->getMessage());
         //     return redirect()->route('tree-of-accounts')
         //         ->with('message', 'Please create a tree account for the chart of accounts.');
         // }
     }
-
 
     private function calculateClosingBalance($account)
     {
@@ -460,6 +436,8 @@ class AccountingReportsController extends Controller
 
         $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
         $end_date = request()->end_date ?? now()->addDay(1)->format('Y-m-d');
+        $choose_cost_center_select = [];
+        $choose_cost_center_select = request()->choose_cost_center_select;
 
         $balance_formula = $accountingUtil->balanceFormula();
 
@@ -477,6 +455,10 @@ class AccountingReportsController extends Controller
             )
             ->whereDate('AAT.operation_date', '>=', $start_date)
             ->whereDate('AAT.operation_date', '<=', $end_date)
+            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
+                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            })
+
             ->select(DB::raw($balance_formula), 'accounting_accounts.name_ar', 'AATP.name_ar as sub_type')
 
             ->whereIn('accounting_accounts.account_primary_type', ['asset'])
@@ -522,9 +504,10 @@ class AccountingReportsController extends Controller
             ->whereIn('accounting_accounts.account_primary_type', ['equity'])
             ->groupBy('accounting_accounts.name_ar', 'AATP.name_ar')
             ->get();
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.balance_sheet')
-            ->with(compact('assets', 'liabilities', 'equities', 'start_date', 'end_date'));
+            ->with(compact('assets', 'liabilities', 'equities', 'start_date', 'end_date', 'costCenters', 'choose_cost_center_select'));
     }
 
 
@@ -551,10 +534,16 @@ class AccountingReportsController extends Controller
 
         $startDate = $request->start_date ?? now()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? now()->endOfMonth()->toDateString();
+        $choose_cost_center_select = [];
+        $choose_cost_center_select = request()->choose_cost_center_select;
 
         $operatingCashFlows = AccountingAccountsTransaction::whereIn('sub_type', ['sell', 'sell_cash', 'purchases', 'sales_revenue', 'receipt_voucher'])
             ->whereBetween('operation_date', [$startDate, $endDate])
-            ->paginate(10);
+            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
+                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            })->paginate(10);
+
+
 
         $cashInflows = TransactionPayments::where('method', 'cash')
             ->whereBetween('paid_on', [$startDate, $endDate])
@@ -567,8 +556,18 @@ class AccountingReportsController extends Controller
 
         $netCashFlow = $cashInflows - $cashOutflows;
 
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
-        return view('accounting::reports.cash_flow', compact('operatingCashFlows', 'cashInflows', 'cashOutflows', 'netCashFlow', 'startDate', 'endDate')); // compact('operatingCashFlows', 'investingCashFlows', 'financingCashFlows', 'startDate', 'endDate'));
+        return view('accounting::reports.cash_flow', compact(
+            'operatingCashFlows',
+            'cashInflows',
+            'cashOutflows',
+            'netCashFlow',
+            'startDate',
+            'endDate',
+            'costCenters',
+            'choose_cost_center_select'
+        )); // compact('operatingCashFlows', 'investingCashFlows', 'financingCashFlows', 'startDate', 'endDate'));
     }
 
 
@@ -576,27 +575,37 @@ class AccountingReportsController extends Controller
     {
 
         $accountingUtil = new AccountingUtil;
-
+        // return request()->query('id');
         $contact_id = request()->query('id') ?? Contact::pluck('id')->first();
         $contact = Contact::with(['transactions'])
             ->findOrFail($contact_id);
 
 
-        $start_date = request()->start_date;
-        $end_date =  request()->end_date;
+        $start_date = request()->start_date ?? now()->startOfMonth()->format('Y-m-d');
+        $end_date = request()->end_date ?? now()->endOfMonth()->format('Y-m-d');
+        $choose_cost_center_select = request()->choose_cost_center_select ?? [];
 
         if ($request->ajax()) {
-
+            $contact_id = request()->query('id');
+            $start_date = request()->query('start_date') ?? now()->startOfMonth()->format('Y-m-d');
+            $end_date = request()->query('end_date') ?? now()->endOfMonth()->format('Y-m-d');
+            $choose_cost_center_select = request()->query('choose_cost_center_select') ?? [];
             $contacts = Contact::where('cs_contacts.id', $contact_id)
                 ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
                 ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
                 ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
                 ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
                 ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
+                ->whereDate('aat.operation_date', '>=', $start_date)
+                ->whereDate('aat.operation_date', '<=', $end_date)
+                ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+                    return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
+                })
                 ->select(
                     'aat.operation_date',
                     'aat.sub_type',
                     'aat.type',
+                    'aat.cost_center_id',
                     'atm.ref_no',
                     'atm.id as atm_id',
                     'cc.name_ar as cost_center_name',
@@ -605,14 +614,13 @@ class AccountingReportsController extends Controller
                     'u.name as added_by',
                     't.ref_no as invoice_no',
                 )
-                ->whereDate('aat.operation_date', '>=', $start_date)
-                ->whereDate('aat.operation_date', '<=', $end_date)
                 ->groupBy(
                     'cs_contacts.id',
                     'aat.operation_date',
                     'aat.sub_type',
                     'aat.type',
                     'atm_id',
+                    'aat.cost_center_id',
                     'atm.ref_no',
                     'cc.name_ar',
                     'atm.note',
@@ -621,11 +629,18 @@ class AccountingReportsController extends Controller
                     'u.name',
                 );
 
+            // return $contacts;
 
             return DataTables::of($contacts)
                 ->editColumn('operation_date', function ($row) {
                     return $row->operation_date;
                 })
+
+                ->editColumn('cost_center_name', function ($row) {
+                    return $row->cost_center_name;
+                })
+
+
                 ->editColumn('ref_no', function ($row) {
                     $description = '';
                     if ($row->sub_type == 'journal_entry') {
@@ -671,12 +686,12 @@ class AccountingReportsController extends Controller
                     return '';
                 })
                 // ->filterColumn('cost_center_name', function ($query, $keyword) {
-                //     $query->whereRaw("LOWER(cc.ar_name) LIKE ?", ["%{$keyword}%"]);
+                // $query->whereRaw("LOWER(cc.ar_name) LIKE ?", ["%{$keyword}%"]);
                 // })
                 // ->filterColumn('added_by', function ($query, $keyword) {
                 //     $query->whereRaw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) like ?", ["%{$keyword}%"]);
                 // })
-                ->rawColumns(['ref_no', 'credit', 'debit', 'balance', 'action'])
+                ->rawColumns(['ref_no', 'credit', 'cost_center_name', 'debit', 'balance', 'action'])
                 ->make(true);
         }
 
@@ -726,9 +741,10 @@ class AccountingReportsController extends Controller
         $total_credit_bal = $total_credit_bal->balance;
 
 
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.customers-suppliers-statement')
-            ->with(compact('contact', 'contact_dropdown', 'current_bal', 'contact_id', 'total_debit_bal', 'total_credit_bal'));
+            ->with(compact('contact', 'contact_dropdown', 'costCenters', 'choose_cost_center_select', 'current_bal', 'contact_id', 'total_debit_bal', 'total_credit_bal'));
     }
 
 

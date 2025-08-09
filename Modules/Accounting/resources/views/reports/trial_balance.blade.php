@@ -67,6 +67,26 @@
                                 value="{{ now()->format('Y-m-d') }}" placeholder="{{ __('lang_v1.select_end_date') }}">
                         </div>
                     </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
+                            <select name="choose_cost_center_select[]" id="choose_cost_center_select"
+                                class="form-select d-flex form-select-solid" multiple>
+                                @foreach ($costCenters as $costCenter)
+                                    <option value="{{ $costCenter->id }}" >
+                                        @if (app()->getLocale() == 'ar')
+                                            {{ $costCenter->account_center_number . ' - ' . $costCenter->name_ar }}
+                                        @else
+                                            {{ $costCenter->account_center_number . ' - ' . $costCenter->name_en }}
+                                        @endif
+
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="row my-3">
@@ -177,6 +197,10 @@
             $('#with_zero_balances').select2();
             $('#level_filter').select2();
             $('#choose_accounts_select').select2();
+            $('#choose_cost_center_select').select2();
+
+
+
             $('#level_filter,#end_date_filter,#start_date_filter,#with_zero_balances,#classification,#account_filter')
                 .on('change',
                     function() {
@@ -215,6 +239,10 @@
                         if ($('#choose_accounts_select').val()) {
                             d.choose_accounts_select = $('#choose_accounts_select').val();
                         }
+                        if ($('#choose_cost_center_select').val()) {
+                            d.choose_cost_center_select = $('#choose_cost_center_select').val();
+                        }
+
                     }
                 },
 

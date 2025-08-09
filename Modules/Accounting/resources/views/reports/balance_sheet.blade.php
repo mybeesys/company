@@ -15,15 +15,35 @@
             <div class="col-md-12 mt-12">
                 <form method="GET" class="mb-4 no-print">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="date" name="start_date" class="form-control"
                                 value="{{ request('start_date') ?? $start_date }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="date" name="end_date" class="form-control"
                                 value="{{ request('end_date') ?? $end_date }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+
+                            <div class="form-group" style="top: -18px;position: relative;">
+                                <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
+                                <select name="choose_cost_center_select[]" id="choose_cost_center_select"
+                                    class="form-select d-flex form-select-solid" multiple>
+                                    @foreach ($costCenters as $costCenter)
+                                        <option value="{{ $costCenter->id }}"
+                                            @if (in_array($costCenter->id, $choose_cost_center_select ?? [])) selected @endif>
+                                            @if (app()->getLocale() == 'ar')
+                                                {{ $costCenter->account_center_number . ' - ' . $costCenter->name_ar }}
+                                            @else
+                                                {{ $costCenter->account_center_number . ' - ' . $costCenter->name_en }}
+                                            @endif
+
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
                         </div>
                     </div>
@@ -33,7 +53,7 @@
 
             <div class="col-md-12 my-4">
                 <div class="card shadow-sm border-0 rounded-lg">
-                 
+
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-borderless mb-0" id="kt_accounts_table">
@@ -111,6 +131,10 @@
 @section('script')
 
     <script>
+        $(document).ready(function() {
+            $('#choose_cost_center_select').select2();
+
+        });
         $(document).ready(function() {
 
             dateRangeSettings.startDate = moment('{{ $start_date }}');

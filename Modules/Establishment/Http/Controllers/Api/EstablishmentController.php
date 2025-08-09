@@ -5,6 +5,7 @@ namespace Modules\Establishment\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Transformers\Collections\EstablishmentCollection;
 
 class EstablishmentController extends Controller
@@ -16,5 +17,27 @@ class EstablishmentController extends Controller
     {
         $establishments = Establishment::all();
         return new EstablishmentCollection($establishments);
+    }
+
+    public function devices()
+    {
+        return $devices = EstPos::with('establishment')->get();
+    }
+
+
+    public function device(Request $request)
+    {
+
+
+        $device = EstPos::where('ref', $request->pin)
+            ->where('establishment_id', $request->establishment_id)
+            ->with('establishment')->first();
+
+
+        if (!$device) {
+            return response()->json(['message' => 'Device not found '], 404);
+        }
+
+        return $device;
     }
 }
