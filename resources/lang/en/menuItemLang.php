@@ -82,7 +82,7 @@ return [
     'customer_receipts' => 'Customer Receipts',
     'customer_receipt' => 'Customer Receipt',
     'purchase-order' => 'Purchases Order',
-    'tel'=>'Tel',
+    'tel' => 'Tel',
 
     'supplier_receipts' => 'Supplier Receipts',
     'supplier_receipt' => 'Supplier Receipt',
@@ -129,8 +129,6 @@ return [
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
     'periodic' => 'Periodic',
     'reports_list' => 'Reports List',
-    'franchisee_module' => ' Franchise',
-    'view_franchisees' => 'View Franchisees',
 
 
 

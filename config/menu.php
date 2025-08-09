@@ -251,7 +251,7 @@ return [
                 'permission' => 'accounting.Payment vouchers.show',
             ],
 
-              [
+            [
                 'name' => 'periodic',
                 'url' => 'inventory/periodic-inventory',
                 'permission' => 'accounting.Payment vouchers.show',
@@ -554,21 +554,6 @@ return [
 
             ],
 
-        ]
-
-    ],
-    [
-        'name' => 'franchisee_module',
-        'url' => '',
-        'icon' => 'fas fa-handshake',
-        'permission' => 'franchisee.all.show',
-        'subMenu' => [
-            [
-                'name' => 'view_franchisees',
-                'url' => 'franchisee',
-                'permission' => 'franchisee_module.View Franchisees.show',
-
-            ],
         ]
 
     ],

@@ -84,7 +84,7 @@ return [
     'supplier_receipts' => 'سندات الموردين',
     'supplier_receipt' => 'سند الموردين',
     'import' => 'الاستيراد',
-    'tel'=>'هاتف',
+    'tel' => 'هاتف',
 
     'screen_module' => 'الشاشات',
     'main' => 'الرئيسية',
@@ -130,8 +130,6 @@ return [
     'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
     'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
     'periodic' => 'الجرد الدوري',
-    'franchisee_module' => 'الفرانشايز',
-    'view_franchisees' => 'عرض الممنوحين',
     'reports_list' => 'قائمة التقارير',
 
 ];
