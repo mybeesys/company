@@ -31,7 +31,7 @@ class EstablishmentController extends Controller
 
        return $device = EstPos::where('ref', $request->pin)
             ->where('establishment_id', $request->establishment_id)
-            ->with('establishment')->first();
+            ->with('establishment')->get();
 
 
         if (!$device) {
