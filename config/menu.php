@@ -21,7 +21,7 @@ return [
 
             ],
 
-                 [
+            [
 
                 'name' => 'ingredient',
                 'url' => 'ingredient',
@@ -460,7 +460,7 @@ return [
         'permission' => 'reports_module.all.show',
         'subMenu' => [
 
-            [
+            /*   [
                 'name' => 'Profit-Loss',
                 'url' => 'Profit-Loss',
                 'permission' => 'reports_module.all.show',
@@ -469,19 +469,13 @@ return [
                 'name' => 'sales',
                 'url' => 'sales-report',
                 'permission' => 'reports_module.all.show',
-            ],
+            ],*/
             [
-                'name' => 'purchase-payment-report',
-                'url' => 'purchase-payment-report',
+                'name' => 'payment-reports',
+                'url' => 'payment-reports',
                 'permission' => 'reports_module.all.show',
             ],
-
-            [
-                'name' => 'sell-payment-report',
-                'url' => 'sell-payment-report',
-                'permission' => 'reports_module.all.show',
-            ],
-            [
+            /*    [
                 'name' => 'purchase-sell',
                 'url' => 'purchase-sell',
                 'permission' => 'reports_module.all.show',
@@ -503,7 +497,7 @@ return [
                 'url' => 'product-inventory-report',
                 'permission' => 'reports_module.all.show',
             ],
-
+*/
 
 
 
@@ -560,6 +554,21 @@ return [
 
             ],
 
+        ]
+
+    ],
+    [
+        'name' => 'franchisee_module',
+        'url' => '',
+        'icon' => 'fas fa-handshake',
+        'permission' => 'franchisee.all.show',
+        'subMenu' => [
+            [
+                'name' => 'view_franchisees',
+                'url' => 'franchisee',
+                'permission' => 'franchisee_module.View Franchisees.show',
+
+            ],
         ]
 
     ],

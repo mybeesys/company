@@ -112,6 +112,7 @@ return [
     'product-sales-report' => 'Product sales report',
     'product-purchase-report' => 'Product purchases report',
     'purchase-payment-report' => 'Purchase report',
+    "payment-reports" => "Multi-Reports",
     'sell-payment-report' => 'Sell report',
     'product-inventory-report' => 'Inventory report',
     'Profit-Loss' => 'Profit and Loss',
@@ -127,6 +128,9 @@ return [
     'cash-flow' => 'Cash Flow Statement',
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
     'periodic' => 'Periodic',
+    'reports_list' => 'Reports List',
+    'franchisee_module' => ' Franchise',
+    'view_franchisees' => 'View Franchisees',
 
 
 

@@ -85,6 +85,16 @@ return [
     'net_profit' => 'صافي الربح',
     'net_profit_calculation' => 'صافي الربح = الأرباح الإجمالية - (خصومات الشراء + خصومات المرتجعات + خصومات البيع)',
     'gross_profit_calculation' => '(الكمية المباعة - الكمية المرتجعة) × (السعر المتضمن الضريبة - سعر الشراء المتضمن الضريبة)',
-   
-
+    'All Suppliers' => 'كل الموردين',
+    'All Methods' => 'كل الطرق',
+    'All Statuses' => 'كل الحالات',
+    'All Types' => 'كل الأنواع',
+    'Apply Filter' => 'تطبيق الفلتر',
+    'Remove filter' => 'إزالة الفلتر',
+    'Filter Report' => 'فلترة التقرير',
+    'Close' => 'إغلاق',
+    'Export' => 'تصدير',
+    'Print' => 'طباعة',
+    'All Branches' => 'كل الفروع',
+    'All Cashiers' => 'كل الكاشير',
 ];

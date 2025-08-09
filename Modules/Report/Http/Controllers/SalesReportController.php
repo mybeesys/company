@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Http\Controllers\TransactionController;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
@@ -14,6 +15,9 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\Report\Utils\ReportTransactionsUtile;
 use Modules\Report\Utils\TransactionUtile;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Product\Models\Product;
 
 class SalesReportController extends Controller
 {
@@ -28,6 +32,86 @@ class SalesReportController extends Controller
         // return view('reports.sales_summary', compact('salesSummary'));
         return view('report::sales.index', compact('salesSummary'));
     }
+    public function combinedPaymentReport()
+    {
+        return view('report::sales.combined_payment_report');
+    }
+    public function getBranches(Request $request)
+    {
+        try {
+            $branches = Establishment::where('is_main', 0)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $branches,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching branches: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    public function getSupplier(Request $request)
+    {
+        try {
+            $suppliers = Contact::where('business_type', 'supplier')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $suppliers,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching suppliers: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    public function getCustomers(Request $request)
+    {
+        try {
+            $suppliers = Contact::where('business_type', 'customer')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $suppliers,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching suppliers: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function getProducts(Request $request)
+    {
+        try {
+            $lang = app()->getLocale();
+            $products = Product::whereIn('type', ['ingredint', 'product'])
+                ->get()
+                ->map(function ($product) use ($lang) {
+                    return [
+                        'name' => $lang === 'ar' ? $product->name_ar : $product->name_en,
+                        'type' => $product->type,
+                        'id' => $product->id,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $products,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching products: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function getSalesData(Request $request)
     {
@@ -70,6 +154,7 @@ class SalesReportController extends Controller
             )->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
                 ->join('product_products as p', 'transaction_sell_lines.product_id', '=', 'p.id')
                 ->leftjoin('taxes', 'transaction_sell_lines.tax_id', '=', 'taxes.id')
+                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftjoin('product_unit_transfer as u', 'transaction_sell_lines.unit_id', '=', 'u.id')
                 ->where('t.type', 'sell')
                 ->where('t.status', 'approved')
@@ -83,6 +168,7 @@ class SalesReportController extends Controller
                     'c.name as customer',
                     't.id as transaction_id',
                     't.ref_no',
+                    't.created_at',
                     't.transaction_date as transaction_date',
                     'transaction_sell_lines.unit_price_before_discount as unit_price',
                     'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
@@ -92,10 +178,45 @@ class SalesReportController extends Controller
                     'transaction_sell_lines.tax_value',
                     'taxes.name as tax',
                     'u.unit1  as unit',
-                    DB::raw('((transaction_sell_lines.qyt) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
-                )->get();
+                    DB::raw('((transaction_sell_lines.qyt) * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
+                    DB::raw("CASE 
+                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                ELSE e.name_en 
+              END as establishment_name"),
+                );
+            if ($request->has('branch_id')) {
+                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.establishment_id', $branchIds);
+                }
+            }
 
-            return  $transactionUtile->getProductSalesReport($query);
+            if ($request->has('customer_id')) {
+                $supplierIds = collect($request->input('customer_id'))->filter()->values()->toArray();
+                if (!empty($supplierIds)) {
+                    $query->whereIn('t.contact_id', $supplierIds);
+                }
+            }
+
+            if ($request->has('product_id')) {
+                $paymentMethods = collect($request->input('product_id'))->filter()->values()->toArray();
+                if (!empty($paymentMethods)) {
+                    $query->whereIn('p.id', $paymentMethods);
+                }
+            }
+
+            if (!empty($request->input('sale_date_range'))) {
+                $dateRange = explode(' - ', $request->input('sale_date_range'));
+                if (count($dateRange) === 2) {
+                    $from = date('Y-m-d', strtotime($dateRange[0]));
+                    $to = date('Y-m-d', strtotime($dateRange[1]));
+                    $query->whereBetween('t.transaction_date', [$from, $to]);
+                }
+            }
+
+            $results = $query->orderBy('created_at', 'desc')->get();
+
+            return  $transactionUtile->getProductSalesReport($results);
         }
 
         $columns = $transactionUtile->getsProductSalesColumns();
@@ -123,6 +244,7 @@ class SalesReportController extends Controller
                 ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
                 ->join('product_products as p', 'transactione_purchases_lines.product_id', '=', 'p.id')
                 ->leftjoin('taxes', 'transactione_purchases_lines.tax_id', '=', 'taxes.id')
+                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftjoin('product_unit_transfer as u', 'transactione_purchases_lines.unit_id', '=', 'u.id')
                 ->where('t.type', 'purchases')
                 ->select(
@@ -135,6 +257,7 @@ class SalesReportController extends Controller
                     'c.name as customer',
                     't.id as transaction_id',
                     't.ref_no',
+                    't.created_at',
                     't.transaction_date as transaction_date',
                     'transactione_purchases_lines.unit_price_before_discount as unit_price',
                     'transactione_purchases_lines.unit_price_inc_tax as unit_sale_price',
@@ -144,9 +267,44 @@ class SalesReportController extends Controller
                     'transactione_purchases_lines.tax_value',
                     'taxes.name as tax',
                     'u.unit1  as unit',
-                    DB::raw('((transactione_purchases_lines.qyt) * transactione_purchases_lines.unit_price_inc_tax) as subtotal')
-                )->get();
-            return  $transactionUtile->getProductPurchasesReport($query);
+                    DB::raw('((transactione_purchases_lines.qyt) * transactione_purchases_lines.unit_price_inc_tax) as subtotal'),
+                    DB::raw("CASE 
+                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                ELSE e.name_en 
+              END as establishment_name"),
+                );
+            if ($request->has('branch_id')) {
+                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.establishment_id', $branchIds);
+                }
+            }
+
+            if ($request->has('supplier_id')) {
+                $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
+                if (!empty($supplierIds)) {
+                    $query->whereIn('t.contact_id', $supplierIds);
+                }
+            }
+
+            if ($request->has('product_id')) {
+                $paymentMethods = collect($request->input('product_id'))->filter()->values()->toArray();
+                if (!empty($paymentMethods)) {
+                    $query->whereIn('p.id', $paymentMethods);
+                }
+            }
+
+            if (!empty($request->input('sale_date_range'))) {
+                $dateRange = explode(' - ', $request->input('sale_date_range'));
+                if (count($dateRange) === 2) {
+                    $from = date('Y-m-d', strtotime($dateRange[0]));
+                    $to = date('Y-m-d', strtotime($dateRange[1]));
+                    $query->whereBetween('t.transaction_date', [$from, $to]);
+                }
+            }
+
+            $results = $query->orderBy('created_at', 'desc')->get();
+            return  $transactionUtile->getProductPurchasesReport($results);
         }
 
         $columns = $transactionUtile->getsProductPurchasesColumns();
@@ -159,21 +317,14 @@ class SalesReportController extends Controller
 
     public function purchasePaymentReport(Request $request)
     {
-
         $transactionUtile = new ReportTransactionsUtile();
-
 
         if ($request->ajax()) {
 
-            $query = TransactionPayments::leftjoin('transactions as t', function ($join) {
-                $join->on('transaction_payments.transaction_id', '=', 't.id')
-                    ->whereIn('t.type', ['purchases']);
-            })
-                ->where(function ($q) {
-                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('purchases'))")
-                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('purchases'))");
-                })
+            $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
 
+                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+                ->whereIn('t.type', ['purchases'])
                 ->select(
                     DB::raw("IF(transaction_payments.transaction_id IS NULL,
                                 (SELECT c.name FROM transactions as ts
@@ -183,19 +334,67 @@ class SalesReportController extends Controller
                                     WHERE ts.id=t.id
                                 )
                             ) as supplier"),
+                    /*'u.name as cashier',*/
+                    DB::raw("CASE 
+                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                ELSE e.name_en 
+              END as establishment_name"),
                     'transaction_payments.amount',
-                    'method',
-                    'paid_on',
+                    'transaction_payments.method',
+                    'transaction_payments.paid_on',
                     'transaction_payments.payment_ref_no',
-                    't.ref_no',
                     't.id as transaction_id',
-                    // 'transaction_no',
+                    't.final_total',
+                    't.ref_no',
+                    't.created_at',
+                    't.payment_status',
+                    't.id as transaction_id',
                     'transaction_payments.id as DT_RowId'
-                )
-                ->get();
+                );
+            if ($request->has('branch_id')) {
+                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.establishment_id', $branchIds);
+                }
+            }
 
+            if ($request->has('cashier_id')) {
+                $query->where('t.created_by', $request->input('cashier_id'));
+            }
 
-            return $transactionUtile->purchasePaymentReportTable($query);
+            if ($request->has('supplier_id')) {
+                $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
+                if (!empty($supplierIds)) {
+                    $query->whereIn('t.contact_id', $supplierIds);
+                }
+            }
+
+            if ($request->has('payment_method')) {
+                $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
+                if (!empty($paymentMethods)) {
+                    $query->whereIn('transaction_payments.method', $paymentMethods);
+                }
+            }
+
+            if ($request->has('payment_status')) {
+                $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
+                if (!empty($paymentStatuses)) {
+                    $query->whereIn('t.payment_status', $paymentStatuses);
+                }
+            }
+
+            if (!empty($request->input('payment_date_range'))) {
+                $dateRange = explode(' - ', $request->input('payment_date_range'));
+                if (count($dateRange) === 2) {
+                    $from = date('Y-m-d', strtotime($dateRange[0]));
+                    $to = date('Y-m-d', strtotime($dateRange[1]));
+                    $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
+                }
+            }
+
+            $results = $query->orderBy('created_at', 'desc')->get();
+
+            return $transactionUtile->purchasePaymentReportTable($results);
         }
 
         $columns = $transactionUtile->purchasePaymentReportColumns();
@@ -212,14 +411,11 @@ class SalesReportController extends Controller
 
         if ($request->ajax()) {
 
-            $query = TransactionPayments::leftjoin('transactions as t', function ($join) {
-                $join->on('transaction_payments.transaction_id', '=', 't.id')
-                    ->whereIn('t.type', ['sell']);
-            })
-                ->where(function ($q) {
-                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('sell'))")
-                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('sell'))");
-                })
+            $query =
+                $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+
+                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+                ->whereIn('t.type', ['sell'])
 
                 ->select(
                     DB::raw("IF(transaction_payments.transaction_id IS NULL,
@@ -230,16 +426,64 @@ class SalesReportController extends Controller
                                     WHERE ts.id=t.id
                                 )
                             ) as supplier"),
+                    DB::raw("CASE 
+                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                ELSE e.name_en 
+              END as establishment_name"),
                     'transaction_payments.amount',
-                    'method',
-                    'paid_on',
+                    'transaction_payments.method',
+                    'transaction_payments.paid_on',
                     'transaction_payments.payment_ref_no',
                     't.ref_no',
                     't.id as transaction_id',
+                    't.final_total',
+                    't.created_at',
+                    't.payment_status',
                     // 'transaction_no',
                     'transaction_payments.id as DT_RowId'
-                )
-                ->get();
+                );
+            if ($request->has('branch_id')) {
+                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.establishment_id', $branchIds);
+                }
+            }
+
+            if ($request->has('cashier_id')) {
+                $query->where('t.created_by', $request->input('cashier_id'));
+            }
+
+            if ($request->has('customer_id')) {
+                $supplierIds = collect($request->input('customer_id'))->filter()->values()->toArray();
+                if (!empty($supplierIds)) {
+                    $query->whereIn('t.contact_id', $supplierIds);
+                }
+            }
+
+            if ($request->has('payment_method')) {
+                $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
+                if (!empty($paymentMethods)) {
+                    $query->whereIn('transaction_payments.method', $paymentMethods);
+                }
+            }
+
+            if ($request->has('payment_status')) {
+                $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
+                if (!empty($paymentStatuses)) {
+                    $query->whereIn('t.payment_status', $paymentStatuses);
+                }
+            }
+
+            if (!empty($request->input('payment_date_range'))) {
+                $dateRange = explode(' - ', $request->input('payment_date_range'));
+                if (count($dateRange) === 2) {
+                    $from = date('Y-m-d', strtotime($dateRange[0]));
+                    $to = date('Y-m-d', strtotime($dateRange[1]));
+                    $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
+                }
+            }
+
+            $results = $query->orderBy('created_at', 'desc')->get();
 
 
             return $transactionUtile->purchasePaymentReportTable($query);

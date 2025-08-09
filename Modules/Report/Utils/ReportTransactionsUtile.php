@@ -34,6 +34,7 @@ class ReportTransactionsUtile
             ["class" => "text-start min-w-150px", "name" => "product_name"],
             ["class" => "text-start min-w-120px", "name" => "category"],
             ["class" => "text-start min-w-150px", "name" => "subcategory"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
             ["class" => "text-start min-w-100px", "name" => "price"],
             ["class" => "text-start min-w-100px", "name" => "SKU"],
             ["class" => "text-start min-w-150px", "name" => "customer"],
@@ -52,6 +53,7 @@ class ReportTransactionsUtile
     {
         return [
             ["class" => "text-start min-w-150px", "name" => "product_name"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
             ["class" => "text-start min-w-100px", "name" => "price"],
             ["class" => "text-start min-w-100px", "name" => "SKU"],
             ["class" => "text-start min-w-150px", "name" => "supplier"],
@@ -69,11 +71,18 @@ class ReportTransactionsUtile
     public function salesPaymentReportColumns()
     {
         return [
+
+
+
             ["class" => "text-start min-w-150px", "name" => "reference_number"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
             ["class" => "text-start min-w-150px", "name" => "customer"],
             ["class" => "text-start min-w-150px", "name" => "payment_date"],
+            ["class" => "text-start min-w-150px", "name" => "final_total"],
             ["class" => "text-start min-w-150px", "name" => "paid_amount"],
+            ["class" => "text-start min-w-150px", "name" => "remaining_amount"],
             ["class" => "text-start min-w-150px", "name" => "payment_method"],
+            ["class" => "text-start min-w-150px", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "sales"],
 
         ];
@@ -98,10 +107,14 @@ class ReportTransactionsUtile
     {
         return [
             ["class" => "text-start min-w-150px", "name" => "reference_number"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
             ["class" => "text-start min-w-150px", "name" => "supplier"],
             ["class" => "text-start min-w-150px", "name" => "payment_date"],
+            ["class" => "text-start min-w-150px", "name" => "final_total"],
             ["class" => "text-start min-w-150px", "name" => "paid_amount"],
+            ["class" => "text-start min-w-150px", "name" => "remaining_amount"],
             ["class" => "text-start min-w-150px", "name" => "payment_method"],
+            ["class" => "text-start min-w-150px", "name" => "payment_status"],
             ["class" => "text-start min-w-150px", "name" => "purchases"],
 
         ];
@@ -118,6 +131,9 @@ class ReportTransactionsUtile
             })
             ->editColumn('subcategory', function ($row) {
                 return optional($row->subcategory)->{'name_' . app()->getLocale()} ?? '--';
+            })
+            ->editColumn('establishment_name', function ($row) {
+                return $row->establishment_name ?? '---';
             })
             ->editColumn('price', function ($row) {
                 return number_format($row->product_price, 2);
@@ -164,6 +180,9 @@ class ReportTransactionsUtile
             ->editColumn('product_name', function ($row) {
                 return app()->getLocale() == 'ar' ? $row->product_name_ar : $row->product_name_en;
             })
+            ->editColumn('establishment_name', function ($row) {
+                return $row->establishment_name ?? '---';
+            })
             ->editColumn('price', function ($row) {
                 return number_format($row->product_price, 2);
             })
@@ -209,32 +228,52 @@ class ReportTransactionsUtile
         return Datatables::of($query)
             ->editColumn('ref_no', function ($row) {
                 if (! empty($row->ref_no)) {
-                    return '<a data-href="' . action([TransactionController::class, 'show'], [$row->transaction_id])
-                        . '" href="#" data-container=".view_modal" class="btn-modal">' . $row->ref_no . '</a>';
+                    $url = url('transaction-show/' . $row->transaction_id);
+
+                    return '<a href="' . $url . '">' . $row->ref_no . '</a>';
                 } else {
                     return '';
                 }
             })
-
+            ->editColumn('establishment_name', function ($row) {
+                return  $row->establishment_name;
+            })
             ->editColumn('supplier', function ($row) {
 
                 return $row->supplier;
             })
+            ->editColumn('final_total', function ($row) {
+
+                return $row->final_total;
+            })
             ->editColumn('paid_on', function ($row) {
 
                 return $row->paid_on;
+            })
+            ->addColumn('remaining_amount', function ($row) {
+
+                $remaining = $row->final_total - $row->amount;
+                if ($remaining > 0) {
+                    $html = '<span class="badge bg-danger">' . number_format($remaining, 2) . '</span>';
+                } else {
+                    $html = number_format($remaining, 2);
+                }
+
+                return $html;
             })
             ->editColumn('payment_ref_no', function ($row) {
 
                 return $row->payment_ref_no;
             })
 
-
-
+            ->editColumn('payment_status', function ($row) {
+                $color = $row->payment_status == 'paid' ? 'green' : 'red';
+                return '<span style="color: ' . $color . ';">' . __('report::purchase.' . $row->payment_status) . '</span>';
+            })
 
             ->editColumn('method', function ($row) {
-
-                return __('sales::lang.' . $row->method);;
+                $color = $row->method == 'due' ? 'blue' : 'orange';
+                return '<span style="color: ' . $color . ';">' . __('sales::lang.' . $row->method) . '</span>';
             })
             ->editColumn('amount', function ($row) {
                 return '<span class="paid-amount" data-orig-value="' . $row->amount . '">' .
@@ -244,7 +283,7 @@ class ReportTransactionsUtile
             ->editColumn('actions', function ($row) {
                 return "--";
             })
-            ->rawColumns(['ref_no', 'amount', 'method', 'action', 'supplier'])
+            ->rawColumns(['ref_no', 'remaining_amount', 'final_total', 'establishment_name', 'amount', 'payment_status', 'method', 'action', 'supplier'])
             ->make(true);
     }
     public function productInventoryReportTable($query)

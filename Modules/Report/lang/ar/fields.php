@@ -33,5 +33,8 @@ return [
     'quantity' => 'الكمية',
     'type' => 'نوع العملية',
     'transfer_date' => 'تاريخ التحويل',
+    'payment_status' => 'حالة الدفع',
+    'final_total' => 'المبلغ الكلي',
+    'remaining_amount' => 'المبلغ المتبقي',
 
 ];
