@@ -27,11 +27,14 @@ class EstablishmentController extends Controller
 
     public function device(Request $request)
     {
+        $request->validate([
+            'pin' => 'required',
+            'establishment_id' => 'required'
+        ]);
 
-
-       return $device = EstPos::where('ref', $request->pin)
+         $device = EstPos::where('ref', $request->pin)
             ->where('establishment_id', $request->establishment_id)
-            ->with('establishment')->get();
+            ->with('establishment')->first();
 
 
         if (!$device) {
