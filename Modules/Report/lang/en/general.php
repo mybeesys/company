@@ -83,8 +83,18 @@ return [
     'net_profit' => 'Net profit',
     'net_profit_calculation' => 'Net Profit = Gross Profit - (Purchase Discounts + Sell Return Discounts + Sell Discounts)',
     'gross_profit_calculation' => '(Sold Quantity - Returned Quantity) × (Selling Price Including Tax - Purchase Price Including Tax)',
-
-
+    'All Suppliers' => 'All Suppliers',
+    'All Methods' => 'All Methods',
+    'All Statuses' => 'All Statuses',
+    'All Types' => 'All Types',
+    'Apply Filter' => 'Apply Filter',
+    'Remove filter' => 'Remove filter',
+    'Filter Report' => 'Filter Report',
+    'Close' => 'Close',
+    'Export' => 'Export',
+    'Print' => 'Print',
+    'All Branches' => 'All Branches',
+    'All Cashiers' => 'All Cashiers',
 
 
 ];

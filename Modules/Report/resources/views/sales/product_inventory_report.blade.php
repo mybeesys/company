@@ -57,10 +57,6 @@
         initDatatable();
         exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_ProductSales_table');
         handleSearchDatatable();
-        handleFormFiltersDatatable();
-        $('#favorite-filter').change(function() {
-            dataTable.ajax.reload();
-        });
     });
 
     function initDatatable() {
@@ -134,29 +130,6 @@
         });
     };
 
-    function handleFormFiltersDatatable() {
-        const filters = $('[data-kt-filter="filter"]');
-        const resetButton = $('[data-kt-filter="reset"]');
-        const status = $('[data-kt-filter="status"]');
-        const deleted = $('[data-kt-filter="deleted_records"]');
 
-        filters.on('click', function(e) {
-            const deletedValue = deleted.val();
-
-            dataTable.ajax.url("{{ route('product-inventory-report') }}?" + $.param({
-                deleted_records: deletedValue
-            })).load();
-
-            const statusValue = status.val();
-            dataTable.column(6).search(statusValue).draw();
-        });
-
-        resetButton.on('click', function(e) {
-            status.val(null).trigger('change');
-            deleted.val(null).trigger('change');
-            dataTable.search('').columns().search('').ajax.url(dataUrl)
-                .load();
-        });
-    };
 </script>
 @endsection
