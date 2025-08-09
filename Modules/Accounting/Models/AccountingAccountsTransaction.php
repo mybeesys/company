@@ -51,6 +51,7 @@ class AccountingAccountsTransaction extends Model
         return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
     }
 
+    
 
     public static function getAccountTransactionType($tansaction_type)
     {

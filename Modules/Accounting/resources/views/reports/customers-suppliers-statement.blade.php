@@ -3,16 +3,17 @@
 @section('title', __('accounting::lang.customers_and_suppliers_statement_of_account_report'))
 
 @section('content')
-<section class="content-header py-3">
-    <h1 class="card-title ">
-        {{ __('accounting::lang.customers_and_suppliers_statement_of_account_report') }}
-        -
-        @if (Lang::has('accounting::lang.' . $contact->name))
-            @lang('accounting::lang.' . $contact->name) ({{ $contact->contact_id }})
-        @else
-            {{ $contact->name }}
-        @endif
-    </h1></section>
+    <section class="content-header py-3">
+        <h1 class="card-title ">
+            {{ __('accounting::lang.customers_and_suppliers_statement_of_account_report') }}
+            -
+            @if (Lang::has('accounting::lang.' . $contact->name))
+                @lang('accounting::lang.' . $contact->name) ({{ $contact->contact_id }})
+            @else
+                {{ $contact->name }}
+            @endif
+        </h1>
+    </section>
 
     <div class="">
         {{-- <div class="card shadow-sm mb-5">
@@ -43,9 +44,9 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('customers-suppliers-statement') }}">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">{{ __('accounting::lang.cs') }}</label>
-                            <select name="contact_id" id="contact_filter" class="form-select select-2">
+                            <select name="id" id="contact_filter" class="form-select select-2">
                                 @foreach ($contact_dropdown as $client)
                                     <option value="{{ $client->id }}" @selected($contact_id == $client->id)>
                                         {{ $client->name }}
@@ -53,16 +54,41 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">{{ __('accounting::lang.from_date') }}</label>
                             <input type="date" name="start_date" id="start_date_filter" class="form-control"
                                 value="{{ request()->start_date ?? now()->startOfYear()->format('Y-m-d') }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">{{ __('accounting::lang.to_date') }}</label>
                             <input type="date" name="end_date" id="end_date_filter" class="form-control"
                                 value="{{ request()->end_date ?? now()->format('Y-m-d') }}">
                         </div>
+                        <div class="col-md-3">
+
+                            <div class="form-group">
+                                <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
+                                <select name="choose_cost_center_select[]" id="choose_cost_center_select"
+                                    class="form-select d-flex form-select-solid" multiple>
+                                    @foreach ($costCenters as $costCenter)
+                                        <option value="{{ $costCenter->id }}"
+                                            @if (in_array($costCenter->id, $choose_cost_center_select ?? [])) selected @endif>
+                                            @if (app()->getLocale() == 'ar')
+                                                {{ $costCenter->account_center_number . ' - ' . $costCenter->name_ar }}
+                                            @else
+                                                {{ $costCenter->account_center_number . ' - ' . $costCenter->name_en }}
+                                            @endif
+
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
+                        </div>
+
                     </div>
                 </form>
             </div>
@@ -113,7 +139,12 @@
 
     <script>
         "use strict";
+
+
+
         $(document).ready(function() {
+            $('#choose_cost_center_select').select2();
+
             $('#contact_filter').select2();
             let ledger;
 
@@ -132,6 +163,8 @@
                     data: function(d) {
                         d.start_date = $('#start_date_filter').val();
                         d.end_date = $('#end_date_filter').val();
+                        d.id = $('#contact_filter').val();
+                        d.choose_cost_center_select = $('#choose_cost_center_select').val();
                     }
                 },
                 columns: [{
@@ -189,14 +222,11 @@
                     });
                     $('.footer_total_debit').html((totalDebit));
                     $('.footer_total_credit').html((totalCredit));
-                    $('.footer_final_total_debit').html({{$total_debit_bal}});
-                    $('.footer_final_total_credit').html({{$total_credit_bal}});
+                    $('.footer_final_total_debit').html({{ $total_debit_bal }});
+                    $('.footer_final_total_credit').html({{ $total_credit_bal }});
                 }
             });
 
-            $('#start_date_filter, #end_date_filter').on('change', function() {
-                ledger.ajax.reload();
-            });
         });
     </script>
 @endsection

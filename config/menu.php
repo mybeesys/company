@@ -264,75 +264,9 @@ return [
         'name' => 'accounting_reports',
         'url' => 'accounting-reports',
         'icon' => 'fas fa-bar-chart',
-        'permission' => '',
+        'permission' => 'accountingReports.all.show',
         'subMenu' => [
-            [
-                'name' => 'trial-balance',
-                'url' => 'trial-balance',
-                'permission' => 'accountingReports.Trial balance.show',
-            ],
-            [
-                'name' => 'income-statement',
-                'url' => 'income-statement',
-                'permission' => 'accountingReports.Income statement.show',
-            ],
-            [
-                'name' => 'ledger',
-                'url' => 'ledger',
-                'permission' => 'accountingReports.Journal ledger.show',
-            ],
-
-            [
-                'name' => 'balance_sheet',
-                'url' => 'balance-sheet',
-                'permission' => 'accountingReports.Balance sheet.show',
-            ],
-            [
-                'name' => 'journal-report',
-                'url' => 'journal-report',
-                'permission' => 'accountingReports.Journal ledger.show',
-            ],
-            [
-                'name' => 'cash-flow',
-                'url' => 'cash-flow',
-                'permission' => 'accountingReports.Cash flow.show',
-            ],
-
-            [
-                'name' => 'customers-suppliers-statement',
-                'url' => 'customers-suppliers-statement',
-                'permission' => 'accountingReports.Customers suppliers statement.show',
-            ],
-
-
-            [
-                'name' => 'account-receivable-ageing-report',
-                'url' => 'account-receivable-ageing-report',
-                'permission' => 'accountingReports.Receivables aging.show',
-            ],
-            [
-                'name' => 'account-receivable-ageing-details',
-                'url' => 'account-receivable-ageing-details',
-                'permission' => 'accountingReports.Payables aging.show',
-            ],
-            [
-                'name' => 'account-payable-ageing-report',
-                'url' => 'account-payable-ageing-report',
-                'permission' => 'accountingReports.Payables age report.show',
-            ],
-
-            [
-                'name' => 'account-payable-ageing-details',
-                'url' => 'account-payable-ageing-details',
-                'permission' => 'accountingReports.Payables age report.show',
-            ],
-
-
-
-
-
-
-
+           
         ]
     ],
 

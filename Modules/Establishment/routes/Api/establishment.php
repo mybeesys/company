@@ -9,4 +9,6 @@ use Modules\Establishment\Http\Controllers\Api\EstablishmentController;
 
 Route::controller(EstablishmentController::class)->group(function () {
     Route::get('/establishments', 'index');
+    Route::get('/devices', 'devices');
+    Route::get('/device', 'device');
 });

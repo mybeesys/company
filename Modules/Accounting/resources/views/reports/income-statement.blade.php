@@ -23,15 +23,34 @@
             <div class="col-md-12">
                 <form method="GET" class="mb-4 no-print">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="date" name="start_date" class="form-control"
                                 value="{{ request('start_date') ?? $start_date }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="date" name="end_date" class="form-control"
                                 value="{{ request('end_date') ?? $end_date }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                        <div class="form-group" style="top: -18px;position: relative;">
+                            <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
+                            <select name="choose_cost_center_select[]"  id="choose_cost_center_select"
+                                class="form-select d-flex form-select-solid" multiple>
+                                @foreach ($costCenters as $costCenter)
+                                    <option value="{{ $costCenter->id }}"   @if(in_array($costCenter->id, $choose_cost_center_select ?? [])) selected @endif>
+                                        @if (app()->getLocale() == 'ar')
+                                            {{ $costCenter->account_center_number . ' - ' . $costCenter->name_ar }}
+                                        @else
+                                            {{ $costCenter->account_center_number . ' - ' . $costCenter->name_en }}
+                                        @endif
+
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                        <div class="col-md-3">
                             <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
                         </div>
                     </div>
@@ -119,6 +138,11 @@
 
 @section('script')
     <script type="text/javascript">
+
+       $(document).ready(function() {
+            $('#choose_cost_center_select').select2();
+
+       });
         function printIncomeReport() {
             let printContent = document.getElementById('income-report').innerHTML;
             let originalContent = document.body.innerHTML;
