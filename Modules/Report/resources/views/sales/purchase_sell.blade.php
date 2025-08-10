@@ -11,10 +11,15 @@
             <small class="fs-6">@lang('report::general.purchase_sell_msg')</small>
         </h1>
         <hr class="py-1" style="width:100%;text-align:left;">
-        <div class="row no-print">
+        <div class="row no-print d-flex justify-content-between align-items-center">
             <div class="col-md-3 mb-3">
                 <label for="date_range" class="form-label">@lang('report::general.filter')</label>
                 <input type="text" class="form-control" id="date_range" name="date_range">
+            </div>
+            <div class="col-md-3 text-end">
+                <button type="button" class="btn btn-primary" aria-label="Print" onclick="printReport();">
+                    <i class="fa fa-print"></i> @lang('messages.print')
+                </button>
             </div>
         </div>
         <br>
@@ -25,7 +30,7 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>@lang('menuItemLang.purchases')</th>
+                                <th>@lang('menuItemLang.purchases') <i class="fas fa-shopping-cart text-primary me-2"></i></th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -36,7 +41,7 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>@lang('menuItemLang.sales')</th>
+                                <th>@lang('menuItemLang.sales') <i class="fas fa-chart-line text-warning me-2"></i></th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -47,7 +52,7 @@
         </div>
         <hr style="width:100%;text-align:left;margin-left:0">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -66,13 +71,7 @@
         </div>
     </div>
 
-    <div class="row no-print">
-        <div class="col-sm-12">
-            <button type="button" class="btn btn-primary pull-right" aria-label="Print" onclick="printReport();">
-                <i class="fa fa-print"></i> @lang('messages.print')
-            </button>
-        </div>
-    </div>
+
 </section>
 
 @endsection

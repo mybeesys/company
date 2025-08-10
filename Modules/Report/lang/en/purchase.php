@@ -20,4 +20,9 @@ return [
     'Sale Date Range' => 'Sale Date Range',
     'Product' => 'Product',
     'All Products' => 'All Products',
+    'purchase_sell_details' => 'View details of purchases and sales for a limited period.',
+    'product_sales_report_details' => 'View detailed reports of all product sales.',
+    'product_purchase_report_details' => 'View detailed reports of all purchased products.',
+    'sell_payment_report_details' => 'View detailed reports of all sales.',
+    'purchase_payment_report_details' => 'View detailed reports of all purchase payments.',
 ];
