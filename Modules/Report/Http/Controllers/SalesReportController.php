@@ -741,6 +741,7 @@ class SalesReportController extends Controller
                     $join->on('pl.product_id', '=', 'p.id')
                         ->orOn('sl.product_id', '=', 'p.id');
                 })
+                ->leftjoin('product_unit_transfer as u', 'p.id', '=', 'u.product_id')
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->select(
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
@@ -755,7 +756,9 @@ class SalesReportController extends Controller
                         ELSE pl.qyt 
                     END as quantity"),
                     't.created_at as transfer_date',
-                    't.type as type'
+                    't.type as type',
+                    'u.unit1 as unit',
+                    't.transaction_date as transaction_date'
                 )
                 ->where(function ($query) {
                     $query->where(function ($subQuery) {
@@ -770,10 +773,38 @@ class SalesReportController extends Controller
                                 })
                                 ->where('t.status', 'approved');
                         });
-                })
-                ->get();
+                });
+            if ($request->has('branch_id')) {
+                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.establishment_id', $branchIds);
+                }
+            }
+            if ($request->has('product_id')) {
+                $products = collect($request->input('product_id'))->filter()->values()->toArray();
+                if (!empty($products)) {
+                    $query->whereIn('p.id', $products);
+                }
+            }
+            if ($request->has('process_type')) {
+                $processType = collect($request->input('process_type'))->filter()->values()->toArray();
+                if (!empty($processType)) {
+                    $query->whereIn('t.type', $processType);
+                }
+            }
 
-            return $transactionUtile->productInventoryReportTable($query);
+            if (!empty($request->input('inventory_date_range'))) {
+                $dateRange = explode(' - ', $request->input('inventory_date_range'));
+                if (count($dateRange) === 2) {
+                    $from = date('Y-m-d', strtotime($dateRange[0]));
+                    $to = date('Y-m-d', strtotime($dateRange[1]));
+                    $query->whereBetween('t.transaction_date', [$from, $to]);
+                }
+            }
+
+            $results = $query->orderBy('t.created_at', 'desc')->get();
+
+            return $transactionUtile->productInventoryReportTable($results);
         }
 
         $columns = $transactionUtile->productInventoryReportColumns();

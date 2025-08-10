@@ -314,7 +314,7 @@ class ReportTransactionsUtile
                 } elseif ($row->process === 'fullyReceived') {
                     return $locale === 'ar' ? 'تحويل كلي' : 'Fully Received';
                 } else {
-                    return '';
+                    return '---';
                 }
             })
             ->editColumn('type', function ($row) {
@@ -373,7 +373,7 @@ class ReportTransactionsUtile
                 return $row->type;
             })
             ->editColumn('quantity', function ($row) {
-                return $row->quantity;
+                return $row->quantity . '  ' . $row->unit;;
             })
 
             ->editColumn('actions', function ($row) {
