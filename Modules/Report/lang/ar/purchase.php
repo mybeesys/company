@@ -19,5 +19,10 @@ return [
     'All Customer' => 'كل الزبائن',
     'Sale Date Range' => 'نطاق تاريخ المعاملة',
     'Product' => 'المنتج',
-    'All Products'=>'كل المنتجات',
+    'All Products' => 'كل المنتجات',
+    'purchase_sell_details' => 'عرض تفاصيل المشتريات والمبيعات لفترة محدودة',
+    'product_sales_report_details' => 'عرض تقارير مفصلة عن جميع مبيعات المنتجات .',
+    'product_purchase_report_details' => 'عرض تقارير مفصلة عن جميع المنتجات التي تم شرائها',
+    'sell_payment_report_details' => 'عرض تقارير مفصلة عن جميع المبيعات.',
+    'purchase_payment_report_details' => 'عرض تقارير مفصلة عن جميع مدفوعات الشراء.',
 ];
