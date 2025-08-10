@@ -12,6 +12,19 @@
     <div class="card-body">
         <div class="row g-5 g-xl-8">
             <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                <a href="{{ route('Profit-Loss') }}" class="card card-flush h-100 border border-2 border-gray-300 hover-elevate-up shadow-sm">
+                    <div class="card-body d-flex p-0">
+                        <div class="report-color-line bg-success"></div>
+                        <div class="flex-grow-1 p-5 d-flex align-items-center justify-content-between">
+                            <h4 class="fs-6 fw-bolder mb-0 text-dark me-2">@lang('menuItemLang.Profit-Loss')</h4>
+                            <div class="report-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="@lang('report::purchase.profit-loss_details')">
+                                <i class="bi bi-question-circle text-muted fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
                 <a href="{{ route('purchase-payment-report') }}" class="card card-flush h-100 border border-2 border-gray-300 hover-elevate-up shadow-sm">
                     <div class="card-body d-flex p-0">
                         <div class="report-color-line bg-primary"></div>
@@ -70,6 +83,19 @@
                         <div class="flex-grow-1 p-5 d-flex align-items-center justify-content-between">
                             <h4 class="fs-6 fw-bolder mb-0 text-dark me-2">@lang('menuItemLang.purchase-sell')</h4>
                             <div class="report-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="@lang('report::purchase.purchase_sell_details')">
+                                <i class="bi bi-question-circle text-muted fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                <a href="{{ route('product-inventory-report') }}" class="card card-flush h-100 border border-2 border-gray-300 hover-elevate-up shadow-sm">
+                    <div class="card-body d-flex p-0">
+                        <div class="report-color-line bg-success"></div>
+                        <div class="flex-grow-1 p-5 d-flex align-items-center justify-content-between">
+                            <h4 class="fs-6 fw-bolder mb-0 text-dark me-2">@lang('menuItemLang.product-inventory-report')</h4>
+                            <div class="report-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="@lang('report::purchase.product_inventory_report_details')">
                                 <i class="bi bi-question-circle text-muted fs-4"></i>
                             </div>
                         </div>
