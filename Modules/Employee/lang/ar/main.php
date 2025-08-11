@@ -46,7 +46,7 @@ return [
     'purchases_management_module' => 'المشتريات',
     'accountingReports_management_module' => 'التقارير المحاسبية',
     'setting_management_module' => 'الإعدادات',
-//
+    //
 
 
     'notifications_settings' => 'إعدادات الإشعارات',
@@ -62,6 +62,35 @@ return [
     'coupons_management' => 'إدارة الكوبونات',
     'reports_module_management_module' => 'التقارير العامة',
     'screen_module_management_module' => 'الشاشات',
+
+    'new_sales_invoice' => 'فاتورة مبيعات جديدة',
+    'new_purchase_invoice' => 'فاتورة مشتريات',
+    'new_client' => 'عميل جديد',
+    'new_supplier' => 'مورد جديد',
+    'employees' => 'الموظفون',
+    'new_journal_entry' => 'قيد يومي جديد',
+    'daily_sales' => 'المبيعات اليوم',
+    'monthly_sales' => 'المبيعات الشهرية',
+    'no_yesterday_data' => 'لا توجد بيانات للأمس',
+    'from_yesterday' => 'عن الأمس',
+    'from_last_month' => 'عن الشهر الماضي',
+    'daily_purchases' => 'المشتريات اليوم',
+    'monthly_purchases' => 'المشتريات الشهرية',
+    'unpaid' => 'فواتير غير مسددة',
+    'total_invoices' => 'إجمالي الفواتير',
+    'total_payments' => 'إجمالي السداد',
+    'total' => 'الإجمالي',
+    'customers_balances_list' => 'أرصدة العملاء',
+    'supplier_balances' => 'أرصدة الموردين',
+    'customers_balances_list' => 'قائمة أرصدة العملاء',
+    'supplier_balances_list' => 'قائمة أرصدة الموردين',
+    'Today expenses' => 'المصروفات اليوم',
+    'Monthly expenses' => 'المصروفات الشهرية',
+
+    'customer_name' => 'اسم العميل',
+    'phone' => 'الهاتف',
+    'balance' => 'الرصيد',
+    'Sales vs Expenses - Last 6 Months' => 'المبيعات vs المصروفات - آخر 6 أشهر ',
 
 
 ];
