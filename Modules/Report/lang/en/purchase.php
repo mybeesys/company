@@ -37,4 +37,8 @@ return [
     'All Processes' => 'All Processes',
     'product_inventory_report_details' => 'View a detailed report on products coming in and out of inventory.',
     'profit-loss_details' => 'Preferred report to display profit by products, categories, days, branch, invoices, date, and customers.',
+    'sell_reports' => 'Sell Reports',
+    'purchase_reports' => 'Purchase Reports',
+    'inventory_reports' => 'Inventory Reports',
+    'others_reports' => 'Others Reports',
 ];

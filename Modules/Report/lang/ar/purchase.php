@@ -37,4 +37,8 @@ return [
     'All Processes' => 'كل العمليات',
     'product_inventory_report_details' => 'عرض تقرير مفصل عن المنتجات الداخلة والخارجة من المخزون',
     'profit-loss_details' => 'تقرير مفضل لعرض الربح حسب المنتجات -الأصناف -الأيام -الفرع -الفواتير -التاريخ - العملاء ',
+    'sell_reports' => 'تقارير المبيعات',
+    'purchase_reports' => 'تقارير المشتريات',
+    'inventory_reports' => 'تقارير المخزون',
+    'others_reports' => 'تقارير آخرى',
 ];
