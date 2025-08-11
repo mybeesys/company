@@ -91,9 +91,10 @@ Route::middleware([
         Route::get('account-payable-ageing-report', [AccountingReportsController::class, 'accountPayableAgeingReport'])->name('account-payable-ageing-report');
         Route::get('account-payable-ageing-details', [AccountingReportsController::class, 'accountPayableAgeingDetails'])->name('account-payable-ageing-details');
 
+        Route::post('/track-action', [AccountingReportsController::class, 'track'])->name('track.action');
 
         // routes/web.php
-     Route::get('/get-products-by-establishment/{establishmentId}', [PeriodicInventoryController::class, 'getProductsByEstablishment']);
+        Route::get('/get-products-by-establishment/{establishmentId}', [PeriodicInventoryController::class, 'getProductsByEstablishment']);
         Route::prefix('inventory')->group(function () {
             Route::resource('periodic-inventory', PeriodicInventoryController::class)
                 ->except(['edit', 'update', 'destroy'])
