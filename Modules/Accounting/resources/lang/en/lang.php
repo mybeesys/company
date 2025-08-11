@@ -337,6 +337,8 @@ return [
     'apply_filter' => 'Apply Filter',
     'reset_filter' => 'Reset',
     'to' => 'To',
+    'Last used' => "Last used",
+
 
 
 

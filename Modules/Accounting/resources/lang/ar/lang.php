@@ -301,7 +301,7 @@ return [
     'save_inventory' => 'حفظ الجرد',
     'loading' => '  جاري التحميل...  ',
     'no_products' => 'لا توجد منتجات في هذا المستودع',
-  'periodic_inventory_log' => 'سجل الجرد الدوري',
+    'periodic_inventory_log' => 'سجل الجرد الدوري',
     'new_inventory' => 'جرد جديد',
     'inventory_number' => 'رقم الجرد',
     'period' => 'الفترة',
@@ -320,8 +320,9 @@ return [
     'annual' => 'سنوي',
     'apply_filter' => 'تطبيق التصفية',
     'reset_filter' => 'إعادة تعيين',
-    'to'=>'الى',
-    'no_periodic_inventory_log'=>'لا يوجد سجلات جرد دوري',
+    'to' => 'الى',
+    'no_periodic_inventory_log' => 'لا يوجد سجلات جرد دوري',
+    'Last used' => "آخر استخدام",
 
 
 

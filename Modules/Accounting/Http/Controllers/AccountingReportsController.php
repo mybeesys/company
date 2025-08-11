@@ -4,6 +4,7 @@ namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Modules\Accounting\Models\AccountingAccount;
@@ -13,6 +14,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\General\Models\Actions;
 use Modules\General\Models\Tax;
 use Modules\General\Models\TransactionPayments;
 use Yajra\DataTables\Facades\DataTables;
@@ -23,6 +25,24 @@ class AccountingReportsController extends Controller
     public function index()
     {
         return view('accounting::reports.reports');
+    }
+
+    public function track(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string',
+            'action' => 'required|string',
+            'name' => 'required|string'
+        ]);
+
+        Actions::create([
+            'user_id' => Auth::user()->id,
+            'type' => $validated['type'],
+            'action' => $validated['action'],
+            'name' => $validated['name']
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function getIcomeStatementData($accounts)
