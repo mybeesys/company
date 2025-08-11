@@ -165,7 +165,7 @@
 
     function populateCustomers() {
         $.ajax({
-            url: "{{ route('product.index') }}",
+            url: "{{ route('customers') }}",
             type: 'GET',
             success: function(response) {
                 if (response.success) {
