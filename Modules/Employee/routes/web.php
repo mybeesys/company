@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
+use Modules\Employee\Http\Controllers\DashbordController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\PayrollController;
 use Modules\Employee\Http\Controllers\PayrollGroupController;
@@ -35,6 +36,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 require __DIR__ . '/auth.php';
 
 Route::middleware([
@@ -46,9 +48,9 @@ Route::middleware([
 
     Route::middleware(['auth'])->group(function () {
 
-        Route::get('/', function () {
-            return view('employee::layouts.master');
-        })->name('dashboard');
+        Route::get('/', [DashbordController::class, 'index'])->name('dashboard');
+
+        Route::get('/dashboard', [DashbordController::class, 'index']);
 
         Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 
@@ -145,7 +147,6 @@ Route::middleware([
                     Route::post('/store', 'store')->name('store')->can('create', TimeCard::class);
                     Route::get('/{timecard}/edit', 'edit')->name('edit')->can('update', TimeCard::class);
                     Route::patch('/{timecard}', 'update')->name('update')->can('update', TimeCard::class);
-
                 });
                 Route::delete('/{timecard}', 'destroy')->name('delete')->can('delete', TimeCard::class);
 
@@ -188,11 +189,7 @@ Route::middleware([
                 Route::get('/{payroll}/print', function (Payroll $payroll) {
                     return view('employee::schedules.payroll.print', compact('payroll'))->render();
                 })->name('print')->can('print', Payroll::class);
-
             });
-
         });
     });
-
 });
-

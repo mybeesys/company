@@ -40,6 +40,7 @@
 @endsection
 @section('content')
     @yield('content')
+    
 @endsection
 
 @section('script')
