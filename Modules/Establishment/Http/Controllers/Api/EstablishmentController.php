@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Transformers\Collections\EstablishmentCollection;
-use Modules\Establishment\Transformers\EstPosResource;
 
 class EstablishmentController extends Controller
 {
@@ -22,8 +21,7 @@ class EstablishmentController extends Controller
 
     public function devices()
     {
-        $devices = EstPos::with('establishment')->get();
-        return EstPosResource::collection($devices);
+        return $devices = EstPos::with('establishment')->get();
     }
 
 
@@ -34,15 +32,15 @@ class EstablishmentController extends Controller
             'establishment_id' => 'required'
         ]);
 
-        $device = EstPos::where('ref', $request->pin)
+         $device = EstPos::where('ref', $request->pin)
             ->where('establishment_id', $request->establishment_id)
-            ->first();
+            ->with('establishment')->first();
 
 
         if (!$device) {
             return response()->json(['message' => 'Device not found '], 404);
         }
 
-        return new EstPosResource($device);
+        return $device;
     }
 }
