@@ -290,6 +290,7 @@ class ProductController extends Controller
         $image = null;
         $product = Product::find($validated['id']);
         $product->fill($validated);
+        $product->color = $validated['color'] ?? '#37D67A';
         // $product->name_ar = $validated['name_ar'];
         // $product->name_en = $validated['name_en'];
         // $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
@@ -319,7 +320,8 @@ class ProductController extends Controller
             $filePath = public_path($product->image);
             if (File::exists($product->image))
                 File::delete($product->image);
-            $product->image = null;
+            $product->image = 'storage/default.png';
+            $product->save();
         }
         if ($request->hasFile('image_file')) {
             $filePath = public_path($product->image);
@@ -552,11 +554,13 @@ class ProductController extends Controller
             // 1. Create the product
             $product = Product::create($validated);
 
+            $product->color = $validated['color'] ?? '#37D67A';
             // 5. Handle image upload if a file is provided
             if ($request->hasFile('image_file')) {
                 $this->handleImageUpload($request->file('image_file'), $product);
             } else {
-                $product->image = null;
+                $product->image = 'storage/default.png';
+                $product->save();
             }
             // 2. Save modifiers if they exist
             if (isset($request["modifiers"])) {
@@ -1085,25 +1089,26 @@ class ProductController extends Controller
     }
 
 
-    public function productsForSale(Request $request){
-       $search = $request->input('search');
+    public function productsForSale(Request $request)
+    {
+        $search = $request->input('search');
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-        ->whereIn('type', ['product', 'variable','ingredint'])
-        ->when($search, function($query) use ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name_ar', 'like', "%$search%")
-                  ->orWhere('name_en', 'like', "%$search%")
-                  ->orWhere('SKU', 'like', "%$search%");
-            });
-        })
-        ->with(['unitTransfers' => function ($query) {
-            $query->whereNull('unit2');
-        }])
-        ->get();
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name_ar', 'like', "%$search%")
+                        ->orWhere('name_en', 'like', "%$search%")
+                        ->orWhere('SKU', 'like', "%$search%");
+                });
+            })
+            ->with(['unitTransfers' => function ($query) {
+                $query->whereNull('unit2');
+            }])
+            ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $products
-            ]);
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
     }
 }
