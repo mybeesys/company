@@ -30,6 +30,7 @@ use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -320,7 +321,18 @@ class ProductController extends Controller
             $filePath = public_path($product->image);
             if (File::exists($product->image))
                 File::delete($product->image);
-            $product->image = 'storage/default.png';
+            $tenant = tenancy()->tenant;
+            $tenantId = $tenant->id;
+            $filePath = '/product/images';
+            $sourcePath = public_path('images.png');
+
+            $defaultFileName = $product->id . '.png';
+
+            $destinationPath = $filePath . '/' . $defaultFileName;
+
+            Storage::disk('public')->put($destinationPath, file_get_contents($sourcePath));
+
+            $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $defaultFileName;
             $product->save();
         }
         if ($request->hasFile('image_file')) {
@@ -559,7 +571,18 @@ class ProductController extends Controller
             if ($request->hasFile('image_file')) {
                 $this->handleImageUpload($request->file('image_file'), $product);
             } else {
-                $product->image = 'storage/default.png';
+                $tenant = tenancy()->tenant;
+                $tenantId = $tenant->id;
+                $filePath = '/product/images';
+                $sourcePath = public_path('images.png');
+
+                $defaultFileName = $product->id . '.png';
+
+                $destinationPath = $filePath . '/' . $defaultFileName;
+
+                Storage::disk('public')->put($destinationPath, file_get_contents($sourcePath));
+
+                $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $defaultFileName;
                 $product->save();
             }
             // 2. Save modifiers if they exist
