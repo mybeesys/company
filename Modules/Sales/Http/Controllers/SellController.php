@@ -18,9 +18,11 @@ use Modules\General\Models\Country;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Inventory\Models\Transfer;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
@@ -31,6 +33,144 @@ class SellController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+
+    public function salesDashbord()
+    {
+        $today = \Carbon\Carbon::today();
+        $yesterday = \Carbon\Carbon::yesterday();
+
+        $todaySales = Transaction::where('type', 'sell')
+            ->whereDate('transaction_date', $today)
+            ->sum('final_total');
+
+        $yesterdaySales = Transaction::where('type', 'sell')
+            ->whereDate('transaction_date', $yesterday)
+            ->sum('final_total');
+
+        $dailyChangePercent =
+            $yesterdaySales != 0 ? round((($todaySales - $yesterdaySales) / $yesterdaySales) * 100, 2) : 0;
+
+        $formattedTodaySales = number_format($todaySales);
+
+        $salesTypes = Transaction::select('type', DB::raw('SUM(final_total) as total'))
+            ->groupBy('type')
+            ->get();
+        $monthlyTrend = Transaction::selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
+            ->whereYear('transaction_date', date('Y'))
+            ->groupBy('month')
+            ->get();
+
+        $stats = Transaction::where('type', 'sell')->selectRaw('COUNT(*) as total_invoices')
+            ->selectRaw('SUM(final_total) / COUNT(*) as average_invoice')
+            ->selectRaw('COUNT(DISTINCT contact_id) as active_customers')
+            ->whereBetween('transaction_date', [now()->startOfMonth(), now()])
+            ->first();
+
+
+        $monthlySales = Transaction::where('type', 'sell')
+            ->selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
+            ->whereYear('transaction_date', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        $salesData = [];
+        $months = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $monthSales = $monthlySales->firstWhere('month', $i);
+            $salesData[] = $monthSales ? $monthSales->total : 0;
+
+            $months[] = __(date('F', mktime(0, 0, 0, $i, 1)));
+        }
+
+        $transactions = Transaction::whereIn('type', ['sell', 'quotation', 'sell-return'])->latest()
+            ->take(10)
+            ->get();
+
+
+
+        $receiptsStats = TransactionPayments::where(function ($q) {
+            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
+                $q->whereIn('type', ['sell']);
+            });
+        })
+
+            ->selectRaw(
+                '
+    COUNT(*) as total_receipts,
+    SUM(amount) as total_collected,
+    SUM(CASE WHEN MONTH(paid_on) = MONTH(CURRENT_DATE()) THEN amount ELSE 0 END) as monthly_collected,
+    SUM(CASE WHEN is_return = 1 THEN amount ELSE 0 END) as returned_amount
+',
+            )
+            ->first();
+
+        $recentReceipts = TransactionPayments::with(['transaction', 'account'])
+            ->where(function ($q) {
+                $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
+                    $q->whereIn('type', ['sell']);
+                });
+            })
+
+            ->where('payment_type', '!=', 'is_return')
+            ->orderBy('paid_on', 'desc')
+            ->take(10)
+            ->get();
+
+        $monthlyCollections = TransactionPayments::where(function ($q) {
+            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
+                $q->whereIn('type', ['sell']);
+            });
+        })
+            ->selectRaw(
+                '
+    MONTH(paid_on) as month,
+    SUM(amount) as total
+',
+            )
+            ->where('payment_type', '!=', 'is_return')
+            ->whereYear('paid_on', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        $paymentMethods = TransactionPayments::where(function ($q) {
+            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
+                $q->whereIn('type', ['sell']);
+            });
+        })
+            ->selectRaw(
+                '
+    method,
+    SUM(amount) as total
+',
+            )
+            ->where('payment_type', '!=', 'is_return')
+            ->groupBy('method')
+            ->get();
+
+        $monthNames = $monthlyCollections->map(function ($item) {
+            return __(date('F', mktime(0, 0, 0, $item->month, 1)));
+        });
+
+
+        return view('sales::sell.dashboard', compact(
+            'months',
+            'monthNames',
+            'paymentMethods',
+            'monthlyCollections',
+            'recentReceipts',
+            'receiptsStats',
+            'transactions',
+            'salesData',
+            'stats',
+            'dailyChangePercent',
+            'yesterdaySales',
+            'formattedTodaySales'
+        ));
+    }
+
     public function index(Request $request)
     {
         $transactionsQuery = Transaction::where('type', 'sell');
@@ -113,7 +253,7 @@ class SellController extends Controller
         }])->get();
 
 
-          $products = Product::productsForSell();
+        $products = Product::productsForSell();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
         if (!$Latest_event) {

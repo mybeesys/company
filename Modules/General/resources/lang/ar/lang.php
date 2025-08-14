@@ -22,7 +22,8 @@ return [
     'purchases-return' => 'مردود المشتريات',
     'transaction-parent' => 'عرض الفاتورة المرجعية',
     'tooltip_inv_return' => 'تمت معالجة مردود جزئي على هذه الفاتورة لبعض الأصناف.',
-
+    'sell' => 'فاتورة مبيعات',
+    'quotation' => 'عرض سعر',
     'tax' => 'ضريبة',
     'add_to_favorites' => 'إضافة إلى المفضلة',
     'remove_from_favorites' => 'إزالة من المفضلة',
@@ -30,9 +31,13 @@ return [
     'inventory_tracking_policy' => 'سياسة الجرد',
 
 
-    'invoice_info'=>'معلومات الفاتورة',
+    'invoice_info' => 'معلومات الفاتورة',
 
 
+    'active_suppliers' => 'موردين نشطين',
+    'purchases' => 'فاتورة شراء',
+    'purchases-order' => 'طلب شراء',
+    'purchases-return' => 'مردود شراء',
 
 
 
