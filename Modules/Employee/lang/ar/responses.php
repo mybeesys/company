@@ -24,4 +24,7 @@ return [
     'no_employees_for_this_establishment' => 'هذا الفرع لا يحتوي على موظفين',
     'please_set_time_sheet_rules_first' => 'قم بإدخال إعدادات الجدولة أولاً',
     'employees_do_have_wages' => 'لا يوجد رواتب مخصصة لهؤلاء الموظفين في البيانات الخاصة بهم',
+    'company_not_found' => 'الشركة غير موجودة',
+    'no_subscription_found' => 'لا يوجد اشتراك',
+    'subscription_expired' => 'انتهت مدة الاشتراك يرجى تجديد الاشتراك لتسطيع تسجيل الدخول',
 ];

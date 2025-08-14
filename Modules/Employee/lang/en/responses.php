@@ -24,4 +24,7 @@ return [
     'no_employees_for_this_establishment' => 'This establishment does not have any employee',
     'please_set_time_sheet_rules_first' => 'Set time sheet rules first',
     'employees_do_have_wages' => 'There are no salaries allocated for these employees in their data',
+    'company_not_found' => 'Company not found.',
+    'no_subscription_found' => 'No subscription found.',
+    'subscription_expired' => 'Subscription has expired.',
 ];

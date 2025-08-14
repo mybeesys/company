@@ -112,6 +112,7 @@ return [
     'product-sales-report' => 'Product sales report',
     'product-purchase-report' => 'Product purchases report',
     'purchase-payment-report' => 'Purchase report',
+    "payment-reports" => "Multi-Reports",
     'sell-payment-report' => 'Sell report',
     'product-inventory-report' => 'Inventory report',
     'Profit-Loss' => 'Profit and Loss',
@@ -130,9 +131,6 @@ return [
     'sales-dashbord' => 'Sales dashbord',
     'purchase-dashbord' => 'Purchase dashbord',
 
-
-
-
-
+    'reports_list' => 'Reports List',
 
 ];

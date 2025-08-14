@@ -112,6 +112,7 @@ return [
     'product-purchase-report' => 'تقرير مشتريات الأصناف',
     'purchase-payment-report' => 'تقرير المشتريات',
     'sell-payment-report' => 'تقرير المبيعات',
+    'payment-reports' => 'التقارير المتعددة',
     'product-inventory-report' => 'تقرير المخزون',
     'type-service' => 'انواع الخدمات',
     'Profit-Loss' => 'الربح والخسارة',
@@ -129,8 +130,11 @@ return [
     'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
     'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
     'periodic' => 'الجرد الدوري',
+
     'sales-dashbord' => 'لوحة المبيعات',
     'purchase-dashbord'=>'لوحة المشتريات',
+
+    'reports_list' => 'قائمة التقارير',
 
 
 ];

@@ -33,6 +33,10 @@ return [
     'quantity' => 'Quantity',
     'type' => 'Transfer type ',
     'transfer_date' => 'Transfer Date',
+    'payment_status' => 'Payment Status',
+    'final_total' => 'Final Total',
+    'remaining_amount' => 'Remaining Amount',
+
 
 
 ];

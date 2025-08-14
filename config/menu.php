@@ -404,7 +404,7 @@ return [
         'permission' => 'reports_module.all.show',
         'subMenu' => [
 
-            [
+            /*   [
                 'name' => 'Profit-Loss',
                 'url' => 'Profit-Loss',
                 'permission' => 'reports_module.all.show',
@@ -413,19 +413,13 @@ return [
                 'name' => 'sales',
                 'url' => 'sales-report',
                 'permission' => 'reports_module.all.show',
-            ],
+            ],*/
             [
-                'name' => 'purchase-payment-report',
-                'url' => 'purchase-payment-report',
+                'name' => 'payment-reports',
+                'url' => 'payment-reports',
                 'permission' => 'reports_module.all.show',
             ],
-
-            [
-                'name' => 'sell-payment-report',
-                'url' => 'sell-payment-report',
-                'permission' => 'reports_module.all.show',
-            ],
-            [
+            /*    [
                 'name' => 'purchase-sell',
                 'url' => 'purchase-sell',
                 'permission' => 'reports_module.all.show',
@@ -442,19 +436,12 @@ return [
                 'url' => 'product-purchase-report',
                 'permission' => 'reports_module.all.show',
             ],
-
-            [
-                'name' => 'purchase-payment-report',
-                'url' => 'purchase-payment-report',
-                'permission' => 'reports_module.all.show',
-            ],
-
             [
                 'name' => 'product-inventory-report',
                 'url' => 'product-inventory-report',
                 'permission' => 'reports_module.all.show',
             ],
-
+*/
 
 
 

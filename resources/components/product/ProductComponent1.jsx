@@ -33,15 +33,17 @@ const ProductComponent1 = ({ translations, dir }) => {
     const [currentTab, setCurrentTab] = useState(1);
     const [defaultMenu, setdefaultMenu] = useState([
         { key: "basicInfo", visible: true },
-        { key: "printInfo", visible: true },
-        { key: "priceTier", visible: true },
-        { key: "modifiers", visible: !!currentObject.for_sell },
-        { key: "recipe", visible: true },
-        { key: "group", visible: !!currentObject.for_sell },
-        //{ key: 'linkedCombo', visible: false },
-        { key: "inventory", visible: true },
         { key: "Unit", visible: true },
+        { key: "priceTier", visible: true },
+        { key: "inventory", visible: true },
+        { key: "printInfo", visible: true },
+
+        { key: "modifiers", visible: !!currentObject.for_sell },
         { key: "advancedInfo", visible: !!currentObject.for_sell },
+
+        { key: "group", visible: !!currentObject.for_sell },
+        { key: "recipe", visible: true },
+        //{ key: 'linkedCombo', visible: false },
     ]);
     const [menu, setMenu] = useState(defaultMenu);
     const [ingredientTree, setIngredientTree] = useState([]);
@@ -291,15 +293,16 @@ const ProductComponent1 = ({ translations, dir }) => {
     const handleForSellChange = (childproduct) => {
         let currentMenu = [
             { key: "basicInfo", visible: true },
-            { key: "printInfo", visible: true },
-            { key: "priceTier", visible: true },
-            { key: "modifiers", visible: childproduct.for_sell },
-            { key: "recipe", visible: true },
-            { key: "group", visible: childproduct.for_sell },
-            //{ key: 'linkedCombo', visible: false },
-            { key: "inventory", visible: true },
             { key: "Unit", visible: true },
-            { key: "advancedInfo", visible: childproduct.for_sell },
+            { key: "priceTier", visible: true },
+            { key: "inventory", visible: true },
+            { key: "printInfo", visible: true },
+
+            { key: "modifiers", visible: !!currentObject.for_sell },
+            { key: "advancedInfo", visible: !!currentObject.for_sell },
+
+            { key: "group", visible: !!currentObject.for_sell },
+            { key: "recipe", visible: true },
         ];
         setMenu([...currentMenu]);
         currentMenu.forEach((m, index) => {
@@ -308,8 +311,8 @@ const ProductComponent1 = ({ translations, dir }) => {
                 element.classList.remove("active");
             }
         });
-        document.getElementById("printInfo").classList.add("active");
-        document.getElementById("printInfo").classList.add("show");
+        document.getElementById("Unit").classList.add("active");
+        document.getElementById("Unit").classList.add("show");
         setCurrentTab(1);
     };
 
@@ -489,8 +492,27 @@ const ProductComponent1 = ({ translations, dir }) => {
                                 </div>
                                 <div class="tab-content">
                                     <div
+                                        id="Unit"
+                                        class="card-body p-0 tab-pane fade show active "
+                                        role="tabpanel"
+                                        aria-labelledby="Unit_tab"
+                                    >
+                                        <UnitTransferProduct
+                                            translations={translations}
+                                            product={currentObject}
+                                            unitTransfer={unitTransfer}
+                                            unitTree={units}
+                                            parentHandle={parentHandleTransfer}
+                                            handleMainUnit={handleMainUnit}
+                                            productUnit={productUnit}
+                                            dir={dir}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="tab-content">
+                                    <div
                                         id="printInfo"
-                                        class="card-body p-0 tab-pane fade show active"
+                                        class="card-body p-0 tab-pane fade show"
                                         role="tabpanel"
                                         aria-labelledby="printInfo_tab"
                                     >
@@ -659,25 +681,6 @@ const ProductComponent1 = ({ translations, dir }) => {
                                             onEstablishmentChange={
                                                 handleEstablishmentChange
                                             }
-                                        />
-                                    </div>
-                                </div>
-                                <div class="tab-content">
-                                    <div
-                                        id="Unit"
-                                        class="card-body p-0 tab-pane fade show "
-                                        role="tabpanel"
-                                        aria-labelledby="Unit_tab"
-                                    >
-                                        <UnitTransferProduct
-                                            translations={translations}
-                                            product={currentObject}
-                                            unitTransfer={unitTransfer}
-                                            unitTree={units}
-                                            parentHandle={parentHandleTransfer}
-                                            handleMainUnit={handleMainUnit}
-                                            productUnit={productUnit}
-                                            dir={dir}
                                         />
                                     </div>
                                 </div>
