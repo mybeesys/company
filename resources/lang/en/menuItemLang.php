@@ -128,12 +128,9 @@ return [
     'cash-flow' => 'Cash Flow Statement',
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
     'periodic' => 'Periodic',
+    'sales-dashbord' => 'Sales dashbord',
+    'purchase-dashbord' => 'Purchase dashbord',
+
     'reports_list' => 'Reports List',
-
-
-
-
-
-
 
 ];

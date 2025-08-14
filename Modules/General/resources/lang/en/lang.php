@@ -22,17 +22,20 @@ return [
     'purchases-return' => 'Purchases return',
     'transaction-parent' => 'View the Reference Invoice',
     'tooltip_inv_return' => 'A partial return has been processed for this invoice for some items.',
+    'sell' => 'Sales Invoice',
+    'quotation' => 'Quotation',
 
     'add_to_favorites' => 'Add to Favorites',
     'remove_from_favorites' => 'Remove from Favorites',
     'inventory_tracking_policy' => 'Inventory Tracking Policy',
-    'discount_type'=>'Discount type',
+    'discount_type' => 'Discount type',
 
-    'invoice_info'=>'Invoice information',
-
-
+    'invoice_info' => 'Invoice information',
 
 
+    'purchases' => 'Purchase Invoice',
+    'purchases-order' =>'Purchase Order',
+    'purchases-return'=>'Purchase Return',
 
 
 

@@ -139,6 +139,13 @@ return [
         'icon' => 'fas fa-dollar-sign',
         'permission' => 'sales.all.show',
         'subMenu' => [
+
+
+            [
+                'name' => 'sales-dashbord',
+                'url' => 'sales-dashbord',
+                'permission' => 'sales.all.show',
+            ],
             [
                 'name' => 'clients',
                 'url' => 'clients',
@@ -178,6 +185,11 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'permission' => 'purchases.all.show',
         'subMenu' => [
+            [
+                'name' => 'purchase-dashbord',
+                'url' => 'purchase-dashbord',
+                'permission' => 'purchases.all.show',
+            ],
             [
                 'name' => 'suppliers',
                 'url' => 'suppliers',
@@ -265,9 +277,7 @@ return [
         'url' => 'accounting-reports',
         'icon' => 'fas fa-bar-chart',
         'permission' => 'accountingReports.all.show',
-        'subMenu' => [
-           
-        ]
+        'subMenu' => []
     ],
 
     // [

@@ -130,6 +130,11 @@ return [
     'account-receivable-ageing-details' => 'تقرير أعمار الذمم المدينة',
     'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
     'periodic' => 'الجرد الدوري',
+
+    'sales-dashbord' => 'لوحة المبيعات',
+    'purchase-dashbord'=>'لوحة المشتريات',
+
     'reports_list' => 'قائمة التقارير',
+
 
 ];
