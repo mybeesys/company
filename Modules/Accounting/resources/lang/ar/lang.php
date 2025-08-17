@@ -323,7 +323,24 @@ return [
     'to' => 'الى',
     'no_periodic_inventory_log' => 'لا يوجد سجلات جرد دوري',
     'Last used' => "آخر استخدام",
-
+ 'accounting_dashboard' => 'لوحة التحكم المحاسبية',
+    'total_transactions' => 'إجمالي الحركات',
+    'total_balance' => 'الرصيد الكلي',
+    'total_debit' => 'إجمالي المدين',
+    'total_credit' => 'إجمالي الدائن',
+    'transactions_trend' => 'اتجاه الحركات',
+    'transactions_by_type' => 'الحركات حسب النوع',
+    'recent_transactions' => 'أحدث الحركات',
+    'view_all' => 'عرض الكل',
+    'ref_no' => 'رقم المرجع',
+    'account' => 'الحساب',
+    'type' => 'النوع',
+    'amount' => 'المبلغ',
+    'date' => 'التاريخ',
+    'cost_center' => 'مركز التكلفة',
+    'actions' => 'إجراءات',
+    'debit' => 'مدين',
+    'credit' => 'دائن'
 
 
 
