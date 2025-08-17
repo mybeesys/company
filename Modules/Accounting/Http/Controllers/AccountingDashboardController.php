@@ -88,18 +88,60 @@ class AccountingDashboardController extends Controller
                 foreach ($balances as $bal) {
                     if ($bal->account_sub_type_id == $st->id && !empty($bal->balance)) {
                         $value = (float)$bal->balance;
-                        $account_types[$k]['balance'] =$value;
+                        $account_types[$k]['balance'] = $value;
                     }
                 }
                 $values[] = $value;
-
             }
         };
-    
+
+
+        // إجمالي الأرصدة
+        $total_balance = DB::table('accounting_accounts_transactions')
+            ->selectRaw('SUM(CASE WHEN type = "credit" THEN amount ELSE -amount END) as balance')
+            ->first()->balance ?? 0;
+
+        // إجمالي المدين والدائن
+        $totals = DB::table('accounting_accounts_transactions')
+            ->selectRaw('SUM(CASE WHEN type = "debit" THEN amount ELSE 0 END) as total_debit')
+            ->selectRaw('SUM(CASE WHEN type = "credit" THEN amount ELSE 0 END) as total_credit')
+            ->first();
+
+        $monthlyData = DB::table('accounting_accounts_transactions')
+            ->selectRaw('MONTH(operation_date) as month')
+            ->selectRaw('SUM(CASE WHEN type = "debit" THEN amount ELSE 0 END) as debit')
+            ->selectRaw('SUM(CASE WHEN type = "credit" THEN amount ELSE 0 END) as credit')
+            ->whereYear('operation_date', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        // أنواع الحركات
+        $transaction_types = DB::table('accounting_accounts_transactions')
+            ->select('sub_type', DB::raw('COUNT(*) as count'))
+            ->groupBy('sub_type')
+            ->get();
+
+        $recent_transactions = DB::table('accounting_accounts_transactions as ta')
+            ->join('accounting_accounts as a', 'ta.accounting_account_id', '=', 'a.id')
+            ->leftJoin('accounting_cost_centers as c', 'ta.cost_center_id', '=', 'c.id')
+            ->leftJoin('accounting_acc_trans_mappings as tm', 'ta.acc_trans_mapping_id', '=', 'tm.id')
+            ->leftJoin('transactions as T', 'ta.transaction_id', '=', 'T.id')
+            ->select('ta.*', 'a.name_ar as account_name','a.gl_code as gl_code','a.name_en as account_name_en', 'c.name_ar as cost_center_name','c.name_en as cost_center_name_en','tm.ref_no as refNo','T.ref_no as RefNo')
+            ->orderBy('ta.operation_date', 'desc')
+            ->take(10)
+            ->get();
+
         return view('accounting::dashboard.index', compact(
             'tree_of_account_overview',
             'account_types',
-            'total_blance'
+            'total_blance',
+            'total_balance',
+            'totals',
+            'monthlyData',
+            'transaction_types',
+            'recent_transactions'
+
         ));
     }
 

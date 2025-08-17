@@ -338,6 +338,24 @@ return [
     'reset_filter' => 'Reset',
     'to' => 'To',
     'Last used' => "Last used",
+     'accounting_dashboard' => 'Accounting Dashboard',
+    'total_transactions' => 'Total Transactions',
+    'total_balance' => 'Total Balance',
+    'total_debit' => 'Total Debit',
+    'total_credit' => 'Total Credit',
+    'transactions_trend' => 'Transactions Trend',
+    'transactions_by_type' => 'Transactions by Type',
+    'recent_transactions' => 'Recent Transactions',
+    'view_all' => 'View All',
+    'ref_no' => 'Reference No',
+    'account' => 'Account',
+    'type' => 'Type',
+    'amount' => 'Amount',
+    'date' => 'Date',
+    'cost_center' => 'Cost Center',
+    'actions' => 'Actions',
+    'debit' => 'Debit',
+    'credit' => 'Credit'
 
 
 
