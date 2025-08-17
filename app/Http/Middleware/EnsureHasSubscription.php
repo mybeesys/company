@@ -16,17 +16,73 @@ class EnsureHasSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $company = Company::find(get_company_id());
-        if (!$company->subscription) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => __('responses.no_subscription_found')
-                ]);
+        $excludedRoutes = [
+            'login',
+            'logout',
+            'register',
+        ];
+
+        foreach ($excludedRoutes as $route) {
+            if ($request->routeIs($route)) {
+                return $next($request);
             }
-            $domain = tenant()->domains->first()->domain;
-            $protocol = request()->secure() ? 'https://' : 'http://';
-            return redirect(str_replace(tenant('id') . '.', $protocol, $domain));
         }
+
+        $company = Company::find(get_company_id());
+        if (!$company) {
+            return $this->handleCompanyNotFound($request);
+        }
+
+        if (!$company->subscription) {
+            return $this->handleNoSubscription($request);
+        }
+
+        if ($company->subscription->expired_at && $company->subscription->expired_at < now()) {
+            return $this->handleExpiredSubscription($request);
+        }
+
         return $next($request);
+    }
+
+    protected function handleCompanyNotFound(Request $request)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => __('company_not_found')
+            ], 403);
+        }
+        auth()->logout();
+        return redirect()->route('login')
+            ->withInput()
+            ->withErrors(['company' => __('company_not_found')]);
+    }
+
+    protected function handleNoSubscription(Request $request)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => __('no_subscription_found')
+            ], 403);
+        }
+        auth()->logout();
+        return redirect()->route('login')
+            ->withInput()
+            ->withErrors(['subscription' => __('no_subscription_found')]);
+    }
+
+    protected function handleExpiredSubscription(Request $request)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => __('subscription_expired')
+            ], 403);
+        }
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->withInput()
+            ->withErrors(['subscription' => __('subscription_expired')]);
     }
 }
