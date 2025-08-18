@@ -14,6 +14,11 @@ return [
         'permission' => 'products.all.show',
         'subMenu' => [
             [
+                'name' => 'product_dashboard',
+                'url' => 'product-dashboard',
+                'permission' => 'products.dashboard.show',
+            ],
+            [
 
                 'name' => 'products',
                 'url' => 'category',
@@ -28,8 +33,6 @@ return [
                 'permission' => 'products.ingredient.show',
 
             ],
-
-
             [
                 'name' => 'modifiers',
                 'url' => 'modifier',
@@ -265,9 +268,7 @@ return [
         'url' => 'accounting-reports',
         'icon' => 'fas fa-bar-chart',
         'permission' => 'accountingReports.all.show',
-        'subMenu' => [
-           
-        ]
+        'subMenu' => []
     ],
 
     // [
