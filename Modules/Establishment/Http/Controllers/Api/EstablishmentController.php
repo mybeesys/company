@@ -32,12 +32,6 @@ class EstablishmentController extends Controller
             ->with('establishment')
             ->get();
 
-        if ($devices->isEmpty()) {
-            return response()->json([
-                'message' => 'No unassigned devices found for this establishment.'
-            ], 404);
-        }
-
         return response()->json($devices, 200);
     }
     public function assignDeviceToken(Request $request)
@@ -50,12 +44,6 @@ class EstablishmentController extends Controller
         $device = EstPos::where('establishment_id', $request->establishment_id)
             ->where('id', $request->device_id)
             ->first();
-
-        if (!$device) {
-            return response()->json([
-                'message' => 'Device not found.'
-            ], 404);
-        }
 
         $device->token = Str::random(60);
         $device->save();
