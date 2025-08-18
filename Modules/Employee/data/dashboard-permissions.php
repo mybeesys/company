@@ -2279,64 +2279,6 @@ return [
         'type' => 'ems',
     ],
     [
-        'name' => 'franchisee_module.all.show',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'franchisee_module.all.create',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-
-    [
-        'name' => 'franchisee_module.all.update',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-    [
-        'name' => 'franchisee_module.all.delete',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-
-    [
-        'name' => 'franchisee_module.all.print',
-        'name_ar' => '',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-
-
-    [
-        'name' => 'franchisee_module.View Franchisees.show',
-        'name_ar' => 'عرض الممنوحين',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-
-    [
-        'name' => 'franchisee_module.View Franchisees.update',
-        'name_ar' => 'عرض الممنوحين',
-        'description' => '',
-        'description_ar' => '',
-        'type' => 'ems',
-    ],
-
-
-
-
-    [
         'name' => 'setting.tables.show',
         'name_ar' => 'الطاولات',
         'description' => '',
