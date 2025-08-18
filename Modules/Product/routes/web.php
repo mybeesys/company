@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateJWT;
 use Modules\Product\Http\Controllers\PriceTierController;
 use Modules\Product\Http\Controllers\ProductController;
+use Modules\Product\Http\Controllers\ProductDashboardController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Modules\Product\Http\Controllers\CategoryController;
@@ -64,6 +65,7 @@ Route::middleware([
         Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
         Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
         Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
+        Route::get('product-dashboard', [ProductDashboardController::class, 'index'])->name('product.dashboard');
 
         Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
         Route::get('categories/subcategories/{id?}', [CategoryController::class, 'getminisubcategorylist'])->name('minisubcategorylist');
