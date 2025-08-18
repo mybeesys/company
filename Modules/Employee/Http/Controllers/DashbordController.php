@@ -71,7 +71,7 @@ class DashbordController extends Controller
             $yesterdayPurchases != 0 ? round((($todayPurchases - $yesterdayPurchases) / $yesterdayPurchases) * 100, 2) : 0;
 
         $monthlyChangePercent_purchases =
-            $lastMonthSales != 0
+            $lastMonthPurchases != 0
             ? round((($currentMonthPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 2)
             : 0;
 
