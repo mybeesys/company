@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Transformers\Collections\EstablishmentCollection;
+use Illuminate\Support\Str;
 
 class EstablishmentController extends Controller
 {
@@ -19,28 +20,46 @@ class EstablishmentController extends Controller
         return new EstablishmentCollection($establishments);
     }
 
-    public function devices()
-    {
-        return $devices = EstPos::with('establishment')->get();
-    }
 
-
-    public function device(Request $request)
+    public function devices(Request $request)
     {
         $request->validate([
-            'pin' => 'required',
             'establishment_id' => 'required'
         ]);
 
-         $device = EstPos::where('ref', $request->pin)
-            ->where('establishment_id', $request->establishment_id)
-            ->with('establishment')->first();
+        $devices = EstPos::where('establishment_id', $request->establishment_id)
+            ->whereNull('token')
+            ->with('establishment')
+            ->get();
 
-
-        if (!$device) {
-            return response()->json(['message' => 'Device not found '], 404);
+        if ($devices->isEmpty()) {
+            return response()->json([
+                'message' => 'No unassigned devices found for this establishment.'
+            ], 404);
         }
 
-        return $device;
+        return response()->json($devices, 200);
+    }
+    public function assignDeviceToken(Request $request)
+    {
+        $request->validate([
+            'establishment_id' => 'required|integer',
+            'device_id' => 'required|integer'
+        ]);
+
+        $device = EstPos::where('establishment_id', $request->establishment_id)
+            ->where('id', $request->device_id)
+            ->first();
+
+        if (!$device) {
+            return response()->json([
+                'message' => 'Device not found.'
+            ], 404);
+        }
+
+        $device->token = Str::random(60);
+        $device->save();
+
+        return response()->json($device, 200);
     }
 }

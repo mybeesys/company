@@ -370,9 +370,13 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
-
-
+    [
+        'name' => 'products.dashboard.show',
+        'name_ar' => 'لوحة تحكم المنتجات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
     [
         'name' => 'products.all.show',
         'name_ar' => '',
@@ -2274,6 +2278,61 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+    [
+        'name' => 'franchisee_module.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'franchisee_module.all.create',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'franchisee_module.all.update',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'franchisee_module.all.delete',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'franchisee_module.all.print',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+    [
+        'name' => 'franchisee_module.View Franchisees.show',
+        'name_ar' => 'عرض الممنوحين',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'franchisee_module.View Franchisees.update',
+        'name_ar' => 'عرض الممنوحين',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
 
 
 
@@ -2360,7 +2419,7 @@ return [
 
 
 
-      [
+    [
         'name' => 'setting.menu_qr.show',
         'name_ar' => 'QR قائمة',
         'description' => '',
@@ -2400,7 +2459,7 @@ return [
 
 
 
-     [
+    [
         'name' => 'screen_module.all.show',
         'name_ar' => '',
         'description' => '',

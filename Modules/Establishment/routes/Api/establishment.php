@@ -9,6 +9,6 @@ use Modules\Establishment\Http\Controllers\Api\EstablishmentController;
 
 Route::controller(EstablishmentController::class)->group(function () {
     Route::get('/establishments', 'index');
-    Route::get('/devices', 'devices');
-    Route::post('/device', 'device');
+    Route::post('/devices', 'devices');
+    Route::post('/assignDeviceToken', 'assignDeviceToken');
 });
