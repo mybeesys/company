@@ -15,7 +15,6 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductCombo;
-use Modules\Product\Models\ProductComboItem;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellApiController extends Controller
@@ -128,9 +127,9 @@ class SellApiController extends Controller
                 $order_item_combos = json_decode(json_encode($product->order_item_combos));
 
                 foreach ($order_item_combos as $order_item_combo) {
-                    $find_product = ProductComboItem::where('item_id', $order_item_combo->option_id)->first();
+                    $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
                     if (!$find_product) {
-                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->option_id], 404);
+                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
                     }
 
                     TransactionSellLine::create([
