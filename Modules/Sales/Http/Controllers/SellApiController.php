@@ -78,6 +78,7 @@ class SellApiController extends Controller
                 'invoice_no' => $request->invoice_number,
                 'shift_number' => $request->shift_id,
                 'establishment_id' => $establishment_id,
+                'device_id' => $request->device_id,
             ]);
 
 
@@ -155,8 +156,8 @@ class SellApiController extends Controller
                     return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
                 }
 
-                $request['payment_method_id'] =$request->method;
-                $request['created_by'] =$request->user_id;
+                $request['payment_method_id'] = $request->method;
+                $request['created_by'] = $request->user_id;
                 if ($payment->amount) {
                     $request['paid_amount'] = $payment->amount;
                     $request['payment_method_id'] = $payment->method_id;
