@@ -235,7 +235,7 @@
                                                 N/A
                                             @endif
                                         </td>
-                                        <td>{{ $transaction->total_before_tax ?? '0.00' }} @get_format_currency()
+                                        <td>{{ $transaction->final_total ?? '0.00' }} @get_format_currency()
                                         </td>
                                         <td>
                                             @php
@@ -383,7 +383,6 @@
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
     <script>
-        // مخطط اتجاه المبيعات
         var salesTrend = new ApexCharts(document.querySelector('#salesTrendChart'), {
             series: [{
                 name: '@lang('sales::lang.sales')',
