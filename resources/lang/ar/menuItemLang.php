@@ -131,5 +131,6 @@ return [
     'account-payable-ageing-details' => 'تقرير أعمار الذمم الدائنة',
     'periodic' => 'الجرد الدوري',
     'reports_list' => 'قائمة التقارير',
+    'product_dashboard' => 'لوحة تحكم المنتجات',
 
 ];

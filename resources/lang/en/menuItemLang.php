@@ -129,6 +129,8 @@ return [
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
     'periodic' => 'Periodic',
     'reports_list' => 'Reports List',
+    'product_dashboard' => 'Product Dashboard',
+
 
 
 
