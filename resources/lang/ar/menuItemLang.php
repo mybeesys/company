@@ -135,6 +135,7 @@ return [
     'purchase-dashbord'=>'لوحة المشتريات',
 
     'reports_list' => 'قائمة التقارير',
+    'product_dashboard' => 'لوحة تحكم المنتجات',
 
 
 ];

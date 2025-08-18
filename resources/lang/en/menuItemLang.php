@@ -132,5 +132,7 @@ return [
     'purchase-dashbord' => 'Purchase dashbord',
 
     'reports_list' => 'Reports List',
+    'product_dashboard' => 'Product Dashboard',
+
 
 ];
