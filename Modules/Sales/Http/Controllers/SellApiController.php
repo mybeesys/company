@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Models\EstPos;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
@@ -57,6 +58,10 @@ class SellApiController extends Controller
             if (!$created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
             }
+            if (EstPos::find($request->device_id)) {
+                return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
+            }
+
             $transaction =   Transaction::create([
                 'type' => 'sell',
                 'invoice_type' => $request->payment_status,
