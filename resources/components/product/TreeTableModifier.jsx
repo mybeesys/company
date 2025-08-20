@@ -387,7 +387,25 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             <span>{node.data[key]}</span>
         );
     };
-
+    const renderDecimalCellPrice = (node, key, autoFocus) => {
+        const indent = node.key.toString().split("-").length;
+        return node.key == currentKey ? (
+            <input
+                type="number"
+                min="0"
+                step=".01"
+                class={`form-control text-editor number-indent-${indent}`}
+                defaultValue={node.data[key]}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                style={{ width: "100%" }}
+                required
+            />
+        ) : (
+            <span>{node.data["price_with_tax"]}</span>
+        );
+    };
     const openDeleteModel = (data) => {
         setUrl(JSON.parse(rootElement.getAttribute(`${data.type}-url`)));
         setCurrentNode(data);
@@ -567,22 +585,22 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column
-                            header={translations.price}
+                            header={translations.cost}
                             style={{ width: "10%" }}
                             body={(node) =>
                                 node.data.type == "product" ? (
-                                    renderDecimalCell(node, "price")
+                                    renderDecimalCell(node, "cost")
                                 ) : (
                                     <></>
                                 )
                             }
                         ></Column>
                         <Column
-                            header={translations.cost}
+                            header={translations.price}
                             style={{ width: "10%" }}
                             body={(node) =>
                                 node.data.type == "product" ? (
-                                    renderDecimalCell(node, "cost")
+                                    renderDecimalCellPrice(node, "price")
                                 ) : (
                                     <></>
                                 )

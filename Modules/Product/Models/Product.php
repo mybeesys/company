@@ -60,17 +60,20 @@ class Product extends Model
         'attribute_id1',
         'attribute_id2',
         'parent_id',
-        'class_id','last_counted_quantity','last_counted_date'
+        'price_with_tax',
+        'class_id',
+        'last_counted_quantity',
+        'last_counted_date'
 
     ];
 
-    protected $appends = ['price_with_tax'];
+    /*protected $appends = ['price_with_tax'];
 
     public function getPriceWithTaxAttribute()
     {
         return $this->price + TaxHelper::getTax($this->price, $this->tax ? $this->tax->amount : 0); // Calculate the field on the fly
     }
-
+*/
     public function getFillable()
     {
         return $this->fillable;
@@ -210,7 +213,7 @@ class Product extends Model
             ->get();
     }
 
-     public static function productsForPurchese()
+    public static function productsForPurchese()
     {
         return Product::where([['active', '=', 1], ['for_sell', '=', 1]])
             ->whereIn('type', ['product', 'variation'])
@@ -219,5 +222,4 @@ class Product extends Model
             }])
             ->get();
     }
-
 }
