@@ -13,7 +13,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $establishment->name }} - @lang('reservation::lang.menu')</title>
+    <title>{{ $establishment->name }} - @lang('general::lang.menu')</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -783,15 +783,15 @@
                             <input type="checkbox" id="switchForDark">
                             <span class="slider"></span>
                         </label>
-                        <span class="switch-label">@lang('reservation::lang.night_mode')</span>
+                        <span class="switch-label">@lang('general::lang.night_mode')</span>
                     </div>
                 </div>
 
                 <div class="title with-shadow withStatuses">
                     <div class="delivery-status">
-                        <h5>@lang('reservation::lang.place'):</h5>
+                        <h5>@lang('general::lang.place'):</h5>
                         <h4>
-                            <span class="label label-success merchant_opening_status">@lang('reservation::lang.open')</span>
+                            <span class="label label-success merchant_opening_status">@lang('general::lang.open')</span>
                         </h4>
                     </div>
                 </div>
@@ -820,7 +820,7 @@
 
             <div class="center-info-outer">
                 <div class="author">
-                    <img src="{{ asset($company->logo) }}" alt="{{ $company->name }}">
+                    <img src="{{ asset('amen.jpg') }}" alt="{{ $company->name }}">
                 </div>
             </div>
         </div>
@@ -856,16 +856,16 @@
                         <div class="icon-menu-container d-flex flex-wrap justify-content-center">
                             @php
                                 $items = [
-                                    ['icon' => 'fa-solid fa-utensils', 'title' => __('reservation::lang.todays_menu')],
-                                    ['icon' => 'fa-solid fa-location-dot', 'title' => __('reservation::lang.location')],
-                                    ['icon' => 'fa-solid fa-book-open', 'title' => __('reservation::lang.smart_menu')],
+                                    ['icon' => 'fa-solid fa-utensils', 'title' => __('general::lang.todays_menu')],
+                                    ['icon' => 'fa-solid fa-location-dot', 'title' => __('general::lang.location')],
+                                    ['icon' => 'fa-solid fa-book-open', 'title' => __('general::lang.smart_menu')],
                                     [
                                         'icon' => 'fa-solid fa-drumstick-bite',
-                                        'title' => __('reservation::lang.allergy_info'),
+                                        'title' => __('general::lang.allergy_info'),
                                     ],
-                                    ['icon' => 'fa-solid fa-image', 'title' => __('reservation::lang.photos')],
-                                    ['icon' => 'fa-solid fa-comment-dots', 'title' => __('reservation::lang.feedback')],
-                                    ['icon' => 'fa-solid fa-circle-info', 'title' => __('reservation::lang.info')],
+                                    ['icon' => 'fa-solid fa-image', 'title' => __('general::lang.photos')],
+                                    ['icon' => 'fa-solid fa-comment-dots', 'title' => __('general::lang.feedback')],
+                                    ['icon' => 'fa-solid fa-circle-info', 'title' => __('general::lang.info')],
                                 ];
                             @endphp
 
@@ -920,7 +920,7 @@
 
                         <div class="flex-grow-1 position-relative" style="max-width: 85%;">
                             <input type="text" id="searchInput" class="form-control search-input"
-                                placeholder="@lang('reservation::lang.search_placeholder')"
+                                placeholder="@lang('general::lang.search_placeholder')"
                                 style="
                     border-radius: 10px;
                     padding: 5px 45px 5px 15px;
@@ -933,11 +933,11 @@
 
                         <div class="btn-group shadow-sm rounded-pill my-1" role="group" style="overflow: hidden;">
                             <button type="button" class="btn view-btn" data-view="grid-2"
-                                title="@lang('reservation::lang.grid_view_2')">
+                                title="@lang('general::lang.grid_view_2')">
                                 <i class="bi bi-grid-3x3-gap-fill"></i>
                             </button>
                             <button type="button" class="btn view-btn" data-view="grid-4"
-                                title="@lang('reservation::lang.grid_view_4')">
+                                title="@lang('general::lang.grid_view_4')">
                                 <i class="bi bi-grid-fill"></i>
                             </button>
                         </div>
@@ -966,12 +966,12 @@
                                                 style="margin: 0;font-weight: 400;min-height: 25px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                 {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
                                                 @if (!empty($product->calories) && is_numeric($product->calories))
-                                                    (@lang('reservation::lang.calories') {{ (int) $product->calories }})
+                                                    (@lang('general::lang.calories') {{ (int) $product->calories }})
                                                 @endif
                                             </p>
 
                                             <div class="fw-bold text-success" style="font-size: 16px;">
-                                                {{ number_format($product->price_with_tax, 2) }} @lang('reservation::lang.currency')
+                                                {{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')
                                             </div>
                                         </div>
                                     </div>
@@ -1051,7 +1051,7 @@
 
         const menuToggle = document.querySelector('.menu-toggle');
         menuToggle.addEventListener('click', function() {
-            alert('@lang('reservation::lang.side_menu_opening')');
+            alert('@lang('general::lang.side_menu_opening')');
         });
     </script>
 </body>
