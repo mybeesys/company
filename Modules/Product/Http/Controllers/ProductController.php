@@ -641,23 +641,24 @@ class ProductController extends Controller
         ProductModifier::where('product_id', $productId)->delete();
 
         foreach ($modifiers as $modifierGroup) {
-            $classData = $modifierGroup['class'];
-            $mainModifier = ProductModifier::create([
-                'product_id' => $productId,
-                'modifier_class_id' => $classData['modifier_class_id'],
-                'modifier_id' => null,
-                'min_modifiers' => $classData['min_modifiers'] ?? 0,
-                'max_modifiers' => $classData['max_modifiers'] ?? 0,
-                'free_quantity' => $classData['free_quantity'] ?? 0,
-                'free_type' => $classData['free_type'] ?? 0,
-                'active' => 1,
-                'default' => 0,
-                'required' => 0,
-                'display_order' => 0,
-                'button_display' => 0,
-                'modifier_display' => 0,
-            ]);
-
+            if (isset($modifierGroup['class'])) {
+                $classData = $modifierGroup['class'];
+                $mainModifier = ProductModifier::create([
+                    'product_id' => $productId,
+                    'modifier_class_id' => $classData['modifier_class_id'],
+                    'modifier_id' => null,
+                    'min_modifiers' => $classData['min_modifiers'] ?? 0,
+                    'max_modifiers' => $classData['max_modifiers'] ?? 0,
+                    'free_quantity' => $classData['free_quantity'] ?? 0,
+                    'free_type' => $classData['free_type'] ?? 0,
+                    'active' => 1,
+                    'default' => 0,
+                    'required' => 0,
+                    'display_order' => 0,
+                    'button_display' => 0,
+                    'modifier_display' => 0,
+                ]);
+            }
             if (isset($modifierGroup['modifiers']) && is_array($modifierGroup['modifiers'])) {
                 foreach ($modifierGroup['modifiers'] as $modifier) {
                     ProductModifier::create([
