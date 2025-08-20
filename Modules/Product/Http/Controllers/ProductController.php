@@ -31,6 +31,7 @@ use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\Storage;
+use Modules\General\Models\Tax;
 
 class ProductController extends Controller
 {
@@ -45,7 +46,8 @@ class ProductController extends Controller
         'SKU' => 'nullable|string',
         'barcode' => 'nullable|string',
         'cost' => 'required|numeric',
-        'price' => 'required|numeric',
+        'price' => 'numeric',
+        'price_with_tax' => 'numeric',
         'description_ar' => 'nullable|string',
         'description_en' => 'nullable|string',
         'class' => 'nullable|string',
@@ -263,8 +265,8 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         error_log(json_encode($request->all()));
-        $validated = $request->validate($this->requetsValidator);
 
+        $validated = $request->validate($this->requetsValidator);
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $validateUsing = $this->validateInUse($validated['id']);
             if ($validateUsing != null)
@@ -292,6 +294,14 @@ class ProductController extends Controller
         $product = Product::find($validated['id']);
         $product->fill($validated);
         $product->color = $validated['color'] ?? '#37D67A';
+        $tax = Tax::where("default", 1)->first();
+        $taxRate = $tax ? $tax->amount : 0;
+        if (isset($validated['price_with_tax'])) {
+            $product->price_with_tax = $validated['price_with_tax'];
+        } else {
+            $product->price_with_tax = $validated['price'];
+            $product->price = TaxHelper::getAmountBeforeTax($validated['price'], $taxRate);;
+        }
         // $product->name_ar = $validated['name_ar'];
         // $product->name_en = $validated['name_en'];
         // $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
@@ -376,7 +386,7 @@ class ProductController extends Controller
                     }
                     $recipeIngredient = explode("-", $newid);
 
-                    Log::info("Request data recipe:", $recipeIngredient);
+                    //Log::info("Request data recipe:", $recipeIngredient);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
@@ -496,7 +506,7 @@ class ProductController extends Controller
                             if (isset($combo['upchargePrices'])) {
                                 $index = array_search($productId, array_column($combo["upchargePrices"], 'product_id'));
                                 if ($index !== false) {
-                                    $comboItem->price = $combo['upchargePrices'][$index]["price"] ?? null; // تعيين السعر إذا كان موجودًا
+                                    $comboItem->price = $combo['upchargePrices'][$index]["price"] ?? null;
                                 }
                             }
                             $comboItem->save();
@@ -565,7 +575,15 @@ class ProductController extends Controller
         DB::transaction(function () use ($validated, $request) {
             // 1. Create the product
             $product = Product::create($validated);
-
+            $tax = Tax::where("default", 1)->first();
+            $taxRate = $tax ? $tax->amount : 0;
+            if (isset($validated['price_with_tax'])) {
+                $product->price_with_tax = $validated['price_with_tax'];
+            } else {
+                $product->price_with_tax = $validated['price'];
+                $product->price = TaxHelper::getAmountBeforeTax($validated['price'], $taxRate);;
+            }
+            // $product->name_ar = $validated['name_ar'];
             $product->color = $validated['color'] ?? '#37D67A';
             // 5. Handle image upload if a file is provided
             if ($request->hasFile('image_file')) {
