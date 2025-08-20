@@ -38,8 +38,10 @@ class EstablishmentController extends Controller
                 'devices' => []
             ], 200);
         }
-
-        return response()->json($devices, 200);
+        return response()->json([
+            'message' => 'Devices fetched successfully',
+            'devices' => $devices
+        ], 200);
     }
     public function assignDeviceToken(Request $request)
     {
@@ -62,6 +64,9 @@ class EstablishmentController extends Controller
         $device->token = Str::random(60);
         $device->save();
 
-        return response()->json($device, 200);
+        return response()->json([
+            'message' => 'Devices fetched successfully',
+            'devices' => $device
+        ], 200);
     }
 }
