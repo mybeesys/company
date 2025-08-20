@@ -814,8 +814,7 @@
 
     <div class="content">
         <div class="profile-bx">
-            <div class="contact-background-main"
-                style="background-image: url('{{ asset('11.jpeg') }}');">
+            <div class="contact-background-main" style="background-image: url('{{ asset('11.jpeg') }}');">
                 <div class="profile-content"></div>
             </div>
 
@@ -898,7 +897,7 @@
                                 $firstProduct = $category->products->first();
                                 $imageUrl =
                                     $firstProduct && $firstProduct->image
-                                        ? asset('src/media/demo/2600x1200/101.jpeg')
+                                        ? asset($firstProduct->image)
                                         : asset('menuplacholder.jpg');
                             @endphp
 
@@ -955,7 +954,7 @@
                             <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
                                 @foreach ($category->products as $product)
                                     <div class="product-card card border-0 p-2">
-                                        <img src="{{ asset('src/media/demo/2600x1200/101.jpeg') }}"
+                                        <img src="{{ asset($product->image) }}"
                                             class="card-img-top rounded" alt="{{ $product->name_ar }}"
                                             style="height: 200px; object-fit: cover;">
                                         <div class="card-body p-2">
