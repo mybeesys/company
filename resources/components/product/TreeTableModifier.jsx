@@ -596,7 +596,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             }
                         ></Column>
                         <Column
-                            header={translations.price}
+                            header={translations.priceWithTax}
                             style={{ width: "10%" }}
                             body={(node) =>
                                 node.data.type == "product" ? (
