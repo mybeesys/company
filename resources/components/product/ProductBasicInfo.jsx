@@ -44,11 +44,14 @@ const ProductBasicInfo = ({
                 subCategories = await fetchSubCategoryOptions(
                     currentObject.category_id
                 );
-                if (subCategories.length > 0) {
-                    currentObject["subcategory_id"] = subCategories[0].value;
-                    currentObject["subcategory"] = subCategories[0];
+                if (subCategories.length > 0 && currentObject.subcategory_id) {
+                    const selectedSubcategory = subCategories.find(
+                        (sub) => sub.value === currentObject.subcategory_id
+                    );
+                    currentObject["subcategory"] = selectedSubcategory || null;
                 } else {
                     currentObject["subcategory"] = null;
+                    currentObject["subcategory_id"] = null;
                 }
             }
             setCategoryOptions(categories);
@@ -75,18 +78,25 @@ const ProductBasicInfo = ({
     };
 
     const handleChange = async (key, value, option) => {
-        let r = { ...currentObject };
-        r[key] = value;
-        if (key == "category_id") {
-            r["category"] = option;
+        let updatedObject = { ...currentObject };
+
+        if (key === "category_id") {
+            updatedObject["category_id"] = value;
+            updatedObject["category"] = option;
+
             const subCategories = await fetchSubCategoryOptions(value);
-            r["subcategory_id"] =
-                subCategories.length > 0 ? subCategories[0].value : null;
-            r["subcategory"] =
-                subCategories.length > 0 ? subCategories[0] : null;
             setSubCategoryOptions(subCategories);
+
+            updatedObject["subcategory_id"] = null;
+            updatedObject["subcategory"] = null;
+        } else if (key === "subcategory_id") {
+            updatedObject["subcategory_id"] = value;
+            updatedObject["subcategory"] = option;
+        } else {
+            updatedObject[key] = value;
         }
-        parentHandlechanges({ ...r });
+
+        parentHandlechanges(updatedObject);
     };
     // Clean up object URLs to avoid memory leaks
     React.useEffect(() => {
