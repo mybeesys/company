@@ -66,7 +66,7 @@ class EstablishmentController extends Controller
 
         return response()->json([
             'message' => 'Devices fetched successfully',
-            'devices' => $device
+            'device' => $device
         ], 200);
     }
 }
