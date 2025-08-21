@@ -11,6 +11,7 @@ use Modules\Product\Models\Product;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
 use Illuminate\Support\Str;
+use Modules\Reservation\Models\MenuToken;
 
 class OrderController extends Controller
 {
@@ -31,15 +32,21 @@ class OrderController extends Controller
 
 
         $data = $request->all();
-        // if ($request->hasFile('cover')) {
-        //     $coverPath = $request->file('cover')->store('menu_covers', 'public');
-        //     $data['cover'] = $coverPath;
-        // }
+        $coverPath = null;
+        if ($request->hasFile('cover')) {
+            $coverPath = $request->file('cover')->store('menu_covers', 'public');
+        }
 
         $token = Str::random(30);
 
-        session()->put("menu_data_{$token}", $data);
-
+        $menuToken = MenuToken::create([
+            'est_id'    => $data['est_id'],
+            'title'     => $data['title'] ?? '',
+            'sub_title' => $data['sub_title'] ?? '',
+            'products'  => json_decode($data['products'], true) ?? [],
+            'cover'     => $coverPath,
+            'token'     => $token,
+        ]);
         return response()->json(['token' => $token]);
     }
 
@@ -48,16 +55,17 @@ class OrderController extends Controller
     public function menuSimple($token)
     {
 
-        $data = session()->get("menu_data_{$token}");
+        $menuToken = MenuToken::where('token', $token)->first();
 
-        if (!$data) {
+        if (!$menuToken) {
             abort(404, 'الرابط غير صالح أو انتهت صلاحيته');
         }
 
-        $establishment_id = $data['est_id'];
-        $title = $data['title'];
-        $subTitle = $data['sub_title'];
-        $product_ids = json_decode($data['products'], true) ?? [];
+
+        $establishment_id = $menuToken['est_id'];
+        $title = $menuToken['title'];
+        $subTitle = $menuToken['sub_title'];
+        $product_ids = json_decode($menuToken['products'], true) ?? [];
         // $cover = $data['cover'];
 
         // $products = Product::whereIn('id', $product_ids)->with('category', 'subcategory')->get();
