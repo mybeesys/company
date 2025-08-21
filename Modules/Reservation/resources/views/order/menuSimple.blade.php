@@ -252,6 +252,16 @@
 
 
         @media (max-width: 768px) {
+
+            .products-wrapper.grid-2 {
+                display: grid;
+                grid-template-columns: repeat(1, 1fr);
+            }
+
+            .products-wrapper.grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .navbar-inner {
                 position: relative;
                 padding: 0 5px;
@@ -287,6 +297,7 @@
             .delivery-status {
                 flex-direction: row;
                 gap: 5px;
+                padding-top: 8px;
             }
 
             .delivery-status h5 {
@@ -312,9 +323,19 @@
         }
 
         @media (max-width: 480px) {
+            .products-wrapper.grid-2 {
+                display: grid;
+                grid-template-columns: repeat(1, 1fr);
+            }
+
+            .products-wrapper.grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .delivery-status h5 {
                 display: none;
             }
+
             .card-img-top {
                 /* padding: 0px 0px; */
                 height: 119px !important;
@@ -554,6 +575,11 @@
         }
 
         @media (max-width: 768px) {
+            .products-wrapper.grid-2 {
+                display: grid;
+                grid-template-columns: repeat(1, 1fr);
+            }
+
             .products-wrapper.grid-4 {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -569,21 +595,26 @@
 
         @media (max-width: 576px) {
 
-            /* .products-wrapper.grid-4,
             .products-wrapper.grid-2 {
+                display: grid;
                 grid-template-columns: repeat(1, 1fr);
-            } */
+            }
+
+            .products-wrapper.grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
             .categories-container {
                 padding: 0px 0px;
             }
+
             .card-img-top {
                 /* padding: 0px 0px; */
                 height: 119px !important;
             }
         }
 
-         @media (max-width: 768px) {
+        @media (max-width: 768px) {
 
             /* .products-wrapper.grid-4,
             .products-wrapper.grid-2 {
@@ -826,6 +857,35 @@
             height: 26px;
             border-radius: 5px;
         }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+
+        .no-results i {
+            font-size: 60px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .no-results h4 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .no-results p {
+            color: var(--muted-text);
+        }
+
+        .category-section.hidden {
+            display: none !important;
+        }
+
+        .product-card.hidden {
+            display: none !important;
+        }
     </style>
 
 </head>
@@ -838,13 +898,6 @@
         <div class="navbar navbar-style-1 px-3">
             <div class="navbar-inner">
                 <div class="left">
-                    {{-- <div class="switch-container">
-                        <label class="switch">
-                            <input type="checkbox" id="switchForDark">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="switch-label">@lang('general::lang.night_mode')</span>
-                    </div> --}}
 
                     <div class="theme-toggle" id="themeToggle">
                         <i class="sun-icon fas fa-sun"></i>
@@ -863,12 +916,6 @@
                 </div>
 
                 <div class="right">
-                    {{-- <a href="{{ route('set_locale', ['locale' => session('locale') == 'ar' ? 'en' : 'ar']) }}"
-                        class="language-btn country-flag language-selection" id="languageButton">
-                        <img class=" rounded-1 ms-2" style="width: 65px;"
-                            src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
-                            alt="Language Flag" />
-                    </a> --}}
 
                     <a href="{{ route('set_locale', ['locale' => session('locale') == 'ar' ? 'en' : 'ar']) }}"
                         class="language-switch">
@@ -954,6 +1001,7 @@
 
         </div>
 
+
         <div class="categories-container" style="margin-top: 40px;">
 
             <div class="container-fluid my-15" style="">
@@ -973,12 +1021,10 @@
                             <a href="#category-{{ $category->id }}" class="category-card">
                                 <div class="image-wrapper">
                                     <img src="{{ $imageUrl }}"
-                                        alt="                              {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-">
+                                        alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
                                     <div class="overlay"></div>
                                     <h5 class="category-title">
                                         {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-
                                     </h5>
                                 </div>
                             </a>
@@ -1011,6 +1057,12 @@
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <div class="no-results" id="noResults">
+                    <i class="fas fa-search"></i>
+                    <h4>@lang('general::lang.no_results')</h4>
+                    <p>@lang('general::lang.try_different_keywords')</p>
                 </div>
 
                 @foreach ($categories as $category)
@@ -1051,19 +1103,7 @@
             </div>
         </div>
 
-        <script>
-            $('#searchInput').on('keyup', function() {
-                let value = $(this).val().toLowerCase();
-                $('.product-card').filter(function() {
-                    $(this).toggle($(this).find('.card-title').text().toLowerCase().indexOf(value) > -1);
-                });
-            });
 
-            $('.btn-group button').on('click', function() {
-                let view = $(this).data('view');
-                $('.products-wrapper').removeClass('grid-1 grid-2 grid-4').addClass(view);
-            });
-        </script>
 
     </div>
 
@@ -1094,9 +1134,6 @@
             }
         });
 
-        // const currentLang = localStorage.getItem('language') || 'ar';
-        // updateLanguageButton(currentLang);
-        // });
 
         function updateLanguageButton(lang) {
             const languageText = document.getElementById('languageText');
@@ -1128,6 +1165,58 @@
         const menuToggle = document.querySelector('.menu-toggle');
         menuToggle.addEventListener('click', function() {
             alert('@lang('general::lang.side_menu_opening')');
+        });
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            $('#searchInput').on('keyup', function() {
+                let value = $(this).val().toLowerCase().trim();
+                let hasVisibleResults = false;
+                $('.product-card').addClass('hidden');
+
+                if (value === '') {
+                    $('.product-card').removeClass('hidden');
+                    $('.category-section').removeClass('hidden');
+                    $('#noResults').hide();
+                    return;
+                }
+
+                $('.product-card').each(function() {
+                    const productTitle = $(this).find('.card-title').text().toLowerCase();
+                    if (productTitle.includes(value)) {
+                        $(this).removeClass('hidden');
+                        hasVisibleResults = true;
+                    }
+                });
+
+                $('.category-section').each(function() {
+                    const categoryId = $(this).attr('id').replace('category-', '');
+                    const hasVisibleProducts = $(this).find('.product-card:not(.hidden)').length >
+                        0;
+
+                    if (hasVisibleProducts) {
+                        $(this).removeClass('hidden');
+                    } else {
+                        $(this).addClass('hidden');
+                    }
+                });
+
+                if (hasVisibleResults) {
+                    $('#noResults').hide();
+                } else {
+                    $('#noResults').show();
+                }
+            });
+
+            $('.btn-group button').on('click', function() {
+                let view = $(this).data('view');
+                $('.products-wrapper').removeClass('grid-1 grid-2 grid-4').addClass(view);
+
+                $('.btn-group button').removeClass('active');
+                $(this).addClass('active');
+            });
         });
     </script>
 </body>
