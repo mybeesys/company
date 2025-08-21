@@ -34,11 +34,11 @@ return [
 
 
     'purchases' => 'Purchase Invoice',
-    'purchases-order' =>'Purchase Order',
-    'purchases-return'=>'Purchase Return',
+    'purchases-order' => 'Purchase Order',
+    'purchases-return' => 'Purchase Return',
 
 
-  'menu' => 'Menu',
+    'menu' => 'Menu',
     'night_mode' => 'Night',
     'place' => 'Place',
     'open' => 'Open',
@@ -56,6 +56,8 @@ return [
     'currency' => 'SAR',
     'side_menu_opening' => 'Side menu will open',
 
-
+    'no_results' => 'No results found',
+    'try_different_keywords' => 'Try different keywords',
+    'searching' => 'Searching...',
 
 ];

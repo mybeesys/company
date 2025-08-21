@@ -58,7 +58,9 @@ return [
     'calories' => 'سعرات حرارية',
     'currency' => 'ر.س',
     'side_menu_opening' => 'سيتم فتح القائمة الجانبية',
-
+    'no_results' => 'لم يتم العثور على نتائج',
+    'try_different_keywords' => 'جرب كلمات بحث مختلفة',
+    'searching' => 'جاري البحث...',
 
 
 
