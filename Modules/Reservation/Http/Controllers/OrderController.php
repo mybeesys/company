@@ -37,7 +37,6 @@ class OrderController extends Controller
             $coverPath = $request->file('cover')->store('menu_covers', 'public');
         }
 
-        // إنشاء توكن عشوائي
         $token = Str::random(30);
 
         $menuToken = MenuToken::create([
