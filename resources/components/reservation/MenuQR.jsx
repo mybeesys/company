@@ -62,7 +62,52 @@ const MenuQR = ({ translations, dir }) => {
         });
     };
 
-    const generateQR = () => {
+    // const generateQR = () => {
+    //     if (!currentObject.establishment) {
+    //         setShowAlert(true);
+    //         Swal.fire({
+    //             show: showAlert,
+    //             title: "Error",
+    //             html: `${translations.establishment} ${translations.required}`,
+    //             icon: "error",
+    //             timer: 4000,
+    //             showCancelButton: false,
+    //             showConfirmButton: false,
+    //         }).then(() => {
+    //             setShowAlert(false);
+    //         });
+    //         return;
+    //     }
+
+    //     const selectedProducts = Array.isArray(currentObject.selectedProducts)
+    //         ? currentObject.selectedProducts
+    //         : [];
+
+    //     const productIds = selectedProducts
+    //         .map((product) => product.value)
+    //         .join(",");
+    //     setQrInfo({
+    //         id: `qr-${getRowName(currentObject.establishment, dir)}`,
+    //         url: `${window.location.origin}/menuSimple?est_id=${
+    //             currentObject.establishment.id
+    //         }&title=${currentObject.title ?? ""}&sub_title=${
+    //             currentObject.subTitle ?? ""
+    //         }&products=${productIds}`,
+    //         color: !currentObject.color ? "#000000" : currentObject.color,
+    //         logo: !currentObject.showLogo
+    //             ? {}
+    //             : {
+    //                   src: logourl,
+    //                   x: undefined,
+    //                   y: undefined,
+    //                   height: 56,
+    //                   width: 56,
+    //                   excavate: true,
+    //               },
+    //     });
+    // };
+
+    const generateQR = async () => {
         if (!currentObject.establishment) {
             setShowAlert(true);
             Swal.fire({
@@ -78,33 +123,52 @@ const MenuQR = ({ translations, dir }) => {
             });
             return;
         }
-
         const selectedProducts = Array.isArray(currentObject.selectedProducts)
             ? currentObject.selectedProducts
             : [];
 
-        const productIds = selectedProducts
-            .map((product) => product.value)
-            .join(",");
-        setQrInfo({
-            id: `qr-${getRowName(currentObject.establishment, dir)}`,
-            url: `${window.location.origin}/menuSimple?est_id=${
-                currentObject.establishment.id
-            }&title=${currentObject.title ?? ""}&sub_title=${
-                currentObject.subTitle ?? ""
-            }&products=${productIds}`,
-            color: !currentObject.color ? "#000000" : currentObject.color,
-            logo: !currentObject.showLogo
-                ? {}
-                : {
-                      src: logourl,
-                      x: undefined,
-                      y: undefined,
-                      height: 56,
-                      width: 56,
-                      excavate: true,
-                  },
-        });
+        try {
+            const formData = new FormData();
+
+            formData.append("est_id", currentObject.establishment.id);
+            formData.append("title", currentObject.title ?? "");
+            formData.append("sub_title", currentObject.subTitle ?? "");
+            formData.append(
+                "products",
+                JSON.stringify(selectedProducts.map((p) => p.value))
+            );
+            // formData.append("cover", currentObject.cover ?? "");
+
+            const response = await axios.post(
+                "/generate-menu-token",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            const { token } = response.data;
+
+            setQrInfo({
+                id: `qr-${getRowName(currentObject.establishment, dir)}`,
+                url: `${window.location.origin}/menuSimple/${token}`,
+                color: !currentObject.color ? "#000000" : currentObject.color,
+                logo: !currentObject.showLogo
+                    ? {}
+                    : {
+                          src: logourl,
+                          x: undefined,
+                          y: undefined,
+                          height: 56,
+                          width: 56,
+                          excavate: true,
+                      },
+            });
+        } catch (error) {
+            console.error("Error generating QR:", error);
+        }
     };
 
     const downloadQRCode = () => {
@@ -206,6 +270,53 @@ const MenuQR = ({ translations, dir }) => {
                                     required
                                 />
                             </div>
+                            {/* <div class="col-6">
+                                <div style={{ marginTop: "20px" }}>
+                                    <label
+                                        type="text"
+                                        class="form-control form-control-solid custom-height"
+                                        htmlFor="cover"
+                                        style={{
+                                            fontWeight: "bold",
+                                            display: "block",
+                                        }}
+                                    >
+                                        اختر صورة الغلاف
+                                    </label>
+                                    <input
+                                        hidden
+                                        type="file"
+                                        id="cover"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            setCurrentObject({
+                                                ...currentObject,
+                                                cover: file,
+                                            });
+                                        }}
+                                    />
+
+                                    {currentObject.cover && (
+                                        <div style={{ marginTop: "10px" }}>
+                                            <img
+                                                src={URL.createObjectURL(
+                                                    currentObject.cover
+                                                )}
+                                                alt="Cover Preview"
+                                                style={{
+                                                    width: "250px",
+                                                    height: "150px",
+                                                    objectFit: "cover",
+                                                    borderRadius: "10px",
+                                                    boxShadow:
+                                                        "0 0 5px rgba(0,0,0,0.3)",
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div> */}
                         </div>
                     </div>
                     <div class="row pt-5">

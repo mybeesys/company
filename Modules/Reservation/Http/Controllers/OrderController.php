@@ -10,6 +10,7 @@ use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -24,19 +25,44 @@ class OrderController extends Controller
         return view('reservation::order.menu', compact('table'));
     }
 
-    public function menuSimple(Request $request)
-    {
-        $establishment_id = $request->query('est_id', '');
-        $title = $request->query('title', '');
-        $subTitle = $request->query('sub_title', '');
-        $product_ids = $request->query('products', '');
-        $product_ids_array = array_filter(explode(',', $product_ids), function ($value) {
-            return is_numeric($value) && $value > 0;
-        });
 
-        $products = Product::whereIn('id', $product_ids_array)->with('category', 'subcategory')->get();
-        $categories = Category::with(['products' => function ($q) use ($product_ids_array) {
-            $q->whereIn('id', $product_ids_array)->where('show_in_menu', 1);
+    public function generateToken(Request $request)
+    {
+
+
+        $data = $request->all();
+        // if ($request->hasFile('cover')) {
+        //     $coverPath = $request->file('cover')->store('menu_covers', 'public');
+        //     $data['cover'] = $coverPath;
+        // }
+
+        $token = Str::random(30);
+
+        session()->put("menu_data_{$token}", $data);
+
+        return response()->json(['token' => $token]);
+    }
+
+
+
+    public function menuSimple($token)
+    {
+
+        $data = session()->get("menu_data_{$token}");
+
+        if (!$data) {
+            abort(404, 'الرابط غير صالح أو انتهت صلاحيته');
+        }
+
+        $establishment_id = $data['est_id'];
+        $title = $data['title'];
+        $subTitle = $data['sub_title'];
+        $product_ids = json_decode($data['products'], true) ?? [];
+        // $cover = $data['cover'];
+
+        // $products = Product::whereIn('id', $product_ids)->with('category', 'subcategory')->get();
+        $categories = Category::with(['products' => function ($q) use ($product_ids) {
+            $q->whereIn('id', $product_ids)->where('show_in_menu', 1);
         }])->get();
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
@@ -47,7 +73,7 @@ class OrderController extends Controller
             'title' => $title,
             'sub_title' => $subTitle
         ];
-        return view('reservation::order.menuSimple', compact('info','company', 'categories', 'establishment', 'products', 'title', 'subTitle'));
+        return view('reservation::order.menuSimple', compact('info',  'company', 'categories', 'establishment', 'title', 'subTitle'));
     }
 
     public function menuQR()
