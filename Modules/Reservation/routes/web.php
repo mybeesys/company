@@ -23,7 +23,7 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-])->group( function () {
+])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
         Route::resource('area', AreaController::class)->names('area');
@@ -37,7 +37,9 @@ Route::middleware([
         Route::get('/menuQR', [OrderController::class, 'menuQR'])->name('reservation.menuQR');
     });
     Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');
-    Route::get('/menuSimple', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
+    Route::get('/menuSimple/{token}', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
     Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
-    
+
+
+    Route::post('/generate-menu-token', [OrderController::class, 'generateToken']);
 });
