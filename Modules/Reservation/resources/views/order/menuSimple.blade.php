@@ -250,16 +250,6 @@
             background-color: rgba(255, 255, 255, 0.3);
         }
 
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 10px;
-        }
 
         @media (max-width: 768px) {
             .navbar-inner {
@@ -267,9 +257,7 @@
                 padding: 0 5px;
             }
 
-            .menu-toggle {
-                display: block;
-            }
+
 
             .left,
             .title,
@@ -327,6 +315,37 @@
             .delivery-status h5 {
                 display: none;
             }
+            .card-img-top {
+                /* padding: 0px 0px; */
+                height: 119px !important;
+            }
+        }
+
+        .theme-toggle {
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary-bg);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s ease;
+            margin-right: 10px;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle i {
+            font-size: 20px;
+            position: absolute;
+            transition: all 0.5s ease;
+            color: var(--icon-color);
         }
 
         .content {
@@ -504,7 +523,7 @@
         .icon-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 0px;
             justify-content: center;
         }
 
@@ -550,10 +569,26 @@
 
         @media (max-width: 576px) {
 
-            .products-wrapper.grid-4,
+            /* .products-wrapper.grid-4,
             .products-wrapper.grid-2 {
                 grid-template-columns: repeat(1, 1fr);
+            } */
+
+            .categories-container {
+                padding: 0px 0px;
             }
+            .card-img-top {
+                /* padding: 0px 0px; */
+                height: 119px !important;
+            }
+        }
+
+         @media (max-width: 768px) {
+
+            /* .products-wrapper.grid-4,
+            .products-wrapper.grid-2 {
+                grid-template-columns: repeat(1, 1fr);
+            } */
 
             .categories-container {
                 padding: 0px 0px;
@@ -596,10 +631,10 @@
         .view-btn {
             background-color: var(--category-bg);
             color: var(--category-text);
-            padding: 8px 15px;
+            padding: 3px 14px;
             font-size: 18px;
             transition: all 0.3s ease;
-            border: 1px solid var(--category-border);
+            /* border: 1px solid var(--category-border); */
         }
 
         .view-btn:hover,
@@ -610,13 +645,13 @@
 
         .search-input {
             background-color: var(--search-bg);
-            border: 1px solid var(--search-border);
+            /* border: 1px solid var(--search-border); */
             color: var(--text-color);
         }
 
         .search-input:focus {
             border-color: #4a6fa5;
-            box-shadow: 0 0 8px rgba(74, 111, 165, 0.3);
+            /* box-shadow: 0 0 8px rgba(74, 111, 165, 0.3); */
             outline: none;
             background-color: var(--search-bg);
             color: var(--text-color);
@@ -766,6 +801,31 @@
             border-color: #4a6fa5;
             color: var(--text-color);
         }
+
+        .language-switch {
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary-bg);
+            border-radius: 12px;
+            /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .language-switch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+        }
+
+        .language-switch img {
+            width: 26px;
+            height: 26px;
+            border-radius: 5px;
+        }
     </style>
 
 </head>
@@ -774,17 +834,23 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <div class="main_page_nav_and_event_image">
-        <div class="navbar navbar-style-1">
+    <div class="main_page_nav_and_event_image ">
+        <div class="navbar navbar-style-1 px-3">
             <div class="navbar-inner">
                 <div class="left">
-                    <div class="switch-container">
+                    {{-- <div class="switch-container">
                         <label class="switch">
                             <input type="checkbox" id="switchForDark">
                             <span class="slider"></span>
                         </label>
                         <span class="switch-label">@lang('general::lang.night_mode')</span>
+                    </div> --}}
+
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="sun-icon fas fa-sun"></i>
+                        <i class="moon-icon fas fa-moon"></i>
                     </div>
+
                 </div>
 
                 <div class="title with-shadow withStatuses">
@@ -797,16 +863,19 @@
                 </div>
 
                 <div class="right">
-                    <a href="{{ route('set_locale', ['locale' => session('locale') == 'ar' ? 'en' : 'ar']) }}"
+                    {{-- <a href="{{ route('set_locale', ['locale' => session('locale') == 'ar' ? 'en' : 'ar']) }}"
                         class="language-btn country-flag language-selection" id="languageButton">
                         <img class=" rounded-1 ms-2" style="width: 65px;"
                             src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
                             alt="Language Flag" />
+                    </a> --}}
+
+                    <a href="{{ route('set_locale', ['locale' => session('locale') == 'ar' ? 'en' : 'ar']) }}"
+                        class="language-switch">
+                        <img src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
+                            alt="Language" />
                     </a>
 
-                    {{-- <button class="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button> --}}
                 </div>
             </div>
         </div>
@@ -825,7 +894,7 @@
             </div>
         </div>
 
-        <div class="restaurant-info " style="margin-top: 55px">
+        <div class="restaurant-info " style="margin-top: 60px">
 
             <div class="">
                 <div class="row">
@@ -833,19 +902,19 @@
                         <h1 class="restaurant-name">{{ $title }}</h1>
                         <p class="restaurant-description">{{ $subTitle }}</p>
                         <div class="icon-list">
-                            <div class="icon-item">
+                            <div class="icon-item" style="width: 55px;">
                                 <i class="fab fa-whatsapp" style="color: #25D366;"></i>
                             </div>
-                            <div class="icon-item">
+                            <div class="icon-item" style="width: 55px;">
                                 <i class="fab fa-instagram" style="color: #E1306C;"></i>
                             </div>
-                            <div class="icon-item">
+                            <div class="icon-item" style="width: 55px;">
                                 <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
                             </div>
-                            <div class="icon-item">
+                            <div class="icon-item" style="width: 55px;">
                                 <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
                             </div>
-                            <div class="icon-item">
+                            <div class="icon-item" style="width: 55px;">
                                 <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
                             </div>
                         </div>
@@ -954,9 +1023,8 @@
                             <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
                                 @foreach ($category->products as $product)
                                     <div class="product-card card border-0 p-2">
-                                        <img src="{{ asset($product->image) }}"
-                                            class="card-img-top rounded" alt="{{ $product->name_ar }}"
-                                            style="height: 200px; object-fit: cover;">
+                                        <img src="{{ asset($product->image) }}" class="card-img-top rounded"
+                                            alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
                                         <div class="card-body p-2">
 
                                             <h6 class="card-title mb-1 fw-bold">
@@ -1006,21 +1074,29 @@
         integrity="sha512-fKcyo0o+5m6fypWn+0n0n0x5f+7l7z+J0Uitc5Y+JyzE5pytXGlA5nyp5jQ17p9pQ1vKaA8kqk0/1LD4GfpJYQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        const switchElement = document.getElementById('switchForDark');
+        const themeToggle = document.getElementById("themeToggle");
+        const body = document.body;
 
-        switchElement.addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
-            localStorage.setItem('darkMode', this.checked);
+        if (localStorage.getItem("theme") === "dark") {
+            body.classList.add("dark-mode");
+        } else {
+            body.classList.add("light-mode");
+        }
+
+        themeToggle.addEventListener("click", () => {
+            body.classList.toggle("dark-mode");
+            body.classList.toggle("light-mode");
+
+            if (body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const darkMode = localStorage.getItem('darkMode') === 'true';
-            switchElement.checked = darkMode;
-            document.body.classList.toggle('dark-mode', darkMode);
-
-            const currentLang = localStorage.getItem('language') || 'ar';
-            updateLanguageButton(currentLang);
-        });
+        // const currentLang = localStorage.getItem('language') || 'ar';
+        // updateLanguageButton(currentLang);
+        // });
 
         function updateLanguageButton(lang) {
             const languageText = document.getElementById('languageText');
