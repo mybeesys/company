@@ -65,7 +65,7 @@ class OrderController extends Controller
         $establishment_id = $menuToken['est_id'];
         $title = $menuToken['title'];
         $subTitle = $menuToken['sub_title'];
-        $product_ids = json_decode($menuToken['products'], true) ?? [];
+        $product_ids = $menuToken->products ?? [];
         // $cover = $data['cover'];
 
         // $products = Product::whereIn('id', $product_ids)->with('category', 'subcategory')->get();
