@@ -15,5 +15,5 @@ return [
     'view_products' => 'View Products',
     'damaged_products' => 'Damaged Products',
     'transfer_product' => 'Transfer Product',
-    'prepare_recipe' => 'Prepare Recipe',
+    'prepare_recipe' => 'Prepare Recipe'
 ];

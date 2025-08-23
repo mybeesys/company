@@ -1,21 +1,6 @@
 <?php
 return [
-    'name_ar' => 'الاسم العربي',
-    'name_en' => 'الاسم الأجنبي',
-      'warehouse_dashboard' => 'لوحة تحكم المستودع',
-    'warehouses_count' => 'إجمالي عدد المستودعات',
-    'transfers_count' => 'إجمالي عدد التحويلات',
-    'preparations_count' => 'إجمالي عدد التحضيرات',
-    'waste_count' => 'إجمالي عدد الاتلافات',
-    'inventory_overview' => 'نظرة عامة على مخزون المستودعات',
-    'no_products' => 'لا يوجد منتجات',
-    'highest_quantity' => 'أعلى كمية',
-    'lowest_quantity' => 'أقل كمية',
-    'quantity' => 'الكمية',
-    'no_warehouses' => 'لا توجد مستودعات متاحة لعرض المخزون.',
-    'view_products' => 'عرض المنتجات',
-    'damaged_products' => 'منتجات تالفة',
-    'transfer_product' => 'تحويل منتج',
-    'prepare_recipe' => 'تحضير وصفة',
+  'name_ar' => 'الاسم العربي',
+  'name_en' => 'الاسم الأجنبي',
 
 ];

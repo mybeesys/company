@@ -15,5 +15,5 @@ return [
     'view_products' => 'عرض المنتجات',
     'damaged_products' => 'منتجات تالفة',
     'transfer_product' => 'تحويل منتج',
-    'prepare_recipe' => 'تحضير وصفة',
+    'prepare_recipe' => 'تحضير وصفة'
 ];
