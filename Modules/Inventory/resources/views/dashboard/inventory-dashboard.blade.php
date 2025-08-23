@@ -415,7 +415,7 @@
                     @empty
                     <div class="col-12">
                         <div class="alert alert-info text-center">
-                            @lang('inventory::lang.no_warehouses')
+                            @lang('inventory::dashboard.no_warehouses')
                         </div>
                     </div>
                     @endforelse
