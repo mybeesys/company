@@ -274,7 +274,7 @@
                     <i class="fas fa-warehouse"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">عدد المستودعات</h6>
+                    <h6 class="title">@lang('product::dashboard.total_ingredients')</h6>
                     <h3 class="value text-primary">{{ $warehousesCount ?? 0  }}</h3>
                 </div>
             </div>
