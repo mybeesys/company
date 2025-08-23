@@ -378,6 +378,13 @@ return [
         'type' => 'ems',
     ],
     [
+        'name' => 'inventory.dashboard.show',
+        'name_ar' => 'لوحة تحكم المستودع',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
         'name' => 'products.all.show',
         'name_ar' => '',
         'description' => '',

@@ -105,6 +105,11 @@ return [
         'icon' => 'fas fa-building',
         'subMenu' => [
             [
+                'name' => 'inventory_dashboard',
+                'url' => 'inventory-dashboard',
+                'permission' => 'inventory.dashboard.show',
+            ],
+            [
                 'name' => 'inventory',
                 'url' => 'productInventory',
                 'permission' => 'inventory.product.show',

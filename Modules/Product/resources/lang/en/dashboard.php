@@ -23,7 +23,7 @@ return [
     'latest_products' => 'Recently Added Products',
     'product_name_ar' => 'Product Name (Arabic)',
     'product_name_en' => 'Product Name (English)',
-    'price' => 'Price',
+    'price' => 'Price With Tax',
     'date_added' => 'Date Added',
     'no_products' => 'No products have been added yet.',
 ];

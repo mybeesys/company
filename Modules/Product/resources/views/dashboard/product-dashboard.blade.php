@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', __('menuItemLang.product-dashboard'))
+@section('title', __('menuItemLang.product_dashboard'))
 
 @section('css')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
@@ -501,7 +501,7 @@
                             <tr>
                                 <td>{{ $product->name_ar ?? 'N/A' }}</td>
                                 <td>{{ $product->name_en ?? 'N/A' }}</td>
-                                <td>{{ $product->price ?? 'N/A' }}</td>
+                                <td>{{ $product->price_with_tax ?? 'N/A' }}</td>
                                 <td>{{ \Carbon\Carbon::parse($product->created_at)->format('Y-m-d') }}</td>
                             </tr>
                             @empty
