@@ -280,7 +280,7 @@
                 </div>
                 <div class="content">
                     <h6 class="title">@lang('inventory::dashboard.warehouses_count')</h6>
-                    <h3 class="value text-primary">{{ $warehousesCoun  }}</h3>
+                    <h3 class="value text-primary">{{ $warehousesCou  }}</h3>
                 </div>
             </div>
         </div>
