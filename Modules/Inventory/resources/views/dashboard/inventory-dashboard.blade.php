@@ -279,7 +279,7 @@
                     <i class="fas fa-warehouse"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">@lang('inventory::dashboard.warehouses_count')</h6>
+                    <h6 class="title">@lang('inventory::lang.warehouses_count')</h6>
                     <h3 class="value text-primary">{{ $warehousesCou  }}</h3>
                 </div>
             </div>
@@ -292,7 +292,7 @@
                     <i class="fas fa-exchange-alt"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">@lang('inventory::dashboard.transfers_count')</h6>
+                    <h6 class="title">@lang('inventory::lang.transfers_count')</h6>
                     <h3 class="value text-primary">{{ $transferCount ?? 0 }}</h3>
                 </div>
             </div>
@@ -305,7 +305,7 @@
                     <i class="fas fa-box-open"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">@lang('inventory::dashboard.preparations_count')</h6>
+                    <h6 class="title">@lang('inventory::lang.preparations_count')</h6>
                     <h3 class="value text-primary">{{ $prepCount ?? 0 }}</h3>
                 </div>
             </div>
@@ -318,7 +318,7 @@
                     <i class="fas fa-dumpster"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">@lang('inventory::dashboard.waste_count')</h6>
+                    <h6 class="title">@lang('inventory::lang.waste_count')</h6>
                     <h3 class="value text-primary">{{ $wasteCount ?? 0 }}</h3>
                 </div>
             </div>
@@ -333,25 +333,25 @@
                 <div class="icon-wrapper">
                     <i class="fas fa-box btn-icon"></i>
                 </div>
-                <span class="btn-label">@lang('inventory::dashboard.view_products')</span>
+                <span class="btn-label">@lang('inventory::lang.view_products')</span>
             </a>
             <a href="waste" class="quick-action-btn bg-danger-gradient">
                 <div class="icon-wrapper">
                     <i class="fas fa-exclamation-circle btn-icon"></i>
                 </div>
-                <span class="btn-label">@lang('inventory::dashboard.damaged_products')</span>
+                <span class="btn-label">@lang('inventory::lang.damaged_products')</span>
             </a>
             <a href="transfer" class="quick-action-btn bg-primary-gradient">
                 <div class="icon-wrapper">
                     <i class="fas fa-exchange-alt btn-icon"></i>
                 </div>
-                <span class="btn-label">@lang('inventory::dashboard.transfer_product')</span>
+                <span class="btn-label">@lang('inventory::lang.transfer_product')</span>
             </a>
             <a href="prep" class="quick-action-btn bg-success-gradient">
                 <div class="icon-wrapper">
                     <i class="fas fa-mortar-pestle btn-icon"></i>
                 </div>
-                <span class="btn-label">@lang('inventory::dashboard.prepare_recipe')</span>
+                <span class="btn-label">@lang('inventory::lang.prepare_recipe')</span>
             </a>
         </div>
     </div>
@@ -360,7 +360,7 @@
     <div class="col-12">
         <div class="card h-100">
             <div class="card-header bg-transparent py-4">
-                <h5 class="card-title mb-0">@lang('inventory::dashboard.inventory_overview')</h5>
+                <h5 class="card-title mb-0">@lang('inventory::lang.inventory_overview')</h5>
             </div>
             <div class="card-body">
                 <div class="row g-4">
@@ -377,15 +377,15 @@
                                         </div>
                                         <div class="details">
                                             @if($warehouse->mostStockedProduct)
-                                            <h6 class="text-success">@lang('inventory::dashboard.highest_quantity')</h6>
+                                            <h6 class="text-success">@lang('inventory::lang.highest_quantity')</h6>
                                             <div class="product-name">
                                                 <strong>{{ $warehouse->mostStockedProduct->name_ar }}</strong>
                                             </div>
                                             <div class="quantity">
-                                                @lang('inventory::dashboard.quantity'): {{ $warehouse->mostStockedQuantity }}
+                                                @lang('inventory::lang.quantity'): {{ $warehouse->mostStockedQuantity }}
                                             </div>
                                             @else
-                                            <p class="text-muted mb-0">@lang('inventory::dashboard.no_products')</p>
+                                            <p class="text-muted mb-0">@lang('inventory::lang.no_products')</p>
                                             @endif
                                         </div>
                                     </div>
@@ -396,15 +396,15 @@
                                         </div>
                                         <div class="details">
                                             @if($warehouse->leastStockedProduct)
-                                            <h6 class="text-danger">@lang('inventory::dashboard.lowest_quantity')</h6>
+                                            <h6 class="text-danger">@lang('inventory::lang.lowest_quantity')</h6>
                                             <div class="product-name">
                                                 <strong>{{ $warehouse->leastStockedProduct->name_ar }}</strong>
                                             </div>
                                             <div class="quantity">
-                                                @lang('inventory::dashboard.quantity'): {{ $warehouse->leastStockedQuantity }}
+                                                @lang('inventory::lang.quantity'): {{ $warehouse->leastStockedQuantity }}
                                             </div>
                                             @else
-                                            <p class="text-muted mb-0">@lang('inventory::dashboard.no_products')</p>
+                                            <p class="text-muted mb-0">@lang('inventory::lang.no_products')</p>
                                             @endif
                                         </div>
                                     </div>
@@ -415,7 +415,7 @@
                     @empty
                     <div class="col-12">
                         <div class="alert alert-info text-center">
-                            @lang('inventory::dashboard.no_warehouses')
+                            @lang('inventory::lang.no_warehouses')
                         </div>
                     </div>
                     @endforelse
