@@ -133,6 +133,11 @@ return [
 
     'reports_list' => 'Reports List',
     'product_dashboard' => 'Product Dashboard',
+    'inventory_dashboard' => 'Inventory Dashboard',
+
+
+
+
 
 
 ];

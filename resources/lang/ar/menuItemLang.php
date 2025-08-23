@@ -136,6 +136,7 @@ return [
 
     'reports_list' => 'قائمة التقارير',
     'product_dashboard' => 'لوحة تحكم المنتجات',
+    'inventory_dashboard' => 'لوحة تحكم المستودع',
 
 
 ];

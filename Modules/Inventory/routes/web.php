@@ -6,6 +6,7 @@ use Modules\Inventory\Http\Controllers\IngredientInventoryController;
 use Modules\Inventory\Http\Controllers\InventoryOperationController;
 use Modules\Inventory\Http\Controllers\PrepController;
 use Modules\Inventory\Http\Controllers\ProductInventoryController;
+use Modules\Inventory\Http\Controllers\InventoryDashboardController;
 use Modules\Inventory\Http\Controllers\ProductInventoryReportController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderReportController;
@@ -44,6 +45,7 @@ Route::middleware([
         Route::get('/productInventoryReport/{id}/productInventory_pdf', [ProductInventoryReportController::class, 'productInventory_pdf'])->name('productInventory.productInventory_pdf');
         Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');;
         Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
+        Route::get('inventory-dashboard', [InventoryDashboardController::class, 'index'])->name('inventory.dashboard');
 
         Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
         Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
