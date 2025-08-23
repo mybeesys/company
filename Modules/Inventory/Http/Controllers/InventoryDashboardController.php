@@ -56,7 +56,7 @@ class InventoryDashboardController extends Controller
         }
 
         return view(
-            'inventory::dashboard.inventory-dashboard',
+            'inventory::dashboard.dashboard',
             compact(
                 'warehousesCount',
                 'warehouses',

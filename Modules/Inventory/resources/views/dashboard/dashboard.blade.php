@@ -279,8 +279,8 @@
                     <i class="fas fa-warehouse"></i>
                 </div>
                 <div class="content">
-                    <h6 class="title">@lang('inventory::lang.warehouses_count')</h6>
-                    <h3 class="value text-primary">{{ $warehousesCou  }}</h3>
+                    <h6 class="title">@lang('inventory::dashboard.warehouses_count')</h6>
+                    <h3 class="value text-primary">{{ $warehousesCount ?? 0  }}</h3>
                 </div>
             </div>
         </div>
