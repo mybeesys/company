@@ -41,4 +41,6 @@ return [
     'purchase_reports' => 'Purchase Reports',
     'inventory_reports' => 'Inventory Reports',
     'others_reports' => 'Others Reports',
+    'Device' => 'Device',
+
 ];

@@ -95,6 +95,8 @@ return [
     'Print' => 'Print',
     'All Branches' => 'All Branches',
     'All Cashiers' => 'All Cashiers',
+    'All devices' => 'All devices',
+
 
 
 ];

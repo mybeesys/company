@@ -76,6 +76,7 @@ class ReportTransactionsUtile
 
             ["class" => "text-start min-w-150px", "name" => "reference_number"],
             ["class" => "text-start min-w-150px", "name" => "establishment_name"],
+            ["class" => "text-start min-w-150px", "name" => "device_name"],
             ["class" => "text-start min-w-150px", "name" => "customer"],
             ["class" => "text-start min-w-150px", "name" => "payment_date"],
             ["class" => "text-start min-w-150px", "name" => "final_total"],
@@ -108,6 +109,7 @@ class ReportTransactionsUtile
         return [
             ["class" => "text-start min-w-150px", "name" => "reference_number"],
             ["class" => "text-start min-w-150px", "name" => "establishment_name"],
+            ["class" => "text-start min-w-150px", "name" => "device_name"],
             ["class" => "text-start min-w-150px", "name" => "supplier"],
             ["class" => "text-start min-w-150px", "name" => "payment_date"],
             ["class" => "text-start min-w-150px", "name" => "final_total"],
@@ -238,6 +240,9 @@ class ReportTransactionsUtile
             ->editColumn('establishment_name', function ($row) {
                 return  $row->establishment_name;
             })
+            ->editColumn('device_name', function ($row) {
+                return  $row->device_name;
+            })
             ->editColumn('supplier', function ($row) {
 
                 return $row->supplier;
@@ -283,7 +288,7 @@ class ReportTransactionsUtile
             ->editColumn('actions', function ($row) {
                 return "--";
             })
-            ->rawColumns(['ref_no', 'remaining_amount', 'final_total', 'establishment_name', 'amount', 'payment_status', 'method', 'action', 'supplier'])
+            ->rawColumns(['ref_no', 'remaining_amount', 'final_total', 'establishment_name', 'device_name', 'amount', 'payment_status', 'method', 'action', 'supplier'])
             ->make(true);
     }
     public function productInventoryReportTable($query)

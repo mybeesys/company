@@ -39,5 +39,6 @@ Route::middleware([
     Route::get('suppliers', [SalesReportController::class, 'getSupplier'])->name('suppliers');
     Route::get('customers', [SalesReportController::class, 'getCustomers'])->name('customers');
     Route::get('products', [SalesReportController::class, 'getProducts'])->name('retrieveProducts');
+    Route::get('devices', [SalesReportController::class, 'getDevices'])->name('devices');
     Route::get('/payment-reports', [SalesReportController::class, 'combinedPaymentReport'])->name('payment-reports.combined');
 });
