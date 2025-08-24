@@ -345,7 +345,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             document.getElementById("Unit_tab").click();
         }
         if (
-            !!currentObject.set_price &&
+            currentObject.set_price == 0 &&
             !!currentObject.combos &&
             !!currentObject.combos.length
         ) {
@@ -354,7 +354,7 @@ const ProductComponent1 = ({ translations, dir }) => {
                     sum + (!!item.price ? parseFloat(item.price) : 0),
                 0
             );
-            if (totalPrice > currentObject.price) {
+            if (totalPrice > currentObject.price_with_tax) {
                 valid = false;
                 errorMessage = translations.ComboPriceError;
                 document.getElementById("group_tab").click();
