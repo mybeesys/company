@@ -886,6 +886,114 @@
         .product-card.hidden {
             display: none !important;
         }
+
+
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: url('cover.jpg') center/cover no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .welcome-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.55);
+            z-index: 1;
+        }
+        .welcome-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: #fff;
+        }
+
+        .welcome-content img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+            animation: bounce 1.5s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .welcome-content h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-content p {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+
+        .start-btn {
+            background-color: #ebb81e;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .start-btn:hover {
+            background-color: #ebb81e;
+            transform: scale(1.05);
+        }
+        .welcome-screen.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .menu-content {
+            display: none;
+            /* padding: 20px; */
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .menu-content.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 
 </head>
@@ -893,6 +1001,7 @@
 <body>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 
     <div class="main_page_nav_and_event_image ">
         <div class="navbar navbar-style-1 px-3">
@@ -928,7 +1037,18 @@
         </div>
     </div>
 
-    <div class="content">
+
+    <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ asset('11.jpeg') }}');">
+        <div class="welcome-content">
+            <img src="{{ asset('amen.jpg') }}" alt="شعار المطعم">
+            <h1>@lang('general::lang.welcome_to') {{ $company->name }}</h1>
+            <p>@lang('general::lang.get_ready_for_experience')</p>
+            <button class="start-btn" id="startBtn">@lang('general::lang.start_now')</button>
+        </div>
+    </div>
+
+
+    <div class="content menu-content" id="menuContent">
         <div class="profile-bx">
             <div class="contact-background-main" style="background-image: url('{{ asset('11.jpeg') }}');">
                 <div class="profile-content"></div>
@@ -1113,6 +1233,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
         integrity="sha512-fKcyo0o+5m6fypWn+0n0n0x5f+7l7z+J0Uitc5Y+JyzE5pytXGlA5nyp5jQ17p9pQ1vKaA8kqk0/1LD4GfpJYQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const menuContent = document.getElementById('menuContent');
+
+        startBtn.addEventListener('click', () => {
+            welcomeScreen.classList.add('hide');
+            setTimeout(() => {
+                menuContent.classList.add('show');
+            }, 800);
+        });
+    </script>
     <script>
         const themeToggle = document.getElementById("themeToggle");
         const body = document.body;
@@ -1138,7 +1271,7 @@
         function updateLanguageButton(lang) {
             const languageText = document.getElementById('languageText');
             const languageButton = document.getElementById('languageButton');
-
+            const welcomeScreen = document.getElementById('welcomeScreen');
             if (lang === 'ar') {
                 languageText.textContent = 'English';
                 languageButton.setAttribute('data-id', 'en');

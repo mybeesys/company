@@ -61,6 +61,9 @@ return [
     'no_results' => 'لم يتم العثور على نتائج',
     'try_different_keywords' => 'جرب كلمات بحث مختلفة',
     'searching' => 'جاري البحث...',
+    'welcome_to' => 'مرحباً بكم في',
+    'get_ready_for_experience' => 'استعدوا لتجربة مميزة',
+    'start_now' => 'ابدأ الآن',
 
 
 

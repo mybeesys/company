@@ -154,8 +154,7 @@ return [
     'actions' => 'إجراءات',
     'collected_amount' => 'المبلغ المحصل',
     'active_suppliers' => 'موردين نشطين',
-
-
+  
 
 
 ];
