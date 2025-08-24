@@ -41,4 +41,5 @@ return [
     'purchase_reports' => 'تقارير المشتريات',
     'inventory_reports' => 'تقارير المخزون',
     'others_reports' => 'تقارير آخرى',
+    'Device' => 'الجهاز',
 ];

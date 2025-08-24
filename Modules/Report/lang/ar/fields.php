@@ -36,5 +36,6 @@ return [
     'payment_status' => 'حالة الدفع',
     'final_total' => 'المبلغ الكلي',
     'remaining_amount' => 'المبلغ المتبقي',
+    'device_name' => 'اسم الجهاز',
 
 ];

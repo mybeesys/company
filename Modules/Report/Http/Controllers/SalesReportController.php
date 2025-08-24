@@ -17,6 +17,7 @@ use Modules\Report\Utils\TransactionUtile;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\EstPos;
 use Modules\Product\Models\Product;
 
 class SalesReportController extends Controller
@@ -84,7 +85,22 @@ class SalesReportController extends Controller
             ], 500);
         }
     }
+    public function getDevices(Request $request)
+    {
+        try {
+            $devices = EstPos::get();
 
+            return response()->json([
+                'success' => true,
+                'data' => $devices,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching devices: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function getProducts(Request $request)
     {
@@ -324,6 +340,7 @@ class SalesReportController extends Controller
             $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
 
                 ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+                ->leftjoin('est_pos as d', 't.device_id', '=', 'd.id')
                 ->whereIn('t.type', ['purchases'])
                 ->select(
                     DB::raw("IF(transaction_payments.transaction_id IS NULL,
@@ -339,6 +356,7 @@ class SalesReportController extends Controller
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
                 ELSE e.name_en 
               END as establishment_name"),
+                    'd.name as device_name',
                     'transaction_payments.amount',
                     'transaction_payments.method',
                     'transaction_payments.paid_on',
@@ -357,7 +375,12 @@ class SalesReportController extends Controller
                     $query->whereIn('t.establishment_id', $branchIds);
                 }
             }
-
+            if ($request->has('device_id')) {
+                $branchIds = collect($request->input('device_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.device_id', $branchIds);
+                }
+            }
             if ($request->has('cashier_id')) {
                 $query->where('t.created_by', $request->input('cashier_id'));
             }
@@ -415,6 +438,7 @@ class SalesReportController extends Controller
                 $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
 
                 ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+                ->leftjoin('est_pos as d', 't.device_id', '=', 'd.id')
                 ->whereIn('t.type', ['sell'])
 
                 ->select(
@@ -430,6 +454,7 @@ class SalesReportController extends Controller
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
                 ELSE e.name_en 
               END as establishment_name"),
+                    'd.name as device_name',
                     'transaction_payments.amount',
                     'transaction_payments.method',
                     'transaction_payments.paid_on',
@@ -448,7 +473,12 @@ class SalesReportController extends Controller
                     $query->whereIn('t.establishment_id', $branchIds);
                 }
             }
-
+            if ($request->has('device_id')) {
+                $branchIds = collect($request->input('device_id'))->filter()->values()->toArray();
+                if (!empty($branchIds)) {
+                    $query->whereIn('t.device_id', $branchIds);
+                }
+            }
             if ($request->has('cashier_id')) {
                 $query->where('t.created_by', $request->input('cashier_id'));
             }
