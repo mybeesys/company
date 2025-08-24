@@ -36,6 +36,7 @@ return [
     'payment_status' => 'Payment Status',
     'final_total' => 'Final Total',
     'remaining_amount' => 'Remaining Amount',
+    'device_name' => 'Device Name',
 
 
 

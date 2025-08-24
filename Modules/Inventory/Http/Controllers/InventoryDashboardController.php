@@ -55,7 +55,8 @@ class InventoryDashboardController extends Controller
             $warehouse->leastStockedQuantity = $leastStockedProductData ? $leastStockedProductData->qty : 0;
         }
 
-        return view('inventory::dashboard.inventory-dashboard',
+        return view(
+            'inventory::dashboard.dashboard',
             compact(
                 'warehousesCount',
                 'warehouses',

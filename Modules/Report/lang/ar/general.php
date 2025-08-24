@@ -97,4 +97,5 @@ return [
     'Print' => 'طباعة',
     'All Branches' => 'كل الفروع',
     'All Cashiers' => 'كل الكاشير',
+    'All devices' => 'كل الأجهزة',
 ];

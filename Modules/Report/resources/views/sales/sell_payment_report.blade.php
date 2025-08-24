@@ -55,6 +55,12 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
+                                    <label for="deviceFilter" class="form-label">@lang('report::purchase.Device')</label>
+                                    <select class="form-select form-select-solid" id="deviceFilter" name="device_id[]" data-control="select2" data-placeholder="@lang('report::general.All devices')" multiple>
+                                        <option></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
                                     <label for="customerFilter" class="form-label">@lang('report::purchase.Customer')</label>
                                     <select class="form-select form-select-solid" id="customerFilter" name="customer_id[]" data-control="select2" data-placeholder="@lang('report::purchase.All Customer')" multiple>
                                         <option></option>
@@ -127,6 +133,7 @@
 
     function getFilterParams() {
         const branchId = $('#branchFilter').val() || [];
+        const deviceId = $('#deviceFilter').val() || [];
         const customerId = $('#customerFilter').val() || [];
         const paymentMethod = $('#paymentMethodFilter').val() || [];
         const paymentStatus = $('#paymentStatusFilter').val() || [];
@@ -134,6 +141,7 @@
 
         const queryParams = {
             branch_id: branchId,
+            device_id: deviceId,
             customer_id: customerId,
             payment_method: paymentMethod,
             payment_status: paymentStatus,
@@ -184,13 +192,34 @@
         });
     }
 
+    function populateDevices() {
+        $.ajax({
+            url: "{{ route('devices') }}",
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const customerSelect = $('#deviceFilter');
+                    customerSelect.empty();
+                    response.data.forEach(customer => {
+                        const newOption = new Option(customer.name, customer.id, false, false);
+                        customerSelect.append(newOption);
+                    });
+                    customerSelect.trigger('change');
+                }
+            },
+            error: function(error) {
+                console.error("Error fetching customers:", error);
+            }
+        });
+    }
     $(document).ready(function() {
         if (!table.length) return;
 
         populateBranches();
         populateCustomers();
+        populateDevices();
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8], '#kt_ProductSales_table');
+        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], '#kt_ProductSales_table');
         handleSearchDatatable();
 
         $('.form-select').select2();
@@ -242,6 +271,10 @@
                 {
                     data: 'establishment_name',
                     name: 'establishment_name'
+                },
+                {
+                    data: 'device_name',
+                    name: 'device_name'
                 },
                 {
                     data: 'supplier',
