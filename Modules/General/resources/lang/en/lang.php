@@ -59,5 +59,8 @@ return [
     'no_results' => 'No results found',
     'try_different_keywords' => 'Try different keywords',
     'searching' => 'Searching...',
+    'welcome_to' => 'Welcome to',
+    'get_ready_for_experience' => 'Get ready for an amazing experience',
+    'start_now' => 'Start Now',
 
 ];
