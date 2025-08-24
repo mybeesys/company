@@ -747,7 +747,7 @@
             gap: 25px;
             padding: 15px 0;
         }
-
+    
         .icon-item {
             display: flex;
             flex-direction: column;
