@@ -72,7 +72,7 @@ class ProductInventoryController extends Controller
             // error_log(",");
         }
 
-        /*   $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use ($establishment) {
+        $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use ($establishment) {
             $join->on('modifier_inventories.modifier_id', '=', 'product_modifiers.id')
                 ->where('establishment_id', '=', $establishment["id"]); // Constant condition
         })->get();
@@ -84,7 +84,7 @@ class ProductInventoryController extends Controller
             $pp["establishment_id"] = $establishment["id"];
             $children[] = $pp;
         }
-        $establishment["children"] = $children;*/
+        $establishment["children"] = $children;
 
         return $establishment;
     }
@@ -204,7 +204,7 @@ class ProductInventoryController extends Controller
             }])
                 ->get();
         } else {
-           // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+            // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
             $establishments = Establishment::select('establishments.*')
                 ->join('product_inventories', 'establishments.id', '=', 'product_inventories.establishment_id')
                 ->join('products', 'product_inventories.product_id', '=', 'products.id')
