@@ -5,6 +5,7 @@ namespace Modules\Reservation\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
@@ -29,14 +30,24 @@ class OrderController extends Controller
 
     public function generateToken(Request $request)
     {
-
-
         $data = $request->all();
         $coverPath = null;
-        if ($request->hasFile('cover')) {
-            $coverPath = $request->file('cover')->store('menu_covers', 'public');
-        }
+         if ($request->hasFile('cover')) {
+            $filePath = public_path($request->cover);
+            if (File::exists($request->cover))
+                File::delete($request->cover);
+            $tenant = tenancy()->tenant;
+            $tenantId = $tenant->id;
 
+            $file = $request->file('cover');
+
+            $filePath =  '/product/images';
+
+            $fileExtension = $file->getClientOriginalExtension();
+            $file->storeAs($filePath,  $fileExtension, 'public');
+
+            $coverPath = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $fileExtension;
+        }
         $token = Str::random(30);
 
         $menuToken = MenuToken::create([
@@ -47,7 +58,14 @@ class OrderController extends Controller
             'cover'     => $coverPath,
             'token'     => $token,
         ]);
-        return response()->json(['token' => $token]);
+        return response()->json([
+            'status' => true,
+            'token'  => $token
+        ]);
+
+        // response()->json([
+        //     'token' => $token
+        // ]);
     }
 
 
@@ -55,7 +73,7 @@ class OrderController extends Controller
     public function menuSimple($token)
     {
 
-        $menuToken = MenuToken::where('token', $token)->first();
+          $menuToken = MenuToken::where('token', $token)->first();
 
         if (!$menuToken) {
             abort(404, 'الرابط غير صالح أو انتهت صلاحيته');
