@@ -1043,7 +1043,7 @@
 
     <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ asset('11.jpeg') }}');">
         <div class="welcome-content">
-            <img src="{{ env('APP_DOMAIN') . '/storage/' . $company->logo }}" alt=" ">
+            <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt=" ">
             <h1>@lang('general::lang.welcome_to') {{ $company->name }}</h1>
             <p>@lang('general::lang.get_ready_for_experience')</p>
             <button class="start-btn" id="startBtn">@lang('general::lang.start_now')</button>
@@ -1059,7 +1059,7 @@
 
             <div class="center-info-outer">
                 <div class="author">
-                    <img src="{{ env('APP_DOMAIN') . '/storage/' . $company->logo }}" alt="{{ $company->name }}">
+                    <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt="{{ $company->name }}">
                 </div>
             </div>
         </div>
