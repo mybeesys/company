@@ -207,10 +207,10 @@ class ProductInventoryController extends Controller
             // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
             $establishments = Establishment::select('establishments.*')
                 ->join('product_inventories', 'establishments.id', '=', 'product_inventories.establishment_id')
-                ->join('products', 'product_inventories.product_id', '=', 'products.id')
+                ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
                 ->where(function ($query) use ($key) {
-                    $query->where('products.name_ar', 'LIKE', "%{$key}%")
-                        ->orWhere('products.name_en', 'LIKE', "%{$key}%");
+                    $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
+                        ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
                 })
                 ->get();
         }
