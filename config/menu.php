@@ -2,7 +2,7 @@
 return [
     [
         'name' => 'dashboard',
-        'url' => 'dashboard',
+        'url' => '/dashboard',
         'icon' => 'fas fa-home',
         'permission' => '',
         'subMenu' => []
