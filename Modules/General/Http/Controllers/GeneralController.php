@@ -275,7 +275,7 @@ class GeneralController extends Controller
     public function updateInventorySettings(Request $request)
     {
         // return $request;
-        // try {
+        try {
             $trackingPolicy = $request->input('inventory_tracking_policy');
             $allowSaleWithoutStock = $request->input('allow_sale_without_stock', false);
             // return  $allowSaleWithoutStock ? 'true' : 'false';
@@ -303,8 +303,8 @@ class GeneralController extends Controller
             }
 
             return redirect()->back()->with('success', __('messages.add_successfully'));
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->with('error', __('messages.something_went_wrong'));
-        // }
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
     }
 }
