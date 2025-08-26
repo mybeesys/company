@@ -345,6 +345,42 @@ const TransferDetail = ({ dir, translations }) => {
                                             postExecute
                                         ) => {},
                                     },
+                                    {
+                                        key: "delete",
+                                        autoFocus: false,
+                                        type: "Button",
+                                        width: "10%",
+                                        editable: false,
+                                        customCell: (
+                                            data,
+                                            key,
+                                            currentEditing,
+                                            editable,
+                                            rowKey
+                                        ) => {
+                                            return (
+                                                <a
+                                                    href="javascript:void(0);"
+                                                    className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                                                    onClick={() => {
+                                                        const updatedNodes = [
+                                                            ...currentObject.items,
+                                                        ];
+                                                        updatedNodes.splice(
+                                                            rowKey,
+                                                            1
+                                                        );
+                                                        onProductChange(
+                                                            "items",
+                                                            updatedNodes
+                                                        );
+                                                    }}
+                                                >
+                                                    <i className="ki-outline ki-trash fs-2"></i>
+                                                </a>
+                                            );
+                                        },
+                                    },
                                 ]}
                                 actions={[]}
                                 onUpdate={(nodes) =>
