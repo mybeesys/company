@@ -1009,7 +1009,7 @@ class ProductController extends Controller
             ->take($productCount > 10 ? 0 : 10 - $productCount)
             ->get();
         $productCount = count($products) + count($modifiers);
-        $ingredients = Ingredient::where('name_ar', 'like', '%' . $key . '%')
+        $ingredients = Product::where('type', 'ingredint')->where('name_ar', 'like', '%' . $key . '%')
             ->orWhere('name_en', 'like', '%' . $key . '%')
             ->take($productCount > 10 ? 0 : 10 - $productCount)
             ->get();

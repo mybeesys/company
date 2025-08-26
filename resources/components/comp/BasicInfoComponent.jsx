@@ -32,6 +32,9 @@ const BasicInfoComponent = ({
             );
         }
         if (field.type == "Date") {
+            const dateValue = currentObject[field.key]
+                ? toDate(currentObject[field.key], "D")
+                : new Date();
             return (
                 <>
                     <div class="col-12">
@@ -42,7 +45,7 @@ const BasicInfoComponent = ({
                     <div class="col-12">
                         <Calendar
                             class="col-12"
-                            value={toDate(currentObject[field.key], "D")}
+                            value={dateValue}
                             onChange={(e) =>
                                 onBasicChange(
                                     field.key,

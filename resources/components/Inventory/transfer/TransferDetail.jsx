@@ -183,10 +183,6 @@ const TransferDetail = ({ dir, translations }) => {
                                                             prod.inventory.primary_vendor_default_price;
                                                         nodes[
                                                             rowKey
-                                                        ].data.unit =
-                                                            prod.inventory.unit;
-                                                        nodes[
-                                                            rowKey
                                                         ].data.total =
                                                             !!prod.inventory
                                                                 .primary_vendor_default_price &&
@@ -205,18 +201,43 @@ const TransferDetail = ({ dir, translations }) => {
                                                         ].data.cost = null;
                                                         nodes[
                                                             rowKey
-                                                        ].data.unit = null;
+                                                        ].data.total = null;
+                                                    }
+                                                    return axios.get(
+                                                        `${window.location.origin}/searchUnitTransfers?product_id=${result[0]}`
+                                                    );
+                                                })
+                                                .then((response) => {
+                                                    const units = response.data;
+                                                    if (
+                                                        units &&
+                                                        Array.isArray(units)
+                                                    ) {
+                                                        const defaultUnit =
+                                                            units.find(
+                                                                (unit) =>
+                                                                    unit.unit2 ===
+                                                                    null
+                                                            );
+                                                        if (defaultUnit) {
+                                                            nodes[
+                                                                rowKey
+                                                            ].data.unit =
+                                                                defaultUnit;
+                                                        } else {
+                                                            nodes[
+                                                                rowKey
+                                                            ].data.unit = null;
+                                                        }
+                                                    } else {
                                                         nodes[
                                                             rowKey
-                                                        ].data.total = null;
+                                                        ].data.unit = null;
                                                     }
                                                     postExecute(nodes);
                                                 })
                                                 .catch((error) => {
-                                                    console.error(
-                                                        "Error fetching translations",
-                                                        error
-                                                    );
+                                                    postExecute(nodes);
                                                 });
                                         },
                                     },
@@ -267,10 +288,7 @@ const TransferDetail = ({ dir, translations }) => {
                                             val,
                                             rowKey,
                                             postExecute
-                                        ) => {
-                                            // nodes[rowKey].data.total_before_vat = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.cost : null;
-                                            // postExecute(nodes);
-                                        },
+                                        ) => {},
                                     },
                                     {
                                         key: "receivedQuantity",
@@ -325,10 +343,7 @@ const TransferDetail = ({ dir, translations }) => {
                                             val,
                                             rowKey,
                                             postExecute
-                                        ) => {
-                                            // nodes[rowKey].data.total_before_vat = !!val && !!nodes[rowKey].data.unit_price_before_discount ? val * nodes[rowKey].data.cost : null;
-                                            // postExecute(nodes);
-                                        },
+                                        ) => {},
                                     },
                                 ]}
                                 actions={[]}
