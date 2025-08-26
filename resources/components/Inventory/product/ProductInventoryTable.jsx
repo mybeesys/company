@@ -35,11 +35,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                 }&key=${searchText}`
             );
         } else {
-            setUrlList(
-                `${JSON.parse(
-                    rootElement.getAttribute("list-url")
-                )}?by=${-1}&key=`
-            );
+            setUrlList(urlList);
         }
     };
 
