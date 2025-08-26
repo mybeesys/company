@@ -33,7 +33,7 @@ class CompanyResource extends JsonResource
             'city' => $this->city,
             'tax_name' => $this->tax_name,
             'tax_number' => $this->tax_number,
-            'logo' => 'http://my-bee.info/storage/' . $this->logo,
+            'logo' => env('APP_DOMAIN').'/storage/' . $this->logo,
         ];
     }
 }
