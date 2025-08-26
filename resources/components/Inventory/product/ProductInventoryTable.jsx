@@ -12,8 +12,8 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
         JSON.parse(rootElement.getAttribute("list-url"))
     );
     const [searchBy, setSearchBy] = useState({
-        label: translations.product,
-        value: 1,
+        label: translations.establishment,
+        value: 0,
     });
     const [searchText, setSearchText] = useState();
     const [isTransactionModalVisible, setIsTransactionModalVisible] =
@@ -99,6 +99,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                             id="search_id"
                             isMulti={false}
                             options={[
+                                { label: translations.establishment, value: 0 },
                                 { label: translations.product, value: 1 },
                             ]}
                             closeMenuOnSelect={true}
