@@ -1032,6 +1032,17 @@ class ProductController extends Controller
         return response()->json($result);
     }
 
+    public function getProductsByEstablishment($establishmentId)
+    {
+        $products = DB::table('product_inventories')
+            ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+            ->where('product_inventories.establishment_id', $establishmentId)
+            ->select('product_products.*', 'product_inventories.*')
+            ->get();
+
+        return response()->json($products);
+    }
+
     public function searchPrepProducts(Request $request)
     {
         $query = $request->query('query');  // Get 'query' parameter

@@ -131,6 +131,7 @@ Route::middleware([
         Route::get('venodrs', [VendorController::class, 'venodr'])->name('venodr');
         Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
         Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
+        Route::get('getProductsByEstablishment/{establishmentId}', [ProductController::class, 'getProductsByEstablishment'])->name('getProductsByEstablishment');
         Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
         Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
         Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
