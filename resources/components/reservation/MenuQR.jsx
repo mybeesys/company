@@ -137,7 +137,7 @@ const MenuQR = ({ translations, dir }) => {
                 "products",
                 JSON.stringify(selectedProducts.map((p) => p.value))
             );
-            // formData.append("cover", currentObject.cover ?? "");
+            formData.append("cover", currentObject.cover ?? "");
 
             const response = await axios.post(
                 "/generate-menu-token",
@@ -150,7 +150,7 @@ const MenuQR = ({ translations, dir }) => {
             );
 
             const { token } = response.data;
-
+            // log;
             setQrInfo({
                 id: `qr-${getRowName(currentObject.establishment, dir)}`,
                 url: `${window.location.origin}/menuSimple/${token}`,
@@ -270,7 +270,7 @@ const MenuQR = ({ translations, dir }) => {
                                     required
                                 />
                             </div>
-                            {/* <div class="col-6">
+                            <div class="col-6">
                                 <div style={{ marginTop: "20px" }}>
                                     <label
                                         type="text"
@@ -316,7 +316,7 @@ const MenuQR = ({ translations, dir }) => {
                                         </div>
                                     )}
                                 </div>
-                            </div> */}
+                            </div>
                         </div>
                     </div>
                     <div class="row pt-5">
