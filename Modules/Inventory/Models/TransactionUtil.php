@@ -50,32 +50,46 @@ class TransactionUtil
         $mods = [];
         foreach ($items as $newItem) {
             $item = new TransactionSellLine();
-            $idd = explode("-", $newItem['product']['id']);
-            $item->qty = $newItem['qty'];
-            if ($idd[1] == 'p') {
-                $item->product_id = $idd[0];
-                if (isset($newItem['unit']))
-                    $item->unit_id = $newItem['unit']['id'];
-                else
-                    $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
-                $prods[] = $item;
-            } else if ($idd[1] == 'm') {
-                $item->modifier_id = $idd[0];
-                if (isset($newItem['unit']))
-                    $item->unit_id = $newItem['unit']['id'];
-                else
-                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-                $mods[] = $item;
+
+            if (isset($newItem['product']['id'])) {
+                $idd = explode("-", $newItem['product']['id']);
+                if (count($idd) > 1) {
+                    $item->qty = $newItem['qty'];
+
+                    if ($idd[1] == 'p') {
+                        $item->product_id = $idd[0];
+                        if (isset($newItem['unit'])) {
+                            $item->unit_id = $newItem['unit']['id'];
+                        } else {
+                            $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
+                        }
+                        $prods[] = $item;
+                    } else if ($idd[1] == 'm') {
+                        $item->modifier_id = $idd[0];
+                        if (isset($newItem['unit'])) {
+                            $item->unit_id = $newItem['unit']['id'];
+                        } else {
+                            $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                        }
+                        $mods[] = $item;
+                    } else {
+                        $item->ingredient_id = $idd[0];
+                        if (isset($newItem['unit'])) {
+                            $item->unit_id = $newItem['unit']['id'];
+                        } else {
+                            $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                        }
+                        $ingrs[] = $item;
+                    }
+                } else {
+                    error_log("Invalid product ID format: " . $newItem['product']['id']);
+                }
             } else {
-                $item->ingredient_id = $idd[0];
-                if (isset($newItem['unit']))
-                    $item->unit_id = $newItem['unit']['id'];
-                else
-                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-                $ingrs[] = $item;
+                error_log("Product ID is missing in item: " . json_encode($newItem));
             }
         }
-        $result =  self::isValidQty($establishmentId, $prods, $ingrs, $mods,  $request["times"] ?? null);
+
+        $result = self::isValidQty($establishmentId, $prods, $ingrs, $mods,  $request["times"] ?? null);
         return $result;
     }
 
@@ -154,13 +168,23 @@ class TransactionUtil
     {
         $newItems = [];
         foreach ($items as $newItem) {
-            $idd = explode("-", $newItem['product']['id']);
-            if ($idd[1] == 'p' && !isset($newItem['unit']))
-                $newItem["unit"] = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
-            else if ($idd[1] == 'm' && !isset($newItem['unit']))
-                $newItem["unit"] = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-            else if ($idd[1] == 'i' && !isset($newItem['unit']))
-                $newItem["unit"] = UnitTransferConvertor::getMainUnit('I', $idd[0], null);
+            if (isset($newItem['product']['id'])) {
+                $idd = explode("-", $newItem['product']['id']);
+                if (count($idd) > 1) {
+                    if ($idd[1] == 'p' && !isset($newItem['unit'])) {
+                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
+                    } elseif ($idd[1] == 'm' && !isset($newItem['unit'])) {
+                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                    } elseif ($idd[1] == 'i' && !isset($newItem['unit'])) {
+                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('I', $idd[0], null);
+                    }
+                } else {
+                    error_log("Invalid product ID format: " . $newItem['product']['id']);
+                }
+            } else {
+                error_log("Product ID is missing in item: " . json_encode($newItem));
+            }
+
             $newItems[] = $newItem;
         }
         return $newItems;

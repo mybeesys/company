@@ -9,21 +9,20 @@ import axios from "axios";
 const WasteDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
     let waste = JSON.parse(rootElement.getAttribute("waste"));
-    const [currentObject, setCurrentObject] = useState(waste);
+    const [currentObject, setcurrentObject] = useState(waste);
     const [showAlert, setShowAlert] = useState(false);
     const [branchProducts, setBranchProducts] = useState([]);
-    const [unitSearchUrls, setUnitSearchUrls] = useState({}); 
 
     useEffect(() => {
         if (currentObject.establishment?.id) {
             fetchProductsForEstablishment(currentObject.establishment.id);
         }
-    }, [currentObject.establishment]);
+    }, [currentObject]);
 
     const fetchProductsForEstablishment = async (establishmentId) => {
         try {
             const response = await axios.get(
-                `${window.location.origin}/getProductsByEstablishment/${establishmentId}`
+                `${window.location.origin}/getProductsByEstablishment/${currentObject.establishment.id}`
             );
             setBranchProducts(response.data);
         } catch (error) {
@@ -33,49 +32,36 @@ const WasteDetail = ({ dir, translations }) => {
     };
 
     const onBasicChange = (key, value) => {
-        const updatedObject = { ...currentObject };
-        updatedObject[key] = value;
-
+        let r = { ...currentObject };
+        r[key] = value;
+        setcurrentObject({ ...r });
         if (key === "establishment" && value && value.id) {
-            updatedObject.items = [];
+            r.items = [];
             fetchProductsForEstablishment(value.id);
         }
-
-        setCurrentObject(updatedObject);
     };
 
     const onProductChange = (key, val) => {
-        setCurrentObject((prev) => ({
-            ...prev,
-            [key]: val,
-        }));
+        currentObject[key] = val;
+        setcurrentObject({ ...currentObject });
         return { message: "Done" };
     };
-    useEffect(() => {
-        const urls = {};
-        currentObject.items.forEach((item, index) => {
-            if (item.product && item.product.id) {
-                urls[
-                    index
-                ] = `${window.location.origin}/searchUnitTransfers?product_id=${item.product.id}`;
-            }
-        });
-        setUnitSearchUrls(urls);
-    }, [currentObject.items]);
 
     const getErrorMessage = (data) => {
-        return data
-            .map(
-                (element) =>
-                    `<div>${getName(element.name_en, element.name_ar, dir)} : ${
-                        element.qty
-                    }</div>`
-            )
-            .join("");
+        let res = "";
+        for (let index = 0; index < data.length; index++) {
+            const element = data[index];
+            res += `<div>${getName(element.name_en, element.name_ar, dir)} : ${
+                element.qty
+            }</div>`;
+        }
+        return res;
     };
 
     const handleQuantityError = (data) => {
+        setShowAlert(true);
         Swal.fire({
+            show: showAlert,
             title: "Error",
             html: `<div>${
                 translations.notEnoughQuantity
@@ -84,13 +70,18 @@ const WasteDetail = ({ dir, translations }) => {
             timer: 4000,
             showCancelButton: false,
             showConfirmButton: false,
+        }).then(() => {
+            setShowAlert(false);
         });
     };
 
     const validateObject = (data) => {
-        if (!data.establishment || data.establishment.length === 0)
+        if (!!!data.establishment || data.establishment.length == 0)
             return `${translations.establishment} ${translations.required}`;
-        if (data.items && data.items.filter((x) => !x.unit).length > 0)
+        if (
+            !!currentObject.items &&
+            currentObject.items.filter((x) => !!!x.unit).length > 0
+        )
             return translations["item_unit_error"];
         return "Success";
     };
@@ -172,44 +163,29 @@ const WasteDetail = ({ dir, translations }) => {
                                     ) => {
                                         const productId =
                                             typeof val === "object"
-                                                ? val?.id
+                                                ? val.id
                                                 : val;
-
-                                        const updatedNodes = [...nodes];
-
-                                        if (!productId) {
-                                            updatedNodes[rowKey].data = {
-                                                ...updatedNodes[rowKey].data,
-                                                SKU: null,
-                                                item_type: null,
-                                                qty: null,
-                                                unit_price_before_discount:
-                                                    null,
-                                                unit: null,
-                                                total: null,
-                                                product: null,
-                                            };
-                                            postExecute(updatedNodes);
-                                            return;
+                                        if (!val || !val.id) {
+                                            nodes[rowKey].data.SKU = null;
+                                            nodes[rowKey].data.item_type = null;
+                                            nodes[rowKey].data.qty = null;
+                                            nodes[
+                                                rowKey
+                                            ].data.unit_price_before_discount =
+                                                null;
+                                            nodes[rowKey].data.unit = null;
+                                            nodes[rowKey].data.total = null;
                                         }
 
-                                        const product = branchProducts.find(
-                                            (p) => p.id === productId
+                                        const prod = branchProducts.find(
+                                            (p) => p.id === val
                                         );
 
-                                        if (product) {
-                                            updatedNodes[rowKey].data.SKU =
-                                                product.SKU;
-                                            updatedNodes[rowKey].data.product =
-                                                product;
-                                            setUnitSearchUrls((prev) => ({
-                                                ...prev,
-                                                [rowKey]: `${window.location.origin}/searchUnitTransfers?product_id=${productId}`,
-                                            }));
-
+                                        if (prod) {
+                                            nodes[rowKey].data.SKU = prod.SKU;
                                             axios
                                                 .get(
-                                                    `${window.location.origin}/searchUnitTransfers?product_id=${productId}`
+                                                    `${window.location.origin}/searchUnitTransfers?product_id=${val}`
                                                 )
                                                 .then((response) => {
                                                     const units = response.data;
@@ -223,55 +199,62 @@ const WasteDetail = ({ dir, translations }) => {
                                                                     unit.unit2 ===
                                                                     null
                                                             );
-                                                        const finalNodes = [
-                                                            ...updatedNodes,
-                                                        ];
-                                                        finalNodes[
-                                                            rowKey
-                                                        ].data.unit =
-                                                            defaultUnit || null;
-                                                        postExecute(finalNodes);
+                                                        if (defaultUnit) {
+                                                            nodes[
+                                                                rowKey
+                                                            ].data.unit =
+                                                                defaultUnit;
+                                                        } else {
+                                                            nodes[
+                                                                rowKey
+                                                            ].data.unit = null;
+                                                        }
                                                     } else {
-                                                        postExecute(
-                                                            updatedNodes
-                                                        );
+                                                        nodes[
+                                                            rowKey
+                                                        ].data.unit = null;
                                                     }
+
+                                                    postExecute(nodes);
                                                 })
                                                 .catch((error) => {
-                                                    console.error(
-                                                        "Error fetching units:",
-                                                        error
-                                                    );
-                                                    postExecute(updatedNodes);
+                                                    postExecute(nodes);
                                                 });
-                                        } else {
-                                            postExecute(updatedNodes);
                                         }
                                     },
                                 },
                                 {
                                     key: "SKU",
+                                    autoFocus: true,
                                     type: "Text",
                                     width: "15%",
                                     editable: false,
-                                    customCell: (data) => (
-                                        <span>{data?.product?.SKU || ""}</span>
-                                    ),
+                                    customCell: (data) => {
+                                        return (
+                                            <span>
+                                                {!!data["product"]
+                                                    ? data["product"].SKU
+                                                    : ""}
+                                            </span>
+                                        );
+                                    },
                                 },
                                 {
                                     key: "unit",
+                                    autoFocus: true,
                                     type: "AsyncDropDown",
                                     width: "25%",
                                     editable: true,
                                     required: true,
-                                    searchUrl: "searchUnitTransfers",
+                                    searchUrl: `searchUnitTransfers`,
                                     relatedTo: {
                                         key: "product_id",
-                                        relatedKey: "product.id",
+                                        relatedKey: "product",
                                     },
                                 },
                                 {
                                     key: "qty",
+                                    autoFocus: true,
                                     type: "Decimal",
                                     width: "15%",
                                     editable: true,
@@ -279,6 +262,7 @@ const WasteDetail = ({ dir, translations }) => {
                                 },
                                 {
                                     key: "delete",
+                                    autoFocus: false,
                                     type: "Button",
                                     width: "10%",
                                     editable: false,
@@ -288,23 +272,29 @@ const WasteDetail = ({ dir, translations }) => {
                                         currentEditing,
                                         editable,
                                         rowKey
-                                    ) => (
-                                        <button
-                                            className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                                            onClick={() => {
-                                                const updatedItems = [
-                                                    ...currentObject.items,
-                                                ];
-                                                updatedItems.splice(rowKey, 1);
-                                                onProductChange(
-                                                    "items",
-                                                    updatedItems
-                                                );
-                                            }}
-                                        >
-                                            <i className="ki-outline ki-trash fs-2"></i>
-                                        </button>
-                                    ),
+                                    ) => {
+                                        return (
+                                            <a
+                                                href="javascript:void(0);"
+                                                className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                                                onClick={() => {
+                                                    const updatedNodes = [
+                                                        ...currentObject.items,
+                                                    ];
+                                                    updatedNodes.splice(
+                                                        rowKey,
+                                                        1
+                                                    );
+                                                    onProductChange(
+                                                        "items",
+                                                        updatedNodes
+                                                    );
+                                                }}
+                                            >
+                                                <i className="ki-outline ki-trash fs-2"></i>
+                                            </a>
+                                        );
+                                    },
                                 },
                             ]}
                             actions={[]}
