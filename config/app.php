@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'domain' => env('APP_DOMAIN', 'http://my-bee.info/'),
+    'domain' => env('APP_URL', 'http://my-bee.info/'),
 
     /*
     |--------------------------------------------------------------------------
