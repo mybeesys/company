@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'domain' => env('APP_DOMAIN', 'http://my-bee.info/'),
 
     /*
     |--------------------------------------------------------------------------
@@ -123,7 +124,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-  
+
     // 'providers' => [
     //     Illuminate\Filesystem\FilesystemServiceProvider::class,
     //     Illuminate\Translation\TranslationServiceProvider::class,
