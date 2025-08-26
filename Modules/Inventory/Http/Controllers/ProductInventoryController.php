@@ -203,6 +203,9 @@ class ProductInventoryController extends Controller
                     });
             }])
                 ->get();
+        }
+        if ($by == -1) {
+            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
         } else {
             // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
             $establishments = Establishment::select('est_establishments.*')

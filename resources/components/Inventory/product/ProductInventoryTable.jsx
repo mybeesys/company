@@ -35,7 +35,11 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                 }&key=${searchText}`
             );
         } else {
-            setUrlList(urlList);
+            setUrlList(
+                `${JSON.parse(
+                    rootElement.getAttribute("list-url")
+                )}?by=${-1}&key=`
+            );
         }
     };
 
