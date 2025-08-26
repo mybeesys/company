@@ -747,7 +747,7 @@
             gap: 25px;
             padding: 15px 0;
         }
-    
+
         .icon-item {
             display: flex;
             flex-direction: column;
@@ -902,6 +902,7 @@
             z-index: 9999;
             transition: opacity 0.8s ease-in-out;
         }
+
         .welcome-screen::before {
             content: '';
             position: absolute;
@@ -912,6 +913,7 @@
             background-color: rgba(0, 0, 0, 0.55);
             z-index: 1;
         }
+
         .welcome-content {
             position: relative;
             z-index: 2;
@@ -967,6 +969,7 @@
             background-color: #ebb81e;
             transform: scale(1.05);
         }
+
         .welcome-screen.hide {
             opacity: 0;
             visibility: hidden;
@@ -1040,7 +1043,7 @@
 
     <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ asset('11.jpeg') }}');">
         <div class="welcome-content">
-            <img src="{{ asset('amen.jpg') }}" alt="شعار المطعم">
+            <img src="{{ env('APP_DOMAIN') . '/storage/' . $company->logo }}" alt=" ">
             <h1>@lang('general::lang.welcome_to') {{ $company->name }}</h1>
             <p>@lang('general::lang.get_ready_for_experience')</p>
             <button class="start-btn" id="startBtn">@lang('general::lang.start_now')</button>
@@ -1056,7 +1059,7 @@
 
             <div class="center-info-outer">
                 <div class="author">
-                    <img src="{{ asset('amen.jpg') }}" alt="{{ $company->name }}">
+                    <img src="{{ env('APP_DOMAIN') . '/storage/' . $company->logo }}" alt="{{ $company->name }}">
                 </div>
             </div>
         </div>
