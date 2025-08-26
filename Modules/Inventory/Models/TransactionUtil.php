@@ -317,28 +317,40 @@ class TransactionUtil
             if (isset($newItem)) {
                 $item = new TransactionSellLine();
                 $item->transaction_id = $transactionId;
-                $idd = explode("-", $newItem['product']['id']);
-                $cost = null;
-                if ($idd[1] == 'p') {
-                    $item->product_id = $idd[0];
-                    $prod = Product::find($idd[0]);
-                    $cost = $prod->cost;
-                } else if ($idd[1] == 'm') {
-                    $item->modifier_id = $idd[0];
-                    $mod = Modifier::find($idd[0]);
-                    $cost = $mod->cost;
+                if (isset($newItem['product']['id'])) {
+                    $idd = explode("-", $newItem['product']['id']);
+                    if (count($idd) > 1) {
+                        $cost = null;
+                        if ($idd[1] == 'p') {
+                            $item->product_id = $idd[0];
+                            $prod = Product::find($idd[0]);
+                            $cost = $prod ? $prod->cost : null;
+                        } else if ($idd[1] == 'm') {
+                            $item->modifier_id = $idd[0];
+                            $mod = Modifier::find($idd[0]);
+                            $cost = $mod ? $mod->cost : null;
+                        } else {
+                            $item->ingredient_id = $idd[0];
+                            $ingr = Ingredient::find($idd[0]);
+                            $cost = $ingr ? $ingr->cost : null;
+                        }
+
+                        $item->qty = $newItem['qty'];
+                        $item->unit_price = $cost;
+                        $item->unit_price_before_discount = $cost;
+                        //$item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
+                        if (isset($newItem['unit'])) {
+                            $item->unit_id = $newItem['unit']['id'];
+                        }
+
+                        $result[] = $item;
+                    } else {
+
+                        error_log("Invalid product ID format: " . $newItem['product']['id']);
+                    }
                 } else {
-                    $item->ingredient_id = $idd[0];
-                    $ingr = Ingredient::find($idd[0]);
-                    $cost = $ingr->cost;
+                    error_log("Product ID is missing in item: " . json_encode($newItem));
                 }
-                $item->qyt = $newItem['qty'];
-                $item->unit_price = $cost;
-                $item->unit_price_before_discount = $cost;
-                //$item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
-                if (isset($newItem['unit']))
-                    $item->unit_id = $newItem['unit']['id'];
-                $result[] = $item;
             }
         }
         return $result;
