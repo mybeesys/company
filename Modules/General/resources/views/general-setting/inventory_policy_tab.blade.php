@@ -22,7 +22,7 @@
                 </div>
             </div>
 
-            <div class="row" id="periodic_settings"
+            {{-- <div class="row" id="periodic_settings"
                 style="display: {{ ($policy ?? 'periodic') == 'periodic' ? 'flex' : 'none' }};">
                 <div class="col-4 mb-5">
                     <label>@lang('general::general.inventory_frequency')</label>
@@ -42,7 +42,7 @@
                     </select>
 
                 </div>
-            </div>
+            </div> --}}
 
             <div class="row" id="perpetual_settings"
                 style="display: {{ ($policy ?? 'periodic') == 'perpetual' ? 'flex' : 'none' }};">

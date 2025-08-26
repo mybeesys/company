@@ -17,11 +17,11 @@ class NotificationSettingParameter extends Model
      */
     protected $guarded = [];
 
-    protected function casts(): array
-    {
-        return [
-            'value' => 'encrypted',
-        ];
-    }
+    // protected function casts(): array
+    // {
+    //     return [
+    //         'value' => 'encrypted',
+    //     ];
+    // }
 
 }

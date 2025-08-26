@@ -121,6 +121,7 @@ class GeneralController extends Controller
     }
 
 
+
     public function updateModules(Request $request)
     {
         try {
@@ -274,11 +275,11 @@ class GeneralController extends Controller
     public function updateInventorySettings(Request $request)
     {
         // return $request;
-        try {
+        // try {
             $trackingPolicy = $request->input('inventory_tracking_policy');
             $allowSaleWithoutStock = $request->input('allow_sale_without_stock', false);
             // return  $allowSaleWithoutStock ? 'true' : 'false';
-            $inventoryCountFrequency = $request->input('inventory_count_frequency');
+            // $inventoryCountFrequency = $request->input('inventory_count_frequency');
 
             Setting::updateOrCreate(
                 ['key' => 'inventory_tracking_policy'],
@@ -291,19 +292,19 @@ class GeneralController extends Controller
                     ['value' => $allowSaleWithoutStock ? 'true' : 'false']
                 );
 
-                Setting::where('key', 'inventory_count_frequency')->delete();
+                // Setting::where('key', 'inventory_count_frequency')->delete();
             } elseif ($trackingPolicy === 'periodic') {
-                Setting::updateOrCreate(
-                    ['key' => 'inventory_count_frequency'],
-                    ['value' => $inventoryCountFrequency]
-                );
+                // Setting::updateOrCreate(
+                //     ['key' => 'inventory_count_frequency'],
+                //     ['value' => $inventoryCountFrequency]
+                // );
 
                 Setting::where('key', 'allow_sale_without_stock')->delete();
             }
 
             return redirect()->back()->with('success', __('messages.add_successfully'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', __('messages.something_went_wrong'));
-        }
+        // } catch (\Exception $e) {
+        //     return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        // }
     }
 }
