@@ -312,7 +312,7 @@ class TransactionUtil
                             $cost = $ingr ? $ingr->cost : null;
                         }
 
-                        $item->qty = $newItem['qyt'];
+                        $item->qyt = $newItem['qty'];
                         $item->unit_price = $cost;
                         $item->unit_price_before_discount = $cost;
                         //$item->total_before_vat = $newItem['qty'] * $newItem['unit_price_before_discount'];
