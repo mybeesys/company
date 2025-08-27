@@ -112,16 +112,17 @@ class TransactionUtils
             $payment_method_id = $request->payment_method_id;
         }
 
-        if (!$request->has('shift_id')) {
+        if ($request->has('shift_id')) {
             $account_id = null;
         }
+        // return $transaction;
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
             'amount' => $request->paid_amount,
             'method' => $payment_method,
             'payment_method_id' => $payment_method_id,
-            'is_return' => $request->is_return ?? 0,
+            'is_return' => $transaction->type == 'sell-return' ?? 0,
             'note' => $request->additionalNotes,
             'paid_on' => $payment_on,
             'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
@@ -270,7 +271,8 @@ class TransactionUtils
     {
         $total_paid = 0;
         $total_paid = TransactionPayments::where('transaction_id', $transaction_id)
-            ->select(DB::raw('SUM(IF( is_return = 0, amount, amount*-1))as total_paid'))
+            ->select(DB::raw('SUM(IF( is_return = 0, amount, amount*1))as total_paid'))
+            // ->select(DB::raw('SUM(IF( is_return = 0, amount, amount*-1))as total_paid'))
             ->first()
             ->total_paid;
 

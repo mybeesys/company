@@ -114,20 +114,123 @@ class AccountingUtil
     }
 
 
+    // public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
+    // {
+
+    //     $route_section = match ($transaction->type) {
+    //         'sell' => 'sales',
+    //         'purchases' => 'purchases',
+    //         default => '',
+    //     };
+
+    //     $accountsRoute = AccountsRoting::where('section', $route_section)->get();
+    //     // dd($route_section,$accountsRoute);
+    //     if (count($accountsRoute) > 0) {
+    //         $acc_trans_mapping = new AccountingAccTransMapping();
+
+    //         $ref_number = $this->generateReferenceNumber('journal_entry');
+    //         $acc_trans_mapping->ref_no = $ref_number;
+    //         $acc_trans_mapping->note = '';
+    //         $acc_trans_mapping->type = 'journal_entry';
+    //         $acc_trans_mapping->created_by = Auth::user()->id;
+    //         $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+    //         $acc_trans_mapping->save();
+    //         $acc_trans_mapping_id = $acc_trans_mapping->id;
+    //         if ($transaction->type == 'sell') {
+    //             if ($transaction->invoice_type == 'cash') {
+    //                 $transactionPayment->account_id = $cash_account_id;
+    //                 $transactionPayment->amount = $transaction->final_total;
+    //                 $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //             } else {
+    //                 $client = Contact::find($transactionPayment->payment_for);
+    //                 if ($client) {
+    //                     $transactionPayment->account_id = $client->account_id;
+    //                     $transactionPayment->amount = $transaction->final_total;
+    //                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //                 } else {
+    //                     $accountsRoute = AccountsRoting::where('type', 'sales_client')->first();
+    //                     if ($accountsRoute) {
+    //                         if ($accountsRoute->direction == 'auto_assign') {
+    //                             $transactionPayment->account_id = $accountsRoute->account_id;
+    //                             $transactionPayment->amount = $transaction->final_total;
+    //                             $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //                         }
+    //                     }
+    //                 }
+
+    //                 //
+    //             }
+    //         } else if ($transaction->type == 'purchases') {
+    //             if ($transaction->invoice_type == 'cash') {
+    //                 $transactionPayment->account_id = $cash_account_id;
+    //                 $transactionPayment->amount = $transaction->final_total;
+    //                 $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //             } else {
+    //                 $client = Contact::find($transactionPayment->payment_for);
+    //                 if ($client) {
+    //                     $transactionPayment->account_id = $client->account_id;
+    //                     $transactionPayment->amount = $transaction->final_total;
+    //                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //                 } else {
+    //                     $accountsRoute = AccountsRoting::where('type', 'purchases_suppliers')->first();
+    //                     if ($accountsRoute) {
+    //                         if ($accountsRoute->direction == 'auto_assign') {
+    //                             $transactionPayment->account_id = $accountsRoute->account_id;
+    //                             $transactionPayment->amount = $transaction->final_total;
+    //                             $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request, $request);
+    //                         }
+    //                     }
+    //                 }
+
+    //                 //
+    //             }
+    //         }
+    //         foreach ($accountsRoute as $accountRoute) {
+    //             $transactionPayment->account_id = $accountRoute->account_id;
+
+    //             [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
+
+    //             $transactionPayment->amount = $amount;
+    //             if ($amount) {
+    //                 $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+    //             }
+    //         }
+    //     }
+
+
+    //     return true;
+    // }
+    // protected function determineAmountAndType($routeType, $transaction)
+    // {
+    //     return match ($routeType) {
+    //         'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
+    //         'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
+    //         'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
+
+    //         'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
+    //         'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
+    //         'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+
+    //         default => [0, 'debit'],
+    //     };
+    // }
+
+
+
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
-
         $route_section = match ($transaction->type) {
             'sell' => 'sales',
             'purchases' => 'purchases',
+            'sell-return' => 'sales',
+            // 'purchases-return' => 'purchases',
             default => '',
         };
 
         $accountsRoute = AccountsRoting::where('section', $route_section)->get();
-        // dd($route_section,$accountsRoute);
+
         if (count($accountsRoute) > 0) {
             $acc_trans_mapping = new AccountingAccTransMapping();
-
             $ref_number = $this->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = '';
@@ -136,6 +239,7 @@ class AccountingUtil
             $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
+
             if ($transaction->type == 'sell') {
                 if ($transaction->invoice_type == 'cash') {
                     $transactionPayment->account_id = $cash_account_id;
@@ -149,16 +253,12 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $accountsRoute = AccountsRoting::where('type', 'sales_client')->first();
-                        if ($accountsRoute) {
-                            if ($accountsRoute->direction == 'auto_assign') {
-                                $transactionPayment->account_id = $accountsRoute->account_id;
-                                $transactionPayment->amount = $transaction->final_total;
-                                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                            }
+                        if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                            $transactionPayment->account_id = $accountsRoute->account_id;
+                            $transactionPayment->amount = $transaction->final_total;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                     }
-
-                    //
                 }
             } else if ($transaction->type == 'purchases') {
                 if ($transaction->invoice_type == 'cash') {
@@ -173,33 +273,91 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $accountsRoute = AccountsRoting::where('type', 'purchases_suppliers')->first();
-                        if ($accountsRoute) {
-                            if ($accountsRoute->direction == 'auto_assign') {
-                                $transactionPayment->account_id = $accountsRoute->account_id;
-                                $transactionPayment->amount = $transaction->final_total;
-                                $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request, $request);
-                            }
+                        if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                            $transactionPayment->account_id = $accountsRoute->account_id;
+                            $transactionPayment->amount = $transaction->final_total;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                     }
+                }
+            } else if ($transaction->type == 'sell-return') {
+                // dd($cash_account_id);
 
-                    //
+                if ($transaction->invoice_type == 'cash') {
+                    $transactionPayment->account_id = $cash_account_id;
+                    $transactionPayment->amount = $transaction->final_total;
+                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                } else {
+                    $client = Contact::find($transactionPayment->payment_for);
+                    if ($client) {
+                        $transactionPayment->account_id = $client->account_id;
+                        $transactionPayment->amount = $transaction->final_total;
+                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                    } else {
+                        $accountsRoute = AccountsRoting::where('type', 'sales_client')->first();
+                        if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                            $transactionPayment->account_id = $accountsRoute->account_id;
+                            $transactionPayment->amount = $transaction->final_total;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
+                    }
+                }
+            } else if ($transaction->type == 'purchases-return') {
+                if ($transaction->invoice_type == 'cash') {
+                    $transactionPayment->account_id = $cash_account_id;
+                    $transactionPayment->amount = $transaction->final_total;
+                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                } else {
+                    $client = Contact::find($transactionPayment->payment_for);
+                    if ($client) {
+                        $transactionPayment->account_id = $client->account_id;
+                        $transactionPayment->amount = $transaction->final_total;
+                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                    } else {
+                        $accountsRoute = AccountsRoting::where('type', 'purchases_suppliers')->first();
+                        if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                            $transactionPayment->account_id = $accountsRoute->account_id;
+                            $transactionPayment->amount = $transaction->final_total;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
+                    }
                 }
             }
-            foreach ($accountsRoute as $accountRoute) {
-                $transactionPayment->account_id = $accountRoute->account_id;
 
-                [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
+            //   dd($transaction);
 
-                $transactionPayment->amount = $amount;
-                if ($amount) {
-                    $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+            if ($transaction->type == 'sell-return') {
+                $accountsRoute = AccountsRoting::where('type', 'sales_sell_return')->first();
+            //   dd($accountsRoute);
+                if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                    $transactionPayment->account_id = $accountsRoute->account_id;
+                    $transactionPayment->amount = $transaction->final_total;
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                }
+            } else if ($transaction->type == 'purchases-return') {
+                $accountsRoute = AccountsRoting::where('type', 'purchases_purchase_return')->first();
+                if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
+                    $transactionPayment->account_id = $accountsRoute->account_id;
+                    $transactionPayment->amount = $transaction->final_total;
+                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                }
+            } else {
+
+                foreach ($accountsRoute as $accountRoute) {
+                    $transactionPayment->account_id = $accountRoute->account_id;
+                    [$amount, $type] = $this->determineAmountAndType($accountRoute->type, $transaction);
+                    $transactionPayment->amount = $amount;
+
+                    if ($amount) {
+                        $this->saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                    }
                 }
             }
         }
 
-
         return true;
     }
+
     protected function determineAmountAndType($routeType, $transaction)
     {
         return match ($routeType) {
@@ -210,6 +368,9 @@ class AccountingUtil
             'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
             'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
             'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+
+            'sales_return_sales' => [$transaction->totalAfterDiscount, 'debit'],
+            'purchases_return_purchases' => [$transaction->totalAfterDiscount, 'credit'],
 
             default => [0, 'debit'],
         };
@@ -677,7 +838,7 @@ class AccountingUtil
             'equity' => __('accounting::lang.account_types.equity'),
             'income' => __('accounting::lang.account_types.income'),
             'expenses' => __('accounting::lang.account_types.expenses'),
-            'analytical_accounts'=> __('accounting::lang.account_types.analytical_accounts'),
+            'analytical_accounts' => __('accounting::lang.account_types.analytical_accounts'),
         ];
     }
 

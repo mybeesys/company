@@ -1155,7 +1155,7 @@ class ProductController extends Controller
                 });
             })
             ->with(['unitTransfers' => function ($query) {
-                $query->whereNull('unit2');
+                // $query->whereNull('unit2');
             }])
             ->get();
 

@@ -76,7 +76,7 @@
                         @foreach ($lines as $index => $line)
                             <tr>
                                 <td>
-                                    {{-- <select id="products" required class="form-select form-select-solid select-2"
+                                    <select id="products" required class="form-select form-select-solid select-2"
                                         name="products[{{ $index }}][products_id]" style="padding: 7px">
                                         <option value="">@lang('sales::lang.select_products')</option>
                                         @foreach ($products as $product)
@@ -93,14 +93,14 @@
                                                 @endif
                                             </option>
                                         @endforeach
-                                    </select> --}}
-                                <td>
+                                    </select>
+                                {{-- <td>
                                     <select id="products-{{ $index }}" required
                                         class="form-select form-select-solid select-2 product-select"
                                         name="products[{{ $index }}][products_id]">
                                         <option value="">@lang('sales::lang.select_products')</option>
                                     </select>
-                                </td>
+                                </td> --}}
 
                                 {{-- <select id="products" required class="form-select form-select-solid select-2 select-2-products-id"
                                         name="products[{{ $index }}][products_id]" style="padding: 7px">
@@ -178,9 +178,10 @@
                                     <select id="tax_vat" required
                                         class="form-select form-select-solid select-2 tax-select"
                                         name="products[{{ $index }}][tax_vat]" style="width: 200px;"
-                                        data-is-tax-group="{{ $tax->is_tax_group }}"
+                                        {{-- data-is-tax-group="{{ $tax->is_tax_group }}"
                                         data-sub-taxes="{{ json_encode($tax->sub_taxes ?? []) }}"
-                                        data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}">
+                                        data-minimum-limits="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}" --}}
+                                        >
                                         @foreach ($taxes as $tax)
                                             <option value="{{ $tax->amount }}"
                                                 data-is-tax-group="{{ $tax->is_tax_group }}"
