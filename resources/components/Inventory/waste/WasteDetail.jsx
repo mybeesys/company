@@ -12,13 +12,14 @@ const WasteDetail = ({ dir, translations }) => {
     const [currentObject, setCurrentObject] = useState(waste);
     const [showAlert, setShowAlert] = useState(false);
     const [branchProducts, setBranchProducts] = useState([]);
-    const [unitSearchUrls, setUnitSearchUrls] = useState({}); 
+    const [unitSearchUrls, setUnitSearchUrls] = useState({});
 
     useEffect(() => {
+        console.log(currentObject);
         if (currentObject.establishment?.id) {
             fetchProductsForEstablishment(currentObject.establishment.id);
         }
-    }, [currentObject.establishment]);
+    }, [currentObject.establishment, currentObject.items.product]);
 
     const fetchProductsForEstablishment = async (establishmentId) => {
         try {
@@ -174,7 +175,6 @@ const WasteDetail = ({ dir, translations }) => {
                                             typeof val === "object"
                                                 ? val?.id
                                                 : val;
-
                                         const updatedNodes = [...nodes];
 
                                         if (!productId) {
@@ -196,7 +196,6 @@ const WasteDetail = ({ dir, translations }) => {
                                         const product = branchProducts.find(
                                             (p) => p.id === productId
                                         );
-
                                         if (product) {
                                             updatedNodes[rowKey].data.SKU =
                                                 product.SKU;
@@ -319,7 +318,7 @@ const WasteDetail = ({ dir, translations }) => {
             currentObject={currentObject}
             translations={translations}
             dir={dir}
-            apiUrl={"waste"}
+            apiUrl={"storeWaste"}
             afterSubmitUrl="../../waste"
             handleError={handleQuantityError}
             validateObject={validateObject}

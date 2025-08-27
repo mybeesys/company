@@ -356,5 +356,10 @@
   "preparation_saved":"تم التحضير بنجاح",
   "production_quantity":"كمية الإنتاج",
   "production_qty_error": "يجب أن تكون كمية الإنتاج أكبر من الصفر",
-  "ingredient_qty_error": "لا يمكن أن تكون كميات المكونات سالبة"
+  "ingredient_qty_error": "لا يمكن أن تكون كميات المكونات سالبة",
+  "view":"عرض تفاصيل الإتلاف",
+  "close":"إغلاق",
+  "waste_details":"تفاصيل الإتلاف",
+  "reason":"سبب الإتلاف",
+  "employee":"الموظف"
 }

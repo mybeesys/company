@@ -3,6 +3,7 @@ import { useState } from "react";
 import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
+import Swal from "sweetalert2";
 
 const WasteTable = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
@@ -35,9 +36,9 @@ const WasteTable = ({ dir, translations }) => {
         return !!editMode ? (
             <></>
         ) : (
-            <span class={`status status-${data[key]}`}>{` ${
-                translations[data[key]]
-            }`}</span>
+            <span className={`status status-${data[key]}`}>
+                {translations[data[key]]}
+            </span>
         );
     };
 
@@ -51,6 +52,13 @@ const WasteTable = ({ dir, translations }) => {
                 },
             });
         }
+        actions.push({
+            key: "view",
+            action: () => {
+                showDetails(data);
+            },
+        });
+
         return (
             <DropdownMenu
                 actions={actions}
@@ -61,8 +69,79 @@ const WasteTable = ({ dir, translations }) => {
         );
     };
 
+    const showDetails = (data) => {
+        const details = data.sell_lines.map((line) => ({
+            product:
+                dir === "rtl" ? line.product.name_ar : line.product.name_en,
+            reason: data.description || "",
+            quantity: line.qyt,
+            employee:
+                dir === "rtl" ? data.created_by.name : data.created_by.name_en,
+            date: data.transaction_date,
+        }));
+
+        const tableContent = details
+            .map(
+                (detail) => `
+            <tr>
+                <td>${detail.product}</td>
+                <td>${detail.reason}</td>
+                <td>${detail.quantity}</td>
+                <td>${detail.employee}</td>
+                <td>${detail.date}</td>
+            </tr>
+        `
+            )
+            .join("");
+
+        Swal.fire({
+            title: translations["waste_details"],
+            html: `<div style="overflow-x:auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
+                                dir === "rtl"
+                                    ? translations.products
+                                    : translations.products
+                            }</th> 
+                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
+                            dir === "rtl"
+                                ? translations.reason
+                                : translations.reason
+                        }</th> 
+                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
+                            dir === "rtl"
+                                ? translations.quantity
+                                : translations.quantity
+                        }</th> 
+                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
+                            dir === "rtl"
+                                ? translations.employee
+                                : translations.employee
+                        }</th> 
+                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
+                            dir === "rtl"
+                                ? translations.date
+                                : translations.date
+                        }</th>  
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableContent}
+                    </tbody>
+                </table>
+            </div>`,
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: translations["close"],
+            width: "80%",
+            height: "auto",
+        });
+    };
+
     const canEditRow = (data) => {
-        return data.status == "draft";
+        return data.status === "draft";
     };
 
     const onSave = (data) => {};
@@ -108,16 +187,16 @@ const WasteTable = ({ dir, translations }) => {
                     },
                     {
                         key: "status",
-                        title: "op_status",
+                        title: "status",
                         autoFocus: true,
-                        type: "Date",
+                        type: "Text",
                         width: "15%",
                         customCell: statusCell,
                     },
                     {
-                        key: "dd",
+                        key: "actions",
                         autoFocus: true,
-                        type: "Date",
+                        type: "Text",
                         width: "15%",
                         customCell: dropdownCell,
                     },

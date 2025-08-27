@@ -3,6 +3,7 @@
 namespace Modules\Inventory\Models;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
@@ -50,46 +51,32 @@ class TransactionUtil
         $mods = [];
         foreach ($items as $newItem) {
             $item = new TransactionSellLine();
-
-            if (isset($newItem['product']['id'])) {
-                $idd = explode("-", $newItem['product']['id']);
-                if (count($idd) > 1) {
-                    $item->qty = $newItem['qty'];
-
-                    if ($idd[1] == 'p') {
-                        $item->product_id = $idd[0];
-                        if (isset($newItem['unit'])) {
-                            $item->unit_id = $newItem['unit']['id'];
-                        } else {
-                            $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
-                        }
-                        $prods[] = $item;
-                    } else if ($idd[1] == 'm') {
-                        $item->modifier_id = $idd[0];
-                        if (isset($newItem['unit'])) {
-                            $item->unit_id = $newItem['unit']['id'];
-                        } else {
-                            $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-                        }
-                        $mods[] = $item;
-                    } else {
-                        $item->ingredient_id = $idd[0];
-                        if (isset($newItem['unit'])) {
-                            $item->unit_id = $newItem['unit']['id'];
-                        } else {
-                            $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-                        }
-                        $ingrs[] = $item;
-                    }
-                } else {
-                    error_log("Invalid product ID format: " . $newItem['product']['id']);
-                }
+            $idd = explode("-", $newItem['product']['id']);
+            $item->qty = $newItem['qty'];
+            if ($idd[1] == 'p') {
+                $item->product_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
+                $prods[] = $item;
+            } else if ($idd[1] == 'm') {
+                $item->modifier_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                $mods[] = $item;
             } else {
-                error_log("Product ID is missing in item: " . json_encode($newItem));
+                $item->ingredient_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                $ingrs[] = $item;
             }
         }
-
-        $result = self::isValidQty($establishmentId, $prods, $ingrs, $mods,  $request["times"] ?? null);
+        $result =  self::isValidQty($establishmentId, $prods, $ingrs, $mods,  $request["times"] ?? null);
         return $result;
     }
 
@@ -168,23 +155,13 @@ class TransactionUtil
     {
         $newItems = [];
         foreach ($items as $newItem) {
-            if (isset($newItem['product']['id'])) {
-                $idd = explode("-", $newItem['product']['id']);
-                if (count($idd) > 1) {
-                    if ($idd[1] == 'p' && !isset($newItem['unit'])) {
-                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
-                    } elseif ($idd[1] == 'm' && !isset($newItem['unit'])) {
-                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
-                    } elseif ($idd[1] == 'i' && !isset($newItem['unit'])) {
-                        $newItem["unit"] = UnitTransferConvertor::getMainUnit('I', $idd[0], null);
-                    }
-                } else {
-                    error_log("Invalid product ID format: " . $newItem['product']['id']);
-                }
-            } else {
-                error_log("Product ID is missing in item: " . json_encode($newItem));
-            }
-
+            $idd = explode("-", $newItem['product']['id']);
+            if ($idd[1] == 'p' && !isset($newItem['unit']))
+                $newItem["unit"] = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
+            else if ($idd[1] == 'm' && !isset($newItem['unit']))
+                $newItem["unit"] = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+            else if ($idd[1] == 'i' && !isset($newItem['unit']))
+                $newItem["unit"] = UnitTransferConvertor::getMainUnit('I', $idd[0], null);
             $newItems[] = $newItem;
         }
         return $newItems;
@@ -448,15 +425,21 @@ class TransactionUtil
 
     public static function getTransactions($type)
     {
-        $transactions = Transaction::with('establishment')->where('type', '=', $type)->whereNull('parent_id')->get(); //with('establishment')->
+        $transactions = Transaction::with([
+            'establishment',
+            'createdBy',
+            'sell_lines.product'
+        ])->where('type', '=', $type)->whereNull('parent_id')->get();
+
         $relatedTransactions = Transaction::with('establishment')->whereIn('parent_id', $transactions->pluck('id')->toArray())->get();
         foreach ($transactions as $transaction) {
             $relatedTransaction = array_filter($relatedTransactions->toArray(), function ($trans) use ($transaction) {
-                return $transaction->id == $trans["parent_id"]; // Keep only even numbers
+                return $transaction->id == $trans["parent_id"];
             });
             $relatedTransaction = reset($relatedTransaction);
             $transaction->toEstablishment = $relatedTransaction['establishment'] ?? null;
         }
+        Log::info($transactions);
         return $transactions;
     }
 }

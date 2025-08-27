@@ -346,6 +346,11 @@
   "preparation_saved":"Prepared successfully",
   "production_quantity":"Production quantity",
   "production_qty_error": "Production quantity must be greater than 0",
-  "ingredient_qty_error": "Ingredient quantities cannot be negative"
+  "ingredient_qty_error": "Ingredient quantities cannot be negative",
+  "view": "View Waste Details",
+  "close": "Close",
+  "waste_details": "Waste Details",
+  "reason": "Reason for Waste",
+  "employee": "Employee"
 
 }
