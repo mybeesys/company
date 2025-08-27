@@ -61,6 +61,7 @@ Route::middleware([
         Route::post('prepareRecipe', [PrepController::class, 'prepareRecipe'])->name('prepareRecipe');
         Route::resource('rma', RMAController::class)->names('rma');
         Route::resource('waste', WasteController::class)->names('waste');
+        Route::post('storeWaste', [WasteController::class, 'storeWaste'])->name('storeWaste');
         Route::get('wasteList', [WasteController::class, 'getWastes'])->name('wasteList');
         Route::resource('transfer', TransferController::class)->names('transfer');
         Route::get('transferList', [TransferController::class, 'getTransfer'])->name('transferList');
