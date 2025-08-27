@@ -262,9 +262,13 @@ const ProductBasicInfo = ({
                                 }}
                             />
                         </div>
-                        <div class="col-6">
-                            <label for="name_ar" class="col-form-label">
-                                {translations.subcategory}
+                        <div className="col-6">
+                            <label
+                                htmlFor="subcategory_id"
+                                className="col-form-label"
+                            >
+                                {translations.subcategory}{" "}
+                                <span style={{ color: "red" }}>*</span>
                             </label>
                             <Select
                                 id="subcategory_id"
@@ -288,6 +292,12 @@ const ProductBasicInfo = ({
                                     }),
                                 }}
                             />
+                            {!currentObject.subcategory && (
+                                <div className="text-danger">
+                                    {translations.required}{" "}
+                                    {translations.subcategory}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
