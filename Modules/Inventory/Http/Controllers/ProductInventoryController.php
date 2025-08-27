@@ -189,11 +189,12 @@ class ProductInventoryController extends Controller
 
     public function getProductInventories(Request $request)
     {
-        $by = $request->query('by');  // Get 'query' parameter
+        $by = $request->query('by');
         $key = $request->query('key', '');
         $useTree = $request->query('t', '');
         $establishments = [];
         $TreeBuilder = new TreeBuilder();
+
         if ($by == 0) {
             $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
                 $query->where('is_main', 1)
@@ -201,10 +202,8 @@ class ProductInventoryController extends Controller
                         $subQuery->where('is_main', 0)
                             ->where('name', 'LIKE', "%{$key}%");
                     });
-            }])
-                ->get();
+            }])->get();
         } else {
-           // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
             $establishments = Establishment::select('establishments.*')
                 ->join('product_inventories', 'establishments.id', '=', 'product_inventories.establishment_id')
                 ->join('products', 'product_inventories.product_id', '=', 'products.id')
@@ -212,21 +211,23 @@ class ProductInventoryController extends Controller
                     $query->where('products.name_ar', 'LIKE', "%{$key}%")
                         ->orWhere('products.name_en', 'LIKE', "%{$key}%");
                 })
+                ->distinct()
                 ->get();
         }
+
         $establishmentArray = $establishments->toArray();
         $details = [];
+        $processedIds = [];
+
         foreach ($establishmentArray as $establishment) {
-            if ($by == 1) {
-                $est = $this->fillProduct($establishment, $key);
-                $details[] = $est;
-            } else {
-                $est = $this->fillProduct($establishment, null);
+            if (!in_array($establishment['id'], $processedIds)) {
+                $processedIds[] = $establishment['id']; //  
+                $est = ($by == 1) ? $this->fillProduct($establishment, $key) : $this->fillProduct($establishment, null);
                 $details[] = $est;
             }
         }
-        if (isset($useTree) && $useTree == '1') {
 
+        if (isset($useTree) && $useTree == '1') {
             return $details;
         } else {
             $tree = $TreeBuilder->buildTreeFromArray($details, null, 'productInventory', null, null, null);
