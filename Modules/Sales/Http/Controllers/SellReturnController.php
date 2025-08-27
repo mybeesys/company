@@ -260,6 +260,7 @@ class SellReturnController extends Controller
                 ]);
             }
 
+
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
             }
