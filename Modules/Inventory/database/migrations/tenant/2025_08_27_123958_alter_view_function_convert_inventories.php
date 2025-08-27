@@ -110,7 +110,7 @@ return new class extends Migration
                 SUM(convert_quantity('P', ioi.product_id, ioi.unit_id, null, ioi.qyt)) AS qty,
                 ioi.product_id AS product_id,
                 io1.establishment_id
-            FROM transaction_purchases_lines ioi
+            FROM transactione_purchases_lines ioi
             INNER JOIN transactions io1 ON io1.id = ioi.transaction_id
             WHERE io1.status ='approved'
             GROUP BY ioi.product_id, io1.establishment_id
@@ -140,7 +140,7 @@ return new class extends Migration
                 SUM(convert_quantity('M', ioi.modifier_id, ioi.unit_id, null, ioi.qyt)) AS qty,
                 ioi.modifier_id AS modifier_id,
                 io1.establishment_id
-            FROM transaction_purchases_lines ioi
+            FROM transactione_purchases_lines ioi
             INNER JOIN transactions io1 ON io1.id = ioi.transaction_id
             WHERE io1.status ='approved'
             GROUP BY ioi.modifier_id, io1.establishment_id
