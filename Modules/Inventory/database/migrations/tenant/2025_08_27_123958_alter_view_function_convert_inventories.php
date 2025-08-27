@@ -42,9 +42,13 @@ return new class extends Migration
             DECLARE main_unit_id INT;
             DECLARE result_quantity DECIMAL(10,4);
             DECLARE conversion_factor DECIMAL(10,4);
+            
+            -- Handle null units
             IF from_id IS NULL THEN
                 RETURN quantity;
             END IF;
+            
+            -- Get main unit if to_id is null
             IF to_id IS NULL THEN
                 SET to_id = get_main_unit(p_type, p_id);
             END IF;
@@ -52,7 +56,10 @@ return new class extends Migration
             IF to_id = -1 OR from_id = to_id THEN
                 RETURN quantity;
             END IF;
+            
+            -- Find conversion path from subunit to main unit
             WITH RECURSIVE unit_path AS (
+                -- Base case: starting from the subunit
                 SELECT 
                     ut.unit2, 
                     ut.transfer as factor,
@@ -62,7 +69,8 @@ return new class extends Migration
                 AND ut.deleted_at IS NULL
                 
                 UNION ALL
-
+                
+                -- Recursive case: follow the chain to main unit
                 SELECT 
                     ut.unit2,
                     up.factor * ut.transfer,
@@ -87,6 +95,7 @@ return new class extends Migration
             RETURN result_quantity;
         END");
 
+        // Fix the inventory views
         DB::statement("CREATE OR REPLACE VIEW product_inventories AS
         SELECT 
             pp.id AS product_id,
@@ -151,5 +160,11 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void {}
+    public function down(): void
+    {
+        DB::statement("DROP VIEW IF EXISTS product_inventories");
+        DB::statement("DROP VIEW IF EXISTS modifier_inventories");
+        DB::statement("DROP FUNCTION IF EXISTS convert_quantity");
+        DB::statement("DROP FUNCTION IF EXISTS get_main_unit");
+    }
 };
