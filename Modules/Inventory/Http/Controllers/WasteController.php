@@ -173,7 +173,7 @@ class WasteController extends Controller
                 $transaction->update([
                     'transaction_date' => $validated['transaction_date'] ?? now(),
                     'establishment_id' => $validated['establishment']['id'],
-                    'description' => $validated['description'],
+                    'description' => isset($validated['description']) ? $validated['description'] : null,
 
                 ]);
                 $requestedItemIds = collect($request->items)->pluck('id')->filter()->all();
@@ -187,7 +187,7 @@ class WasteController extends Controller
                     'ref_no' => self::generatePoNo('WASTE'),
                     'created_by' => Auth::user()->id,
                     'transaction_date' => $validated['transaction_date'] ?? now(),
-                    'description' => $validated['description'],
+                    'description' => isset($validated['description']) ? $validated['description'] : null,
                     'establishment_id' => $validated['establishment']['id'],
                 ]);
             }
