@@ -249,16 +249,19 @@ class TransactionUtil
                 return $prod->product_id == $value["product_id"]; // Keep only even numbers
             });
             $prodTotal = reset($prodTotal);
+            if (!$prodTotal) {
+                continue;
+            }
             $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
                 ->whereNotNull('unit2')
                 ->first();
-            $totalQty = $prodTotal["qty"];
+            $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
 
             if ($hasSubUnit) {
                 $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
             }
             if (
-                $prodTotal["qty"] < $qty
+                $totalQty < $qty
             ) {
                 $product = Product::find($prod->product_id);
                 $result[] = [
