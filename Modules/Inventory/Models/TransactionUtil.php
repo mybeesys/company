@@ -180,7 +180,7 @@ class TransactionUtil
         $purchaseItems = self::fillMainUnit($purchaseItems);
         $sellItems = $request['items'] ?? [];
         $sellItems = self::fillMainUnit($sellItems);
-        $result =  self::validate($validated["establishment_id"], $sellItems ?? []);
+        $result =  self::validateTransfer($validated["establishment_id"], $sellItems ?? []);
         if (count($result) > 0)
             return $result;
         DB::transaction(function () use ($request, $validated, $sellItems, $purchaseItems, $withRelated) {
@@ -200,7 +200,76 @@ class TransactionUtil
         });
         return [];
     }
+    private static function validateTransfer($establishmentId, $items)
+    {
+        $prods = [];
+        $ingrs = [];
+        $mods = [];
+        foreach ($items as $newItem) {
+            $item = new TransactionSellLine();
+            $idd = explode("-", $newItem['product']['id']);
+            $item->qty = $newItem['qty'];
+            if ($idd[1] == 'p') {
+                $item->product_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('P', $idd[0], null);
+                $prods[] = $item;
+            } else if ($idd[1] == 'm') {
+                $item->modifier_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                $mods[] = $item;
+            } else {
+                $item->ingredient_id = $idd[0];
+                if (isset($newItem['unit']))
+                    $item->unit_id = $newItem['unit']['id'];
+                else
+                    $item->unit_id = UnitTransferConvertor::getMainUnit('M', $idd[0], null);
+                $ingrs[] = $item;
+            }
+        }
+        $result =  self::isValidQtyTransfer($establishmentId, $newItem['qty'], $prods, $ingrs, $mods,  $request["times"] ?? null);
+        return $result;
+    }
 
+    private static function isValidQtyTransfer($establishment_id, $qty, $products, $ingredients, $modifiers, $times)
+    {
+        $result = [];
+        $prodIds =  array_map(function ($product) {
+            return $product->product_id;
+        }, $products);
+        $prodTotals = ProductInventoryTotal::where('establishment_id', '=', $establishment_id)
+            ->whereIn('product_id', $prodIds)->get();
+        foreach ($products as $prod) {
+            $prodTotal = array_filter($prodTotals->toArray(), function ($value) use ($prod) {
+                return $prod->product_id == $value["product_id"]; // Keep only even numbers
+            });
+            $prodTotal = reset($prodTotal);
+            $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
+                ->whereNotNull('unit2')
+                ->first();
+            $totalQty = $prodTotal["qty"];
+
+            if ($hasSubUnit) {
+                $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
+            }
+            if (
+                $prodTotal["qty"] < $qty
+            ) {
+                $product = Product::find($prod->product_id);
+                $result[] = [
+                    "name_ar" => $product->name_ar,
+                    "name_en" => $product->name_en,
+                    "qty" =>  $totalQty
+                ];
+            }
+        }
+        return $result;
+    }
     public static function updateTransaction($validated, $request, $withRelated)
     {
         $transaction = Transaction::find($validated['id']);
@@ -451,7 +520,6 @@ class TransactionUtil
             $relatedTransaction = reset($relatedTransaction);
             $transaction->toEstablishment = $relatedTransaction['establishment'] ?? null;
         }
-        Log::info($transactions);
         return $transactions;
     }
 }
