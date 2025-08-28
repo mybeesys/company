@@ -155,7 +155,14 @@ class ProductInventoryController extends Controller
                 $unit = UnitTransfer::where('product_id', $productInventory->product_id)
                     ->where('unit2', null)
                     ->first();
-                $pp["qty"] = $productInventory->qty . ' ' . $unit->unit1;
+                $qty = $productInventory->qty;
+
+                if (floor($qty) == $qty) {
+                    $formattedQty = number_format($qty, 0, '.', ''); 
+                } else {
+                    $formattedQty = number_format($qty, 2, '.', '');
+                }
+                $pp["qty"] = $formattedQty . ' ' . $unit->unit1;
             }
             $children[] = $pp;
         }
