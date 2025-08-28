@@ -361,5 +361,6 @@
   "close":"إغلاق",
   "waste_details":"تفاصيل الإتلاف",
   "reason":"سبب الإتلاف",
-  "employee":"الموظف"
+  "employee":"الموظف",
+  "subcategoryerror":"التصنيف الجزئي مطلوب"
 }
