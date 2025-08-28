@@ -12,6 +12,8 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransferConvertor;
+use Illuminate\Container\Attributes\DB;
+use Modules\Product\Models\UnitTransfer;
 
 use function Laravel\Prompts\error;
 
@@ -88,7 +90,99 @@ class ProductInventoryController extends Controller
 
         return $establishment;
     }
+    protected function fillProducts($establishment, $key)
+    {
 
+        if ($establishment["is_main"] == 1) {
+            $children = [];
+            foreach ($establishment["children"] as $childEstablishment) {
+                $est = $this->fillProduct($childEstablishment, $key);
+                $children[] = $est;
+            }
+            $establishment["children"] = $children;
+            return $establishment;
+        }
+        $productInventories = [];
+        $modifierInventories = [];
+        if ($key != null) {
+            $productInventories = Product::where('name_ar', 'like', '%' . $key . '%')
+                ->orWhere('name_en', 'like', '%' . $key . '%')
+                ->with(['inventory' => function ($query) {
+                    $query->with('vendor');
+                    $query->with('unit');
+                }]);
+            /*  $modifierInventories = Modifier::where('name_ar', 'like', '%' . $key . '%')
+                ->orWhere('name_en', 'like', '%' . $key . '%')
+                ->with(['inventory' => function ($query) {
+                    $query->with('vendor');
+                    $query->with('unit');
+                }]);*/
+        } else {
+            $productInventories = Product::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }]);
+            /* $modifierInventories = Modifier::with(['inventory' => function ($query) {
+                $query->with('vendor');
+                $query->with('unit');
+            }]);*/
+        }
+        $productInventories = $productInventories->Join('product_inventories', function ($join) use ($establishment) {
+            $join->on('product_inventories.product_id', '=', 'product_products.id')
+                ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+        })->get();
+        $children = [];
+
+        foreach ($productInventories as $productInventory) {
+            $productInventory->addToFillable('inventory');
+            $productInventory->addToFillable('qty');
+            $pp = $productInventory->toArray();
+            $pp["type"] = "product";
+            $pp["establishment_id"] = $establishment["id"];
+            $units = UnitTransfer::where('product_id', $productInventory->product_id)
+                ->whereNotNull('unit2')
+                ->get();
+
+            if (count($units) > 0) {
+                $quantities = [];
+                foreach ($units as $unit) {
+                    $quantityInStock = round($productInventory->qty * $unit->transfer);
+                    $subUnits = UnitTransfer::where('unit2', $unit->unit2)->get();
+
+                    if ($subUnits->isNotEmpty()) {
+                        foreach ($subUnits as $subUnit) {
+                            $quantityInStock *= $subUnit->transfer;
+                        }
+                    }
+
+                    $quantities[] = "{$quantityInStock} {$unit->unit_unit1}";
+                }
+                $pp["qty"] = implode(' - ', $quantities);
+            } else {
+                $unit = UnitTransfer::where('product_id', $productInventory->product_id)
+                    ->where('unit2', null)
+                    ->first();
+                $pp["qty"] = $productInventory->qty . ' ' . $unit->unit1;
+            }
+            $children[] = $pp;
+        }
+
+        /*   $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use ($establishment) {
+            $join->on('modifier_inventories.modifier_id', '=', 'product_modifiers.id')
+                ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+        })->get();
+        foreach ($modifierInventories as $modifierInventory) {
+            $modifierInventory->addToFillable('inventory');
+            $modifierInventory->addToFillable('qty');
+            $pp = $modifierInventory->toArray();
+            $pp["type"] = "modifier";
+            $pp["establishment_id"] = $establishment["id"];
+            $children[] = $pp;
+        }*/
+        $establishment["children"] = $children;
+
+        return $establishment;
+    }
     public function listTransactions(Request $request)
     {
         $typ = $request->query('typ');  // Get 'query' parameter
@@ -227,7 +321,7 @@ class ProductInventoryController extends Controller
         foreach ($establishmentArray as $establishment) {
             if (!in_array($establishment['id'], $processedIds)) {
                 $processedIds[] = $establishment['id']; //  
-                $est = ($by == 1) ? $this->fillProduct($establishment, $key) : $this->fillProduct($establishment, null);
+                $est = ($by == 1) ? $this->fillProducts($establishment, $key) : $this->fillProducts($establishment, null);
                 $details[] = $est;
             }
         }
