@@ -190,7 +190,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             Swal.fire({
                 show: showAlert,
                 title: "Error",
-                text: translations.technicalerror,
+                text: translations.subcategoryerror,
                 icon: "error",
                 timer: 2000,
                 showCancelButton: false,

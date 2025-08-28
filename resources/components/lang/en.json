@@ -351,6 +351,7 @@
   "close": "Close",
   "waste_details": "Waste Details",
   "reason": "Reason for Waste",
-  "employee": "Employee"
+  "employee": "Employee",
+  "subcategoryerror":"subCategory required"
 
 }
