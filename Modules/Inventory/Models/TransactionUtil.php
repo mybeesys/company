@@ -261,13 +261,13 @@ class TransactionUtil
                 $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
             }
             if (
-                $totalQty < $qty
+                $totalQty < $qty || $totalQty <= 0
             ) {
                 $product = Product::find($prod->product_id);
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" =>  $totalQty
+                    "qty" =>  round($totalQty)
                 ];
             }
         }
