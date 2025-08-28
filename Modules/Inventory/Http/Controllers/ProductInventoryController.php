@@ -147,15 +147,11 @@ class ProductInventoryController extends Controller
                 $quantities = [];
                 foreach ($units as $unit) {
                     $quantityInStock = round($productInventory->qty * $unit->transfer);
-                    $subUnits = UnitTransfer::where('unit2', $unit->unit2)->get();
+                    $subUnits = UnitTransfer::where('unit2', $unit->unit2)->first();
 
-                    if ($subUnits->isNotEmpty()) {
-                        foreach ($subUnits as $subUnit) {
-                            if ($subUnit->transfer !== null)
-                                $quantityInStock = $unit->transfer * $subUnit->transfer;
-                        }
+                    if ($subUnits->transfer !== null) {
+                        $quantityInStock = $unit->transfer * $subUnits->transfer;
                     }
-
                     $quantities[] = "{$quantityInStock} {$unit->unit1}";
                 }
                 $pp["qty"] = implode(' , ', $quantities);
