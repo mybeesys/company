@@ -96,7 +96,7 @@ class ProductInventoryController extends Controller
         if ($establishment["is_main"] == 1) {
             $children = [];
             foreach ($establishment["children"] as $childEstablishment) {
-                $est = $this->fillProduct($childEstablishment, $key);
+                $est = $this->fillProducts($childEstablishment, $key);
                 $children[] = $est;
             }
             $establishment["children"] = $children;
