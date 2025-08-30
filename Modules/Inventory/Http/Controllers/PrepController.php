@@ -152,7 +152,7 @@ class PrepController extends Controller
                 ->where('order', $prod['order'])
                 ->where('product_id', $productId)
                 ->first();
-            $totalQty = round($prodTotal->qty);
+            $totalQty = $prodTotal->qty;
 
             if ($recipeProduct->unitTransfer->unit2) {
                 $totalQty *= $recipeProduct->unitTransfer->transfer;
@@ -163,7 +163,7 @@ class PrepController extends Controller
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty
+                    "qty" => round($totalQty)
                 ];
                 return response()->json($result, 400);
             }
