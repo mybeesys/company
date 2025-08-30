@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
-
+import { getName } from "../../lang/Utils";سس
 const PrepTable = ({ dir, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentRow, setCurrentRow] = useState({});
@@ -65,7 +65,16 @@ const PrepTable = ({ dir, translations }) => {
             </span>
         );
     };
-
+    const getErrorMessage = (data) => {
+        let res = "";
+        for (let index = 0; index < data.length; index++) {
+            const element = data[index];
+            res += `<div>${getName(element.name_en, element.name_ar, dir)} : ${
+                element.qty
+            }</div>`;
+        }
+        return res;
+    };
     const prepareRecipeCell = (data, key, editMode, editable, refreshTree) => {
         const handlePrepare = async (event) => {
             event.preventDefault();
@@ -272,7 +281,9 @@ const PrepTable = ({ dir, translations }) => {
             } catch (error) {
                 Swal.fire({
                     title: translations.error,
-                    text: translations.qyt_error,
+                    html: `<div>${
+                        translations.notEnoughQuantity
+                    }</div>${getErrorMessage(error.response.data)}`,
                     icon: "error",
                     confirmButtonText: translations.Save,
                 });
