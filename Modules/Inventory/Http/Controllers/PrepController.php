@@ -166,7 +166,7 @@ class PrepController extends Controller
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty . "-" . $unitTransfer
+                    "qty" => $totalQty . '' . $unitTransfer->unit1
                 ];
                 return response()->json($result, 400);
             }
