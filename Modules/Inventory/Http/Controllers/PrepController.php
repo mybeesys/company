@@ -207,7 +207,7 @@ class PrepController extends Controller
                         'unit_price' => $unitPrice,
                         'product_id' => $ingredient['id'],
                         'qyt' => $ingredient['quantity'],
-                        'unit_id' => $ingredient['unit_transfer_id'],
+                        'unit_id' => $recipeProduct->unit_transfer_id,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
