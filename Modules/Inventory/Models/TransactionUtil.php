@@ -180,7 +180,7 @@ class TransactionUtil
         $purchaseItems = self::fillMainUnit($purchaseItems);
         $sellItems = $request['items'] ?? [];
         $sellItems = self::fillMainUnit($sellItems);
-        $result =  self::validateTransfer($validated["establishment_id"], $sellItems ?? []);
+        $result =  self::validateTransfer($validated["establishment_id"], $validated["unit_id"], $sellItems ?? []);
         if (count($result) > 0)
             return $result;
         DB::transaction(function () use ($request, $validated, $sellItems, $purchaseItems, $withRelated) {
@@ -200,7 +200,7 @@ class TransactionUtil
         });
         return [];
     }
-    private static function validateTransfer($establishmentId, $items)
+    private static function validateTransfer($establishmentId, $unitId, $items)
     {
         $prods = [];
         $ingrs = [];
@@ -232,11 +232,11 @@ class TransactionUtil
                 $ingrs[] = $item;
             }
         }
-        $result =  self::isValidQtyTransfer($establishmentId, $newItem['qty'], $prods, $ingrs, $mods,  $request["times"] ?? null);
+        $result =  self::isValidQtyTransfer($establishmentId, $unitId, $newItem['qty'], $prods, $ingrs, $mods,  $request["times"] ?? null);
         return $result;
     }
 
-    private static function isValidQtyTransfer($establishment_id, $qty, $products, $ingredients, $modifiers, $times)
+    private static function isValidQtyTransfer($establishment_id, $unitId, $qty, $products, $ingredients, $modifiers, $times)
     {
         $result = [];
         $prodIds =  array_map(function ($product) {
@@ -259,21 +259,24 @@ class TransactionUtil
                 continue;
             }
             $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
-                ->whereNotNull('unit2')
+                ->where('id', $unitId)
                 ->first();
-            $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
 
-            if ($hasSubUnit) {
+            $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
+            $unitId = $prodTotal->unit_id;
+            if ($hasSubUnit->unit2) {
                 $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
             }
             if (
                 $totalQty < $qty || $totalQty == 0
             ) {
                 $product = Product::find($prod->product_id);
+                $unitTransfer = UnitTransfer::where('id', $unitId)
+                    ->first();
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" =>  round($totalQty)
+                    "qty" => $totalQty . '' . $unitTransfer->unit1
                 ];
             }
         }
