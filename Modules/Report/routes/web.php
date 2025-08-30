@@ -36,8 +36,8 @@ Route::middleware([
     Route::get('purchase-sell', [SalesReportController::class, 'getPurchaseSell'])->name('purchase-sell');
     Route::get('/reports/get-profit/{by?}', [SalesReportController::class, 'getProfit']);
     Route::get('branches', [SalesReportController::class, 'getBranches'])->name('branches');
-    Route::get('suppliers', [SalesReportController::class, 'getSupplier'])->name('suppliers');
-    Route::get('customers', [SalesReportController::class, 'getCustomers'])->name('customers');
+    Route::get('getSuppliers', [SalesReportController::class, 'getSupplier'])->name('getSuppliers');
+    Route::get('getCustomers', [SalesReportController::class, 'getCustomers'])->name('getCustomers');
     Route::get('products', [SalesReportController::class, 'getProducts'])->name('retrieveProducts');
     Route::get('devices', [SalesReportController::class, 'getDevices'])->name('devices');
     Route::get('/payment-reports', [SalesReportController::class, 'combinedPaymentReport'])->name('payment-reports.combined');
