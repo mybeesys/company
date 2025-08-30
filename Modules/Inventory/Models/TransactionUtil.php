@@ -275,7 +275,7 @@ class TransactionUtil
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty . '' . $unitTransfer->unit1
+                    "qty" => $totalQty . '' . $unitTransfer->unit1 ? $unitTransfer->unit1 : null
                 ];
             }
         }
