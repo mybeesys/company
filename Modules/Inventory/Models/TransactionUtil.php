@@ -262,7 +262,7 @@ class TransactionUtil
                 ->first();
 
             $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
-            $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
+
             $unitId = isset($prodTotal["unit_id"]) ? $prodTotal["unit_id"] : null;
             if ($hasSubUnit->unit2) {
                 $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
@@ -276,7 +276,7 @@ class TransactionUtil
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty
+                    "qty" => $totalQty . '' . $unitTransfer->unit1
                 ];
             }
         }
