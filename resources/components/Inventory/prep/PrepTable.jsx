@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
-import { getName } from "../../lang/Utils";سس
+import { getName } from "../../lang/Utils";
 const PrepTable = ({ dir, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentRow, setCurrentRow] = useState({});
