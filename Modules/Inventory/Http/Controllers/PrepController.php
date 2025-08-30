@@ -121,6 +121,9 @@ class PrepController extends Controller
         $price = $product->price;
 
         $product = Product::find($productId);
+        $productUnit = UnitTransfer::where('product_id', $productId)
+            ->whereNull('unit2')
+            ->first();
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
@@ -164,7 +167,7 @@ class PrepController extends Controller
             }
         }
         DB::transaction(
-            function () use ($from, $to, $ingredients, $productId, $productionQty, $price) {
+            function () use ($from, $to, $ingredients, $productId, $productionQty, $price, $productUnit) {
                 $transactionPurchasesId = Transaction::create([
                     'type' => "PREP",
                     'status' => "approved",
@@ -204,6 +207,7 @@ class PrepController extends Controller
                         'unit_price' => $unitPrice,
                         'product_id' => $ingredient['id'],
                         'qyt' => $ingredient['quantity'],
+                        'unit_id' => $ingredient['unit_transfer_id'],
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -214,6 +218,7 @@ class PrepController extends Controller
                     'unit_price' => $price,
                     'product_id' =>  $productId,
                     'qyt' => $productionQty,
+                    'unit_id' => $productUnit->id,
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transactionsell_id' => $sellId->id,
