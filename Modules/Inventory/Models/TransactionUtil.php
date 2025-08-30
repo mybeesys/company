@@ -180,7 +180,7 @@ class TransactionUtil
         $purchaseItems = self::fillMainUnit($purchaseItems);
         $sellItems = $request['items'] ?? [];
         $sellItems = self::fillMainUnit($sellItems);
-        $result =  self::validateTransfer($validated["establishment_id"], $validated["unit_id"], $sellItems ?? []);
+        $result =  self::validateTransfer($validated["establishment_id"], $sellItems ?? []);
         if (count($result) > 0)
             return $result;
         DB::transaction(function () use ($request, $validated, $sellItems, $purchaseItems, $withRelated) {
@@ -200,7 +200,7 @@ class TransactionUtil
         });
         return [];
     }
-    private static function validateTransfer($establishmentId, $unitId, $items)
+    private static function validateTransfer($establishmentId, $items)
     {
         $prods = [];
         $ingrs = [];
@@ -232,11 +232,11 @@ class TransactionUtil
                 $ingrs[] = $item;
             }
         }
-        $result =  self::isValidQtyTransfer($establishmentId, $unitId, $newItem['qty'], $prods, $ingrs, $mods,  $request["times"] ?? null);
+        $result =  self::isValidQtyTransfer($establishmentId, $newItem['qty'], $prods, $ingrs, $mods,  $request["times"] ?? null);
         return $result;
     }
 
-    private static function isValidQtyTransfer($establishment_id, $unitId, $qty, $products, $ingredients, $modifiers, $times)
+    private static function isValidQtyTransfer($establishment_id, $qty, $products, $ingredients, $modifiers, $times)
     {
         $result = [];
         $prodIds =  array_map(function ($product) {
@@ -259,7 +259,7 @@ class TransactionUtil
                 continue;
             }
             $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
-                ->where('id', $unitId)
+                ->whereNotNull('unit2')
                 ->first();
 
             $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
@@ -292,7 +292,7 @@ class TransactionUtil
         $purchaseItems = self::fillMainUnit($purchaseItems);
         $sellItems = $request['items'] ?? [];
         $sellItems = self::fillMainUnit($sellItems);
-        $result =  self::validateTransfer($validated["establishment_id"], $validated["unit_id"], $sellItems ?? []);
+        $result =  self::validateTransfer($validated["establishment_id"], $sellItems ?? []);
         if (count($result) > 0)
             return $result;
         $related = null;
