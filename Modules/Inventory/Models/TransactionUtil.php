@@ -250,6 +250,12 @@ class TransactionUtil
             });
             $prodTotal = reset($prodTotal);
             if (!$prodTotal) {
+                $product = Product::find($prod->product_id);
+                $result[] = [
+                    "name_ar" => $product->name_ar,
+                    "name_en" => $product->name_en,
+                    "qty" => 0
+                ];
                 continue;
             }
             $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
