@@ -10,6 +10,7 @@ use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\Prep;
+use Modules\Inventory\Models\ProductInventoryTotal;
 use Modules\Inventory\Models\PurchaseOrder;
 use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
@@ -118,6 +119,50 @@ class PrepController extends Controller
         $ingredients = $validated['ingredients'];
         $product = Product::where('id', $productId)->first();
         $price = $product->price;
+
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        $result = [];
+        $ingredientIds = array_map(function ($ingredient) {
+            return $ingredient['id'];
+        }, $ingredients);
+
+        $prodTotals = ProductInventoryTotal::where('establishment_id', $from)
+            ->whereIn('product_id', $ingredientIds)->get();
+
+        foreach ($ingredients as $prod) {
+            $prodTotal = $prodTotals->firstWhere('product_id', $prod['id']);
+            if (!$prodTotal) {
+                $product = Product::find($prod['id']);
+                $result[] = [
+                    "name_ar" => $product->name_ar,
+                    "name_en" => $product->name_en,
+                    "qty" => 0
+                ];
+                return response()->json($result, 400);
+            }
+
+            $hasSubUnit = UnitTransfer::where('product_id', $prod['id'])
+                ->whereNotNull('unit2')
+                ->first();
+
+            $totalQty = $prodTotal->qty;
+            if ($hasSubUnit) {
+                $totalQty *= $hasSubUnit->transfer;
+            }
+
+            if ($totalQty < $prod['quantity']) {
+                $product = Product::find($prod['id']);
+                $result[] = [
+                    "name_ar" => $product->name_ar,
+                    "name_en" => $product->name_en,
+                    "qty" => $totalQty
+                ];
+                return response()->json($result, 400);
+            }
+        }
         DB::transaction(
             function () use ($from, $to, $ingredients, $productId, $productionQty, $price) {
                 $transactionPurchasesId = Transaction::create([
