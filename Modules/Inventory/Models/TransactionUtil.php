@@ -292,7 +292,7 @@ class TransactionUtil
         $purchaseItems = self::fillMainUnit($purchaseItems);
         $sellItems = $request['items'] ?? [];
         $sellItems = self::fillMainUnit($sellItems);
-        $result =  self::validateTransfer($validated["establishment_id"], $sellItems ?? []);
+        $result =  self::validateTransfer($validated["establishment_id"], $validated["unit_id"], $sellItems ?? []);
         if (count($result) > 0)
             return $result;
         $related = null;
