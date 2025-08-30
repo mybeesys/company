@@ -25,7 +25,7 @@ Route::middleware([
     // 'auth-central',
 ])->group(function () {
     Route::get('clients', [ClientsAndSuppliersApiController::class, 'clients'])->name('clients');
-    Route::get('suppliers', [ClientsAndSuppliersApiController::class, 'suppliers'])->name('suppliers');
+    Route::get('get-suppliers', [ClientsAndSuppliersApiController::class, 'suppliers'])->name('get-suppliers');
     Route::post('contact-save', [ClientsAndSuppliersApiController::class, 'store'])->name('contact-save');
     Route::get('contact-show/{id}', [ClientsAndSuppliersApiController::class, 'show'])->name('contact-show');
     Route::post('contact-update', [ClientsAndSuppliersApiController::class, 'update'])->name('contact-update');
