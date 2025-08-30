@@ -67,7 +67,8 @@ class PrepController extends Controller
 
         $recipeQyt = Product::where('id', $id)->first();
 
-        $products = RecipeProduct::where('product_id', $id)->with('products')->get();
+        $products = RecipeProduct::where('product_id', $id)->with(['products', 'unitTransfer'])->get();
+
         $response = [
             'products' => $products,
             'recipeQyt' => $recipeQyt,
@@ -153,17 +154,20 @@ class PrepController extends Controller
                 ->where('product_id', $productId)
                 ->first();
             $totalQty = $prodTotal->qty;
-
+            $unitId = $prodTotal->unit_id;
             if ($recipeProduct->unitTransfer->unit2) {
                 $totalQty *= $recipeProduct->unitTransfer->transfer;
             }
 
             if ($totalQty < $prod['quantity']) {
                 $product = Product::find($prod['id']);
+                $unitTransfer = UnitTransfer::where('product_id', $prod['id'])
+                    ->where('unit_id', $unitId)
+                    ->first();
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => round($totalQty)
+                    "qty" => $totalQty . "-" . $unitTransfer
                 ];
                 return response()->json($result, 400);
             }
