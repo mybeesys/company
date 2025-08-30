@@ -154,7 +154,7 @@
 
     function populateSuppliers() {
         $.ajax({
-            url: "{{ route('suppliers') }}",
+            url: "{{ route('getSuppliers') }}",
             type: 'GET',
             success: function(response) {
                 if (response.success) {
