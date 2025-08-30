@@ -123,6 +123,7 @@ const PrepTable = ({ dir, translations }) => {
                     </div>
                 </div>
             `;
+
                 const ingredientsHtml = `
                 <div style="display: flex; margin-bottom: 20px; gap: 20px;">
                     <div style="flex: 1; display: flex; flex-direction: column; border: 1px solid #dee2e6; border-radius: 4px;">
@@ -134,37 +135,25 @@ const PrepTable = ({ dir, translations }) => {
                             ${ingredientsList
                                 .map(
                                     (ingredient) => `
-                                <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef; flex: 1;">
-                                    ${
+                                <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef; flex: 1; display: flex; justify-content: space-between;">
+                                    <span>${
                                         dir === "rtl"
                                             ? ingredient.products.name_ar
                                             : ingredient.products.name_en
-                                    }
-                                </div>
-                            `
-                                )
-                                .join("")}
-                        </div>
-                    </div>
-                    
-                    <div style="width: 150px; display: flex; flex-direction: column; border: 1px solid #dee2e6; border-radius: 4px;">
-                        <div style="background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 4px 4px 0 0; text-align: center;">
-                            <i class="fas fa-hashtag" style="margin-right: 8px;"></i>
-                            ${translations.quantity}
-                        </div>
-                        <div style="flex: 1; display: flex; flex-direction: column;">
-                            ${ingredientsList
-                                .map(
-                                    (ingredient) => `
-                                <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef; text-align: center; flex: 1;">
+                                    }</span>
                                     <input 
                                         type="number" 
                                         class="form-control ingredient-qty" 
-                                        style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; text-align: center; width: 100%;"
-                                        value="${ingredient.quantity || 0}"
-                                        min="0"
-                                        step="0.01"
+                                        style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; text-align: center; width: 100px;" 
+                                        value="${ingredient.quantity || 0}" 
+                                        min="0" 
+                                        step="0.01" 
                                     />
+                                    <span style="margin-left: 10px;">${
+                                        ingredient.unit_transfer
+                                            ? ingredient.unit_transfer.unit1
+                                            : ""
+                                    }</span>
                                 </div>
                             `
                                 )
