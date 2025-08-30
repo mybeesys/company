@@ -147,13 +147,15 @@ class PrepController extends Controller
                 return response()->json($result, 400);
             }
 
-            $hasSubUnit = UnitTransfer::where('product_id', $prod['id'])
-                ->whereNotNull('unit2')
+            $recipeProduct = RecipeProduct::with('unitTransfer')
+                ->where("item_id", $prod['id'])
+                ->where('order', $prod['order'])
+                ->where('product_id', $productId)
                 ->first();
-
             $totalQty = $prodTotal->qty;
-            if ($hasSubUnit) {
-                $totalQty *= $hasSubUnit->transfer;
+
+            if ($recipeProduct->unitTransfer->unit2) {
+                $totalQty *= $recipeProduct->unitTransfer->transfer;
             }
 
             if ($totalQty < $prod['quantity']) {
