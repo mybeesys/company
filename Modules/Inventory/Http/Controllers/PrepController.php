@@ -161,8 +161,7 @@ class PrepController extends Controller
 
             if ($totalQty < $prod['quantity']) {
                 $product = Product::find($prod['id']);
-                $unitTransfer = UnitTransfer::where('product_id', $prod['id'])
-                    ->where('unit_id', $unitId)
+                $unitTransfer = UnitTransfer::where('id', $unitId)
                     ->first();
                 $result[] = [
                     "name_ar" => $product->name_ar,
