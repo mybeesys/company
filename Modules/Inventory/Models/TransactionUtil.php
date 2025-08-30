@@ -258,8 +258,7 @@ class TransactionUtil
                 ];
                 continue;
             }
-            $hasSubUnit = UnitTransfer::where('product_id', $prod->product_id)
-                ->whereNotNull('unit2')
+            $hasSubUnit = UnitTransfer::where('id', $prod->unit_id)
                 ->first();
 
             $totalQty = isset($prodTotal["qty"]) ? $prodTotal["qty"] : 0;
