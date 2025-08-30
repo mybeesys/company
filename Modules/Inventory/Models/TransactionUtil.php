@@ -261,7 +261,7 @@ class TransactionUtil
                 $totalQty = $prodTotal["qty"] * $hasSubUnit->transfer;
             }
             if (
-                $totalQty < $qty || $totalQty <= 0
+                $totalQty < $qty || $totalQty == 0
             ) {
                 $product = Product::find($prod->product_id);
                 $result[] = [
