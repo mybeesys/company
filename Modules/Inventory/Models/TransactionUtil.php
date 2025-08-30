@@ -256,7 +256,6 @@ class TransactionUtil
                     "name_en" => $product->name_en,
                     "qty" => 0
                 ];
-                continue;
             }
             $hasSubUnit = UnitTransfer::where('id', $prod->unit_id)
                 ->first();
