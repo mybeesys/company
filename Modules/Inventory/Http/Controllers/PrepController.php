@@ -16,6 +16,7 @@ use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\UnitTransfer;
+use Illuminate\Support\Facades\Log;
 
 class PrepController extends Controller
 {
@@ -158,15 +159,13 @@ class PrepController extends Controller
             if ($recipeProduct->unitTransfer->unit2) {
                 $totalQty *= $recipeProduct->unitTransfer->transfer;
             }
-
             if ($totalQty < $prod['quantity']) {
+
                 $product = Product::find($prod['id']);
-                $unitTransfer = UnitTransfer::where('id', $unitId)
-                    ->first();
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty . '' . $unitTransfer->unit1
+                    "qty" => $totalQty . '' . $recipeProduct->unitTransfer->unit1
                 ];
                 return response()->json($result, 400);
             }

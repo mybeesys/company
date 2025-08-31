@@ -15,7 +15,6 @@ const WasteDetail = ({ dir, translations }) => {
     const [unitSearchUrls, setUnitSearchUrls] = useState({});
 
     useEffect(() => {
-        console.log(currentObject);
         if (currentObject.establishment?.id) {
             fetchProductsForEstablishment(currentObject.establishment.id);
         }
@@ -272,7 +271,7 @@ const WasteDetail = ({ dir, translations }) => {
                                 {
                                     key: "qty",
                                     type: "Decimal",
-                                    width: "15%",
+                                    width: "20%",
                                     editable: true,
                                     required: true,
                                 },

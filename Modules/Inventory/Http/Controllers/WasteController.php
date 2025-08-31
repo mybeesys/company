@@ -11,6 +11,9 @@ use Modules\Inventory\Models\TransactionUtil;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\Inventory\Models\ProductInventoryTotal;
+use Modules\Product\Models\Product;
+use Modules\Product\Models\UnitTransfer;
 
 class WasteController extends Controller
 {
@@ -152,7 +155,7 @@ class WasteController extends Controller
 
     public function storeWaste(Request $request)
     {
-
+        $result = [];
         $validated = $request->validate([
             'id' => 'sometimes|required|integer|exists:transactions,id',
             'establishment.id' => 'required|integer|exists:est_establishments,id',
@@ -191,8 +194,48 @@ class WasteController extends Controller
                     'establishment_id' => $validated['establishment']['id'],
                 ]);
             }
+            $products = Product::whereIn('id', collect($request->items)->pluck('product.id'))->get();
+            $prodIds = $products->pluck('id')->toArray();
+            $prodTotals = ProductInventoryTotal::where('establishment_id', '=', $validated['establishment']['id'])
+                ->whereIn('product_id', $prodIds)->get();
+
             foreach ($request->items as $item) {
                 $itemId = $item['id'] ?? null;
+                $productId = $item['product']['id'];
+                $requestedQty = $item['qty'];
+
+                // Check inventory for the product
+                $prodTotal = $prodTotals->firstWhere('product_id', $productId);
+                if (!$prodTotal) {
+                    $product = Product::find($productId);
+                    $result[] = [
+                        "name_ar" => $product->name_ar,
+                        "name_en" => $product->name_en,
+                        "qty" => 0
+                    ];
+                }
+
+                $wasteProduct =  UnitTransfer::where('id', $item['unit']['id'])
+                    ->first();
+                Log::info($item['unit']['id']);
+                $totalQty = $prodTotal->qty;
+                $unitId = $prodTotal->unit_id;
+                if ($wasteProduct->unit2) {
+                    $totalQty *= $wasteProduct->transfer;
+                }
+
+                if ($totalQty < $requestedQty) {
+                    $product = Product::find($productId);
+                    $result[] = [
+                        "name_ar" => $product->name_ar,
+                        "name_en" => $product->name_en,
+                        "qty" => $totalQty . '' . $wasteProduct->unit1
+                    ];
+                }
+
+                if (count($result) > 0)
+                    return $result;
+
                 if ($transactionId) {
                     $line = TransactionSellLine::findOrFail($itemId);
                     $line->update([

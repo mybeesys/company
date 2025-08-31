@@ -430,7 +430,15 @@ const TreeTableEditorLocal = ({
 
     const renderDropDownCell = (node, col, firstCell) => {
         //key, autoFocus, options, editable, required, firstCell) => {
-        const val = col.options.find((x) => x.value == node.data[col.key]);
+        let val; 
+        const selectedItem = node.data[col.key];
+
+        if (selectedItem) {
+            val = col.options.find((x) => x.value == node.data[col.key].id);
+        } else {
+            val = col.options.find((x) => x.value == node.data[col.key]);
+        }
+
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
             if (!!firstCell)
@@ -470,7 +478,11 @@ const TreeTableEditorLocal = ({
                     }}
                 />
             ) : (
-                <span>{!!val ? val.label : ""}</span>
+                <span>
+                    {!!node.data[col.key]
+                        ? getRowName(node.data[col.key], dir)
+                        : ""}
+                </span>
             );
         }
     };

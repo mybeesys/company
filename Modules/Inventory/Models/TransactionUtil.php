@@ -271,12 +271,10 @@ class TransactionUtil
                 $totalQty < $qty || $totalQty == 0
             ) {
                 $product = Product::find($prod->product_id);
-                $unitTransfer = UnitTransfer::where('id', $unitId)
-                    ->first();
                 $result[] = [
                     "name_ar" => $product->name_ar,
                     "name_en" => $product->name_en,
-                    "qty" => $totalQty . '' . $unitTransfer->unit1
+                    "qty" => $totalQty . '' . $hasSubUnit->unit1
                 ];
             }
         }

@@ -170,6 +170,8 @@ const TransferDetail = ({ dir, translations }) => {
                                                     let prod = response.data;
                                                     nodes[rowKey].data.SKU =
                                                         prod.SKU;
+                                                    nodes[rowKey].data.SKU =
+                                                        prod.SKU;
                                                     nodes[
                                                         rowKey
                                                     ].data.item_type =
@@ -247,20 +249,13 @@ const TransferDetail = ({ dir, translations }) => {
                                         type: "Text",
                                         width: "15%",
                                         editable: type !== "partiallyReceived",
-                                        customCell: (
-                                            data,
-                                            key,
-                                            currentEditing,
-                                            editable
-                                        ) => {
-                                            return (
-                                                <span>
-                                                    {!!data["product"]
-                                                        ? data["product"].SKU
-                                                        : ""}
-                                                </span>
-                                            );
-                                        },
+                                        customCell: (data) => (
+                                            <span>
+                                                {data?.product?.SKU
+                                                    ? data.product.SKU
+                                                    : data?.SKU || ""}
+                                            </span>
+                                        ),
                                     },
                                     {
                                         key: "unit",
