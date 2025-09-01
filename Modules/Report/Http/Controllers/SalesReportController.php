@@ -771,7 +771,11 @@ class SalesReportController extends Controller
                     $join->on('pl.product_id', '=', 'p.id')
                         ->orOn('sl.product_id', '=', 'p.id');
                 })
-                ->leftjoin('product_unit_transfer as u', 'p.id', '=', 'u.product_id')
+                ->leftJoin('product_unit_transfer as u', function ($join) {
+                    $join->on('p.id', '=', 'u.product_id')
+                        ->orOn('pl.unit_id', '=', 'u.id')  
+                        ->orOn('sl.unit_id', '=', 'u.id'); 
+                })
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->select(
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
