@@ -772,9 +772,8 @@ class SalesReportController extends Controller
                         ->orOn('sl.product_id', '=', 'p.id');
                 })
                 ->leftJoin('product_unit_transfer as u', function ($join) {
-                    $join->on('p.id', '=', 'u.product_id')
-                        ->orOn('pl.unit_id', '=', 'u.id')  
-                        ->orOn('sl.unit_id', '=', 'u.id'); 
+                    $join->orOn('pl.unit_id', '=', 'u.id')
+                        ->orOn('sl.unit_id', '=', 'u.id');
                 })
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->select(
