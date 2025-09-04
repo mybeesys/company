@@ -394,40 +394,6 @@ class ProductController extends Controller
                     RecipeProduct::create($rec);
                 }
             }
-
-            $oldAttributes = Product::where('parent_id', $product->id)->get();
-            foreach ($oldAttributes as $oldAttribute) {
-                $oldAttribute->delete();
-            }
-            if (isset($request["attributes"])) {
-                $product->type = "variable";
-                $product->for_sell = 0;
-                $product->save();
-                foreach ($request["attributes"] as $attribute) {
-                    $att = [];
-                    $att['attribute_id1'] = $attribute['attribute1']['id'];
-                    $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
-                    $att['name_ar'] = $attribute['name_ar'];
-                    $att['name_en'] = $attribute['name_en'];
-                    $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
-                    $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
-                    $att['price'] = $attribute['price'];
-                    $att['cost'] = $attribute['price'];
-                    $att['active'] = 1;
-                    $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
-                    $att['type'] = "product";
-                    $att['parent_id'] = $product->id;
-                    $att['tax_id'] = $product->tax_id;
-                    $att['image'] = $image;
-                    $att['category_id'] = $product->category_id;
-                    $att['subcategory_id'] = $product->subcategory_id;
-                    Product::create($att);
-                }
-                $product->category_id = null;
-                $product->subcategory_id = null;
-                $product->save();
-            }
-
             $oldUnites = UnitTransfer::where('product_id', $product->id)->get();
 
             if (isset($request["transfer"])) {
@@ -483,6 +449,69 @@ class ProductController extends Controller
                         }
                     }
                 }
+            }
+
+            $oldAttributes = Product::where('parent_id', $product->id)->get();
+            foreach ($oldAttributes as $oldAttribute) {
+                $oldAttribute->delete();
+            }
+            if (isset($request["attributes"])) {
+                $product->type = "variable";
+                $product->for_sell = 0;
+                $product->parent_id = null;
+                $product->save();
+                $tax = Tax::where("default", 1)->first();
+                $taxRate = $tax ? $tax->amount : 0;
+                foreach ($request["attributes"] as $attribute) {
+                    $att = [];
+                    $att['attribute_id1'] = $attribute['attribute1']['id'];
+                    $att['attribute_id2'] = isset($attribute['attribute2']) ? $attribute['attribute2']['id'] : null;
+                    $att['name_ar'] = $attribute['name_ar'];
+                    $att['name_en'] = $attribute['name_en'];
+                    $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
+                    $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
+                    if ($attribute['price'] > 0) {
+                        $att['price_with_tax'] = $attribute['price'];
+                        $att['price'] = TaxHelper::getAmountBeforeTax($attribute['price'], $taxRate);
+                    } else {
+                        $att['price_with_tax'] = $product->price_with_tax;
+                        $att['price'] = $product->price;
+                    }
+                    $att['cost'] = $product->cost;
+                    $att['active'] = 1;
+                    $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
+                    $att['type'] = "product";
+                    $att['parent_id'] = $product->id;
+                    $att['description_en'] = $product->description_en;
+                    $att['description_ar'] = $product->description_ar;
+                    $att['calories'] = $product->calories;
+                    $att['preparation_time'] = $product->preparation_time;
+                    $att['order'] = $product->order;
+                    $att['tax_id'] = $product->tax_id;
+                    $att['image'] = $image;
+                    $att['category_id'] = $product->category_id;
+                    $att['subcategory_id'] = $product->subcategory_id;
+                    $att['show_in_menu'] = $product->show_in_menu;
+                    $newProduct = Product::create($att);
+
+                    $unit = UnitTransfer::where('product_id', $product->id)
+                        ->whereNull('unit2')
+                        ->first();
+
+                    if ($unit) {
+                        UnitTransfer::create([
+                            'primary' => 1,
+                            'product_id' => $newProduct->id,
+                            'unit1' => $unit->unit1,
+                            'unit2' => $unit->unit2,
+                            'transfer' => $unit->transfer,
+                        ]);
+                    }
+                }
+                $product->cost = 0;
+                $product->price = 0;
+                $product->price_with_tax = 0;
+                $product->save();
             }
             ProductCombo::where('product_id', '=', $product->id)->delete();
             if (isset($request["combos"])) {
@@ -585,6 +614,23 @@ class ProductController extends Controller
             }
             // $product->name_ar = $validated['name_ar'];
             $product->color = $validated['color'] ?? '#37D67A';
+            $product->parent_id = $request->parent_id ?? Null;
+            $product->description_ar = $request->description_ar ?? Null;
+            $product->description_en = $request->description_en ?? Null;
+            $product->calories = $request->calories ?? Null;
+            $product->preparation_time = $request->preparation_time ?? Null;
+            $unit = UnitTransfer::where('product_id', $request->parent_id)
+                ->whereNull('unit2')
+                ->first();
+            if ($unit) {
+                UnitTransfer::create([
+                    'primary' => 1,
+                    'product_id' => $product->id,
+                    'unit1' => $unit->unit1,
+                    'unit2' => $unit->unit2,
+                    'transfer' => $unit->transfer,
+                ]);
+            }
             // 5. Handle image upload if a file is provided
             if ($request->hasFile('image_file')) {
                 $this->handleImageUpload($request->file('image_file'), $product);
@@ -607,18 +653,17 @@ class ProductController extends Controller
             if (isset($request["modifiers"])) {
                 $this->saveModifiers($request["modifiers"], $product->id);
             }
-
-            // 3. Save attributes if they exist
-            if (isset($request["attributes"])) {
-                $product->type = "variable";
-                $product->for_sell = 0;
-                $product->save();
-                $this->saveAttributes($request["attributes"], $product->id, $product);
-            }
-
             // 4. Save transfer details if they exist
             if (isset($request["transfer"])) {
                 $this->saveTransferDetails($request["transfer"], $product->id);
+            }
+            // 3. Save attributes if they exist
+            if (isset($request["attributes"])) {
+                $product->type = "variable";
+                $product->parent_id = null;
+                $product->for_sell = 0;
+                $product->save();
+                $this->saveAttributes($request["attributes"], $product->id, $product);
             }
 
             // 6. Save recipe details if they exist
@@ -702,6 +747,8 @@ class ProductController extends Controller
     // Method to save attributes
     private function saveAttributes($attributes, $productId, $product)
     {
+        $tax = Tax::where("default", 1)->first();
+        $taxRate = $tax ? $tax->amount : 0;
         foreach ($attributes as $attribute) {
             $att = [];
             $att['attribute_id1'] = $attribute['attribute1']['id'];
@@ -710,20 +757,47 @@ class ProductController extends Controller
             $att['name_en'] = $attribute['name_en'];
             $att['barcode'] = isset($attribute['barcode']) ? $attribute['barcode'] : null;
             $att['SKU'] = isset($attribute['SKU']) ? $attribute['SKU'] : null;
-            $att['price'] = $attribute['price'];
+            if ($attribute['price'] > 0) {
+                $att['price_with_tax'] = $attribute['price'];
+                $att['price'] = TaxHelper::getAmountBeforeTax($attribute['price'], $taxRate);
+            } else {
+                $att['price_with_tax'] = $product->price_with_tax;
+                $att['price'] = $product->price;
+            }
             $att['active'] = 1;
-            $att['cost'] = $attribute['price'];
+            $att['cost'] = $product->cost;
             $att['starting'] = isset($attribute['starting']) ? $attribute['starting'] : null;
             $att['type'] = "product";
             $att['tax_id'] = $product->tax_id;
             $att['parent_id'] = $productId;
             $att['image'] = $product->image;
+            $att['description_en'] = $product->description_en;
+            $att['description_ar'] = $product->description_ar;
+            $att['calories'] = $product->calories;
+            $att['preparation_time'] = $product->preparation_time;
+            $att['order'] = $product->order;
             $att['category_id'] = $product->category_id;
             $att['subcategory_id'] = $product->subcategory_id;
-            Product::create($att);
+            $att['show_in_menu'] = $product->show_in_menu;
+            $newProduct = Product::create($att);
+
+            $unit = UnitTransfer::where('product_id', $product->id)
+                ->whereNull('unit2')
+                ->first();
+
+            if ($unit) {
+                UnitTransfer::create([
+                    'primary' => 1,
+                    'product_id' => $newProduct->id,
+                    'unit1' => $unit->unit1,
+                    'unit2' => $unit->unit2,
+                    'transfer' => $unit->transfer,
+                ]);
+            }
         }
-        $product->category_id = null;
-        $product->subcategory_id = null;
+        $product->cost = 0;
+        $product->price = 0;
+        $product->price_with_tax = 0;
         $product->save();
     }
 
@@ -968,6 +1042,7 @@ class ProductController extends Controller
                 'class' => [
                     'modifier_class_id' => $classId,
                     'product_id' => $product->id,
+                    'active' => 1,
                     'name_ar' => $class->name_ar ?? '',
                     'name_en' => $class->name_en ?? '',
                     'min_modifiers' => $firstModifier->min_modifiers ?? 0,
@@ -976,19 +1051,19 @@ class ProductController extends Controller
                     'free_type' => $firstModifier->free_type ?? 0
                 ],
                 'modifiers' => $modifiers->map(function ($mod) {
-                    return [
-                        'id' => $mod->id,
-                        'modifier_id' => $mod->modifier_id,
-                        'name_ar' => optional($mod->modifierItem)->name_ar ?? '',
-                        'name_en' => optional($mod->modifierItem)->name_en ?? '',
-                        'active' => $mod->active,
-                        'default' => $mod->default,
-                        'display_order' => $mod->display_order
-                    ];
+                    if ($mod->modifier_id) {
+                        return [
+                            'id' => $mod->id,
+                            'modifier_id' => $mod->modifier_id,
+                            'name' => app()->getLocale() == 'ar' ? optional($mod->modifierItem)->name_ar : optional($mod->modifierItem)->name_en,
+                            'active' => 1,
+                            'default' => $mod->default,
+                            'display_order' => $mod->display_order
+                        ];
+                    }
                 })->toArray()
             ];
         })->values()->toArray();
-
         return view('product::product.edit', [
             'product' => $product,
             'modifierGroups' => $modifierGroups,
@@ -1041,6 +1116,28 @@ class ProductController extends Controller
             ->get();
 
         return response()->json($products);
+    }
+    public function getProductsByEstablishments(Request $request)
+    {
+        $establishmentId = $request->input('establishmentId');
+        $key = $request->query('key', '');
+        $products = DB::table('product_inventories')
+            ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+            ->where('product_inventories.establishment_id', $establishmentId)
+            ->where(function ($query) use ($key) {
+                $query->where('product_products.name_ar', 'like', '%' . $key . '%')
+                    ->orWhere('product_products.name_en', 'like', '%' . $key . '%');
+            })
+            ->select('product_products.*', 'product_inventories.*')
+            ->take(10)
+            ->get();
+        $products = $products->map(function ($product) {
+            $newProduct = $product->toArray();
+            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
+            return $newProduct;
+        });
+        $result = array_merge($products->toArray());
+        return response()->json($result);
     }
 
     public function searchPrepProducts(Request $request)

@@ -203,6 +203,17 @@ const ProductAttribute = ({
 
     const generateNewMatrix = (evt) => {
         evt.preventDefault();
+        if (!product.name_ar || !product.name_en) {
+            Swal.fire({
+                title: "Error",
+                text: translations.productNameRequired,
+                icon: "error",
+                timer: 2000,
+                showCancelButton: false,
+                showConfirmButton: false,
+            });
+            return; // Stop the function from proceeding
+        }
         if (AttributeClass1.length > 0) {
             setshowConfirmation(true);
         } else {
