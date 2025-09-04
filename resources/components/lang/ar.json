@@ -362,5 +362,8 @@
   "waste_details":"تفاصيل الإتلاف",
   "reason":"سبب الإتلاف",
   "employee":"الموظف",
-  "subcategoryerror":"التصنيف الجزئي مطلوب"
+  "subcategoryerror":"التصنيف الجزئي مطلوب",
+  "productNameRequired":"يجب إضافة معلومات المنتج قبل توليد المصفوفة",
+  "under":"تابع ل",
+  "language":"ar"
 }

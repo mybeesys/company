@@ -125,31 +125,6 @@ const ProductModiferDetail = ({
                                             <div className="row">
                                                 <div className="col-6">
                                                     <label
-                                                        htmlFor="free_quantity"
-                                                        className="col-form-label"
-                                                    >
-                                                        {
-                                                            translations.free_quantity
-                                                        }
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="free_quantity"
-                                                        min="0"
-                                                        className="form-control form-control-solid custom-height"
-                                                        value={
-                                                            modifierClass.free_quantity
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleChange(
-                                                                "free_quantity",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="col-6">
-                                                    <label
                                                         htmlFor="free_type"
                                                         className="col-form-label"
                                                     >
@@ -181,6 +156,32 @@ const ProductModiferDetail = ({
                                                                 "Quantity Type"}
                                                         </option>
                                                     </select>
+                                                </div>
+                                                <div className="col-6">
+                                                    <label
+                                                        htmlFor="free_quantity"
+                                                        className="col-form-label"
+                                                    >
+                                                        {modifierClass.free_type ==
+                                                        1
+                                                            ? translations.count
+                                                            : translations.size}
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        id="free_quantity"
+                                                        min="0"
+                                                        className="form-control form-control-solid custom-height"
+                                                        value={
+                                                            modifierClass.free_quantity
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                "free_quantity",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="row">
@@ -367,7 +368,7 @@ const ProductModiferDetail = ({
                                                                             value={
                                                                                 item.display_order
                                                                             }
-                                                                            disabled 
+                                                                            disabled
                                                                             style={{
                                                                                 width: "60px",
                                                                                 height: "30px",

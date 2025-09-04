@@ -5,6 +5,7 @@ import DeleteModal from "./DeleteModal";
 import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
 import { getRowName } from "../lang/Utils";
+import Swal from "sweetalert2";
 
 const defaultObjectValue = { active: 1, for_sell: 1 };
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
@@ -19,12 +20,13 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
     const [validated, setValidated] = useState(false);
-    const [expandedKeys, setExpandedKeys] = useState([]);
+    const [expandedKeys, setExpandedKeys] = useState({});
     const [globalFilter, setGlobalFilter] = useState(null);
     const [filterOptions] = useState([
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
+
     const expandAll = () => {
         const allKeys = getExpandedKeys(nodes);
         setExpandedKeys(allKeys);
@@ -35,7 +37,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const handleDelete = (message) => {
-        if (message != "Done") {
+        if (message !== "Done") {
             setShowAlert(true);
             Swal.fire({
                 show: showAlert,
@@ -46,7 +48,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
             return;
         }
@@ -60,23 +62,24 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const refreshTree = () => {
         try {
-            const response = axios.get(urlList).then((response) => {
+            axios.get(urlList).then((response) => {
                 let result = response.data;
+                // Since the PHP backend now returns the correct structure,
+                // we can directly set the state with the received data.
                 setNodes(result);
             });
         } catch (error) {
-            console.error("There was an error get the product!", error);
+            console.error("There was an error getting the product!", error);
         }
     };
 
-    // Generate the expandedKeys object to expand all nodes by default
     const getExpandedKeys = (nodes) => {
         let expandedKeys = {};
         const expandAll = (nodes) => {
             nodes.forEach((node) => {
-                expandedKeys[node.key] = true; // Mark this node as expanded
+                expandedKeys[node.key] = true;
                 if (node.children) {
-                    expandAll(node.children); // Recursively expand children
+                    expandAll(node.children);
                 }
             });
         };
@@ -89,7 +92,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     }, []);
 
     const editRow = (data, key) => {
-        if (data.type === "product") {
+        if (data.type === "product" && !!data.id) {
             window.location.href = `${productCrudList}/${data.id}/edit`;
         } else {
             setCurrentKey(key);
@@ -98,12 +101,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const cancelEdit = (key) => {
-        if (!!!editingRow.id || editingRow.id == 0) {
+        if (!!!editingRow.id || editingRow.id === 0) {
             let parentNode = getParentNode(key);
             let currentNodes = !!parentNode ? parentNode.children : nodes;
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
-                if (node.key == key) {
+                if (node.key === key) {
                     if (!!parentNode) {
                         parentNode.children[
                             parentNode.children.length - 1
@@ -123,8 +126,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const handleEditorChange = (value, key) => {
-        editingRow[key] = value;
-        setEditingRow({ ...editingRow });
+        setEditingRow({ ...editingRow, [key]: value });
     };
 
     const handleSubmit = async (event) => {
@@ -144,12 +146,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             rootElement.getAttribute(`${editedNode.data.type}-url`)
         );
         let parentNode = getParentNode(editedNode.key);
-        if (editedNode.data.parentKey != "parent_id")
+        if (editedNode.data.parentKey !== "parent_id")
             editedNode.data["parent_id"] = null;
         if (!!parentNode) {
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
             let parent2 = getParentNode(parentNode.key);
-            while (!!parent2 && parent2.data.type != "category") {
+            while (!!parent2 && parent2.data.type !== "category") {
                 parent2 = getParentNode(parent2.key);
             }
             if (!!parent2) {
@@ -163,7 +165,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 apiUrl.toString(),
                 editedNode.data
             );
-            if (response.data.message != "Done") {
+            if (response.data.message !== "Done") {
                 setShowAlert(true);
                 Swal.fire({
                     show: showAlert,
@@ -174,13 +176,13 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     showCancelButton: false,
                     showConfirmButton: false,
                 }).then(() => {
-                    setShowAlert(false); // Reset the state after alert is dismissed
+                    setShowAlert(false);
                 });
                 return;
             }
         } catch (error) {
             console.error(
-                "There was an error get the product!",
+                "There was an error saving the product!",
                 error.response.data
             );
         }
@@ -195,26 +197,22 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         path = key.split("-");
 
         let node;
+        let list = nodes;
 
         while (path.length) {
-            let list = node ? node.children : nodes;
-
             node = list[parseInt(path[0], 10)];
             path.shift();
+            list = node ? node.children : null;
         }
-
         return node;
     };
 
     const getParentNode = (key) => {
         key = key.toString();
         let seg = key.split("-");
-        let parentKey = seg.length == 1 ? null : seg[0];
-        for (let index = 1; index < seg.length - 1; index++) {
-            parentKey = parentKey + "-" + seg[index];
-        }
-        if (!!!parentKey) return null;
-        else return findNodeByKey(nodes, parentKey);
+        if (seg.length <= 1) return null;
+        let parentKey = seg.slice(0, seg.length - 1).join("-");
+        return findNodeByKey(nodes, parentKey);
     };
 
     const addInline = (
@@ -223,32 +221,36 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         parentKeyName,
         type1,
         parentKeyName1,
-        isNew = false
+        isNew = false,
+        extraData = {}
     ) => {
-        let parentNode = getParentNode(key);
+        let parentNode = findNodeByKey(nodes, key);
         let node = findNodeByKey(nodes, key);
         key = key.toString();
         let seg = key.split("-");
-        let parentKey = seg.length == 1 ? null : seg[0];
-        for (let index = 1; index < seg.length - 1; index++) {
-            parentKey = parentKey + "-" + seg[index];
-        }
+        let parentKey =
+            seg.length === 1 ? null : seg.slice(0, seg.length - 1).join("-");
+
         node.data.empty = null;
         node.data.type1 = null;
         node.data.parentKey1 = null;
         node.data.type = type;
         node.data.parentKey =
-            !!parentNode && parentNode.data.type == "category"
+            !!parentNode && parentNode.data.type === "category"
                 ? "category_id"
                 : parentKeyName;
+
         for (const key in defaultObjectValue) {
             node.data[key] = defaultObjectValue[key];
         }
+
+        let newNodeKey = !!!parentKey
+            ? Number(seg[0]) + 1
+            : parentKey + "-" + (Number(seg[seg.length - 1]) + 1);
         let newNode = {
-            key: !!!parentKey
-                ? Number(seg[0]) + 1
-                : parentKey + "-" + (Number(seg[seg.length - 1]) + 1),
+            key: newNodeKey.toString(),
             data: {
+                ...extraData,
                 type: type,
                 parentKey: parentKeyName,
                 type1: type1,
@@ -257,56 +259,121 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 isNew: isNew,
             },
         };
-        if (!!!parentKey) nodes.push(newNode);
-        else {
+
+        if (type === "variable") {
+            newNode.data.name_ar = translations.AddVariable;
+            newNode.data.name_en = translations.AddVariable;
+        }
+
+        if (!!!parentKey) {
+            nodes.push(newNode);
+        } else {
             let parentNode = findNodeByKey(nodes, parentKey);
+            if (!parentNode.children) {
+                parentNode.children = [];
+            }
             parentNode.children.push(newNode);
         }
+
+        setExpandedKeys({ ...expandedKeys, [key]: true, [parentKey]: true });
         setCurrentKey(key);
         setNodes([...nodes]);
-        setEditingRow({ ...node.data });
+        setEditingRow({ ...node.data, ...extraData });
     };
 
     const renderTextCell = (node, key, autoFocus) => {
         let indent = node.key.toString().split("-").length;
-        if (key == "name_ar" && !!node.data.empty) {
-            return (
-                <a
-                    href="javascript:void(0);"
-                    onClick={(e) => {
-                        addInline(
-                            node.key,
-                            node.data.type,
-                            node.data.parentKey,
-                            node.data.type1,
-                            node.data.parentKey1,
-                            true
-                        );
-                    }}
-                >{`${translations.Add} ${translations[node.data.type]}`}</a>
-            );
-        } else if (key == "name_ar" && !!node.data.empty && !!node.data.type1) {
-            return (
-                <a
-                    href="javascript:void(0);"
-                    onClick={(e) => {
-                        addInline(
-                            node.key,
-                            node.data.type,
-                            node.data.parentKey,
-                            node.data.type1,
-                            node.data.parentKey1,
-                            true
-                        );
-                    }}
-                >{`${translations.Add} ${translations[node.data.type1]}`}</a>
-            );
+
+        if (node.data.empty === "Y" && key === "name_ar") {
+            let addText = "";
+            let newType = node.data.type;
+            let newParentKey = node.data.parentKey;
+            let parentNode = getParentNode(node.key);
+
+            if (parentNode && parentNode.data.type === "variable") {
+                newType = "product";
+                newParentKey = "parent_id";
+                //addText = `${translations.Add} ${translations.product}`;
+                const parentName =
+                    translations.language === "ar"
+                        ? parentNode.data.name_ar
+                        : parentNode.data.name_en;
+                addText = `${translations.Add} ${translations.product} ${translations.under} ${parentName}`;
+
+                const subcategoryId = parentNode.data.subcategory_id
+                    ? parentNode.data.subcategory_id
+                    : null;
+                const description_ar = parentNode.data.description_ar;
+                const description_en = parentNode.data.description_en;
+                const calories = parentNode.data.calories;
+                const preparation_time = parentNode.data.preparation_time;
+                const tax_id = parentNode.data.tax_id;
+                return (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addInline(
+                                node.key,
+                                newType,
+                                newParentKey,
+                                node.data.type1,
+                                node.data.parentKey1,
+                                true,
+                                {
+                                    subcategory_id: subcategoryId,
+                                    description_ar: description_ar,
+                                    description_en: description_en,
+                                    calories: calories,
+                                    preparation_time: preparation_time,
+                                    tax_id: tax_id,
+                                }
+                            );
+                        }}
+                    >
+                        {addText}
+                    </a>
+                );
+            } else if (parentNode && parentNode.data.type === "subcategory") {
+                addText = `${translations.Add} ${translations.product}`;
+                return (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `${productCrudList}/create?parent_id=${parentNode.data.id}`;
+                        }}
+                    >
+                        {addText}
+                    </a>
+                );
+            } else {
+                addText = `${translations.Add} ${translations[node.data.type]}`;
+                return (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addInline(
+                                node.key,
+                                newType,
+                                newParentKey,
+                                node.data.type1,
+                                node.data.parentKey1,
+                                true
+                            );
+                        }}
+                    >
+                        {addText}
+                    </a>
+                );
+            }
         } else {
-            return node.key == currentKey ? (
+            return node.key === currentKey ? (
                 <input
                     type="text"
-                    class={`form-control text-editor text-indent-${indent}`}
-                    style={{ width: `${100 - 10 * indent}%!important` }}
+                    className={`form-control text-editor text-indent-${indent}`}
+                    style={{ width: `${100 - 10 * indent}%` }}
                     defaultValue={node.data[key]}
                     onChange={(e) => handleEditorChange(e.target.value, key)}
                     autoFocus={!!autoFocus}
@@ -319,18 +386,16 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         }
     };
 
-    const renderCheckCell = (node, key, autoFocus) => {
-        return node.key == currentKey ? (
+    const renderCheckCell = (node, key) => {
+        return node.key === currentKey ? (
             <div>
                 <input
                     type="checkbox"
-                    checked={editingRow[key] == 1 ? true : false}
-                    class="form-check-input"
-                    data-kt-check={node.data[key]}
-                    data-kt-check-target=".widget-10-check"
-                    onChange={(e) => {
-                        handleEditorChange(e.target.checked ? 1 : 0, key);
-                    }}
+                    checked={editingRow[key] === 1}
+                    className="form-check-input"
+                    onChange={(e) =>
+                        handleEditorChange(e.target.checked ? 1 : 0, key)
+                    }
                 />
             </div>
         ) : (
@@ -338,10 +403,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 <input
                     type="checkbox"
                     defaultChecked={false}
-                    checked={node.data[key]}
-                    class="form-check-input"
-                    data-kt-check={node.data[key]}
-                    data-kt-check-target=".widget-10-check"
+                    checked={node.data[key] === 1}
+                    className="form-check-input"
                     disabled
                 />
             </div>
@@ -350,11 +413,11 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const renderNumberCell = (node, key, autoFocus, required) => {
         const indent = node.key.toString().split("-").length;
-        return node.key == currentKey ? (
+        return node.key === currentKey ? (
             <input
                 type="number"
                 min="0"
-                class={`form-control text-editor number-indent-${indent}`}
+                className={`form-control text-editor number-indent-${indent}`}
                 defaultValue={node.data[key]}
                 onChange={(e) => handleEditorChange(e.target.value, key)}
                 autoFocus={!!autoFocus}
@@ -370,12 +433,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const renderDecimalCell = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
-        return node.key == currentKey ? (
+        return node.key === currentKey ? (
             <input
                 type="number"
                 min="0"
                 step=".01"
-                class={`form-control text-editor number-indent-${indent}`}
+                className={`form-control text-editor number-indent-${indent}`}
                 defaultValue={node.data[key]}
                 onChange={(e) => handleEditorChange(e.target.value, key)}
                 autoFocus={!!autoFocus}
@@ -387,14 +450,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             <span>{node.data[key]}</span>
         );
     };
+
     const renderDecimalCellPrice = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
-        return node.key == currentKey ? (
+        return node.key === currentKey ? (
             <input
                 type="number"
                 min="0"
                 step=".01"
-                class={`form-control text-editor number-indent-${indent}`}
+                className={`form-control text-editor number-indent-${indent}`}
                 defaultValue={node.data[key]}
                 onChange={(e) => handleEditorChange(e.target.value, key)}
                 autoFocus={!!autoFocus}
@@ -406,6 +470,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             <span>{node.data["price_with_tax"]}</span>
         );
     };
+
     const openDeleteModel = (data) => {
         setUrl(JSON.parse(rootElement.getAttribute(`${data.type}-url`)));
         setCurrentNode(data);
@@ -414,44 +479,56 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const actionTemplate = (node) => {
         const data = node.data;
-        return !!!node.data.empty && node.data.empty != "Y" ? (
+        if (data.empty === "Y") {
+            return <></>;
+        }
+
+        return (
             <div className="flex flex-wrap gap-2">
-                {currentKey == "-1" ||
-                (currentKey != "-1" && node.key == currentKey) ? (
-                    <a
-                        href="javascript:void(0);"
-                        onClick={() => {
-                            if (currentKey == "-1") editRow(data, node.key);
-                            else {
-                                let btnSubmit =
-                                    document.getElementById("btnSubmit");
-                                btnSubmit.click();
-                            }
-                        }}
-                        title="Edit"
-                        class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                    >
-                        <i
-                            class={
-                                currentKey != "-1" && node.key == currentKey
-                                    ? "ki-outline ki-check fs-2"
-                                    : "ki-outline ki-pencil fs-2"
-                            }
-                        ></i>
-                    </a>
+                {currentKey === "-1" ||
+                (currentKey !== "-1" && node.key === currentKey) ? (
+                    data.type !== "variable" && (
+                        <a
+                            href="javascript:void(0);"
+                            onClick={() => {
+                                if (currentKey === "-1") {
+                                    editRow(data, node.key);
+                                } else {
+                                    document
+                                        .getElementById("btnSubmit")
+                                        .click();
+                                }
+                            }}
+                            title="Edit"
+                            className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                        >
+                            <i
+                                className={
+                                    currentKey !== "-1" &&
+                                    node.key === currentKey
+                                        ? "ki-outline ki-check fs-2"
+                                        : "ki-outline ki-pencil fs-2"
+                                }
+                            ></i>
+                        </a>
+                    )
                 ) : (
                     <></>
                 )}
-                {currentKey != "-1" ? (
+                {currentKey !== "-1" && node.key === currentKey ? (
                     <a
                         href="javascript:void(0);"
                         onClick={(e) => cancelEdit(currentKey)}
-                        class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                        style={{
+                            display:
+                                data.type === "variable" ? "none" : "block",
+                        }}
                     >
-                        <i class="ki-outline ki-cross fs-2"></i>
+                        <i className="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {!data.isNew && data.id && (
+                {!data.isNew && data.id && data.type !== "variable" && (
                     <a
                         href="javascript:void(0);"
                         onClick={() => openDeleteModel(data)}
@@ -466,14 +543,13 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     style={{ display: "none" }}
                 ></button>
             </div>
-        ) : (
-            <></>
         );
     };
 
     const openAddCategory = () => {
         window.location.href = productCrudList + "/create";
     };
+
     const handleSearch = (value) => {
         setGlobalFilter(value);
         if (value) {
@@ -511,28 +587,26 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     let header = getHeader();
 
     return (
-        <div class="card mb-5 mb-xl-8">
+        <div className="card mb-5 mb-xl-8">
             <SweetAlert2 />
-
-            <div class="card-header border-0 pt-5">
-                <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold fs-3 mb-1">
+            <div className="card-header border-0 pt-5">
+                <h3 className="card-title align-items-start flex-column">
+                    <span className="card-label fw-bold fs-3 mb-1">
                         {translations.CategoryList}
                     </span>
-                    <span class="text-muted mt-1 fw-semibold fs-7">
+                    <span className="text-muted mt-1 fw-semibold fs-7">
                         {translations.ProductList}
                     </span>
                 </h3>
-                <div class="card-toolbar">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <div className="card-toolbar">
+                    <div className="d-flex align-items-center gap-2 gap-lg-3">
                         <a
                             href="javascript:void(0);"
-                            class="btn btn-primary"
+                            className="btn btn-primary"
                             onClick={() => openAddCategory()}
                         >
                             {translations.Add}
                         </a>
-
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -544,12 +618,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </div>
                 </div>
             </div>
-            <div class="card-body">
+            <div className="card-body">
                 <form
                     id="treeForm"
                     noValidate
                     validated={true}
-                    class="needs-validation"
+                    className="needs-validation"
                     onSubmit={handleSubmit}
                 >
                     <TreeTable
@@ -572,7 +646,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             body={(node) => renderTextCell(node, "name_ar")}
                             sortable
                             expander
-                            onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column
                             field="name_en"
@@ -582,13 +655,12 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                 renderTextCell(node, "name_en", true)
                             }
                             sortable
-                            onFilter={(e) => handleSearch(e.value)}
                         ></Column>
                         <Column
                             header={translations.cost}
                             style={{ width: "10%" }}
                             body={(node) =>
-                                node.data.type == "product" ? (
+                                node.data.type === "product" ? (
                                     renderDecimalCell(node, "cost")
                                 ) : (
                                     <></>
@@ -599,7 +671,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             header={translations.priceWithTax}
                             style={{ width: "10%" }}
                             body={(node) =>
-                                node.data.type == "product" ? (
+                                node.data.type === "product" ||
+                                node.data.type === "variable" ? (
                                     renderDecimalCellPrice(node, "price")
                                 ) : (
                                     <></>
@@ -617,22 +690,19 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                             header={translations.active}
                             style={{ width: "10%" }}
                             body={(node) => renderCheckCell(node, "active")}
-                        >
-                            {" "}
-                        </Column>
+                        ></Column>
                         <Column
                             header={translations.forSell}
                             style={{ width: "10%" }}
                             body={(node) =>
-                                node.data.type == "product" ? (
+                                node.data.type === "product" ||
+                                node.data.type === "variable" ? (
                                     renderCheckCell(node, "for_sell")
                                 ) : (
                                     <></>
                                 )
                             }
-                        >
-                            {" "}
-                        </Column>
+                        ></Column>
                         <Column
                             style={{ width: "10%" }}
                             body={(node) => actionTemplate(node)}

@@ -352,6 +352,8 @@
   "waste_details": "Waste Details",
   "reason": "Reason for Waste",
   "employee": "Employee",
-  "subcategoryerror":"subCategory required"
-
+  "subcategoryerror":"subCategory required",
+"productNameRequired":"Product information is required before matrix generation",
+  "under":"Under",
+  "language":"en"
 }

@@ -11,24 +11,25 @@ class Subcategory extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = 'product_subcategories';
-        
+
     public $timestamps = true;
-    
+
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [   
-    'name_ar',
-    'name_en',
-    'category_id',
-    'parent_id',
-    'active',
-    'order'
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'category_id',
+        'parent_id',
+        'active',
+        'order'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -52,7 +53,8 @@ class Subcategory extends Model
 
     public function children1()
     {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id');
+        return $this->hasMany(Product::class, 'subcategory_id', 'id')
+            ->whereNull('parent_id');
     }
 
     public function products()
@@ -63,12 +65,12 @@ class Subcategory extends Model
     public function productsForSale()
     {
         return $this->hasMany(Product::class, 'subcategory_id', 'id')
-            ->where('for_sell', 1)->where('active' , 1);
+            ->where('for_sell', 1)->where('active', 1);
     }
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id' , 'id');
+        return $this->belongsTo(Category::class, 'category_id', 'id');
     }
 
     public function parent()
