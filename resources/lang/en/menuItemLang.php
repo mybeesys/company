@@ -13,7 +13,7 @@ return [
     'roles' => 'Roles',
     'crm' => 'CRM',
     'reports_module' => 'Reports',
-    'products' => 'Product',
+    'products' => 'Stock Product',
     'inventory' => 'Inventory',
     'accounting' => 'Accounting',
     'establishments' => 'Establishments',
@@ -57,7 +57,7 @@ return [
     'unit' => 'Unit',
     'linkedCombo' => 'Linked Combo',
 
-    'inventory_module' => 'Inventory',
+    'inventory_module' => 'Stock',
     'sales' => 'Sales',
     'clients' => 'Clients',
     'invoices' => 'Invoices',
@@ -67,11 +67,11 @@ return [
 
 
     'po' => 'PO',
-    'prep' => 'Prep Recipe',
+    'prep' => 'Production',
     'rma' => 'RMA',
     'ingredientInventory' => 'Ingredients',
-    'waste' => 'Waste',
-    'transfer' => 'Transfer',
+    'waste' => 'Destroying items',
+    'transfer' => 'Stock Transfer',
     'purchase_invoices' => 'Purchase Invoices',
     'general_setting' => 'General Settings',
     'setting' => 'Settings',
@@ -86,7 +86,7 @@ return [
 
     'supplier_receipts' => 'Supplier Receipts',
     'supplier_receipt' => 'Supplier Receipt',
-    'import' => 'Import',
+    'import' => 'Stock Import',
 
     'screen_module' => 'Screens',
     'main' => 'Main',
@@ -133,7 +133,7 @@ return [
 
     'reports_list' => 'Reports List',
     'product_dashboard' => 'Product Dashboard',
-    'inventory_dashboard' => 'Inventory Dashboard',
+    'inventory_dashboard' => 'Stock Dashboard',
 
 
 

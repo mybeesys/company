@@ -19,7 +19,7 @@
   "importProduct": "Products Import",
   "downloadTemplate": "Download Template",
   "openInventory": "Open Inventory",
-  "openInventoryImport": "Open Inventory Import",
+  "openInventoryImport": "Open Stock Import",
   "transactions": "Transactions",
   "op_type": "Operation",
   "tables": "Tables",
@@ -353,7 +353,10 @@
   "reason": "Reason for Waste",
   "employee": "Employee",
   "subcategoryerror":"subCategory required",
-"productNameRequired":"Product information is required before matrix generation",
+  "productNameRequired":"Product information is required before matrix generation",
   "under":"Under",
-  "language":"en"
+  "language":"en",
+  "ingredint":"ingredint",
+  "recipeerror":"The unit for the ingredients in the recipe is required",
+  "sellDate":"Production Date"
 }

@@ -145,7 +145,7 @@ const IngredientDetail = ({ dir, translations }) => {
             setVendor(vendors);
 
             const response = await axios.get(
-                "/getUnitsTransferList/ingredient/" + currentObject.id
+                `/getUnitsTransferList/ingredint/${currentObject.id}`
             );
 
             const units = response.data;
@@ -180,7 +180,6 @@ const IngredientDetail = ({ dir, translations }) => {
         };
         fetchData().catch(console.error);
     }, []);
-
     return (
         <div>
             <SweetAlert2 />

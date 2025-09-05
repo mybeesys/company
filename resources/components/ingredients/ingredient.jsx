@@ -18,7 +18,7 @@ const Ingredient = ({ translations, dir }) => {
     const [currentKey, setCurrentKey] = useState("-1");
     const [showAlert, setShowAlert] = useState(false);
     const [currentNode, setCurrentNode] = useState({});
-
+    const [validated, setValidated] = useState(false);
     useEffect(() => {
         const fetchData = async () => {
             unitValues();
@@ -39,7 +39,6 @@ const Ingredient = ({ translations, dir }) => {
         setUrl(JSON.parse(rootElement.getAttribute(`Ingredient-url`)));
         setCurrentNode(data);
         setIsDeleteModalVisible(true);
-
     };
 
     const handleSubmit = async (event) => {
@@ -63,9 +62,7 @@ const Ingredient = ({ translations, dir }) => {
             ? editedNode.data["unit_measurement"]
             : unitTypeValues[0]?.value;
 
-        let url = JSON.parse(
-            rootElement.getAttribute(`Ingredient-url`)
-        );
+        let url = JSON.parse(rootElement.getAttribute(`Ingredient-url`));
         let parentNode = getParentNode(editedNode.key);
         if (!!parentNode)
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
@@ -89,7 +86,6 @@ const Ingredient = ({ translations, dir }) => {
         setEditingRow({});
         refreshTree();
     };
-
     const handleDelete = (message) => {
         if (message != "Done") {
             setShowAlert(true);
@@ -149,7 +145,7 @@ const Ingredient = ({ translations, dir }) => {
 
     const renderTextCell = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
-        if (key == "name_en" && !!node.data.empty) {
+        if (key == "name_ar" && !!node.data.empty) {
             return (
                 <a
                     href="#"
@@ -175,7 +171,39 @@ const Ingredient = ({ translations, dir }) => {
             );
         }
     };
-
+    const renderTextUnitCell = (node, key, autoFocus) => {
+        const indent = node.key.toString().split("-").length;
+        return node.key == currentKey ? (
+            <input
+                type="text"
+                class={`form-control text-editor text-indent-${indent}`}
+                style={{ width: `${100 - 10 * indent}%!important` }}
+                defaultValue={node.data[key]}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                required
+            />
+        ) : (
+            <div>
+                <span className={`text-indent-${indent}`}>
+                    {node.data[key]}
+                </span>
+                {Array.isArray(node.data.units) &&
+                    node.data.units.length > 0 && (
+                        <div>
+                            {node.data.units.map((unit, index) => (
+                                <span key={unit.id} className="unit-badge">
+                                    {unit.name}
+                                    {index < node.data.units.length - 1 &&
+                                        " - "}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+            </div>
+        );
+    };
     const renderNumberCell = (node, key, autoFocus) => {
         const indent = node.key.toString().split("-").length;
         return node.key == currentKey ? (
@@ -445,17 +473,17 @@ const Ingredient = ({ translations, dir }) => {
                         className={"custom-tree-table"}
                     >
                         <Column
+                            header={translations.name_ar}
+                            style={{ width: "13%" }}
+                            body={(node) => renderTextCell(node, "name_ar")}
+                            sortable
+                        ></Column>
+                        <Column
                             header={translations.name_en}
                             style={{ width: "13%" }}
                             body={(node) =>
                                 renderTextCell(node, "name_en", true)
                             }
-                            sortable
-                        ></Column>
-                        <Column
-                            header={translations.name_ar}
-                            style={{ width: "13%" }}
-                            body={(node) => renderTextCell(node, "name_ar")}
                             sortable
                         ></Column>
                         <Column
@@ -466,6 +494,14 @@ const Ingredient = ({ translations, dir }) => {
                         >
                             {" "}
                         </Column>
+                        <Column
+                            header={translations.unit}
+                            style={{ width: "13%" }}
+                            body={(node) =>
+                                renderTextUnitCell(node, "unit", true)
+                            }
+                            sortable
+                        ></Column>
                         <Column
                             header={translations.active}
                             style={{ width: "6%" }}

@@ -190,7 +190,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             Swal.fire({
                 show: showAlert,
                 title: "Error",
-                text: translations.subcategoryerror,
+                text: translations.technicalerror,
                 icon: "error",
                 timer: 2000,
                 showCancelButton: false,
@@ -339,10 +339,24 @@ const ProductComponent1 = ({ translations, dir }) => {
     const validProduct = () => {
         let errorMessage = null;
         let valid = true;
+        // console.log("currentObject", currentObject);
         if (!!!productUnit || !!!productUnit.unit1) {
             valid = false;
             errorMessage = translations.noDefaultUnit;
             document.getElementById("Unit_tab").click();
+        }
+        if (!!!currentObject.subcategory_id) {
+            valid = false;
+            errorMessage = translations.subcategoryerror;
+        }
+        if (currentObject.recipe && currentObject.recipe.length > 0) {
+            for (const item of currentObject.recipe) {
+                if (!item.unit_transfer || !item.unit_transfer.id) {
+                    valid = false;
+                    errorMessage = translations.recipeerror;
+                    document.getElementById("recipe_tab").click();
+                }
+            }
         }
         if (
             currentObject.set_price == 0 &&
