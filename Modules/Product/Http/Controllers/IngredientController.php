@@ -17,6 +17,7 @@ use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\Vendor;
+use Illuminate\Support\Facades\Log;
 
 class IngredientController extends Controller
 {
@@ -24,9 +25,9 @@ class IngredientController extends Controller
     public function getIngredientsTree()
     {
         // $ingredients = Ingredient::all();
-        $ingredients = Product::where('type', 'ingredint')->get();
+        $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->get();
         $treeBuilder = new TreeBuilder();
-        $tree = $treeBuilder->buildTree($ingredients, null, 'Ingredient', null, null, null);
+        $tree = $treeBuilder->buildTreeIngredient($ingredients, null, 'Ingredient', null, null, null);
         return response()->json($tree);
     }
 
@@ -65,10 +66,10 @@ class IngredientController extends Controller
     public function edit($id)
 
     {
-         $ingredient = Product::with([
+        $ingredient = Product::with([
             'establishments.establishment',
             'unitTransfers',
-         ])->findOrFail($id);
+        ])->findOrFail($id);
         $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
 
         // $ingredient  = Product::with(['establishments' => function ($query) {
@@ -243,7 +244,6 @@ class IngredientController extends Controller
 
     protected function createProduct($validated, $request)
     {
-
         DB::transaction(function () use ($validated, $request) {
             $validated['type'] = 'ingredint';
 
@@ -289,6 +289,15 @@ class IngredientController extends Controller
                     $establishment->establishment_id = $newEstablishment["id"];;
                     $establishment->save();
                 }
+            }
+            if ($request->unit) {
+                UnitTransfer::create([
+                    'unit1' => $request->unit,
+                    'unit2' => null,
+                    'product_id' => $product->id,
+                    'primary' => 1,
+                    'transfer' => -100,
+                ]);
             }
         });
     }

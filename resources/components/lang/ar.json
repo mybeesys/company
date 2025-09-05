@@ -293,7 +293,7 @@
   "importProduct" : "استيراد المنتجات",
   "downloadTemplate" : "تحميل النموذج",
   "openInventory" : "الرصيد الإفتتاحي",
-  "openInventoryImport" : "استيراد الرصيد الإفتتاحي",
+  "openInventoryImport" : "استيراد المخزون الإفتتاحي",
   "transactions" : "الحركات",
   "op_type" : "العملية",
   "areas" : "المناطق",
@@ -337,7 +337,7 @@
   "afterTax" : "بعد الضريبة",
   "priceDisplay" : "عرض السعر",
   "expiryDate" : "تاريخ انتهاء الصلاحية",
-  "sellDate" : "تاريخ المبيعات",
+  "sellDate" : "تاريخ الإنتاج",
   "count" : "العدد",
   "ExpandAll":"فتح الكل",
   "CollapseAll":"إغلاق الكل",
@@ -365,5 +365,7 @@
   "subcategoryerror":"التصنيف الجزئي مطلوب",
   "productNameRequired":"يجب إضافة معلومات المنتج قبل توليد المصفوفة",
   "under":"تابع ل",
-  "language":"ar"
+  "language":"ar",
+  "ingredint":"مكون",
+  "recipeerror":"الوحدةالخاصة بالمكونات بالوصفة مطلوبة"
 }

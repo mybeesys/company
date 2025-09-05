@@ -44,14 +44,11 @@ const ProductBasicInfo = ({
                 subCategories = await fetchSubCategoryOptions(
                     currentObject.category_id
                 );
-                if (subCategories.length > 0 && currentObject.subcategory_id) {
-                    const selectedSubcategory = subCategories.find(
-                        (sub) => sub.value === currentObject.subcategory_id
-                    );
-                    currentObject["subcategory"] = selectedSubcategory || null;
+                if (subCategories.length > 0) {
+                    currentObject["subcategory_id"] = subCategories[0].value;
+                    currentObject["subcategory"] = subCategories[0];
                 } else {
                     currentObject["subcategory"] = null;
-                    currentObject["subcategory_id"] = null;
                 }
             }
             setCategoryOptions(categories);
@@ -267,8 +264,7 @@ const ProductBasicInfo = ({
                                 htmlFor="subcategory_id"
                                 className="col-form-label"
                             >
-                                {translations.subcategory}{" "}
-                                <span style={{ color: "red" }}>*</span>
+                                {translations.subcategory}
                             </label>
                             <Select
                                 id="subcategory_id"
@@ -292,12 +288,6 @@ const ProductBasicInfo = ({
                                     }),
                                 }}
                             />
-                            {!currentObject.subcategory && (
-                                <div className="text-danger">
-                                    {translations.required}{" "}
-                                    {translations.subcategory}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

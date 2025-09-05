@@ -13,7 +13,7 @@ return [
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
     'reports_module' => 'التقارير',
-    'products' => 'المنتجات',
+    'products' => 'منتجات المخزون',
     'inventory' => 'المخزن',
     'accounting' => 'المحاسبة',
     'establishments' => 'المنشآت',
@@ -53,8 +53,8 @@ return [
 
     'unit' => 'وحدات القياس',
     'linkedCombo' => 'كومبو',
-    'inventory' => 'المنتجات',
-    'inventory_module' => 'المستودع',
+    'inventory' => 'منتجات المخزون',
+    'inventory_module' => 'المخزون',
 
     'sales' => 'المبيعات',
     'clients' => 'العملاء',
@@ -64,11 +64,11 @@ return [
 
 
     'po' => 'طلبات الشراء',
-    'prep' => 'تحضير الوصفات',
+    'prep' => 'الإنتاج',
     'rma' => 'RMA',
     'ingredientInventory' => 'المكونات',
-    'waste' => 'الاتلاف',
-    'transfer' => 'التحويلات',
+    'waste' => 'اتلاف الأصناف',
+    'transfer' => 'تحويل المخزون',
 
     'purchase_invoices' => 'فواتير الشراء',
     'general_setting' => 'الإعدادات العامة',
@@ -83,14 +83,14 @@ return [
 
     'supplier_receipts' => 'سندات الموردين',
     'supplier_receipt' => 'سند الموردين',
-    'import' => 'الاستيراد',
+    'import' => 'استيراد المخزون',
     'tel' => 'هاتف',
 
     'screen_module' => 'الشاشات',
     'main' => 'الرئيسية',
 
     'supplier_receipts' => 'سندات الموردين',
-    'import' => 'الاستيراد',
+    'import' => 'استيراد المخزون',
     'sell-return' => 'مردود المبيعات',
     'purchases-return' => 'مردود المشتريات',
     'areas' => 'المناطق',
@@ -132,11 +132,11 @@ return [
     'periodic' => 'الجرد الدوري',
 
     'sales-dashbord' => 'لوحة المبيعات',
-    'purchase-dashbord'=>'لوحة المشتريات',
+    'purchase-dashbord' => 'لوحة المشتريات',
 
     'reports_list' => 'قائمة التقارير',
     'product_dashboard' => 'لوحة تحكم المنتجات',
-    'inventory_dashboard' => 'لوحة تحكم المستودع',
+    'inventory_dashboard' => 'لوحة تحكم المخزون',
 
 
 ];
