@@ -13,7 +13,7 @@ return [
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
     'reports_module' => 'التقارير',
-    'products' => 'منتجات المخزون',
+    'products' => 'المنتجات',
     'inventory' => 'المخزن',
     'accounting' => 'المحاسبة',
     'establishments' => 'المنشآت',
