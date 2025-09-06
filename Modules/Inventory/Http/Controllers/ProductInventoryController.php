@@ -16,6 +16,7 @@ use Illuminate\Container\Attributes\DB;
 use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
+use Illuminate\Support\Facades\DB;
 
 class ProductInventoryController extends Controller
 {
