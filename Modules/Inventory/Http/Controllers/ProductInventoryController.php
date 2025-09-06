@@ -14,7 +14,7 @@ use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransferConvertor;
 use Illuminate\Container\Attributes\DB;
 use Modules\Product\Models\UnitTransfer;
-
+use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
 
 class ProductInventoryController extends Controller
@@ -158,7 +158,7 @@ class ProductInventoryController extends Controller
                 $qty = $productInventory->qty;
 
                 if (floor($qty) == $qty) {
-                    $formattedQty = number_format($qty, 0, '.', ''); 
+                    $formattedQty = number_format($qty, 0, '.', '');
                 } else {
                     $formattedQty = number_format($qty, 2, '.', '');
                 }
@@ -288,30 +288,40 @@ class ProductInventoryController extends Controller
         $useTree = $request->query('t', '');
         $establishments = [];
         $TreeBuilder = new TreeBuilder();
-
-        if ($by == 0) {
-            $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
-                $query->where('is_main', 1)
-                    ->orWhere(function ($subQuery) use ($key) {
-                        $subQuery->where('is_main', 0)
-                            ->where('name', 'LIKE', "%{$key}%");
-                    });
-            }])
-                ->get();
-        }
-        if ($by == -1) {
-            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+        if (empty($key)) {
+            if ($by == 0) {
+                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+            } elseif ($by == -1) {
+                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+            } else {
+                $establishments = Establishment::select('est_establishments.*')
+                    ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
+                    ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+                    ->distinct()
+                    ->get();
+            }
         } else {
-            // $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-            $establishments = Establishment::select('est_establishments.*')
-                ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
-                ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-                ->where(function ($query) use ($key) {
-                    $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
-                        ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
-                })
-                ->distinct()
-                ->get();
+            if ($by == 0) {
+                $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
+                    $query->where('is_main', 1)
+                        ->orWhere(function ($subQuery) use ($key) {
+                            $subQuery->where('is_main', 0)
+                                ->where('name', 'LIKE', "%{$key}%");
+                        });
+                }])->get();
+            } elseif ($by == -1) {
+                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
+            } else {
+                $establishments = Establishment::select('est_establishments.*')
+                    ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
+                    ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+                    ->where(function ($query) use ($key) {
+                        $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
+                            ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
+                    })
+                    ->distinct()
+                    ->get();
+            }
         }
 
         $establishmentArray = $establishments->toArray();
@@ -320,7 +330,7 @@ class ProductInventoryController extends Controller
 
         foreach ($establishmentArray as $establishment) {
             if (!in_array($establishment['id'], $processedIds)) {
-                $processedIds[] = $establishment['id']; //  
+                $processedIds[] = $establishment['id'];
                 $est = ($by == 1) ? $this->fillProducts($establishment, $key) : $this->fillProducts($establishment, null);
                 $details[] = $est;
             }
