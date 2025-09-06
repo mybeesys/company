@@ -1072,6 +1072,7 @@ class ProductController extends Controller
 
     public function searchProducts(Request $request)
     {
+        Log::info($request);
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $products = Product::where('name_ar', 'like', '%' . $key . '%')
@@ -1106,7 +1107,29 @@ class ProductController extends Controller
         $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
         return response()->json($result);
     }
+    public function searchProduct(Request $request)
+    {
+        Log::info($request);
+        $query = $request->query('query');  // Get 'query' parameter
+        $key = $request->query('key', '');
+        $products = Product::where('type', 'product')
+            ->where(function ($query) use ($key) {
+                $query->where('name_ar', 'like', '%' . $key . '%')
+                    ->orWhere('name_en', 'like', '%' . $key . '%');
+            })
+            ->take(10)
+            ->get();
+        $products = $products->map(function ($product) {
+            $newProduct = $product->toArray();
+            $newProduct["id"] = $product["id"] . '-p';
+            $newProduct["name_ar"] = $product["name_ar"];
+            $newProduct["name_en"] = $product["name_en"];
+            return $newProduct;
+        });
 
+        $result = array_merge($products->toArray());
+        return response()->json($result);
+    }
     public function getProductsByEstablishment($establishmentId)
     {
         $products = DB::table('product_inventories')

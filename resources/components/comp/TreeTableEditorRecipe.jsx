@@ -432,7 +432,6 @@ const TreeTableEditorRecipe = ({
         //key, autoFocus, options, editable, required, firstCell) => {
         let val;
         const selectedItem = node.data[col.key];
-        console.log(selectedItem);
         if (selectedItem) {
             val = col.options.find(
                 (x) => x.value == selectedItem.replace(/-/g, "")
