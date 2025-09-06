@@ -93,7 +93,7 @@ return [
 
 
     'supplier_receipts' => 'Supplier Receipts',
-    'import' => 'Import',
+    'importProduct' => 'Import',
     'sell-return' => 'Sell Return',
     'purchases-return' => 'Purchases return',
     'tables' => 'Tables',
