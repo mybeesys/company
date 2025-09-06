@@ -301,15 +301,7 @@ class ProductInventoryController extends Controller
                     ->get();
             }
         } else {
-            $establishments = DB::table('product_products')
-                ->select('product_products.id', 'product_products.name_ar', 'product_products.name_en')
-                ->join('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
-                ->where(function ($query) use ($key) {
-                    $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
-                        ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
-                })
-                ->distinct()
-                ->get();
+            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
         }
 
 
