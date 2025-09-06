@@ -288,6 +288,7 @@ class ProductInventoryController extends Controller
         $useTree = $request->query('t', '');
         $establishments = [];
         $TreeBuilder = new TreeBuilder();
+
         if (empty($key)) {
             if ($by == 0) {
                 $establishments = Establishment::whereNull('parent_id')->with('children')->get();
@@ -297,7 +298,7 @@ class ProductInventoryController extends Controller
                 $establishments = Establishment::select('est_establishments.*')
                     ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
                     ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-                    ->distinct()
+                    ->groupBy('est_establishments.id')
                     ->get();
             }
         } else {
@@ -319,7 +320,7 @@ class ProductInventoryController extends Controller
                         $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
                             ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
                     })
-                    ->distinct()
+                    ->groupBy('est_establishments.id')
                     ->get();
             }
         }
