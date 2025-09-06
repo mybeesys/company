@@ -132,7 +132,7 @@ Route::middleware([
         Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
         Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
         Route::get('searchProduct', [ProductController::class, 'searchProduct'])->name('searchProduct');
-        Route::get('getProductsByEstablishments', [ProductController::class, 'getProductsByEstablishments'])->name('getProductsByEstablishments');
+        //Route::get('getProductsByEstablishments', [ProductController::class, 'getProductsByEstablishments'])->name('getProductsByEstablishments');
         Route::get('getProductsByEstablishment/{establishmentId}', [ProductController::class, 'getProductsByEstablishment'])->name('getProductsByEstablishment');
         Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
         Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
