@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
+import TreeTableEditorRecipe from "../comp/TreeTableEditorRecipe";
 
 const ProductRecipe = ({
     translations,
@@ -61,7 +61,7 @@ const ProductRecipe = ({
 
     return (
         <div class="pt-3">
-            <TreeTableEditorLocal
+            <TreeTableEditorRecipe
                 translations={translations}
                 dir={dir}
                 header={false}
