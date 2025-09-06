@@ -12,7 +12,6 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransferConvertor;
-use Illuminate\Container\Attributes\DB;
 use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
