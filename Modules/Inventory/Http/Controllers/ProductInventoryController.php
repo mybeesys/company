@@ -312,8 +312,14 @@ class ProductInventoryController extends Controller
         foreach ($establishmentArray as $establishment) {
             if (!in_array($establishment['id'], $processedIds)) {
                 $processedIds[] = $establishment['id'];
-                $est = ($by == 1) ? $this->fillProducts($establishment, $key) : $this->fillProducts($establishment, null);
-                $details[] = $est;
+
+                $products = $this->fillProducts($establishment, $key);
+
+                if ($establishment['is_main'] == 0 && empty($products)) {
+                    continue;
+                }
+
+                $details[] = $products;
             }
         }
 
