@@ -301,29 +301,18 @@ class ProductInventoryController extends Controller
                     ->get();
             }
         } else {
-            if ($by == 0) {
-                $establishments = Establishment::whereNull('parent_id')->with(['children' => function ($query) use ($key) {
-                    $query->where('is_main', 1)
-                        ->orWhere(function ($subQuery) use ($key) {
-                            $subQuery->where('is_main', 0)
-                                ->where('name', 'LIKE', "%{$key}%");
-                        });
-                }])->get();
-            } elseif ($by == -1) {
-                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-            } else {
-                $establishments = Establishment::select('est_establishments.id', 'est_establishments.name')
-                    ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
-                    ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-                    ->where(function ($query) use ($key) {
-                        $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
-                            ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
-                    })
-                    ->whereNull('est_establishments.deleted_at')
-                    ->distinct()
-                    ->get();
-            }
+            $establishments = Establishment::select('est_establishments.id', 'est_establishments.name')
+                ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
+                ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+                ->where(function ($query) use ($key) {
+                    $query->where('product_products.name_ar', 'LIKE', "%{$key}%")
+                        ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
+                })
+                ->whereNull('est_establishments.deleted_at')
+                ->distinct()
+                ->get();
         }
+
 
         $establishmentArray = $establishments->toArray();
         $details = [];
