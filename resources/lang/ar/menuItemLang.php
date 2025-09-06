@@ -83,7 +83,7 @@ return [
 
     'supplier_receipts' => 'سندات الموردين',
     'supplier_receipt' => 'سند الموردين',
-    'import' => 'استيراد المخزون',
+    'importProduct' => 'استيراد',
     'tel' => 'هاتف',
 
     'screen_module' => 'الشاشات',

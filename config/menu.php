@@ -90,9 +90,9 @@ return [
 
             ],
             [
-                'name' => 'import',
+                'name' => 'importProduct',
                 'url' => 'importProduct/import',
-                'permission' => 'products.import.show',
+                'permission' => 'products.importProduct.show',
 
             ]
 
