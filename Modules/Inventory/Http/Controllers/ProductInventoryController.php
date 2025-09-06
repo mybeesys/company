@@ -320,6 +320,7 @@ class ProductInventoryController extends Controller
                             ->orWhere('product_products.name_en', 'LIKE', "%{$key}%");
                     })
                     ->whereNull('est_establishments.deleted_at')
+                    ->distinct()
                     ->get();
             }
         }
