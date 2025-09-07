@@ -44,7 +44,8 @@ class ProductImportController extends Controller
                 'cost'              => $row[12],
                 'price_with_tax'    => $row[13],
                 'unit'              => $row[14],
-                'tax'               => $row[15]
+                'tax'               => $row[15],
+                'establishment'     => $row[16],
             ];
         });
         return response()->json($mappedData);

@@ -15,6 +15,8 @@ use Modules\General\Models\Tax;
 use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\TaxHelper;
+use Modules\Establishment\Models\Establishment;
+use Modules\Product\Models\EstablishmentProduct;
 
 class ProductImport implements ToModel, WithHeadingRow
 {
@@ -57,6 +59,18 @@ class ProductImport implements ToModel, WithHeadingRow
                     'name_en'           => $row['english_name'],
                 ],
                 'message' => ['message' => 'INVALID_subcategory', 'data' => [$row['subcategory']]]
+            ];
+            $valid = false;
+        }
+        $est = Establishment::where('name', '=', $row['establishment'])
+            ->orWhere('name_en', '=', $row['establishment'])->first();
+        if (!$est && $row['establishment'] !== 'جميع المستودعات' && $row['establishment'] !== 'All Establishments') {
+            $this->errors[] = [
+                'row' => [
+                    'name_ar' => $row['arabic_name'],
+                    'name_en' => $row['english_name'],
+                ],
+                'message' => ['message' => 'INVALID_establishment', 'data' => [$row['establishment']]]
             ];
             $valid = false;
         }
@@ -114,7 +128,7 @@ class ProductImport implements ToModel, WithHeadingRow
         if (!$valid)
             throw new Exception("Validation failed for row: " . json_encode($row));
 
-        DB::transaction(function () use ($product, $row) {
+        DB::transaction(function () use ($product, $row, $est) {
             $product = Product::create($product->toArray());
             $unitTransfer = new UnitTransfer([
                 'unit1'         => $row['main_unit'],
@@ -122,6 +136,20 @@ class ProductImport implements ToModel, WithHeadingRow
                 'primary'       => 1
             ]);
             $unitTransfer = UnitTransfer::create($unitTransfer->toArray());
+            if ($row['establishment'] === 'جميع المستودعات' || $row['establishment'] === 'All Establishments') {
+                $establishments = Establishment::where('is_main', 0)->get();
+                foreach ($establishments as $establishment) {
+                    EstablishmentProduct::create([
+                        'product_id' => $product->id,
+                        'establishment_id' => $establishment->id,
+                    ]);
+                }
+            } elseif ($est) {
+                EstablishmentProduct::create([
+                    'product_id' => $product->id,
+                    'establishment_id' => $est->id,
+                ]);
+            }
         });
     }
     /**
