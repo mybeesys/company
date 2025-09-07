@@ -358,5 +358,6 @@
   "language":"en",
   "ingredint":"ingredint",
   "recipeerror":"The unit for the ingredients in the recipe is required",
-  "sellDate":"Production Date"
+  "sellDate":"Production Date",
+  "price_with_tax":"Pric With Tax"
 }
