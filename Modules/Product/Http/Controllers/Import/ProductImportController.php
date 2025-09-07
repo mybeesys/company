@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class ProductImportController extends Controller
 {
@@ -54,28 +55,37 @@ class ProductImportController extends Controller
     {
         // Validate that the request contains a file
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',  // You can adjust mime types and file size as needed
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
         ]);
 
         if ($request->hasFile('file')) {
-            // Get the file
-            $file = $request->file('file');
-            $uuid = Str::uuid() . '.xlsx';
 
-            // Store the file temporarily
-            $path = $file->storeAs('uploads', $uuid, 'public');
+            $file = $request->file('file');
+
+            $uuid = Str::uuid() . '.xlsx';
             $tenant = tenancy()->tenant;
             $tenantId = $tenant->id;
+
+            // Store the file temporarily
+            $uploadPath = storage_path('storage/tenant' . $tenantId . '/uploads/');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0777, true);
+            }
+
+            $filePath = $uploadPath . $uuid;
+            $file->move($uploadPath, $uuid);
+
+            if (!file_exists($filePath)) {
+                return response()->json(['message' => 'File not found after moving.'], 500);
+            }
+
             $productImport = new ProductImport();
             try {
-                // Import data from the uploaded file
-                Excel::import($productImport, public_path('storage/' . 'tenant' . $tenantId . '/uploads/' . $uuid));
-
+                Excel::import($productImport, $filePath);
                 return response()->json([
                     'message' => 'Done',
                 ], 200);
             } catch (Exception $e) {
-                // If an exception was thrown, return the error message and details
                 $errors = $productImport->getErrors();
 
                 return response()->json([

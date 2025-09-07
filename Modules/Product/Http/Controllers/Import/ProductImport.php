@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\General\Models\Tax;
 use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TaxHelper;
 
 class ProductImport implements ToModel, WithHeadingRow
 {
@@ -32,7 +33,8 @@ class ProductImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        Log::info("row", $row);
+        $tax = Tax::where("default", 1)->first();
+        $taxRate = $tax ? $tax->amount : 0;
         $valid = true;
         $category = Category::where('name_ar', '=', $row['category'])
             ->orWhere('name_en', '=', $row['category'])->first();
@@ -85,10 +87,10 @@ class ProductImport implements ToModel, WithHeadingRow
             'color'             => $row['color'],
             'cost'              => $row['cost'],
             'price_with_tax'    => $row['price_with_tax'],
-            'tax_id'            => $tax->id
+            'tax_id'            => $tax->id,
+            'price'             => TaxHelper::getAmountBeforeTax($row['price_with_tax'], $taxRate)
         ]);
         $res = $this->productController->validateProduct(null, $product);
-
         if (!isset($row['main_unit']) || $row['main_unit'] == null) {
             $this->errors[] = [
                 'row' => [
