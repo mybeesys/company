@@ -68,6 +68,9 @@ class ProductImportController extends Controller
 
             // Store the file temporarily
             $uploadPath = storage_path('storage/tenant' . $tenantId . '/uploads/');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0777, true);
+            }
 
             $filePath = $uploadPath . $uuid;
             $file->move($uploadPath, $uuid);
