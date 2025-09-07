@@ -67,10 +67,7 @@ class ProductImportController extends Controller
             $tenantId = $tenant->id;
 
             // Store the file temporarily
-            $uploadPath = storage_path('storage/tenant' . $tenantId . '/uploads/');
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
-            }
+            $uploadPath = public_path('storage/tenant' . $tenantId . '/uploads/');
 
             $filePath = $uploadPath . $uuid;
             $file->move($uploadPath, $uuid);
@@ -81,6 +78,7 @@ class ProductImportController extends Controller
 
             $productImport = new ProductImport();
             try {
+
                 Excel::import($productImport, $filePath);
                 return response()->json([
                     'message' => 'Done',
