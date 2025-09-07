@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Exception;
+
 class ProductImportController extends Controller
 {
 
@@ -40,14 +41,14 @@ class ProductImportController extends Controller
                 'order'             => $row[10],
                 'color'             => $row[11],
                 'cost'              => $row[12],
-                'price'             => $row[13],
+                'price_with_tax'    => $row[13],
                 'unit'              => $row[14],
                 'tax'               => $row[15]
-                ];
+            ];
         });
         return response()->json($mappedData);
     }
-    
+
 
     public function upload(Request $request)
     {
@@ -59,8 +60,8 @@ class ProductImportController extends Controller
         if ($request->hasFile('file')) {
             // Get the file
             $file = $request->file('file');
-            $uuid = Str::uuid().'.xlsx';
-            
+            $uuid = Str::uuid() . '.xlsx';
+
             // Store the file temporarily
             $path = $file->storeAs('uploads', $uuid, 'public');
             $tenant = tenancy()->tenant;
@@ -68,7 +69,7 @@ class ProductImportController extends Controller
             $productImport = new ProductImport();
             try {
                 // Import data from the uploaded file
-                Excel::import($productImport, public_path('storage/'.'tenant'. $tenantId.'/uploads/'.$uuid));
+                Excel::import($productImport, public_path('storage/' . 'tenant' . $tenantId . '/uploads/' . $uuid));
 
                 return response()->json([
                     'message' => 'Done',
