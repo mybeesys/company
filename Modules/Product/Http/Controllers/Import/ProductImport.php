@@ -102,7 +102,8 @@ class ProductImport implements ToModel, WithHeadingRow
             'cost'              => $row['cost'],
             'price_with_tax'    => $row['price_with_tax'],
             'tax_id'            => $tax->id,
-            'price'             => TaxHelper::getAmountBeforeTax($row['price_with_tax'], $taxRate)
+            'price'             => TaxHelper::getAmountBeforeTax($row['price_with_tax'], $taxRate),
+            'show_in_menu'      => 0
         ]);
         $res = $this->productController->validateProduct(null, $product);
         if (!isset($row['main_unit']) || $row['main_unit'] == null) {
