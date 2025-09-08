@@ -723,11 +723,32 @@ class ProductController extends Controller
                 ]);
             }
             if (isset($modifierGroup['modifiers']) && is_array($modifierGroup['modifiers'])) {
+                $existingModifierIds = collect($modifierGroup['modifiers'])->pluck('modifier_id')->toArray();
+                $newModifiers = Product::where('class_id', $modifierGroup['class']['modifier_class_id'])
+                    ->whereNotIn('id', $existingModifierIds)
+                    ->get();
+                foreach ($newModifiers as $modifier) {
+                    ProductModifier::create([
+                        'product_id' => $productId,
+                        'modifier_class_id' => $modifier->class_id,
+                        'modifier_id' => $modifier->id,
+                        'active' => 0,
+                        'default' => 0,
+                        'required' => 0,
+                        'display_order' => 0,
+                        'button_display' => 0,
+                        'modifier_display' => 0,
+                        'free_quantity' => 0,
+                        'free_type' => 0,
+                        'min_modifiers' => 0,
+                        'max_modifiers' => 0,
+                    ]);
+                }
                 foreach ($modifierGroup['modifiers'] as $modifier) {
                     ProductModifier::create([
                         'product_id' => $productId,
-                        'modifier_class_id' => $modifier['modifier_class_id'],
-                        'modifier_id' => $modifier['modifier_id'],
+                        'modifier_class_id' => $modifier['modifier_class_id'] ?? null,
+                        'modifier_id' => $modifier['modifier_id'] ?? null,
                         'active' => 1,
                         'default' => $modifier['default'] ?? 0,
                         'required' => $modifier['required'] ?? 0,
@@ -736,8 +757,8 @@ class ProductController extends Controller
                         'modifier_display' => $modifier['modifier_display'] ?? 0,
                         'free_quantity' => $modifier['free_quantity'] ?? 0,
                         'free_type' => $modifier['free_type'] ?? 0,
-                        'min_modifiers' =>  0,
-                        'max_modifiers' =>  0,
+                        'min_modifiers' => 0,
+                        'max_modifiers' => 0,
                     ]);
                 }
             }
@@ -1056,7 +1077,7 @@ class ProductController extends Controller
                             'id' => $mod->id,
                             'modifier_id' => $mod->modifier_id,
                             'name' => app()->getLocale() == 'ar' ? optional($mod->modifierItem)->name_ar : optional($mod->modifierItem)->name_en,
-                            'active' => 1,
+                            'active' => $mod->active,
                             'default' => $mod->default,
                             'display_order' => $mod->display_order
                         ];
