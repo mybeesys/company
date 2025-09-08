@@ -34,7 +34,7 @@
             @endif
             <input class="form-control form-control-solid custom-height" name="transaction_date"
                 @if ($transaction?->transaction_date) value="{{ $transaction?->transaction_date }}" @endif
-                value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.transaction_date')" id="transaction_date"
+                value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.issue_date')" id="transaction_date"
                 type="date">
         </div>
 

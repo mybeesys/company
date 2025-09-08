@@ -33,7 +33,7 @@ return [
     'piad_amount' => 'Pid Amount',
     'invoice_amount' => 'Invoice Amount',
     'date' => 'Date',
-    'select_transactions'=>' Select Transactions',
+    'select_transactions' => ' Select Transactions',
     'transaction_ref_no' => 'Invoice ٌRef No',
     'paid_on' => 'Piad on',
     'supplier' => 'Supplier',
@@ -53,16 +53,17 @@ return [
     'all' => 'All',
     'apply_to_clients_groups' => 'Apply to clients groups',
     'is_active' => 'Is active',
-     'name_ar' => 'Name in Arabic',
-        'name_en' => 'Name in English',
-        'category' => 'Category',
-        'subcategory' => 'Subcategory',
-        'price' => 'Price',
-        'cost' => 'Cost',
-        'order' => 'Order',
-        'unit' => 'Unit',
+    'name_ar' => 'Name in Arabic',
+    'name_en' => 'Name in English',
+    'category' => 'Category',
+    'subcategory' => 'Subcategory',
+    'price' => 'Price',
+    'cost' => 'Cost',
+    'order' => 'Order',
+    'unit' => 'Unit',
 
 
+    'po_status' => 'Order Status',
 
 
 

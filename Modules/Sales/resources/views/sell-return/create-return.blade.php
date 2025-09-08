@@ -642,6 +642,7 @@ $.ajax({
                     $("#tab-content-payment_info").show();
                     $("#paid_amount").val(0);
 
+                    $('#nots_tab').tab('show');
 
                     $("#div-cash_account").hide();
 
@@ -654,6 +655,7 @@ $.ajax({
                     $('#cash_account').removeAttr('required');
 
                 } else {
+                    $('#nots_tab').tab('show');
 
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();

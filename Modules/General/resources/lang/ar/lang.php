@@ -2,8 +2,10 @@
 
 return [
 
-
+    'pending' => 'غير منفذ',
     'paid' => 'مدفوع',
+    'completed' => 'مكتمل',
+
     'due' => 'متسحقة',
     'partial' => 'جزئية',
     'default tax' => 'ضريبة افتراضية',

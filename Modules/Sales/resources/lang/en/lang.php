@@ -145,6 +145,8 @@ return [
     'client' => 'Client',
     'invoice' => 'Invoice',
     'amount' => 'Amount',
+    'total_with_tax' => 'الاجمالي بعد الضريبة',
+
     'date' => 'Date',
     'method' => 'Method',
     'actions' => 'Actions',

@@ -55,7 +55,7 @@
                         <th class="min-w-125px">@lang('sales::lang.total_before_vat')</th>
                         <th class="min-w-200px">@lang('sales::lang.vat_percentage')</th>
                         <th class="min-w-50px">@lang('sales::lang.vat_value')</th>
-                        <th class="min-w-125px">@lang('sales::lang.amount')</th>
+                        <th class="min-w-125px">@lang('sales::lang.total_with_tax')</th>
                         <th class="min-w-25px"></th>
                     </tr>
                 </thead>

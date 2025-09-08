@@ -10,7 +10,7 @@ return [
     'tax_number' => 'الرقم الضريبي',
     'invoice_no' => 'الرقم المرجعي',
     'issue_date' => 'تاريخ الإصدار',
-    'payment_terms' => 'شروط الدفع',
+    'payment_terms' => 'فترة االاستحقاق',
     'due_date' => 'تاريخ الاستحقاق',
     'transaction_date' => 'تاريخ الشراء',
     'select_supplier' => 'اختر المورد',
@@ -37,7 +37,6 @@ return [
 
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
-
 
 
 

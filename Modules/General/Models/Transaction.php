@@ -103,6 +103,21 @@ class Transaction extends Model
         ];
     }
 
+    public static function getsPOColumns()
+    {
+        return [
+
+
+            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
+            ["class" => "text-start min-w-150px  ", "name" => "client"],
+            ["class" => "text-start min-w-150px", "name" => "issue_date"],
+            ["class" => "text-start min-w-140px ", "name" => "Expiry Date"],
+            ["class" => "text-start min-w-100px", "name" => "po_status"],
+            ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
+            ["class" => "text-start min-w-150px  ", "name" => "amount"],
+        ];
+    }
+
 
     public static function getsPurchasesColumns()
     {
@@ -186,7 +201,21 @@ class Transaction extends Model
            ' . __('general::lang.partial') . ' </span>';
                 }
             })
+            ->editColumn('po_status', function ($row) {
+                if ($row->po_status == 'completed') {
+                    return    '<span class="badge badge-light-info px-3 py-3 fs-base">
 
+               ' . __('general::lang.completed') . ' </span>';
+                } else if ($row->po_status == 'partial') {
+                    return    '<span class="badge badge-light-success px-3 py-3 fs-base">
+
+               ' . __('general::lang.partial') . ' </span>';
+                } else if ($row->po_status == 'pending') {
+                    return    '<span class="badge badge-light-danger px-3 py-3 fs-base">
+
+           ' . __('general::lang.pending') . ' </span>';
+                }
+            })
 
 
             ->addColumn(
@@ -239,7 +268,11 @@ class Transaction extends Model
                         }
                     }
 
-
+                    if ($row->type == 'purchases-order' && $row->po_status == 'completed') {
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="' . url("/create-purchase-order?po_id={$row->id}&type=duplication") . '" class="menu-link px-3">' . __('accounting::fields.duplication') . '</a>
+                </div>';
+                    }
 
                     // $status = $row->status == 'active' ? __('messages.deactivate') : __('messages.activate');
 
@@ -261,7 +294,7 @@ class Transaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'payment_status', 'ref_no', 'remaining_amount', 'paid_amount', 'client', 'id'])
+            ->rawColumns(['actions', 'po_status', 'payment_status', 'ref_no', 'remaining_amount', 'paid_amount', 'client', 'id'])
             ->make(true);
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -184,32 +185,7 @@ class TreeAccountsController extends Controller
         $input['gl_code'] = AccountingUtil::next_GLC($input['account_id']);
         $account_type = AccountingAccountTypes::find($input['account_sub_type_id'] ?? $input['account_id']);
         $account = AccountingAccount::create($input);
-        // return $input;
-        // if ($account_type->show_balance == 1 && !empty($request->input('balance'))) {
-        //     //Opening balance
-        //     $data = [
-        //         'amount' => $this->accountingUtil->num_uf($request->input('balance')),
-        //         'accounting_account_id' => $account->id,
-        //         'created_by' => auth()->user()->id,
-        //         'operation_date' => !empty($request->input('balance_as_of')) ?
-        //             $this->accountingUtil->uf_date($request->input('balance_as_of')) :
-        //             \Carbon::today()->format('Y-m-d')
-        //     ];
 
-        //     //Opening balance
-        //     $data['type'] = in_array($input['account_primary_type'], ['asset', 'expenses']) ? 'debit' : 'credit';
-        //     $data['sub_type'] = 'opening_balance';
-        //     $trans = AccountingAccountsTransaction::query()->create($data);
-        //     $opBalance = [
-        //         'accounts_account_transaction_id' => $trans->id,
-        //         'type' => $data['type'] == 'debit' ? 'debit' : 'credit',
-        //         'business_id' => $business_id,
-        //         'company_id' => $company_id,
-
-        //         'year' => Carbon::today()->format('Y')
-        //     ];
-        //     OpeningBalance::query()->create($opBalance);
-        // }
 
         DB::commit();
         return redirect()->back();
@@ -220,6 +196,50 @@ class TreeAccountsController extends Controller
 
         return redirect()->back();
     }
+
+    public function storeSubAccount(Request $request)
+    {
+        // try {
+        DB::beginTransaction();
+
+        $input = $request->only([
+            'name_ar',
+            'name_en',
+            // 'account_category',
+            'sub_account_id',
+            'account_type'
+        ]);
+
+        $account_sub_account = AccountingAccountTypes::find($input['sub_account_id']);
+
+        $lastGlCode = AccountingAccount::where('account_sub_type_id', $account_sub_account->id)
+            ->max('gl_code');
+        //   dd($account_account);
+        $account = AccountingAccount::create([
+            'name_en' => $input['name_ar'],
+            'name_ar' => $input['name_ar'],
+            'account_primary_type' => $account_sub_account->account_primary_type,
+            'account_type' => $account_sub_account->account_primary_type,
+            'account_sub_type_id' => $input['sub_account_id'],
+            'detail_type_id' => null,
+            'gl_code' => $lastGlCode + 1,
+            'status' => 'active',
+            'created_by' => Auth::user()->id,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+
+        DB::commit();
+        return redirect()->back();
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->back();
+        // }
+
+        return redirect()->back();
+    }
+
     /**
      * Show the specified resource.
      */

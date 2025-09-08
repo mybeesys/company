@@ -29,7 +29,7 @@
                             name="bankInfo_country_bank">
                             <option value="">@lang('clientsandsuppliers::fields.country_bank')</option>
                             @foreach ($countries as $country)
-                                <option value="{{ $country->id }}">{{ $country->name_en . ' - ' . $country->name_ar }}
+                                <option value="{{ $country->id }}" @if ($country->id == 111) selected @endif>{{ $country->name_en . ' - ' . $country->name_ar }}
                                 </option>
                             @endforeach
                         </select>
@@ -44,7 +44,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="bankInfo_currency">
                             <option value="">@lang('clientsandsuppliers::fields.currency')</option>
                             @foreach ($countries as $country)
-                                <option value="{{ $country->id }}">{{ $country->currency_symbol_en  . ' - ' . $country->currency_name_en }}
+                                <option value="{{ $country->id }}" @if ($country->id == 111) selected @endif>{{ $country->currency_symbol_en  . ' - ' . $country->currency_name_en }}
                                 </option>
                             @endforeach
                         </select>

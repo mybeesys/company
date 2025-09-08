@@ -80,13 +80,8 @@
         </div>
 
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
-            {!! QrCode::size(90)->generate(
-                json_encode([
-                    'Inovice No' => $transaction->ref_no,
-                    // 'Client Name' => $transaction?->client?->name,
-                    'Final Total' => $transaction->final_total,
-                ]),
-            ) !!}
+                         {!! $qrCode !!}
+
         </div>
 
     </div>

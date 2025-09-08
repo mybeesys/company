@@ -18,7 +18,7 @@
 
     <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"
-        id="cash_account">  
+        id="cash_account">
 
         <option value="">@lang('sales::lang.payment_account_select')</option>
         @foreach ($accounts as $account)
@@ -43,6 +43,7 @@
                 @if ($transaction?->contact_id == $client->id) selected @endif data-mobile_number="{{ $client->mobile_number }}"
                 data-email="{{ $client->email }}" data-tax_number="{{ $client->tax_number }}"
                 data-billing_address="{{ $client->billingAddress?->city . ' - ' . $client->billingAddress?->street_name }}"
+                data-payment_terms="{{ $client->payment_terms }}"
                 data-billing_city="{{ $client->billingAddress?->city }}"
                 data-billing_street_name="{{ $client->billingAddress?->street_name }}">
                 {{ $client->name }}

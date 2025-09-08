@@ -9,7 +9,19 @@
             <div class="row">
 
                 <div class="d-flex align-items-center mb-5">
-                    {{-- <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label> --}}
+                    <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label>
+
+                    <div class="col-md-9 d-flex align-items-center ">
+                        <input class="form-control form-control-solid custom-input" name="payment_terms"
+                            placeholder="@lang('sales::fields.payment_terms')" value="{{$contact->payment_terms}}" type="number" min="0">
+                        <label class="fs-3 fw-semibold me-3 mb-0   "></label>
+
+                    </div>
+                </div>
+
+
+                {{-- <div class="d-flex align-items-center mb-5">
+                    <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label>
                     <select name="payment_terms" id="payment_terms" class="form-select select-2 form-select-solid ">
                         <option value="">@lang('sales::fields.payment_terms')</option>
 
@@ -18,7 +30,7 @@
                                 {{ $value }}</option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
             </div>
             <div class="row">
 

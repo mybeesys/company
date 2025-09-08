@@ -25,7 +25,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="billing_country">
                             <option value="">@lang('clientsandsuppliers::fields.select_country')</option>
                             @foreach ($countries as $country)
-                                <option @if ($contact->billingAddress?->country == $country->id) selected @endif value="{{ $country->id }}">
+                                <option @if ($contact->billingAddress?->country == $country->id) selected @elseif($country->id == 111) selected  @endif value="{{ $country->id }}">
                                     {{ $country->name_en . ' - ' . $country->name_ar }}
                                 </option>
                             @endforeach

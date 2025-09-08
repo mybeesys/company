@@ -115,13 +115,6 @@
 
             </div>
 
-            {{-- {!! QrCode::size(90)->generate(
-                json_encode([
-                    'Inovice No' => $transaction->ref_no,
-                    // 'Client Name' => $transaction?->client?->name,
-                    'Final Total' => $transaction->final_total,
-                ]),
-            ) !!} --}}
         </div>
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
         </div>
@@ -256,7 +249,7 @@
                                         <th class="min-w-125px">@lang('sales::lang.total_before_vat')</th>
                                         <th class="min-w-120px">@lang('sales::lang.vat_percentage')</th>
                                         <th class="min-w-50px">@lang('sales::lang.vat_value')</th>
-                                        <th class="min-w-125px">@lang('sales::lang.amount')</th>
+                                        <th class="min-w-125px">@lang('sales::lang.total_with_tax')</th>
                                         <th class="min-w-25px"></th>
                                     </tr>
                                 </thead>
@@ -286,7 +279,7 @@
                                                 </td>
                                                 <td>
                                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                                        {{ $line->qyt }}
+                                                        {{ $line->qyt }}  {{ $line?->unitTransfer?->unit1 }}
                                                     </a>
                                                 </td>
 

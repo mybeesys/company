@@ -19,6 +19,7 @@
         <div class="col-md-12 " id="accounts_tree_container" style="flex: 0 0 250px;">
             <ul>
                 @foreach ($account_types as $key => $value)
+
                     <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif>
                         ({{ $account_GLC[$key] }})
                         - {{ $value }}
@@ -31,7 +32,56 @@
                                     @else
                                         {{ $sub_type->name_en }}
                                     @endif
+{{--
+                                    @if ($sub_type?->status == 'active')
+                                        <span><i class="fas fa-check text-success" title="@lang('accounting::lang.active')"></i></span>
+                                    @elseif($sub_type?->status == 'inactive')
+                                        <span><i class="fas fa-times text-danger" title="@lang('lang_v1.inactive')"
+                                                style="font-size: 14px;"></i></span>
+                                    @endif --}}
 
+                                    <span class="tree-actions">
+                                        <div class="btn-group dropend">
+
+                                            <button type="button"
+                                                style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
+                                                class="btn  dropdown-toggle" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-left"
+                                                @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
+                                                style="padding: 8px 15px;">
+                                                {{-- <li><a class="ledger-link" onclick="setAccountId({{ $sub_type->id }})"
+                                                        href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $sub_type->id]) }}"
+                                                        style="margin: 2px;">
+                                                        <i class="fas fa-file-alt"></i><span
+                                                            style="margin-left: 5px;">@lang('accounting::lang.ledger')</a>
+                                                </li>
+                                                <li>
+                                                    <a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                                        onclick="setAccount({{ $sub_type }}) "
+                                                        data-bs-toggle="modal" data-bs-target="#kt_modal_edit_account">
+                                                        <i class="fas fa-edit"></i><span style="margin-left: 5px;">
+                                                            @lang('messages.edit')
+                                                    </a>
+                                                </li> --}}
+                                                <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
+                                                        data-bs-toggle="modal"
+                                                        onclick="setAccountId({{ $sub_type->id }})"
+                                                        data-bs-target="#kt_modal_create_sub_account">
+                                                        <i class="fas fa-plus"></i><span
+                                                            style="margin-left: 5px;">@lang('accounting::lang.add_account')
+                                                    </a></li>
+
+                                                <li>
+                                                 </li>
+                                            </ul>
+                                        </div>
+
+
+
+                                    </span>
                                     <ul>
                                         @foreach ($accounts->where('account_sub_type_id', $sub_type->id)->all() as $account)
                                             <li
@@ -168,12 +218,13 @@
                                                                             <i class="fas fa-cog"></i>
                                                                         </button>
                                                                         <ul class="dropdown-menu"
-                                                                        @if (app()->getLocale() == 'ar') dir="rtl" @endif
+                                                                            @if (app()->getLocale() == 'ar') dir="rtl" @endif
                                                                             style="padding: 8px 15px;">
                                                                             <li><a class="btn-xs btn-default  ledger-link"
-                                                                                href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $child_account->id]) }}"
-                                                                                style="margin: 2px;">
-                                                                                    <i class="fas fa-file-alt"></i><span
+                                                                                    href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $child_account->id]) }}"
+                                                                                    style="margin: 2px;">
+                                                                                    <i
+                                                                                        class="fas fa-file-alt"></i><span
                                                                                         style="margin-left: 5px;">@lang('accounting::lang.ledger')</a>
                                                                             </li>
                                                                             <li>

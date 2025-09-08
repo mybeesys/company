@@ -35,7 +35,7 @@
 
 @stop
 @section('content')
-    <form id="client" method="POST" action="{{ route('client-update') }}">
+    <form id="client" method="POST" action="{{ route('client-update') }}" enctype="multipart/form-data">
         @csrf
 
         <input type="hidden" value="{{ $contact->id }}" name="id" />

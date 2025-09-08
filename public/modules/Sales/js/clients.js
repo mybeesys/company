@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     $("#client_id").on("change", function () {
         var selectedOption = $(this).find(":selected");
 
@@ -11,6 +10,16 @@ $(document).ready(function () {
         var billing_street_name =
             selectedOption.data("billing_street_name") || "-";
         var billing_city = selectedOption.data("billing_city") || "-";
+        // var payment_terms = selectedOption.data("payment_terms") || "-";
+        var payment_terms = parseInt(selectedOption.data("payment_terms")) || 0;
+
+        var today = new Date();
+
+        today.setDate(today.getDate() + payment_terms);
+
+        var dueDate = today.toISOString().split("T")[0];
+
+        $("#due_date").val(dueDate);
 
         console.log(billing_address);
 
@@ -28,6 +37,7 @@ $(document).ready(function () {
         } else {
             $("#dev-mobile_number").hide();
         }
+
         if (email != "-") {
             $("#email").text(email);
             $("#dev-email").show();

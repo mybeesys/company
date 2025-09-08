@@ -214,7 +214,7 @@
                             <th class="min-w-80px">@lang('sales::lang.total_before_vat')</th>
                             <th class="min-w-80px">@lang('sales::lang.vat_percentage')</th>
                             <th class="min-w-80px">@lang('sales::lang.vat_value')</th>
-                            <th class="min-w-80px">@lang('sales::lang.amount')</th>
+                            <th class="min-w-80px">@lang('sales::lang.total_with_tax')</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -240,7 +240,7 @@
                                     </td>
                                     <td>
                                         <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                            {{ $line->qyt }}
+                                            {{ $line->qyt }}  {{ $line?->unitTransfer?->unit1 }}
                                         </a>
                                     </td>
 
@@ -310,7 +310,7 @@
                 <p class="fs-5 ">@lang('sales::lang.invoice_discount'): (-) {{ $transaction->discount_amount ?? ' 0.00 ' }}</p>
                 <p class="fs-5 ">@lang('sales::lang.totalAfterDiscount'): {{ $transaction->totalAfterDiscount }}</p>
                 <p class="fs-5 ">@lang('sales::lang.vat_value'): (+) {{ $transaction->tax_amount }}</p>
-                <p class="fs-5 ">@lang('sales::lang.amount'): {{ $transaction->final_total }}</p>
+                <p class="fs-5 ">@lang('sales::lang.total_with_tax'): {{ $transaction->final_total }}</p>
 
             </div>
 
@@ -322,13 +322,8 @@
             </div>
 
             <div class="col-sm-4 " style="justify-content: center;display: flex;">
-                {!! QrCode::size(120)->generate(
-                    json_encode([
-                        'Inovice No' => $transaction->ref_no,
-                        'Client Name' => $transaction->client?->name,
-                        'Final Total' => $transaction->final_total,
-                    ]),
-                ) !!}
+                {!! $qrCode !!}
+
             </div>
         </div>
     </div>

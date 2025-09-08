@@ -156,12 +156,12 @@
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script>
-            let salesRowIndex = 1;
+        let salesRowIndex = 1;
 
-      $("#addSalesRow").on("click", function() {
-    salesRowIndex++;
+        $("#addSalesRow").on("click", function() {
+            salesRowIndex++;
 
-    const newSalesRow = `
+            const newSalesRow = `
         <tr>
               <td>
                 <select id="products-${salesRowIndex}" required
@@ -233,88 +233,90 @@
         </tr>
     `;
 
-    $("#salesTable tbody").append(newSalesRow);
+            $("#salesTable tbody").append(newSalesRow);
 
-    $(`#products-${salesRowIndex}`).select2({
-        ajax: {
-            url: '/products-for-sale',
-            dataType: 'json',
-            delay: 250,
-            data: function(params) {
-                return {
-                    search: params.term,
-                    page: params.page || 1
-                };
-            },
-            processResults: function(response, params) {
-                 const lang = localStorage.getItem('lang') || 'ar';
-                return {
-                    results: response.data.map(product => ({
-                        id: product.id,
-                         text: lang === 'ar'
-                ? `${product.SKU} - ${product.name_ar}`
-                : `${product.SKU} - ${product.name_en}`,
-                 price: product.price,
-                        units: product.unit_transfers,
-                    })),
-                    pagination: {
-                        more: response.meta?.next_page_url ? true : false
-                    }
-                };
-            },
-            cache: true
-        }
-    }).on('select2:select', function(e) {
-    const selectedData = e.params.data;
-    const $row = $(this).closest('tr');
+            $(`#products-${salesRowIndex}`).select2({
+                ajax: {
+                    url: '/products-for-sale',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            search: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function(response, params) {
+                        const lang = localStorage.getItem('lang') || 'ar';
+                        return {
+                            results: response.data.map(product => ({
+                                id: product.id,
+                                text: lang === 'ar' ?
+                                    `${product.SKU} - ${product.name_ar}` :
+                                    `${product.SKU} - ${product.name_en}`,
+                                price: product.price,
+                                units: product.unit_transfers,
+                            })),
+                            pagination: {
+                                more: response.meta?.next_page_url ? true : false
+                            }
+                        };
+                    },
+                    cache: true
+                }
+            }).on('select2:select', function(e) {
+                const selectedData = e.params.data;
+                const $row = $(this).closest('tr');
 
-    $row.find('.unit_price-field').val(selectedData.price);
+                $row.find('.unit_price-field').val(selectedData.price);
 
-    const $unitSelect = $row.find('.unit');
-    $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
+                const $unitSelect = $row.find('.unit');
+                $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
 
-    if (selectedData.units && Array.isArray(selectedData.units)) {
-        console.log('Units Data:', selectedData.units);
+                if (selectedData.units && Array.isArray(selectedData.units)) {
+                    console.log('Units Data:', selectedData.units);
 
-        selectedData.units.forEach((unit, index)  => {
-            const unitId = unit.id || unit.unit_id || unit.unit1;
-            const unitName = unit.name || unit.unit_name || unit.unit1 || 'وحدة غير معروفة';
-            const unitValue = unit.transfer || unit.unit1_value || 1;
+                    selectedData.units.forEach((unit, index) => {
+                        const unitId = unit.id || unit.unit_id || unit.unit1;
+                        const unitName = unit.name || unit.unit_name || unit.unit1 ||
+                            'وحدة غير معروفة';
+                        const unitValue = unit.transfer || unit.unit1_value || 1;
 
-            if (!unitId || !unitName) {
-                console.warn('Invalid unit data:', unit);
-                return;
-            }
+                        if (!unitId || !unitName) {
+                            console.warn('Invalid unit data:', unit);
+                            return;
+                        }
 
-            const $option = $('<option></option>')
-                .val(unitId)
-                .text(unitName)
-                .attr('data-value', unitValue);
+                        const $option = $('<option></option>')
+                            .val(unitId)
+                            .text(unitName)
+                            .attr('data-value', unitValue);
 
-                 if (index === 0) {
-        $option.attr('selected', 'selected');
-    }
-            $unitSelect.append($option);
+                        if (index === 0) {
+                            $option.attr('selected', 'selected');
+                        }
+                        $unitSelect.append($option);
+                        updateSalesTotals();
+                    });
+
+                    $unitSelect.select2('destroy').select2({
+                        width: '100%',
+                        dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') :
+                            document.body
+                    });
+                    updateSalesTotals();
+
+                } else {
+                    console.error('No units data found for product:', selectedData.id);
+                    $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
+                }
+            });
+
+            $("#salesTable tbody tr:last").find(".select-2:not(.product-select)").select2();
+
             updateSalesTotals();
+            console.log("salesRowIndex " + salesRowIndex);
         });
-
-        $unitSelect.select2('destroy').select2({
-            width: '100%',
-            dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
-        });
-    updateSalesTotals();
-
-    } else {
-        console.error('No units data found for product:', selectedData.id);
-        $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
-    }
-});
-
-    $("#salesTable tbody tr:last").find(".select-2:not(.product-select)").select2();
-
-    updateSalesTotals();
-    console.log("salesRowIndex " + salesRowIndex);
-});
 
         $(document).on("click", ".delete-sales-row", function() {
             $(this).closest("tr").remove();
@@ -374,165 +376,165 @@
 
 
         $(document).ready(function() {
-             $('.select-2-products-id').select2({
-        placeholder: "Select a product",
-        allowClear: true,
-        language: {
-            noResults: function() {
-                return `<a href="#" class="add-new-product" data-bs-toggle="modal" data-bs-target="#addProductModal">@lang('sales::lang.add_new_product')</a>`;
-            }
-        },
-        escapeMarkup: function(markup) {
-            return markup;
-        }
-    });
-
-    $(document).on('click', '.add-new-product', function(e) {
-        e.preventDefault();
-        $('#addProductModal').modal('show');
-    });
-
-
-    function fetchProducts() {
-    $.ajax({
-        url: '/products-for-sale',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            updateSelect2WithProducts(response.data);
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching products:', error);
-        }
-    });
-}
-
-function updateSelect2WithProducts(products) {
-    $('.select-2-products-id').empty().append('<option value="">@lang('sales::lang.select_products')</option>');
-
-    products.forEach(function(product) {
-        var optionText = (appLocale === 'ar') ?
-            `${product.name_ar} - <span class="fw-semibold mx-2 text-muted fs-5">${product.SKU}</span>` :
-            `${product.name_en} - <span class="fw-semibold mx-2 text-muted fs-7">${product.SKU}</span>`;
-
-        var option = new Option(optionText, product.id, false, false);
-        option.dataset.price = product.price;
-        option.dataset.units = JSON.stringify(product.unit_transfers);
-
-        $('.select-2-products-id').append(option);
-    });
-
-    $('.select-2-products-id').trigger('change');
-}
-
-
-$.ajax({
-            url: "{{ route('categoryList') }}",
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                $('#category_id').empty();
-                $('#category_id').append('<option value="">@lang('sales::lang.select_category')</option>');
-
-                const validCategories = response.filter(item => item.data && item.data.id && !item
-                    .data.empty);
-
-                $.each(validCategories, function(index, category) {
-                    $('#category_id').append(
-                        `<option value="${category.data.id}">
-                        ${category.data.name_ar} - ${category.data.name_en}
-                    </option>`
-                    );
-                });
-            },
-            error: function(xhr) {
-                console.error('Error loading categories:', xhr.responseText);
-            }
-        });
-
-        $('#category_id').change(function() {
-            var categoryId = $(this).val();
-            if (categoryId) {
-                $('#subcategory_id').prop('disabled', false);
-
-                $.ajax({
-                    url: "{{ route('categoryList') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        const selectedCategory = response.find(cat =>
-                            cat.data && cat.data.id == categoryId && !cat.data.empty
-                        );
-
-                        $('#subcategory_id').empty();
-                        $('#subcategory_id').append(
-                            '<option value="">@lang('sales::lang.select_subcategory')</option>');
-
-                        if (selectedCategory && selectedCategory.children) {
-                            const validSubcategories = selectedCategory.children.filter(
-                                child => child.data && child.data.id && !child.data
-                                .empty
-                            );
-
-                            $.each(validSubcategories, function(index, subcategory) {
-                                $('#subcategory_id').append(
-                                    `<option value="${subcategory.data.id}">
-                                    ${subcategory.data.name_ar} - ${subcategory.data.name_en}
-                                </option>`
-                                );
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error('Error loading subcategories:', xhr.responseText);
+            $('.select-2-products-id').select2({
+                placeholder: "Select a product",
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return `<a href="#" class="add-new-product" data-bs-toggle="modal" data-bs-target="#addProductModal">@lang('sales::lang.add_new_product')</a>`;
                     }
-                });
-            } else {
-                $('#subcategory_id').prop('disabled', true);
-                $('#subcategory_id').empty();
-                $('#subcategory_id').append('<option value="">@lang('sales::lang.select_subcategory')</option>');
-            }
-        });
-
-        $('#saveProductBtn').click(function(e) {
-            e.preventDefault();
-            $('#saveProductBtn').prop('disabled', true);
-
-            let formData = {
-                name_ar: $('#name_ar').val(),
-                name_en: $('#name_en').val(),
-                category_id: $('#category_id').val(),
-                subcategory_id: $('#subcategory_id').val(),
-                price: $('#price').val(),
-                cost: $('#cost').val(),
-                order: $('#order').val(),
-                unit1: $('#unit1').val()
-            };
-
-            $.ajax({
-                url: "{{ route('productFastSave') }}",
-                type: 'POST',
-                data: formData,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function(response) {
-                    toastr.success('تم حفظ المنتج بنجاح');
-                    $('#addProductModal').modal('hide');
-                    fetchProducts();
-
-                },
-                error: function(xhr) {
-                    let errors = xhr.responseJSON.errors;
-                    $.each(errors, function(key, value) {
-                        toastr.error(value[0]);
-                    });
-                },
-                complete: function() {
-                    $('#saveProductBtn').prop('disabled', false);
+                escapeMarkup: function(markup) {
+                    return markup;
                 }
             });
-        });
+
+            $(document).on('click', '.add-new-product', function(e) {
+                e.preventDefault();
+                $('#addProductModal').modal('show');
+            });
+
+
+            function fetchProducts() {
+                $.ajax({
+                    url: '/products-for-sale',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        updateSelect2WithProducts(response.data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching products:', error);
+                    }
+                });
+            }
+
+            function updateSelect2WithProducts(products) {
+                $('.select-2-products-id').empty().append('<option value="">@lang('sales::lang.select_products')</option>');
+
+                products.forEach(function(product) {
+                    var optionText = (appLocale === 'ar') ?
+                        `${product.name_ar} - <span class="fw-semibold mx-2 text-muted fs-5">${product.SKU}</span>` :
+                        `${product.name_en} - <span class="fw-semibold mx-2 text-muted fs-7">${product.SKU}</span>`;
+
+                    var option = new Option(optionText, product.id, false, false);
+                    option.dataset.price = product.price;
+                    option.dataset.units = JSON.stringify(product.unit_transfers);
+
+                    $('.select-2-products-id').append(option);
+                });
+
+                $('.select-2-products-id').trigger('change');
+            }
+
+
+            $.ajax({
+                url: "{{ route('categoryList') }}",
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    $('#category_id').empty();
+                    $('#category_id').append('<option value="">@lang('sales::lang.select_category')</option>');
+
+                    const validCategories = response.filter(item => item.data && item.data.id && !item
+                        .data.empty);
+
+                    $.each(validCategories, function(index, category) {
+                        $('#category_id').append(
+                            `<option value="${category.data.id}">
+                        ${category.data.name_ar} - ${category.data.name_en}
+                    </option>`
+                        );
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Error loading categories:', xhr.responseText);
+                }
+            });
+
+            $('#category_id').change(function() {
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $('#subcategory_id').prop('disabled', false);
+
+                    $.ajax({
+                        url: "{{ route('categoryList') }}",
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            const selectedCategory = response.find(cat =>
+                                cat.data && cat.data.id == categoryId && !cat.data.empty
+                            );
+
+                            $('#subcategory_id').empty();
+                            $('#subcategory_id').append(
+                                '<option value="">@lang('sales::lang.select_subcategory')</option>');
+
+                            if (selectedCategory && selectedCategory.children) {
+                                const validSubcategories = selectedCategory.children.filter(
+                                    child => child.data && child.data.id && !child.data
+                                    .empty
+                                );
+
+                                $.each(validSubcategories, function(index, subcategory) {
+                                    $('#subcategory_id').append(
+                                        `<option value="${subcategory.data.id}">
+                                    ${subcategory.data.name_ar} - ${subcategory.data.name_en}
+                                </option>`
+                                    );
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('Error loading subcategories:', xhr.responseText);
+                        }
+                    });
+                } else {
+                    $('#subcategory_id').prop('disabled', true);
+                    $('#subcategory_id').empty();
+                    $('#subcategory_id').append('<option value="">@lang('sales::lang.select_subcategory')</option>');
+                }
+            });
+
+            $('#saveProductBtn').click(function(e) {
+                e.preventDefault();
+                $('#saveProductBtn').prop('disabled', true);
+
+                let formData = {
+                    name_ar: $('#name_ar').val(),
+                    name_en: $('#name_en').val(),
+                    category_id: $('#category_id').val(),
+                    subcategory_id: $('#subcategory_id').val(),
+                    price: $('#price').val(),
+                    cost: $('#cost').val(),
+                    order: $('#order').val(),
+                    unit1: $('#unit1').val()
+                };
+
+                $.ajax({
+                    url: "{{ route('productFastSave') }}",
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        toastr.success('تم حفظ المنتج بنجاح');
+                        $('#addProductModal').modal('hide');
+                        fetchProducts();
+
+                    },
+                    error: function(xhr) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, value) {
+                            toastr.error(value[0]);
+                        });
+                    },
+                    complete: function() {
+                        $('#saveProductBtn').prop('disabled', false);
+                    }
+                });
+            });
 
 
 
@@ -542,10 +544,10 @@ $.ajax({
             //     language: {
             //         noResults: function() {
             //             return `
-            //         <button id="add-new-product" class="btn btn-link">
-            //             @lang('sales::lang.new_product')
-            //         </button>
-            //     `;
+        //         <button id="add-new-product" class="btn btn-link">
+        //             @lang('sales::lang.new_product')
+        //         </button>
+        //     `;
             //         },
             //     },
             //     escapeMarkup: function(markup) {
@@ -685,6 +687,7 @@ $.ajax({
                     $("#li-payment_info").show();
                     $("#tab-content-payment_info").show();
                     $("#paid_amount").val(0);
+                    $('#nots_tab').tab('show');
 
 
                     $("#div-cash_account").hide();
@@ -698,6 +701,7 @@ $.ajax({
                     $('#cash_account').removeAttr('required');
 
                 } else {
+                    $('#nots_tab').tab('show');
 
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();

@@ -35,7 +35,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="shipping_country">
                             <option value="">@lang('clientsandsuppliers::fields.select_country')</option>
                             @foreach ($countries as $country)
-                                <option value="{{ $country->id }}">{{ $country->name_en . ' - ' . $country->name_ar }}
+                                <option value="{{ $country->id }}" @if ($country->id == 111) selected @endif>{{ $country->name_en . ' - ' . $country->name_ar }}
                                 </option>
                             @endforeach
                         </select>

@@ -27,7 +27,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="bankInfo_country_bank">
                             <option value="">@lang('clientsandsuppliers::fields.country_bank')</option>
                             @foreach ($countries as $country)
-                                <option @if ($contact?->bankAccountInformation?->country_bank == $country->id) selected @endif value="{{ $country->id }}">{{ $country?->name_en . ' - ' . $country?->name_ar }}
+                                <option @if ($contact?->bankAccountInformation?->country_bank == $country->id) selected @elseif ($country->id == 111) selected @endif value="{{ $country->id }}">{{ $country?->name_en . ' - ' . $country?->name_ar }}
                                 </option>
                             @endforeach
                         </select>
@@ -42,7 +42,7 @@
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="bankInfo_currency">
                             <option value="">@lang('clientsandsuppliers::fields.currency')</option>
                             @foreach ($countries as $country)
-                                <option @if ($contact->bankAccountInformation?->currency == $country->id) selected @endif value="{{ $country->id }}">
+                                <option @if ($contact->bankAccountInformation?->currency == $country->id) selected @elseif ($country->id == 111) selected  @endif value="{{ $country->id }}">
                                     {{ $country->currency_symbol_en . ' - ' . $country->currency_name_en }}
                                 </option>
                             @endforeach

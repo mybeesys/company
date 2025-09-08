@@ -149,12 +149,13 @@ return [
     'client' => 'العميل',
     'invoice' => 'الفاتورة',
     'amount' => 'المبلغ',
+    'total_with_tax' => 'الاجمالي بعد الضريبة',
     'date' => 'التاريخ',
     'method' => 'الطريقة',
     'actions' => 'إجراءات',
     'collected_amount' => 'المبلغ المحصل',
     'active_suppliers' => 'موردين نشطين',
-  
+
 
 
 ];

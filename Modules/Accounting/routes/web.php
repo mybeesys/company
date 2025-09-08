@@ -29,6 +29,9 @@ Route::middleware([
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');
+        Route::post('store-sub-account', [TreeAccountsController::class, 'storeSubAccount'])->name('store-sub-account');
+
+
         Route::get('create-default-accounts', [TreeAccountsController::class, 'createDefaultAccounts'])->name('create-default-accounts');
         Route::post('store-account', [TreeAccountsController::class, 'store'])->name('store-account');
         Route::post('update-account', [TreeAccountsController::class, 'update'])->name('update-account');
