@@ -1,8 +1,17 @@
 <div class="card-toolbar m-0">
     <!--begin::Tab nav-->
     <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a id="financial_information_tab"
+                class="nav-link justify-content-center text-active-gray-800 active"
+                data-bs-toggle="tab" role="tab" href="#financial_information"
+                aria-selected="false" tabindex="-1">
+                @lang('clientsandsuppliers::fields.financial_information')
+            </a>
+        </li>
+
         <li class="nav-item" role="presentation" >
-            <a id="client_contacts_tab" class="nav-link justify-content-center text-active-gray-800 active"
+            <a id="client_contacts_tab" class="nav-link justify-content-center text-active-gray-800 "
                 data-bs-toggle="tab" role="tab" href="#client_contacts" aria-selected="true">
                 @lang('clientsandsuppliers::fields.client_contacts')
             </a>
@@ -28,14 +37,6 @@
             </a>
         </li>
 
-        <li class="nav-item" role="presentation">
-            <a id="financial_information_tab"
-                class="nav-link justify-content-center text-active-gray-800"
-                data-bs-toggle="tab" role="tab" href="#financial_information"
-                aria-selected="false" tabindex="-1">
-                @lang('clientsandsuppliers::fields.financial_information')
-            </a>
-        </li>
 
     </ul>
     <!--end::Tab nav-->
@@ -43,7 +44,7 @@
 
 
 <div class="tab-content  " >
-    <div id="client_contacts" class="card-body p-0 tab-pane fade show active" role="tabpanel"
+    <div id="client_contacts" class="card-body p-0 tab-pane fade show " role="tabpanel"
         aria-labelledby="client_contacts_tab">
         @if (count($contact->clientContacts)!=0)
             @include('clientsandsuppliers::Client.show.clientContactsCard')
@@ -89,8 +90,9 @@
     </div>
 </div>
 
+
 <div class="tab-content" >
-    <div id="financial_information" class="card-body p-0 tab-pane fade show" role="tabpanel"
+    <div id="financial_information" class="card-body p-0 tab-pane fade show active" role="tabpanel"
         aria-labelledby="financial_information_tab">
             @include('clientsandsuppliers::Client.show.financial_information')
 

@@ -66,6 +66,8 @@ return [
     '3' => 'Payments',
     '4' => 'Activities',
     '5' => 'Subscriptions',
+    "view_file" => "View attachment",
+
 
 
 

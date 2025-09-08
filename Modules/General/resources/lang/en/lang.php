@@ -3,6 +3,7 @@
 return [
     'paid' => 'Paid',
     'due' => 'Due',
+    'completed' => 'Completed',
     'partial' => 'Partial',
     'default tax' => 'Default tax',
     'create_group_tax' => 'Compound tax?',
@@ -11,6 +12,7 @@ return [
     'approved' => 'Final',
     'draft' => 'Draft',
     'tax' => 'Tax',
+    'pending' => 'Pending',
 
     'bill_payment' => 'Bill payments',
     'Payments' => 'Payments',

@@ -201,7 +201,7 @@ class SellController extends Controller
 
 
 
-            $transactions = $transactionsQuery->get();
+            $transactions = $transactionsQuery->orderBy('id','desc')->get();
             return Transaction::getSellsTable($transactions);
         }
 

@@ -35,7 +35,7 @@
 
 @stop
 @section('content')
-    <form id="client" method="POST" action="{{ route('client-save') }}">
+    <form id="client" method="POST" action="{{ route('client-save') }}" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="business_type" value="customer" />
 
@@ -164,14 +164,14 @@
                 </div>
                 <div class="col-7">
 
-                    <div class="card-toolbar ">
+                    <div class="card-toolbar">
                         <!--begin::Tab nav-->
                         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a id="financial_information_tab"
                                     class="nav-link justify-content-center text-active-gray-800 active"
                                     data-bs-toggle="tab" role="tab" href="#financial_information"
-                                    aria-selected="false" tabindex="-1">
+                                    aria-selected="true" tabindex="-1">
                                     @lang('clientsandsuppliers::fields.financial_information')
                                 </a>
                             </li>
@@ -179,7 +179,7 @@
 
                             <li class="nav-item" role="presentation">
                                 <a id="payment_info_tab" class="nav-link justify-content-center text-active-gray-800 "
-                                    data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="true">
+                                    data-bs-toggle="tab" role="tab" href="#payment_info" aria-selected="false">
                                     @lang('clientsandsuppliers::fields.Billing Address')
                                 </a>
                             </li>

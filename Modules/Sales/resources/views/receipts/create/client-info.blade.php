@@ -20,6 +20,7 @@
                 data-tax_number="{{ $client->tax_number }}"
                 data-billing_address="{{ $client->billingAddress?->city . ' - ' . $client->billingAddress?->street_name }}"
                 data-billing_city="{{ $client->billingAddress?->city }}"
+                data-payment_terms="{{$client->payment_terms}}"
                 data-billing_street_name="{{ $client->billingAddress?->street_name }}">
                 {{ $client->name }}
             </option>

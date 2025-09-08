@@ -30,7 +30,7 @@ class PurchasesController extends Controller
      */
 
 
-     public function purchaseDashbord()
+    public function purchaseDashbord()
     {
         $today = \Carbon\Carbon::today();
         $yesterday = \Carbon\Carbon::yesterday();
@@ -192,13 +192,13 @@ class PurchasesController extends Controller
                         $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
                     }
                 });
-            $transactions = $transactionsQuery->get();
+            $transactions = $transactionsQuery->orderBy('id','desc')->get();
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
 
         $columns = Transaction::getsPurchasesColumns();
-        $poes = Transaction::where('type', 'purchases-order')->get();
+        $poes = Transaction::where('type', 'purchases-order')->where('po_status','<>', 'completed')->get();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_po')->first();
         if (!$Latest_event) {
@@ -254,100 +254,108 @@ class PurchasesController extends Controller
         $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
 
         // try {
-            $transactionUtil = new TransactionUtils();
-            // return $request;
-            DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('purchases');
+        $transactionUtil = new TransactionUtils();
+        // return $request;
+        DB::beginTransaction();
+        $ref_no =  SalesUtile::generateReferenceNumber('purchases');
 
-            $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-            $main_establishment = Establishment::notMain()->active()->first();
+        $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+        $main_establishment = Establishment::notMain()->active()->first();
 
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
+        $establishment_id = $request->storehouse;
+        if ($request->storehouse == $main_establishment->id) {
+            $establishment_id = $main_establishment->id;
+        }
 
-            $termsNotesData = null;
-            if (isset($request->toggle_terms_notes)) {
-                $termsNotesData = json_encode([
-                    'terms_en' => request('terms_and_conditions_en'),
-                    'terms_ar' => request('terms_and_conditions_ar'),
-                    'note_en' => request('note_en'),
-                    'note_ar' => request('note_ar'),
-                ]);
-            }
-
-            $transaction =   Transaction::create([
-                'type' => 'purchases',
-                'invoice_type' => $request->invoice_type,
-                'due_date' => $request->due_date,
-                'transaction_date' => $request->transaction_date,
-                'contact_id' => $request->client_id,
-                'cost_center' => $request->cost_center ?? null,
-                'discount_amount' => $request->invoice_discount,
-                'discount_type' => $invoiced_discount_type,
-                'total_before_tax' => $request->totalBeforeVat,
-                'totalAfterDiscount' => $request->totalAfterDiscount,
-                'tax_amount' => $request->totalVat,
-                'final_total' => $request->totalAfterVat,
-                'created_by' => Auth::user()->id,
-                'description' => $request->invoice_note,
-                'ref_no' => $ref_no,
-                'status' => $request->status,
-                'notice' => $request->notice,
-                'establishment_id' => $establishment_id,
-                'settings_terms_notes' => $termsNotesData,
-
-
-
+        $termsNotesData = null;
+        if (isset($request->toggle_terms_notes)) {
+            $termsNotesData = json_encode([
+                'terms_en' => request('terms_and_conditions_en'),
+                'terms_ar' => request('terms_and_conditions_ar'),
+                'note_en' => request('note_en'),
+                'note_ar' => request('note_ar'),
             ]);
+        }
+        $po_id = null;
+        if ($request->po_id) {
+            $po_id = $request->po_id;
+        }
+        $transaction =   Transaction::create([
+            'type' => 'purchases',
+            'invoice_type' => $request->invoice_type,
+            'due_date' => $request->due_date,
+            'transaction_date' => $request->transaction_date,
+            'contact_id' => $request->client_id,
+            'cost_center' => $request->cost_center ?? null,
+            'discount_amount' => $request->invoice_discount,
+            'discount_type' => $invoiced_discount_type,
+            'total_before_tax' => $request->totalBeforeVat,
+            'totalAfterDiscount' => $request->totalAfterDiscount,
+            'tax_amount' => $request->totalVat,
+            'final_total' => $request->totalAfterVat,
+            'created_by' => Auth::user()->id,
+            'description' => $request->invoice_note,
+            'ref_no' => $ref_no,
+            'status' => $request->status,
+            'notice' => $request->notice,
+            'establishment_id' => $establishment_id,
+            'settings_terms_notes' => $termsNotesData,
+            'parent_id' => $po_id,
+        ]);
 
-            $products = json_decode(json_encode($request->products));
+        $products = json_decode(json_encode($request->products));
 
-            foreach ($products as $product) {
-                $discount_type = $product->discount  ? $product->discount_type : null;
-                TransactionePurchasesLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => $product->discount,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
+
+        foreach ($products as $product) {
+            $discount_type = $product->discount  ? $product->discount_type : null;
+            TransactionePurchasesLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->products_id,
+                'qyt' => $product->qty,
+                'unit_id' => $product->unit,
+                'unit_price_before_discount' => $product->unit_price,
+                'unit_price' => $product->unit_price,
+                'discount_type' => $discount_type,
+                'discount_amount' => $product->discount,
+                'unit_price_inc_tax' => $product->total_after_vat,
+                'tax_id' => $product->tax_vat,
+                'tax_value' => $product->vat_value,
+                'total_before_vat' => $product->total_before_vat,
+            ]);
+        }
+
+        if ($po_id) {
+            $this->updatePurchaseOrderStatus($po_id);
+        }
+
+        // dd($result);
+
+        if ($request->paid_amount) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
+
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
+        DB::commit();
+        $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
+
+        $msg = __('messages.add_successfully');
+        $status = 'success';
+        if ($totalOutstanding) {
+            $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
+            if ($credit_limit && $credit_limit < $totalOutstanding) {
+                $msg = __('messages.Added successfully, but the customer exceeded');
+                $status = 'error';
             }
+        }
 
-            if ($request->paid_amount) {
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            }
-
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-
-            DB::commit();
-            $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
-
-            $msg = __('messages.add_successfully');
-            $status = 'success';
-            if ($totalOutstanding) {
-                $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
-                if ($credit_limit && $credit_limit < $totalOutstanding) {
-                    $msg = __('messages.Added successfully, but the customer exceeded');
-                    $status = 'error';
-                }
-            }
-
-            if ($request->action == 'save_print') {
-                return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
-            } else if ($request->action == 'save_add') {
-                return redirect()->route('create-purchases-invoice')->with($status, $msg);
-            } else {
-                return redirect()->route('purchase-invoices')->with($status, $msg);
-            }
+        if ($request->action == 'save_print') {
+            return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
+        } else if ($request->action == 'save_add') {
+            return redirect()->route('create-purchases-invoice')->with($status, $msg);
+        } else {
+            return redirect()->route('purchase-invoices')->with($status, $msg);
+        }
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
@@ -362,27 +370,75 @@ class PurchasesController extends Controller
         return view('purchases::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('purchases::edit');
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+
+    function updatePurchaseOrderStatus($po_id)
     {
-        //
+        $poTransaction = Transaction::find($po_id);
+
+        if (!$poTransaction) {
+            return;
+        }
+
+        $poLines = TransactionePurchasesLine::where('transaction_id', $po_id)->get();
+
+        if ($poLines->isEmpty()) {
+            $poTransaction->po_status = 'pending';
+            $poTransaction->save();
+            return;
+        }
+
+        $invoiceIds = Transaction::where('parent_id', $po_id)->pluck('id');
+        $invoiceLines = TransactionePurchasesLine::whereIn('transaction_id', $invoiceIds)->get();
+
+        $overallStatus = 'completed';
+        $productsStatus = [];
+
+        foreach ($poLines as $poLine) {
+            $requestedQty = $poLine->qyt;
+
+            $purchasedQty = $invoiceLines
+                ->where('product_id', $poLine->product_id)
+                ->sum('qyt');
+
+            $remainingQty = max(0, $requestedQty - $purchasedQty);
+
+            if ($purchasedQty >= $requestedQty) {
+                $lineStatus = 'completed';
+            } elseif ($purchasedQty > 0 && $purchasedQty < $requestedQty) {
+                $lineStatus = 'partial';
+                $overallStatus = 'partial';
+            } else {
+                $lineStatus = 'pending';
+                if ($overallStatus === 'completed') {
+                    $overallStatus = 'partial';
+                }
+            }
+
+            $poLine->line_status = $lineStatus;
+            $poLine->remaining_qty = $remainingQty;
+            $poLine->save();
+
+            $productsStatus[] = [
+                'product_id' => $poLine->product_id,
+                'requested' => $requestedQty,
+                'purchased' => $purchasedQty,
+                'remaining' => $remainingQty,
+                'line_status' => $lineStatus,
+            ];
+        }
+
+        if ($invoiceIds->isEmpty()) {
+            $overallStatus = 'pending';
+        }
+
+        $poTransaction->po_status = $overallStatus;
+        $poTransaction->save();
+
+        return [
+            'po_status' => $overallStatus,
+            'products' => $productsStatus,
+        ];
     }
 }

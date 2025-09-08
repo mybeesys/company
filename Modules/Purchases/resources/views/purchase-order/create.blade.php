@@ -497,6 +497,7 @@
 
 
                     $("#div-cash_account").hide();
+                    $('#nots_tab').tab('show');
 
                     $("#card").hide();
                     $("#bank_check").hide();
@@ -506,6 +507,7 @@
 
 
                 } else {
+                    $('#nots_tab').tab('show');
 
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();
@@ -538,6 +540,7 @@
                     uploadInstructions.textContent = 'Upload file';
                 }
             });
+            updateSalesTotals();
 
         });
     </script>

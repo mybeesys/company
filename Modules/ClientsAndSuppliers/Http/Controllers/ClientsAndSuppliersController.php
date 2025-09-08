@@ -78,7 +78,7 @@ class ClientsAndSuppliersController extends Controller
             if (!$contact->is_default) {
                 $contact->delete();
             }
-            return redirect()->route('clients')->with('success', __('messages.deleted_successfully'));
+            return redirect()->back()->with('success', __('messages.deleted_successfully'));
         } else {
 
             if ($contact->business_type == 'customer')

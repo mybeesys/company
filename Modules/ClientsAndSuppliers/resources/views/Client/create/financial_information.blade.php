@@ -9,7 +9,18 @@
             <div class="row">
 
                 <div class="d-flex align-items-center mb-5">
-                    {{-- <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label> --}}
+                    <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label>
+
+                    <div class="col-md-9 d-flex align-items-center ">
+                        <input class="form-control form-control-solid custom-input" name="payment_terms"
+                            placeholder="@lang('sales::fields.payment_terms')" value="0" type="number" min="0">
+                        <label class="fs-3 fw-semibold me-3 mb-0   "></label>
+
+                    </div>
+                </div>
+                {{-- <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label> --}}
+
+                {{-- <div class="d-flex align-items-center mb-5">
                     <select name="payment_terms" id="payment_terms" class="form-select select-2 form-select-solid ">
                         <option value="">@lang('sales::fields.payment_terms')</option>
 
@@ -17,7 +28,7 @@
                             <option value="{{ $key }}">{{ $value }}</option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
             </div>
             <div class="row">
 
@@ -42,8 +53,8 @@
 
             <div class="col-sm">
                 <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
-                    <input class="form-control form-control-solid custom-input" dir="ltr" style="text-align: end;" name="credit_limit"
-                        placeholder="@lang('clientsandsuppliers::fields.credit_limit')" id="credit_limit" type="number">
+                    <input class="form-control form-control-solid custom-input" dir="ltr" style="text-align: end;"
+                        name="credit_limit" placeholder="@lang('clientsandsuppliers::fields.credit_limit')" id="credit_limit" type="number">
                 </div>
             </div>
 

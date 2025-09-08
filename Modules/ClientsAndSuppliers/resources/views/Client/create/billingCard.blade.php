@@ -21,12 +21,12 @@
 
                 <div class="col-sm">
                     <div class="fv-row mb-5 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid ">
-                        <select id="billing_country"
-                            class="form-select select-2 form-select-solid custom-input"
+                        <select id="billing_country" class="form-select select-2 form-select-solid custom-input"
                             style="padding: 0px 12px;border: 1px solid var(--bs-gray-300);" name="billing_country">
                             <option value="">@lang('clientsandsuppliers::fields.select_country')</option>
                             @foreach ($countries as $country)
-                                <option value="{{ $country->id }}">{{ $country->name_en . ' - ' . $country->name_ar }}
+                                <option value="{{ $country->id }}" @if ($country->id == 111) selected @endif>
+                                    {{ $country->name_en . ' - ' . $country->name_ar }}
                                 </option>
                             @endforeach
                         </select>

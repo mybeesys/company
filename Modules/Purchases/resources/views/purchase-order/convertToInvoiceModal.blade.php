@@ -15,7 +15,7 @@
                     <select id="po-items" name="po_id" required
                         class="form-select select-2 form-select-solid">
                         @foreach ($poes as $po)
-                            <option value="{{ $po->id }}">{{ $po->ref_no }}</option>
+                            <option value="{{ $po->id }}">{{ $po->transaction_date}} - {{ $po->ref_no }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -17,6 +17,26 @@ use Modules\Product\Models\Product;
 
 class TransactionUtils
 {
+
+
+    function generateZatcaQr($sellerName, $vatNumber, $invoiceDate, $totalAmount, $vatAmount)
+    {
+        $data = [
+            [1, $sellerName],
+            [2, $vatNumber],
+            [3, $invoiceDate],
+            [4, $totalAmount],
+            [5, $vatAmount],
+        ];
+
+        $tlv = '';
+        foreach ($data as [$tag, $value]) {
+            $tlv .= chr($tag) . chr(strlen($value)) . $value;
+        }
+
+        return base64_encode($tlv);
+    }
+
     // public function createOrUpdatePaymentLines($transaction, $request)
     // {
 

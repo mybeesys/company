@@ -1008,6 +1008,7 @@ $.ajax({
                     // $(".pay-payment_type").hide();
                     // $(".pay-paid_amount").hide();
                     // $(".pay-additionalNotes").hide();
+                    $('#nots_tab').tab('show');
 
                     $("#li-payment_info").show();
                     $("#paid_amount").val(0);
@@ -1023,6 +1024,7 @@ $.ajax({
                     // $(".pay-payment_type").show();
                     // $(".pay-paid_amount").show();
                     // $(".pay-additionalNotes").show();
+                    $('#nots_tab').tab('show');
 
                     $("#li-payment_info").hide();
                     $("#div-cash_account").show();

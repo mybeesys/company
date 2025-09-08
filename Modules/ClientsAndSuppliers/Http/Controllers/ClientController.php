@@ -86,6 +86,7 @@ class ClientController extends Controller
     public function store(Request $request)
     {
 
+        // return $request;
 
         try {
             DB::beginTransaction();
@@ -151,6 +152,8 @@ class ClientController extends Controller
                 'status' => 'active',
                 'payment_terms' => $request->payment_terms,
                 'account_id' => $request->account_id,
+                'credit_limit' => $request->credit_limit,
+
 
             ]);
 
@@ -315,12 +318,15 @@ class ClientController extends Controller
     public function update(Request $request)
     {
         // return $request;
+        // dd($request->hasFile('attachment'),$request->file('attachment'));
         try {
             $attachment_name = null;
+
             if ($request->hasFile('attachment')) {
                 $attachment = $request->file('attachment');
-                $attachment_name = $attachment->store('/customers');
+                $attachment_name = $attachment->store('customers', 'public');
             }
+
 
             $contact = Contact::find($request->id);
             DB::beginTransaction();
@@ -444,8 +450,8 @@ class ClientController extends Controller
                 }
             }
 
-          if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
-                  $contact->clientContacts()->delete();
+            if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
+                $contact->clientContacts()->delete();
                 foreach ($request->client_contact_name as $index => $name) {
                     $contact->clientContacts()->create([
                         'name' => $name,

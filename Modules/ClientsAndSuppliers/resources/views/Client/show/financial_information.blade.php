@@ -21,7 +21,7 @@
                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 170px;">@lang('sales::fields.payment_terms')</label>
                 <label class="fs-6 fw-bold mb-2 me-3 " style="width: 200px;">
 
-                    @lang('sales::lang.terms.' . $contact->payment_terms)
+                    {{ $contact->payment_terms }}
 
 
                 </label>
@@ -40,7 +40,7 @@
             <div class="d-flex align-items-center mb-5">
                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 170px;">@lang('clientsandsuppliers::fields.credit_limit')</label>
                 <label class="fs-6 fw-bold mb-2 me-3 " style="width: 200px;">
-                    @format_currency($contact->credit_limit) 
+                    @format_currency($contact->credit_limit)
                 </label>
             </div>
 

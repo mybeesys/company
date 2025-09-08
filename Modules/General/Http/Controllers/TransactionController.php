@@ -9,7 +9,9 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Inventory\Models\TransactionUtil;
 use Mpdf\Mpdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TransactionController extends Controller
 {
@@ -43,21 +45,41 @@ class TransactionController extends Controller
     public function show($id)
     {
 
-          $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        return view('general::transactions.show', compact('transaction','company'));
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+
+        $qrCode = QrCode::size(150)->generate($qrData);
+        return view('general::transactions.show', compact('transaction', 'qrCode', 'company'));
     }
 
     public function showReceiptsPayments($id)
     {
 
-          $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
-         $transaction = TransactionPayments::find($id);
-    //   return   $transaction->transaction;
+        $transaction = TransactionPayments::find($id);
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+
+        $qrCode = QrCode::size(150)->generate($qrData);
+
         $title = 'sdfsf';
-        return view('general::transactions.show-receipts-payments', compact('transaction','title','company'));
+        return view('general::transactions.show-receipts-payments', compact('transaction', 'qrCode', 'title', 'company'));
     }
 
 
@@ -66,8 +88,18 @@ class TransactionController extends Controller
 
         $transaction = Transaction::find($id);
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
 
-        return view('general::transactions.print', compact('transaction','company'));
+        $qrCode = QrCode::size(150)->generate($qrData);
+
+        return view('general::transactions.print', compact('transaction', 'qrCode', 'company'));
     }
 
 
@@ -76,7 +108,18 @@ class TransactionController extends Controller
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        return view('general::transactions.print-payments', compact('transaction','company'));
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+
+        $qrCode = QrCode::size(150)->generate($qrData);
+
+        return view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'));
     }
 
 
@@ -85,7 +128,20 @@ class TransactionController extends Controller
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        $html = view('general::transactions.print', compact('transaction','company'))->render();
+
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+
+        $qrCode = QrCode::size(150)->generate($qrData);
+
+
+        $html = view('general::transactions.print', compact('transaction', 'qrCode', 'company'))->render();
 
 
         $mpdf = new Mpdf([
@@ -108,7 +164,18 @@ class TransactionController extends Controller
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-        $html = view('general::transactions.print-payments', compact('transaction','company'))->render();
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+
+        $qrCode = QrCode::size(150)->generate($qrData);
+
+        $html = view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'))->render();
 
 
         $mpdf = new Mpdf([
@@ -137,8 +204,18 @@ class TransactionController extends Controller
             $amount = 0;
         }
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $transactionUtil = new TransactionUtils();
+        $qrData = $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
 
-        return view('general::transactions.show-payments', compact('transaction', 'company','accounts', 'amount'));
+        $qrCode = QrCode::size(150)->generate($qrData);
+
+        return view('general::transactions.show-payments', compact('transaction', 'qrCode', 'company', 'accounts', 'amount'));
     }
 
 
@@ -163,19 +240,5 @@ class TransactionController extends Controller
         return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
+    
 }

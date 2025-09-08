@@ -10,9 +10,9 @@ return [
     'tax_number' => 'الرقم الضريبي',
     'invoice_no' => 'الرقم المرجعي',
     'issue_date' => 'تاريخ الإصدار',
-    'payment_terms' => 'شروط الدفع',
+    'payment_terms' => 'فترة االاستحقاق',
     'due_date' => 'تاريخ الاستحقاق',
-    'transaction_date' => 'تاريخ البيع',
+    'transaction_date' => 'تاريخ الفاتورة',
     'select_client' => 'اختر العميل',
     'Line Items' => 'البنود',
     'notice' => 'بيان',
@@ -67,6 +67,7 @@ return [
 
 
 
+    'po_status' => 'حالة الطالب',
 
 
 

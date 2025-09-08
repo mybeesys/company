@@ -42,4 +42,15 @@ Route::middleware([
         Route::get('client-supplier-setting', [ClientSupplierSettingController::class, 'index']);
         Route::post('store-loyalty-point-settings', [ClientSupplierSettingController::class, 'storeLoyaltyPointsSettings'])->name('store-loyalty-point-settings');
     });
+
+
+    Route::get('/view-file/{filename}', function ($filename) {
+        $path = storage_path('tenanttest/app/customers/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
+    })->name('view.file');
 });

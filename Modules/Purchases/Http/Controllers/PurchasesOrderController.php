@@ -51,12 +51,12 @@ class PurchasesOrderController extends Controller
                         $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
                     }
                 });
-            $transactions = $transactionsQuery->get();
+            $transactions = $transactionsQuery->orderBy('id','desc')->get();
             return Transaction::getSellsTable($transactions);
         }
 
         $transaction = $transactionsQuery->get();
-        $columns = Transaction::getsQuotationColumns();
+        $columns = Transaction::getsPOColumns();
         $clients =  Contact::where('business_type', 'supplier')->get();
         $page = 'quotations';
 

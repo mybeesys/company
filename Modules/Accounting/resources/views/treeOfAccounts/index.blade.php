@@ -29,10 +29,10 @@
         }
 
         /* .jstree-hoverd .jstree-anchor .jstree-clicked {
-                                                                                                                                                                                                        background: #beebff2e !important;
-                                                                                                                                                                                                        border-radius: 13px !important;
-                                                                                                                                                                                                        box-shadow: none !important;
-                                                                                                                                                                                                    } */
+                                                                                                                                                                                                                        background: #beebff2e !important;
+                                                                                                                                                                                                                        border-radius: 13px !important;
+                                                                                                                                                                                                                        box-shadow: none !important;
+                                                                                                                                                                                                                    } */
 
         .jstree-default .jstree-clicked {
             background: #beebff2e !important;
@@ -121,6 +121,11 @@
                 'account_category' => $account_category,
             ])
 
+            @include('accounting::treeOfAccounts.create-sub-account', [
+                'account_main_types' => $account_main_types,
+                'account_category' => $account_category,
+            ])
+
             @include('accounting::treeOfAccounts.deactive')
             @include('accounting::treeOfAccounts.active')
 
@@ -145,6 +150,7 @@
         function setAccountId(account_id) {
             // sessionStorage.removeItem('account_id');
             sessionStorage.setItem('account_id', account_id);
+            sessionStorage.setItem('sub_account_id', account_id);
             console.log(account_id);
 
         }
@@ -156,7 +162,7 @@
             sessionStorage.setItem('name_en', account.name_en);
             sessionStorage.setItem('account_type', account.account_type);
             sessionStorage.setItem('account_id', account.id);
-            sessionStorage.setItem('status', account.status);
+            sessionStorage.setItem('status', account?.status);
             sessionStorage.setItem('gl_code', account.gl_code);
 
         }
@@ -244,6 +250,16 @@
                 $('#account_id_').val(value);
             });
 
+            $(document).on('shown.bs.modal', '#kt_modal_create_sub_account', function() {
+                var value = sessionStorage.getItem('sub_account_id');
+                $('#sub_account_id').val(value);
+
+                $(this).find('.kt_account_type').select2({
+                    dropdownParent: $('#kt_modal_create_sub_account')
+                });
+
+
+            });
             $(document).on('shown.bs.modal', '#kt_modal_deactive', function() {
                 var value = sessionStorage.getItem('account_id');
                 $('#account_id_').val(value);
