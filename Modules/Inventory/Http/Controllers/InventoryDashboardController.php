@@ -16,7 +16,7 @@ class InventoryDashboardController extends Controller
 {
     public function index()
     {
-        $warehousesCount = DB::table('product_inventories')->distinct()->count('establishment_id');
+        $warehousesCount = Establishment::where("is_main",0)->get();
 
         $transferCount = Transaction::with(['establishment', 'items.product'])
             ->where('type', 'TRANSFER')
