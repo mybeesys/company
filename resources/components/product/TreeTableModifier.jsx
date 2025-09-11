@@ -528,7 +528,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         <i className="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {!data.isNew && data.id && data.type !== "variable" && (
+                {!data.isNew && data.id && (
                     <a
                         href="javascript:void(0);"
                         onClick={() => openDeleteModel(data)}

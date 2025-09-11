@@ -254,7 +254,6 @@ const ProductModifier = ({
                                 })
                             );
                         }
-                        console.log("selectedModifiers", selectedModifiers);
                         return (
                             <ProductModiferDetail
                                 key={modifierClass.data.id}
