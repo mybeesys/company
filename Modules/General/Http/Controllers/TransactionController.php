@@ -52,7 +52,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -71,7 +71,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -92,7 +92,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -112,7 +112,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -133,7 +133,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -168,7 +168,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -208,7 +208,7 @@ class TransactionController extends Controller
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
-            $transaction,
+            $transaction->transaction_date,
             $transaction->final_total,
             $transaction->tax_amount
         );
@@ -240,5 +240,5 @@ class TransactionController extends Controller
         return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
     }
 
-    
+
 }

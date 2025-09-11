@@ -98,6 +98,8 @@ class Transaction extends Model
             ["class" => "text-start min-w-150px  ", "name" => "client"],
             ["class" => "text-start min-w-150px", "name" => "issue_date"],
             ["class" => "text-start min-w-150px ", "name" => "Expiry Date"],
+            ["class" => "text-start min-w-100px", "name" => "po_status"],
+
             ["class" => "text-start min-w-150px", "name" => "total_before_vat"],
             ["class" => "text-start min-w-150px  ", "name" => "amount"],
         ];
@@ -233,7 +235,8 @@ class Transaction extends Model
                 <a href="' . url("/transaction-print/{$row->id}") . '" class="menu-link px-3">' . __('general.print') . '</a>
             </div>';
 
-                    if ($row->type == 'sell') {
+                    $completedReturn = Transaction::where('parent_id', $row->id)->where('type', 'sell-return')->where('po_status', 'completed')->first();
+                    if ($row->type == 'sell' && !$completedReturn) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="' . url("/create-sell-return/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.sell-return') . '</a>
             </div>';

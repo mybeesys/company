@@ -229,7 +229,7 @@
             var billing_city = selectedOption.data("billing_city") || "-";
 
 
-            console.log(billing_address);
+            // console.log(billing_address);
 
             $("#client_name").text(clientName);
             if (billing_street_name != '-' || billing_city != '-') {
@@ -646,7 +646,7 @@ $.ajax({
 
     $(`#products-${salesRowIndex}`).select2({
         ajax: {
-            url: '/products-for-sale',
+            url: '/products-for-quotation',
             dataType: 'json',
             delay: 250,
             data: function(params) {
@@ -663,7 +663,7 @@ $.ajax({
                          text: lang === 'ar'
                 ? `${product.SKU} - ${product.name_ar}`
                 : `${product.SKU} - ${product.name_en}`,
-                 price: product.price,
+                        price: product.price,
                         units: product.unit_transfers,
                     })),
                     pagination: {
@@ -683,7 +683,7 @@ $.ajax({
     $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
 
     if (selectedData.units && Array.isArray(selectedData.units)) {
-        console.log('Units Data:', selectedData.units);
+        // console.log('Units Data:', selectedData.units);
 
         selectedData.units.forEach((unit, index)  => {
             const unitId = unit.id || unit.unit_id || unit.unit1;
@@ -700,6 +700,7 @@ $.ajax({
                 .text(unitName)
                 .attr('data-value', unitValue);
 
+
                  if (index === 0) {
         $option.attr('selected', 'selected');
     }
@@ -707,10 +708,13 @@ $.ajax({
             updateSalesTotals();
         });
 
-        $unitSelect.select2('destroy').select2({
+        if( selectedData.units.length > 0){
+    $unitSelect.select2('destroy').select2({
             width: '100%',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
         });
+    
+        }
     updateSalesTotals();
 
     } else {
@@ -722,7 +726,7 @@ $.ajax({
     $("#salesTable tbody tr:last").find(".select-2:not(.product-select)").select2();
 
     updateSalesTotals();
-    console.log("salesRowIndex " + salesRowIndex);
+    // console.log("salesRowIndex " + salesRowIndex);
 });
 
 
@@ -742,13 +746,14 @@ $.ajax({
         const unitPriceOriginal = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
         const discountValue = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
         const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
-        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0; // استرداد معدل الضريبة
+        const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
         const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(':checked');
+console.log('fdfdfd ',qty,unitPriceOriginal,discountValue,discountType,taxType,isInclusive);
 
         let unitPrice = unitPriceOriginal;
 
         if (isInclusive && taxType > 0) {
-            unitPrice = unitPriceOriginal / (1 + taxType / 100); // حساب السعر قبل الضريبة
+            unitPrice = unitPriceOriginal / (1 + taxType / 100);
         }
 
         let discountAmount = 0;
@@ -762,7 +767,7 @@ $.ajax({
 
         let vatAmount = 0;
         if (taxType > 0) {
-            vatAmount = totalBeforeDiscount * (taxType / 100); // حساب الضريبة لكل صف
+            vatAmount = totalBeforeDiscount * (taxType / 100);
             totalBeforeDiscountForVat += totalBeforeDiscount;
         }
 
@@ -789,17 +794,15 @@ $.ajax({
 
     const adjustedTotalForVat = totalBeforeDiscountForVat - totalDiscountAmount;
 
-    // **حساب الضريبة المعدلة بجمع ضرائب كل صف بعد الخصم**
     let adjustedVat = 0;
     $('#salesTable tbody tr').each(function(index) {
         const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
         const rowTotalBeforeDiscount = parseFloat($(this).find('.total_before_vat-field').val()) || 0;
 
         if (taxType > 0) {
-            // توزيع الخصم الإجمالي على الصفوف وحساب الضريبة
             const rowDiscountShare = (rowTotalBeforeDiscount / totalBeforeVat) * totalDiscountAmount;
             const rowAdjustedTotal = rowTotalBeforeDiscount - rowDiscountShare;
-            adjustedVat += rowAdjustedTotal * (taxType / 100); // حساب الضريبة بعد الخصم
+            adjustedVat += rowAdjustedTotal * (taxType / 100);
         }
     });
 
@@ -808,7 +811,6 @@ $.ajax({
 
     adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
 
-    // تحديث القيم في الواجهة
     $('#totalBeforeVat').text(totalBeforeVat.toFixed(2));
     $('#input-totalBeforeVat').val(totalBeforeVat.toFixed(2));
     $('#_invoiced_discount').text(totalDiscountAmount.toFixed(2));
@@ -887,7 +889,7 @@ $.ajax({
                 const units = selectedOption.data('units') || [];
                 const currentRow = $(this).closest('tr');
                 const rowIndex = currentRow.index();
-                console.log('rowIndex  ' + rowIndex);
+                // console.log('rowIndex  ' + rowIndex);
 
                 let productFound = false;
 
@@ -916,12 +918,12 @@ $.ajax({
                     }
                 });
 
-                console.log('productFound  ' + productFound);
+                // console.log('productFound  ' + productFound);
 
                 if (!productFound) {
                     resetRowIndexes();
 
-                    console.log('price  ' + price);
+                    // console.log('price  ' + price);
 
                     currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(2));
                     currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(1);
