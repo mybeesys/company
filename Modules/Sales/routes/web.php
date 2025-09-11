@@ -37,6 +37,8 @@ Route::middleware([
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
         Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
+        Route::get('products-for-quotation', [ProductController::class, 'productsForQuotation'])->name('products-for-quotation');
+
 
         Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');
         Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');

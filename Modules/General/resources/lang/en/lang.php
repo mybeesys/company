@@ -64,5 +64,9 @@ return [
     'welcome_to' => 'Welcome to',
     'get_ready_for_experience' => 'Get ready for an amazing experience',
     'start_now' => 'Start Now',
+    'quotation_no' => 'Quotation NO',
+    'quotation_date' => 'Quotation Date',
+    'quotation_expiry' => 'Quotation expiry',
+
 
 ];

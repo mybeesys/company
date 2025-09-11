@@ -87,7 +87,7 @@ class QuotationController extends Controller
 
         $quotation = true;
         $transaction = null;
-        $products = Product::with(['unitTransfers' => function ($query) {
+        $products = Product::where('type','<>','ingredint')->with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
         return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
@@ -154,6 +154,7 @@ class QuotationController extends Controller
             }
 
 
+            
             DB::commit();
             return redirect()->route('quotations')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {

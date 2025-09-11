@@ -297,11 +297,11 @@
             $unitSelect.append($option);
             updateSalesTotals();
         });
-
+if( selectedData.units.length > 0){
         $unitSelect.select2('destroy').select2({
             width: '100%',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
-        });
+        });}
     updateSalesTotals();
 
     } else {

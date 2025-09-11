@@ -67,6 +67,9 @@ return [
     'get_ready_for_experience' => 'استعدوا لتجربة مميزة',
     'start_now' => 'ابدأ الآن',
 
+    'quotation_no' => 'رقم العرض',
+    'quotation_date' => 'تاريخ العرض',
+    'quotation_expiry' => 'انتهاء صلاحية العرض',
 
 
 ];

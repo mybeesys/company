@@ -49,6 +49,7 @@
 @section('content')
     <form id="sell_save" method="POST" action="{{ route('store-invoice') }}">
         @csrf
+        <input type="hidden" name="quotation_id" id="quotation_id" value="">
 
         <div class="container">
             <div class="row">
@@ -365,11 +366,11 @@
             $unitSelect.append($option);
             updateSalesTotals();
         });
-
+if( selectedData.units.length > 0){
         $unitSelect.select2('destroy').select2({
             width: '100%',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
-        });
+        });}
     updateSalesTotals();
 
     } else {
@@ -465,6 +466,13 @@
 
 
         $(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+            const poId = urlParams.get('quotation_id');
+
+            if (poId) {
+                document.getElementById('quotation_id').value = poId;
+            }
 
 
              $('.select-2-products-id').select2({

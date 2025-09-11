@@ -201,14 +201,14 @@ class SellController extends Controller
 
 
 
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
             return Transaction::getSellsTable($transactions);
         }
 
         $transaction = $transactionsQuery->get();
         $columns = Transaction::getsSellsColumns();
 
-        $quotations = Transaction::where('type', 'quotation')->get();
+        $quotations = Transaction::where('type', 'quotation')->where('po_status','<>','completed')->get();
 
         $Latest_event = Actions::where('user_id', Auth::id())->where('type', 'create_sell')->first();
 
@@ -273,7 +273,7 @@ class SellController extends Controller
     {
         // return $request;
 
-        try {
+        // try {
             $actionUtil = new ActionUtil();
             $contactUtils = new ContactUtils();
             $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
@@ -298,6 +298,11 @@ class SellController extends Controller
                     'note_ar' => request('note_ar'),
                 ]);
             }
+
+            $quotation_id = null;
+            if ($request->quotation_id) {
+                $quotation_id = $request->quotation_id;
+            }
             $transaction =   Transaction::create([
                 'type' => 'sell',
                 'invoice_type' => $request->invoice_type,
@@ -318,6 +323,8 @@ class SellController extends Controller
                 'notice' => $request->notice,
                 'establishment_id' => $establishment_id,
                 'settings_terms_notes' => $termsNotesData,
+
+                'parent_id' => $quotation_id,
 
             ]);
 
@@ -342,6 +349,12 @@ class SellController extends Controller
                 ]);
             }
 
+
+            if ($quotation_id) {
+                $this->updatePurchaseOrderStatus($quotation_id
+
+            );
+            }
 
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
@@ -369,10 +382,10 @@ class SellController extends Controller
             } else {
                 return redirect()->route('invoices')->with($status, $msg);
             }
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
+        // }
     }
 
 
@@ -404,27 +417,72 @@ class SellController extends Controller
         return view('sales::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    function updatePurchaseOrderStatus($quotation_id)
     {
-        return view('sales::edit');
-    }
+        $poTransaction = Transaction::find($quotation_id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+        if (!$poTransaction) {
+            return;
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        $poLines = TransactionSellLine::where('transaction_id', $quotation_id)->get();
+
+        if ($poLines->isEmpty()) {
+            $poTransaction->po_status = 'pending';
+            $poTransaction->save();
+            return;
+        }
+
+        $invoiceIds = Transaction::where('parent_id', $quotation_id)->pluck('id');
+        $invoiceLines = TransactionSellLine::whereIn('transaction_id', $invoiceIds)->get();
+
+        $overallStatus = 'completed';
+        $productsStatus = [];
+
+        foreach ($poLines as $poLine) {
+            $requestedQty = $poLine->qyt;
+
+            $purchasedQty = $invoiceLines
+                ->where('product_id', $poLine->product_id)
+                ->sum('qyt');
+
+            $remainingQty = max(0, $requestedQty - $purchasedQty);
+
+            if ($purchasedQty >= $requestedQty) {
+                $lineStatus = 'completed';
+            } elseif ($purchasedQty > 0 && $purchasedQty < $requestedQty) {
+                $lineStatus = 'partial';
+                $overallStatus = 'partial';
+            } else {
+                $lineStatus = 'pending';
+                if ($overallStatus === 'completed') {
+                    $overallStatus = 'partial';
+                }
+            }
+
+            $poLine->line_status = $lineStatus;
+            $poLine->remaining_qty = $remainingQty;
+            $poLine->save();
+
+            $productsStatus[] = [
+                'product_id' => $poLine->product_id,
+                'requested' => $requestedQty,
+                'purchased' => $purchasedQty,
+                'remaining' => $remainingQty,
+                'line_status' => $lineStatus,
+            ];
+        }
+
+        if ($invoiceIds->isEmpty()) {
+            $overallStatus = 'pending';
+        }
+
+        $poTransaction->po_status = $overallStatus;
+        $poTransaction->save();
+
+        return [
+            'po_status' => $overallStatus,
+            'products' => $productsStatus,
+        ];
     }
 }

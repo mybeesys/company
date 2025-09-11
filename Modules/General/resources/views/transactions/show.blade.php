@@ -97,7 +97,13 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-4">
-                <p>@lang('general::lang.invoice_no'): {{ $transaction->ref_no }}</p>
+                <p>
+                    @if ($transaction->type == 'quotation')
+                        @lang('general::lang.quotation_no'): {{ $transaction->ref_no }}
+                </p>
+            @else
+                @lang('general::lang.invoice_no'): {{ $transaction->ref_no }}</p>
+                @endif
 
 
                 <p @if (!isset($transaction->payment_status)) class="d-none" @endif>@lang('sales::fields.payment_status'):
@@ -127,8 +133,13 @@
             @endif
 
             <div class="col-sm-4">
-                <p>@lang('sales::fields.transaction_date'): {{ $transaction->transaction_date }}</p>
-                {{-- <p>@lang('sales::fields.due_date'): {{ $transaction->due_date }}</p> --}}
+                @if ($transaction->type == 'quotation')
+                    <p>@lang('general::lang.quotation_date'): {{ $transaction->transaction_date }}</p>
+                    <p>@lang('general::lang.quotation_expiry'): {{ $transaction->due_date }}</p>
+                @else
+                    <p>@lang('sales::fields.transaction_date'): {{ $transaction->transaction_date }}</p>
+                @endif
+
                 @if ($transaction->client)
                     <p @if (!isset($transaction->client->payment_terms)) class="d-none" @endif>@lang('sales::fields.payment_terms'):
                         {{ __('sales::lang.terms.' . $transaction->client->payment_terms) ?? '--' }}</p>
