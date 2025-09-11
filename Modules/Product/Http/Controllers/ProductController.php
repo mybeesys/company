@@ -272,6 +272,12 @@ class ProductController extends Controller
             if ($validateUsing != null)
                 return $validateUsing;
             $product = Product::find($validated['id']);
+            if ($product->type == "variable") {
+                $products = Product::where("parent_id", $product->id)->get();
+                foreach ($products as $childProduct) {
+                    $childProduct->delete();
+                }
+            }
             $product->delete();
             return response()->json(["message" => "Done"]);
         } else if (isset($validated['id'])) {
