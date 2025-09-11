@@ -622,7 +622,7 @@ class ProductController extends Controller
             $unit = UnitTransfer::where('product_id', $request->parent_id)
                 ->whereNull('unit2')
                 ->first();
-            if ($unit) {
+            if ($unit && $product->type == "product" && $product->parent_id) {
                 UnitTransfer::create([
                     'primary' => 1,
                     'product_id' => $product->id,
