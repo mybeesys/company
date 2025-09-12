@@ -38,6 +38,7 @@ Route::middleware([
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
         Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
         Route::get('products-for-quotation', [ProductController::class, 'productsForQuotation'])->name('products-for-quotation');
+        Route::get('products-for-client', [ProductController::class, 'productsForClient'])->name('products-for-client');
 
 
         Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');

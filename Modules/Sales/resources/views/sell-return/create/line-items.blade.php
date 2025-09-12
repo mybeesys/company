@@ -5,32 +5,6 @@
             <span class="card-label fw-bold fs-3 mb-1">@lang('sales::fields.Line Items')</span>
 
         </h3>
-        {{-- <div class="card-toolbar">
-            <div class="btn-group dropend">
-
-                <button type="button" style="background: transparent;adding: 2px 7px 8px 13px;border-radius: 6px;"
-                    class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-cog" style="font-size: 1.4rem; color: #c59a00;"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-left" role="menu" style=" width: max-content;padding: 10px;"
-                    style="padding: 8px 15px;">
-                    <li class="mb-5" style="text-align: justify;">
-                        <span class="card-label fw-bold fs-6 mb-1">@lang('messages.settings')</span>
-                    </li>
-                    <li>
-                        <div class="form-check form-switch my-3"
-                            style="    display: flex; justify-content: space-between; gap: 37px;">
-                            <input class="form-check-input" type="checkbox" id="toggledescrption">
-                            <label class="form-check-label ml-4" for="toggledescrption">@lang('sales::lang.Enable Descrption')</label>
-                        </div>
-                    </li>
-
-
-
-
-                </ul>
-            </div>
-        </div> --}}
     </div>
 
 
@@ -71,102 +45,79 @@
                         @endphp
 
                         @foreach ($lines as $index => $line)
-                            <tr>
-                                <td>
-                                    {{-- <select id="products"  class="form-select form-select-solid select-2" readonly
-                                        name="products[{{ $index }}][products_id]" style="padding: 7px">
-                                        <option value="">@lang('sales::lang.select_products')</option>
-                                        @foreach ($products as $product)
-                                            <option value="{{ $product->id }}"
-                                                @if ($line->product_id == $product->id) selected @endif
-                                                data-price="{{ $product->price }}"
-                                                data-units="{{ json_encode($product->unitTransfers) }}">
-                                                @if (app()->getLocale() == 'ar')
-                                                    {{ $product->name_ar }} - <span
-                                                        class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
-                                                @else
-                                                    {{ $product->name_en }} - <span
-                                                        class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
-                                                @endif
-                                            </option>
-                                        @endforeach
-                                    </select> --}}
-                                    <input type="hidden" class="form-control"
-                                        name="products[{{ $index }}][product_id]" style="padding: 7px"
-                                        style="width: 107px;" value="{{ $line->product->id }}" />
+                            @if ($line->line_status != 'completed')
+                                <tr>
+                                    <td>
+                                        <input type="hidden" class="form-control"
+                                            name="products[{{ $index }}][product_id]" style="padding: 7px"
+                                            style="width: 107px;" value="{{ $line->product->id }}" />
 
-                                    @if (app()->getLocale() == 'ar')
-                                        {{ $line->product->name_ar }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-5">{{ $line->product->SKU }}</span>
-                                    @else
-                                        {{ $line->product->name_en }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-7">{{ $line->product->SKU }}</span>
-                                    @endif
+                                        @if (app()->getLocale() == 'ar')
+                                            {{ $line->product->name_ar }} - <span
+                                                class="fw-semibold mx-2 text-muted fs-5">{{ $line->product->SKU }}</span>
+                                        @else
+                                            {{ $line->product->name_en }} - <span
+                                                class="fw-semibold mx-2 text-muted fs-7">{{ $line->product->SKU }}</span>
+                                        @endif
 
-                                </td>
-                                <td class="product-description" style="display:none">
-                                    <textarea class="form-control form-control-solid" rows="1" name="products[0][description]"></textarea>
-                                </td>
-                                <td style="white-space: nowrap;"><input type="number" step="any"
-                                        class="form-control qty-field" name="products[{{ $index }}][qty]"
-                                        placeholder="0" min="{{ $line->qyt }}" style="width: 80px;display: inline-block;"
-                                        value="{{ $line->qyt }}">
+                                    </td>
+                                    <td class="product-description" style="display:none">
+                                        <textarea class="form-control form-control-solid" rows="1" name="products[0][description]"></textarea>
+                                    </td>
+                                    <td style="white-space: nowrap;"><input type="number" step="any"
+                                            class="form-control qty-field" name="products[{{ $index }}][qty]"
+                                            placeholder="0" min="0" max="{{ $line->qyt }}"
+                                            style="width: 80px;display: inline-block;"
+                                            @if ($line->line_status == 'partial')
 
+                                            value="{{ $line->remaining_qty }}"
+                                           @else
+                                            value="{{ $line->qyt }}" @endif>
 
-                                    <select id="unit"
-                                        class="form-select form-select-solid select-2 d-inline-block unit"
-                                        @readonly(true) name="products[{{ $index }}][unit]"
-                                        style="width: 100px; display: inline-block;">
-                                        <option value="">@lang('sales::lang.unit')</option>
-                                    </select>
-                                </td>
-
-                                <td><input type="number" step="any" class="form-control unit_price-field no-spin"
-                                        name="products[{{ $index }}][unit_price]" placeholder="0.0"
-                                        value="{{ $line->unit_price }}"
-                                        style="width: 100px;-moz-appearance: textfield !important">
-                                </td>
-
-
-                                <td><input type="number" step="any" readonly
-                                        class="form-control total_before_vat-field"
-                                        name="products[{{ $index }}][total_before_vat]" placeholder="0.00"
-                                        style="width: 115px;border: 0;">
-
-                                        <input type="hidden" name="products[{{ $index }}][tax_vat]"
-                                        value="{{ $line->tax_id }}">
+                                        <select id="unit"
+                                            class="form-select form-select-solid select-2 d-inline-block unit"
+                                            name="products[{{ $index }}][unit]" {{-- @if ($line->line_status == 'completed') disabled @endif --}}
+                                            style="width: 100px; display: inline-block;">
+                                            <option value="">@lang('sales::lang.unit')</option>
+                                            @if (!empty($line->product) && $line->product->unitTransfers->count() > 0)
+                                                @foreach ($line->product->unitTransfers as $unit)
+                                                    <option value="{{ $unit->id }}" @selected($unit->id == optional($line->unitTransfer)->id)>
+                                                        {{ $unit->unit1 }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
 
                                     </td>
 
+                                    <td><input type="number" step="any"
+                                            class="form-control unit_price-field no-spin"
+                                            name="products[{{ $index }}][unit_price]" placeholder="0.0"
+                                            value="{{ $line->unit_price }}"
+                                            style="width: 100px;-moz-appearance: textfield !important">
+                                    </td>
 
 
-                                {{-- <td class="hid"> --}}
-                                    {{-- <input type="text" class="form-control"
-                                        value="{{$line->tax_id}}"
-                                        readonly> --}}
+                                    <td><input type="number" step="any" readonly
+                                            class="form-control total_before_vat-field"
+                                            name="products[{{ $index }}][total_before_vat]" placeholder="0.00"
+                                            style="width: 115px;border: 0;">
 
-                                    {{-- <select id="tax_vat" required class="form-select form-select-solid select-2"
-                                        readonly name="products[{{ $index }}][tax_vat]" style="width: 200px;">
-                                        @foreach ($taxes as $tax)
-                                            <option value="{{ $tax->amount }}"
-                                                @if ($tax->default == 1 || $line->tax_id == $tax->amount) selected @endif>
-                                                @if (app()->getLocale() == 'en')
-                                                    {{ $tax->name_en }}
-                                                @else
-                                                    {{ $tax->name }}
-                                                @endif
-                                            </option>
-                                        @endforeach
-                                    </select> --}}
-                                {{-- </td> --}}
-                                <td><input type="number" step="any" readonly class="form-control vat_value-field"
-                                        name="products[{{ $index }}][vat_value]" placeholder="0.00"
-                                        style="width: 80px;border: 0;"></td>
-                                <td><input type="number" step="any" readonly
-                                        class="form-control total_after_vat-field"
-                                        name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
-                                        style="width: 107px;border: 0;"></td>
-                            </tr>
+                                        <input type="hidden" name="products[{{ $index }}][tax_vat]"
+                                            value="{{ $line->tax_id }}">
+
+                                    </td>
+
+                                    <td><input type="number" step="any" readonly
+                                            class="form-control vat_value-field"
+                                            name="products[{{ $index }}][vat_value]" placeholder="0.00"
+                                            style="width: 80px;border: 0;"></td>
+                                    <td><input type="number" step="any" readonly
+                                            class="form-control total_after_vat-field"
+                                            name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
+                                            style="width: 107px;border: 0;"></td>
+                                </tr>
+                            @endif
                         @endforeach
                     @else
                         <tr>
@@ -258,14 +209,14 @@
 
                 </tbody>
                 <tfoot>
-                    <tr>
+                    {{-- <tr>
                         <td colspan="1" class="total">
                             <a class="btn btn-xs btn-default text-primary" id="addSalesRow">
                                 <i class="ki-outline ki-plus fs-2"></i>
                                 @lang('accounting::lang.new_row')
                             </a>
                         </td>
-                    </tr>
+                    </tr> --}}
                 </tfoot>
 
 

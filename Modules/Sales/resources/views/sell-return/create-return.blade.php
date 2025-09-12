@@ -256,14 +256,22 @@
     $("#salesTable tbody").append(newSalesRow);
 
     $(`#products-${salesRowIndex}`).select2({
+
         ajax: {
-            url: '/products-for-sale',
+            url: '/products-for-client',
             dataType: 'json',
             delay: 250,
             data: function(params) {
+                // console.log($("#client_id").val());
+
+            if (!$("#client_id").val()) {
+                alert("⚠️ يرجى تحديد العميل أولاً");
+                return false;
+            }
                 return {
                     search: params.term,
-                    page: params.page || 1
+                    page: params.page || 1,
+                    contact_id:$("#client_id").val()
                 };
             },
             processResults: function(response, params) {
@@ -317,11 +325,11 @@
             $unitSelect.append($option);
             updateSalesTotals();
         });
-
+if( selectedData.units.length > 0){
         $unitSelect.select2('destroy').select2({
             width: '100%',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
-        });
+        });}
     updateSalesTotals();
 
     } else {
