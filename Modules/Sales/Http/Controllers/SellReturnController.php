@@ -17,6 +17,7 @@ use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
@@ -54,7 +55,7 @@ class SellReturnController extends Controller
                     }
                 });
 
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
@@ -125,73 +126,81 @@ class SellReturnController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        try {
-            $sell = Transaction::findOrFail($request->transaction_id);
+        // try {
+        $sell = Transaction::findOrFail($request->transaction_id);
 
-            if (!$sell) {
-                return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
-            }
-
-            $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
-            $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-            $transactionUtil = new TransactionUtils();
-            DB::beginTransaction();
-            $main_establishment = Establishment::notMain()->active()->first();
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
-            $transaction =   Transaction::create([
-                'type' => 'sell-return',
-                'invoice_type' => $request->invoice_type,
-                // 'due_date' => $request->due_date,
-                'parent_id' => $sell->id,
-                'transaction_date' => now(),
-                'contact_id' => $sell->contact_id,
-                'cost_center' => $request->cost_center ?? null,
-                'discount_amount' => $request->invoice_discount,
-                'discount_type' => $invoiced_discount_type,
-                'total_before_tax' => $request->totalBeforeVat,
-                'totalAfterDiscount' => $request->totalAfterDiscount,
-                'tax_amount' => $request->totalVat,
-                'final_total' => $request->totalAfterVat,
-                'created_by' => Auth::user()->id,
-                'description' => $request->invoice_note,
-                'ref_no' => $ref_no,
-                'status' => 'approved',
-                'notice' => $request->notice,
-                'establishment_id' => $establishment_id,
-                'establishment_id' => $establishment_id,
-
-
-            ]);
-
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-            $products = json_decode(json_encode($request->products));
-
-            foreach ($products as $product) {
-                $discount_type =  null;
-                TransactionePurchasesLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->product_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit ?? 0,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => 0,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
-            }
-            DB::commit();
-            return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
-        } catch (Exception $e) {
-            DB::rollBack();
+        if (!$sell) {
             return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         }
+
+        $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+        $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+        $transactionUtil = new TransactionUtils();
+        DB::beginTransaction();
+        $main_establishment = Establishment::notMain()->active()->first();
+        $establishment_id = $request->storehouse;
+        if ($request->storehouse == $main_establishment->id) {
+            $establishment_id = $main_establishment->id;
+        }
+        $transaction =   Transaction::create([
+            'type' => 'sell-return',
+            'invoice_type' => $request->invoice_type,
+            // 'due_date' => $request->due_date,
+            'parent_id' => $sell->id,
+            'transaction_date' => now(),
+            'contact_id' => $sell->contact_id,
+            'cost_center' => $request->cost_center ?? null,
+            'discount_amount' => $request->invoice_discount,
+            'discount_type' => $invoiced_discount_type,
+            'total_before_tax' => $request->totalBeforeVat,
+            'totalAfterDiscount' => $request->totalAfterDiscount,
+            'tax_amount' => $request->totalVat,
+            'final_total' => $request->totalAfterVat,
+            'created_by' => Auth::user()->id,
+            'description' => $request->invoice_note,
+            'ref_no' => $ref_no,
+            'status' => 'approved',
+            'notice' => $request->notice,
+            'establishment_id' => $establishment_id,
+            'establishment_id' => $establishment_id,
+
+
+        ]);
+
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        $products = json_decode(json_encode($request->products));
+
+        foreach ($products as $product) {
+            $discount_type =  null;
+            TransactionePurchasesLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->product_id,
+                'qyt' => $product->qty,
+                'unit_id' => $product->unit ?? 0,
+                'unit_price_before_discount' => $product->unit_price,
+                'unit_price' => $product->unit_price,
+                'discount_type' => $discount_type,
+                'discount_amount' => 0,
+                'unit_price_inc_tax' => $product->total_after_vat,
+                'tax_id' => $product->tax_vat,
+                'tax_value' => $product->vat_value,
+                'total_before_vat' => $product->total_before_vat,
+            ]);
+        }
+
+
+        if ($transaction) {
+            $this->updateSalesReturnStatus(
+                $sell->id
+
+            );
+        }
+        DB::commit();
+        return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
+        // }
     }
 
     public function storeSellReturn(Request $request)
@@ -286,27 +295,87 @@ class SellReturnController extends Controller
         return view('sales::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+
+    function updateSalesReturnStatus($invoice_id)
     {
-        return view('sales::edit');
+        $invoice = Transaction::find($invoice_id);
+
+        if (!$invoice) {
+            return;
+        }
+
+        $invoiceLines = TransactionSellLine::where('transaction_id', $invoice->id)->get();
+
+        $returnTransactions = Transaction::where('parent_id', $invoice->id)->get();
+        $returnLines = TransactionePurchasesLine::whereIn('transaction_id', $returnTransactions->pluck('id'))->get();
+
+        $productsStatus = [];
+        $returnedCount = 0;
+        $returnedQty = 0;
+
+        $allCompleted = true;
+        $anyReturned = false;
+
+        foreach ($invoiceLines as $sellLine) {
+            $soldQty = $sellLine->qyt;
+
+            $returnedQtyForProduct = $returnLines
+                ->where('product_id', $sellLine->product_id)
+                ->sum('qyt');
+
+            $remainingQty = max(0, $soldQty - $returnedQtyForProduct);
+
+            if ($returnedQtyForProduct == 0) {
+                $lineStatus = 'pending';
+                $allCompleted = false;
+            } elseif ($returnedQtyForProduct < $soldQty) {
+                $lineStatus = 'partial';
+                $allCompleted = false;
+                $anyReturned = true;
+            } else {
+                $lineStatus = 'completed';
+                $anyReturned = true;
+                $allCompleted = true;
+
+            }
+
+            if ($returnedQtyForProduct > 0) {
+                $returnedCount++;
+                $returnedQty += $returnedQtyForProduct;
+            }
+
+            $sellLine->line_status = $lineStatus;
+
+            $sellLine->remaining_qty = $remainingQty;
+            $sellLine->save();
+
+            $productsStatus[] = [
+                'product_id'    => $sellLine->product_id,
+                'qyt'           => $soldQty,
+                'returned_qty'  => $returnedQtyForProduct,
+                'remaining_qty' => $remainingQty,
+                'line_status'   => $lineStatus,
+            ];
+        }
+
+        if ($allCompleted) {
+            $overallStatus = 'completed';
+        } elseif ($anyReturned) {
+            $overallStatus = 'partial';
+        } else {
+            $overallStatus = 'pending';
+        }
+
+        $invoice->po_status = $overallStatus;
+        $invoice->save();
+
+        return [
+            'po_status'   => $overallStatus,
+            'returned_count'  => $returnedCount,
+            'returned_qty'    => $returnedQty,
+            'products'        => $productsStatus,
+        ];
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }

@@ -23,6 +23,8 @@ use Modules\Inventory\Models\Prep;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Modifier;
+use Modules\General\Models\Transaction;
+
 use Modules\Product\Models\PriceTier;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
@@ -1326,6 +1328,38 @@ class ProductController extends Controller
             ->with(['unitTransfers' => function ($query) {
                 // $query->whereNull('unit2');
             }])
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
+    }
+
+    //
+    public function productsForClient(Request $request)
+    {
+        $transaction_ids = Transaction::where('type', 'sell')
+            ->where('contact_id', $request->contact_id)
+            ->pluck('id');
+
+        $product_ids = TransactionSellLine::whereIn('transaction_id', $transaction_ids)
+            ->pluck('product_id')
+            ->unique();
+
+        $search = $request->input('search');
+
+        $products = Product::whereIn('id', $product_ids)
+            ->where([['active', '=', 1], ['for_sell', '=', 1]])
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name_ar', 'like', "%$search%")
+                        ->orWhere('name_en', 'like', "%$search%")
+                        ->orWhere('SKU', 'like', "%$search%");
+                });
+            })
+            ->with(['unitTransfers'])
             ->get();
 
         return response()->json([
