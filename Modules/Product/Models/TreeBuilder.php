@@ -138,6 +138,7 @@ class TreeBuilder
             $defaultProduct->key = $treeObject->key . '-' . '0';
             $defaultProduct->data = new TreeData();
             $defaultProduct->data->type = 'product';
+            $defaultProduct->data->subcategory_id = $item->id;
             $defaultProduct->data->id = null;
             $defaultProduct->data->empty = 'Y';
 
