@@ -1181,19 +1181,38 @@ class ProductController extends Controller
     //
     public function productsForClient(Request $request)
     {
-        $transaction_ids = Transaction::where('type', 'sell')
-            ->where('contact_id', $request->contact_id)
-            ->pluck('id');
-
-        $product_ids = TransactionSellLine::whereIn('transaction_id', $transaction_ids)
-            ->where('line_status', '<>', 'completed')
-            ->pluck('product_id')
-            ->unique();
-
+        $contactId = $request->contact_id;
         $search = $request->input('search');
 
-        $products = Product::whereIn('id', $product_ids)
-            ->where([['active', '=', 1], ['for_sell', '=', 1]])
+        // if (!$contactId) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'يرجى تحديد العميل أولاً.'
+        //     ]);
+        // }
+
+        // جميع فواتير البيع للعميل
+        $transactionIds = Transaction::where('type', 'sell')
+            ->where('contact_id', $contactId)
+            ->pluck('id');
+
+        if ($transactionIds->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        // كل المنتجات المباعة وغير مكتمل إرجاعها
+        $productLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
+            ->where('line_status', '<>', 'completed')
+            ->get()
+            ->groupBy('product_id');
+
+        $productIds = $productLines->keys();
+
+        $products = Product::whereIn('id', $productIds)
+            ->where([['active', 1], ['for_sell', 1]])
             ->whereIn('type', ['product', 'variable', 'ingredint'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -1203,7 +1222,21 @@ class ProductController extends Controller
                 });
             })
             ->with(['unitTransfers'])
-            ->get();
+            ->get()
+            ->map(function ($product) use ($productLines) {
+                $lines = $productLines[$product->id] ?? collect();
+                $soldQty = $lines->sum('qyt');
+
+                // مجموع المرتجعات لهذا المنتج عبر كل المرتجعات المرتبطة
+                $returnedQty = TransactionePurchasesLine::whereIn('transaction_id', $lines->pluck('transaction_id'))
+                    ->where('product_id', $product->id)
+                    ->sum('qyt');
+
+                // الكمية المتبقية
+                $product->remaining_qty = max(0, $soldQty - $returnedQty);
+
+                return $product;
+            });
 
         return response()->json([
             'success' => true,
