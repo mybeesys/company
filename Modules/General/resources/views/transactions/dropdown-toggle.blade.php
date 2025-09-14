@@ -3,8 +3,8 @@
         onclick="window.location.href='{{ url('/transaction-payment-print/' . $transaction->id) }}'">
         @lang('general.print')
     </button>
-    <button type="button" class="btn btn-light-success my-1"
+    {{-- <button type="button" class="btn btn-light-success my-1"
         onclick="window.location.href='{{ url('/transaction-export-pdf/' . $transaction->id) }}'">
         @lang('employee::general.export_as_pdf')
-    </button>
+    </button> --}}
 </div>
