@@ -94,9 +94,9 @@ class ClientController extends Controller
             if ($request->ajax()) {
                 $attachment_name = null;
                 if ($request->hasFile('attachment')) {
-                    $attachment = $request->file('attachment');
-                    $attachment_name = $attachment->store('/customers');
-                }
+                $attachment = $request->file('attachment');
+                $attachment_name = $attachment->store('customers', 'public');
+            }
 
                 $contact = Contact::create([
                     'name' => $request->client_name,
@@ -133,9 +133,10 @@ class ClientController extends Controller
                 return response()->json($contact);
             }
             $attachment_name = null;
+
             if ($request->hasFile('attachment')) {
                 $attachment = $request->file('attachment');
-                $attachment_name = $attachment->store('/customers');
+                $attachment_name = $attachment->store('customers', 'public');
             }
 
             $contact = Contact::create([
