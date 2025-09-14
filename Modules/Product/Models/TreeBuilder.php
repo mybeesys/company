@@ -4,6 +4,7 @@ namespace Modules\Product\Models;
 
 use App\Models\Product;
 use Modules\Product\Models\Product as ModelsProduct;
+use Illuminate\Support\Facades\Log;
 
 class TreeBuilder
 {
@@ -115,40 +116,50 @@ class TreeBuilder
         }
       }
 
-      if ($allChildren->count() > 0) {
-        $treeObject->children = $this->buildTrees(
-          $allChildren,
-          $treeObject->key,
-          $item->childType,
-          $item->childKey,
-          $item->childType1,
-          $item->childKey1
-        );
-        if ($treeObject->children) {
-          foreach ($treeObject->children as $child) {
-            $child->data->category_id = $item->id;
-            $child->data->parent_id = null;
+      if ($treeObject->data->type !== 'product') {
+        if ($allChildren->count() > 0) {
+          $treeObject->children = $this->buildTrees(
+            $allChildren,
+            $treeObject->key,
+            $item->childType,
+            $item->childKey,
+            $item->childType1,
+            $item->childKey1
+          );
+          if ($treeObject->children) {
+            foreach ($treeObject->children as $child) {
+              $child->data->category_id = $item->id;
+              $child->data->parent_id = null;
+            }
+          }
+        } else {
+          if ($item->type === 'subcategory') {
+            $defaultProduct = new TreeObject();
+            $defaultProduct->key = $treeObject->key . '-' . '0';
+            $defaultProduct->data = new TreeData();
+            $defaultProduct->data->type = 'product';
+            $defaultProduct->data->id = null;
+            $defaultProduct->data->empty = 'Y';
+
+            $treeObject->children = [$defaultProduct];
+          } else {
+            $emptyChild = new TreeObject();
+            $emptyChild->key = $treeObject->key . '-' . '0';
+            $emptyChild->data = new TreeData();
+            $emptyChild->data->empty = 'Y';
+            $emptyChild->data->type = 'subcategory';
+            $emptyChild->data->category_id = $item->id;
+            $treeObject->children = [$emptyChild];
           }
         }
       } else {
-        if ($item->type === 'product') {
-          $treeObject->children = [];
-        } else {
-          $emptyChild = new TreeObject();
-          $emptyChild->key = $treeObject->key . '-' . '0';
-          $emptyChild->data = new TreeData();
-          $emptyChild->data->empty = 'Y';
-          $emptyChild->data->type = 'subcategory';
-          $emptyChild->data->category_id = $item->id;
-          $treeObject->children = [$emptyChild];
-        }
+        $treeObject->children = [];
       }
 
       $treeId = $currentTreeId;
       $Tree[] = $treeObject;
-      $treeId = $treeId + 1;
+      $treeId++;
     }
-
     $finalObject = new TreeObject();
     $finalObject->key = $parentKey != null ? $parentKey . '-' . $treeId : $treeId;
     $finalObject->data = new TreeData();
@@ -157,8 +168,11 @@ class TreeBuilder
     $finalObject->data->empty = 'Y';
     $finalObject->data->parentKey = $currentParentKey;
     $finalObject->data->parentKey1 = $currentParentKey1;
+    if ($finalObject->data->type === 'variable' && $finalObject->data->empty === 'Y') {
+      $finalObject->data->type = 'product';
+    }
     $Tree[] = $finalObject;
-    $treeId = $treeId + 1;
+    $treeId++;
 
     return $Tree;
   }
@@ -180,6 +194,7 @@ class TreeBuilder
       if (isset($item->name)) {
         $treeObject->data->name = $item->name;
       }
+
       $treeObject->data->id = $item->id;
       $treeObject->data->type = $item->type;
       $treeObject->data->parentKey = $item->parentKey;
