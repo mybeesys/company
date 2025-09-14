@@ -77,7 +77,7 @@
 
         @if (!empty($contact->file_path))
             <div class="mt-2 ms-2">
-                <a href="{{ asset('storage/' . $contact->file_path) }}" target="_blank" class=" btn-sm btn-primary">
+                <a href="{{ asset('storage/tenanttest1/' . $contact->file_path) }}" target="_blank" class=" btn-sm btn-primary">
                     📄 @lang('clientsandsuppliers::fields.view_file')
                 </a>
             </div>
