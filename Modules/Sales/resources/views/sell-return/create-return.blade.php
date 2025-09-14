@@ -282,8 +282,9 @@
                          text: lang === 'ar'
                 ? `${product.SKU} - ${product.name_ar}`
                 : `${product.SKU} - ${product.name_en}`,
-                 price: product.price,
+                        price: product.price,
                         units: product.unit_transfers,
+                        remaining_qty: product.remaining_qty,
                     })),
                     pagination: {
                         more: response.meta?.next_page_url ? true : false
@@ -297,6 +298,11 @@
     const $row = $(this).closest('tr');
 
     $row.find('.unit_price-field').val(selectedData.price);
+
+     const $qtyInput = $row.find('.qty-field');
+       $qtyInput.attr('max', selectedData.remaining_qty);
+      $qtyInput.val(Math.min($qtyInput.val() || 0, selectedData.remaining_qty));
+
 
     const $unitSelect = $row.find('.unit');
     $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
@@ -665,6 +671,7 @@ $.ajax({
                 } else {
                     $('#nots_tab').tab('show');
 
+                  $("#paid_amount").val($("#input-totalAfterVat").val(finalTotalAfterVat.toFixed(2)))
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();

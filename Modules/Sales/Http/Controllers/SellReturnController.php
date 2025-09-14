@@ -249,6 +249,7 @@ class SellReturnController extends Controller
             ]);
             $transactionUtil = new TransactionUtils();
 
+
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
@@ -336,7 +337,6 @@ class SellReturnController extends Controller
                 $lineStatus = 'completed';
                 $anyReturned = true;
                 $allCompleted = true;
-
             }
 
             if ($returnedQtyForProduct > 0) {
@@ -376,6 +376,4 @@ class SellReturnController extends Controller
             'products'        => $productsStatus,
         ];
     }
-
-
 }
