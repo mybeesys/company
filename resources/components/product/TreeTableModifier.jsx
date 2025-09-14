@@ -341,7 +341,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         href="javascript:void(0);"
                         onClick={(e) => {
                             e.stopPropagation();
-                            window.location.href = `${productCrudList}/create?parent_id=${parentNode.data.id}`;
+                            addInline(
+                                node.key,
+                                newType,
+                                newParentKey,
+                                node.data.type1,
+                                node.data.parentKey1,
+                                true,
+                                { product_type: "fastProduct" }
+                            );
                         }}
                     >
                         {addText}
