@@ -206,7 +206,7 @@ class SellReturnController extends Controller
     public function storeSellReturn(Request $request)
     {
         // return $request;
-        try {
+        // try {
             $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $main_establishment = Establishment::notMain()->active()->first();
@@ -270,6 +270,7 @@ class SellReturnController extends Controller
                 ]);
             }
 
+            $this->distributeReturnToInvoiceLines($transaction);
 
             if ($request->paid_amount) {
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
@@ -283,18 +284,55 @@ class SellReturnController extends Controller
             $status = 'success';
             DB::commit();
             return redirect()->route('sell-return')->with($status, $msg);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->route('sell-return')->with('error', __('messages.something_went_wrong'));
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return redirect()->route('sell-return')->with('error', __('messages.something_went_wrong'));
+        // }
     }
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    function distributeReturnToInvoiceLines($returnTransaction)
     {
-        return view('sales::show');
+        $invoice_id = $returnTransaction;
+        if (!$invoice_id) return;
+
+        $returnLines = TransactionePurchasesLine::where('transaction_id', $returnTransaction->id)->get();
+           $transactionIds = Transaction::where('type', 'sell')
+            ->where('contact_id',$returnTransaction->contact_id)
+            ->pluck('id');
+
+        $invoiceLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
+
+            ->orderBy('id')
+            ->get();
+
+        foreach ($returnLines as $returnLine) {
+            $remainingToReturn = $returnLine->qyt;
+            $product_id = $returnLine->product_id;
+
+            foreach ($invoiceLines->where('product_id', $product_id) as $sellLine) {
+                if ($remainingToReturn <= 0) break;
+
+                $returnQty = min($sellLine->remaining_qty ?? $sellLine->qyt, $remainingToReturn);
+                $sellLine->remaining_qty = ($sellLine->remaining_qty ?? $sellLine->qyt) - $returnQty;
+
+                // تحديث الحالة
+                if ($sellLine->remaining_qty == 0) {
+                    $sellLine->line_status = 'completed';
+                } elseif ($sellLine->remaining_qty < $sellLine->qyt) {
+                    $sellLine->line_status = 'partial';
+                } else {
+                    $sellLine->line_status = 'pending';
+                }
+
+                $sellLine->save();
+
+                $remainingToReturn -= $returnQty;
+            }
+        }
     }
+
 
 
     function updateSalesReturnStatus($invoice_id)

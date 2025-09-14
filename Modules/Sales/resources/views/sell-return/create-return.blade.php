@@ -284,7 +284,7 @@
                 : `${product.SKU} - ${product.name_en}`,
                         price: product.price,
                         units: product.unit_transfers,
-                        remaining_qty: product.remaining_qty,
+                        // remaining_qty: product.remaining_qty,
                     })),
                     pagination: {
                         more: response.meta?.next_page_url ? true : false
@@ -297,11 +297,12 @@
     const selectedData = e.params.data;
     const $row = $(this).closest('tr');
 
-    $row.find('.unit_price-field').val(selectedData.price);
+      $row.find('.unit_price-field').val(selectedData.price);
+    //   console.log("selectedData.remaining_qty".selectedData);
 
-     const $qtyInput = $row.find('.qty-field');
-       $qtyInput.attr('max', selectedData.remaining_qty);
-      $qtyInput.val(Math.min($qtyInput.val() || 0, selectedData.remaining_qty));
+    //  const $qtyInput = $row.find('.qty-field');
+    //    $qtyInput.attr('max', selectedData.remaining_qty);
+    //   $qtyInput.val(Math.min($qtyInput.val() || 0, selectedData.remaining_qty));
 
 
     const $unitSelect = $row.find('.unit');
@@ -671,7 +672,7 @@ $.ajax({
                 } else {
                     $('#nots_tab').tab('show');
 
-                  $("#paid_amount").val($("#input-totalAfterVat").val(finalTotalAfterVat.toFixed(2)))
+                  $("#paid_amount").val($("#input-totalAfterVat").val)
                     $("#li-payment_info").hide();
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();
