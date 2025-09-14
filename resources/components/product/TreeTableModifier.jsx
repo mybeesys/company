@@ -243,7 +243,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         for (const key in defaultObjectValue) {
             node.data[key] = defaultObjectValue[key];
         }
-
+        if (parentNode && parentNode.data.type === "variable") {
+            node.data.cost = "";
+        }
         let newNodeKey = !!!parentKey
             ? Number(seg[0]) + 1
             : parentKey + "-" + (Number(seg[seg.length - 1]) + 1);
