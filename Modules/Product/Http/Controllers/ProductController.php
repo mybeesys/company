@@ -749,8 +749,8 @@ class ProductController extends Controller
                 foreach ($newModifiers as $modifier) {
                     ProductModifier::create([
                         'product_id' => $productId,
-                        'modifier_class_id' => $modifier->class_id,
-                        'modifier_id' => $modifier->id,
+                        'modifier_class_id' => $modifier->class_id ?? null,
+                        'modifier_id' => $modifier->id ?? null,
                         'active' => 0,
                         'default' => 0,
                         'required' => 0,
