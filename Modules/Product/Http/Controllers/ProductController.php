@@ -298,7 +298,7 @@ class ProductController extends Controller
 
     protected function saveProduct($validated, $request)
     {
-        Log::info($request);
+        //Log::info($request);
         $image = null;
         $product = Product::find($validated['id']);
         $product->fill($validated);

@@ -338,8 +338,8 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 );
             } else if (parentNode && parentNode.data.type === "subcategory") {
                 addText = `${translations.Add} ${translations.product}`;
-                const subcategoryId = parentNode.data.subcategory_id
-                    ? parentNode.data.subcategory_id
+                const subcategoryId = parentNode.data.id
+                    ? parentNode.data.id
                     : null;
                 return (
                     <a
