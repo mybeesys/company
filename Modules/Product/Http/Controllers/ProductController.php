@@ -1361,7 +1361,6 @@ class ProductController extends Controller
         //     ]);
         // }
 
-        // جميع فواتير البيع للعميل
         $transactionIds = Transaction::where('type', 'sell')
             ->where('contact_id', $contactId)
             ->pluck('id');
@@ -1373,7 +1372,6 @@ class ProductController extends Controller
             ]);
         }
 
-        // كل المنتجات المباعة وغير مكتمل إرجاعها
         $productLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
             ->where('line_status', '<>', 'completed')
             ->get()
@@ -1397,12 +1395,10 @@ class ProductController extends Controller
                 $lines = $productLines[$product->id] ?? collect();
                 $soldQty = $lines->sum('qyt');
 
-                // مجموع المرتجعات لهذا المنتج عبر كل المرتجعات المرتبطة
                 $returnedQty = TransactionePurchasesLine::whereIn('transaction_id', $lines->pluck('transaction_id'))
                     ->where('product_id', $product->id)
                     ->sum('qyt');
 
-                // الكمية المتبقية
                 $product->remaining_qty = max(0, $soldQty - $returnedQty);
 
                 return $product;
