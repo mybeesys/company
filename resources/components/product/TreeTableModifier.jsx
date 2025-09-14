@@ -338,6 +338,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 );
             } else if (parentNode && parentNode.data.type === "subcategory") {
                 addText = `${translations.Add} ${translations.product}`;
+                const subcategoryId = parentNode.data.subcategory_id
+                    ? parentNode.data.subcategory_id
+                    : null;
                 return (
                     <a
                         href="javascript:void(0);"
@@ -350,7 +353,10 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                 node.data.type1,
                                 node.data.parentKey1,
                                 true,
-                                { product_type: "fastProduct" }
+                                {
+                                    product_type: "fastProduct",
+                                    subcategory_id: subcategoryId,
+                                }
                             );
                         }}
                     >
