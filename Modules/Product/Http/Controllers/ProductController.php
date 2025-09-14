@@ -601,7 +601,9 @@ class ProductController extends Controller
 
     protected function createProduct($validated, $request)
     {
+        Log::info($request);
         DB::transaction(function () use ($validated, $request) {
+
             // 1. Create the product
             $product = Product::create($validated);
             $tax = Tax::where("default", 1)->first();
@@ -629,6 +631,15 @@ class ProductController extends Controller
                     'unit1' => $unit->unit1,
                     'unit2' => $unit->unit2,
                     'transfer' => $unit->transfer,
+                ]);
+            }
+            if ($request->product_type && $request->product_type == "fastProduct") {
+                UnitTransfer::create([
+                    'primary' => 1,
+                    'product_id' => $product->id,
+                    'unit1' => app()->getLocale() == 'ar' ? "حبة" : "piece",
+                    'unit2' => null,
+                    'transfer' => -100,
                 ]);
             }
             // 5. Handle image upload if a file is provided
