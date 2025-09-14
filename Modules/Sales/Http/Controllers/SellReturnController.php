@@ -306,8 +306,8 @@ class SellReturnController extends Controller
 
         $invoiceLines = TransactionSellLine::where('transaction_id', $invoice->id)->get();
 
-        $returnTransactions = Transaction::where('parent_id', $invoice->id)->get();
-        $returnLines = TransactionePurchasesLine::whereIn('transaction_id', $returnTransactions->pluck('id'))->get();
+        $returnTransaction = Transaction::where('parent_id', $invoice->id)->first();
+        $returnLines = TransactionePurchasesLine::where('transaction_id', $returnTransaction->id)->get();
 
         $productsStatus = [];
         $returnedCount = 0;
@@ -366,8 +366,8 @@ class SellReturnController extends Controller
             $overallStatus = 'pending';
         }
 
-        $invoice->po_status = $overallStatus;
-        $invoice->save();
+        $returnTransaction->po_status = $overallStatus;
+        $returnTransaction->save();
 
         return [
             'po_status'   => $overallStatus,

@@ -1355,6 +1355,7 @@ class ProductController extends Controller
             ->pluck('id');
 
         $product_ids = TransactionSellLine::whereIn('transaction_id', $transaction_ids)
+            ->where('line_status', '<>', 'completed')
             ->pluck('product_id')
             ->unique();
 
