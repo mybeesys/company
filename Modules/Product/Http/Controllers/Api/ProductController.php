@@ -58,11 +58,9 @@ class ProductController extends Controller
             }])->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
             }])->with('category')->with('subcategory')->with('tax')
-            ->leftJoin('product_inventories', function ($join) use ($establishment_id) {
-                $join->on('product_inventories.product_id', '=', 'product_products.id')
-                    ->where('establishment_id', '=', $establishment_id); // Constant condition
-            })->groupBy('product_products.id')
-            ->select('product_products.*')
+            ->with(['inventory' => function ($query) use ($establishment_id) {
+                $query->where('establishment_id', '=', $establishment_id);
+            }])
             ->get();
         return new ProductCollection($products);
     }
