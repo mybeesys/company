@@ -58,7 +58,7 @@ class ProductController extends Controller
             }])->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
             }])->with('category')->with('subcategory')->with('tax')
-            ->with(['inventory' => function ($query) use ($establishment_id) {
+            ->with(['total' => function ($query) use ($establishment_id) {
                 $query->where('establishment_id', '=', $establishment_id);
             }])
             ->get();
