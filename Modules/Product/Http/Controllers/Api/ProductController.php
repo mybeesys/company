@@ -61,7 +61,8 @@ class ProductController extends Controller
             ->leftJoin('product_inventories', function ($join) use ($establishment_id) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('establishment_id', '=', $establishment_id); // Constant condition
-            })->distinct()
+            })->groupBy('product_products.id')
+            ->select('product_products.*')
             ->get();
         return new ProductCollection($products);
     }
