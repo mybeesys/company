@@ -25,7 +25,7 @@ class ProductController extends Controller
         //     $query->where('establishment_id', $establishment_id); // Example condition on EntityTwo
         // })
         $products = Product::where([['active', '=', 1]])
-        ->whereIn('type', ['product', 'variable'])
+            ->whereIn('type', ['product', 'variable'])
             ->with(['modifiers' => function ($query) {
                 $query->with([
                     'modifierClass' => function ($q) {
@@ -37,17 +37,17 @@ class ProductController extends Controller
                 ]);
             }])
 
-        // $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-        //     ->whereIn('type', ['product', 'variation'])
-        //     ->with(['modifiers' => function ($query) {
-        //         $query->with([
-        //             'children' => function ($q) {
-        //                 $q->where('active', 1);
-        //             }
-        //             // 'modifierItem'
-        //         ]);
-        //     }])
-        //     //     // ->with(['attributes' => function ($query) {
+            // $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+            //     ->whereIn('type', ['product', 'variation'])
+            //     ->with(['modifiers' => function ($query) {
+            //         $query->with([
+            //             'children' => function ($q) {
+            //                 $q->where('active', 1);
+            //             }
+            //             // 'modifierItem'
+            //         ]);
+            //     }])
+            //     //     // ->with(['attributes' => function ($query) {
             //     $query->with('attribute1');
             //     $query->with('attribute2');
             // }])
@@ -61,7 +61,8 @@ class ProductController extends Controller
             ->leftJoin('product_inventories', function ($join) use ($establishment_id) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('establishment_id', '=', $establishment_id); // Constant condition
-            })->get();
+            })->distinct()
+            ->get();
         return new ProductCollection($products);
     }
 
