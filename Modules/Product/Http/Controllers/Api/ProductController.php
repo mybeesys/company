@@ -28,11 +28,10 @@ class ProductController extends Controller
             ->whereIn('type', ['product', 'variable'])
             ->with(['modifiers' => function ($query) {
                 $query->whereNull('modifier_id')
+                    ->where('active', 1)
                     ->with([
                         'modifierClass' => function ($q) {
-                            $q->with(['children' => function ($q) {
-                                $q->wherePivot('active', 1);
-                            }]);
+                            $q->with(['children' => function ($q) {}]);
                         }
                     ]);
             }])
