@@ -1,12 +1,12 @@
 <?php
+
 namespace Modules\Employee\Services;
+
 use Modules\Employee\Models\DashboardRole;
 
 class DashboardRoleActions
 {
-    public function __construct(protected $request)
-    {
-    }
+    public function __construct(protected $request) {}
 
     public function storeUpdateRolePermissions($dashboardRole, $role = true)
     {
@@ -29,12 +29,13 @@ class DashboardRoleActions
         } else {
             $filteredPermissions = null;
         }
-        if(!$role){
+        if (!$role) {
             $filteredPermissions = array_merge($dashboardRole->getDirectPermissions()->where('type', 'pos')->pluck('id')->toArray(), $filteredPermissions->toArray());
-        }   
+        }
         //Check if the permissions is for individual employee or role
         $role ? $dashboardRole->permissions()->sync($filteredPermissions) : $dashboardRole->syncPermissions($filteredPermissions);
     }
+
 
 
     public function store()
