@@ -5,7 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
 use Modules\Employee\Http\Requests\UpdateEmployeeRequest;
@@ -30,7 +30,7 @@ class EmployeeController extends Controller
 
     public function __construct()
     {
-        $this->establishments = Establishment::active()->notMain()->get(['id', 'name']);
+        $this->establishments = Establishment::active()->get(['id', 'name']);
         $this->dashboardRoles = DashboardRole::get(['id', 'name']);
         $this->posRoles = PosRole::get(['id', 'name']);
         $this->allowances_types = PayrollAdjustmentType::allowance()->get();
@@ -45,13 +45,9 @@ class EmployeeController extends Controller
         return response()->json(['data' => $number]);
     }
 
-    public function createLiveValidation(StoreEmployeeRequest $request)
-    {
-    }
+    public function createLiveValidation(StoreEmployeeRequest $request) {}
 
-    public function updateLiveValidation(UpdateEmployeeRequest $request)
-    {
-    }
+    public function updateLiveValidation(UpdateEmployeeRequest $request) {}
 
     private function getEmployeeViewData(int $id): array
     {
@@ -67,8 +63,7 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
-        $employees = Employee::with('permissions:id,name')->
-            select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
+        $employees = Employee::with('permissions:id,name')->select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {
 
             if ($request->has('deleted_records') && !empty($request->deleted_records)) {
@@ -84,7 +79,9 @@ class EmployeeController extends Controller
 
         $modules = DashboardRoleService::getModulesPermissions();
 
-        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules'));
+        $posRoles = $this->posRoles;
+        $establishments = $this->establishments;
+        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules', 'posRoles', 'establishments'));
     }
 
     public function create()

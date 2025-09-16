@@ -1,17 +1,17 @@
 @props([
-    'employee' => null,
-    'posRoles',
-    'dashboardRoles',
-    'establishments',
-    'disabled' => false,
-    'formId' => null,
-    'allowances_types',
+'employee' => null,
+'posRoles',
+'dashboardRoles',
+'establishments',
+'disabled' => false,
+'formId' => null,
+'allowances_types',
 ])
 @php
-    $wageTypes = [
-        ['id' => 'variable', 'name' => __('employee::general.by_working_time')],
-        ['id' => 'fixed', 'name' => __('employee::general.fixed')],
-    ];
+$wageTypes = [
+['id' => 'variable', 'name' => __('employee::general.by_working_time')],
+['id' => 'fixed', 'name' => __('employee::general.fixed')],
+];
 @endphp
 
 {{-- employee section --}}
@@ -28,14 +28,14 @@
                     <span class="ms-1" data-bs-toggle="tooltip" title="@lang('employee::general.employee_status_hint')">
                         <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                     </span>
-                </x-slot>
-                <x-form.switch-div>
-                    <input type="hidden" name="pos_is_active" value="0">
-                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
-                        type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
-                        label="{{ __('employee::general.deactivate/activate') }}"
-                        checked="{{ $employee?->pos_is_active }}" />
-                </x-form.switch-div>
+                    </x-slot>
+                    <x-form.switch-div>
+                        <input type="hidden" name="pos_is_active" value="1">
+                        <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
+                            type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
+                            label="{{ __('employee::general.deactivate/activate') }}"
+                            checked="{{  $employee?->pos_is_active ? 'checked' : 'checked' }}" />
+                    </x-form.switch-div>
             </x-form.form-card>
         </div>
     </div>
@@ -47,16 +47,17 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#wage_tab">@lang('employee::fields.wage')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#pos_tab">@lang('employee::general.pos')</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#dashboard_access_tab">@lang('employee::general.dashboard_access')</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                    href="#wage_tab">@lang('employee::fields.wage')</a>
-            </li>
+
         </ul>
         <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
             <div class="tab-content" id="myTabContent">
@@ -115,7 +116,7 @@
                                 <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                                 <div class="input-group">
                                     <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
-                                        :disabled=$disabled value="{{ $employee?->pin }}" required>
+                                        :disabled=$disabled value="{{ $employee?->pin }}">
                                         <button type="button" id="generate_pin" @disabled($disabled)
                                             class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                     </x-form.input>
@@ -126,6 +127,7 @@
                             <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                                 :disabled=$disabled :establishments=$establishments />
                         </div>
+
                     </x-form.form-card>
                 </div>
                 <div class="tab-pane fade" id="dashboard_access_tab" role="tabpanel">

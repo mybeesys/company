@@ -10,6 +10,8 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Services\DashboardRoleActions;
 use Modules\Employee\Services\PosRoleActions;
+use Illuminate\Support\Facades\Log;
+use DB;
 
 class PermissionController extends Controller
 {
@@ -18,29 +20,77 @@ class PermissionController extends Controller
     {
         $validated = $request->validate([
             'pos_permissions' => ['array', 'nullable'],
-            'pos_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')]
+            'pos_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')],
+            'pos_role_ids' => ['array', 'nullable'],
+            'pos_role_ids.*' => ['integer', Rule::exists('roles', 'id')]
         ]);
         $permissions = new PosRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee, false);
+        if (isset($validated['pos_role_ids'])) {
+            $establishmentId = $employee->establishment_id;
+
+            // Use a model or DB facade to delete old roles
+            DB::table('emp_employee_establishments_roles')
+                ->where('employee_id', $employee->id)
+                ->where('establishment_id', $establishmentId)
+                ->delete();
+
+            $uniqueRoleIds = array_unique($validated['pos_role_ids']);
+            // Prepare data for insertion
+            $dataToInsert = [];
+            foreach ($uniqueRoleIds as $roleId) {
+                $dataToInsert[] = [
+                    'employee_id' => $employee->id,
+                    'establishment_id' => $establishmentId,
+                    'role_id' => $roleId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // Insert new roles
+            if (!empty($dataToInsert)) {
+                DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
+            }
+        }
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
-    public function getEmployeePosPermissions($id)
+    public function getEmployeePosPermissions($employeeId)
     {
-        $employee = Employee::with([
-            'permissions' => function ($query) {
-                $query->where('type', 'pos');
-            }
-        ])->find($id);
-        $allPermissionId = Permission::firstWhere('name', 'select_all_permissions')->id;
+        // 1. Fetch employee with its permissions and the new posRoles relationship
+        $employee = Employee::with(['posRoles' => function ($query) {}, 'permissions'])->find($employeeId);
+
+        // Handle the case where the employee is not found
         if (!$employee) {
-            return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
+            return response()->json(['success' => false, 'message' => 'Not Found'], 404);
         }
+
+        // 2. Get all permission IDs directly assigned to the employee
+        $employeePermissions = $employee->permissions->pluck('id')->toArray();
+
+        // 3. Safely get the "select all" permission ID
+        $allPermissions = Permission::where('name', 'pos_select_all_permissions')->first();
+        $allPermissionsId = $allPermissions ? $allPermissions->id : null;
+
+        // 4. Collect the IDs of all assigned POS roles
+        $posRoleIds = $employee->posRoles->pluck('id')->toArray();
+
+        // 5. Collect all permissions from all assigned POS roles
+        $rolePermissions = collect();
+        foreach ($employee->posRoles as $role) {
+            $rolePermissions = $rolePermissions->merge($role->permissions->pluck('id'));
+        }
+
+        // 6. Merge the employee's direct permissions and the combined role permissions
+        $combinedPermissions = array_unique(array_merge($employeePermissions, $rolePermissions->toArray()));
+
         return response()->json([
             'success' => true,
             'data' => [
-                'employeePermissions' => $employee->permissions->pluck('id'),
-                'allPermissionsId' => $allPermissionId,
+                'employeePermissions' => $combinedPermissions,
+                'allPermissionsId' => $allPermissionsId,
+                'pos_role_ids' => $posRoleIds, // Return an array of role IDs
             ],
         ]);
     }

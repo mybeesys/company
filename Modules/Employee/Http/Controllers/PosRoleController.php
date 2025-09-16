@@ -24,27 +24,43 @@ class PosRoleController extends Controller
         $this->permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
         $this->departments = PosRole::departments();
     }
+    public function getPermissions(PosRole $role)
+    {
+        // Check if the role exists
+        if (!$role) {
+            return response()->json([
+                'permissions' => [],
+                'allPermissionsId' => null
+            ], 404);
+        }
+
+        $permissions = $role->permissions->pluck('id');
+
+        // Find the 'select all' permission and get its ID safely
+        $allPermissions = Permission::where('name', 'pos_select_all_permissions')->first();
+        $allPermissionsId = $allPermissions ? $allPermissions->id : null;
+
+        return response()->json([
+            'permissions' => $permissions,
+            'allPermissionsId' => $allPermissionsId
+        ]);
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $roles = PosRole::
-                select('id', 'name', 'guard_name', 'department', 'rank', 'is_active');
+            $roles = PosRole::select('id', 'name', 'guard_name', 'department', 'rank', 'is_active');
             return PosRoleTable::getRoleTable($roles);
         }
         $columns = PosRoleTable::getRoleColumns();
         return view('employee::pos-roles.index', compact('columns'));
     }
 
-    public function createLiveValidation(StorePosRoleRequest $request)
-    {
-    }
+    public function createLiveValidation(StorePosRoleRequest $request) {}
 
-    public function updateLiveValidation(UpdatePosRoleRequest $request)
-    {
-    }
+    public function updateLiveValidation(UpdatePosRoleRequest $request) {}
 
 
     /**
