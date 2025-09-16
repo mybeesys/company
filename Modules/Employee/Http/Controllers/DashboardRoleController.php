@@ -9,8 +9,9 @@ use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
 use Modules\Employee\Models\DashboardRole;
-use Modules\Employee\Services\dashboardRoleActions;
 use Modules\Employee\Services\DashboardRoleService;
+use Modules\Employee\Services\DashboardRoleActions;
+
 
 class DashboardRoleController extends Controller
 {
@@ -27,13 +28,9 @@ class DashboardRoleController extends Controller
         return view('employee::dashboard-roles.index', compact('columns'));
     }
 
-    public function createLiveValidation(StoreDashboardRoleRequest $request)
-    {
-    }
+    public function createLiveValidation(StoreDashboardRoleRequest $request) {}
 
-    public function updateLiveValidation(UpdateDashboardRoleRequest $request)
-    {
-    }
+    public function updateLiveValidation(UpdateDashboardRoleRequest $request) {}
 
 
     /**
