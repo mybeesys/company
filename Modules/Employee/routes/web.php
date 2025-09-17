@@ -48,9 +48,7 @@ Route::middleware([
 
     Route::middleware(['auth'])->group(function () {
 
-        Route::get('/', [DashbordController::class, 'index'])->name('dashboard');
-
-        Route::get('/dashboard', [DashbordController::class, 'index']);
+        Route::get('/dashboard', [DashbordController::class, 'index'])->name('dashboard');
 
         Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 
@@ -91,10 +89,10 @@ Route::middleware([
             Route::patch('/{role}', 'update')->name('update')->can('update', PosRole::class);
             Route::delete('/{role}', 'destroy')->name('delete')->can('delete', PosRole::class);
 
-
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
+        Route::get('/permission/get-pos-role-permissions/{role}', [PosRoleController::class, 'getPermissions']);
 
         Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', DashboardRole::class);
