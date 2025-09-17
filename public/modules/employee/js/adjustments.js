@@ -10,7 +10,7 @@ function initializeSelect2(
         text: lang === "ar" ? "إضافة خيار جديد" : "Add New Option",
         addNew: true,
     };
-    element.find('option').remove();
+    element.find("option").remove();
     const allOptions = [addNewOption, ...Array.from(customOptions.values())];
     const select2Config = {
         tags: false,
@@ -239,7 +239,7 @@ function adjustmentRepeater(
                         selectedOption = item.id;
                     });
 
-                    if (addNewOption.length) {
+                    if (addNewOption.length > 0) {
                         adjustment_type.append(addNewOption);
                     } else {
                         adjustment_type.append(
