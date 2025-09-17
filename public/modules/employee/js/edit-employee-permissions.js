@@ -7,6 +7,7 @@ function setPermissionsFromList(permissionIds, allPermissionsId) {
     // Uncheck all checkboxes first to reset the state
     permissionsCheckboxContainer
         .find('input[type="checkbox"]')
+        .not(`#pos_select_all_permissions`)
         .prop("checked", false);
 
     // If the 'all permissions' ID is included, check all checkboxes
@@ -21,6 +22,18 @@ function setPermissionsFromList(permissionIds, allPermissionsId) {
                 .find(`input[value="${id}"]`)
                 .prop("checked", true);
         });
+        const allChecked =
+            permissionsCheckboxContainer.find(
+                'input[name^="pos_permissions"][value!="all"]'
+            ).length ===
+            permissionsCheckboxContainer.find(
+                'input[name^="pos_permissions"][value!="all"]:checked'
+            ).length;
+        if (allChecked) {
+            permissionsCheckboxContainer
+                .find(`input[value="${allPermissionsId}"]`)
+                .prop("checked", true);
+        }
     }
 }
 
@@ -44,7 +57,6 @@ function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
                         employeeData.employeePermissions;
                     const allPermissionsId = employeeData.allPermissionsId;
                     const posRoleIds = employeeData.pos_role_ids || [];
-
                     const selectElement = $("#pos_role_ids");
 
                     // 1. Set the role dropdown value first.
@@ -72,6 +84,10 @@ function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
                         if (selectElement.data("select2")) {
                             selectElement.trigger("change");
                         }
+                        setPermissionsFromList(
+                            employeePermissions,
+                            allPermissionsId
+                        );
                     } else {
                         // Reset all permissions if no permissions or roles are assigned.
                         setPermissionsFromList([], allPermissionsId);
@@ -96,7 +112,7 @@ function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
         const roleIds = $(this).val() || [];
         if (roleIds.length > 0) {
             let combinedPermissions = new Set();
-            let allPermissionsFound = false;
+            let allPermissionsId = null;
 
             // Fetch permissions for all selected roles using Promise.all
             const requests = roleIds.map((roleId) => {
@@ -105,14 +121,10 @@ function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
                     "GET"
                 );
             });
-
             Promise.all(requests).then((responses) => {
                 responses.forEach((response) => {
-                    if (
-                        response.allPermissionsId &&
-                        response.permissions.includes(response.allPermissionsId)
-                    ) {
-                        allPermissionsFound = true;
+                    if (response.allPermissionsId) {
+                        allPermissionsId = response.allPermissionsId;
                     }
                     response.permissions.forEach((permissionId) =>
                         combinedPermissions.add(permissionId)
@@ -122,7 +134,7 @@ function assignPosPermissionsToEmployee(getDataUrl, assignUrl) {
                 // Set checkboxes based on the combined permissions
                 setPermissionsFromList(
                     [...combinedPermissions],
-                    allPermissionsFound ? responses[0].allPermissionsId : null
+                    allPermissionsId
                 );
             });
         } else {

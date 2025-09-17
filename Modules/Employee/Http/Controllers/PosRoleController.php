@@ -40,6 +40,16 @@ class PosRoleController extends Controller
         $allPermissions = Permission::where('name', 'pos_select_all_permissions')->first();
         $allPermissionsId = $allPermissions ? $allPermissions->id : null;
 
+
+        if ($permissions->contains(2)) {
+            // Get all permission IDs
+            $allPermissionIds = Permission::all()->pluck('id');
+            return response()->json([
+                'permissions' => $allPermissionIds,
+                'allPermissionsId' => $allPermissionsId
+            ]);
+        }
+
         return response()->json([
             'permissions' => $permissions,
             'allPermissionsId' => $allPermissionsId
