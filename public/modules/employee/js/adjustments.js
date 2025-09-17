@@ -10,7 +10,6 @@ function initializeSelect2(
         text: lang === "ar" ? "إضافة خيار جديد" : "Add New Option",
         addNew: true,
     };
-    element.find("option").remove();
     const allOptions = [addNewOption, ...Array.from(customOptions.values())];
     const select2Config = {
         tags: false,
