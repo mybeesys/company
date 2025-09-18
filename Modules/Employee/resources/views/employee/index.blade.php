@@ -54,7 +54,7 @@
         assignPosPermissionsToEmployee("{{ url('/permission/get-employee-pos-permissions/') }}",
             "{{ url('/permission/:id/assign-pos-permissions') }}");
         assignDashboardPermissionsToEmployee("{{ url('/permission/get-employee-dashboard-permissions/') }}",
-            "{{ route('permissions.assign.user', ':id') }}");
+            "{{ url('/permission/:id/assign-dashboard-permissions') }}");
 
         let tableElement = $("#dashboard-permissions-table");
         let modalTable = tableElement.DataTable({
