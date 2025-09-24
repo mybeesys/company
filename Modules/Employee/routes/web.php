@@ -93,7 +93,7 @@ Route::middleware([
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
         });
         Route::get('/permission/get-pos-role-permissions/{role}', [PosRoleController::class, 'getPermissions']);
-
+        Route::get('/permission/get-dashboard-role-permissions/{roleId}', [PosRoleController::class, 'getDashboardRolePermissions']);
         Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', DashboardRole::class);
             Route::get('/create', 'create')->name('create')->can('create', DashboardRole::class);

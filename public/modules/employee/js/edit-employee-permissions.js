@@ -236,66 +236,129 @@ function assignPosPermissionsToEmployeeForm(
         });
 }
 
+// A helper function specifically for managing dashboard permission checkboxes
+function setDashboardPermissionsFromList(permissionIds) {
+    const permissionsCheckboxContainer = $(
+        "#employee_dashboard_permissions_edit_form"
+    );
+
+    // Uncheck all checkboxes first to reset the state
+    permissionsCheckboxContainer
+        .find('input[type="checkbox"]')
+        .prop("checked", false);
+
+    // Check only the specific permissions provided
+    permissionIds.forEach((id) => {
+        permissionsCheckboxContainer
+            .find(`input[value="${id}"]`)
+            .prop("checked", true);
+    });
+}
 function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
+    const permissionsCheckboxContainer = $(
+        "#employee_dashboard_permissions_edit_form"
+    );
+
     $(document).on("click", ".edit-ems-permission-button", function (e) {
         e.preventDefault();
         const employeeId = $(this).data("id");
-        $("#employee_dashboard_permissions_edit_form #employee_id").val(
-            employeeId
-        );
 
-        ajaxRequest(
-            `${getDataUrl}/${employeeId}`,
-            "GET",
-            {},
-            false,
-            false
-        ).done(function (response) {
-            if (response.success) {
-                const employeeData = response.data;
-                const userPermissions = employeeData.userPermissions;
+        ajaxRequest(`${getDataUrl}/${employeeId}`, "GET", {}, false, true).done(
+            function (response) {
+                if (response.success) {
+                    const employeeData = response.data;
+                    const userPermissions = employeeData.userPermissions || [];
+                    const dashboardRoleIds =
+                        employeeData.dashboard_role_ids || [];
+                    const selectElement = $("#dashboard_role_ids");
 
-                $("#employee_dashboard_permissions_edit_form")
-                    .find('input[name^="dashboard_permissions"]')
-                    .each(function () {
-                        const permissionId = $(this).val();
-                        $(this).prop(
-                            "checked",
-                            userPermissions.includes(parseInt(permissionId))
-                        );
-                    });
-                assignDashboardPermissionsToEmployeeForm(employeeId, assignUrl);
-                $(`input[name*="dashboard_permissions["]:checked`).trigger(
-                    "change"
-                );
-                $("#employee_dashboard_permissions_edit").modal("toggle");
+                    if (dashboardRoleIds.length > 0) {
+                        selectElement.val(dashboardRoleIds);
+                        if (selectElement.data("select2")) {
+                            selectElement.trigger("change.select2");
+                        }
+                    } else {
+                        selectElement.val(null).trigger("change.select2");
+                    }
+
+                    if (userPermissions.length > 0) {
+                        setDashboardPermissionsFromList(userPermissions);
+                    } else if (dashboardRoleIds.length > 0) {
+                        if (selectElement.data("select2")) {
+                            selectElement.trigger("change");
+                        }
+                    } else {
+                        setDashboardPermissionsFromList([]);
+                    }
+
+                    assignDashboardPermissionsToEmployeeForm(
+                        employeeId,
+                        assignUrl
+                    );
+
+                    $("#employee_dashboard_permissions_edit").modal("toggle");
+                }
             }
-        });
+        );
+    });
+
+    // Event handler for changes in the multi-select roles dropdown
+    $(document).on("change", "#dashboard_role_ids", function () {
+        const roleIds = $(this).val() || [];
+        if (roleIds.length > 0) {
+            let combinedPermissions = new Set();
+            const requests = roleIds.map((roleId) => {
+                return ajaxRequest(
+                    `/permission/get-dashboard-role-permissions/${roleId}`,
+                    "GET"
+                );
+            });
+            Promise.all(requests).then((responses) => {
+                responses.forEach((response) => {
+                    response.permissions.forEach((permissionId) =>
+                        combinedPermissions.add(permissionId)
+                    );
+                });
+                setDashboardPermissionsFromList([...combinedPermissions]);
+            });
+        } else {
+            permissionsCheckboxContainer
+                .find('input[type="checkbox"]')
+                .prop("checked", false);
+        }
     });
 }
 
 function assignDashboardPermissionsToEmployeeForm(employeeId, assignUrl) {
+    // Form submission handler
     $("#employee_dashboard_permissions_edit_form")
         .off("submit")
         .on("submit", function (e) {
             e.preventDefault();
-            const url = assignUrl.replace(":id", employeeId);
 
-            const checkedPermissions = {};
-            $(
+            // Get only the manually checked permissions
+            let checkedPermissions = $(
                 'input[name^="dashboard_permissions"]:checked:not(:disabled)'
-            ).each(function () {
-                const name = $(this).attr("name");
-                const value = $(this).val();
-                const key = name.match(/\[(.*?)\]/)[1];
-                checkedPermissions[key] = value;
-            });
+            )
+                .map(function () {
+                    return parseInt($(this).val(), 10);
+                })
+                .get();
+
+            // Filter out NaN values
+            checkedPermissions = checkedPermissions.filter(
+                (value) => !isNaN(value)
+            );
+
+            const url = assignUrl.replace(":id", employeeId);
+            const selectedRoleIds = $("#dashboard_role_ids").val() || [];
 
             ajaxRequest(
                 url,
                 "PATCH",
                 {
                     dashboard_permissions: checkedPermissions,
+                    dashboard_role_ids: selectedRoleIds,
                 },
                 true,
                 true

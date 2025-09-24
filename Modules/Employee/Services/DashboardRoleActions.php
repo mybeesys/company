@@ -11,32 +11,23 @@ class DashboardRoleActions
     public function storeUpdateRolePermissions($dashboardRole, $role = true)
     {
         if ($this->request->has('dashboard_permissions')) {
-            $permissions = collect($this->request['dashboard_permissions']);
-            $allPermissions = [];
-            $permissions->each(function ($item, $key) use (&$allPermissions) {
-                [$module, $type, $action] = explode('.', $key);
-                if ($type === 'all') {
-                    $allPermissions["$module.$action"] = true;
-                }
-            });
-            $filteredPermissions = $permissions->filter(function ($item, $key) use ($allPermissions) {
-                [$module, $type, $action] = explode('.', $key);
-                // If "all" permission exists for the same module and action, skip this item
-                return !isset($allPermissions["$module.$action"]) || $type === 'all';
-            })->map(function ($item) {
-                return (int) $item;
-            });
+            $filteredPermissions = collect($this->request['dashboard_permissions'])
+                ->map(function ($item) {
+                    return (int) $item;
+                });
         } else {
-            $filteredPermissions = null;
+            $filteredPermissions = collect([]);
         }
+
         if (!$role) {
-            $filteredPermissions = array_merge($dashboardRole->getDirectPermissions()->where('type', 'pos')->pluck('id')->toArray(), $filteredPermissions->toArray());
+            $filteredPermissions = collect(array_merge(
+                $dashboardRole->getDirectPermissions()->where('type', 'pos')->pluck('id')->toArray(),
+                $filteredPermissions->toArray()
+            ));
         }
-        //Check if the permissions is for individual employee or role
-        $role ? $dashboardRole->permissions()->sync($filteredPermissions) : $dashboardRole->syncPermissions($filteredPermissions);
+
+        $role ? $dashboardRole->permissions()->sync($filteredPermissions->toArray()) : $dashboardRole->syncPermissions($filteredPermissions->toArray());
     }
-
-
 
     public function store()
     {

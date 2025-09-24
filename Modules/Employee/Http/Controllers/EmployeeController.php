@@ -81,7 +81,8 @@ class EmployeeController extends Controller
 
         $posRoles = $this->posRoles;
         $establishments = $this->establishments;
-        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules', 'posRoles', 'establishments'));
+        $dashboardRoles = $this->dashboardRoles;
+        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules', 'posRoles', 'establishments', 'dashboardRoles'));
     }
 
     public function create()
