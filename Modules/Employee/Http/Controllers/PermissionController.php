@@ -52,6 +52,12 @@ class PermissionController extends Controller
             if (!empty($dataToInsert)) {
                 DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
             }
+        } else {
+
+            DB::table('emp_employee_establishments_roles')
+                ->where('employee_id', $employee->id)
+                ->whereNotNull('establishment_id')
+                ->delete();
         }
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
@@ -133,6 +139,12 @@ class PermissionController extends Controller
             if (!empty($dataToInsert)) {
                 DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
             }
+        } else {
+
+            DB::table('emp_employee_establishments_roles')
+                ->where('employee_id', $employee->id)
+                ->whereNull('establishment_id')
+                ->delete();
         }
 
         return response()->json(['message' => __('employee::responses.operation_success')]);
