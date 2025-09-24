@@ -110,12 +110,10 @@ class PermissionController extends Controller
 
         // If dashboard_role_ids are provided, handle them
         if (!empty($validated['dashboard_role_ids'])) {
-            $establishmentId = $employee->establishment_id;
-
             // Delete old roles assigned to the employee in the current establishment
             DB::table('emp_employee_establishments_roles')
                 ->where('employee_id', $employee->id)
-                ->where('establishment_id', $establishmentId)
+                ->whereNull('establishment_id')
                 ->delete();
 
             $uniqueRoleIds = array_unique($validated['dashboard_role_ids']);
@@ -125,7 +123,6 @@ class PermissionController extends Controller
             foreach ($uniqueRoleIds as $roleId) {
                 $dataToInsert[] = [
                     'employee_id' => $employee->id,
-                    'establishment_id' => $establishmentId,
                     'role_id' => $roleId,
                     'created_at' => now(),
                     'updated_at' => now(),
