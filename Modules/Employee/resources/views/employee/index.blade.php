@@ -24,7 +24,7 @@
 </x-cards.card>
 <div id="print-area" style="display: none;"></div>
 <x-employee::employees.edit-pos-employee-permissions-modal :permissions=$permissions :posRoles=$posRoles :establishments=$establishments />
-<x-employee::employees.edit-dashboard-employee-permissions-modal :modules=$modules />
+<x-employee::employees.edit-dashboard-employee-permissions-modal :modules=$modules :permissions=$permissions :dashboardRoles=$dashboardRoles />
 @endsection
 
 @section('script')

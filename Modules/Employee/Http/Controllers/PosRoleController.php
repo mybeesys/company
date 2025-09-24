@@ -12,6 +12,7 @@ use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Services\PosRoleActions;
 
+
 class PosRoleController extends Controller
 {
 
@@ -53,6 +54,20 @@ class PosRoleController extends Controller
         return response()->json([
             'permissions' => $permissions,
             'allPermissionsId' => $allPermissionsId
+        ]);
+    }
+    public function getDashboardRolePermissions($roleId)
+    {
+
+        $permissions = DB::table('role_has_permissions')
+            ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_has_permissions.role_id', $roleId)
+            ->where('permissions.type', 'ems')
+            ->pluck('role_has_permissions.permission_id') 
+            ->toArray();
+
+        return response()->json([
+            'permissions' => $permissions
         ]);
     }
     /**

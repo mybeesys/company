@@ -99,29 +99,77 @@ class PermissionController extends Controller
     {
         $validated = $request->validate([
             'dashboard_permissions' => ['array', 'nullable'],
-            'dashboard_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')]
+            'dashboard_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')],
+            'dashboard_role_ids' => ['array', 'nullable'],
+            'dashboard_role_ids.*' => ['integer', Rule::exists('roles', 'id')]
         ]);
+
+        // Handle permissions
         $permissions = new DashboardRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee, false);
+
+        // If dashboard_role_ids are provided, handle them
+        if (!empty($validated['dashboard_role_ids'])) {
+            $establishmentId = $employee->establishment_id;
+
+            // Delete old roles assigned to the employee in the current establishment
+            DB::table('emp_employee_establishments_roles')
+                ->where('employee_id', $employee->id)
+                ->where('establishment_id', $establishmentId)
+                ->delete();
+
+            $uniqueRoleIds = array_unique($validated['dashboard_role_ids']);
+
+            // Prepare data for insertion
+            $dataToInsert = [];
+            foreach ($uniqueRoleIds as $roleId) {
+                $dataToInsert[] = [
+                    'employee_id' => $employee->id,
+                    'establishment_id' => $establishmentId,
+                    'role_id' => $roleId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // Insert new roles if data is not empty
+            if (!empty($dataToInsert)) {
+                DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
+            }
+        }
 
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
     public function getEmployeeDashboardPermissions($id)
     {
-        $user = Employee::with([
+        $employee = Employee::with([
+            'dashboardRoles' => function ($query) {
+                $query->with('permissions');
+            },
             'permissions' => function ($query) {
                 $query->where('type', 'ems');
             }
-        ])->firstWhere('id', $id);
+        ])->find($id);
 
-        if (!$user) {
+        if (!$employee) {
             return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
         }
+
+        $userPermissions = $employee->permissions->pluck('id')->toArray();
+
+        $dashboardRoleIds = $employee->dashboardRoles->pluck('id')->toArray();
+        $rolePermissions = collect();
+        foreach ($employee->dashboardRoles as $role) {
+            $rolePermissions = $rolePermissions->merge($role->permissions->where('type', 'ems')->pluck('id'));
+        }
+        $combinedPermissions = array_unique(array_merge($userPermissions, $rolePermissions->toArray()));
+
         return response()->json([
             'success' => true,
             'data' => [
-                'userPermissions' => $user->permissions->pluck('id'),
+                'userPermissions' => $combinedPermissions,
+                'dashboard_role_ids' => $dashboardRoleIds,
             ],
         ]);
     }
