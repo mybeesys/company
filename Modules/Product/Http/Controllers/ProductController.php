@@ -497,7 +497,8 @@ class ProductController extends Controller
                     $att['preparation_time'] = $product->preparation_time;
                     $att['order'] = $product->order;
                     $att['tax_id'] = $product->tax_id;
-                    $att['image'] = $image;
+                    $att['image'] = $product->image;
+                    $att['color'] = $product->color;
                     $att['category_id'] = $product->category_id;
                     $att['subcategory_id'] = $product->subcategory_id;
                     $att['show_in_menu'] = $product->show_in_menu;
@@ -812,6 +813,7 @@ class ProductController extends Controller
             $att['tax_id'] = $product->tax_id;
             $att['parent_id'] = $productId;
             $att['image'] = $product->image;
+            $att['color'] = $product->color;
             $att['description_en'] = $product->description_en;
             $att['description_ar'] = $product->description_ar;
             $att['calories'] = $product->calories;

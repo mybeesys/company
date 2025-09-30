@@ -75,18 +75,14 @@ const InventoryManagement = ({
                     )
                     .then((response) => {
                         if (response.data.new_price == -1) return;
-                        onBasicChange(
-                            "price",
-                            response.data.new_price
-                        );
+                        onBasicChange("price", response.data.new_price);
                     }),
             500
         );
     };
 
-    const onPriceChange = (key, value, option) => {
-        const tax_id = key == "tax_id" ? value : currentObject.tax_id;
-        const price = key == "price" ? value : currentObject.price;
+    const onPriceChange = (key, value) => {
+        const tax_id = currentObject.order_tax_id;
         onBasicChange(key, value);
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -96,18 +92,16 @@ const InventoryManagement = ({
                 axios
                     .get(
                         `${window.location.origin}/priceWithTax?tax_id=${
-                            !!tax_id ? tax_id : ""
-                        }&price=${!!price ? price : ""}`
+                            tax_id || ""
+                        }&price=${value || ""}`
                     )
                     .then((response) => {
-                        currentObject.orderPriceWithTax =
-                            response.data.orderPriceWithTax;
+                        console.log("response", response);
+                        if (response.data.price_with_tax == -1) return;
                         onBasicChange(
                             "orderPriceWithTax",
-                            currentObject.orderPriceWithTax
+                            response.data.price_with_tax
                         );
-                        if (key == "tax_id")
-                            updatePriceWithtax(!!tax_id ? tax_id : "");
                     }),
             500
         );
@@ -188,10 +182,7 @@ const InventoryManagement = ({
                         />
                     </div>
                     <div className="col-6">
-                        <label
-                            htmlFor="price"
-                            className="col-form-label"
-                        >
+                        <label htmlFor="price" className="col-form-label">
                             {translations.orderDefaultPrice}
                         </label>
                         <input
@@ -202,10 +193,7 @@ const InventoryManagement = ({
                             id="price"
                             value={currentObject.price || ""}
                             onChange={(e) =>
-                                onBasicChange(
-                                    "price",
-                                    e.target.value
-                                )
+                                onPriceChange("price", e.target.value)
                             }
                         />
                     </div>
@@ -259,37 +247,6 @@ const InventoryManagement = ({
                                 )
                             }
                         />
-                    </div>
-                    <div className="col-6">
-                        <div
-                            className="form-check form-switch form-check-custom form-check-solid"
-                            style={{ paddingTop: 20 }}
-                        >
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="trackInventory"
-                                style={{
-                                    width: "35px",
-                                    height: "40px",
-                                    minWidth: "39px",
-                                    minHeight: "22px",
-                                }}
-                                checked={currentObject.trackInventory == 1}
-                                onChange={(e) =>
-                                    onBasicChange(
-                                        "trackInventory",
-                                         e.target.checked ? 1 : 0 
-                                    )
-                                }
-                            />
-                            <label
-                                className="col-form-label px-5"
-                                htmlFor="trackInventory"
-                            >
-                                {translations.trackInventory}
-                            </label>
-                        </div>
                     </div>
                 </div>
             </div>
