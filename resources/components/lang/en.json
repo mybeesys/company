@@ -249,7 +249,7 @@
   "prepare":"Prepare",
   "prep_recipe":"Prepare the recipe before selling",
   "prep_recipe_status":"Check the box if you wish to prepare the recipe now before selling the product. Preparation must begin on the recipe preparation page in warehouse management. If not selected, the recipe will be prepared after the sale.",
-  "recipe_yield":"Recipe Yield",
+  "recipe_yield":"Default production quantity",
   "group" : "Group",
   "groupCombo" : "Assign a group",
   "groupCombo_status":"allows you to create and sell a predefined product bundle at a set price, which is less than or equal to the sum of the products in the bundle. For example, you can sell a pizza with a soda and side fries as a bundle.",
