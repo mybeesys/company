@@ -670,6 +670,14 @@ class ProductController extends Controller
                 $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $defaultFileName;
                 $product->save();
             }
+            if ($product->parent_id) {
+                $proImage = Product::find($product->parent_id);
+                if ($proImage) {
+                    $product->image = $proImage->image;
+                    $product->color = $proImage->color;
+                    $product->save();
+                }
+            }
             // 2. Save modifiers if they exist
             if (isset($request["modifiers"])) {
                 $this->saveModifiers($request["modifiers"], $product->id);
