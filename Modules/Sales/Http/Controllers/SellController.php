@@ -361,14 +361,14 @@ class SellController extends Controller
                         'product_id' => $recipeProduct->products->id,
                         'qyt' => $product->qty,
                         'unit_id' => $recipeProduct->unit_transfer_id,
-                        'unit_price_before_discount' => $recipeProduct->products->price,
-                        'unit_price' =>  $recipeProduct->products->price,
+                        'unit_price_before_discount' => $recipeProduct->products->price ?? 0,
+                        'unit_price' =>  $recipeProduct->products->price ?? 0,
                         'discount_type' => 'fixd',
                         'discount_amount' => 0,
                         'unit_price_inc_tax' =>  $price_with_tax,
                         'tax_id' => $recipeProduct->products->tax_id,
-                        'tax_value' => $price_with_tax - $recipeProduct->products->price,
-                        'total_before_vat' => $recipeProduct->products->price,
+                        'tax_value' => $price_with_tax - ($recipeProduct->products->price ?? 0),
+                        'total_before_vat' => $recipeProduct->products->price ?? 0,
                         'is_show' => 0,
                     ]);
                 }
