@@ -43,7 +43,7 @@ class Transaction extends Model
 
     public function sell_lines()
     {
-        return $this->hasMany(TransactionSellLine::class, 'transaction_id');
+        return $this->hasMany(TransactionSellLine::class, 'transaction_id')->where('is_show', 1);;
     }
 
     public function purchases_lines()
@@ -236,7 +236,7 @@ class Transaction extends Model
             </div>';
 
                     $completedReturn = Transaction::where('parent_id', $row->id)->where('type', 'sell-return')->where('po_status', 'completed')->first();
-         
+
                     if ($row->type == 'sell' && !$completedReturn) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="' . url("/create-sell-return/{$row->id}") . '" class="menu-link px-3">' . __('general::lang.sell-return') . '</a>
