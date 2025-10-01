@@ -1266,6 +1266,17 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
+
+     [
+        'name' => 'sales.Allow Sale Without Stock.create',
+        'name_ar' => 'السماح بالبيع دون توفر الكمية',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+
+
     [
         'name' => 'sales.Add Payment.create',
         'name_ar' => 'إضافة دفعة لفاتورة المبيعات',
