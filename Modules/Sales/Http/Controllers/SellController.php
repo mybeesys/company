@@ -25,6 +25,7 @@ use Modules\General\Utils\TransactionUtils;
 use Modules\Inventory\Models\Transfer;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Sales\Utils\SalesUtile;
 
@@ -208,7 +209,7 @@ class SellController extends Controller
         $transaction = $transactionsQuery->get();
         $columns = Transaction::getsSellsColumns();
 
-        $quotations = Transaction::where('type', 'quotation')->where('po_status','<>','completed')->get();
+        $quotations = Transaction::where('type', 'quotation')->where('po_status', '<>', 'completed')->get();
 
         $Latest_event = Actions::where('user_id', Auth::id())->where('type', 'create_sell')->first();
 
@@ -274,114 +275,140 @@ class SellController extends Controller
         // return $request;
 
         // try {
-            $actionUtil = new ActionUtil();
-            $contactUtils = new ContactUtils();
-            $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
+        $actionUtil = new ActionUtil();
+        $contactUtils = new ContactUtils();
+        $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
 
-            $transactionUtil = new TransactionUtils();
-            DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('sell');
+        $transactionUtil = new TransactionUtils();
+        DB::beginTransaction();
+        $ref_no =  SalesUtile::generateReferenceNumber('sell');
 
-            $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-            $main_establishment = Establishment::notMain()->active()->first();
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
-            $termsNotesData = null;
-            if (isset($request->toggle_terms_notes)) {
-                $termsNotesData = json_encode([
-                    'terms_en' => request('terms_and_conditions_en'),
-                    'terms_ar' => request('terms_and_conditions_ar'),
-                    'note_en' => request('note_en'),
-                    'note_ar' => request('note_ar'),
-                ]);
-            }
+        $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+        $main_establishment = Establishment::notMain()->active()->first();
+        $establishment_id = $request->storehouse;
+        if ($request->storehouse == $main_establishment->id) {
+            $establishment_id = $main_establishment->id;
+        }
+        $termsNotesData = null;
+        if (isset($request->toggle_terms_notes)) {
+            $termsNotesData = json_encode([
+                'terms_en' => request('terms_and_conditions_en'),
+                'terms_ar' => request('terms_and_conditions_ar'),
+                'note_en' => request('note_en'),
+                'note_ar' => request('note_ar'),
+            ]);
+        }
 
-            $quotation_id = null;
-            if ($request->quotation_id) {
-                $quotation_id = $request->quotation_id;
-            }
-            $transaction =   Transaction::create([
-                'type' => 'sell',
-                'invoice_type' => $request->invoice_type,
-                'due_date' => $request->due_date,
-                'transaction_date' => $request->transaction_date,
-                'contact_id' => $request->client_id,
-                'cost_center' => $request->cost_center ?? null,
-                'discount_amount' => $request->invoice_discount,
-                'discount_type' => $invoiced_discount_type,
-                'total_before_tax' => $request->totalBeforeVat,
-                'totalAfterDiscount' => $request->totalAfterDiscount,
-                'tax_amount' => $request->totalVat,
-                'final_total' => $request->totalAfterVat,
-                'created_by' => Auth::user()->id,
-                'description' => $request->invoice_note,
-                'ref_no' => $ref_no,
-                'status' => $request->status,
-                'notice' => $request->notice,
-                'establishment_id' => $establishment_id,
-                'settings_terms_notes' => $termsNotesData,
+        $quotation_id = null;
+        if ($request->quotation_id) {
+            $quotation_id = $request->quotation_id;
+        }
+        $transaction =   Transaction::create([
+            'type' => 'sell',
+            'invoice_type' => $request->invoice_type,
+            'due_date' => $request->due_date,
+            'transaction_date' => $request->transaction_date,
+            'contact_id' => $request->client_id,
+            'cost_center' => $request->cost_center ?? null,
+            'discount_amount' => $request->invoice_discount,
+            'discount_type' => $invoiced_discount_type,
+            'total_before_tax' => $request->totalBeforeVat,
+            'totalAfterDiscount' => $request->totalAfterDiscount,
+            'tax_amount' => $request->totalVat,
+            'final_total' => $request->totalAfterVat,
+            'created_by' => Auth::user()->id,
+            'description' => $request->invoice_note,
+            'ref_no' => $ref_no,
+            'status' => $request->status,
+            'notice' => $request->notice,
+            'establishment_id' => $establishment_id,
+            'settings_terms_notes' => $termsNotesData,
 
-                'parent_id' => $quotation_id,
+            'parent_id' => $quotation_id,
 
+        ]);
+
+
+        $products = json_decode(json_encode($request->products));
+
+        foreach ($products as $product) {
+            $discount_type = $product->discount ? $product->discount_type : null;
+            TransactionSellLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->products_id,
+                'qyt' => $product->qty,
+                'unit_id' => $product->unit,
+                'unit_price_before_discount' => $product->unit_price,
+                'unit_price' => $product->unit_price,
+                'discount_type' => $discount_type,
+                'discount_amount' => $product->discount,
+                'unit_price_inc_tax' => $product->total_after_vat,
+                'tax_id' => $product->tax_vat,
+                'tax_value' => $product->vat_value,
+                'total_before_vat' => $product->total_before_vat,
             ]);
 
-
-            $products = json_decode(json_encode($request->products));
-
-            foreach ($products as $product) {
-                $discount_type = $product->discount ? $product->discount_type : null;
-                TransactionSellLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => $product->discount,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
-            }
-
-
-            if ($quotation_id) {
-                $this->updatePurchaseOrderStatus($quotation_id
-
-            );
-            }
-
-            if ($request->paid_amount) {
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            }
-
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-
-            $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
-
-            $msg = __('messages.add_successfully');
-            $status = 'success';
-            if ($totalOutstanding) {
-                $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
-                if ($credit_limit && $credit_limit < $totalOutstanding) {
-                    $msg = __('messages.Added successfully, but the customer exceeded');
-                    $status = 'error';
+            $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
+            if ($is_recipe_yield) {
+                $recipeProduct = RecipeProduct::with('products')->where('product_id', $product->products_id)->first();
+                foreach ($products as $product) {
+                    $discount_type = $product->discount ? $product->discount_type : null;
+                    $price_with_tax = 0;
+                    $price_with_tax = $recipeProduct->products->type == 'ingredint' ? $recipeProduct->products->orderPriceWithTax : $recipeProduct->products->price_with_tax;
+                    TransactionSellLine::create([
+                        'transaction_id' => $transaction->id,
+                        'product_id' => $recipeProduct->products->id,
+                        'qyt' => $product->qty,
+                        'unit_id' => $recipeProduct->unit_transfer_id,
+                        'unit_price_before_discount' => $recipeProduct->products->price,
+                        'unit_price' =>  $recipeProduct->products->price,
+                        'discount_type' => 'fixd',
+                        'discount_amount' => 0,
+                        'unit_price_inc_tax' =>  $price_with_tax,
+                        'tax_id' => $recipeProduct->products->tax_id,
+                        'tax_value' => $price_with_tax - $recipeProduct->products->price,
+                        'total_before_vat' => $recipeProduct->products->price,
+                        'is_show' => 0,
+                    ]);
                 }
             }
+        }
 
-            DB::commit();
-            if ($request->action == 'save_print') {
-                return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
-            } else if ($request->action == 'save_add') {
-                return redirect()->route('create-invoice')->with($status, $msg);
-            } else {
-                return redirect()->route('invoices')->with($status, $msg);
+
+        if ($quotation_id) {
+            $this->updatePurchaseOrderStatus(
+                $quotation_id
+
+            );
+        }
+
+        if ($request->paid_amount) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
+
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
+        $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
+
+        $msg = __('messages.add_successfully');
+        $status = 'success';
+        if ($totalOutstanding) {
+            $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
+            if ($credit_limit && $credit_limit < $totalOutstanding) {
+                $msg = __('messages.Added successfully, but the customer exceeded');
+                $status = 'error';
             }
+        }
+
+        DB::commit();
+        if ($request->action == 'save_print') {
+            return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
+        } else if ($request->action == 'save_add') {
+            return redirect()->route('create-invoice')->with($status, $msg);
+        } else {
+            return redirect()->route('invoices')->with($status, $msg);
+        }
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));

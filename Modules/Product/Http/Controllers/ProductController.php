@@ -33,6 +33,7 @@ use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\Storage;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
 
 class ProductController extends Controller
@@ -1338,8 +1339,12 @@ class ProductController extends Controller
     public function productsForSale(Request $request)
     {
         $search = $request->input('search');
+
+        $setting = Setting::where('key', 'allow_sale_without_stock')->first();
+
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->whereIn('type', ['product', 'variable'])
+
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name_ar', 'like', "%$search%")
@@ -1347,10 +1352,24 @@ class ProductController extends Controller
                         ->orWhere('SKU', 'like', "%$search%");
                 });
             })
+
+            ->whereNull('deleted_at')
             ->with(['unitTransfers' => function ($query) {
                 // $query->whereNull('unit2');
             }])
+// ->select(
+//     'product_products.*',
+//     DB::raw('SUM(product_inventories.qty) as total_qty')
+// )
+// ->leftJoin('product_inventories', function ($join) {
+//     $join->on('product_inventories.product_id', '=', 'product_products.id')
+//          ->whereNotNull('product_inventories.qty');
+// })
+// ->groupBy('product_products.id')
+
             ->get();
+
+
 
         return response()->json([
             'success' => true,
@@ -1367,7 +1386,7 @@ class ProductController extends Controller
         // if (!$contactId) {
         //     return response()->json([
         //         'success' => false,
-        //         'message' => 'يرجى تحديد العميل أولاً.'
+        //         'message' =>
         //     ]);
         // }
 

@@ -18,6 +18,7 @@ class Product extends Model
     use SoftDeletes;
     public $timestamps = true;
 
+    
     // Define fillable fields for mass assignment
     protected $fillable = [
         'name_ar',
