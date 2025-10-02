@@ -359,7 +359,7 @@ class SellController extends Controller
                     TransactionSellLine::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $recipeProduct->products->id,
-                        'qyt' => $product->qty,
+                        'qyt' => $product->qty * $product->qty,
                         'unit_id' => $recipeProduct->unit_transfer_id,
                         'unit_price_before_discount' => $recipeProduct->products->price ?? 0,
                         'unit_price' =>  $recipeProduct->products->price ?? 0,
