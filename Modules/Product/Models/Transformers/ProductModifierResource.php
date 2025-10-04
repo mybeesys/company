@@ -20,7 +20,6 @@ class ProductModifierResource extends JsonResource
     {
         $modifierClass = null;
         if ($this->modifierClass) {
-            $unit = [];
 
 
             $modifierClass = [
@@ -31,6 +30,7 @@ class ProductModifierResource extends JsonResource
 
 
                 'modifiers' => $this->modifierClass->children->map(function ($child) {
+                    $unit = [];
 
                     if (!empty($child->unitTransfers) && count($child->unitTransfers) > 0) {
                         $unit["id"] = $child->unitTransfers[0]->id;
