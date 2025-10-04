@@ -351,12 +351,11 @@ class SellController extends Controller
 
             //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
             //if ($is_recipe_yield) {
-            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get(); // استخدام get() بدلاً من first()
+            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get();
 
             if ($recipeProducts->isNotEmpty()) {
                 foreach ($recipeProducts as $recipeProduct) {
                     foreach ($recipeProduct->products as $ingredient) {
-                        $discount_type = $ingredient->discount ? $ingredient->discount_type : null;
                         $price_with_tax = $ingredient->type == 'ingredint' ? $ingredient->orderPriceWithTax : $ingredient->price_with_tax;
 
                         TransactionSellLine::create([
