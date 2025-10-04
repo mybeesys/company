@@ -351,7 +351,7 @@ class SellController extends Controller
 
             //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
             //if ($is_recipe_yield) {
-            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get();
+            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get(); // استخدام get() بدلاً من first()
 
             if ($recipeProducts->isNotEmpty()) {
                 foreach ($recipeProducts as $recipeProduct) {
@@ -362,7 +362,7 @@ class SellController extends Controller
                         TransactionSellLine::create([
                             'transaction_id' => $transaction->id,
                             'product_id' => $ingredient->id,
-                            'qyt' => $ingredient->qty * $recipeProduct->quantity,
+                            'qyt' => $product->qty * $recipeProduct->quantity,
                             'unit_id' => $recipeProduct->unit_transfer_id,
                             'unit_price_before_discount' => $ingredient->price ?? 0,
                             'unit_price' => $ingredient->price ?? 0,
