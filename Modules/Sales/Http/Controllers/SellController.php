@@ -349,9 +349,10 @@ class SellController extends Controller
                 'total_before_vat' => $product->total_before_vat,
             ]);
 
-            $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
-            if ($is_recipe_yield) {
-                $recipeProduct = RecipeProduct::with('products')->where('product_id', $product->products_id)->first();
+            //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
+            //if ($is_recipe_yield) {
+            $recipeProduct = RecipeProduct::with('products')->where('product_id', $product->products_id)->first();
+            if ($recipeProduct) {
                 foreach ($products as $product) {
                     $discount_type = $product->discount ? $product->discount_type : null;
                     $price_with_tax = 0;
@@ -359,7 +360,7 @@ class SellController extends Controller
                     TransactionSellLine::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $recipeProduct->products->id,
-                        'qyt' => $product->qty * $product->qty,
+                        'qyt' => $product->qty * $recipeProduct->quantity,
                         'unit_id' => $recipeProduct->unit_transfer_id,
                         'unit_price_before_discount' => $recipeProduct->products->price ?? 0,
                         'unit_price' =>  $recipeProduct->products->price ?? 0,
