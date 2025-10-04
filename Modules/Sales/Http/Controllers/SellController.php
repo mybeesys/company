@@ -356,7 +356,7 @@ class SellController extends Controller
             if ($recipeProducts->isNotEmpty()) {
                 foreach ($recipeProducts as $recipeProduct) {
                     foreach ($recipeProduct->products as $ingredient) {
-                        $price_with_tax = $ingredient->type == 'ingredint' ? $ingredient->orderPriceWithTax : $ingredient->price_with_tax;
+                        // $price_with_tax = $ingredient->type == 'ingredint' ? $ingredient->orderPriceWithTax : $ingredient->price_with_tax;
 
                         TransactionSellLine::create([
                             'transaction_id' => $transaction->id,
@@ -367,9 +367,9 @@ class SellController extends Controller
                             'unit_price' => $ingredient->price ?? 0,
                             'discount_type' => 'fixd',
                             'discount_amount' => 0,
-                            'unit_price_inc_tax' => $price_with_tax,
+                            'unit_price_inc_tax' => 0,
                             'tax_id' => $ingredient->tax_id,
-                            'tax_value' => $price_with_tax - ($ingredient->price ?? 0),
+                            'tax_value' => 0,
                             'total_before_vat' => $ingredient->price ?? 0,
                             'is_show' => 0,
                         ]);
