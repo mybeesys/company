@@ -22,26 +22,28 @@ class ProductModifierResource extends JsonResource
         if ($this->modifierClass) {
             $unit = [];
 
-            if (!empty($this->modifierClass->unitTransfers) && count($this->modifierClass->unitTransfers) > 0) {
-                $unit["id"] = $this->modifierClass->unitTransfers[0]->id;
-                $unit["name"] = $this->modifierClass->unitTransfers[0]->unit1;
-                $unit["product_id"] = $this->modifierClass->unitTransfers[0]->product_id;
-            }
+
             $modifierClass = [
                 'id' => $this->modifierClass->id,
                 'name_ar' => $this->modifierClass->name_ar,
                 'name_en' => $this->modifierClass->name_en,
-                'unit' => $unit,
 
 
 
                 'modifiers' => $this->modifierClass->children->map(function ($child) {
+
+                    if (!empty($child->unitTransfers) && count($child->unitTransfers) > 0) {
+                        $unit["id"] = $child->unitTransfers[0]->id;
+                        $unit["name"] = $child->unitTransfers[0]->unit1;
+                        $unit["product_id"] = $child->unitTransfers[0]->product_id;
+                    }
                     return [
                         'id' => $child->id,
                         'name_ar' => $child->name_ar,
                         'name_en' => $child->name_en,
                         'price' => $child->price,
                         'price_with_tax' => $child->price_with_tax,
+                        'unit' => $unit,
                         'product_id' => $this->product_id,
                         'modifier_id' => $this->id
                     ];
