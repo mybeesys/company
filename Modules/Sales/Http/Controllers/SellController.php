@@ -358,7 +358,6 @@ class SellController extends Controller
                     $ingredients = $recipeProduct->products;
 
                     foreach ($ingredients as $ingredient) {
-                        $discount_type = $ingredient->discount ? $ingredient->discount_type : null;
                         $price_with_tax = $ingredient->type == 'ingredint' ? $ingredient->orderPriceWithTax : $ingredient->price_with_tax;
 
                         TransactionSellLine::create([
