@@ -14,6 +14,11 @@ class GeneralResource extends JsonResource
     }
     public function toArray($request)
     {
+        $unit = [];
+
+        $unit["id"] = $this->product->unitTransfers[0]->id;
+        $unit["name"] = $this->product->unitTransfers[0]->unit1;
+        $unit["product_id"] = $this->product->unitTransfers[0]->product_id;
         if (isset($this->extra)) {
             return [
                 'id' => $this->product->id,
@@ -21,7 +26,11 @@ class GeneralResource extends JsonResource
                 'name_en' => $this->product->name_en,
                 'price' => $this->price,
                 'price' => $this->product->price,
-                'parent_id' => $this->extra["parent_id"]
+                'unit' => $unit,
+                'parent_id' => $this->extra["parent_id"],
+
+
+
             ];
         }
         return [
@@ -30,6 +39,8 @@ class GeneralResource extends JsonResource
             'name_en' => $this->product->name_en,
             'combo_price' => $this->price,
             'price' => $this->product->price,
+            'unit' => $unit,
+
 
         ];
     }
