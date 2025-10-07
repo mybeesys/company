@@ -1,17 +1,17 @@
 @props([
-'employee' => null,
-'posRoles',
-'dashboardRoles',
-'establishments',
-'disabled' => false,
-'formId' => null,
-'allowances_types',
+    'employee' => null,
+    'posRoles',
+    'dashboardRoles',
+    'establishments',
+    'disabled' => false,
+    'formId' => null,
+    'allowances_types',
 ])
 @php
-$wageTypes = [
-['id' => 'variable', 'name' => __('employee::general.by_working_time')],
-['id' => 'fixed', 'name' => __('employee::general.fixed')],
-];
+    $wageTypes = [
+        ['id' => 'variable', 'name' => __('employee::general.by_working_time')],
+        ['id' => 'fixed', 'name' => __('employee::general.fixed')],
+    ];
 @endphp
 
 {{-- employee section --}}
@@ -28,14 +28,14 @@ $wageTypes = [
                     <span class="ms-1" data-bs-toggle="tooltip" title="@lang('employee::general.employee_status_hint')">
                         <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                     </span>
-                    </x-slot>
-                    <x-form.switch-div>
-                        <input type="hidden" name="pos_is_active" value="1">
-                        <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
-                            type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
-                            label="{{ __('employee::general.deactivate/activate') }}"
-                            checked="{{  $employee?->pos_is_active ? 'checked' : 'checked' }}" />
-                    </x-form.switch-div>
+                </x-slot>
+                <x-form.switch-div>
+                    <input type="hidden" name="pos_is_active" value="1">
+                    <x-form.input :solid="false" :errors=$errors class="form-check-input" value="1"
+                        type="checkbox" :disabled=$disabled labelClass="form-check-label" name="pos_is_active"
+                        label="{{ __('employee::general.deactivate/activate') }}"
+                        checked="{{ $employee?->pos_is_active ? 'checked' : 'checked' }}" />
+                </x-form.switch-div>
             </x-form.form-card>
         </div>
     </div>
@@ -121,7 +121,27 @@ $wageTypes = [
                                             class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                     </x-form.input>
                                 </div>
-                            </x-form.input-div>
+                                <x-form.input-div class="mb-10 w-100 px-2">
+                                    <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
+                                    <div class="input-group">
+                                        <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
+                                            :disabled=$disabled value="{{ $employee?->pin }}">
+                                            <button type="button" id="generate_pin" @disabled($disabled)
+                                                class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
+                                        </x-form.input>
+                                    </div>
+
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox"
+                                            id="is_enable_service_staff_pin" name="is_enable_service_staff_pin"
+                                            value="1"
+                                            {{ old('is_enable_service_staff_pin', $employee?->is_enable_service_staff_pin) ? 'checked' : '' }}
+                                            @disabled($disabled)>
+                                        <label class="form-check-label" for="is_enable_service_staff_pin">
+                                            @lang('employee::fields.is_enable_service_staff_pin')
+                                        </label>
+                                    </div>
+                                </x-form.input-div>
                         </div>
                         <div class="mb-5 ">
                             <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee

@@ -183,4 +183,5 @@ return [
     'deduction' => 'حسم',
     'adjustment_type_name' => 'اسم الإضافة',
     'apply_once' => 'تطبيق لمرة واحدة',
+    'is_enable_service_staff_pin' => 'تفعيل رقم PIN للموظف',
 ];
