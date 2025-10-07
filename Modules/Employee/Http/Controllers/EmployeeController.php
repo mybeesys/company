@@ -56,8 +56,8 @@ class EmployeeController extends Controller
             'posRoles' => $this->posRoles,
             'dashboardRoles' => $this->dashboardRoles,
             'establishments' => $this->establishments,
-            'allowances_types' => $this->allowances_types
-        ];
+            'allowances_types' => $this->allowances_types,
+            ];
     }
 
 

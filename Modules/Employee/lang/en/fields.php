@@ -151,6 +151,7 @@ return [
     'year_month' => 'Year/Month',
     'payroll_group_name' => 'Payroll group name',
     'draft' => 'Draft',
+    'is_enable_service_staff_pin' => 'Enable Staff PIN',
     'final_invoice' => 'Final invoice',
     'total_wage' => 'Total wage',
     'total_wage_before_tax' => 'Total wage before tax',
