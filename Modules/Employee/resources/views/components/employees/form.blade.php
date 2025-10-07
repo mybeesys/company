@@ -7,6 +7,7 @@
     'formId' => null,
     'allowances_types',
 ])
+
 @php
     $wageTypes = [
         ['id' => 'variable', 'name' => __('employee::general.by_working_time')],
@@ -39,6 +40,7 @@
             </x-form.form-card>
         </div>
     </div>
+
     <div class="w-100">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold mb-5">
             <li class="nav-item">
@@ -57,10 +59,11 @@
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                     href="#dashboard_access_tab">@lang('employee::general.dashboard_access')</a>
             </li>
-
         </ul>
+
         <div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
             <div class="tab-content" id="myTabContent">
+                {{-- Employee Details Tab --}}
                 <div class="tab-pane fade show active" id="employee_details_tab" role="tabpanel">
                     <x-form.form-card :headerDiv="false">
                         <div class="d-flex flex-wrap mt-10">
@@ -81,7 +84,6 @@
                                     placeholder="{{ __('employee::fields.email') }} ({{ __('employee::fields.required') }})"
                                     value="{{ $employee?->email }}" name="email" :label="__('employee::fields.email')" />
                             </x-form.input-div>
-
                             <x-form.input-div class="mb-10 w-100 px-2">
                                 <x-form.input :errors=$errors placeholder="{{ __('employee::fields.phone_number') }}"
                                     :disabled=$disabled value="{{ $employee?->phone_number }}" name="phone_number"
@@ -107,8 +109,9 @@
                             </x-form.input-div>
                         </div>
                     </x-form.form-card>
-
                 </div>
+
+                {{-- POS Tab --}}
                 <div class="tab-pane fade" id="pos_tab" role="tabpanel">
                     <x-form.form-card :headerDiv="false">
                         <div class="d-flex flex-wrap mt-10">
@@ -116,40 +119,30 @@
                                 <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
                                 <div class="input-group">
                                     <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
-                                        :disabled=$disabled value="{{ $employee?->pin }}">
-                                        <button type="button" id="generate_pin" @disabled($disabled)
-                                            class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
-                                    </x-form.input>
+                                        :disabled=$disabled value="{{ $employee?->pin }}" />
+                                    <button type="button" id="generate_pin" @disabled($disabled)
+                                        class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
                                 </div>
-                                <x-form.input-div class="mb-10 w-100 px-2">
-                                    <label for="pin" class="form-label">@lang('employee::fields.employee_access_pin')</label>
-                                    <div class="input-group">
-                                        <x-form.input :errors=$errors type="number" placeholder="pin" name="pin"
-                                            :disabled=$disabled value="{{ $employee?->pin }}">
-                                            <button type="button" id="generate_pin" @disabled($disabled)
-                                                class="btn btn-light-primary">@lang('employee::general.generate_pin')</button>
-                                        </x-form.input>
-                                    </div>
-
-                                    <div class="form-check mt-3">
-                                        <input class="form-check-input" type="checkbox"
-                                            id="is_enable_service_staff_pin" name="is_enable_service_staff_pin"
-                                            value="1"
-                                            {{ old('is_enable_service_staff_pin', $employee?->is_enable_service_staff_pin) ? 'checked' : '' }}
-                                            @disabled($disabled)>
-                                        <label class="form-check-label" for="is_enable_service_staff_pin">
-                                            @lang('employee::fields.is_enable_service_staff_pin')
-                                        </label>
-                                    </div>
-                                </x-form.input-div>
+                                <div class="form-check mt-3">
+                                    <input class="form-check-input" type="checkbox"
+                                        id="is_enable_service_staff_pin" name="is_enable_service_staff_pin"
+                                        value="1"
+                                        {{ old('is_enable_service_staff_pin', $employee?->is_enable_service_staff_pin) ? 'checked' : '' }}
+                                        @disabled($disabled)>
+                                    <label class="form-check-label" for="is_enable_service_staff_pin">
+                                        @lang('employee::fields.is_enable_service_staff_pin')
+                                    </label>
+                                </div>
+                            </x-form.input-div>
                         </div>
-                        <div class="mb-5 ">
+                        <div class="mb-5">
                             <x-employee::employees.repeaters.pos-role-repeater :posRoles=$posRoles :employee=$employee
                                 :disabled=$disabled :establishments=$establishments />
                         </div>
-
                     </x-form.form-card>
                 </div>
+
+                {{-- Dashboard Access Tab --}}
                 <div class="tab-pane fade" id="dashboard_access_tab" role="tabpanel">
                     <x-form.form-card :title="__('employee::general.dashboard_access')" id="dashboard_management_access" :collapsible=!$disabled
                         headerClass="active-management-fields">
@@ -173,7 +166,6 @@
                                     placeholder="{{ __('employee::fields.password') }}" name="password"
                                     :label="__('employee::fields.password')" :disabled=$disabled />
                             </x-form.input-div>
-
                         </div>
                         <div class="d-flex flex-wrap">
                             <x-form.input-div class="w-100 w-md-50 mb-10 px-2" :row=false>
@@ -184,6 +176,7 @@
                     </x-form.form-card>
                 </div>
 
+                {{-- Wage Tab --}}
                 <div class="tab-pane fade" id="wage_tab" role="tabpanel">
                     <x-form.form-card :headerDiv="false">
                         <div class="d-flex flex-wrap align-items-center gap-3 mt-7">
@@ -209,4 +202,5 @@
         </div>
     </div>
 </div>
+
 <x-form.form-buttons :disabled=$disabled cancelUrl="{{ url('/employee') }}" :id=$formId />
