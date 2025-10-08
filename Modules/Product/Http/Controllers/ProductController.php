@@ -1403,6 +1403,13 @@ class ProductController extends Controller
             ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
             ->where('product_products.active', 1)
             ->where('product_products.for_sell', 1)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('product_products.name_ar', 'like', "%{$search}%")
+                        ->orWhere('product_products.name_en', 'like', "%{$search}%")
+                        ->orWhere('product_products.SKU', 'like', "%{$search}%");
+                });
+            })
             ->whereIn('product_products.type', ['product', 'variable'])
             ->whereNull('product_products.deleted_at')
             ->groupBy(
@@ -1413,7 +1420,7 @@ class ProductController extends Controller
                 'product_products.type',
                 'product_products.active',
                 'product_products.for_sell',
-                        'product_products.cost',
+                'product_products.cost',
                 'product_products.price',
                 'product_products.category_id',
                 'product_products.subcategory_id',
