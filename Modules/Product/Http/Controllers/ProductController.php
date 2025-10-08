@@ -1347,7 +1347,7 @@ class ProductController extends Controller
         // }
 
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-            ->join('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
+            // ->join('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
             ->whereIn('type', ['product', 'variable'])
 
             ->when($search, function ($query) use ($search) {
