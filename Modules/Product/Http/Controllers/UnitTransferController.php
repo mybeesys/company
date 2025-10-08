@@ -20,7 +20,7 @@ class UnitTransferController extends Controller
             $ingTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($ingTransfer);
         } else {
-            $modTransfer = UnitTransfer::where('modifier_id', '=', $id)->get();
+            $modTransfer = UnitTransfer::where('product_id', '=', $id)->get();
             return response()->json($modTransfer);
         }
     }

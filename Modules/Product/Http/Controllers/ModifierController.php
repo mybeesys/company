@@ -124,7 +124,7 @@ class ModifierController extends Controller
                     $PriceTier->save();
                 }
             }
-            $oldUnites = UnitTransfer::where('modifier_id', $modifier->id)->get();
+            $oldUnites = UnitTransfer::where('product_id', $modifier->id)->get();
 
             if (isset($request["transfer"])) {
                 $ids = [];
@@ -133,7 +133,7 @@ class ModifierController extends Controller
                 $requestIds = array_map(function ($item) {
                     return $item["id"];
                 }, $request["transfer"]);
-                UnitTransfer::where('modifier_id', '=',  $modifier->id)->whereNotIn('id', $requestIds)->delete();
+                UnitTransfer::where('product_id', '=',  $modifier->id)->whereNotIn('id', $requestIds)->delete();
                 foreach ($oldUnites  as $old) {
                     $newid = [];
                     $newid['oldId'] = $old['id'];
@@ -146,7 +146,7 @@ class ModifierController extends Controller
                         $inserted = [];
                         $tran = [];
                         $newid['oldId'] =  $transfer['id'];
-                        $tran['modifier_id'] =  $modifier->id;
+                        $tran['product_id'] =  $modifier->id;
                         $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
                         $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
@@ -221,7 +221,7 @@ class ModifierController extends Controller
                     $inserted = [];
                     $tran = [];
                     $newid['oldId'] =  $transfer['id'];
-                    $tran['modifier_id'] =  $modifier->id;
+                    $tran['product_id'] =  $modifier->id;
                     $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
                     $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                     $tran['unit1'] = $transfer['unit1'];
@@ -247,7 +247,7 @@ class ModifierController extends Controller
                 $defaultUnit = UnitTransfer::where('default', 1)->first();
                 UnitTransfer::create([
                     'primary' => 1,
-                    'modifier_id' => $modifier->id,
+                    'product_id' => $modifier->id,
                     'unit1' => $defaultUnit->unit1,
                     'unit2' => null,
                     'transfer' => -100,
