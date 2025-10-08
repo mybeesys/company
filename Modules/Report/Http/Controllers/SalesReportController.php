@@ -1003,7 +1003,7 @@ class SalesReportController extends Controller
                     DB::raw("
                     SUM(
                         CASE 
-                            WHEN t.type = 'PO0' AND t.status = 'approved' 
+                            WHEN t.type = 'purchases' AND t.status = 'approved' 
                             THEN pl.qyt * (
                                 CASE 
                                     WHEN pu.transfer > 0 THEN 1
@@ -1019,19 +1019,13 @@ class SalesReportController extends Controller
                     ) as opening_inventory
                 "),
                     DB::raw("NULL as counted_quantity"),
-                    DB::raw("
+                    DB::raw("NULL as quantity_on_inventory"),
+                    /* DB::raw("
     (
-        SELECT FORMAT(SUM(pi.qty * CASE 
-                WHEN (
-                    SELECT COALESCE(MAX(transfer), 1)
-                    FROM product_unit_transfer AS pu_max_calc
-                    WHERE pu_max_calc.product_id = p.id
-                ) > 1 
-                THEN (
-                    SELECT COALESCE(MAX(transfer), 1)
-                    FROM product_unit_transfer AS pu_max_result
-                    WHERE pu_max_result.product_id = p.id
-                )
+        SELECT FORMAT(SUM(pi.qty * 
+            CASE 
+                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1 
+                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
                 ELSE 1
             END
         ), 2)
@@ -1039,7 +1033,7 @@ class SalesReportController extends Controller
         WHERE pi.establishment_id = t.establishment_id
         AND pi.product_id = p.id
     ) as quantity_on_inventory
-")
+")*/
                 )
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
                 ->where(function ($query) {
