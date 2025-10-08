@@ -861,7 +861,7 @@ class SalesReportController extends Controller
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
                 ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-          /*      ->leftJoin('product_inventories as pi', function ($join) {
+                /*      ->leftJoin('product_inventories as pi', function ($join) {
                     $join->on('p.id', '=', 'pi.product_id')
                         ->on('t.establishment_id', '=', 'pi.establishment_id');
                 })*/
@@ -1003,7 +1003,7 @@ class SalesReportController extends Controller
                     DB::raw("
                     SUM(
                         CASE 
-                            WHEN t.type = 'purchases' AND t.status = 'approved' 
+                            WHEN t.type = 'PO0' AND t.status = 'approved' 
                             THEN pl.qyt * (
                                 CASE 
                                     WHEN pu.transfer > 0 THEN 1
