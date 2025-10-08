@@ -797,7 +797,7 @@ class SalesReportController extends Controller
                 )
                 ->where(function ($query) {
                     $query->where(function ($subQuery) {
-                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return'])
+                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
                             ->where('t.status', 'approved');
                     })
                         ->orWhere(function ($subQuery) {
@@ -1000,7 +1000,24 @@ class SalesReportController extends Controller
                         END
                     ) as production_quantity
                 "),
-                    DB::raw("NULL as opening_inventory"),
+                    DB::raw("
+                    SUM(
+                        CASE 
+                            WHEN t.type = 'PO0' AND t.status = 'approved' 
+                            THEN pl.qyt * (
+                                CASE 
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            ) 
+                            ELSE 0 
+                        END
+                    ) as opening_inventory
+                "),
                     DB::raw("NULL as counted_quantity"),
                     DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
@@ -1021,7 +1038,7 @@ class SalesReportController extends Controller
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
                 ->where(function ($query) {
                     $query->where(function ($subQuery) {
-                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return'])
+                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
                             ->where('t.status', 'approved');
                     })
                         ->orWhere(function ($subQuery) {
@@ -1103,7 +1120,7 @@ class SalesReportController extends Controller
                     't.transaction_date as transaction_date'
                 )
                 ->where(function ($query) {
-                    $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer'])
+                    $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer', 'PO0'])
                         ->where('t.status', 'approved');
                 });
 

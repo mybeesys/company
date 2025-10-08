@@ -372,6 +372,12 @@ class ReportTransactionsUtile
                         'en' => 'Sale Return',
                         'icon' => 'fas fa-undo',
                         'color' => '#8B4513'
+                    ],
+                    'PO0' => [
+                        'ar' => 'المخزون الافتتاحي',
+                        'en' => 'Opening Balance',
+                        'icon' => 'fas fa-book-open',
+                        'color' => '#28A745'
                     ]
                 ];
 

@@ -1,9 +1,15 @@
-import React, { useState, useCallback, useRef } from 'react';
-import TreeTableEditorLocal from '../comp/TreeTableEditorLocal';
+import React, { useState, useCallback, useRef } from "react";
+import TreeTableEditorUnit from "../comp/TreeTableEditorUnit";
 
-const UnitTransferModifier = ({ translations, unitTransfer, unitTree, parentHandle, handleMainUnit, modifierUnit, dir }) => {
-
-
+const UnitTransferModifier = ({
+    translations,
+    unitTransfer,
+    unitTree,
+    parentHandle,
+    handleMainUnit,
+    modifierUnit,
+    dir,
+}) => {
     const [nodes, setNodes] = useState(unitTransfer);
     const [globalId, setGlobalId] = useState(-2);
     const [innerUnits, setUnits] = useState(unitTree);
@@ -13,55 +19,52 @@ const UnitTransferModifier = ({ translations, unitTransfer, unitTree, parentHand
     React.useEffect(() => {
         setNodes(unitTransfer);
         setMainUnit(modifierUnit);
-        if(!!!innerUnits || innerUnits.length ==0)
-            setUnits(unitTree);
+        if (!!!innerUnits || innerUnits.length == 0) setUnits(unitTree);
     }, [unitTransfer, modifierUnit, unitTree, innerUnits]);
 
-    const handleDelete = (row) =>{
-        let index = nodes.findIndex(x=>x.id == row.id);
-        if(index != -1)
-        {
-            if(nodes.findIndex( x=>x.unit2 == row.id) > 0)
-            {
-                return { message : 'relatedUnitTransfer'}
+    const handleDelete = (row) => {
+        let index = nodes.findIndex((x) => x.id == row.id);
+        if (index != -1) {
+            if (nodes.findIndex((x) => x.unit2 == row.id) > 0) {
+                return { message: "relatedUnitTransfer" };
             }
             nodes.splice(index, 1); // Removes 1 element at index 2
-            let index1 = innerUnits.findIndex((object) => object.value == row.id);
+            let index1 = innerUnits.findIndex(
+                (object) => object.value == row.id
+            );
             innerUnits.splice(index1, 1); // Removes 1 element at index 2
         }
         setNodes([...nodes]);
         parentHandle(nodes);
-        return { message : 'Done'};
-     }
+        return { message: "Done" };
+    };
 
     const handleEditorChange = (nodes) => {
         setNodes(nodes);
         parentHandle(nodes);
-        return { message:"Done" };
-    }
+        return { message: "Done" };
+    };
 
     const handleChange = (value) => {
-        if(!!!value)
-        {
-            
+        if (!!!value) {
         }
-        let main = { ...mainUnit }
+        let main = { ...mainUnit };
         main.unit1 = value;
         main.id = 0;
         setMainUnit(main);
         handleMainUnit(main);
 
-        let newUnits = [...innerUnits]
-        let index = newUnits.findIndex((object) => object.value == 0 || object.value == main.id);
+        let newUnits = [...innerUnits];
+        let index = newUnits.findIndex(
+            (object) => object.value == 0 || object.value == main.id
+        );
 
-        if (index !== -1){
-            newUnits[index] = {label : main.unit1 , value: main.id };
-        }
-        else
-            newUnits.push({ label: value, value: 0 });
+        if (index !== -1) {
+            newUnits[index] = { label: main.unit1, value: main.id };
+        } else newUnits.push({ label: value, value: 0 });
 
         setUnits(newUnits);
-    }
+    };
 
     return (
         <>
@@ -69,64 +72,106 @@ const UnitTransferModifier = ({ translations, unitTransfer, unitTree, parentHand
                 <div class="form-group" style={{ marginBottom: "14px" }}>
                     <div class="row">
                         <div class="col-6">
-                            <label for="name_ar" class="col-form-label">{translations.Unit}</label>
-                            <input type="text" class="form-control form-control-solid custom-height" id="name_ar" value={!!mainUnit ? mainUnit.unit1 : ''}
+                            <label for="name_ar" class="col-form-label">
+                                {translations.Unit}
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control form-control-solid custom-height"
+                                id="name_ar"
+                                value={!!mainUnit ? mainUnit.unit1 : ""}
                                 onChange={(e) => handleChange(e.target.value)}
-                                ></input>
+                            ></input>
                         </div>
                     </div>
                 </div>
                 <div>
-                <TreeTableEditorLocal
-                translations={translations}
-                dir={dir}
-                header={false}
-                addNewRow={true}
-                type={"unit"}
-                title={translations.recipe}
-                currentNodes={[...nodes]}
-                defaultValue={{ }}
-                rowTitle= "unit1"
-                cols={[
-                    {
-                        key: "unit2", title: "Unit", autoFocus: true, options: innerUnits, type: "DropDown", width: '25%',
-                        editable: true, required: true
-                    },
-                    {key : "transfer", title: "transfer1", autoFocus: false, type :"Decimal", width:'25%', 
-                        editable:true, required:true
-                    },
-                    {
-                    key: "unit1", title: "newUnit", autoFocus: false, type: "Text", width: '20%',
-                    editable: true, required: true,
-                    onChangeValue : (nodes, key, val, rowKey, postExecute) => {
-                            if(!!!nodes[rowKey].data.id){
-                                nodes[rowKey].data.id = globalId - 1;
-                                setGlobalId(globalId - 1);
-                            }
-                            let index = innerUnits.findIndex((object) => object.value == nodes[rowKey].data.id);
-                            // Replace if the item exists
-                            if (index !== -1)
-                                innerUnits[index] = {label : nodes[rowKey].data.unit1 , value: nodes[rowKey].data.id };
-                            else
-                                innerUnits.push({ label: nodes[rowKey].data.unit1, value: nodes[rowKey].data.id });
-                            setUnits(innerUnits);
-                            postExecute(nodes);
-                        }
-                    },
-                    {
-                    key: "primiry", autoFocus: false, type: "Check", width: '20%',
-                    editable: false, required: false
-                    }
-                ]}
-                actions={[]}
-                onUpdate={(nodes) => handleEditorChange(nodes)}
-                onDelete={(row)=> handleDelete(row)} />
+                    <TreeTableEditorUnit
+                        translations={translations}
+                        dir={dir}
+                        header={false}
+                        addNewRow={true}
+                        type={"unit"}
+                        title={translations.recipe}
+                        currentNodes={[...nodes]}
+                        defaultValue={{}}
+                        rowTitle="unit1"
+                        cols={[
+                            {
+                                key: "unit2",
+                                title: "Unit",
+                                autoFocus: true,
+                                options: innerUnits,
+                                type: "DropDown",
+                                width: "25%",
+                                editable: true,
+                                required: true,
+                            },
+                            {
+                                key: "transfer",
+                                title: "transfer1",
+                                autoFocus: false,
+                                type: "Decimal",
+                                width: "25%",
+                                editable: true,
+                                required: true,
+                            },
+                            {
+                                key: "unit1",
+                                title: "newUnit",
+                                autoFocus: false,
+                                type: "Text",
+                                width: "20%",
+                                editable: true,
+                                required: true,
+                                onChangeValue: (
+                                    nodes,
+                                    key,
+                                    val,
+                                    rowKey,
+                                    postExecute
+                                ) => {
+                                    if (!!!nodes[rowKey].data.id) {
+                                        nodes[rowKey].data.id = globalId - 1;
+                                        setGlobalId(globalId - 1);
+                                    }
+                                    let index = innerUnits.findIndex(
+                                        (object) =>
+                                            object.value ==
+                                            nodes[rowKey].data.id
+                                    );
+                                    // Replace if the item exists
+                                    if (index !== -1)
+                                        innerUnits[index] = {
+                                            label: nodes[rowKey].data.unit1,
+                                            value: nodes[rowKey].data.id,
+                                        };
+                                    else
+                                        innerUnits.push({
+                                            label: nodes[rowKey].data.unit1,
+                                            value: nodes[rowKey].data.id,
+                                        });
+                                    setUnits(innerUnits);
+                                    postExecute(nodes);
+                                },
+                            },
+                            {
+                                key: "primiry",
+                                autoFocus: false,
+                                type: "Check",
+                                width: "20%",
+                                editable: false,
+                                required: false,
+                            },
+                        ]}
+                        actions={[]}
+                        onUpdate={(nodes) => handleEditorChange(nodes)}
+                        onDelete={(row) => handleDelete(row)}
+                    />
                 </div>
             </div>
         </>
-
     );
 };
-
 
 export default UnitTransferModifier;
