@@ -96,14 +96,31 @@ class ReportTransactionsUtile
             ["class" => "text-start min-w-150px", "name" => "product_name"],
             ["class" => "text-start min-w-150px", "name" => "establishment_name"],
             ["class" => "text-start min-w-150px", "name" => "transfer_in_out"],
-            ["class" => "text-start min-w-150px", "name" => "process"],
             ["class" => "text-start min-w-150px", "name" => "type"],
             ["class" => "text-start min-w-150px", "name" => "quantity"],
+            ["class" => "text-start min-w-150px", "name" => "entity"],
             ["class" => "text-start min-w-150px", "name" => "transfer_date"],
 
         ];
     }
+    public function productInventorySummaryColumns()
+    {
+        return [
+            ["class" => "text-start min-w-150px", "name" => "sku"],
+            ["class" => "text-start min-w-150px", "name" => "product_name"],
+            ["class" => "text-start min-w-150px", "name" => "establishment_name"],
+            ["class" => "text-start min-w-150px", "name" => "opening_inventory"],
+            ["class" => "text-start min-w-150px", "name" => "purchased_quantity"],
+            ["class" => "text-start min-w-150px", "name" => "sales_quantity"],
+            ["class" => "text-start min-w-150px", "name" => "waste"],
+            ["class" => "text-start min-w-150px", "name" => "purchase_returns"],
+            ["class" => "text-start min-w-150px", "name" => "transferred_quantity"],
+            ["class" => "text-start min-w-150px", "name" => "production_quantity"],
+            ["class" => "text-start min-w-150px", "name" => "counted_quantity"],
+            ["class" => "text-start min-w-150px", "name" => "quantity_on_inventory"],
 
+        ];
+    }
     public function purchasePaymentReportColumns()
     {
         return [
@@ -311,17 +328,6 @@ class ReportTransactionsUtile
             ->editColumn('transfer_date', function ($row) {
                 return \Carbon\Carbon::parse($row->transfer_date)->format('Y-m-d');
             })
-            ->editColumn('process', function ($row) {
-                $locale = app()->getLocale();
-
-                if ($row->process === 'partiallyReceived') {
-                    return $locale === 'ar' ? 'تحويل جزئي' : 'Partially Received';
-                } elseif ($row->process === 'fullyReceived') {
-                    return $locale === 'ar' ? 'تحويل كلي' : 'Fully Received';
-                } else {
-                    return '---';
-                }
-            })
             ->editColumn('type', function ($row) {
                 $locale = app()->getLocale();
                 $typeMap = [
@@ -377,14 +383,77 @@ class ReportTransactionsUtile
 
                 return $row->type;
             })
+
             ->editColumn('quantity', function ($row) {
                 return $row->quantity . '  ' . $row->unit;;
             })
-
+            ->editColumn('entity', function ($row) {
+                return  $row->entity;
+            })
             ->editColumn('actions', function ($row) {
                 return "--";
             })
-            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'process', 'type', 'quantity', 'transfer_date', 'actions'])
+            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'entity', 'type', 'quantity', 'transfer_date', 'actions'])
+            ->make(true);
+    }
+    public function productInventorySummaryTable($query)
+    {
+        return Datatables::of($query)
+            ->editColumn('sku', function ($row) {
+                return $row->sku;
+            })
+            ->editColumn('product_name', function ($row) {
+                return $row->product_name;
+            })
+            ->editColumn('establishment_name', function ($row) {
+                return $row->establishment_name;
+            })
+            ->editColumn('opening_inventory', function ($row) {
+                return ($row->opening_inventory !== NULL) ? $row->opening_inventory . ' ' . ($row->base_unit_name ?? '') : '---';
+            })
+            ->editColumn('purchased_quantity', function ($row) {
+                return ($row->purchased_quantity ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })
+            ->editColumn('sales_quantity', function ($row) {
+                return ($row->sales_quantity ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })
+            ->editColumn('waste', function ($row) {
+                return ($row->waste ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })
+            ->editColumn('purchase_returns', function ($row) {
+                return ($row->purchase_returns ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })
+            ->editColumn('transferred_quantity', function ($row) {
+                return ($row->transferred_quantity ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })->editColumn('production_quantity', function ($row) {
+                return ($row->production_quantity ?? '---') . ' ' . ($row->base_unit_name ?? '');
+            })
+            ->editColumn('counted_quantity', function ($row) {
+                return $row->counted_quantity ?? '---';
+            })
+            ->editColumn('quantity_on_inventory', function ($row) {
+                return ($row->quantity_on_inventory !== NULL) ? $row->quantity_on_inventory . ' ' . ($row->base_unit_name ?? '') : '---';
+            })
+            ->editColumn('actions', function ($row) {
+                if (empty($row->product_id) || empty($row->establishment_id)) {
+                    return '---'; // 
+                }
+                return '<a href="' . route('inventory.record', [
+                    'product_id' => $row->product_id,
+                    'establishment_id' => $row->establishment_id,
+                    'opening_inventory' => ($row->opening_inventory !== NULL) ? $row->opening_inventory . ' ' . ($row->base_unit_name ?? '') : '---',
+                    'purchased_quantity' => ($row->purchased_quantity ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'sales_quantity' => ($row->sales_quantity ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'waste' => ($row->waste ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'purchase_returns' => ($row->purchase_returns ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'transferred_quantity' => ($row->transferred_quantity ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'production_quantity' => ($row->production_quantity ?? '---') . ' ' . ($row->base_unit_name ?? ''),
+                    'counted_quantity' => $row->counted_quantity,
+                    'quantity_on_inventory' => ($row->quantity_on_inventory !== NULL) ? $row->quantity_on_inventory . ' ' . ($row->base_unit_name ?? '') : '---'
+                ]) . '" class="btn btn-primary">' . __('menuItemLang.product-inventory-record') . '</a>';
+            })
+
+            ->rawColumns(['sku', 'product_name', 'establishment_name', 'opening_inventory', 'purchased_quantity', 'sales_quantity', 'waste', 'purchase_returns', 'transferred_quantity', 'production_quantity', 'counted_quantity', 'quantity_on_inventory', 'actions'])
             ->make(true);
     }
 }

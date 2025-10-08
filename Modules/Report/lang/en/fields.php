@@ -37,7 +37,16 @@ return [
     'final_total' => 'Final Total',
     'remaining_amount' => 'Remaining Amount',
     'device_name' => 'Device Name',
-
-
-
+    'entity' => 'Entity (customer/supplier)',
+    'opening_inventory' => 'Opening Inventory',
+    'purchased_quantity' => 'Purchased Quantity',
+    'sales_quantity' => 'Sales Quantity',
+    'waste' => 'Waste',
+    'purchase_returns' => 'Purchase Returns',
+    'transferred_quantity' => 'Transferred Quantity',
+    'production_quantity' => 'Production Quantity',
+    'counted_quantity' => 'Counted Quantity',
+    'quantity_on_inventory' => 'Quantity On Inventory',
+    'date' => 'Date',
+    'sku' => 'SKU',
 ];

@@ -113,7 +113,7 @@ return [
     'purchase-payment-report' => 'تقرير المشتريات',
     'sell-payment-report' => 'تقرير المبيعات',
     'payment-reports' => 'التقارير المتعددة',
-    'product-inventory-report' => 'تقرير المخزون',
+    'product-inventory-report' => 'تقرير عمليات المخزون',
     'type-service' => 'انواع الخدمات',
     'Profit-Loss' => 'الربح والخسارة',
     'purchase-sell' => 'المشتريات والمبيعات',
@@ -137,6 +137,8 @@ return [
     'reports_list' => 'قائمة التقارير',
     'product_dashboard' => 'لوحة تحكم المنتجات',
     'inventory_dashboard' => 'لوحة تحكم المخزون',
+    'product-inventory-summary' => "تقرير رصيد المخزون",
+    'product-inventory-record' => "سجل مخزون الصنف",
 
 
 ];
