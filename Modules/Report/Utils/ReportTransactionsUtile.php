@@ -435,6 +435,9 @@ class ReportTransactionsUtile
                 return ($row->quantity_on_inventory !== NULL) ? $row->quantity_on_inventory . ' ' . ($row->base_unit_name ?? '') : '---';
             })
             ->editColumn('actions', function ($row) {
+                if (empty($row->product_id) || empty($row->establishment_id)) {
+                    return '---'; // 
+                }
                 return '<a href="' . route('inventory.record', [
                     'product_id' => $row->product_id,
                     'establishment_id' => $row->establishment_id,
