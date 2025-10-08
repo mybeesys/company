@@ -294,7 +294,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             node.key,
                             node.data.type,
                             node.data.parentKey,
-                            true
+                            true,
                         )
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>

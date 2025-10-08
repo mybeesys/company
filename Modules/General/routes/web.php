@@ -66,6 +66,8 @@ Route::middleware([
         Route::post('/update-inventory-policy', [GeneralController::class, 'updateInventorySettings'])
             ->name('update-inventory-policy');
 
+        Route::post('/update-unit', [GeneralController::class, 'updateUnit'])
+            ->name('update-unit');
         Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
 
 

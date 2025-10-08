@@ -100,12 +100,13 @@ return [
     'allow_sale_without_stock' => 'Allow Sale Without Stock',
     'yes' => 'Yes',
     'no' => 'No',
-       'inventory_frequency' => 'Inventory Frequency',
+    'inventory_frequency' => 'Inventory Frequency',
     'daily' => 'Daily',
     'weekly' => 'Weekly',
     'monthly' => 'Monthly',
     'quarterly' => 'Quarterly',
     'yearly' => 'Yearly',
+    'Default Unit' => 'Default Unit',
 
 
 ];
