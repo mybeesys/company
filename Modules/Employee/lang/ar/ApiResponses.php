@@ -21,8 +21,9 @@ return [
     'logged_in_successfully' => 'تم تسجيل الدخول بنجاح',
     'incorrect_credential' => 'البيانات المدخلة لا تتطابق مع سجلاتنا',
     'server_error' => 'خطأ في المخدم',
-    'employee_has_previous_clock_in' => 'الموظف قام بتسجيل الدخول مسبقاً ولم يسجل الخروج', 
+    'employee_has_previous_clock_in' => 'الموظف قام بتسجيل الدخول مسبقاً ولم يسجل الخروج',
     'logged_out' => 'تم تسجيل الخروج بنجاح',
     'timecards_conflict' => 'يوجد تداخل في أوقات الدوام لهذا الموظف',
-    'clock_in_greater_than_clock_out' => 'لا يمكن لوقت الخروج أن يكون قبل وفت الدخول'
+    'clock_in_greater_than_clock_out' => 'لا يمكن لوقت الخروج أن يكون قبل وفت الدخول',
+    'is_desable_staff_pin'=>'لا يمكنك تسجيل الدخول باستخدام pin',
 ];

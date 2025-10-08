@@ -1274,9 +1274,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
-
-
     [
         'name' => 'sales.Add Payment.create',
         'name_ar' => 'إضافة دفعة لفاتورة المبيعات',
