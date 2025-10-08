@@ -1019,7 +1019,6 @@ class SalesReportController extends Controller
                     ) as opening_inventory
                 "),
                     DB::raw("NULL as counted_quantity"),
-                    DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
     (
         SELECT FORMAT(SUM(pi.qty * 
