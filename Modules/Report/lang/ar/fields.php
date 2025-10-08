@@ -37,5 +37,17 @@ return [
     'final_total' => 'المبلغ الكلي',
     'remaining_amount' => 'المبلغ المتبقي',
     'device_name' => 'اسم الجهاز',
+    'entity' => 'اسم الجهة (الزبون/المورد)',
+    'opening_inventory' => 'المخزون الافتتاحي',
+    'purchased_quantity' => 'كمية الشراء',
+    'sales_quantity' => 'الكمية المباعة',
+    'waste' => 'التالف',
+    'purchase_returns' => 'مردودالمشتريات',
+    'transferred_quantity' => 'المحولة',
+    'production_quantity' => 'المنتجة',
+    'counted_quantity' => 'المجرودة',
+    'quantity_on_inventory' => 'الكمية في المخزون',
+    'date' => 'التاريخ',
+    'sku' => 'SKU',
 
 ];

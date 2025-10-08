@@ -42,5 +42,5 @@ return [
     'inventory_reports' => 'Inventory Reports',
     'others_reports' => 'Others Reports',
     'Device' => 'Device',
-
+    'product-inventory-summary_details' => 'Device',
 ];
