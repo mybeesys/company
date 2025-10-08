@@ -861,10 +861,10 @@ class SalesReportController extends Controller
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
                 ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-                /*      ->leftJoin('product_inventories as pi', function ($join) {
-                    $join->on('p.id', '=', 'pi.product_id')
-                        ->on('t.establishment_id', '=', 'pi.establishment_id');
-                })*/
+                // ->leftJoin('product_inventories as pi', function ($join) {
+                //     $join->on('p.id', '=', 'pi.product_id')
+                //          ->on('t.establishment_id', '=', 'pi.establishment_id');
+                // })
                 ->select(
                     'p.sku as sku',
                     'p.id as product_id',
@@ -874,6 +874,7 @@ class SalesReportController extends Controller
                     WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
                     ELSE e.name_en 
                 END as establishment_name"),
+                    // Base Unit Name calculation (kept original)
                     DB::raw("
                     (
                         SELECT COALESCE(
@@ -895,6 +896,7 @@ class SalesReportController extends Controller
                         WHERE pu_disp_sub.product_id = p.id
                     ) as base_unit_name
                 "),
+                    // Purchased Quantity calculation (kept original)
                     DB::raw("
                     SUM(
                         CASE 
@@ -906,12 +908,14 @@ class SalesReportController extends Controller
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
                                         WHERE pu_max.product_id = p.id
+                                    )
                                 END
                             ) 
                             ELSE 0 
                         END
                     ) as purchased_quantity
                 "),
+                    // Sales Quantity calculation (kept original)
                     DB::raw("
                     SUM(
                         CASE 
@@ -930,24 +934,26 @@ class SalesReportController extends Controller
                         END
                     ) as sales_quantity
                 "),
+                    // Waste calculation (kept original)
                     DB::raw("
-    SUM(
-        CASE 
-            WHEN t.type = 'WASTE' AND t.status = 'approved' 
-            THEN sl.qyt * (
-                CASE 
-                    WHEN su.transfer > 0 THEN 1
-                    ELSE (
-                        SELECT COALESCE(MAX(transfer), 1)
-                        FROM product_unit_transfer AS su_max
-                        WHERE su_max.product_id = p.id
-                    )
-                END
-            ) 
-            ELSE 0 
-        END
-    ) as waste
-"),
+                    SUM(
+                        CASE 
+                            WHEN t.type = 'WASTE' AND t.status = 'approved' 
+                            THEN sl.qyt * (
+                                CASE 
+                                    WHEN su.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS su_max
+                                        WHERE su_max.product_id = p.id
+                                    )
+                                END
+                            ) 
+                            ELSE 0 
+                        END
+                    ) as waste
+                "),
+                    // Purchase Returns calculation (kept original)
                     DB::raw("
                     SUM(
                         CASE 
@@ -966,21 +972,23 @@ class SalesReportController extends Controller
                         END
                     ) as purchase_returns
                 "),
+                    // Transferred Quantity calculation (kept original)
                     DB::raw("
-    SUM(
-        CASE 
-            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived') 
-            THEN (
-                SELECT COALESCE(SUM(pl_inner.qyt), 0)
-                FROM transactions AS t_inner
-                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
-                WHERE t_inner.parent_id = t.id
-                  AND t_inner.status = 'approved'
-            )
-            ELSE 0 
-        END
-    ) as transferred_quantity
-"),
+                    SUM(
+                        CASE 
+                            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived') 
+                            THEN (
+                                SELECT COALESCE(SUM(pl_inner.qyt), 0)
+                                FROM transactions AS t_inner
+                                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
+                                WHERE t_inner.parent_id = t.id
+                                    AND t_inner.status = 'approved'
+                            )
+                            ELSE 0 
+                        END
+                    ) as transferred_quantity
+                "),
+                    // Production Quantity calculation (kept original)
                     DB::raw("
                     SUM(
                         CASE 
@@ -999,6 +1007,7 @@ class SalesReportController extends Controller
                         END
                     ) as production_quantity
                 "),
+                    // Opening Inventory calculation (kept original)
                     DB::raw("
                     SUM(
                         CASE 
@@ -1018,37 +1027,35 @@ class SalesReportController extends Controller
                     ) as opening_inventory
                 "),
                     DB::raw("NULL as counted_quantity"),
-                    DB::raw("NULL as quantity_on_inventory"),
+                    // DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
-    (
-        SELECT FORMAT(SUM(pi.qty * 
-            CASE 
-                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1 
-                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
-                ELSE 1
-            END
-        ), 2)
-        FROM product_inventories as pi
-        WHERE pi.establishment_id = t.establishment_id
-        AND pi.product_id = p.id
-    ) as quantity_on_inventory
-")
+                    (
+                        SELECT FORMAT(SUM(pi.qty * CASE 
+                                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1 
+                                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
+                                ELSE 1
+                            END
+                        ), 2)
+                        FROM product_inventories as pi
+                        WHERE pi.establishment_id = t.establishment_id
+                        AND pi.product_id = p.id
+                    ) as quantity_on_inventory
+                ")
                 )
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
+                // *** FIX APPLIED HERE: Explicitly using '=' operator and whereIn for clarity/correct quoting ***
                 ->where(function ($query) {
                     $query->where(function ($subQuery) {
                         $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
-                            ->where('t.status', 'approved');
+                            ->where('t.status', '=', 'approved'); // Changed to use explicit operator
                     })
                         ->orWhere(function ($subQuery) {
-                            $subQuery->where('t.type', 'TRANSFER')
-                                ->where(function ($q) {
-                                    $q->where('t.transfer_status', 'partiallyReceived')
-                                        ->orWhere('t.transfer_status', 'fullyReceived');
-                                })
-                                ->where('t.status', 'approved');
+                            $subQuery->where('t.type', '=', 'TRANSFER') // Changed to use explicit operator
+                                ->whereIn('t.transfer_status', ['partiallyReceived', 'fullyReceived']) // Using whereIn for cleaner logic
+                                ->where('t.status', '=', 'approved'); // Changed to use explicit operator
                         });
                 });
+            // *** END FIX ***
 
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
@@ -1077,6 +1084,7 @@ class SalesReportController extends Controller
         return view('report::sales.product_inventory_summary')
             ->with(compact('columns'));
     }
+
     public function productInventoryRecord(Request $request, $product_id, $establishment_id)
     {
         $transactionUtile = new ReportTransactionsUtile();
