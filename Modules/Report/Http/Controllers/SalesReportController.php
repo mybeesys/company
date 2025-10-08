@@ -975,12 +975,11 @@ SUM(
                 SELECT COALESCE(SUM(
                     pl_inner.qyt * (
                         CASE 
-                            WHEN pu_inner.transfer > 0 THEN pu_inner.transfer
+                            WHEN pu_inner.transfer > 0 THEN 1
                             ELSE (
                                 SELECT COALESCE(MAX(transfer), 1)
                                 FROM product_unit_transfer AS pu_max
                                 WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                LIMIT 1
                             )
                         END
                     )
