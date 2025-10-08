@@ -226,6 +226,7 @@
 
     <script>
         let salesRowIndex = 1;
+        const allowSaleWithoutStock = @json(auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create'));
 
       $("#addSalesRow").on("click", function() {
     salesRowIndex++;
@@ -325,6 +326,7 @@
                 : `${product.SKU} - ${product.name_en}`,
                  price: product.price,
                         units: product.unit_transfers,
+                        inventory_qty:product.inventory_qty,
                     })),
                     pagination: {
                         more: response.meta?.next_page_url ? true : false
@@ -341,6 +343,18 @@
 
     const $unitSelect = $row.find('.unit');
     $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
+
+
+     const qtyField = $row.find('.qty-field');
+     if (!allowSaleWithoutStock) {
+            const inventoryQty = selectedData.inventory_qty;
+            qtyField.attr('max', inventoryQty);
+
+        } else {
+            qtyField.removeAttr('max');
+        }
+         console.log(qtyField,allowSaleWithoutStock);
+
 
     if (selectedData.units && Array.isArray(selectedData.units)) {
         console.log('Units Data:', selectedData.units);
@@ -366,6 +380,8 @@
             $unitSelect.append($option);
             updateSalesTotals();
         });
+
+
 if( selectedData.units.length > 0){
         $unitSelect.select2('destroy').select2({
             width: '100%',
@@ -373,9 +389,11 @@ if( selectedData.units.length > 0){
         });}
     updateSalesTotals();
 
+
+
     } else {
-        console.error('No units data found for product:', selectedData.id);
-        $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
+        // console.error('No units data found for product:', selectedData.id);
+        // $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
     }
 });
 
@@ -695,6 +713,7 @@ $.ajax({
                         const qtyField = $(this).find('[name*="[qty]"]');
                         const currentQty = parseFloat(qtyField.val()) || 0;
                         qtyField.val(currentQty + 1);
+
 
                         currentRow.remove();
                         resetRowIndexes();
