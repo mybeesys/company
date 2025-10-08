@@ -713,7 +713,7 @@ $.ajax({
             width: '100%',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
         });
-    
+
         }
     updateSalesTotals();
 
@@ -748,7 +748,6 @@ $.ajax({
         const discountType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
         const taxType = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
         const isInclusive = $(this).find(`[name="products[${index}][inclusive]"]`).is(':checked');
-console.log('fdfdfd ',qty,unitPriceOriginal,discountValue,discountType,taxType,isInclusive);
 
         let unitPrice = unitPriceOriginal;
 
