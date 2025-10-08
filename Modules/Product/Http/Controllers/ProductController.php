@@ -1365,22 +1365,22 @@ class ProductController extends Controller
             ->get();
 
 
-        $products = DB::table('product_inventories')
-            ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-            // ->where('product_inventories.establishment_id', $establishmentId)
-            ->whereIn('product_products.type', ['product', 'variable'])
-            ->where([['product_products.active', '=', 1], ['product_products.for_sell', '=', 1]])
-            ->where(function ($query) use ($search) {
-                $query->where('product_products.name_ar', 'like', '%' . $search . '%')
-                    ->orWhere('product_products.name_en', 'like', '%' . $search . '%')
-                    ->orWhere('product_products.SKU', 'like', '%' . $search . '%');
-            })
-            ->whereNull('product_products.deleted_at')
-            ->with(['unitTransfers' => function ($query) {
-                // $query->whereNull('unit2');
-            }])
-            ->select('product_products.*', 'product_inventories.*')
-            ->get();
+        // $products = DB::table('product_inventories')
+        //     ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+        //     // ->where('product_inventories.establishment_id', $establishmentId)
+        //     ->whereIn('product_products.type', ['product', 'variable'])
+        //     ->where([['product_products.active', '=', 1], ['product_products.for_sell', '=', 1]])
+        //     ->where(function ($query) use ($search) {
+        //         $query->where('product_products.name_ar', 'like', '%' . $search . '%')
+        //             ->orWhere('product_products.name_en', 'like', '%' . $search . '%')
+        //             ->orWhere('product_products.SKU', 'like', '%' . $search . '%');
+        //     })
+        //     ->whereNull('product_products.deleted_at')
+        //     ->with(['unitTransfers' => function ($query) {
+        //         // $query->whereNull('unit2');
+        //     }])
+        //     ->select('product_products.*', 'product_inventories.*')
+        //     ->get();
 
 
         return response()->json([
