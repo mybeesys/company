@@ -905,7 +905,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id 
+                                        WHERE pu_max.product_id = p.id
                                 END
                             ) 
                             ELSE 0 
@@ -922,7 +922,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS su_max
-                                        WHERE su_max.product_id = p.id 
+                                        WHERE su_max.product_id = p.id
                                     )
                                 END
                             )
@@ -958,7 +958,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id 
+                                        WHERE pu_max.product_id = p.id
                                     )
                                 END
                             ) * -1 
@@ -991,7 +991,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id 
+                                        WHERE pu_max.product_id = p.id
                                     )
                                 END
                             ) 
