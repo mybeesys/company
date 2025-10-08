@@ -1022,19 +1022,14 @@ class SalesReportController extends Controller
                     DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
     (
-        SELECT FORMAT(SUM(pi.qty * CASE 
-                WHEN (
-                    SELECT COUNT(*) 
-                    FROM product_unit_transfer AS pu_count 
-                    WHERE pu_count.product_id = p.id
-                ) > 1 
-                THEN (
-                    SELECT COALESCE(MAX(pu_max.transfer), 1)
-                    FROM product_unit_transfer AS pu_max
-                    WHERE pu_max.product_id = p.id
-                )
-                ELSE 1
-            END
+        SELECT FORMAT(SUM(pi.qty *
+                SELECT 
+                    CASE 
+                        WHEN (SELECT COUNT(*) FROM product_unit_transfer AS pu_count WHERE pu_count.product_id = p.id) > 1 
+                        THEN (SELECT COALESCE(MAX(pu_max.transfer), 1) FROM product_unit_transfer AS pu_max WHERE pu_max.product_id = p.id)
+                        ELSE 1
+                    END
+            )
         ), 2)
         FROM product_inventories as pi
         WHERE pi.establishment_id = t.establishment_id
