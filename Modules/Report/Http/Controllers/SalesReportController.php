@@ -861,10 +861,10 @@ class SalesReportController extends Controller
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
                 ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-                ->leftJoin('product_inventories as pi', function ($join) {
+          /*      ->leftJoin('product_inventories as pi', function ($join) {
                     $join->on('p.id', '=', 'pi.product_id')
                         ->on('t.establishment_id', '=', 'pi.establishment_id');
-                })
+                })*/
                 ->select(
                     'p.sku as sku',
                     'p.id as product_id',
