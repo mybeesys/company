@@ -972,11 +972,25 @@ SUM(
         CASE 
             WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived') 
             THEN (
-                SELECT COALESCE(SUM(pl_inner.qyt), 0)
+                SELECT COALESCE(SUM(
+                    pl_inner.qyt * (
+                        CASE 
+                            WHEN pu_inner.transfer > 0 THEN pu_inner.transfer
+                            ELSE (
+                                SELECT COALESCE(MAX(transfer), 1)
+                                FROM product_unit_transfer AS pu_max
+                                WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                LIMIT 1
+                            )
+                        END
+                    )
+                ), 0)
                 FROM transactions AS t_inner
                 LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
+                LEFT JOIN product_unit_transfer AS pu_inner ON pl_inner.unit_id = pu_inner.id
                 WHERE t_inner.parent_id = t.id
-                  AND t_inner.status = 'approved'
+                    AND t_inner.status = 'approved'
+                    AND pl_inner.product_id = p.id
             )
             ELSE 0 
         END
