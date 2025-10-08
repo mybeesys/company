@@ -10,6 +10,7 @@ use Modules\Establishment\database\seeders\EstablishmentDatabaseSeeder;
 use Modules\Employee\database\seeders\EmployeeDatabaseSeeder;
 use Modules\General\database\seeders\GeneralDatabaseSeeder;
 use Modules\Product\database\seeders\DiningTypeSeeder;
+use Modules\Product\database\seeders\ProductUnitTransferSeeder;
 
 class TenantDatabaseSeeder extends Seeder
 {
@@ -20,7 +21,8 @@ class TenantDatabaseSeeder extends Seeder
             EstablishmentDatabaseSeeder::class,
             DiningTypeSeeder::class,
             AccountingDatabaseSeeder::class,
-            GeneralDatabaseSeeder::class
+            GeneralDatabaseSeeder::class,
+            ProductUnitTransferSeeder::class
         ]);
     }
 }

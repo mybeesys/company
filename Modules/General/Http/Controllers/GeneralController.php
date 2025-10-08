@@ -4,6 +4,7 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use Illuminate\Support\Facades\Log;
 use DB;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
+use Modules\Product\Models\UnitTransfer;
 use Predis\Configuration\Option\Prefix;
 
 class GeneralController extends Controller
@@ -107,8 +109,8 @@ class GeneralController extends Controller
         $allowSaleWithoutStock = Setting::where('key', 'allow_sale_without_stock')->value('value');
         // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
-
-        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency'));
+        $unit = UnitTransfer::where("default", 1)->first();
+        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription()
@@ -306,5 +308,12 @@ class GeneralController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
+    }
+    public function updateUnit(Request $request)
+    {
+        $unit = UnitTransfer::where('id', $request->unit_transfer_id)->first();
+        $unit->unit1 = $request->unit1;
+        $unit->save();
+        return redirect()->back()->with('success', __('messages.add_successfully'));
     }
 }

@@ -12,6 +12,7 @@ use Modules\Product\Models\ModifierPriceTier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductModifier;
 use Modules\Product\Models\UnitTransfer;
+use Illuminate\Support\Facades\Log;
 
 class ModifierController extends Controller
 {
@@ -241,6 +242,16 @@ class ModifierController extends Controller
                         }
                     }
                 }
+            }
+            if (!isset($request["transfer"])) {
+                $defaultUnit = UnitTransfer::where('default', 1)->first();
+                UnitTransfer::create([
+                    'primary' => 1,
+                    'modifier_id' => $modifier->id,
+                    'unit1' => $defaultUnit->unit1,
+                    'unit2' => null,
+                    'transfer' => -100,
+                ]);
             }
         });
     }

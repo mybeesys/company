@@ -645,10 +645,11 @@ class ProductController extends Controller
                 ]);
             }
             if ($request->product_type && $request->product_type == "fastProduct") {
+                $defaultUnit = UnitTransfer::where('default', 1)->first();
                 UnitTransfer::create([
                     'primary' => 1,
                     'product_id' => $product->id,
-                    'unit1' => app()->getLocale() == 'ar' ? "حبة" : "piece",
+                    'unit1' => $defaultUnit->unit1,
                     'unit2' => null,
                     'transfer' => -100,
                 ]);

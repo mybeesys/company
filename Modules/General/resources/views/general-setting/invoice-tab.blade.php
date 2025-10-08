@@ -41,6 +41,11 @@
                         @lang('general::general.Module Management')
                     </a>
                 </li>
+                <li class="nav-item w-md-200px me-0 py-1">
+                    <a class="nav-link py-3" data-bs-toggle="tab" href="#defaultUnit-tab">
+                        @lang('general::general.Default Unit')
+                    </a>
+                </li>
             </ul>
 
             <div class="tab-content w-100" id="invoice-tab">
@@ -66,11 +71,13 @@
                     @include('general::general-setting.enabledModules')
                 </div>
 
-                 <div class="tab-pane fade" id="inventory_policy_tab" role="tabpanel">
-               @include('general::general-setting.inventory_policy_tab')
-     </div>
+                <div class="tab-pane fade" id="inventory_policy_tab" role="tabpanel">
+                    @include('general::general-setting.inventory_policy_tab')
+                </div>
 
-
+                <div class="tab-pane fade" id="defaultUnit-tab" role="tabpanel">
+                    @include('general::general-setting.default_unit-tab')
+                </div>
 
                 <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
                 <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
