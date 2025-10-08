@@ -28,6 +28,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Sales\Utils\SalesUtile;
+//use Illuminate\Support\Facades\Log;
 
 class SellController extends Controller
 {
@@ -349,28 +350,33 @@ class SellController extends Controller
                 'total_before_vat' => $product->total_before_vat,
             ]);
 
-            $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
-            if ($is_recipe_yield) {
-                $recipeProduct = RecipeProduct::with('products')->where('product_id', $product->products_id)->first();
-                foreach ($products as $product) {
-                    $discount_type = $product->discount ? $product->discount_type : null;
-                    $price_with_tax = 0;
-                    $price_with_tax = $recipeProduct->products->type == 'ingredint' ? $recipeProduct->products->orderPriceWithTax : $recipeProduct->products->price_with_tax;
-                    TransactionSellLine::create([
-                        'transaction_id' => $transaction->id,
-                        'product_id' => $recipeProduct->products->id,
-                        'qyt' => $product->qty * $product->qty,
-                        'unit_id' => $recipeProduct->unit_transfer_id,
-                        'unit_price_before_discount' => $recipeProduct->products->price ?? 0,
-                        'unit_price' =>  $recipeProduct->products->price ?? 0,
-                        'discount_type' => 'fixd',
-                        'discount_amount' => 0,
-                        'unit_price_inc_tax' =>  $price_with_tax,
-                        'tax_id' => $recipeProduct->products->tax_id,
-                        'tax_value' => $price_with_tax - ($recipeProduct->products->price ?? 0),
-                        'total_before_vat' => $recipeProduct->products->price ?? 0,
-                        'is_show' => 0,
-                    ]);
+            //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
+            //if ($is_recipe_yield) {
+            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get(); // استرجاع جميع المكونات
+
+            if ($recipeProducts->isNotEmpty()) {
+                foreach ($recipeProducts as $recipeProduct) {
+                    $ingredient = $recipeProduct->products;
+                    if ($ingredient) {
+                        $discount_type = $ingredient->discount ? $ingredient->discount_type : null;
+                        $price_with_tax = $ingredient->type == 'ingredint' ? $ingredient->orderPriceWithTax : $ingredient->price_with_tax;
+
+                        TransactionSellLine::create([
+                            'transaction_id' => $transaction->id,
+                            'product_id' => $ingredient->id,
+                            'qyt' => $product->qty * $recipeProduct->quantity,
+                            'unit_id' => $recipeProduct->unit_transfer_id,
+                            'unit_price_before_discount' => $ingredient->price ?? 0,
+                            'unit_price' => $ingredient->price ?? 0,
+                            'discount_type' => 'fixd',
+                            'discount_amount' => 0,
+                            'unit_price_inc_tax' => $price_with_tax,
+                            'tax_id' => $ingredient->tax_id,
+                            'tax_value' => $price_with_tax - ($ingredient->price ?? 0),
+                            'total_before_vat' => $ingredient->price ?? 0,
+                            'is_show' => 0,
+                        ]);
+                    }
                 }
             }
         }

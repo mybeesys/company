@@ -114,7 +114,7 @@ return [
     'purchase-payment-report' => 'Purchase report',
     "payment-reports" => "Multi-Reports",
     'sell-payment-report' => 'Sell report',
-    'product-inventory-report' => 'Inventory report',
+    'product-inventory-report' => 'Inventory operations report',
     'Profit-Loss' => 'Profit and Loss',
 
     'type-service' => 'Type of services',
@@ -134,6 +134,8 @@ return [
     'reports_list' => 'Reports List',
     'product_dashboard' => 'Product Dashboard',
     'inventory_dashboard' => 'Stock Dashboard',
+    'product-inventory-summary' => "Product inventory summary",
+    'product-inventory-record' => "Product inventory record"
 
 
 

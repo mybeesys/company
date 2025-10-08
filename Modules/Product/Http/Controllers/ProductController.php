@@ -746,7 +746,7 @@ class ProductController extends Controller
                     'free_type' => $classData['free_type'] ?? 0,
                     'active' => 1,
                     'default' => 0,
-                    'required' => 0,
+                    'required' => $classData['min_modifiers'] > 0 ? 1 : 0,
                     'display_order' => 0,
                     'button_display' => 0,
                     'modifier_display' => 0,
@@ -1362,6 +1362,7 @@ class ProductController extends Controller
             ->with(['unitTransfers' => function ($query) {
                 // $query->whereNull('unit2');
             }])
+
             ->get();
 
 
