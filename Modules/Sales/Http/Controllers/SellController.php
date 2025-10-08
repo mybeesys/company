@@ -335,6 +335,26 @@ class SellController extends Controller
 
         foreach ($products as $product) {
             $discount_type = $product->discount ? $product->discount_type : null;
+
+
+            if (!auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create')) {
+                $product_inventorie = DB::table('product_products')
+                    ->select(
+                        'product_products.id',
+                        DB::raw('COALESCE(SUM(product_inventories.qty), 0) as inventory_qty')
+                    )
+                    ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
+                    ->where('product_products.id', $product->products_id)
+                    ->groupBy('product_products.id')
+                    ->first();
+                $inventory_qty = $product_inventorie->inventory_qty ?? 0;
+
+                if ($inventory_qty < $product->qty) {
+                    continue;
+                }
+            }
+
+
             TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
@@ -352,7 +372,9 @@ class SellController extends Controller
 
             //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
             //if ($is_recipe_yield) {
-            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get(); // استرجاع جميع المكونات
+
+
+            $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get();
 
             if ($recipeProducts->isNotEmpty()) {
                 foreach ($recipeProducts as $recipeProduct) {

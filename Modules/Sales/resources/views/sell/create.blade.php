@@ -678,6 +678,23 @@ $.ajax({
                 updateSalesTotals();
             });
 
+            $(document).on("input", ".qty-field", function () {
+    const max = parseFloat($(this).attr("max"));
+    const value = parseFloat($(this).val());
+    const lang = localStorage.getItem("lang") || "ar";
+
+    if (!isNaN(max) && !isNaN(value) && value > max) {
+        $(this).val(max);
+
+       const message =
+            lang === "ar"
+                ? "لا يمكنك بيع كمية أكبر من المتوفرة في المخزون."
+                : "You cannot sell more than the available stock.";
+
+        toastr.error(message);
+    }
+});
+
 
             $('#salesTable').on('change', '[name$="[products_id]"]', function() {
                 const selectedOption = $(this).find('option:selected');
