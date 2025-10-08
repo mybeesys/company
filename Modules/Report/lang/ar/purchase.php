@@ -42,4 +42,5 @@ return [
     'inventory_reports' => 'تقارير المخزون',
     'others_reports' => 'تقارير آخرى',
     'Device' => 'الجهاز',
+    'product-inventory-summary_details' => 'View a detailed report on product inventory balance',
 ];

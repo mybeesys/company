@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.product-inventory-report'))
+@section('title', __('menuItemLang.product-inventory-summary'))
 
 @section('css')
 <style>
@@ -29,7 +29,7 @@
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                 <div class="card-title">
                     <div class="d-flex align-items-center position-relative my-1">
-                        <h3>@lang('menuItemLang.product-inventory-report')</h3>
+                        <h3>@lang('menuItemLang.product-inventory-summary')</h3>
                     </div>
                 </div>
 
@@ -62,29 +62,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <div class="row g-5">
                                 <div class="col-md-6">
                                     <label for="inventoryDateRange" class="form-label">@lang('report::purchase.Date Range')</label>
                                     <input type="text" class="form-control form-control-solid" id="inventoryDateRange" name="inventory_date_range" />
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="processTypeFilter" class="form-label">@lang('report::purchase.Process Type')</label>
-                                    <select class="form-select form-select-solid" id="processTypeFilter" name="process_type[]" data-control="select2" data-placeholder="@lang('report::purchase.All Processes')" multiple>
-                                        <option></option>
-                                        <option value="sell">@lang('report::purchase.sell')</option>
-                                        <option value="purchases">@lang('report::purchase.purchase')</option>
-                                        <option value="PREP">@lang('report::purchase.prep')</option>
-                                        <option value="WASTE">@lang('report::purchase.waste')</option>
-                                        <option value="TRANSFER">@lang('report::purchase.transfer')</option>
-                                        <option value="purchases-return">@lang('report::purchase.purchases-return')</option>
-                                        <option value="sell-return">@lang('report::purchase.sell-return')</option>
-
-
-                                    </select>
-                                </div>
                             </div>
-                        </div>
+                        </div>-->
                     </div>
                     {{-- Filter Buttons --}}
                     <div class="row mt-5">
@@ -121,19 +106,17 @@
     let dataTable;
     const table = $('#kt_ProductSales_table');
     let currentLang = "{{ app()->getLocale() }}";
-    let dataUrl = "{{ route('product-inventory-report') }}";
+    let dataUrl = "{{ route('product-inventory-summary') }}";
 
     function getFilterParams() {
         const branchId = $('#branchFilter').val() || [];
         const productId = $('#productFilter').val() || [];
-        const processType = $('#processTypeFilter').val() || [];
-        const dateRange = $('#inventoryDateRange').val();
+        // const dateRange = $('#inventoryDateRange').val();
 
         const queryParams = {
             branch_id: branchId,
             product_id: productId,
-            process_type: processType,
-            inventory_date_range: dateRange
+            //inventory_date_range: dateRange
         };
         return queryParams;
     }
@@ -186,25 +169,25 @@
         populateBranches();
         populateProducts();
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_ProductSales_table');
+        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], '#kt_ProductSales_table');
         handleSearchDatatable();
         $('.form-select').select2();
 
-        $('#inventoryDateRange').daterangepicker({
-            autoUpdateInput: false,
-            locale: {
-                cancelLabel: 'Clear',
-                format: 'YYYY-MM-DD'
-            }
-        });
+        /* $('#inventoryDateRange').daterangepicker({
+             autoUpdateInput: false,
+             locale: {
+                 cancelLabel: 'Clear',
+                 format: 'YYYY-MM-DD'
+             }
+         });
 
-        $('#inventoryDateRange').on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
-        });
+         $('#inventoryDateRange').on('apply.daterangepicker', function(ev, picker) {
+             $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+         });
 
-        $('#inventoryDateRange').on('cancel.daterangepicker', function(ev, picker) {
-            $(this).val('');
-        });
+         $('#inventoryDateRange').on('cancel.daterangepicker', function(ev, picker) {
+             $(this).val('');
+         });*/
 
         $('#applyFilter').on('click', function() {
             dataTable.ajax.reload();
@@ -213,7 +196,7 @@
         $('#clearFilter').on('click', function() {
             $('#inventoryFilterForm')[0].reset();
             $('.form-select').val(null).trigger('change');
-            $('#inventoryDateRange').val('');
+            // $('#inventoryDateRange').val('');
             dataTable.ajax.url(dataUrl).load();
         });
     });
@@ -230,6 +213,9 @@
             },
             info: false,
             columns: [{
+                    data: 'sku',
+                    name: 'sku'
+                }, {
                     data: 'product_name',
                     name: 'product_name'
                 },
@@ -238,26 +224,42 @@
                     name: 'establishment_name'
                 },
                 {
-                    data: 'transfer_in_out',
-                    name: 'transfer_in_out'
+                    data: 'opening_inventory',
+                    name: 'opening_inventory'
                 },
                 {
-                    data: 'type',
-                    name: 'type'
+                    data: 'purchased_quantity',
+                    name: 'purchased_quantity'
                 },
                 {
-                    data: 'quantity',
-                    name: 'quantity'
+                    data: 'sales_quantity',
+                    name: 'sales_quantity'
                 },
                 {
-                    data: 'entity',
-                    name: 'entity'
+                    data: 'waste',
+                    name: 'waste'
                 },
-
                 {
-                    data: 'transfer_date',
-                    name: 'transfer_date'
-                }, {
+                    data: 'purchase_returns',
+                    name: 'purchase_returns'
+                },
+                {
+                    data: 'transferred_quantity',
+                    name: 'transferred_quantity'
+                },
+                {
+                    data: 'production_quantity',
+                    name: 'production_quantity'
+                },
+                {
+                    data: 'counted_quantity',
+                    name: 'counted_quantity'
+                },
+                {
+                    data: 'quantity_on_inventory',
+                    name: 'quantity_on_inventory'
+                },
+                {
                     data: 'actions',
                     name: 'actions',
                     orderable: false,

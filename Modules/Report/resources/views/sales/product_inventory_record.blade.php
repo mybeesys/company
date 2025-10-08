@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.product-inventory-report'))
+@section('title', __('menuItemLang.product-inventory-recoed'))
 
 @section('css')
 <style>
@@ -24,12 +24,102 @@
 
 <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="kt_tab_pane_1" role="tabpanel">
+        <div class="row g-5 g-xl-8 mb-5">
+            {{-- المخزون الافتتاحي --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.opening_inventory')</div>
+                        <div class="fs-5 fw-bolder text-gray-800">{{ $openingInventory }}</div>
+                    </div>
+                </div>
+            </div>
 
+            {{-- كمية الشراء --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.purchased_quantity')</div>
+                        <div class="fs-5 fw-bolder text-primary">{{ $purchasedQuantity }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- الكمية المباعة --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.sales_quantity')</div>
+                        <div class="fs-5 fw-bolder text-danger">{{ $salesQuantity }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- التالف (Waste) --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.waste')</div>
+                        <div class="fs-5 fw-bolder text-warning">{{ $waste }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- مردود المشتريات --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.purchase_returns')</div>
+                        <div class="fs-5 fw-bolder text-info">{{ $purchaseReturns }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- المحولة  --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.transferred_quantity')</div>
+                        <div class="fs-5 fw-bolder text-success">{{ $transferredQuantity }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- المنتجة (PREP) --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.production_quantity')</div>
+                        <div class="fs-5 fw-bolder text-dark">{{ $productionQuantity }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- المجرودة (Audited/Stock Count) --}}
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="card card-flush h-md-100">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-400 mb-1">@lang('report::fields.counted_quantity')</div>
+                        <div class="fs-5 fw-bolder text-muted">0</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- الكمية في المخزون (Closing Stock) --}}
+            <div class="col-xl-4 col-md-8 col-sm-12">
+                <div class="card card-flush h-md-100 bg-success bg-opacity-10">
+                    <div class="card-body">
+                        <div class="fw-bold text-gray-800 mb-1">@lang('report::fields.quantity_on_inventory')</div>
+                        <div class="fs-5 fw-bolder text-success">{{ $quantityOnInventory }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                 <div class="card-title">
                     <div class="d-flex align-items-center position-relative my-1">
-                        <h3>@lang('menuItemLang.product-inventory-report')</h3>
+                        <h3>@lang('menuItemLang.product-inventory-record')</h3>
                     </div>
                 </div>
 
@@ -46,22 +136,6 @@
             <div class="card-body border-top p-5">
                 <form id="inventoryFilterForm">
                     <div class="row g-5">
-                        <div class="col-md-6">
-                            <div class="row g-5">
-                                <div class="col-md-6">
-                                    <label for="branchFilter" class="form-label">@lang('report::purchase.Branch')</label>
-                                    <select class="form-select form-select-solid" id="branchFilter" name="branch_id[]" data-control="select2" data-placeholder="@lang('report::general.All Branches')" multiple>
-                                        <option></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="productFilter" class="form-label">@lang('report::purchase.Product')</label>
-                                    <select class="form-select form-select-solid" id="productFilter" name="product_id[]" data-control="select2" data-placeholder="@lang('report::purchase.All Products')" multiple>
-                                        <option></option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                         <div class="col-md-6">
                             <div class="row g-5">
                                 <div class="col-md-6">
@@ -121,7 +195,8 @@
     let dataTable;
     const table = $('#kt_ProductSales_table');
     let currentLang = "{{ app()->getLocale() }}";
-    let dataUrl = "{{ route('product-inventory-report') }}";
+    let dataUrl = "{{ route('inventory.record', ['product_id' => $product_id, 'establishment_id' => $establishment_id]) }}";
+
 
     function getFilterParams() {
         const branchId = $('#branchFilter').val() || [];

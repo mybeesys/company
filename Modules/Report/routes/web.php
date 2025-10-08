@@ -41,4 +41,6 @@ Route::middleware([
     Route::get('products', [SalesReportController::class, 'getProducts'])->name('retrieveProducts');
     Route::get('devices', [SalesReportController::class, 'getDevices'])->name('devices');
     Route::get('/payment-reports', [SalesReportController::class, 'combinedPaymentReport'])->name('payment-reports.combined');
+    Route::get('product-inventory-summary', [SalesReportController::class, 'productInventorySummary'])->name('product-inventory-summary');
+    Route::get('/inventory/record/{product_id}/{establishment_id}', [SalesReportController::class, 'productInventoryRecord'])->name('inventory.record');
 });
