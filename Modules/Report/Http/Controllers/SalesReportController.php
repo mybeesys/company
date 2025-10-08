@@ -1023,6 +1023,7 @@ class SalesReportController extends Controller
                     DB::raw("
     (
         SELECT FORMAT(SUM(pi.qty *
+        (
                 SELECT 
                     CASE 
                         WHEN (SELECT COUNT(*) FROM product_unit_transfer AS pu_count WHERE pu_count.product_id = p.id) > 1 
