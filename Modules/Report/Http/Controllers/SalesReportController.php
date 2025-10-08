@@ -905,8 +905,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
+                                        WHERE pu_max.product_id = p.id 
                                 END
                             ) 
                             ELSE 0 
@@ -923,7 +922,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS su_max
-                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                                        WHERE su_max.product_id = p.id 
                                     )
                                 END
                             )
@@ -941,7 +940,7 @@ class SalesReportController extends Controller
                     ELSE (
                         SELECT COALESCE(MAX(transfer), 1)
                         FROM product_unit_transfer AS su_max
-                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                        WHERE su_max.product_id = p.id
                     )
                 END
             ) 
@@ -959,7 +958,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                        WHERE pu_max.product_id = p.id 
                                     )
                                 END
                             ) * -1 
@@ -992,7 +991,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                        WHERE pu_max.product_id = p.id 
                                     )
                                 END
                             ) 
@@ -1010,7 +1009,7 @@ class SalesReportController extends Controller
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                        WHERE pu_max.product_id = p.id
                                     )
                                 END
                             ) 
@@ -1022,15 +1021,12 @@ class SalesReportController extends Controller
                     DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
     (
-        SELECT FORMAT(SUM(pi.qty *
-        (
-                SELECT 
-                    CASE 
-                        WHEN (SELECT COUNT(*) FROM product_unit_transfer AS pu_count WHERE pu_count.product_id = p.id) > 1 
-                        THEN (SELECT COALESCE(MAX(pu_max.transfer), 1) FROM product_unit_transfer AS pu_max WHERE pu_max.product_id = p.id)
-                        ELSE 1
-                    END
-            )
+        SELECT FORMAT(SUM(pi.qty * 
+            CASE 
+                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1 
+                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
+                ELSE 1
+            END
         ), 2)
         FROM product_inventories as pi
         WHERE pi.establishment_id = t.establishment_id
