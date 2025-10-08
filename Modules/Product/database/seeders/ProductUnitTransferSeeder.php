@@ -19,7 +19,7 @@ class ProductUnitTransferSeeder extends Seeder
                 'product_id' => NULL,
                 'ingredient_id' => NULL,
                 'modifier_id' => NULL,
-                'unit1' => 'piece',
+                'unit1' => 1,
                 'unit2' => NULL,
                 'transfer' => -100,
                 'default' => 1,
