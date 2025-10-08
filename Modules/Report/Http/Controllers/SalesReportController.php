@@ -861,10 +861,10 @@ class SalesReportController extends Controller
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
                 ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-                /*                ->leftJoin('product_inventories as pi', function ($join) {
+                ->leftJoin('product_inventories as pi', function ($join) {
                     $join->on('p.id', '=', 'pi.product_id')
                         ->on('t.establishment_id', '=', 'pi.establishment_id');
-                })*/
+                })
                 ->select(
                     'p.sku as sku',
                     'p.id as product_id',
@@ -1003,7 +1003,7 @@ class SalesReportController extends Controller
                     DB::raw("NULL as opening_inventory"),
                     DB::raw("NULL as counted_quantity"),
                     DB::raw("NULL as quantity_on_inventory"),
-                    /* DB::raw("
+                    DB::raw("
     (
         SELECT FORMAT(SUM(pi.qty * 
             CASE 
@@ -1016,7 +1016,7 @@ class SalesReportController extends Controller
         WHERE pi.establishment_id = t.establishment_id
         AND pi.product_id = p.id
     ) as quantity_on_inventory
-")*/
+")
                 )
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
                 ->where(function ($query) {
