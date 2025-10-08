@@ -14,16 +14,14 @@ use Modules\General\Models\NotificationSetting;
 class EmployeeActions
 {
 
-    public function __construct(protected $request)
-    {
-    }
+    public function __construct(protected $request) {}
 
     public function assignRolesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
     {
         $PosRepeaterData = $PosRepeaterData ? collect($PosRepeaterData) : null;
         $dashboardRepeaterData = $dashboardRepeaterData ? collect($dashboardRepeaterData) : null;
-
         $employee->allRoles()->detach();
+
         $processRepeaterData = function ($repeaterData, $roleKey, $employee) {
 
             $uniqueRepeaterData = $repeaterData->groupBy($roleKey)->map(function ($group) use ($roleKey) {
@@ -87,8 +85,11 @@ class EmployeeActions
             'image' => $imageName,
             'created_by' => auth()->user()->id,
             'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
-            'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null
-        ])->all());
+            'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null,
+            'is_enable_service_staff_pin' => $this->request->has('is_enable_service_staff_pin')
+
+
+            ])->all());
 
         $this->assignRolesEstablishments($this->request->get('pos_role_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
 

@@ -41,6 +41,8 @@ trait EmployeeValidateTrait
             'image' => ['image', 'max:3072'],
             'pos_is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:est_establishments,id'],
+            'is_enable_service_staff_pin' => ['boolean'],
+
 
             'pos_role_repeater' => ['nullable', 'array'],
             'pos_role_repeater.*.posRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],

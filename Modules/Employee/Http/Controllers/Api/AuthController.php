@@ -12,17 +12,27 @@ use Modules\Employee\Services\Api\TimeCardService;
 class AuthController extends Controller
 {
 
-    public function __construct(protected TimeCardService $timeCardService)
-    {
-    }
+    public function __construct(protected TimeCardService $timeCardService) {}
     /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request)
     {
         $request->authenticate();
+        $employee = null;
+        if ($request->has('pin')) {
+            $employee = Employee::where('pin', $request->pin)->first();
 
-        $employee = Employee::where('pin', $request->pin)->first();
+            if (!$employee->is_enable_service_staff_pin) {
+                return response()->json(['message' => __('employee::ApiResponses.is_desable_staff_pin')], 401);
+            }
+        } else if ($request->has('email')) {
+            $employee = Employee::where('email', $request->email)->first();
+        }
+
+        if (!$employee) {
+            return response()->json(['message' => __('employee::ApiResponses.incorrect_credential')], 401);
+        }
 
         if (!$employee->pos_is_active) {
             return response()->json(['message' => __('employee::ApiResponses.account_disabled')], 401);

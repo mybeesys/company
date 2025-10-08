@@ -126,6 +126,7 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
+         
         return DB::transaction(function () use ($request, $employee) {
             try {
                 $filteredRequest = $request->safe()->collect()->filter(function ($item) {

@@ -1204,7 +1204,6 @@ class ProductController extends Controller
                     ->orWhere('product_products.name_en', 'like', '%' . $key . '%');
             })
             ->select('product_products.*', 'product_inventories.*')
-            ->take(10)
             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
@@ -1340,9 +1339,15 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
 
-        $setting = Setting::where('key', 'allow_sale_without_stock')->first();
+
+        // if (auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create')) {
+        //     return 'amen';
+        // } else {
+        //     return 'false';
+        // }
 
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+            ->join('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
             ->whereIn('type', ['product', 'variable'])
 
             ->when($search, function ($query) use ($search) {
@@ -1357,18 +1362,25 @@ class ProductController extends Controller
             ->with(['unitTransfers' => function ($query) {
                 // $query->whereNull('unit2');
             }])
-// ->select(
-//     'product_products.*',
-//     DB::raw('SUM(product_inventories.qty) as total_qty')
-// )
-// ->leftJoin('product_inventories', function ($join) {
-//     $join->on('product_inventories.product_id', '=', 'product_products.id')
-//          ->whereNotNull('product_inventories.qty');
-// })
-// ->groupBy('product_products.id')
-
             ->get();
 
+
+        $products = DB::table('product_inventories')
+            ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+            // ->where('product_inventories.establishment_id', $establishmentId)
+            ->whereIn('product_products.type', ['product', 'variable'])
+            ->where([['product_products.active', '=', 1], ['product_products.for_sell', '=', 1]])
+            ->where(function ($query) use ($search) {
+                $query->where('product_products.name_ar', 'like', '%' . $search . '%')
+                    ->orWhere('product_products.name_en', 'like', '%' . $search . '%')
+                    ->orWhere('product_products.SKU', 'like', '%' . $search . '%');
+            })
+            ->whereNull('product_products.deleted_at')
+            ->with(['unitTransfers' => function ($query) {
+                // $query->whereNull('unit2');
+            }])
+            ->select('product_products.*', 'product_inventories.*')
+            ->get();
 
 
         return response()->json([
