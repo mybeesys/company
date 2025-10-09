@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('product_unit_transfer', function (Blueprint $table) {
-            $table->string('unit1')->nullable()->change();
-            $table->bigInteger('unit2')->nullable()->change();
+            $table->tinyInteger('default')
+                ->nullable()
+                ->default(null)
+                ->after('product_id');
         });
     }
 
