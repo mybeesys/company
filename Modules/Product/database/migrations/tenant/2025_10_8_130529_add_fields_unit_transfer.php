@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('product_unit_transfer', function (Blueprint $table) {
             $table->string('unit1')->nullable()->change();
-            $table->bigInteger('unit2')->nullable()->change();
+            $table->unsignedBigInteger('unit2')->nullable()->change();
         });
     }
 
