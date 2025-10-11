@@ -1340,23 +1340,6 @@ class ProductController extends Controller
         $search = $request->input('search');
 
         $products = DB::table('product_products')
-            ->select(
-                'product_products.id',
-                'product_products.name_ar',
-                'product_products.name_en',
-                'product_products.SKU',
-                'product_products.type',
-                'product_products.active',
-                'product_products.for_sell',
-                'product_products.cost',
-                'product_products.price',
-                'product_products.category_id',
-                'product_products.subcategory_id',
-                'product_products.tax_id',
-                'product_products.description_ar',
-                'product_products.description_en',
-                DB::raw('COALESCE(SUM(product_inventories.qty), 0) as inventory_qty')
-            )
             ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
             ->where('product_products.active', 1)
             ->where('product_products.for_sell', 1)
@@ -1369,21 +1352,22 @@ class ProductController extends Controller
             })
             ->whereIn('product_products.type', ['product', 'variable'])
             ->whereNull('product_products.deleted_at')
-            ->groupBy(
+            ->groupBy('product_products.id')    ->select(
                 'product_products.id',
-                'product_products.name_ar',
-                'product_products.name_en',
-                'product_products.SKU',
-                'product_products.type',
-                'product_products.active',
-                'product_products.for_sell',
-                'product_products.cost',
-                'product_products.price',
-                'product_products.category_id',
-                'product_products.subcategory_id',
-                'product_products.tax_id',
-                'product_products.description_ar',
-                'product_products.description_en',
+                DB::raw('MAX(product_products.name_ar) as name_ar'),
+                DB::raw('MAX(product_products.name_en) as name_en'),
+                DB::raw('MAX(product_products.SKU) as SKU'),
+                DB::raw('MAX(product_products.type) as type'),
+                DB::raw('MAX(product_products.active) as active'),
+                DB::raw('MAX(product_products.for_sell) as for_sell'),
+                DB::raw('MAX(product_products.cost) as cost'),
+                DB::raw('MAX(product_products.price) as price'),
+                DB::raw('MAX(product_products.category_id) as category_id'),
+                DB::raw('MAX(product_products.subcategory_id) as subcategory_id'),
+                DB::raw('MAX(product_products.tax_id) as tax_id'),
+                DB::raw('MAX(product_products.description_ar) as description_ar'),
+                DB::raw('MAX(product_products.description_en) as description_en'),
+                DB::raw('COALESCE(SUM(product_inventories.qty), 0) as inventory_qty')
             )
             ->get();
 
