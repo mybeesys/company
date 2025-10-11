@@ -1339,53 +1339,54 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
 
-        $products = DB::table('product_products')
-            ->select(
-                'product_products.id',
-                'product_products.name_ar',
-                'product_products.name_en',
-                'product_products.SKU',
-                'product_products.type',
-                'product_products.active',
-                'product_products.for_sell',
-                'product_products.cost',
-                'product_products.price',
-                'product_products.category_id',
-                'product_products.subcategory_id',
-                'product_products.tax_id',
-                'product_products.description_ar',
-                'product_products.description_en',
-                DB::raw('COALESCE(SUM(product_inventories.qty), 0) as inventory_qty')
-            )
-            ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
-            ->where('product_products.active', 1)
-            ->where('product_products.for_sell', 1)
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('product_products.name_ar', 'like', "%{$search}%")
-                        ->orWhere('product_products.name_en', 'like', "%{$search}%")
-                        ->orWhere('product_products.SKU', 'like', "%{$search}%");
-                });
-            })
-            ->whereIn('product_products.type', ['product', 'variable'])
-            ->whereNull('product_products.deleted_at')
-            ->groupBy(
-                'product_products.id',
-                'product_products.name_ar',
-                'product_products.name_en',
-                'product_products.SKU',
-                'product_products.type',
-                'product_products.active',
-                'product_products.for_sell',
-                'product_products.cost',
-                'product_products.price',
-                'product_products.category_id',
-                'product_products.subcategory_id',
-                'product_products.tax_id',
-                'product_products.description_ar',
-                'product_products.description_en',
-            )
-            ->get();
+$products = DB::table('product_products')
+    ->leftJoin(DB::raw('(SELECT product_id, SUM(qty) AS qty FROM product_inventories GROUP BY product_id) as inv'), 'product_products.id', '=', 'inv.product_id')
+    ->select(
+        'product_products.id',
+        'product_products.name_ar',
+        'product_products.name_en',
+        'product_products.SKU',
+        'product_products.type',
+        'product_products.active',
+        'product_products.for_sell',
+        'product_products.cost',
+        'product_products.price',
+        'product_products.category_id',
+        'product_products.subcategory_id',
+        'product_products.tax_id',
+        'product_products.description_ar',
+        'product_products.description_en',
+        DB::raw('COALESCE(SUM(inv.qty), 0) as inventory_qty')
+    )
+    ->where('product_products.active', 1)
+    ->where('product_products.for_sell', 1)
+    ->whereIn('product_products.type', ['product', 'variable'])
+    ->whereNull('product_products.deleted_at')
+    ->when($search, function ($query) use ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('product_products.name_ar', 'like', "%{$search}%")
+              ->orWhere('product_products.name_en', 'like', "%{$search}%")
+              ->orWhere('product_products.SKU', 'like', "%{$search}%");
+        });
+    })
+    ->groupBy(
+        'product_products.id',
+        'product_products.name_ar',
+        'product_products.name_en',
+        'product_products.SKU',
+        'product_products.type',
+        'product_products.active',
+        'product_products.for_sell',
+        'product_products.cost',
+        'product_products.price',
+        'product_products.category_id',
+        'product_products.subcategory_id',
+        'product_products.tax_id',
+        'product_products.description_ar',
+        'product_products.description_en'
+    )
+    ->get();
+
 
         return response()->json([
             'success' => true,
