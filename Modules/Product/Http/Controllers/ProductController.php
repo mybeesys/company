@@ -1340,9 +1340,9 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
 
-      
-      $products = DB::table('product_inventories')
-    ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
+
+      $products = DB::table('product_products')
+    ->leftJoin('product_inventories', 'product_inventories.product_id', '=', 'product_products.id')
     ->where('product_products.active', 1)
     ->where('product_products.for_sell', 1)
     ->whereIn('product_products.type', ['product', 'variable'])
