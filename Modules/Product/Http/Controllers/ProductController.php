@@ -1339,49 +1339,6 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
 
-
-        // if (auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create')) {
-        //     inventory_qty;
-        // }
-
-        // $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-        //     // ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
-        //     ->whereIn('type', ['product', 'variable'])
-
-        //     ->when($search, function ($query) use ($search) {
-        //         $query->where(function ($q) use ($search) {
-        //             $q->where('name_ar', 'like', "%$search%")
-        //                 ->orWhere('name_en', 'like', "%$search%")
-        //                 ->orWhere('SKU', 'like', "%$search%");
-        //         });
-        //     })
-
-        //     ->whereNull('deleted_at')
-        //     ->with(['unitTransfers' => function ($query) {
-        //         // $query->whereNull('unit2');
-        //     }])
-
-        //     ->get();
-
-
-        // $products = Product::where([
-        //     ['product_products.active', '=', 1],
-        //     ['product_products.for_sell', '=', 1],
-        // ])
-        // ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
-        // ->whereIn('product_products.type', ['product', 'variable'])
-        // ->when($search, function ($query) use ($search) {
-        //     $query->where(function ($q) use ($search) {
-        //         $q->where('product_products.name_ar', 'like', "%{$search}%")
-        //           ->orWhere('product_products.name_en', 'like', "%{$search}%")
-        //           ->orWhere('product_products.SKU', 'like', "%{$search}%");
-        //     });
-        // })
-        // ->whereNull('product_products.deleted_at')
-        // ->with(['unitTransfers'])
-        // ->get();
-
-
         $products = DB::table('product_products')
             ->select(
                 'product_products.id',
@@ -1429,40 +1386,6 @@ class ProductController extends Controller
                 'product_products.description_en',
             )
             ->get();
-
-        // $products = DB::table('product_products')
-        // ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
-        // ->where('product_products.active', 1)
-        // ->where('product_products.for_sell', 1)
-        // ->whereIn('product_products.type', ['product', 'variable'])
-        // ->whereNull('product_products.deleted_at')
-        // ->when($search, function ($query) use ($search) {
-        //     $query->where(function ($q) use ($search) {
-        //         $q->where('product_products.name_ar', 'like', "%{$search}%")
-        //           ->orWhere('product_products.name_en', 'like', "%{$search}%")
-        //           ->orWhere('product_products.SKU', 'like', "%{$search}%");
-        //     });
-        // })
-        // ->select('product_products.*', 'product_inventories.qty as inventory_qty')
-        // ->get();
-
-        // $products = DB::table('product_inventories')
-        //     ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-        //     // ->where('product_inventories.establishment_id', $establishmentId)
-        //     ->whereIn('product_products.type', ['product', 'variable'])
-        //     ->where([['product_products.active', '=', 1], ['product_products.for_sell', '=', 1]])
-        //     ->where(function ($query) use ($search) {
-        //         $query->where('product_products.name_ar', 'like', '%' . $search . '%')
-        //             ->orWhere('product_products.name_en', 'like', '%' . $search . '%')
-        //             ->orWhere('product_products.SKU', 'like', '%' . $search . '%');
-        //     })
-        //     ->whereNull('product_products.deleted_at')
-        //     ->with(['unitTransfers' => function ($query) {
-        //         // $query->whereNull('unit2');
-        //     }])
-        //     ->select('product_products.*', 'product_inventories.*')
-        //     ->get();
-
 
         return response()->json([
             'success' => true,
