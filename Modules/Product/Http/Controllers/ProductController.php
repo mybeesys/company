@@ -1341,53 +1341,28 @@ class ProductController extends Controller
         $search = $request->input('search');
 
 
-      $products = DB::table('product_products')
-    ->leftJoin('product_inventories', 'product_inventories.product_id', '=', 'product_products.id')
-    ->where('product_products.active', 1)
-    ->where('product_products.for_sell', 1)
-    ->whereIn('product_products.type', ['product', 'variable'])
-    ->whereNull('product_products.deleted_at')
-    ->when($search, function ($query) use ($search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('product_products.name_ar', 'like', "%{$search}%")
-              ->orWhere('product_products.name_en', 'like', "%{$search}%")
-              ->orWhere('product_products.SKU', 'like', "%{$search}%");
+         $products = DB::table('product_products')
+            ->where('active', 1)
+            ->where('for_sell', 1)
+            ->whereIn('type', ['product', 'variable'])
+            ->whereNull('deleted_at')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name_ar', 'like', "%{$search}%")
+                        ->orWhere('name_en', 'like', "%{$search}%")
+                        ->orWhere('SKU', 'like', "%{$search}%");
+                });
+            })
+            ->get();
+
+        $products->transform(function ($product) {
+            $inventoryQty = DB::table('product_inventories')
+                ->where('product_id', $product->id)
+                ->sum('qty');
+
+            $product->inventory_qty = $inventoryQty;
+            return $product;
         });
-    })
-    ->groupBy(
-        'product_products.id',
-        'product_products.name_ar',
-        'product_products.name_en',
-        'product_products.SKU',
-        'product_products.type',
-        'product_products.active',
-        'product_products.for_sell',
-        'product_products.cost',
-        'product_products.price',
-        'product_products.category_id',
-        'product_products.subcategory_id',
-        'product_products.tax_id',
-        'product_products.description_ar',
-        'product_products.description_en'
-    )
-    ->select(
-        'product_products.id',
-        'product_products.name_ar',
-        'product_products.name_en',
-        'product_products.SKU',
-        'product_products.type',
-        'product_products.active',
-        'product_products.for_sell',
-        'product_products.cost',
-        'product_products.price',
-        'product_products.category_id',
-        'product_products.subcategory_id',
-        'product_products.tax_id',
-        'product_products.description_ar',
-        'product_products.description_en',
-        DB::raw('COALESCE(SUM(product_inventories.qty), 0) as inventory_qty')
-    )
-    ->get();
 
 
         return response()->json([
