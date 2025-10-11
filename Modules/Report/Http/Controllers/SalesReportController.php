@@ -1032,8 +1032,8 @@ SUM(
                     ) as opening_inventory
                 "),
                     DB::raw("NULL as counted_quantity"),
-                    DB::raw("NULL as quantity_on_inventory"),
-                    /*  DB::raw("
+                    //     DB::raw("NULL as quantity_on_inventory"),
+                    DB::raw("
     (
         SELECT FORMAT(SUM(pi.qty * 
             CASE 
@@ -1046,7 +1046,7 @@ SUM(
         WHERE pi.establishment_id = t.establishment_id
         AND pi.product_id = p.id
     ) as quantity_on_inventory
-")*/
+")
                 )
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
                 ->where(function ($query) {
