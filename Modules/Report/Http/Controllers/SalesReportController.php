@@ -855,7 +855,9 @@ class SalesReportController extends Controller
                 ->select(
                     'product_id',
                     DB::raw('MAX(transfer) as max_transfer'),
-                    DB::raw('COUNT(*) as transfer_count')
+                    DB::raw('COUNT(*) as transfer_count'),
+                    DB::raw('MAX(unit1) as base_unit_name_ar'),
+                    DB::raw('MAX(unit1) as base_unit_name_en')
                 )
                 ->groupBy('product_id');
 
@@ -870,6 +872,7 @@ class SalesReportController extends Controller
                 })
                 ->groupBy('pi.establishment_id', 'pi.product_id');
 
+            // استعلام فرعي للكميات المحولة
             $transferQuantitySubquery = DB::table('transactions AS t_inner')
                 ->select(
                     't_inner.parent_id',
@@ -920,21 +923,10 @@ class SalesReportController extends Controller
                     ELSE e.name_en 
                 END as establishment_name"),
                     DB::raw("
-                    COALESCE(
-                        MAX(
-                            CASE 
-                                WHEN put.transfer_count > 1 AND '" . app()->getLocale() . "' = 'ar' THEN pu.unit1
-                                WHEN put.transfer_count > 1 AND '" . app()->getLocale() . "' = 'en' THEN pu.unit1
-                                ELSE NULL
-                            END
-                        ), 
-                        MAX(
-                            CASE 
-                                WHEN '" . app()->getLocale() . "' = 'ar' THEN pu.unit1 
-                                ELSE pu.unit1
-                            END
-                        )
-                    ) as base_unit_name
+                    CASE 
+                        WHEN '" . app()->getLocale() . "' = 'ar' THEN put.base_unit_name_ar
+                        ELSE put.base_unit_name_en
+                    END as base_unit_name
                 "),
                     // purchased_quantity
                     DB::raw("
@@ -1028,7 +1020,18 @@ class SalesReportController extends Controller
                     DB::raw("NULL as counted_quantity"),
                     DB::raw("COALESCE(pi.quantity_on_inventory, '0.00') as quantity_on_inventory")
                 )
-                ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id', 'pi.quantity_on_inventory')
+                ->groupBy(
+                    'p.id',
+                    'p.sku',
+                    app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en',
+                    't.establishment_id',
+                    'e.name',
+                    'e.name_en',
+                    'e.id',
+                    'pi.quantity_on_inventory',
+                    'put.base_unit_name_ar',
+                    'put.base_unit_name_en'
+                )
                 ->where(function ($query) {
                     $query->where(function ($subQuery) {
                         $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
