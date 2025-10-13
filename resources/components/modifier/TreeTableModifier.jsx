@@ -593,7 +593,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             style={{ width: "10%" }}
                             body={(node) =>
                                 node.data.type == "modifier" ? (
-                                    renderDecimalCell(node, "price")
+                                    renderDecimalCell(node, "price_with_tax")
                                 ) : (
                                     <></>
                                 )

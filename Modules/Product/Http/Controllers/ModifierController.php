@@ -86,6 +86,7 @@ class ModifierController extends Controller
         $modifier->class_id  = $validated['class_id'];
         $modifier->cost     = $validated['cost'];
         $modifier->price    = $validated['price'];
+        $modifier->price_with_tax    = $validated['price_with_tax'];
         $modifier->tax_id   = $validated['tax_id'];
         $modifier->active   = $validated['active'];
         $modifier->order   = $validated['order'];
@@ -185,9 +186,14 @@ class ModifierController extends Controller
 
     protected function createModifier($validated, $request)
     {
+
         DB::transaction(function () use ($validated, $request) {
+            $price_with_tax = $validated['price'];
+            $price = $price_with_tax / (1 +  0.15);
             $modifier = Product::create(array_merge($validated, [
-                'type' => 'modifier'
+                'type' => 'modifier',
+                'price_with_tax' =>$price_with_tax,
+                'price' =>  $price
             ]));
             if (isset($request["recipe"])) {
                 $order = 0;
