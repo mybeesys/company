@@ -34,8 +34,9 @@ const ProductRecipe = ({
 
         let transfer = 0;
         if (unitTransfer && typeof unitTransfer === "object") {
-            transfer = parseFloat(unitTransfer.transfer || 0);
+            transfer = parseFloat(unitTransfer?.data?.transfer || 0);
         }
+
 
         if (transfer > 0) {
             return (parseFloat(quantity) / transfer) * ingredient.cost;
