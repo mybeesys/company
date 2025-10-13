@@ -80,6 +80,8 @@ const ProductRecipe = ({
                 transfer = parseFloat(node.unit_transfer?.data?.transfer || 0);
             }
 
+            console.log('********** '+transfer);
+
             if (transfer > 0) {
                 return (parseFloat(node.quantity) / transfer) * cost;
             } else {
