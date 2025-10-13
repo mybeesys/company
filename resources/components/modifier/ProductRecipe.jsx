@@ -4,7 +4,6 @@ import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { node } from "webpack";
 
 const animatedComponents = makeAnimated();
 
@@ -50,11 +49,10 @@ const ProductRecipe = ({
     };
 
     const onCahnge = () => {
-        let editedNode = nodes.find((e) => {
-            return e.id == "-1";
-        });
+        let editedNode = nodes.find((e) => e.id == "-1");
         editedNode.newid = editingRow.newid;
         editedNode.quantity = editingRow.quantity;
+        editedNode.cost = editingRow.cost; // اضفنا الكلفة هنا
         editedNode.id = id + 1;
         setid(id + 1);
         setNodes(nodes);
@@ -63,33 +61,45 @@ const ProductRecipe = ({
 
     const handleEditorChange = (value, key) => {
         editingRow[key] = value;
+
+        // إعادة حساب الكلفة عند تغيير quantity أو newid
+        if (key === "quantity" || key === "newid") {
+            editingRow.cost = calculateCost(editingRow);
+        }
+
         setEditingRow({ ...editingRow });
+    };
+
+    const calculateCost = (node) => {
+        if (node.newid && node.quantity) {
+            const ingredient = ingredientTree.find(e => e.value == node.newid);
+            const cost = parseFloat(ingredient?.cost || 0);
+
+            let transfer = 0;
+            if (node.unit_transfer && typeof node.unit_transfer === "object") {
+                transfer = parseFloat(node.unit_transfer?.data?.transfer || 0);
+            }
+
+            if (transfer > 0) {
+                return (parseFloat(node.quantity) / transfer) * cost;
+            } else {
+                return parseFloat(node.quantity) * cost;
+            }
+        }
+        return "";
     };
 
     const actionTemplate = (node) => {
         return (
             <>
                 {node.id == currentKey ? (
+                    <i class="ki-outline ki-check fs-2" onClick={handleSubmit}></i>
+                ) : null}
+                {node.id == -100 ? null : (
                     <i
-                        class="ki-outline ki-check fs-2"
-                        onClick={handleSubmit}
+                        className={node.deleted == 1 ? "ki-outline ki-plus fs-2" : "ki-outline ki-trash fs-2"}
+                        onClick={() => cancelEdit(node)}
                     ></i>
-                ) : (
-                    <></>
-                )}
-                {node.id == -100 ? (
-                    ""
-                ) : (
-                    <>
-                        <i
-                            className={
-                                node.deleted == 1
-                                    ? "ki-outline ki-plus fs-2"
-                                    : "ki-outline ki-trash fs-2"
-                            }
-                            onClick={() => cancelEdit(node)}
-                        ></i>
-                    </>
                 )}
             </>
         );
@@ -118,18 +128,17 @@ const ProductRecipe = ({
     const renderDropDownCell = (node, key, autoFocus) => {
         if (node.id == -100) {
             return (
-                <a
-                    href="#"
-                    onClick={(e) => addInline(node)}
-                >{`${translations.Add} ${translations["Ingredient"]}`}</a>
+                <a href="#" onClick={(e) => addInline(node)}>
+                    {`${translations.Add} ${translations["Ingredient"]}`}
+                </a>
             );
         } else {
             const val = ingredientTree.find((x) => x.value == node[key]);
             return node.id == currentKey ? (
                 <Select
                     options={ingredientTree}
-                    defaultValue={node[key]}
-                    onChange={(e) => handleEditorChange(e.value, key, node)}
+                    value={ingredientTree.find(x => x.value === node.newid)}
+                    onChange={(e) => handleEditorChange(e.value, "newid")}
                     autoFocus={!!autoFocus}
                 />
             ) : (
@@ -139,8 +148,7 @@ const ProductRecipe = ({
     };
 
     const renderCostCell = (node) => {
-        let cost = calculateCost(node.newid, node.quantity);
-        return <span>{cost}</span>;
+        return <span>{node.cost}</span>;
     };
 
     const addInline = (node) => {
@@ -157,108 +165,81 @@ const ProductRecipe = ({
         setEditingRow(node);
     };
 
-    const calculateCost = (newid, quantity) => {
-        if (newid) {
-            let cost = ingredientTree.find((e) => e.value == newid).cost;
-            return cost * quantity;
-        }
-        return "";
-    };
-
     return (
-        <>
-            <div class="card-body" dir={dir}>
-                <div>
-                    <DataTable
-                        value={nodes}
-                        tableStyle={{ minWidth: "20rem" }}
-                        noValidate
-                        validated={true}
-                        className={"custom-tree-table"}
-                        onSubmit={handleSubmit}
-                    >
-                        <Column
-                            field="newid"
-                            style={{ width: "30%" }}
-                            header={translations.Ingredient}
-                            body={(node) =>
-                                renderDropDownCell(
-                                    node,
-                                    "newid",
-                                    true,
-                                    ingredientTree
-                                )
-                            }
-                        ></Column>
-                        <Column field="quantity" style={{ width: '30%' }}  header={translations.quantity} body={(node) => (node.id==-100 ? "" :renderDecimalCell(node, 'quantity' , false ))}></Column>
-                        <Column
-                            field="cost"
-                            style={{ width: "10%" }}
-                            header={translations.cost}
-                            body={(node) =>
-                                node.id == -100
-                                    ? ""
-                                    : node.id == currentKey
-                                    ? renderCostCell(editingRow)
-                                    : renderCostCell(node)
-                            }
-                        ></Column>
-                        <Column
-                            style={{ width: "20%" }}
-                            body={(node) => actionTemplate(node)}
-                        ></Column>
-                    </DataTable>
-                </div>
-                <div class="row" style={{ paddingtop: "20px" }}>
-                    <div class="col-6">
-                        <label for="recipe_yield" class="col-form-label">
-                            {translations.recipe_yield}
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            step=".01"
-                            class="form-control"
-                            id="recipe_yield"
-                            value={
-                                !!currentObject.recipe_yield
-                                    ? currentObject.recipe_yield
-                                    : ""
-                            }
-                            onChange={(e) =>
-                                onChangeProduct("recipe_yield", e.target.value)
-                            }
-                            required
-                        ></input>
-                    </div>
-                </div>
-                <div class="row" style={{ paddingtop: "10px" }}>
-                    <div class="col-6">
-                        <label class="col-form-label col-4">
-                            <div class="row">
-                                <div class="col-2">
-                                    <input
-                                        type="checkbox"
-                                        class="form-check-input"
-                                        id="prep_recipe"
-                                        checked={currentObject.prep_recipe}
-                                        onChange={(e) =>
-                                            onChangeProduct(
-                                                "prep_recipe",
-                                                e.target.checked
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div class="col-10">
-                                    {translations.prep_recipe}
-                                </div>
-                            </div>
-                        </label>
-                    </div>
+        <div class="card-body" dir={dir}>
+            <div>
+                <DataTable
+                    value={nodes}
+                    tableStyle={{ minWidth: "20rem" }}
+                    noValidate
+                    validated={true}
+                    className={"custom-tree-table"}
+                    onSubmit={handleSubmit}
+                >
+                    <Column
+                        field="newid"
+                        style={{ width: "30%" }}
+                        header={translations.Ingredient}
+                        body={(node) => renderDropDownCell(node, "newid", true)}
+                    ></Column>
+                    <Column
+                        field="quantity"
+                        style={{ width: "30%" }}
+                        header={translations.quantity}
+                        body={(node) =>
+                            node.id == -100 ? "" : renderDecimalCell(node, "quantity", false)
+                        }
+                    ></Column>
+                    <Column
+                        field="cost"
+                        style={{ width: "10%" }}
+                        header={translations.cost}
+                        body={(node) =>
+                            node.id == -100 ? "" : renderCostCell(node)
+                        }
+                    ></Column>
+                    <Column
+                        style={{ width: "20%" }}
+                        body={(node) => actionTemplate(node)}
+                    ></Column>
+                </DataTable>
+            </div>
+            <div class="row" style={{ paddingTop: "20px" }}>
+                <div class="col-6">
+                    <label for="recipe_yield" class="col-form-label">
+                        {translations.recipe_yield}
+                    </label>
+                    <input
+                        type="number"
+                        min="0"
+                        step=".01"
+                        class="form-control"
+                        id="recipe_yield"
+                        value={!!currentObject.recipe_yield ? currentObject.recipe_yield : ""}
+                        onChange={(e) => onChangeProduct("recipe_yield", e.target.value)}
+                        required
+                    ></input>
                 </div>
             </div>
-        </>
+            <div class="row" style={{ paddingTop: "10px" }}>
+                <div class="col-6">
+                    <label class="col-form-label col-4">
+                        <div class="row">
+                            <div class="col-2">
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    id="prep_recipe"
+                                    checked={currentObject.prep_recipe}
+                                    onChange={(e) => onChangeProduct("prep_recipe", e.target.checked)}
+                                />
+                            </div>
+                            <div class="col-10">{translations.prep_recipe}</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
     );
 };
 
