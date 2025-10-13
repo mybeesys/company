@@ -88,12 +88,35 @@ const ModifierRecipe = ({
                                     (e) =>
                                         e.value == nodes[rowKey].data["newid"]
                                 ).cost;
-                                let transfer = parseFloat(
-                                    nodes[rowKey].data["unit_transfer"]
-                                        ?.transfer || 0
-                                );
+                                let transfer = 0;
 
-                                console.log('*************  '+transfer+'  ***********cost '+cost);
+                                if (
+                                    typeof nodes[rowKey].data[
+                                        "unit_transfer"
+                                    ] === "object"
+                                ) {
+                                    transfer = parseFloat(
+                                        nodes[rowKey].data["unit_transfer"]
+                                            ?.transfer || 0
+                                    );
+                                } else {
+                                    const selectedUnit = nodes[rowKey].data[
+                                        "unit_transfer_options"
+                                    ]?.find(
+                                        (e) =>
+                                            e.id ==
+                                            nodes[rowKey].data["unit_transfer"]
+                                    );
+                                    transfer = parseFloat(
+                                        selectedUnit?.transfer || 0
+                                    );
+                                }
+                                console.log(
+                                    "*************  " +
+                                        transfer +
+                                        "  ***********cost " +
+                                        cost
+                                );
 
                                 if (transfer > 0) {
                                     nodes[rowKey].data["cost"] =
