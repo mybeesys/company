@@ -88,11 +88,11 @@ const ModifierRecipe = ({
                                     (e) =>
                                         e.value == nodes[rowKey].data["newid"]
                                 ).cost;
-                                let transfer = ingredientTree.find(
-                                    (e) =>
-                                        e.value ==
-                                        nodes[rowKey].data["unit_transfer"]
-                                ).transfer;
+                                let transfer = parseFloat(
+                                    nodes[rowKey].data["unit_transfer"]
+                                        ?.transfer || 0
+                                );
+
                                 if (transfer > 0) {
                                     nodes[rowKey].data["cost"] =
                                         (val / transfer) * cost;
