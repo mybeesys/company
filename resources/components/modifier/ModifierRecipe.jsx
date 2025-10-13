@@ -111,6 +111,9 @@ const ModifierRecipe = ({
                                         selectedUnit?.transfer || 0
                                     );
                                 }
+
+                                console.log(nodes[rowKey].data["unit_transfer"]);
+
                                 console.log(
                                     "*************  " +
                                         transfer +
