@@ -93,6 +93,8 @@ const ModifierRecipe = ({
                                         ?.transfer || 0
                                 );
 
+                                console.log('*************  '+transfer+'  ***********cost '+cost);
+
                                 if (transfer > 0) {
                                     nodes[rowKey].data["cost"] =
                                         (val / transfer) * cost;
