@@ -37,7 +37,7 @@ class ModifierController extends Controller
             'price' => 'nullable|numeric',
             'price_with_tax' => 'nullable|numeric',
             'SKU' => 'nullable|string',
-           'barcode' => 'nullable|string',
+            'barcode' => 'nullable|string',
             'tax_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'order' => 'nullable|numeric',
@@ -188,11 +188,11 @@ class ModifierController extends Controller
     {
 
         DB::transaction(function () use ($validated, $request) {
-            $price_with_tax = $validated['price'];
+            $price_with_tax = $validated['price_with_tax'];
             $price = $price_with_tax / (1 +  0.15);
             $modifier = Product::create(array_merge($validated, [
                 'type' => 'modifier',
-                'price_with_tax' =>$price_with_tax,
+                'price_with_tax' => $price_with_tax,
                 'price' =>  $price
             ]));
             if (isset($request["recipe"])) {
