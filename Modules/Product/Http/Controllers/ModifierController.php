@@ -36,8 +36,9 @@ class ModifierController extends Controller
             'class_id' => 'nullable|numeric',
             'cost' => 'nullable|numeric',
             'price' => 'nullable|numeric',
+            'price_with_tax' => 'nullable|numeric',
             'SKU' => 'nullable|string',
-            'barcode' => 'nullable|string',
+           'barcode' => 'nullable|string',
             'tax_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'order' => 'nullable|numeric',
@@ -86,7 +87,7 @@ class ModifierController extends Controller
         $modifier->class_id  = $validated['class_id'];
         $modifier->cost     = $validated['cost'];
         $modifier->price    = $validated['price'];
-        $modifier->price_with_tax    = $validated['price_with_tax'];
+        $modifier->price_with_tax = $validated['price_with_tax'];
         $modifier->tax_id   = $validated['tax_id'];
         $modifier->active   = $validated['active'];
         $modifier->order   = $validated['order'];
