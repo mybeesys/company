@@ -18,6 +18,36 @@ const ModifierRecipe = ({
         return { message: "Done" };
     };
 
+    const calculateCost = (nodes, rowKey, val, ingredientTree, postExecute) => {
+        if (!!nodes[rowKey].data["newid"] && !!nodes[rowKey].data["quantity"]) {
+            const quantity = parseFloat(nodes[rowKey].data["quantity"]);
+            const ingredient = ingredientTree.find(
+                (e) => e.value == nodes[rowKey].data["newid"]
+            );
+            const cost = parseFloat(ingredient?.cost || 0);
+
+            let transfer = 0;
+            if (typeof nodes[rowKey].data["unit_transfer"] === "object") {
+                transfer = parseFloat(
+                    nodes[rowKey].data["unit_transfer"]?.data?.transfer || 0
+                );
+            } else {
+                const selectedUnit = nodes[rowKey].data[
+                    "unit_transfer_options"
+                ]?.find((e) => e.id == nodes[rowKey].data["unit_transfer"]);
+                transfer = parseFloat(selectedUnit?.transfer || 0);
+            }
+
+            if (transfer > 0) {
+                nodes[rowKey].data["cost"] = (quantity / transfer) * cost;
+            } else {
+                nodes[rowKey].data["cost"] = quantity * cost;
+            }
+
+            postExecute(nodes);
+        }
+    };
+
     return (
         <div class="pt-3">
             <TreeTableEditorLocal
@@ -68,6 +98,21 @@ const ModifierRecipe = ({
                             key: "id",
                             relatedKey: "newid",
                         },
+                        onChangeValue: (
+                            nodes,
+                            key,
+                            val,
+                            rowKey,
+                            postExecute
+                        ) => {
+                            calculateCost(
+                                nodes,
+                                rowKey,
+                                val,
+                                ingredientTree,
+                                postExecute
+                            );
+                        },
                     },
                     {
                         key: "quantity",
@@ -83,53 +128,13 @@ const ModifierRecipe = ({
                             rowKey,
                             postExecute
                         ) => {
-                            if (!!nodes[rowKey].data["newid"] && !!val) {
-                                let cost = ingredientTree.find(
-                                    (e) =>
-                                        e.value == nodes[rowKey].data["newid"]
-                                ).cost;
-                                let transfer = 0;
-
-                                if (
-                                    typeof nodes[rowKey].data[
-                                        "unit_transfer"
-                                    ] === "object"
-                                ) {
-                                    transfer = parseFloat(
-                                        nodes[rowKey].data["unit_transfer"]
-                                            ?.data?.transfer || 0
-                                    );
-                                } else {
-                                    const selectedUnit = nodes[rowKey].data[
-                                        "unit_transfer_options"
-                                    ]?.find(
-                                        (e) =>
-                                            e.id ==
-                                            nodes[rowKey].data["unit_transfer"]
-                                    );
-                                    transfer = parseFloat(
-                                        selectedUnit?.transfer || 0
-                                    );
-                                }
-
-                                console.log(
-                                    nodes[rowKey].data["unit_transfer"]
-                                );
-                                console.log(
-                                    "*************  " +
-                                        transfer +
-                                        "  ***********cost " +
-                                        cost
-                                );
-
-                                if (transfer > 0) {
-                                    nodes[rowKey].data["cost"] =
-                                        (val / transfer) * cost;
-                                } else {
-                                    nodes[rowKey].data["cost"] = val * cost;
-                                }
-                            }
-                            postExecute(nodes);
+                            calculateCost(
+                                nodes,
+                                rowKey,
+                                val,
+                                ingredientTree,
+                                postExecute
+                            );
                         },
                     },
                     {
