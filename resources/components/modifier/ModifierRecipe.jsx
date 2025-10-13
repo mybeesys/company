@@ -97,7 +97,7 @@ const ModifierRecipe = ({
                                 ) {
                                     transfer = parseFloat(
                                         nodes[rowKey].data["unit_transfer"]
-                                            ?.transfer || 0
+                                            ?.data?.transfer || 0
                                     );
                                 } else {
                                     const selectedUnit = nodes[rowKey].data[
@@ -112,8 +112,9 @@ const ModifierRecipe = ({
                                     );
                                 }
 
-                                console.log(nodes[rowKey].data["unit_transfer"]);
-
+                                console.log(
+                                    nodes[rowKey].data["unit_transfer"]
+                                );
                                 console.log(
                                     "*************  " +
                                         transfer +
