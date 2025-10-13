@@ -26,35 +26,27 @@ const ProductRecipe = ({
         );
     }, [product, ingredientTree]);
 
-    const fetchUnitTransferData = async (id) => {
-        try {
-            const response = await axios.get(`/getUnitTransfer/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error("Failed to fetch unit transfer:", error);
-            return null;
-        }
-    };
-    const calculateCost = async (ingredientId, quantity, unitTransfer) => {
-        const ingredient = ingredientTree.find((e) => e.value === ingredientId);
-        if (!ingredient || !quantity) return 0;
+    const calculateCost = (ingredientId, quantity, unitTransfer) => {
+        if (!ingredientId || !quantity) return 0;
 
-        try {
-            if (unitTransfer?.id) {
-                const unitData = await fetchUnitTransferData(unitTransfer.id);
-                if (unitData?.unit2) {
-                    return quantity / ingredient.cost;
-                }
-            }
-            return quantity * ingredient.cost;
-        } catch (error) {
-            console.error("Error calculating cost:", error);
-            return 0;
+        const ingredient = ingredientTree.find((e) => e.value === ingredientId);
+        if (!ingredient) return 0;
+
+        let transfer = 0;
+        if (unitTransfer && typeof unitTransfer === "object") {
+            transfer = parseFloat(unitTransfer.transfer || 0);
+        }
+
+        if (transfer > 0) {
+            return (parseFloat(quantity) / transfer) * ingredient.cost;
+        } else {
+            return parseFloat(quantity) * ingredient.cost;
         }
     };
+
     const handleDelete = (row) => {
         let index = productRecipe.findIndex((x) => x.id == row.id);
-        productRecipe.splice(index, 1); // Removes 1 element at index 2
+        productRecipe.splice(index, 1);
         onBasicChange("recipe", productRecipe);
         return { message: "Done" };
     };
@@ -80,21 +72,20 @@ const ProductRecipe = ({
                         width: "35%",
                         editable: true,
                         required: true,
-                        onChangeValue: (
-                            nodes,
-                            key,
-                            val,
-                            rowKey,
-                            postExecute
-                        ) => {
-                            if (!!val && !!nodes[rowKey].data["quantity"]) {
-                                let cost = ingredientTree.find(
-                                    (e) => e.value == val
-                                ).cost;
-                                nodes[rowKey].data["cost"] =
-                                    nodes[rowKey].data["quantity"] * cost;
+                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
+                            const updatedNodes = [...nodes];
+                            const rowData = updatedNodes[rowKey].data;
+                            rowData[key] = val;
+
+                            if (rowData.newid && rowData.quantity) {
+                                rowData.cost = calculateCost(
+                                    rowData.newid,
+                                    rowData.quantity,
+                                    rowData.unit_transfer
+                                );
                             }
-                            postExecute(nodes);
+
+                            postExecute(updatedNodes);
                         },
                     },
                     {
@@ -109,6 +100,21 @@ const ProductRecipe = ({
                             key: "id",
                             relatedKey: "newid",
                         },
+                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
+                            const updatedNodes = [...nodes];
+                            const rowData = updatedNodes[rowKey].data;
+                            rowData[key] = val;
+
+                            if (rowData.newid && rowData.quantity) {
+                                rowData.cost = calculateCost(
+                                    rowData.newid,
+                                    rowData.quantity,
+                                    rowData.unit_transfer
+                                );
+                            }
+
+                            postExecute(updatedNodes);
+                        },
                     },
                     {
                         key: "quantity",
@@ -117,23 +123,16 @@ const ProductRecipe = ({
                         width: "20%",
                         editable: true,
                         required: true,
-                        onChangeValue: async (
-                            nodes,
-                            key,
-                            val,
-                            rowKey,
-                            postExecute
-                        ) => {
+                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
                             const updatedNodes = [...nodes];
                             const rowData = updatedNodes[rowKey].data;
+                            rowData[key] = val;
 
-                            if (rowData["newid"] && val) {
-                                rowData["quantity"] = parseFloat(val) || 0;
-
-                                rowData["cost"] = await calculateCost(
-                                    rowData["newid"],
-                                    rowData["quantity"],
-                                    rowData["unit_transfer"]
+                            if (rowData.newid && rowData.quantity) {
+                                rowData.cost = calculateCost(
+                                    rowData.newid,
+                                    rowData.quantity,
+                                    rowData.unit_transfer
                                 );
                             }
 
@@ -153,7 +152,7 @@ const ProductRecipe = ({
                 onUpdate={(nodes) => onBasicChange("recipe", nodes)}
                 onDelete={handleDelete}
             />
-            <div class="row" style={{ paddingtop: "20px" }}>
+            <div class="row" style={{ paddingTop: "20px" }}>
                 <div class="col-6">
                     <label for="recipe_yield" class="col-form-label">
                         {translations.recipe_yield}
@@ -172,9 +171,9 @@ const ProductRecipe = ({
                     ></input>
                 </div>
             </div>
-            <div class="d-flex  align-items-center pt-3">
+            <div class="d-flex align-items-center pt-3">
                 <label
-                    class="fs-6 fw-semibold mb-2 me-3 "
+                    class="fs-6 fw-semibold mb-2 me-3"
                     style={{ width: "150px" }}
                 >
                     {translations.prep_recipe}

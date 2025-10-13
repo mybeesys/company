@@ -52,7 +52,7 @@ const ProductRecipe = ({
         let editedNode = nodes.find((e) => e.id == "-1");
         editedNode.newid = editingRow.newid;
         editedNode.quantity = editingRow.quantity;
-        editedNode.cost = editingRow.cost; // اضفنا الكلفة هنا
+        editedNode.cost = editingRow.cost; 
         editedNode.id = id + 1;
         setid(id + 1);
         setNodes(nodes);
@@ -62,8 +62,7 @@ const ProductRecipe = ({
     const handleEditorChange = (value, key) => {
         editingRow[key] = value;
 
-        // إعادة حساب الكلفة عند تغيير quantity أو newid
-        if (key === "quantity" || key === "newid") {
+         if (key === "quantity" || key === "newid") {
             editingRow.cost = calculateCost(editingRow);
         }
 
