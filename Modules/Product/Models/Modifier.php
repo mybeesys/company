@@ -14,9 +14,9 @@ class Modifier extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
-    protected $table = 'product_modifiers';
-        
+
+    protected $table = 'product_products';
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.
@@ -59,7 +59,7 @@ class Modifier extends Model
         return $this->belongsTo(ModifierClass::class, 'class_id', 'id');
     }
 
-    
+
     public function products()
     {
         return $this->hasMany(ProductModifier::class, 'modifier_id', 'id');
@@ -79,7 +79,7 @@ class Modifier extends Model
     {
         return $this->hasMany(RecipeModifier::class, 'modifier_id', 'id');
     }
-    
+
     public function inventory()
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'modifier_id');

@@ -204,7 +204,7 @@
   "groups" : "المجموعات",
   "linkedCombo" : "الكومبو المرتبط",
   "linked_combo_id" : "الكومبو المرتبط",
-  "promptForUpsell": "Prompt for upsell", 
+  "promptForUpsell": "Prompt for upsell",
   "yes": "نعم",
   "no": "لا",
   "number" : "No",
@@ -368,5 +368,7 @@
   "language":"ar",
   "ingredint":"مكون",
   "recipeerror":"الوحدةالخاصة بالمكونات بالوصفة مطلوبة",
-  "price_with_tax":"سعرالبيع شامل الضريبة"
+  "price_with_tax":"سعرالبيع شامل الضريبة",
+  "adjust_product_cost_recipe_cost":"هل تريد تعديل تكلفة المنتج بناءً على تكلفة الوصفة؟"
+
 }

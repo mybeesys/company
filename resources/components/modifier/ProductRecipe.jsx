@@ -52,7 +52,7 @@ const ProductRecipe = ({
         let editedNode = nodes.find((e) => e.id == "-1");
         editedNode.newid = editingRow.newid;
         editedNode.quantity = editingRow.quantity;
-        editedNode.cost = editingRow.cost; 
+        editedNode.cost = editingRow.cost;
         editedNode.id = id + 1;
         setid(id + 1);
         setNodes(nodes);
@@ -62,7 +62,7 @@ const ProductRecipe = ({
     const handleEditorChange = (value, key) => {
         editingRow[key] = value;
 
-         if (key === "quantity" || key === "newid") {
+        if (key === "quantity" || key === "newid") {
             editingRow.cost = calculateCost(editingRow);
         }
 
@@ -71,7 +71,9 @@ const ProductRecipe = ({
 
     const calculateCost = (node) => {
         if (node.newid && node.quantity) {
-            const ingredient = ingredientTree.find(e => e.value == node.newid);
+            const ingredient = ingredientTree.find(
+                (e) => e.value == node.newid
+            );
             const cost = parseFloat(ingredient?.cost || 0);
 
             let transfer = 0;
@@ -79,7 +81,7 @@ const ProductRecipe = ({
                 transfer = parseFloat(node.unit_transfer?.data?.transfer || 0);
             }
 
-            console.log('********** '+transfer);
+            console.log("********** " + transfer);
 
             if (transfer > 0) {
                 return (parseFloat(node.quantity) / transfer) * cost;
@@ -94,11 +96,18 @@ const ProductRecipe = ({
         return (
             <>
                 {node.id == currentKey ? (
-                    <i class="ki-outline ki-check fs-2" onClick={handleSubmit}></i>
+                    <i
+                        class="ki-outline ki-check fs-2"
+                        onClick={handleSubmit}
+                    ></i>
                 ) : null}
                 {node.id == -100 ? null : (
                     <i
-                        className={node.deleted == 1 ? "ki-outline ki-plus fs-2" : "ki-outline ki-trash fs-2"}
+                        className={
+                            node.deleted == 1
+                                ? "ki-outline ki-plus fs-2"
+                                : "ki-outline ki-trash fs-2"
+                        }
                         onClick={() => cancelEdit(node)}
                     ></i>
                 )}
@@ -138,7 +147,7 @@ const ProductRecipe = ({
             return node.id == currentKey ? (
                 <Select
                     options={ingredientTree}
-                    value={ingredientTree.find(x => x.value === node.newid)}
+                    value={ingredientTree.find((x) => x.value === node.newid)}
                     onChange={(e) => handleEditorChange(e.value, "newid")}
                     autoFocus={!!autoFocus}
                 />
@@ -188,7 +197,9 @@ const ProductRecipe = ({
                         style={{ width: "30%" }}
                         header={translations.quantity}
                         body={(node) =>
-                            node.id == -100 ? "" : renderDecimalCell(node, "quantity", false)
+                            node.id == -100
+                                ? ""
+                                : renderDecimalCell(node, "quantity", false)
                         }
                     ></Column>
                     <Column
@@ -204,7 +215,10 @@ const ProductRecipe = ({
                         body={(node) => actionTemplate(node)}
                     ></Column>
                 </DataTable>
+
+              
             </div>
+
             <div class="row" style={{ paddingTop: "20px" }}>
                 <div class="col-6">
                     <label for="recipe_yield" class="col-form-label">
@@ -216,8 +230,14 @@ const ProductRecipe = ({
                         step=".01"
                         class="form-control"
                         id="recipe_yield"
-                        value={!!currentObject.recipe_yield ? currentObject.recipe_yield : ""}
-                        onChange={(e) => onChangeProduct("recipe_yield", e.target.value)}
+                        value={
+                            !!currentObject.recipe_yield
+                                ? currentObject.recipe_yield
+                                : ""
+                        }
+                        onChange={(e) =>
+                            onChangeProduct("recipe_yield", e.target.value)
+                        }
                         required
                     ></input>
                 </div>
@@ -232,7 +252,12 @@ const ProductRecipe = ({
                                     class="form-check-input"
                                     id="prep_recipe"
                                     checked={currentObject.prep_recipe}
-                                    onChange={(e) => onChangeProduct("prep_recipe", e.target.checked)}
+                                    onChange={(e) =>
+                                        onChangeProduct(
+                                            "prep_recipe",
+                                            e.target.checked
+                                        )
+                                    }
                                 />
                             </div>
                             <div class="col-10">{translations.prep_recipe}</div>
