@@ -119,7 +119,7 @@ const CustomMenuProduct = ({
                                     <div class="btn__all"></div>
                                 </div>
                             </div>
-                            <div class="container">
+                            <div class="">
                                 <div class="row border-bottom border-dark">
                                     <TreeTable
                                         selectionMode="checkbox"
@@ -128,11 +128,11 @@ const CustomMenuProduct = ({
                                             onSelectedProductChange(e.value)
                                         }
                                         value={products}
-                                        tableStyle={{ minWidth: "65rem" }}
+                                        tableStyle={{ minWidth: "40rem" }}
                                         className={"custom-tree-table"}
                                     >
                                         <Column
-                                            style={{ width: "20%" }}
+                                            style={{ width: "40%" }}
                                             field="name_en"
                                             expander
                                         ></Column>
