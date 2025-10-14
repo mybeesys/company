@@ -149,7 +149,38 @@ const ModifierRecipe = ({
                 actions={[]}
                 onUpdate={(nodes) => onBasicChange("recipe", nodes)}
                 onDelete={handleDelete}
+                modifier
             />
+
+  <div class="d-flex  align-items-center pt-3">
+                    <label
+                        class="fs-6 fw-semibold mb-2 me-3 "
+                        style={{ width: "300px" }}
+                    >
+                        {translations.adjust_product_cost_recipe_cost}
+                    </label>
+                    <div class="form-check">
+                        <input
+                            type="checkbox"
+                            style={{ border: "1px solid #9f9f9f" }}
+                            class="form-check-input my-2"
+                            id="adjust_product_cost_recipe_cost"
+                            name="adjust_product_cost_recipe_cost"
+                            checked={modifier?.adjust_product_cost_recipe_cost}
+                            onChange={(e) =>
+                                onBasicChange(
+                                    "adjust_product_cost_recipe_cost",
+                                    e.target.checked ? 1 : 0
+                                )
+                            }
+                        />
+                    </div>
+                </div>
+
+
+
+
+
             <div class="row" style={{ paddingtop: "20px" }}>
                 <div class="col-6">
                     <label for="recipe_yield" class="col-form-label">

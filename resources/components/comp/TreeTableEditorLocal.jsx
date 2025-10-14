@@ -25,6 +25,7 @@ const TreeTableEditorLocal = ({
     onDelete,
     addNewRow,
     rowTitle,
+    modifier,
 }) => {
     const formRef = useRef(null);
 
@@ -126,6 +127,8 @@ const TreeTableEditorLocal = ({
                       return { ...x.data, id: !!x.data.id ? x.data.id : x.key };
                   })
         );
+
+
         if (response.message != "Done") {
             setShowAlert(true);
             Swal.fire({
@@ -430,7 +433,7 @@ const TreeTableEditorLocal = ({
 
     const renderDropDownCell = (node, col, firstCell) => {
         //key, autoFocus, options, editable, required, firstCell) => {
-        let val; 
+        let val;
         const selectedItem = node.data[col.key];
 
         if (selectedItem) {
@@ -789,6 +792,7 @@ const TreeTableEditorLocal = ({
                     style={{ display: "none" }}
                 ></button>
 
+              
                 {isPopupOpen && (
                     <div className="modal show" style={{ display: "block" }}>
                         <div className="modal-dialog">

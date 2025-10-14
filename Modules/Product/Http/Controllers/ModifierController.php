@@ -44,6 +44,7 @@ class ModifierController extends Controller
             'order' => 'nullable|numeric',
             'recipe_yield' => 'nullable|numeric',
             'prep_recipe' => 'nullable|boolean',
+            'adjust_product_cost_recipe_cost'=> 'nullable|boolean',
             'method' => 'nullable|string'
         ]);
 
@@ -85,7 +86,16 @@ class ModifierController extends Controller
         $modifier->name_ar  = $validated['name_ar'];
         $modifier->name_en  = $validated['name_en'];
         $modifier->class_id  = $validated['class_id'];
-        $modifier->cost     = $validated['cost'];
+        $cost = 0;
+        if ($validated['adjust_product_cost_recipe_cost']) {
+            foreach ($request["recipe"] as $recipe) {
+                $cost +=  $recipe['cost'];
+            }
+        } else {
+            $cost = $validated['cost'];
+        }
+
+        $modifier->cost     = $cost;
         $modifier->price    = $validated['price'];
         $modifier->price_with_tax = $validated['price_with_tax'];
         $modifier->tax_id   = $validated['tax_id'];

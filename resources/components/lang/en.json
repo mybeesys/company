@@ -267,7 +267,7 @@
   "groups" : "Groups",
   "linkedCombo" : "Linked Combo",
   "linked_combo_id" : "Assigned Linked Combo",
-  "promptForUpsell": "Prompt for upsell", 
+  "promptForUpsell": "Prompt for upsell",
   "yes": "Yes",
   "no": "No",
   "number" : "No",
@@ -359,5 +359,6 @@
   "ingredint":"ingredint",
   "recipeerror":"The unit for the ingredients in the recipe is required",
   "sellDate":"Production Date",
-  "price_with_tax":"Pric With Tax"
+  "price_with_tax":"Pric With Tax",
+  "adjust_product_cost_recipe_cost":"Do you want to adjust the product cost based on the recipe cost?"
 }
