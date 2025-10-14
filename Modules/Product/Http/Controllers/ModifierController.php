@@ -106,10 +106,14 @@ class ModifierController extends Controller
                     $rec = [];
                     $rec['modifier_id'] =  $modifier->id;
                     $rec['quantity'] = $recipe['quantity'];
+                    // $recipeIngredient = explode("-", $recipe['newid']);
+                    // $rec['item_id'] = $recipeIngredient[0];
+                    // $rec['item_type'] = $recipeIngredient[1];
                     $recipeIngredient = explode("-", $recipe['newid']);
                     $rec['item_id'] = $recipeIngredient[0];
-                    $rec['item_type'] = $recipeIngredient[1];
-                    $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
+                    $rec['item_type'] = isset($recipeIngredient[1]) ? $recipeIngredient[1] : 'ingredint';
+
+                    $rec["unit_transfer_id"] = isset($recipe["unit_transfer"]["id"]) ? $recipe["unit_transfer"]["id"] : null;
                     $rec['order'] =  $order++;
                     RecipeModifier::create($rec);
                 }
