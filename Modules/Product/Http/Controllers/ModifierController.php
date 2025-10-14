@@ -110,10 +110,17 @@ class ModifierController extends Controller
                     // $recipeIngredient = explode("-", $recipe['newid']);
                     // $rec['item_id'] = $recipeIngredient[0];
                     // $rec['item_type'] = $recipeIngredient[1];
-                    $recipeIngredient = explode("-", $recipe['newid']);
-                    $rec['item_id'] = $recipeIngredient[0];
-                    $rec['item_type'] = isset($recipeIngredient[1]) ? $recipeIngredient[1] : 'ingredint';
+                    $newid = $recipe['newid'];
 
+                    if (str_contains($newid, '-')) {
+                        $recipeIngredient = explode('-', $newid);
+                        $rec['item_id'] = $recipeIngredient[0];
+                        $rec['item_type'] = $recipeIngredient[1];
+                    } else {
+                        preg_match('/^(\d+)([a-zA-Z_]+)?$/', $newid, $matches);
+                        $rec['item_id'] = $matches[1] ?? null;
+                        $rec['item_type'] = $matches[2] ?? null;
+                    }
                     $rec["unit_transfer_id"] = isset($recipe["unit_transfer"]["id"]) ? $recipe["unit_transfer"]["id"] : null;
                     $rec['order'] =  $order++;
                     RecipeModifier::create($rec);
