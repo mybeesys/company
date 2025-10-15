@@ -1,3 +1,4 @@
+import Select from "react-select";
 import { Column } from "primereact/column";
 import { TreeTable } from "primereact/treetable";
 import { useEffect, useState } from "react";
@@ -8,10 +9,13 @@ const CustomMenuProduct = ({
     customMenuProducts,
     onProductSelectionChange,
     dir,
+    onPriceTierChange,
+    custommenu
 }) => {
     const [products, setProducts] = useState([]);
-    const [priceTiers, setPriceTiers] = useState([]); 
     const [selectedNodeKeys, setSelectedNodeKeys] = useState([]);
+    const [priceTiers, setPriceTiers] = useState([]);
+    const [selectedTier, setSelectedTier] = useState(null);
 
     const cleanProductData = (products, cleanProducts) => {
         for (let index = 0; index < products.length; index++) {
@@ -67,7 +71,6 @@ const CustomMenuProduct = ({
     };
 
     useEffect(() => {
-        
         axios
             .get("/categories")
             .then((response) => {
@@ -77,11 +80,10 @@ const CustomMenuProduct = ({
                 setInitialSelectedNode(response.data);
             })
             .catch((error) => {
-                console.error("Error fetching products", error);
+                console.error("Error fetching categories", error);
             });
 
-        
-      axios
+        axios
             .get("/priceTier-list")
             .then((response) => {
                 const data = response.data.map((tier) => ({
@@ -94,6 +96,15 @@ const CustomMenuProduct = ({
                 console.error("Error fetching price tiers", error);
             });
     }, []);
+
+useEffect(() => {
+    if (custommenu?.price_tier_id && priceTiers.length > 0) {
+        const selected = priceTiers.find(
+            (tier) => tier.value === custommenu.price_tier_id
+        );
+        setSelectedTier(selected || null);
+    }
+}, [custommenu, priceTiers]);
 
     const fillSelectedProducts = (products, keys, selectedProductIds) => {
         for (let index = 0; index < products.length; index++) {
@@ -121,20 +132,20 @@ const CustomMenuProduct = ({
     };
 
     return (
-        <section class="product spad">
-            <div class="container mt-5">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="trending__product">
-                           
-                            <div class="row border-bottom">
-                                <div class="col-lg-8 col-md-8 col-sm-8">
-                                    <div class="section-title">
+        <section className="product spad">
+            <div className="container mt-5">
+                <div className="row">
+                    <div className="col-lg-12">
+                        <div className="trending__product">
+                            <div className="row border-bottom">
+                                <div className="col-lg-8 col-md-8 col-sm-8">
+                                    <div className="section-title">
                                         <h4>{translations.products}</h4>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row border-bottom border-dark">
+
+                            <div className="row border-bottom border-dark">
                                 <TreeTable
                                     selectionMode="checkbox"
                                     selectionKeys={selectedNodeKeys}
@@ -157,28 +168,27 @@ const CustomMenuProduct = ({
                                 </TreeTable>
                             </div>
 
-                          
-                            <div class="row border-bottom mt-5">
-                                <div class="col-lg-8 col-md-8 col-sm-8">
-                                    <div class="section-title">
-                                        <h4>{translations.price_tier}</h4>
-                                    </div>
+                            <div className="row mt-4">
+                                <div className="col-lg-6">
+                                    <label className="form-label">
+                                        {translations.price_tier}
+                                    </label>
+                                  <Select
+    options={priceTiers}
+    value={selectedTier}
+    onChange={(selected) => {
+        setSelectedTier(selected);
+        onPriceTierChange(selected);
+    }}
+    placeholder={translations.select_price_tier}
+    isClearable
+    isSearchable
+    className="basic-single"
+    classNamePrefix="select"
+/>
+
                                 </div>
                             </div>
-
-                           <div className="mt-3">
-                                <label className="form-label">{translations.price_tier}</label>
-                                <Select
-                                    options={priceTiers}
-                                    value={priceTiers.find((t) => t.value === selectedTier) || null}
-                                    onChange={(selected) => onChange(selected ? selected.value : null)}
-                                    placeholder={translations.select_price_tier}
-                                    isClearable
-                                    isSearchable
-                                    className="basic-single"
-                                    classNamePrefix="select"
-                                />
-                           </div>
                         </div>
                     </div>
                 </div>

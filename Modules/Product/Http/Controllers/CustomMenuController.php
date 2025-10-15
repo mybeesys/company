@@ -105,6 +105,7 @@ class CustomMenuController extends Controller
 
     public function store(Request $request)
     {
+
         $request->merge(['active' => $request->input('active', 0)]);
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
@@ -114,6 +115,7 @@ class CustomMenuController extends Controller
             'station_id' => 'nullable',
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
+            'price_tier_id' => 'nullable|numeric',
             'method' => 'nullable|string'
         ]);
         $validated['application_type'] = $validated['application_type'] ?? 0;
@@ -220,6 +222,7 @@ class CustomMenuController extends Controller
             }
 
             $customMenu->active = $validated['active'];
+            $customMenu->price_tier_id = $validated['price_tier_id'] ?? null;
             //try {
             DB::transaction(function () use ($customMenu, $request) {
                 $customMenu->save();

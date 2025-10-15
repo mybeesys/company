@@ -29,7 +29,8 @@ class CustomMenu extends Model
         'application_type',
         'mode',
         'station_id', // establishment_id
-        'active'
+        'active',
+        'price_tier_id'
         // add more fields as needed
     ];
 
