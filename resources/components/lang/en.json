@@ -360,5 +360,6 @@
   "recipeerror":"The unit for the ingredients in the recipe is required",
   "sellDate":"Production Date",
   "price_with_tax":"Pric With Tax",
+  "price_tier":"Price Tier",
   "adjust_product_cost_recipe_cost":"Do you want to adjust the product cost based on the recipe cost?"
 }

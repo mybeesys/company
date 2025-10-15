@@ -138,6 +138,7 @@ Route::middleware([
         Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
         Route::get('taxList', [GeneralController::class, 'taxes'])->name('taxList');
         Route::get('priceTierlist', [PriceTierController::class, 'getPriceTierlist'])->name('priceTierlist');
+        Route::get('priceTier-list', [PriceTierController::class, 'getPriceTier'])->name('priceTier-list');
         Route::resource('priceTier', PriceTierController::class)->names('priceTier');
         Route::get('searchPriceTiers', [PriceTierController::class, 'searchPriceTiers'])->name('searchPriceTiers');
         Route::get('searchProductPriceTiers', [PriceTierController::class, 'searchProductPriceTiers'])->name('searchProductPriceTiers');

@@ -1,6 +1,8 @@
 import { Column } from "primereact/column";
 import { TreeTable } from "primereact/treetable";
 import { useEffect, useState } from "react";
+import axios from "axios";
+
 const CustomMenuProduct = ({
     translations,
     customMenuProducts,
@@ -8,6 +10,7 @@ const CustomMenuProduct = ({
     dir,
 }) => {
     const [products, setProducts] = useState([]);
+    const [priceTiers, setPriceTiers] = useState([]); 
     const [selectedNodeKeys, setSelectedNodeKeys] = useState([]);
 
     const cleanProductData = (products, cleanProducts) => {
@@ -59,12 +62,12 @@ const CustomMenuProduct = ({
         for (let index = 0; index < Prods.length; index++) {
             const product = Prods[index];
             checkSelected(product, sKeys);
-            //    sKeys[product.key] = {checked : true};
         }
         setSelectedNodeKeys({ ...sKeys });
     };
 
     useEffect(() => {
+        
         axios
             .get("/categories")
             .then((response) => {
@@ -74,7 +77,21 @@ const CustomMenuProduct = ({
                 setInitialSelectedNode(response.data);
             })
             .catch((error) => {
-                console.error("Error fetching translations", error);
+                console.error("Error fetching products", error);
+            });
+
+        
+      axios
+            .get("/priceTier-list")
+            .then((response) => {
+                const data = response.data.map((tier) => ({
+                    value: tier.id,
+                    label: tier.name,
+                }));
+                setPriceTiers(data);
+            })
+            .catch((error) => {
+                console.error("Error fetching price tiers", error);
             });
     }, []);
 
@@ -109,40 +126,59 @@ const CustomMenuProduct = ({
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="trending__product">
+                           
                             <div class="row border-bottom">
                                 <div class="col-lg-8 col-md-8 col-sm-8">
                                     <div class="section-title">
                                         <h4>{translations.products}</h4>
                                     </div>
                                 </div>
-                                <div class="col-lg-4 col-md-4 col-sm-4">
-                                    <div class="btn__all"></div>
+                            </div>
+                            <div class="row border-bottom border-dark">
+                                <TreeTable
+                                    selectionMode="checkbox"
+                                    selectionKeys={selectedNodeKeys}
+                                    onSelectionChange={(e) =>
+                                        onSelectedProductChange(e.value)
+                                    }
+                                    value={products}
+                                    tableStyle={{ minWidth: "40rem" }}
+                                    className={"custom-tree-table"}
+                                >
+                                    <Column
+                                        style={{ width: "40%" }}
+                                        field="name_en"
+                                        expander
+                                    ></Column>
+                                    <Column
+                                        style={{ width: "20%" }}
+                                        field="name_ar"
+                                    ></Column>
+                                </TreeTable>
+                            </div>
+
+                          
+                            <div class="row border-bottom mt-5">
+                                <div class="col-lg-8 col-md-8 col-sm-8">
+                                    <div class="section-title">
+                                        <h4>{translations.price_tier}</h4>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="">
-                                <div class="row border-bottom border-dark">
-                                    <TreeTable
-                                        selectionMode="checkbox"
-                                        selectionKeys={selectedNodeKeys}
-                                        onSelectionChange={(e) =>
-                                            onSelectedProductChange(e.value)
-                                        }
-                                        value={products}
-                                        tableStyle={{ minWidth: "40rem" }}
-                                        className={"custom-tree-table"}
-                                    >
-                                        <Column
-                                            style={{ width: "40%" }}
-                                            field="name_en"
-                                            expander
-                                        ></Column>
-                                        <Column
-                                            style={{ width: "20%" }}
-                                            field="name_ar"
-                                        ></Column>
-                                    </TreeTable>
-                                </div>
-                            </div>
+
+                           <div className="mt-3">
+                                <label className="form-label">{translations.price_tier}</label>
+                                <Select
+                                    options={priceTiers}
+                                    value={priceTiers.find((t) => t.value === selectedTier) || null}
+                                    onChange={(selected) => onChange(selected ? selected.value : null)}
+                                    placeholder={translations.select_price_tier}
+                                    isClearable
+                                    isSearchable
+                                    className="basic-single"
+                                    classNamePrefix="select"
+                                />
+                           </div>
                         </div>
                     </div>
                 </div>

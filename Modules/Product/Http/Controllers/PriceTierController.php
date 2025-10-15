@@ -23,6 +23,7 @@ class PriceTierController extends Controller
         return view('product::priceTier.index' ); 
     }
     
+
     public function getPriceTierlist()
     {
         $TreeBuilder = new TreeBuilder();
@@ -30,6 +31,18 @@ class PriceTierController extends Controller
         $tree = $TreeBuilder->buildTree($result ,null, 'priceTier', null, null, null);
         return response()->json($tree);
     }
+
+   public function getPriceTier()
+{
+    $lang = app()->getLocale(); 
+    
+    $result = PriceTier::where('active', 1)
+        ->select('id', "name_{$lang} as name")
+        ->get();
+
+    return response()->json($result);
+}
+
 
     private function validateInUse($price_tier_id){
         $product = ProductPriceTier::where([['price_tier_id', '=', $price_tier_id]])->first();

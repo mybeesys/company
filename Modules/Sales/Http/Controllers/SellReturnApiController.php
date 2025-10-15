@@ -37,143 +37,293 @@ class SellReturnApiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+
+     public function store(Request $request)
     {
+
         try {
-            $sell = Transaction::findOrFail($request->transaction_id);
+
+
+              $sell = Transaction::findOrFail($request->parent_order_id);
 
             if (!$sell) {
                 return response()->json(['message' => 'something went wrong'], 500);
             }
-
-            $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
-            $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
+            $ref_no =  SalesUtile::generateReferenceNumber('sell');
             $main_establishment = Establishment::notMain()->active()->first();
             $establishment_id = $request->establishment_id;
             if ($request->establishment_id == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
+            $created_by = Employee::find($request->user_id);
+            if (!$created_by) {
+                return response()->json(['message' => 'Employee not found'], 404);
+            }
+            if (EstPos::find($request->device_id)) {
+                return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
+            }
+
             $transaction =   Transaction::create([
                 'type' => 'sell-return',
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
-                'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->date)->format('Y-m-d H:i:s'),
+                'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
-                // 'cost_center' => $request->cost_center ?? null,
                 'parent_id' => $sell->id,
-                'discount_amount' => $request->discount_amount,
+              
+                // 'cost_center' => $request->cost_center ?? null,
+                'discount_amount' => $request->discount_value,
                 'discount_type' => $request->discount_type,
-                'total_before_tax' => $request->total_without_tax,
-                'total_after_discount' => $request->totalAfterDiscount,
-                'tax_amount' => $request->totalVat,
-                'final_total' => $request->total,
-                'created_by' => $request->created_by,
+                'total_before_tax' => $request->total_before_discount,
+                'total_after_discount' => $request->total_after_discount,
+                'tax_amount' => $request->total_tax,
+                'final_total' => $request->total_paid,
+                'created_by' => $request->user_id,
                 'description' => $request->note,
                 'ref_no' => $ref_no,
                 'status' => $request->status,
                 'notice' => null,
-                'invoice_no' => $request->invoice_no,
-                'shift_number' => $request->shift_number,
+                'invoice_no' => $request->invoice_number,
+                'shift_number' => $request->shift_id,
                 'establishment_id' => $establishment_id,
-
+                'device_id' => $request->device_id,
             ]);
 
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-            $products = json_decode(json_encode($request->products));
+
+            $products = json_decode(json_encode($request->items));
 
             foreach ($products as $product) {
-                $discount_type =  null;
+                $find_product = Product::find($product->product_id);
+                if (!$find_product) {
+                    return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                }
+
                 TransactionePurchasesLine::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->product_id,
                     'qyt' => $product->quantity,
-                    'unit_id' => $product->unit ?? 0,
-                    'unit_price_before_discount' => $product->unit_price_before_discount,
-                    'unit_price' => $product->price_without_tax,
+                    'unit_price_before_discount' => $product->price_after_discount,
+                    'unit_price' => $product->price,
                     'discount_type' => $product->discount_type,
                     'discount_amount' => $product->discount_amount,
-                    'unit_price_inc_tax' => $product->price,
+                    'unit_price_inc_tax' => $product->price_with_tax_after_discount,
                     'tax_id' => $product->tax_id,
-                    'tax_value' => $product->vat_value,
+                    'tax_value' => $product->tax_value,
                 ]);
-            }
 
-             $modifiers = json_decode(json_encode($request->modifiers));
+                $modifiers = json_decode(json_encode($product->order_item_modifiers));
 
-            foreach ($modifiers as $modifier) {
-                $find_product = Product::find($modifier->id);
-                if (!$find_product) {
-                    return response()->json(['message' => 'Modifier not found id =' . $modifier->id], 404);
+                foreach ($modifiers as $modifier) {
+                    $find_product = Product::find($modifier->modifier_id);
+                    if (!$find_product) {
+                        return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                    }
+
+                    TransactionePurchasesLine::create([
+                        'transaction_id' => $transaction->id,
+                        'product_id' => $modifier->modifier_id,
+                        'qyt' => $modifier->quantity,
+                        'unit_price_before_discount' => $modifier->price,
+                        'unit_price' => $modifier->price,
+                        'discount_type' => $modifier->discount_type,
+                        'discount_amount' => $modifier->discount_amount,
+                        'unit_price_inc_tax' => $modifier->price_with_tax,
+                        // 'tax_id' => $product->tax_id,
+                        'tax_value' => $modifier->tax_value,
+                    ]);
                 }
 
-                TransactionePurchasesLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $modifier->id,
-                    'qyt' => $modifier->quantity,
-                    'unit_price_before_discount' => $modifier->unit_price_before_discount,
-                    'unit_price' => $modifier->price_without_tax,
-                    'discount_type' => $modifier->discount_type,
-                    'discount_amount' => $modifier->discount_amount,
-                    'unit_price_inc_tax' => $modifier->price,
-                    // 'tax_id' => $product->tax_id,
-                    'tax_value' => $modifier->vat_value,
-                ]);
-            }
+                $order_item_combos = json_decode(json_encode($product->order_item_combos));
 
+                foreach ($order_item_combos as $order_item_combo) {
+                    $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
+                    if (!$find_product) {
+                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                    }
 
-            $combos = json_decode(json_encode($request->combos));
-
-            foreach ($combos as $combo) {
-
-                $find_product = Product::find($combo->id);
-                if (!$find_product) {
-                    return response()->json(['message' => 'Combo not found id =' . $combo->id], 404);
+                    TransactionePurchasesLine::create([
+                        'transaction_id' => $transaction->id,
+                        'product_id' => $find_product->product_id,
+                        'qyt' => $find_product->quantity,
+                        'unit_price_before_discount' => $find_product->price,
+                        'unit_price' => $find_product->price,
+                        'discount_type' => null,
+                        'discount_amount' => null,
+                        'unit_price_inc_tax' => null,
+                        // 'tax_id' => $product->tax_id,
+                        'tax_value' => null,
+                    ]);
                 }
-
-                TransactionePurchasesLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $combo->id,
-                    'qyt' => $combo->quantity,
-                    'unit_price' => $combo->price,
-                    'unit_price_before_discount' => 0,
-                    'discount_type' => 'fixed',
-                    'discount_amount' => 0,
-                    'unit_price_inc_tax' => 0,
-                    // 'tax_id' => $product->tax_id,
-                    'tax_value' => 0,
-
-                ]);
             }
-
-            // return $request->paid_amount;
 
             $payments = json_decode(json_encode($request->payments));
             foreach ($payments as $payment) {
 
-                $find_payment = PaymentMethod::find($payment->id);
+                $find_payment = PaymentMethod::find($payment->method_id);
                 if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->id], 404);
+                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
                 }
 
-                if ($payment->ammount) {
-                    $request['paid_amount'] = $payment->ammount;
-                    $request['payment_method_id'] = $payment->id;
-                    $request['invoice_type'] = $request->payment_status;
+                $request['payment_method_id'] = $request->method;
+                $request['created_by'] = $request->user_id;
+                if ($payment->amount) {
+                    $request['paid_amount'] = $payment->amount;
+                    $request['payment_method_id'] = $payment->method_id;
+                    $request['invoice_type'] = $request->method;
 
 
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
                 }
             }
+            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'something went wrong'], 500);
+            return response()->json(['message' => 'something went wrong \n' . $e], 500);
         }
     }
+
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         $sell = Transaction::findOrFail($request->transaction_id);
+
+    //         if (!$sell) {
+    //             return response()->json(['message' => 'something went wrong'], 500);
+    //         }
+
+    //         $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+    //         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+    //         $transactionUtil = new TransactionUtils();
+    //         DB::beginTransaction();
+    //         $main_establishment = Establishment::notMain()->active()->first();
+    //         $establishment_id = $request->establishment_id;
+    //         if ($request->establishment_id == $main_establishment->id) {
+    //             $establishment_id = $main_establishment->id;
+    //         }
+    //         $transaction =   Transaction::create([
+    //             'type' => 'sell-return',
+    //             'invoice_type' => $request->payment_status,
+    //             'due_date' => null,
+    //             'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->date)->format('Y-m-d H:i:s'),
+    //             'contact_id' => $request->customer_id,
+    //             // 'cost_center' => $request->cost_center ?? null,
+    //             'parent_id' => $sell->id,
+    //             'discount_amount' => $request->discount_amount,
+    //             'discount_type' => $request->discount_type,
+    //             'total_before_tax' => $request->total_without_tax,
+    //             'total_after_discount' => $request->totalAfterDiscount,
+    //             'tax_amount' => $request->totalVat,
+    //             'final_total' => $request->total,
+    //             'created_by' => $request->created_by,
+    //             'description' => $request->note,
+    //             'ref_no' => $ref_no,
+    //             'status' => $request->status,
+    //             'notice' => null,
+    //             'invoice_no' => $request->invoice_no,
+    //             'shift_number' => $request->shift_number,
+    //             'establishment_id' => $establishment_id,
+
+    //         ]);
+
+    //         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+    //         $products = json_decode(json_encode($request->products));
+
+    //         foreach ($products as $product) {
+    //             $discount_type =  null;
+    //             TransactionePurchasesLine::create([
+    //                 'transaction_id' => $transaction->id,
+    //                 'product_id' => $product->product_id,
+    //                 'qyt' => $product->quantity,
+    //                 'unit_id' => $product->unit ?? 0,
+    //                 'unit_price_before_discount' => $product->unit_price_before_discount,
+    //                 'unit_price' => $product->price_without_tax,
+    //                 'discount_type' => $product->discount_type,
+    //                 'discount_amount' => $product->discount_amount,
+    //                 'unit_price_inc_tax' => $product->price,
+    //                 'tax_id' => $product->tax_id,
+    //                 'tax_value' => $product->vat_value,
+    //             ]);
+    //         }
+
+    //          $modifiers = json_decode(json_encode($request->modifiers));
+
+    //         foreach ($modifiers as $modifier) {
+    //             $find_product = Product::find($modifier->id);
+    //             if (!$find_product) {
+    //                 return response()->json(['message' => 'Modifier not found id =' . $modifier->id], 404);
+    //             }
+
+    //             TransactionePurchasesLine::create([
+    //                 'transaction_id' => $transaction->id,
+    //                 'product_id' => $modifier->id,
+    //                 'qyt' => $modifier->quantity,
+    //                 'unit_price_before_discount' => $modifier->unit_price_before_discount,
+    //                 'unit_price' => $modifier->price_without_tax,
+    //                 'discount_type' => $modifier->discount_type,
+    //                 'discount_amount' => $modifier->discount_amount,
+    //                 'unit_price_inc_tax' => $modifier->price,
+    //                 // 'tax_id' => $product->tax_id,
+    //                 'tax_value' => $modifier->vat_value,
+    //             ]);
+    //         }
+
+
+    //         $combos = json_decode(json_encode($request->combos));
+
+    //         foreach ($combos as $combo) {
+
+    //             $find_product = Product::find($combo->id);
+    //             if (!$find_product) {
+    //                 return response()->json(['message' => 'Combo not found id =' . $combo->id], 404);
+    //             }
+
+    //             TransactionePurchasesLine::create([
+    //                 'transaction_id' => $transaction->id,
+    //                 'product_id' => $combo->id,
+    //                 'qyt' => $combo->quantity,
+    //                 'unit_price' => $combo->price,
+    //                 'unit_price_before_discount' => 0,
+    //                 'discount_type' => 'fixed',
+    //                 'discount_amount' => 0,
+    //                 'unit_price_inc_tax' => 0,
+    //                 // 'tax_id' => $product->tax_id,
+    //                 'tax_value' => 0,
+
+    //             ]);
+    //         }
+
+    //         // return $request->paid_amount;
+
+    //         $payments = json_decode(json_encode($request->payments));
+    //         foreach ($payments as $payment) {
+
+    //             $find_payment = PaymentMethod::find($payment->id);
+    //             if (!$find_payment) {
+    //                 return response()->json(['message' => 'Payment method not found id =' . $payment->id], 404);
+    //             }
+
+    //             if ($payment->ammount) {
+    //                 $request['paid_amount'] = $payment->ammount;
+    //                 $request['payment_method_id'] = $payment->id;
+    //                 $request['invoice_type'] = $request->payment_status;
+
+
+    //                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         return response()->json(['message' => 'Added successfully'], 200);
+    //     } catch (Exception $e) {
+    //         DB::rollBack();
+    //         return response()->json(['message' => 'something went wrong'], 500);
+    //     }
+    // }
 
     /**
      * Show the specified resource.
