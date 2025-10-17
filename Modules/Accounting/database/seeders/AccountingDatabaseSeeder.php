@@ -111,7 +111,7 @@ class AccountingDatabaseSeeder extends Seeder
         $paymentMethods = [
             [
                 'name_en' => 'prepaid',
-                'name_ar' => 'مدفوع مسبقاً',
+                'name_ar' => 'رصيد العميل',
                 'description_en' => 'Useful for securing payments in advance. Ensure the amount is received before processing the order.',
                 'description_ar' => 'مفيد لتأمين المدفوعات مسبقاً. تأكد من استلام المبلغ قبل متابعة الطلب.',
                 'active' => 1,
