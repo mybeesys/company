@@ -116,6 +116,8 @@ class TypeServiceController extends Controller
      */
     public function destroy($id)
     {
-        //
+          $service= TypesOfService::find($id)->delete();
+
+        return redirect()->back();
     }
 }

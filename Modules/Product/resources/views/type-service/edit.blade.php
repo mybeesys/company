@@ -64,9 +64,9 @@
 
             <div class="col-md-6">
                 <div class="align-items-center mb-3">
-                    <label class="fs-6 fw-semibold mb-2">@lang('product::fields.packing_charge')</label>
+                    <label class="fs-6 fw-semibold mb-2">@lang('product::fields.packingCharge')</label>
                     <input type="number" class="form-control form-control-solid" name="packing_charge" id="packing_charge"
-                           value="{{ $service->packing_charge }}" placeholder="@lang('product::fields.packing_charge_placeholder')">
+                           value="{{ $service->packing_charge }}" placeholder="@lang('product::fields.packingCharge')">
                 </div>
             </div>
         </div>

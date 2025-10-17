@@ -159,6 +159,7 @@ Route::middleware([
         Route::post('/type-service-store', [TypeServiceController::class, 'store'])->name('typeService.store');
         Route::get('/type-service-create', [TypeServiceController::class, 'create'])->name('typeService.create');
         Route::get('/type-service-edit/{id}', [TypeServiceController::class, 'edit'])->name('typeService.edit');
+        Route::get('/type-service-destroy/{id}', [TypeServiceController::class, 'destroy'])->name('typeService.destroy');
         Route::put('/type-service-update', [TypeServiceController::class, 'update'])->name('typeService.update');
     });
 });
