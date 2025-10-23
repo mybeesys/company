@@ -64,6 +64,7 @@ class SellApiController extends Controller
 
             $transaction =   Transaction::create([
                 'type' => 'sell',
+                'local_id' => $request->id,
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
                 'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->created_at)->format('Y-m-d H:i:s'),
