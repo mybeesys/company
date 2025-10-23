@@ -8,12 +8,15 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Models\EstPos;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\ProductCombo;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellReturnApiController extends Controller
@@ -38,16 +41,16 @@ class SellReturnApiController extends Controller
      * Store a newly created resource in storage.
      */
 
-     public function store(Request $request)
+    public function store(Request $request)
     {
 
         try {
 
 
-              $sell = Transaction::findOrFail($request->parent_order_id);
+            $sell = Transaction::where('local_id',$request->parent_order_id)->first();
 
             if (!$sell) {
-                return response()->json(['message' => 'something went wrong'], 500);
+                return response()->json(['message' => 'The original invoice could not be found. Please check the invoice number and try again.'], 500);
             }
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
@@ -72,7 +75,7 @@ class SellReturnApiController extends Controller
                 'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
                 'parent_id' => $sell->id,
-              
+
                 // 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->discount_value,
                 'discount_type' => $request->discount_type,
@@ -160,11 +163,16 @@ class SellReturnApiController extends Controller
 
             $payments = json_decode(json_encode($request->payments));
             foreach ($payments as $payment) {
-
-                $find_payment = PaymentMethod::find($payment->method_id);
-                if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                $find_payment = null;
+                if ($payment->method_id == -1) {
+                    $find_payment = PaymentMethod::where('name_en','cash')->first();
+                } else {
+                    $find_payment = PaymentMethod::find($payment->method_id);
+                    if (!$find_payment) {
+                        return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                    }
                 }
+
 
                 $request['payment_method_id'] = $request->method;
                 $request['created_by'] = $request->user_id;
