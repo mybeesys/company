@@ -67,7 +67,7 @@ class SellApiController extends Controller
                 'local_id' => $request->id,
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
-                'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->created_at)->format('Y-m-d H:i:s'),
+                'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
                 // 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->discount_value,
