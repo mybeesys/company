@@ -164,7 +164,7 @@ class SellReturnApiController extends Controller
             $payments = json_decode(json_encode($request->payments));
             foreach ($payments as $payment) {
                 $find_payment = null;
-                if ($payment->method_id == -1) {
+                if ($payment->method_id == -1 || $payment->method_id == "-1") {
                     $find_payment = PaymentMethod::where('name_en','cash')->first();
                 } else {
                     $find_payment = PaymentMethod::find($payment->method_id);
