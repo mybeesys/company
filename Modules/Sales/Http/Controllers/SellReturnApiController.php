@@ -47,7 +47,7 @@ class SellReturnApiController extends Controller
         try {
 
 
-            $sell = Transaction::where('local_id',$request->parent_order_id)->first();
+            $sell = Transaction::where('local_id', $request->parent_order_id)->first();
 
             if (!$sell) {
                 return response()->json(['message' => 'The original invoice could not be found. Please check the invoice number and try again.'], 500);
@@ -72,9 +72,10 @@ class SellReturnApiController extends Controller
                 'type' => 'sell-return',
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
-                'transaction_date' => Carbon::createFromFormat('d/m/Y H:i', $request->created_at)->format('Y-m-d H:i:s'),
+                'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
                 'parent_id' => $sell->id,
+                'local_id'=>$request->id,
 
                 // 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->discount_value,
@@ -165,7 +166,7 @@ class SellReturnApiController extends Controller
             foreach ($payments as $payment) {
                 $find_payment = null;
                 if ($payment->method_id == -1 || $payment->method_id == "-1") {
-                    $find_payment = PaymentMethod::where('name_en','cash')->first();
+                    $find_payment = PaymentMethod::where('name_en', 'cash')->first();
                 } else {
                     $find_payment = PaymentMethod::find($payment->method_id);
                     if (!$find_payment) {
