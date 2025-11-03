@@ -58,6 +58,13 @@ class SalesUtile
         if($type=='period'){
           $prefix ='PERIOD';
         }
+
+         if($type=='sell-return'){
+          $prefix ='RET';
+        }
+        if($type=='purchases-return'){
+          $prefix ='RET';
+        }
         $transaction = Transaction::where('type', $type)
             ->whereYear('created_at', $currentYear)
             ->latest()

@@ -23,7 +23,8 @@
                 <div class="d-flex align-items-center gap-2 gap-lg-3">
                     <h1>
 
-                        @lang('accounting::lang.ledger') - {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
+                        @lang('accounting::lang.ledger') - {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }} /
+                        {{ $account->gl_code }}
 
                     </h1>
                 </div>
@@ -75,11 +76,47 @@
         </div>
     </div>
 
-    <div class="separator d-flex flex-center mb-5">
-        <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
-    </div>
 
-    <div class="tab-content mb-2 px-9 " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+
+    <form action="{{ url('ledger') }}?account_id={{ $account->id }}" method="GET">
+        <div class="row py-5">
+            <div class="col-md-3">
+                <label>{{ __('accounting::lang.from_date') }}</label>
+                <input type="hidden" name="account_id" value="{{ $account->id }}"
+                    class="form-control">
+                <input type="date" name="start_date" value="{{ request('start_date', $start_date) }}"
+                    class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label>{{ __('accounting::lang.to_date') }}</label>
+                <input type="date" name="end_date" value="{{ request('end_date', $end_date) }}" class="form-control">
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="form-group">
+                    <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
+                    <select name="choose_cost_center_select[]" id="choose_cost_center_select"
+                        class="form-select d-flex form-select-solid" multiple>
+                        @foreach ($costCenters as $costCenter)
+                            <option value="{{ $costCenter->id }}" @if (in_array($costCenter->id, $choose_cost_center_select ?? [])) selected @endif>
+                                @if (app()->getLocale() == 'ar')
+                                    {{ $costCenter->account_center_number . ' - ' . $costCenter->name_ar }}
+                                @else
+                                    {{ $costCenter->account_center_number . ' - ' . $costCenter->name_en }}
+                                @endif
+
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
+            </div>
+        </div>
+    </form>
+    {{-- <div class="tab-content mb-2 px-9 " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
 
 
         <div class="tab-pane fade row show active" id="kt_timeline_widget_3_tab_content_4" role="tabpanel">
@@ -173,7 +210,7 @@
             </div>
 
         </div>
-    </div>
+    </div> --}}
 
 
     <div class="card mb-5 mb-xl-8" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
@@ -272,12 +309,26 @@
                             @endphp
                             @foreach ($account_transactions as $transactions)
                                 @php
-                                    if ($transactions->type == 'debit') {
-                                        $balance += $transactions->amount;
-                                        $total_debit += $transactions->amount;
-                                    } elseif ($transactions->type == 'credit') {
-                                        $balance -= $transactions->amount;
-                                        $total_credit += $transactions->amount;
+                                    $account_type = $transactions->account->account_primary_type;
+
+                                    $is_debit_nature = in_array($account_type, ['asset', 'expenses']);
+
+                                    if ($is_debit_nature) {
+                                        if ($transactions->type == 'debit') {
+                                            $balance += $transactions->amount;
+                                            $total_debit += $transactions->amount;
+                                        } elseif ($transactions->type == 'credit') {
+                                            $balance -= $transactions->amount;
+                                            $total_credit += $transactions->amount;
+                                        }
+                                    } else {
+                                        if ($transactions->type == 'debit') {
+                                            $balance -= $transactions->amount;
+                                            $total_debit += $transactions->amount;
+                                        } elseif ($transactions->type == 'credit') {
+                                            $balance += $transactions->amount;
+                                            $total_credit += $transactions->amount;
+                                        }
                                     }
                                 @endphp
                                 <tr>
@@ -333,7 +384,9 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'debit')
-                                            <a class=" fw-bold text-hover-primary mb-1 fs-6"style="color: #e90909">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #020804"
+                                             {{-- style="color: #e90909" --}}
+                                            >
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -344,7 +397,9 @@
                                     </td>
                                     <td>
                                         @if ($transactions->type == 'credit')
-                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #17c653">
+                                            <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #020804"
+                                             {{-- style="color: #17c653" --}}
+                                            >
                                                 {{ number_format($transactions->amount, 2) }}
                                             </a>
                                         @else
@@ -354,8 +409,9 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a class=" fw-bold text-hover-primary mb-1 fs-6"
-                                            @if ($balance < 0) style="color: #e90909" @else style="color: #17c653" @endif>
+                                        <a class=" fw-bold text-hover-primary mb-1 fs-6" style="color: #020804"
+                                            {{-- @if ($balance < 0) style="color: #e90909" @else style="color: #17c653" @endif --}}
+                                            >
 
 
                                             @if ($balance < 0)
@@ -372,10 +428,14 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" class=" text-center fw-bold fs-4">@lang('accounting::lang.Closing balance')</td>
-                                <td colspan="1" class=" fw-bold fs-5" style="color: #e90909">
+                                <td colspan="1" class=" fw-bold fs-5"
+                                 {{-- style="color: #e90909" --}}
+                                >
                                     @format_currency($total_debit)
                                 </td>
-                                <td class=" fw-bold fs-5" style="color: #17c653">
+                                <td class=" fw-bold fs-5"
+                                {{-- style="color: #17c653" --}}
+                                >
                                     @format_currency($total_credit)
                                 </td>
                                 <td colspan="2" class=" fw-bold fs-5">
@@ -410,6 +470,10 @@
             });
 
             $('#accounts').select2();
+
+            $('#choose_cost_center_select').select2();
+
+
         });
     </script>
 @stop

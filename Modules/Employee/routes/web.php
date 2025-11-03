@@ -49,6 +49,7 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
 
         Route::get('/dashboard', [DashbordController::class, 'index'])->name('dashboard');
+        Route::get('/', [DashbordController::class, 'index']);
 
         Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 

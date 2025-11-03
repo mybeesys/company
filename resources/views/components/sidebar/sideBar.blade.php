@@ -84,10 +84,14 @@
                 </x-sidebar.submenu>
             </x-sidebar.main-menu>
             @endif
+
             @endif
             @endforeach
         </x-sidebar.submenu>
         @endif
+          @if ($visibleSubmenuItems->isEmpty())
+                <x-sidebar.main-menu-item :url="$menuItem['url']" :icon="$menuItem['icon']" :name="$menuItem['name']" />
+            @endif
     </x-sidebar.main-menu>
     @endif
 
