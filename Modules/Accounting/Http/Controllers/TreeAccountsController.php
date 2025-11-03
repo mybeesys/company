@@ -14,6 +14,7 @@ use Modules\Accounting\classes\LedgerExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\ContractorsAccUtil;
 use Modules\Accounting\Utils\E_commerceAccUtil;
@@ -287,12 +288,20 @@ class TreeAccountsController extends Controller
     public function ledger(Request $request)
     {
         $account_id = $request->query('account_id') ?? optional(AccountingAccount::orderBy('id')->first())->id;
+        $choose_cost_center_select = [];
+        $choose_cost_center_select = request()->choose_cost_center_select;
+        $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
+        $end_date = request()->end_date ?? now()->addDay(1)->format('Y-m-d');
 
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
             ->findOrFail($account_id);
 
         $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy', 'transaction'])
             // ->leftjoin('transactions as T', 'accounting_accounts_transactions.transaction_id', '=', 'T.id')
+           ->whereBetween('operation_date', [$start_date, $end_date])
+            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
+                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            })
             ->where('accounting_account_id', $account->id)->paginate(10);
 
         $current_bal = AccountingAccount::leftjoin(
@@ -307,10 +316,23 @@ class TreeAccountsController extends Controller
         $current_bal = $current_bal->first()->balance;
         $previous = AccountingAccount::where('id', '<', $account_id)->orderBy('id', 'desc')->first();
 
+
         $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         $accountingAccount = AccountingAccount::forDropdown();
-        return view('accounting::treeOfAccounts.ledger', compact('account', 'previous', 'next', 'accountingAccount', 'current_bal', 'account_transactions'));
+        return view('accounting::treeOfAccounts.ledger', compact(
+            'account',
+            'start_date',
+            'end_date',
+            'choose_cost_center_select',
+            'costCenters',
+            'previous',
+            'next',
+            'accountingAccount',
+            'current_bal',
+            'account_transactions'
+        ));
     }
 
 

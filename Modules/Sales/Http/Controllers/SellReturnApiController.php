@@ -54,7 +54,7 @@ class SellReturnApiController extends Controller
             }
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('sell');
+            $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
             $main_establishment = Establishment::notMain()->active()->first();
             $establishment_id = $request->establishment_id;
             if ($request->establishment_id == $main_establishment->id) {
