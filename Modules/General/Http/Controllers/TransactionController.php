@@ -48,6 +48,9 @@ class TransactionController extends Controller
         $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
+        if(!$transaction){
+            return redirect()->back();
+        }
         $transactionUtil = new TransactionUtils();
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
