@@ -831,8 +831,7 @@ $.ajax({
                     $("#card").hide();
                     $("#bank_check").hide();
                     $("#bank_transfer").hide();
-                    $('#lable-account_id').addClass('required');
-                    $('#account_id').attr('required', 'required');
+
 
                     $('#cash_account').removeAttr('required');
 
@@ -843,7 +842,6 @@ $.ajax({
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();
                     $('#cash_account').attr('required', 'required');
-                    $('#account_id').removeAttr('required');
 
                 }
 

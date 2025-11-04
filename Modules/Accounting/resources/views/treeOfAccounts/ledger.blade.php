@@ -303,21 +303,36 @@
                         </thead>
                         <tbody>
                             @php
-                                $balance = 0;
+                                $balance = $opening_balance;
                                 $total_debit = 0;
                                 $total_credit = 0;
                             @endphp
+
+                            <tr>
+                                <td colspan="7" class="text-center fw-bold">@lang('accounting::lang.opening_balance')</td>
+                                <td class="fw-bold" style="color:#020804">
+                                    @if ($balance < 0)
+                                        ({{ number_format(abs($balance), 2) }})
+                                    @else
+                                        {{ number_format($balance, 2) }}
+                                    @endif
+                                </td>
+                            </tr>
+
                             @foreach ($account_transactions as $transactions)
                                 @php
                                     $account_type = $transactions->account->account_primary_type;
-
-                                    $is_debit_nature = in_array($account_type, ['asset', 'expenses']);
+                                    $is_debit_nature = in_array($account_type, [
+                                        'asset',
+                                        'expenses',
+                                        'analytical_accounts',
+                                    ]);
 
                                     if ($is_debit_nature) {
                                         if ($transactions->type == 'debit') {
                                             $balance += $transactions->amount;
                                             $total_debit += $transactions->amount;
-                                        } elseif ($transactions->type == 'credit') {
+                                        } else {
                                             $balance -= $transactions->amount;
                                             $total_credit += $transactions->amount;
                                         }
@@ -325,7 +340,7 @@
                                         if ($transactions->type == 'debit') {
                                             $balance -= $transactions->amount;
                                             $total_debit += $transactions->amount;
-                                        } elseif ($transactions->type == 'credit') {
+                                        } else {
                                             $balance += $transactions->amount;
                                             $total_credit += $transactions->amount;
                                         }

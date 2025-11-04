@@ -411,7 +411,7 @@ class SellController extends Controller
             );
         }
 
-        if ($request->paid_amount) {
+        if ($request->paid_amount ) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
 

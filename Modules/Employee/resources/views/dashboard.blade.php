@@ -18,27 +18,27 @@
 
         .sales-card {
             background-color: #f0f7ff;
-            border-left: 4px solid #3699ff;
+            border-left: 4px solid #c3e1ff;
         }
 
         .purchases-card {
             background-color: #f8f5ff;
-            border-left: 4px solid #8950fc;
+            border-left: 4px solid #d1bbff;
         }
 
         .expenses-card {
             background-color: #fff8f5;
-            border-left: 4px solid #ff5b5b;
+            border-left: 4px solid #ffbbbb;
         }
 
         .bank-card {
             background-color: #f8f5ff;
-            border-left: 4px solid #8950fc;
+            border-left: 4px solid #dbc9ff;
         }
 
         .receivables-card {
             background-color: #f1faf6;
-            border-left: 4px solid #0abb87;
+            border-left: 4px solid #baffea;
         }
 
         .quick-actions .btn-action {
@@ -78,7 +78,7 @@
                 transition: all 0.3s ease;
                 text-decoration: none;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                color: white !important;
+                color: rgb(0, 0, 0) !important;
             }
 
             .quick-action-btn:hover {
@@ -116,27 +116,27 @@
             }
 
             .bg-primary {
-                background: linear-gradient(135deg, #4361ee, #3a0ca3);
+                background: linear-gradient(135deg, #decce2, #decce2);
             }
 
             .bg-success {
-                background: linear-gradient(135deg, #4cc9f0, #4895ef);
+                background: linear-gradient(135deg, #c8eddc, #6acb9e);
             }
 
             .bg-info {
-                background: linear-gradient(135deg, #3a86ff, #4361ee);
+                background: linear-gradient(135deg, #cef3fb, #76c9db);
             }
 
             .bg-purple {
-                background: linear-gradient(135deg, #7209b7, #560bad);
+                background: linear-gradient(135deg, #fff8cc, #e1d277);
             }
 
             .bg-indigo {
-                background: linear-gradient(135deg, #480ca8, #3a0ca3);
+                background: linear-gradient(135deg, #dfd2ff, #dfd2ff);
             }
 
             .bg-warning {
-                background: linear-gradient(135deg, #f8961e, #f3722c);
+                background: linear-gradient(135deg, #f7ccdd, #f7ccdd);
             }
     </style>
 @endsection
@@ -148,7 +148,7 @@
                 <div class="d-flex flex-wrap justify-content-center quick-actions">
                     <a href="create-invoice" class="quick-action-btn bg-primary">
                         <div class="icon-wrapper">
-                            <i class="fas fa-file-invoice fs-2" style="color: #eee"></i>
+                            <i class="fas fa-file-invoice fs-2" style="color: #b000d7"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.new_sales_invoice')</span>
                         <div class="hover-effect"></div>
@@ -156,7 +156,7 @@
 
                     <a href="create-purchases-invoice" class="quick-action-btn bg-success">
                         <div class="icon-wrapper">
-                            <i class="fas fa-file-invoice fs-2" style="color: #eee"></i>
+                            <i class="fas fa-file-invoice fs-2" style="color: #00d774"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.new_purchase_invoice')</span>
                         <div class="hover-effect"></div>
@@ -164,7 +164,7 @@
 
                     <a href="client-create" class="quick-action-btn bg-info">
                         <div class="icon-wrapper">
-                            <i class="fas fa-user-plus fs-2" style="color: #eee"></i>
+                            <i class="fas fa-user-plus fs-2" style="color: #00b1d7"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.new_client')</span>
                         <div class="hover-effect"></div>
@@ -172,7 +172,7 @@
 
                     <a href="supplier-create" class="quick-action-btn bg-purple">
                         <div class="icon-wrapper">
-                            <i class="fas fa-truck fs-2" style="color: #eee"></i>
+                            <i class="fas fa-truck fs-2" style="color: #d7b900"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.new_supplier')</span>
                         <div class="hover-effect"></div>
@@ -180,7 +180,7 @@
 
                     <a href="employee" class="quick-action-btn bg-indigo">
                         <div class="icon-wrapper">
-                            <i class="fas fa-users fs-2" style="color: #eee"></i>
+                            <i class="fas fa-users fs-2" style="color: #3d00d5"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.employees')</span>
                         <div class="hover-effect"></div>
@@ -188,7 +188,7 @@
 
                     <a href="journal-entry-create" class="quick-action-btn bg-warning">
                         <div class="icon-wrapper">
-                            <i class="fas fa-book fs-2" style="color: #eee"></i>
+                            <i class="fas fa-book fs-2" style="color: #d68da8"></i>
                         </div>
                         <span class="btn-label">@lang('employee::main.new_journal_entry')</span>
                         <div class="hover-effect"></div>
