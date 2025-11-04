@@ -295,11 +295,9 @@ class TreeAccountsController extends Controller
     $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
         ->findOrFail($account_id);
 
-    // 🔹 تحديد طبيعة الحساب
     $account_type = $account->account_primary_type;
     $is_debit_nature = in_array($account_type, ['asset', 'expenses', 'analytical_accounts']);
 
-    // 🔹 حساب الرصيد الافتتاحي (كل العمليات قبل start_date)
     $openingQuery = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
         ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
             return $query->whereIn('cost_center_id', $choose_cost_center_select);
@@ -317,7 +315,6 @@ class TreeAccountsController extends Controller
         $opening_balance = $total_credit_opening - $total_debit_opening;
     }
 
-    // 🔹 العمليات ضمن الفترة المحددة
     $account_transactions = AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'account', 'costCenter'])
         ->where('accounting_account_id', $account->id)
         ->whereBetween('operation_date', [$start_date, $end_date])
@@ -327,7 +324,6 @@ class TreeAccountsController extends Controller
         ->orderBy('operation_date', 'asc')
         ->paginate(10);
 
-    // 🔹 حساب الرصيد الحالي (الإجمالي الكامل للحساب)
     $current_bal = AccountingAccount::leftjoin(
         'accounting_accounts_transactions as AAT',
         'AAT.accounting_account_id',
