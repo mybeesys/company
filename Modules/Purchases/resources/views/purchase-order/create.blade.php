@@ -307,6 +307,7 @@
     } else {
         console.error('No units data found for product:', selectedData.id);
         $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
+        updateSalesTotals();
     }
 });
 

@@ -376,6 +376,8 @@
 
                  if (index === 0) {
         $option.attr('selected', 'selected');
+               
+
     }
             $unitSelect.append($option);
             updateSalesTotals();
@@ -394,6 +396,8 @@ if( selectedData.units.length > 0){
     } else {
         // console.error('No units data found for product:', selectedData.id);
         // $unitSelect.append('<option value="piece" data-value="1">Piece</option>');
+                updateSalesTotals();
+
     }
 });
 

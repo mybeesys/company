@@ -604,32 +604,31 @@
         let totalDebit = 0;
         let totalCredit = 0;
 
-        function updateTotals() {
+       function updateTotals() {
+    totalDebit = 0;
+    totalCredit = 0;
 
-            totalDebit = 0;
-            totalCredit = 0;
+    $('table tbody tr').each(function() {
+        const debit = parseFloat($(this).find('.debit-field').val()) || 0;
+        const credit = parseFloat($(this).find('.credit-field').val()) || 0;
 
-            $('table tbody tr').each(function() {
-                const debit = parseFloat($(this).find('.debit-field').val()) || 0;
-                const credit = parseFloat($(this).find('.credit-field').val()) || 0;
+        totalDebit += debit;
+        totalCredit += credit;
+    });
 
-                totalDebit += debit;
-                totalCredit += credit;
-            });
+    const diff = Math.abs(totalDebit - totalCredit);
+    const tolerance = 0.0001;
 
-            if (totalDebit != totalCredit) {
-                var Budget = totalDebit - totalCredit;
-                let budgetDifferenceText = "@lang('accounting::lang.The journal entry is unbalanced with a difference of')";
-                $('#Budget').text(budgetDifferenceText + ' : ( ' + Math.abs(Budget) + ' ) ');
-            } else {
-                $('#Budget').text('');
+    if (diff > tolerance) {
+        let budgetDifferenceText = "@lang('accounting::lang.The journal entry is unbalanced with a difference of')";
+        $('#Budget').text(budgetDifferenceText + ' : ( ' + diff.toFixed(2) + ' ) ');
+    } else {
+        $('#Budget').text('');
+    }
 
-            }
-            $('#kt_ecommerce_select2_cost_center').select2();
-
-            $('#totalDebit').text(totalDebit.toFixed(2));
-            $('#totalCredit').text(totalCredit.toFixed(2));
-        }
+    $('#totalDebit').text(totalDebit.toFixed(2));
+    $('#totalCredit').text(totalCredit.toFixed(2));
+}
 
         $(document).on('click', '.delete-row', function() {
 

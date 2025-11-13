@@ -72,7 +72,8 @@ class TreeAccountsController extends Controller
                                 JOIN accounting_accounts AS AA ON AAT.accounting_account_id = AA.id
                                 WHERE AAT.accounting_account_id = accounting_accounts.id) AS balance"),
                 'accounting_accounts.*'
-            ])->get();
+            ])
+            ->get();
 
 
 
@@ -321,7 +322,7 @@ class TreeAccountsController extends Controller
         ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
             return $query->whereIn('cost_center_id', $choose_cost_center_select);
         })
-        ->orderBy('operation_date', 'asc')
+      
         ->paginate(10);
 
     $current_bal = AccountingAccount::leftjoin(
