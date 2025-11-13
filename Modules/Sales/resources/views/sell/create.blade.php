@@ -376,7 +376,7 @@
 
                  if (index === 0) {
         $option.attr('selected', 'selected');
-               
+
 
     }
             $unitSelect.append($option);
@@ -835,6 +835,8 @@ $.ajax({
                     $("#card").hide();
                     $("#bank_check").hide();
                     $("#bank_transfer").hide();
+                    $('#client_l_id').attr('class', 'required');
+                    $('#client_id').attr('required', 'required');
 
 
                     $('#cash_account').removeAttr('required');
@@ -846,6 +848,8 @@ $.ajax({
                     $("#tab-content-payment_info").hide();
                     $("#div-cash_account").show();
                     $('#cash_account').attr('required', 'required');
+                    $('#client_l_id').removeAttr('class', 'required');
+                    $('#client_id').removeAttr('required', 'required');
 
                 }
 
