@@ -13,11 +13,50 @@
 @stop
 @section('content')
 
+    <div class="row g-3 align-items-center">
+
+        {{-- التاريخ من وإلى --}}
+        <div class="col-md-3">
+            <label>{{ __('accounting::lang.from_date') }}</label>
+            <input type="date" id="from_date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label>{{ __('accounting::lang.to_date') }}</label>
+            <input type="date" id="to_date" class="form-control" />
+        </div>
+
+
+        {{-- المستخدم --}}
+        <div class="col-md-3">
+            <label>{{ __('accounting::lang.created_by') }}</label>
+            <select id="created_by_filter" class="form-select" data-control="select2">
+                <option value="">{{ __('accounting::lang.all') }}</option>
+                @foreach (Modules\Employee\Models\Employee::select('id', 'name')->get() as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- قيد يدوي أم آلي --}}
+        <div class="col-md-3">
+            <label>{{ __('accounting::lang.entry_source') }}</label>
+            <select id="is_manual_filter" class="form-select" data-control="select2">
+                <option value="">{{ __('accounting::lang.all') }}</option>
+                <option value="1">{{ __('accounting::lang.manual') }}</option>
+                <option value="0">{{ __('accounting::lang.automatic') }}</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 my-3">
+            <button type="button" id="filter_button" class="btn btn-primary">{{ __('accounting::lang.filter') }}</button>
+            <button type="button" id="reset_button" class="btn btn-light">{{ __('accounting::lang.reset') }}</button>
+        </div>
+    </div>
     <div class="card card-flush">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="journalEntry" url="journal-entry-create" module="accounting">
                 <x-slot:filters>
-                    {{-- <x-tables.filters-dropdown /> --}}
+
                 </x-slot:filters>
                 <x-slot:export>
                     <x-tables.export-menu id="journalEntry" />
@@ -72,6 +111,30 @@
             });
         });
 
+
+        function handleFormFiltersDatatable() {
+            $('#filter_button').on('click', function() {
+                const from_date = $('#from_date').val();
+                const to_date = $('#to_date').val();
+                const type = $('#type_filter').val();
+                const created_by = $('#created_by_filter').val();
+                const is_manual = $('#is_manual_filter').val();
+
+                dataTable.ajax.url(`{{ route('journal-entry-index') }}?` + $.param({
+                    from_date,
+                    to_date,
+                    type,
+                    created_by,
+                    is_manual
+                })).load();
+            });
+
+            $('#reset_button').on('click', function() {
+                $('#from_date, #to_date').val('');
+                $('#created_by_filter, #is_manual_filter').val('').trigger('change');
+                dataTable.ajax.url(`{{ route('journal-entry-index') }}`).load();
+            });
+        }
 
         // function showAlert(text, confirmButtonText, cancelButtonText = '', confirmButton = 'btn-danger', cancelButton =
         //     false, icon) {
@@ -135,31 +198,6 @@
                 drawCallback: function() {
                     KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
                 }
-            });
-        };
-
-        function handleFormFiltersDatatable() {
-            const filters = $('[data-kt-filter="filter"]');
-            const resetButton = $('[data-kt-filter="reset"]');
-            const status = $('[data-kt-filter="status"]');
-            const deleted = $('[data-kt-filter="deleted_records"]');
-
-            filters.on('click', function(e) {
-                const deletedValue = deleted.val();
-
-                dataTable.ajax.url('{{ route('journal-entry-index') }}?' + $.param({
-                    deleted_records: deletedValue
-                })).load();
-
-                const statusValue = status.val();
-                dataTable.column(6).search(statusValue).draw();
-            });
-
-            resetButton.on('click', function(e) {
-                status.val(null).trigger('change');
-                deleted.val(null).trigger('change');
-                dataTable.search('').columns().search('').ajax.url(dataUrl)
-                    .load();
             });
         };
     </script>

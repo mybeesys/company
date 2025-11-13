@@ -352,8 +352,11 @@
             style="width: 12rem;">@lang('messages.save')</button>
         <button type="submit" data-submit ="print" class="btn btn-primary mx-2"
             style="width: 12rem;">@lang('messages.save&print')</button>
-        <a href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}" data-submit ="print"
+      @if ($acc_trans_mapping->is_manual)
+   <a href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}" data-submit ="print"
             class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a>
+
+      @endif
 
 
     </div>

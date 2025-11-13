@@ -340,8 +340,20 @@ return [
     'cost_center' => 'مركز التكلفة',
     'actions' => 'إجراءات',
     'debit' => 'مدين',
-    'credit' => 'دائن'
+    'credit' => 'دائن',
 
 
+    'entry_type' => 'نوع القيد',
+    'created_by' => 'أنشئ بواسطة',
+    'entry_source' => 'مصدر القيد',
+    'manual' => 'يدوي',
+    'automatic' => 'آلي',
+    'manual_entry' => 'قيد يدوي',
+    'sales_entry' => 'قيد مبيعات',
+    'purchase_entry' => 'قيد مشتريات',
+    'opening_balance' => 'رصيد افتتاحي',
+    'filter' => 'تصفية',
+    'reset' => 'إعادة تعيين',
+    'all' => 'الكل',
 
 ];
