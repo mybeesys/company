@@ -34,7 +34,7 @@
 </div>
 
 <div class="d-flex align-items-center  mb-5">
-    <label class="fs-6 fw-semibold mb-2 me-3  " style="width: 100px;">@lang('sales::fields.client')</label>
+    <label class="fs-6 fw-semibold mb-2 me-3  "  id="client_l_id" style="width: 100px;">@lang('sales::fields.client')</label>
     <select id="client_id" class="form-select select-2 form-select-solid"
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="client_id">
         <option value="">@lang('sales::fields.select_client')</option>
