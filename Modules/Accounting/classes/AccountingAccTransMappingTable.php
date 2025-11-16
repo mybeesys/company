@@ -47,9 +47,12 @@ class AccountingAccTransMappingTable
                             <a href="' . url("/journal-entry-edit/{$row->id}") . '" class="menu-link px-3">' . __('employee::fields.edit') . '</a>
                         </div>';
 
+                        if($row->is_manual){
                         $actions .= '<div class="menu-item px-3">
                         <a href="' . url("/journal-entry-duplication/{$row->id}") . '" class="menu-link px-3">' . __('accounting::fields.duplication') . '</a>
                     </div>';
+
+                        }
 
                     $actions .= '<div class="menu-item px-3">
                     <a href="' . url("/journal-entry-print/{$row->id}") . '" class="menu-link px-3">' . __('accounting::fields.print') . '</a>

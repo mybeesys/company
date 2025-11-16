@@ -18,6 +18,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Employee\Models\Employee;
 use Mpdf\Mpdf;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -31,12 +32,35 @@ class JournalEntryController extends Controller
     {
 
         if ($request->ajax()) {
-            $acc_trans_mapping =  AccountingAccTransMapping::select('id', 'ref_no', 'type', 'operation_date', 'created_by', 'note');
 
+            $acc_trans_mapping = AccountingAccTransMapping::select('id', 'ref_no', 'type', 'is_manual', 'operation_date', 'created_by', 'note');
+
+            if ($request->filled('from_date')) {
+                $acc_trans_mapping->whereDate('operation_date', '>=', $request->from_date);
+            }
+
+            if ($request->filled('to_date')) {
+                $acc_trans_mapping->whereDate('operation_date', '<=', $request->to_date);
+            }
+
+            if ($request->filled('type')) {
+                $acc_trans_mapping->where('type', $request->type);
+            }
+
+            if ($request->filled('created_by')) {
+                $acc_trans_mapping->where('created_by', $request->created_by);
+            }
+
+            if ($request->filled('is_manual')) {
+                $acc_trans_mapping->where('is_manual', $request->is_manual);
+            }
+
+
+       
             return  AccountingAccTransMappingTable::getAccTransMappingTable($acc_trans_mapping);
         }
         $columns = AccountingAccTransMappingTable::getAccTransMappingColumns();
-
+        // ::
         return view('accounting::journalEntry.index', compact('columns'));
     }
 
@@ -87,6 +111,7 @@ class JournalEntryController extends Controller
             $acc_trans_mapping->note = $request->get('additionalNotes');
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = $user_id;
+            $acc_trans_mapping->is_manual = 1;
             $acc_trans_mapping->operation_date = Carbon::parse($request->journalEntry_date)->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
 

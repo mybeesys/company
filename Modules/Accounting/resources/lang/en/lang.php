@@ -355,12 +355,23 @@ return [
     'cost_center' => 'Cost Center',
     'actions' => 'Actions',
     'debit' => 'Debit',
-    'credit' => 'Credit'
+    'credit' => 'Credit',
 
 
 
 
-
+'entry_type' => 'Entry Type',
+    'created_by' => 'Created By',
+    'entry_source' => 'Entry Source',
+    'manual' => 'Manual',
+    'automatic' => 'Automatic',
+    'manual_entry' => 'Manual Entry',
+    'sales_entry' => 'Sales Entry',
+    'purchase_entry' => 'Purchase Entry',
+    'opening_balance' => 'Opening Balance',
+    'filter' => 'Filter',
+    'reset' => 'Reset',
+    'all' => 'All',
 
 
 
