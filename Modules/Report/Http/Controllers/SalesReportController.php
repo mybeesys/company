@@ -195,9 +195,9 @@ class SalesReportController extends Controller
                     'taxes.name as tax',
                     'u.unit1  as unit',
                     DB::raw('((transaction_sell_lines.qyt) * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
-                    DB::raw("CASE 
+                    DB::raw("CASE
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en 
+                ELSE e.name_en
               END as establishment_name"),
                 );
             if ($request->has('branch_id')) {
@@ -284,9 +284,9 @@ class SalesReportController extends Controller
                     'taxes.name as tax',
                     'u.unit1  as unit',
                     DB::raw('((transactione_purchases_lines.qyt) * transactione_purchases_lines.unit_price_inc_tax) as subtotal'),
-                    DB::raw("CASE 
+                    DB::raw("CASE
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en 
+                ELSE e.name_en
               END as establishment_name"),
                 );
             if ($request->has('branch_id')) {
@@ -352,9 +352,9 @@ class SalesReportController extends Controller
                                 )
                             ) as supplier"),
                     /*'u.name as cashier',*/
-                    DB::raw("CASE 
+                    DB::raw("CASE
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en 
+                ELSE e.name_en
               END as establishment_name"),
                     'd.name as device_name',
                     'transaction_payments.amount',
@@ -450,9 +450,9 @@ class SalesReportController extends Controller
                                     WHERE ts.id=t.id
                                 )
                             ) as supplier"),
-                    DB::raw("CASE 
+                    DB::raw("CASE
                 WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en 
+                ELSE e.name_en
               END as establishment_name"),
                     'd.name as device_name',
                     'transaction_payments.amount',
@@ -780,14 +780,14 @@ class SalesReportController extends Controller
                 ->select(
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                     app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
-                    DB::raw("CASE 
+                    DB::raw("CASE
                         WHEN sl.id IS NOT NULL THEN '-'
-                        ELSE '+' 
+                        ELSE '+'
                     END as transfer_in_out"),
                     't.transfer_status as process',
-                    DB::raw("CASE 
-                        WHEN sl.id IS NOT NULL THEN sl.qyt 
-                        ELSE pl.qyt 
+                    DB::raw("CASE
+                        WHEN sl.id IS NOT NULL THEN sl.qyt
+                        ELSE pl.qyt
                     END as quantity"),
                     't.created_at as transfer_date',
                     't.type as type',
@@ -870,37 +870,37 @@ class SalesReportController extends Controller
                     'p.id as product_id',
                     'e.id as establishment_id',
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    DB::raw("CASE 
+                    DB::raw("CASE
                     WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                    ELSE e.name_en 
+                    ELSE e.name_en
                 END as establishment_name"),
                     DB::raw("
                     (
                         SELECT COALESCE(
                             MAX(
-                                CASE 
+                                CASE
                                     WHEN pu_disp_sub.unit2 IS NOT NULL AND '" . app()->getLocale() . "' = 'ar' THEN pu_disp_sub.unit1
                                     WHEN pu_disp_sub.unit2 IS NOT NULL AND '" . app()->getLocale() . "' = 'en' THEN pu_disp_sub.unit1
                                     ELSE NULL
                                 END
-                            ), 
+                            ),
                             MAX(
-                                CASE 
-                                    WHEN '" . app()->getLocale() . "' = 'ar' THEN pu_disp_sub.unit1 
+                                CASE
+                                    WHEN '" . app()->getLocale() . "' = 'ar' THEN pu_disp_sub.unit1
                                     ELSE pu_disp_sub.unit1
                                 END
                             )
                         )
-                        FROM product_unit_transfer as pu_disp_sub 
+                        FROM product_unit_transfer as pu_disp_sub
                         WHERE pu_disp_sub.product_id = p.id
                     ) as base_unit_name
                 "),
                     DB::raw("
                     SUM(
-                        CASE 
-                            WHEN t.type = 'purchases' AND t.status = 'approved' 
+                        CASE
+                            WHEN t.type = 'purchases' AND t.status = 'approved'
                             THEN pl.qyt * (
-                                CASE 
+                                CASE
                                     WHEN pu.transfer > 0 THEN 1
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
@@ -908,18 +908,18 @@ class SalesReportController extends Controller
                                         WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
                                     )
                                 END
-                            ) 
-                            ELSE 0 
+                            )
+                            ELSE 0
                         END
                     ) as purchased_quantity
                 "),
                     DB::raw("
                     SUM(
-                        CASE 
-                            WHEN t.type = 'sell' AND t.status = 'approved' 
+                        CASE
+                            WHEN t.type = 'sell' AND t.status = 'approved'
                             THEN sl.qyt * (
-                                CASE 
-                                    WHEN su.transfer > 0 THEN 1 
+                                CASE
+                                    WHEN su.transfer > 0 THEN 1
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
                                         FROM product_unit_transfer AS su_max
@@ -927,16 +927,16 @@ class SalesReportController extends Controller
                                     )
                                 END
                             )
-                            ELSE 0 
+                            ELSE 0
                         END
                     ) as sales_quantity
                 "),
                     DB::raw("
 SUM(
-        CASE 
-            WHEN t.type = 'WASTE' AND t.status = 'approved' 
+        CASE
+            WHEN t.type = 'WASTE' AND t.status = 'approved'
             THEN sl.qyt * (
-                CASE 
+                CASE
                     WHEN su.transfer > 0 THEN 1
                     ELSE (
                         SELECT COALESCE(MAX(transfer), 1)
@@ -944,17 +944,17 @@ SUM(
                         WHERE su_max.product_id = p.id AND su_max.transfer > 0
                     )
                 END
-            ) 
-            ELSE 0 
+            )
+            ELSE 0
         END
     ) as waste
 "),
                     DB::raw("
                     SUM(
-                        CASE 
-                            WHEN t.type = 'purchases-return' AND t.status = 'approved' 
+                        CASE
+                            WHEN t.type = 'purchases-return' AND t.status = 'approved'
                             THEN pl.qyt * (
-                                CASE 
+                                CASE
                                     WHEN pu.transfer > 0 THEN 1
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
@@ -962,19 +962,19 @@ SUM(
                                         WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
                                     )
                                 END
-                            ) * -1 
-                            ELSE 0 
+                            ) * -1
+                            ELSE 0
                         END
                     ) as purchase_returns
                 "),
                     DB::raw("
     SUM(
-        CASE 
-            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived') 
+        CASE
+            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived')
             THEN (
                 SELECT COALESCE(SUM(
                     pl_inner.qyt * (
-                        CASE 
+                        CASE
                             WHEN pu_inner.transfer > 0 THEN 1
                             ELSE (
                                 SELECT COALESCE(MAX(transfer), 1)
@@ -991,16 +991,16 @@ SUM(
                     AND t_inner.status = 'approved'
                     AND pl_inner.product_id = p.id
             )
-            ELSE 0 
+            ELSE 0
         END
     ) as transferred_quantity
 "),
                     DB::raw("
                     SUM(
-                        CASE 
-                            WHEN t.type = 'PREP' AND t.status = 'approved' 
+                        CASE
+                            WHEN t.type = 'PREP' AND t.status = 'approved'
                             THEN pl.qyt * (
-                                CASE 
+                                CASE
                                     WHEN pu.transfer > 0 THEN 1
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
@@ -1008,17 +1008,17 @@ SUM(
                                         WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
                                     )
                                 END
-                            ) 
-                            ELSE 0 
+                            )
+                            ELSE 0
                         END
                     ) as production_quantity
                 "),
                     DB::raw("
                     SUM(
-                        CASE 
-                            WHEN t.type = 'PO0' AND t.status = 'approved' 
+                        CASE
+                            WHEN t.type = 'PO0' AND t.status = 'approved'
                             THEN pl.qyt * (
-                                CASE 
+                                CASE
                                     WHEN pu.transfer > 0 THEN 1
                                     ELSE (
                                         SELECT COALESCE(MAX(transfer), 1)
@@ -1026,8 +1026,8 @@ SUM(
                                         WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
                                     )
                                 END
-                            ) 
-                            ELSE 0 
+                            )
+                            ELSE 0
                         END
                     ) as opening_inventory
                 "),
@@ -1035,9 +1035,9 @@ SUM(
                     //     DB::raw("NULL as quantity_on_inventory"),
                     DB::raw("
     (
-        SELECT FORMAT(SUM(pi.qty * 
-            CASE 
-                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1 
+        SELECT FORMAT(SUM(pi.qty *
+            CASE
+                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1
                 THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
                 ELSE 1
             END
@@ -1117,14 +1117,14 @@ SUM(
                 ->select(
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                     app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
-                    DB::raw("CASE 
+                    DB::raw("CASE
                     WHEN sl.id IS NOT NULL THEN '-'
-                    ELSE '+' 
+                    ELSE '+'
                 END as transfer_in_out"),
                     't.transfer_status as process',
-                    DB::raw("CASE 
-                    WHEN sl.id IS NOT NULL THEN sl.qyt 
-                    ELSE pl.qyt 
+                    DB::raw("CASE
+                    WHEN sl.id IS NOT NULL THEN sl.qyt
+                    ELSE pl.qyt
                 END as quantity"),
                     't.created_at as transfer_date',
                     't.type as type',
@@ -1137,7 +1137,6 @@ SUM(
                         ->where('t.status', 'approved');
                 });
 
-            // الشروط الأخرى
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
                 if (!empty($branchIds)) {
@@ -1189,4 +1188,144 @@ SUM(
                 'quantityOnInventory'
             ));
     }
+
+
+    public function productStockReport(Request $request)
+{
+    $productId = $request->product_id ?: Product::orderBy('id','asc')->first()?->id;
+    if (!$productId) {
+        return response()->json(["error" => "No products found"], 404);
+    }
+
+    $currentProduct = Product::find($productId);
+    $previousProduct = Product::where('id', '<', $productId)->orderBy('id','desc')->first();
+    $nextProduct = Product::where('id', '>', $productId)->orderBy('id','asc')->first();
+
+     $main_establishment = Establishment::notMain()->active()->first();
+    $establishmentId = $request->branch_id ?: $main_establishment->id;
+
+    $from = $request->from ? date('Y-m-d', strtotime($request->from)) : '1900-01-01';
+    $to   = $request->to   ? date('Y-m-d', strtotime($request->to))   : now();
+
+   $purchases = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
+        ->where('transactione_purchases_lines.product_id', $productId)
+        ->where('t.type', 'purchases')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transactione_purchases_lines.qyt');
+
+    $salesReturn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
+        ->where('transactione_purchases_lines.product_id', $productId)
+        ->where('t.type', 'sell-return')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transactione_purchases_lines.qyt');
+
+    $transferIn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
+        ->where('transactione_purchases_lines.product_id', $productId)
+        ->where('t.type', 'TRANSFER')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereNotNull('t.parent_id')
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transactione_purchases_lines.qyt');
+
+    $totalIn = $purchases + $salesReturn + $transferIn;
+
+    $sales = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+        ->where('transaction_sell_lines.product_id', $productId)
+        ->where('t.type', 'sell')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transaction_sell_lines.qyt');
+
+    $damaged = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+        ->where('transaction_sell_lines.product_id', $productId)
+        ->where('t.type', 'damaged')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transaction_sell_lines.qyt');
+
+    $purchaseReturn = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+        ->where('transaction_sell_lines.product_id', $productId)
+        ->where('t.type', 'purchases-return')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transaction_sell_lines.qyt');
+
+    $transferOut = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+        ->where('transaction_sell_lines.product_id', $productId)
+        ->where('t.type', 'TRANSFER')
+        ->whereNull('t.parent_id')
+        ->where('t.establishment_id', $establishmentId)
+        ->whereBetween('t.transaction_date', [$from, $to])
+        ->sum('transaction_sell_lines.qyt');
+
+    $totalOut = $sales + $damaged + $purchaseReturn + $transferOut;
+
+    $currentStock = $totalIn - $totalOut;
+
+    $movements = [];
+
+    $allPurchases = TransactionePurchasesLine::with('transaction')->where('product_id', $productId)
+        ->whereHas('transaction', fn($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
+        ->get();
+
+    $stockQty = 0;
+    foreach ($allPurchases as $p) {
+        $qty = in_array($p->transaction->type, ['sell-return','purchases-return']) ? -$p->qyt : $p->qyt;
+        $stockQty += $qty;
+        $movements[] = [
+            'type' => ucfirst($p->transaction->type),
+            'change_qty' => $qty,
+            'new_qty' => $stockQty,
+            'transaction_date' => $p->transaction->transaction_date,
+            'ref_no' => $p->transaction->ref_no,
+            'entity' => $p->transaction->client?->name ?? '--',
+        ];
+    }
+
+    $allSales = TransactionSellLine::with('transaction')->where('product_id', $productId)
+        ->whereHas('transaction', fn($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
+        ->get();
+
+    foreach ($allSales as $s) {
+        $qty = in_array($s->transaction->type, ['sell','damaged','TRANSFER']) ? -$s->qyt : $s->qyt;
+        $stockQty += $qty;
+        $movements[] = [
+            'type' => ucfirst($s->transaction->type),
+            'change_qty' => $qty,
+            'new_qty' => $stockQty,
+            'transaction_date' => $s->transaction->transaction_date,
+            'ref_no' => $s->transaction->ref_no,
+            'entity' => $s->transaction->client?->name ?? '--',
+        ];
+    }
+
+    usort($movements, fn($a,$b) => strtotime($b['transaction_date']) <=> strtotime($a['transaction_date']));
+
+     if($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'currentProduct' => $currentProduct,
+            'currentStock' => $currentStock,
+            'totalIn' => $totalIn,
+            'totalOut' => $totalOut,
+            'purchases' => $purchases,
+            'salesReturn' => $salesReturn,
+            'transferIn' => $transferIn,
+            'sales' => $sales,
+            'damaged' => $damaged,
+            'purchaseReturn' => $purchaseReturn,
+            'transferOut' => $transferOut,
+            'movements' => $movements,
+        ]);
+    }
+
+     return view('report::sales.productStockReport', compact(
+        'currentProduct','currentStock','totalIn','totalOut',
+        'purchases','salesReturn','transferIn','sales','damaged',
+        'purchaseReturn','transferOut','movements','previousProduct','nextProduct'
+    ));
+}
+
 }

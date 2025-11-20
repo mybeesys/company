@@ -139,6 +139,8 @@ return [
     'inventory_dashboard' => 'لوحة تحكم المخزون',
     'product-inventory-summary' => "تقرير رصيد المخزون",
     'product-inventory-record' => "سجل مخزون الصنف",
+    "product-inventory"=>"تقرير مخزون الصنف",
+
 
 
 ];
