@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.product-inventory-recoed'))
+@section('title', __('menuItemLang.product-inventory'))
 
 @section('css')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
@@ -45,7 +45,7 @@
     <div class="row mb-12">
         <div class="col-12 d-flex align-items-center justify-content-between">
             <div>
-               <label class="fs-5 fw-semibold mb-2">
+               <label class="fs-5 fw-semibold mb-2" id="productTitle">
                    {{$currentProduct->SKU}} | {{$currentProduct->name_ar}} - {{$currentProduct->name_en}}
                </label>
             </div>
@@ -194,6 +194,10 @@
                 $('#purchaseReturns').text(res.purchaseReturn);
                 $('#salesReturn').text(res.salesReturn);
                 $('#transferredQuantity').text(res.transferIn + ' / ' + res.transferOut);
+
+
+                  $('#productTitle').text(`${res.currentProduct.SKU} | ${res.currentProduct.name_ar} - ${res.currentProduct.name_en}`);
+
                 let tbody = '';
                 if(res.movements && res.movements.length) {
                     res.movements.forEach(m => {
