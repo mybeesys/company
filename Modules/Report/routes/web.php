@@ -43,4 +43,6 @@ Route::middleware([
     Route::get('/payment-reports', [SalesReportController::class, 'combinedPaymentReport'])->name('payment-reports.combined');
     Route::get('product-inventory-summary', [SalesReportController::class, 'productInventorySummary'])->name('product-inventory-summary');
     Route::get('/inventory/record/{product_id}/{establishment_id}', [SalesReportController::class, 'productInventoryRecord'])->name('inventory.record');
+    Route::get('Product-Stock-Report', [SalesReportController::class, 'productStockReport'])->name('Product-Stock-Report');
+
 });

@@ -135,7 +135,8 @@ return [
     'product_dashboard' => 'Product Dashboard',
     'inventory_dashboard' => 'Stock Dashboard',
     'product-inventory-summary' => "Product inventory summary",
-    'product-inventory-record' => "Product inventory record"
+    'product-inventory-record' => "Product inventory record",
+    "product-inventory"=>"Item Inventory Report",
 
 
 
