@@ -2,19 +2,18 @@
 @section('title', __('menuItemLang.product_dashboard'))
 
 @section('css')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js" rel="stylesheet">
+
+{{-- <link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js" rel="stylesheet"> --}}
 <style>
     :root {
-        --primary-color: #4361ee;
+        --primary-color: #a7b7ff;
         --secondary-color: #4cc9f0;
-        --success-color: #0abb87;
-        --danger-color: #ff5b5b;
-        --warning-color: #f8961e;
-        --info-color: #3a86ff;
-        --purple-color: #7209b7;
-        --indigo-color: #480ca8;
+        --success-color: #92ffde;
+        --danger-color: #ff9595;
+        --warning-color: #ffc278;
+        --info-color: #7caeff;
+        --purple-color: #d493ff;
+        --indigo-color: #be95ff;
         --text-dark: #212529;
         --text-muted: #6c757d;
         --bg-light: #f8f9fa;
@@ -25,7 +24,7 @@
     body {
         background-color: var(--bg-light);
         color: var(--text-dark);
-        font-family: 'Tajawal', sans-serif;
+        /* font-family: 'Tajawal', sans-serif; */
         direction: rtl;
         text-align: right;
     }
@@ -189,6 +188,7 @@
         font-size: 1.8rem;
         margin-bottom: 8px;
         z-index: 2;
+        color: white;
     }
 
     .quick-action-btn .btn-label {
@@ -215,7 +215,7 @@
     }
 
     .bg-primary {
-        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        background: linear-gradient(135deg, #9caeff, #b393ff);
     }
 
     .bg-success {
@@ -239,10 +239,32 @@
     }
 
     .bg-danger {
-        background: linear-gradient(135deg, #ff5b5b, #e63946);
+        background: linear-gradient(135deg, #ffa6a6, #ff969e);
     }
 
+  .bg-primary {
+                background: linear-gradient(135deg, #decce2, #decce2);
+            }
 
+            .bg-success {
+                background: linear-gradient(135deg, #c8eddc, #6acb9e);
+            }
+
+            .bg-info {
+                background: linear-gradient(135deg, #cef3fb, #76c9db);
+            }
+
+            .bg-purple {
+                background: linear-gradient(135deg, #fff8cc, #e1d277);
+            }
+
+            .bg-indigo {
+                background: linear-gradient(135deg, #dfd2ff, #dfd2ff);
+            }
+
+            .bg-warning {
+                background: linear-gradient(135deg, #f7ccdd, #f7ccdd);
+            }
     .bg-danger-light {
         background-color: #fff8f5;
         border-right: 4px solid var(--danger-color);
@@ -520,6 +542,6 @@
 @endsection
 
 @section('script')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
+{{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script> --}}
 
 @endsection
