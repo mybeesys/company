@@ -3,18 +3,19 @@
 
 @section('css')
 <style>
+
     :root {
-        --primary-color: #4361ee;
+        --primary-color: #a7b7ff;
         --secondary-color: #4cc9f0;
-        --success-color: #0abb87;
-        --danger-color: #ff5b5b;
-        --warning-color: #f8961e;
-        --info-color: #3a86ff;
-        --purple-color: #7209b7;
-        --indigo-color: #480ca8;
+        --success-color: #92ffde;
+        --danger-color: #ff9595;
+        --warning-color: #ffc278;
+        --info-color: #7caeff;
+        --purple-color: #d493ff;
+        --indigo-color: #be95ff;
         --text-dark: #212529;
         --text-muted: #6c757d;
-        --bg-light: #f5f7fa;
+        --bg-light: #f8f9fa;
         --card-bg: #ffffff;
         --border-color: #e9ecef;
     }
@@ -22,7 +23,7 @@
     body {
         background-color: var(--bg-light);
         color: var(--text-dark);
-        font-family: 'Tajawal', sans-serif;
+        /* font-family: 'Tajawal', sans-serif; */
         direction: rtl;
         text-align: right;
         overflow-x: hidden;
@@ -139,25 +140,26 @@
     }
 
     .bg-info-gradient {
-        background: linear-gradient(135deg, var(--info-color), #4895ef);
+        background: linear-gradient(135deg, var(--info-color), #6acb9e);
     }
 
     .bg-danger-gradient {
-        background: linear-gradient(135deg, var(--danger-color), #e63946);
+        background: linear-gradient(135deg, var(--danger-color), #cf878d);
     }
 
     .bg-success-gradient {
-        background: linear-gradient(135deg, var(--success-color), #09b47e);
+        background: linear-gradient(135deg, var(--success-color), #78bda7);
     }
 
     .bg-primary-gradient {
-        background: linear-gradient(135deg, var(--primary-color), #480ca8);
+        background: linear-gradient(135deg, var(--primary-color), #997dc7);
     }
 
     .quick-action-btn .btn-icon {
         font-size: 2.2rem;
         margin-bottom: 12px;
         opacity: 0.9;
+        color: white;
     }
 
     /* New and improved Inventory Stats Style */
@@ -251,7 +253,29 @@
         font-weight: 700;
         font-size: 1.5rem;
     }
+ .bg-primary {
+                background: linear-gradient(135deg, #decce2, #decce2);
+            }
 
+            .bg-success {
+                background: linear-gradient(135deg, #c8eddc, #6acb9e);
+            }
+
+            .bg-info {
+                background: linear-gradient(135deg, #cef3fb, #76c9db);
+            }
+
+            .bg-purple {
+                background: linear-gradient(135deg, #fff8cc, #e1d277);
+            }
+
+            .bg-indigo {
+                background: linear-gradient(135deg, #dfd2ff, #dfd2ff);
+            }
+
+            .bg-warning {
+                background: linear-gradient(135deg, #f7ccdd, #f7ccdd);
+            }
     @media (max-width: 767px) {
         .inventory-item {
             flex-basis: 100%;
