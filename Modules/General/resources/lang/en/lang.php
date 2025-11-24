@@ -67,6 +67,34 @@ return [
     'quotation_no' => 'Quotation NO',
     'quotation_date' => 'Quotation Date',
     'quotation_expiry' => 'Quotation expiry',
+    'enable_rp' => 'Enable Reward Points System',
+    'rp_name' => 'Reward Points Name',
+    'reward_points_tab' => ' Reward Points System',
+    // Earning points
+    'earning_points_setting' => 'Earning Points Settings',
+    'amount_for_unit_rp' => 'Amount for One Point',
+    'amount_for_unit_rp_tooltip' => 'Amount spent required to earn one reward point.',
+    'min_order_total_for_rp' => 'Minimum Order Total to Earn Points',
+    'min_order_total_for_rp_tooltip' => 'Minimum bill amount required to earn points.',
+    'max_rp_per_order' => 'Maximum Points per Order',
+    'max_rp_per_order_tooltip' => 'Maximum number of reward points per sale.',
+
+    // Redeem points
+    'redeem_points_setting' => 'Redeem Points Settings',
+    'redeem_amount_per_unit_rp' => 'Redeem Value per Point',
+    'redeem_amount_per_unit_rp_tooltip' => 'Discount value obtained per redeemed point.',
+    'min_order_total_for_redeem' => 'Minimum Order Total for Redeeming Points',
+    'min_order_total_for_redeem_tooltip' => 'Minimum invoice total required for redeeming reward points.',
+    'min_redeem_point' => 'Minimum Redeemable Points',
+    'min_redeem_point_tooltip' => 'The minimum number of points required to redeem.',
+    'max_redeem_point' => 'Maximum Redeemable Points',
+    'max_redeem_point_tooltip' => 'Maximum number of points allowed to redeem per invoice.',
+
+    // Expiry
+    'rp_expiry_period' => 'Reward Points Expiry Period',
+    'rp_expiry_period_tooltip' => 'Duration before reward points expire.',
+    'month' => 'Month',
+    'year' => 'Year',
 
 
 ];

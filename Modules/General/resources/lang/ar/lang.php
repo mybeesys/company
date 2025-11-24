@@ -40,6 +40,7 @@ return [
     'purchases' => 'فاتورة شراء',
     'purchases-order' => 'طلب شراء',
     'purchases-return' => 'مردود شراء',
+    'reward_points_tab' => ' نظام نقاط الولاء',
 
 
 
@@ -70,6 +71,33 @@ return [
     'quotation_no' => 'رقم العرض',
     'quotation_date' => 'تاريخ العرض',
     'quotation_expiry' => 'انتهاء صلاحية العرض',
+    'enable_rp' => 'تفعيل نظام نقاط الولاء',
+    'rp_name' => 'اسم نقاط الولاء',
 
+    // Earning points
+    'earning_points_setting' => 'إعدادات كسب النقاط',
+    'amount_for_unit_rp' => 'المبلغ مقابل نقطة واحدة',
+    'amount_for_unit_rp_tooltip' => 'المبلغ الذي يمنح نقطة واحدة عند تجاوزه في الفاتورة.',
+    'min_order_total_for_rp' => 'أقل إجمالي للفاتورة لكسب النقاط',
+    'min_order_total_for_rp_tooltip' => 'أقل مبلغ يجب تجاوزه في الفاتورة للحصول على نقاط.',
+    'max_rp_per_order' => 'أقصى عدد نقاط يسمح به لكل فاتورة',
+    'max_rp_per_order_tooltip' => 'الحد الأقصى للنقاط المسموح بها في الفاتورة الواحدة.',
+
+    // Redeem points
+    'redeem_points_setting' => 'إعدادات استرداد النقاط',
+    'redeem_amount_per_unit_rp' => 'قيمة النقطة الواحدة عند الاستبدال',
+    'redeem_amount_per_unit_rp_tooltip' => 'قيمة الخصم مقابل كل نقطة يتم استبدالها.',
+    'min_order_total_for_redeem' => 'أقل مبلغ للفاتورة يسمح باستبدال النقاط',
+    'min_order_total_for_redeem_tooltip' => 'الحد الأدنى لقيمة الفاتورة قبل استخدام النقاط.',
+    'min_redeem_point' => 'أقل عدد نقاط يمكن استبدالها',
+    'min_redeem_point_tooltip' => 'أقل عدد من النقاط يجب توفره ليستطيع الزبون استبدالها.',
+    'max_redeem_point' => 'أقصى عدد نقاط يمكن استبدالها',
+    'max_redeem_point_tooltip' => 'الحد الأعلى للنقاط القابلة للاستبدال في المعاملة الواحدة.',
+
+    // Expiry
+    'rp_expiry_period' => 'مدة صلاحية النقاط',
+    'rp_expiry_period_tooltip' => 'مدة انتهاء صلاحية نقاط الولاء.',
+    'month' => 'شهر',
+    'year' => 'سنة',
 
 ];

@@ -186,6 +186,8 @@
                     href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
             </li>
 
+            
+
 
             {{-- <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
@@ -206,6 +208,7 @@
             @include('general::prefix-settings.prefix-settings')
             @include('general::general-setting.invoice-tab')
             {{-- @include('general::establishments.establishments-tab') --}}
+            @include('general::inventory_costing.inventory_costing')
             @include('general::inventory_costing.inventory_costing')
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
