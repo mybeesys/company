@@ -70,7 +70,7 @@ class GeneralController extends Controller
         $setting_currency = Setting::getCurrency();
 
         $enabledModules = json_decode(Setting::where('key', 'enabled_modules')->value('value'), true) ?? [];
-
+        $reward_points_settings = json_decode(Setting::where('key', 'reward_points_settings')->value('value'), true) ?? [];
         $modules = [
             'categories' => 'categories',
             'inventory' => 'inventory',
@@ -110,7 +110,7 @@ class GeneralController extends Controller
         // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
         $unit = UnitTransfer::where("default", 1)->first();
-        return view('general::settings.index', compact('cards', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
+        return view('general::settings.index', compact('cards','reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription()
@@ -139,6 +139,18 @@ class GeneralController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
+    }
+
+    public function updateRewardPoints(Request $request)
+    {
+        $data = $request->except('_token');
+
+        Setting::updateOrCreate(
+            ['key' => 'reward_points_settings'],
+            ['value' => json_encode($data)]
+        );
+
+        return back()->with('success', __('messages.updated_successfully'));
     }
 
     public function updatePrefix(Request $request)
