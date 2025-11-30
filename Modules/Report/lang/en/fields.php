@@ -62,8 +62,98 @@ return [
     'salesReturn' => 'Sales Returns',
     'transferred_quantity' => 'Transferred Quantity',
     'quantity_on_inventory' => 'Quantity on Inventory',
-     'new_qty' => 'New Quantity',
+    'new_qty' => 'New Quantity',
     'change_qty' => 'Change Quantity',
     'total_in' => 'Total In',
-'total_out' => 'Total Out',
+    'total_out' => 'Total Out',
+    'register_report' => 'Cash Register Report',
+    'filters' => 'Filters',
+    'user' => 'User',
+    'all_users' => 'All Users',
+    'date_range' => 'Date Range',
+    'open_time' => 'Open Time',
+    'close_time' => 'Close Time',
+    'location' => 'Location',
+    'status' => 'Status',
+    'total' => 'Total',
+    'action' => 'Action',
+
+    'open' => 'Open',
+    'close' => 'Close',
+
+    'total_card_slips' => 'Total Card Slips',
+    'total_cheques' => 'Total Cheques',
+    'total_cash' => 'Total Cash',
+    'total_bank_transfer' => 'Total Bank Transfer',
+    'total_advance_payment' => 'Total Advance Payment',
+
+    'register_details' => 'Cash Register Details',
+    'closing_note' => 'Closing Note',
+
+    // Cash Denominations
+    'cash_denominations' => 'Cash Denominations',
+    'denomination' => 'Denomination',
+    'count' => 'Count',
+
+    // Sales / Products
+    'subtotal' => 'Subtotal',
+    'total' => 'Total',
+    'products' => 'Products',
+    'product' => 'Product',
+    'quantity' => 'Quantity',
+    'total_sales' => 'Total Sales',
+    'total_tax' => 'Total Tax',
+    'total_discount' => 'Total Discount',
+
+    // Report / User
+    'user' => 'User',
+
+    // Business Info
+    'email' => 'Email',
+    'business_location' => 'Business Location',
+
+    // Messages / Buttons
+    'print' => 'Print',
+    'cancel' => 'Cancel',
+    'summary' => 'Summary',
+
+     'payment_method' => 'Payment Method',
+    'sale' => 'Sale',
+    'expense' => 'Expense',
+    'refund' => 'Refund',
+    'total' => 'Total',
+    'credit_sales' => 'Credit Sales',
+    'other_payments' => 'Other Payments',
+    'total_payment' => 'Total Payment',
+
+    // Cash Register Specific
+    'cash_in_hand' => 'Cash in Hand',
+    'cash_payment' => 'Cash Payment',
+    'cheque_payment' => 'Cheque Payment',
+    'card_payment' => 'Card Payment',
+    'bank_transfer' => 'Bank Transfer',
+    'advance_payment' => 'Advance Payment',
+    'total_sales' => 'Total Sales',
+    'total_refund' => 'Total Refund',
+
+    // Product Details
+    'product_name' => 'Product Name',
+    'quantity' => 'Quantity',
+    'unit_price' => 'Unit Price',
+    'subtotal' => 'Subtotal',
+
+    // Cash Denominations
+    'cash_denominations' => 'Cash Denominations',
+    'denomination' => 'Denomination',
+    'count' => 'Count',
+
+    // User & Location
+    'user' => 'User',
+    'email' => 'Email',
+    'business_location' => 'Business Location',
+    'closing_note' => 'Closing Note',
+
+    // Reports
+    'total_expense' => 'Total Expense',
+    'register_report_details' => 'View details of register report',
 ];

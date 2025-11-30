@@ -64,6 +64,98 @@ return [
     'new_qty' => 'كمية جديدة',
     'change_qty' => 'تغيير الكمية',
 
-'total_in' => 'إجمالي الوحدات الداخلة',
-'total_out' => 'إجمالي الوحدات الخارجة',
+    'total_in' => 'إجمالي الوحدات الداخلة',
+    'total_out' => 'إجمالي الوحدات الخارجة',
+    'register_report' => 'تقرير السجل النقدي',
+    'filters' => 'الفلاتر',
+    'user' => 'المستخدم',
+    'all_users' => 'كل المستخدمين',
+    'date_range' => 'نطاق التاريخ',
+    'open_time' => 'وقت الفتح',
+    'close_time' => 'وقت الإغلاق',
+    'location' => 'الفرع/المنشأة',
+    'status' => 'الحالة',
+    'total' => 'الإجمالي',
+    'action' => 'إجراء',
+
+    'open' => 'مفتوح',
+    'close' => 'مغلق',
+
+    'total_card_slips' => 'إجمالي بطاقات الائتمان',
+    'total_cheques' => 'إجمالي الشيكات',
+    'total_cash' => 'إجمالي النقد',
+    'total_bank_transfer' => 'إجمالي التحويل البنكي',
+    'total_advance_payment' => 'إجمالي المدفوعات المقدمة',
+
+        // Cash Register
+    'register_details' => 'تفاصيل صندوق النقد',
+    'closing_note' => 'ملاحظة الإغلاق',
+
+    // Cash Denominations
+    'cash_denominations' => 'فئات النقود',
+    'denomination' => 'الفئة',
+    'count' => 'العدد',
+
+    // Sales / Products
+    'subtotal' => 'المجموع الجزئي',
+    'total' => 'الإجمالي',
+    'products' => 'المنتجات',
+    'product' => 'المنتج',
+    'quantity' => 'الكمية',
+    'total_sales' => 'إجمالي المبيعات',
+    'total_tax' => 'إجمالي الضريبة',
+    'total_discount' => 'إجمالي الخصم',
+
+    // Report / User
+    'user' => 'المستخدم',
+
+    // Business Info
+    'email' => 'البريد الإلكتروني',
+    'business_location' => 'موقع العمل',
+
+    // Messages / Buttons
+    'print' => 'طباعة',
+    'cancel' => 'إلغاء',
+    'summary' => 'ملخص',
+
+
+     'payment_method' => 'طريقة الدفع',
+    'sale' => 'المبيعات',
+    'expense' => 'المصروفات',
+    'refund' => 'المسترجعات',
+    'total' => 'الإجمالي',
+    'credit_sales' => 'المبيعات الآجلة',
+    'other_payments' => 'مدفوعات أخرى',
+    'total_payment' => 'إجمالي المدفوعات',
+
+    // Cash Register Specific
+    'cash_in_hand' => 'الرصيد النقدي',
+    'cash_payment' => 'الدفع نقداً',
+    'cheque_payment' => 'الدفع بشيك',
+    'card_payment' => 'الدفع بالبطاقة',
+    'bank_transfer' => 'التحويل البنكي',
+    'advance_payment' => 'المدفوعات مقدماً',
+    'total_sales' => 'إجمالي المبيعات',
+    'total_refund' => 'إجمالي المسترجعات',
+
+    // Product Details
+    'product_name' => 'اسم المنتج',
+    'quantity' => 'الكمية',
+    'unit_price' => 'سعر الوحدة',
+    'subtotal' => 'المجموع الفرعي',
+
+    // Cash Denominations
+    'cash_denominations' => 'فئات النقدية',
+    'denomination' => 'الفئة',
+    'count' => 'العدد',
+
+    // User & Location
+    'user' => 'المستخدم',
+    'email' => 'البريد الإلكتروني',
+    'business_location' => 'موقع النشاط',
+    'closing_note' => 'ملاحظة الإغلاق',
+
+    // Reports
+    'total_expense' => 'إجمالي المصروفات',
+    'register_report_details' => 'عرض تفاصيل تقرير الخزنة',
 ];

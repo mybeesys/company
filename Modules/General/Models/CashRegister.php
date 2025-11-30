@@ -4,6 +4,9 @@ namespace Modules\General\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Employee\Models\Employee;
+use Modules\Establishment\Models\Establishment;
+
 // use Modules\General\Database\Factories\CashRegisterFactory;
 
 class CashRegister extends Model
@@ -16,4 +19,15 @@ class CashRegister extends Model
     {
         return $this->hasMany(CashRegisterTransaction::class);
     }
+
+    public function establishment(){
+        return $this->belongsTo(Establishment::class,'establishment_id');
+    }
+
+
+     public function user(){
+        return $this->belongsTo(Employee::class,'user_id');
+    }
+
+
 }

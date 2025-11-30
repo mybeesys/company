@@ -44,5 +44,7 @@ Route::middleware([
     Route::get('product-inventory-summary', [SalesReportController::class, 'productInventorySummary'])->name('product-inventory-summary');
     Route::get('/inventory/record/{product_id}/{establishment_id}', [SalesReportController::class, 'productInventoryRecord'])->name('inventory.record');
     Route::get('Product-Stock-Report', [SalesReportController::class, 'productStockReport'])->name('Product-Stock-Report');
+    Route::get('Register-Report', [SalesReportController::class, 'getRegisterReport'])->name('Register-Report');
+    Route::get('Register-Report/{id}', [SalesReportController::class, 'show'])->name('Register-Report');
 
 });
