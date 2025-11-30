@@ -1442,12 +1442,13 @@ SUM(
 
 
 
-        if (! empty(request()->input('user_id'))) {
-            $registers->where('cash_registers.user_id', request()->input('user_id'));
+        if (! empty(request()->input('register_user_id'))) {
+            $registers->where('cash_registers.user_id', request()->input('register_user_id'));
         }
-        if (! empty(request()->input('status'))) {
-            $registers->where('cash_registers.status', request()->input('status'));
+        if (! empty(request()->input('register_status'))) {
+            $registers->where('cash_registers.status', request()->input('register_status'));
         }
+
         if (! empty($start_date) && ! empty($end_date)) {
             $registers->whereDate('cash_registers.created_at', '>=', $start_date)
                 ->whereDate('cash_registers.created_at', '<=', $end_date);
@@ -1468,7 +1469,7 @@ SUM(
         $payment_types = PaymentMethod::all();
 
         return view('report::report.register_details')
-            ->with(compact('register_details','payment_types', 'details', 'close_time'));
+            ->with(compact('register_details', 'payment_types', 'details', 'close_time'));
     }
 
 
