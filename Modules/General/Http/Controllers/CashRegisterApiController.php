@@ -53,7 +53,7 @@ class CashRegisterApiController extends Controller
                     'amount' => $initial_amount,
                     'pay_method' => 'cash',
                     'type' => 'credit',
-                    'transaction_type' => 'initial',
+                    'transaction_type' => 'sell',
                 ]);
             }
             DB::commit();
