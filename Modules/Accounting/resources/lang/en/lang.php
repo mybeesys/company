@@ -373,6 +373,8 @@ return [
     'reset' => 'Reset',
     'all' => 'All',
 
+    'view_journalEntry'=>'View Journal Entry',
+
 
 
 

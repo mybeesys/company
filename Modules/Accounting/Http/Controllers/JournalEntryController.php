@@ -56,7 +56,7 @@ class JournalEntryController extends Controller
             }
 
 
-       
+
             return  AccountingAccTransMappingTable::getAccTransMappingTable($acc_trans_mapping);
         }
         $columns = AccountingAccTransMappingTable::getAccTransMappingColumns();
@@ -222,6 +222,24 @@ class JournalEntryController extends Controller
         $account_category = AccountingUtil::account_category();
         $duplication = 0;
         return view('accounting::journalEntry.edit', compact('accounts', 'account_main_types', 'account_category', 'parents_account', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
+    }
+
+    public function show($id)
+    {
+        $parents_account = AccountingAccount::all();
+
+        $accounts =  AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
+        $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
+        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        $acc_trans_mappings = AccountingAccTransMapping::all();
+
+        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+
+        $account_main_types = AccountingUtil::account_type();
+        $account_category = AccountingUtil::account_category();
+        $duplication = 0;
+        return view('accounting::journalEntry.show', compact('accounts', 'account_main_types', 'account_category', 'parents_account', 'acc_trans_mappings', 'previous', 'next', 'cost_centers', 'acc_trans_mapping', 'duplication'));
     }
 
 

@@ -31,10 +31,10 @@ return [
     'Interest Expenses' => 'مصاريف الفائدة',
     'Taxes' => 'الضرائب',
     'asset' => 'الأصل',
-    'liabilities' => 'الالتزامات',
+    'liabilities' => 'الخصوم',
     'equity' => 'حقوق الملكية',
-    'income' => 'الدخل',
-    'expenses' => 'المصروفات',
+    'income' => 'الإيرادات',
+    'expenses' => 'مصاريف إدارية وعمومية G&A',
     'expand_all' => 'توسيع الكل',
     'collapse_all' => 'طي الكل',
     'ledger' => 'كشف حساب',
@@ -355,5 +355,6 @@ return [
     'filter' => 'تصفية',
     'reset' => 'إعادة تعيين',
     'all' => 'الكل',
+    'view_journalEntry'=>'عرض القيد اليومي',
 
 ];

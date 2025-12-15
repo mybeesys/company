@@ -25,7 +25,7 @@ class AccountingAccountTypes extends Model
             'equity' => ['label' => __('accounting::lang.equity'), 'GLC' => 3, 'color' => '#e42855'],
             'income' => ['label' => __('accounting::lang.income'), 'GLC' => 4, 'color' => '#c59a00'],
             'expenses' => ['label' => __('accounting::lang.expenses'), 'GLC' => 5, 'color' => '#7239ea'],
-            'analytical_accounts' => ['label' => __('accounting::lang.analytical_accounts'), 'GLC' => 6, 'color' => '#7239ea'],
+            // 'analytical_accounts' => ['label' => __('accounting::lang.analytical_accounts'), 'GLC' => 6, 'color' => '#7239ea'],
 
         ];
 

@@ -98,27 +98,30 @@ class TreeAccountsController extends Controller
 
         $business_type = $company->business_type ?? 'general';
 
-        $utils = [
-            "contractors" => ContractorsAccUtil::class,
-            "e-commerce" => E_commerceAccUtil::class,
-            "restaurant-cafe" => RestaurantCafeAccUtil::class,
-            "services" => ServicesAccUtil::class,
-            "general" => GeneralTreeAccUtil::class,
-        ];
+        // $utils = [
+        //     "contractors" => ContractorsAccUtil::class,
+        //     "e-commerce" => E_commerceAccUtil::class,
+        //     "restaurant-cafe" => RestaurantCafeAccUtil::class,
+        //     "services" => ServicesAccUtil::class,
+        //     "general" => GeneralTreeAccUtil::class,
+        // ];
 
-        $utilClass = $utils[$business_type] ?? $utils['general'];
+        // $utilClass = $utils[$business_type] ?? $utils['general'];
 
-        $default_accounting_account_types = $utilClass::default_accounting_account_types();
+        // $default_accounting_account_types = $utilClass::default_accounting_account_types();
+        $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
         if (AccountingAccountTypes::count() === 0) {
             AccountingAccountTypes::insert($default_accounting_account_types);
         }
 
-        $default_accounts = $utilClass::Default_Accounts();
+        $default_accounts =AccountingUtil::Default_Accounts();
+        // $default_accounts = $utilClass::Default_Accounts();
         if (AccountingAccount::doesntExist()) {
             AccountingAccount::insert($default_accounts);
         }
 
-        $utilClass::default_accounting_route();
+        // $utilClass::default_accounting_route();
+        AccountingUtil::default_accounting_route();
 
         // $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
         // $accountingAccountType = AccountingAccountTypes::all();
@@ -322,7 +325,7 @@ class TreeAccountsController extends Controller
         ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
             return $query->whereIn('cost_center_id', $choose_cost_center_select);
         })
-      
+
         ->paginate(10);
 
     $current_bal = AccountingAccount::leftjoin(
