@@ -51,6 +51,7 @@ Route::middleware([
         Route::get('journal-entry-create', [JournalEntryController::class, 'create'])->name('journal-entry-create');
         Route::post('journal-entry-store', [JournalEntryController::class, 'store'])->name('journal-entry-store');
         Route::get('/journal-entry-edit/{id}', [JournalEntryController::class, 'edit'])->name('journal-entry-edit');
+        Route::get('/journal-entry-show/{id}', [JournalEntryController::class, 'show'])->name('journal-entry-show');
         Route::get('/journal-entry-duplication/{id}', [JournalEntryController::class, 'duplication'])->name('journal-entry-duplication');
         Route::post('journal-entry-update/{id}', [JournalEntryController::class, 'update'])->name('journal-entry-update');
         Route::get('journal-entry-destroy/{id}', [JournalEntryController::class, 'destroy'])->name('journal-entry-destroy');

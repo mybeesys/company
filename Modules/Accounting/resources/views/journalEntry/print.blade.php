@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 @php
     $local = session()->get('locale');
-    $dir = $local == 'ar' ? 'rtl' : 'ltr';
-    $rtl_files = $local == 'ar' ? '.rtl' : '';
+
 
 
 @endphp
-<html dir="{{$dir}}">
+<html >
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,8 +27,7 @@
 
         body {
             color: #777;
-            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
-        }
+            }
 
 
 
@@ -46,15 +44,16 @@
             /* text-align: right; */
             page-break-before: avoid;
             page-break-after: avoid;
-            direction: ltr;
+            /* direction: ltr; */
             width: 100%;
-            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  /* border: 1px solid; */
+            /* text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  border: 1px solid; */
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
         }
 
         .table_component caption {
             caption-side: top;
-            text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};    }
+            /* text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  */
+           }
 
         .table_component th {
             border: 1px solid #dededf;
@@ -70,6 +69,15 @@
             color: #000000;
             padding: 7px;
         }
+
+        body {
+    direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }};
+    text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};
+}
+
+table {
+    direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }};
+}
 
         td {
             padding: 10px;
@@ -98,7 +106,7 @@
 <body >
 
     <div class="template-header">
-  
+
     </div>
 
     <div class="section">
@@ -179,7 +187,7 @@
                 </tfoot>
             </table>
 
-            <hr style="width:100%;text-align:left;margin-left:0">
+            <hr style="width:100%;margin-left:0">
 
 
         </div>

@@ -17,7 +17,7 @@ return [
     'id' => 'الرقم',
     'account' => 'الحساب',
     'amount' => 'المبلغ',
-
+    'sub_type' => 'صادر عن',
     'debit/credit' => 'مدين / دائن',
 
 

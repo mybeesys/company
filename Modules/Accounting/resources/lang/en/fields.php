@@ -17,6 +17,7 @@ return [
     'account' => 'Account',
     'amount' => 'Amount',
     'debit/credit' => 'Debit / Credit',
+    'sub_type' => 'Issued by',
 
 
 

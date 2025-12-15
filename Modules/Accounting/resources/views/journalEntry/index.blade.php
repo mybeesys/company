@@ -180,6 +180,13 @@
                         data: 'created_by',
                         name: 'created_by'
                     },
+{
+                        data: 'sub_type',
+                        name: 'sub_type'
+                    },
+
+
+
                     {
                         data: 'note',
                         name: 'note'
