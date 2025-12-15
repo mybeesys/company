@@ -3,12 +3,16 @@
 namespace Modules\Purchases\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -192,13 +196,13 @@ class PurchasesController extends Controller
                         $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
                     }
                 });
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
 
         $columns = Transaction::getsPurchasesColumns();
-        $poes = Transaction::where('type', 'purchases-order')->where('po_status','<>', 'completed')->get();
+        $poes = Transaction::where('type', 'purchases-order')->where('po_status', '<>', 'completed')->get();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_po')->first();
         if (!$Latest_event) {
@@ -252,6 +256,7 @@ class PurchasesController extends Controller
     {
         $actionUtil = new ActionUtil();
         $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
+        $accountUtil = new AccountingUtil();
 
         // try {
         $transactionUtil = new TransactionUtils();
@@ -332,7 +337,63 @@ class PurchasesController extends Controller
 
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        } else {
+            $acc_trans_mapping = new AccountingAccTransMapping();
+            $ref_number = $transactionUtil->generateReferenceNumber('journal_entry');
+            $acc_trans_mapping->ref_no = $ref_number;
+            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->type = 'journal_entry';
+            $acc_trans_mapping->created_by = Auth::user()->id;
+            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->save();
+            $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+            $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
+            $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
+
+            $client = Contact::find($request->client_id);
+            $transactionPayment = new \stdClass();
+
+            $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $transactionPayment->account_id = $client->account_id;
+            $transactionPayment->created_by = Auth::user()->id;
+            $transactionPayment->created_by = Auth::user()->id;
+            $transactionPayment->transaction_id = $transaction->id;
+            $transactionPayment->id = null;
+
+            $transactionPayment->amount = $transaction->final_total;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'credit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+
+            $transactionPayment->account_id = $purchases_purchase->account_id;
+            $transactionPayment->amount = $transaction->total_before_tax;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'debit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+
+            $transactionPayment->account_id = $purchases_vat_calculation->account_id;
+            $transactionPayment->amount = $transaction->tax_amount;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'debit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
         }
+
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
