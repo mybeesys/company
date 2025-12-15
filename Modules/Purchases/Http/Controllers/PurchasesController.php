@@ -339,7 +339,7 @@ class PurchasesController extends Controller
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         } else {
             $acc_trans_mapping = new AccountingAccTransMapping();
-            $ref_number = $transactionUtil->generateReferenceNumber('journal_entry');
+            $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = '';
             $acc_trans_mapping->type = 'journal_entry';
