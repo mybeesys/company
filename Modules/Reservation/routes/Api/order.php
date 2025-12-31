@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Reservation\Http\Controllers\Api\OrderController as ApiOrderController;
 use Modules\Reservation\Http\Controllers\Api\TableConrtollerController;
 use Modules\Reservation\Http\Controllers\OrderController;
 
@@ -13,3 +14,6 @@ Route::controller(TableConrtollerController::class)->group(function(){
     Route::get('/tables', 'index');
     Route::get('/get-tables', 'tables');
 });
+
+
+Route::post('/new-order', [ApiOrderController::class, 'storeApi']);
