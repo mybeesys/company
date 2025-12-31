@@ -2,13 +2,13 @@
 
 namespace Modules\Reservation\Events;
 
-use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Queue\SerializesModels;
 
 class OrderCreated implements ShouldBroadcast
 {
-    use SerializesModels;
+    use InteractsWithSockets;
 
     public $orderData;
 
@@ -17,9 +17,9 @@ class OrderCreated implements ShouldBroadcast
         $this->orderData = $orderData;
     }
 
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
-        return new Channel('reservation-channel');
+        return new PrivateChannel('reservation-channel');
     }
 
     public function broadcastAs(): string
