@@ -8,7 +8,7 @@ import { getName, getRowName, toDate } from '../lang/Utils';
 import { Calendar } from 'primereact/calendar';
 import AsyncSelectComponent from './AsyncSelectComponent';
 
-const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline, 
+const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAddInline,
                             cols, title, canDelete, canEditRow, expander, defaultValue, prepareData, validateObject }) => {
 
     const formRef = useRef(null);
@@ -92,6 +92,10 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
         let parentNode = getParentNode(editedNode.key)
         if (!!parentNode)
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
+
+        console.log('TYPE:', editedNode.data.type);
+console.log('ATTR:', rootElement.getAttribute(`${editedNode.data.type}-url`));
+
         const response = await axios.post(url, editedNode.data);
         if (response.data.message != "Done") {
             setShowAlert(true);
@@ -450,13 +454,13 @@ const TreeTableComponent = ({ translations, dir, urlList, editUrl, addUrl, canAd
                     {!!canDelete ? <a href="javascript:void(0);" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a> : <></>}
-                    
+
                 </div> : <></>
         );
     };
 
 
-    
+
     return (
         <div class="card mb-5 mb-xl-8">
             <SweetAlert2 />

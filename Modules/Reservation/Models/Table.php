@@ -5,36 +5,48 @@ namespace Modules\Reservation\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Employee\Models\Employee;
 
 class Table extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
-    
+    use HasFactory, SoftDeletes;
+
     protected $table = 'reservation_tables';
-        
-    public $timestamps = true;
-    /**
-     * The attributes that are mass assignable.
-     */
+
     protected $fillable = [
         'code',
         'area_id',
         'steating_capacity',
         'table_status',
-        'active'
+        'active',
+        'assigned_waiter_id'
     ];
-
-    public function getFillable(){
-        return $this->fillable;
-    }
-
-    public $type = 'table';
-    public $parentKey = 'area_id';
-
 
     public function area()
     {
         return $this->belongsTo(Area::class, 'area_id');
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'table_id');
+    }
+
+    public function activeOrder()
+    {
+        return $this->hasOne(Order::class, 'table_id')
+            ->whereIn('order_status', ['in_the_kitchen', 'done', 'delivered'])
+            ->latest();
+    }
+
+    public function reservation()
+    {
+        return $this->hasOne(Reservation::class, 'table_id')
+            ->where('status', 'active');
+    }
+
+    public function assignedWaiter()
+{
+    return $this->belongsTo(Employee::class, 'assigned_waiter_id');
+}
 }

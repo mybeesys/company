@@ -16,9 +16,45 @@ class TableConrtollerController extends Controller
     {
         $tables = Table::with('area')->get();
         return TableResource::collection($tables);
-
     }
 
+
+    public function tables()
+    {
+        $tables = Table::with([
+            'area',
+            'activeOrder',
+            'reservation'
+        ])->where('active', 1)->get();
+
+        return response()->json([
+            'data' => $tables->map(fn($table) => [
+                'id' => $table->id,
+                'name' => $table->code,
+                'capacity' => $table->steating_capacity,
+                'status' => $table->table_status,
+
+                'current_order_id' => optional($table->activeOrder)->id,
+                'current_order' => optional($table->activeOrder)->order_status,
+                'order_create_by' => optional($table->activeOrder)->created_by ?? null,
+
+                'current_guests' => optional($table->reservation)->guests_count,
+                'opened_at' => optional($table->activeOrder)->created_at,
+
+                'area' => optional($table->area)->name_en,
+                'floor' => optional($table->area)->floor ?? 1,
+
+                'assigned_waiter_id' => $table->assigned_waiter_id ?? null,
+
+                'reservation' => $table->reservation ? [
+                    'customer_name' => $table->reservation->customer_name,
+                    'customer_phone' => $table->reservation->customer_phone,
+                    'reservation_time' => $table->reservation->reservation_time,
+                    'guests_count' => $table->reservation->guests_count,
+                ] : null,
+            ])
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      */
