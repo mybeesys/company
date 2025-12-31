@@ -11,4 +11,5 @@ Route::controller(OrderController::class)->group(function(){
 
 Route::controller(TableConrtollerController::class)->group(function(){
     Route::get('/tables', 'index');
+    Route::get('/get-tables', 'tables');
 });
