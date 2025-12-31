@@ -39,6 +39,10 @@ class OrderController extends Controller
             'items.*.item_id' => 'required|numeric',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.item_price' => 'required|numeric|min:0',
+            'customer_name' => 'required|string',
+            'customer_phone' => 'required|string',
+            'reservation_time' => 'required|date',
+            'guests_count' => 'required|integer|min:1',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
@@ -82,7 +86,7 @@ class OrderController extends Controller
                 ]);
             }
 
-          event(new OrderCreated($order));
+            event(new OrderCreated($order));
 
             return response()->json([
                 'status' => true,
