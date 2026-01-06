@@ -271,7 +271,7 @@ class OrderController extends Controller
     {
         $prefix = 'ORD';
         // Get the last invoice number (if any)
-        $lastOrd = Transaction::where('local_id', 'table_order')->orderBy('no', 'desc')->first();
+        $lastOrd = Transaction::where('local_id', 'table_order')->orderBy('id', 'desc')->first();
 
         // Check if there is a previous invoice
         $newOrdNumber = $prefix . '000001';  // Default starting number
