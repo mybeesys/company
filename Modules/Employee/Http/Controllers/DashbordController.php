@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Modules\General\Models\Transaction;
+use Modules\Reservation\Events\OrderCreated;
 
 class DashbordController extends Controller
 {
@@ -15,6 +17,17 @@ class DashbordController extends Controller
      */
     public function index()
     {
+
+        // Http::post('http://127.0.0.1:3000/api/order-created', [
+        //     'type' => 'reservation',
+        //     'table_id' => 1,
+        //     'table_name' => "T-1",
+        //     'message' => 'تم حجز طاولة جديدة',
+        //     'order_id' =>1,
+        // ]);
+
+//    event(new OrderCreated(["amen"=>"test"]));
+
 
         $today = \Carbon\Carbon::today();
         $yesterday = \Carbon\Carbon::yesterday();
@@ -270,7 +283,8 @@ class DashbordController extends Controller
             'dailyChangePercent_Expenses',
             'monthlyChangePercent_Expenses',
             'formattedTodayExpenses',
-            'formattedCurrentMonthExpenses','yesterdayExpenses'
+            'formattedCurrentMonthExpenses',
+            'yesterdayExpenses'
 
 
         ));
