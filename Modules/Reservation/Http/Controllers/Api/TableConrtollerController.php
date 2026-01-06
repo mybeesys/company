@@ -58,10 +58,18 @@ class TableConrtollerController extends Controller
         ]);
     }
 
-    public function details(Table $table)
+    public function details($id)
     {
+        $table = Table::with([
+            'area',
+            'reservation',
+            'activeOrder.payment',
+        ])->find($id);
+
         if (!$table) {
-            return response()->json(['message' => 'Table not found id =' . $table], 404);
+            return response()->json([
+                'message' => 'Table not found id = ' . $id
+            ], 404);
         }
         $table->load([
             'area',

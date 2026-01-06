@@ -13,7 +13,7 @@ Route::controller(OrderController::class)->group(function () {
 Route::controller(TableConrtollerController::class)->group(function () {
     Route::get('/tables', 'index');
     Route::get('/get-tables', 'tables');
-    Route::get('/tables/{table}/details', 'details');
+    Route::get('/tables/{id}', 'details');
 });
 
 
