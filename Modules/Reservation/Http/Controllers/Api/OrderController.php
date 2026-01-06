@@ -118,7 +118,10 @@ class OrderController extends Controller
             $table = Table::findOrFail($request->table_id);
 
             if ($table->table_status != 0) {
-                abort(409, 'Table not available for reservation');
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Table not available for reservation'
+                ], 409);
             }
 
             $reservation = Reservation::create([
