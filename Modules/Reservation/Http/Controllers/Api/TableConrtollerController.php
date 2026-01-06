@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Transformers\TableResource;
 
+use function Laravel\Prompts\table;
+
 class TableConrtollerController extends Controller
 {
     /**
@@ -58,6 +60,9 @@ class TableConrtollerController extends Controller
 
     public function details(Table $table)
     {
+        if (!$table) {
+            return response()->json(['message' => 'Table not found id =' . $table], 404);
+        }
         $table->load([
             'area',
             'reservation',
