@@ -13,6 +13,7 @@
         "itsgoingd/clockwork": "^5.2",
         "khaled.alshamaa/ar-php": "^7.0",
         "laravel/framework": "^11.9",
+        "laravel/reverb": "^1.6",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "lucasdotvin/laravel-soulbscription": "^4.2",

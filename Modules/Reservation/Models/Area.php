@@ -12,9 +12,9 @@ class Area extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = 'reservation_areas';
-        
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.

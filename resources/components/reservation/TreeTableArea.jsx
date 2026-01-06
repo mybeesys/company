@@ -4,9 +4,7 @@ import { Column } from "primereact/column";
 import DeleteModal from "../product/DeleteModal";
 import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
-    import Echo from "laravel-echo";
 
-    
 const defaultObjectValue = { active: 1, table_status: 0 };
 const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const listTableStatusUrl = JSON.parse(
@@ -36,19 +34,11 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         }
     };
 
-    window.Pusher = require("pusher-js");
 
-    window.Echo = new Echo({
-        broadcaster: "pusher",
-        key: "fef2b4d957a456f55e04",
-        cluster: "ap2",
-        forceTLS: true,
-    });
 
-    window.Echo.private("reservation-channel").listen(".order.created", (e) => {
-        console.log("New order received:", e.orderData);
-        // هنا ممكن تعمل تحديث للكاشير أو إشعار
-    });
+
+
+
 
     const handleDelete = (message) => {
         if (message != "Done") {
