@@ -71,7 +71,7 @@ const TreeTableComponent = ({
 
 
     useEffect(() => {
-        const socket = io("http://172.31.80.61:3001");
+        const socket = io("http://3.95.164.155:3001");
 
         const tenantId = rootElement.getAttribute("tenant-id");
 
@@ -131,11 +131,7 @@ const TreeTableComponent = ({
         if (!!parentNode)
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
 
-        console.log("TYPE:", editedNode.data.type);
-        console.log(
-            "ATTR:",
-            rootElement.getAttribute(`${editedNode.data.type}-url`)
-        );
+
 
         const response = await axios.post(url, editedNode.data);
         if (response.data.message != "Done") {

@@ -255,7 +255,7 @@ class OrderController extends Controller
                 $tenantId = $tenant->id;
 
                 // $tenantId = $table->area->establishment_id;
-                $response = \Illuminate\Support\Facades\Http::post("http://172.31.80.61:3001/broadcast", [
+                $response = \Illuminate\Support\Facades\Http::post("http://127.0.0.1:3001/broadcast", [
                     'tenant_id' => $tenantId,
                     'event' => 'TableUpdated',
                     'data' => ['table_id' => $table->id]
