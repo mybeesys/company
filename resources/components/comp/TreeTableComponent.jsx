@@ -7,7 +7,7 @@ import { Column } from "primereact/column";
 import { getName, getRowName, toDate } from "../lang/Utils";
 import { Calendar } from "primereact/calendar";
 import AsyncSelectComponent from "./AsyncSelectComponent";
-    import { io } from "socket.io-client";
+import { io } from "socket.io-client";
 import Swal from "sweetalert2";
 const TreeTableComponent = ({
     translations,
@@ -69,29 +69,34 @@ const TreeTableComponent = ({
 
     const tenant = window.location.hostname.split(".")[0];
 
-
     useEffect(() => {
         const socket = io("http://52.203.236.150:3001");
 
+        // جلب المعرف
         const tenantId = rootElement.getAttribute("tenant-id");
 
-        socket.emit("join-tenant-room", tenantId);
+        // مراقبة الاتصال في الـ Console
+        console.log("Attempting to join room:", tenantId);
+
+        socket.on("connect", () => {
+            console.log("Connected to Socket Server with ID:", socket.id);
+            socket.emit("join-tenant-room", tenantId);
+        });
 
         socket.on("TableUpdated", (data) => {
+            console.log("EVENT RECEIVED!", data); // هذا السطر سيخبرنا إذا وصل الحدث
             refreshTree();
-
             Swal.fire({
                 icon: "info",
                 title: "تحديث في الطاولات",
                 toast: true,
                 position: "top-end",
-                timer: 3001,
+                timer: 3000,
             });
         });
 
         return () => socket.disconnect();
-    }, []);
-
+    }, []); // تأكد أن المصفوفة فارغة ليعمل مرة واحدة عند التشغيل
     const handleSubmit = async (form) => {
         //event.preventDefault();
         //event.stopPropagation();
@@ -130,8 +135,6 @@ const TreeTableComponent = ({
         let parentNode = getParentNode(editedNode.key);
         if (!!parentNode)
             editedNode.data[editedNode.data.parentKey] = parentNode.data.id;
-
-
 
         const response = await axios.post(url, editedNode.data);
         if (response.data.message != "Done") {
