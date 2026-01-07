@@ -69,34 +69,42 @@ const TreeTableComponent = ({
 
     const tenant = window.location.hostname.split(".")[0];
 
+
     useEffect(() => {
-        const socket = io("http://52.203.236.150:3001");
+    const socket = io("http://52.203.236.150:3001");
 
-        // جلب المعرف
-        const tenantId = rootElement.getAttribute("tenant-id");
+    // محاولة جلب الـ tenant من الدومين إذا كان الـ attribute غير موجود
+    let tenantId = rootElement.getAttribute("tenant-id");
 
-        // مراقبة الاتصال في الـ Console
-        console.log("Attempting to join room:", tenantId);
+    if (!tenantId) {
+        // إذا كان الرابط http://test1.my-bee.info فسيأخذ "test1"
+        tenantId = window.location.hostname.split('.')[0];
+    }
 
-        socket.on("connect", () => {
-            console.log("Connected to Socket Server with ID:", socket.id);
-            socket.emit("join-tenant-room", tenantId);
+    console.log("Corrected Tenant ID:", tenantId);
+
+    socket.on("connect", () => {
+        console.log("Connected to Socket Server!");
+        socket.emit("join-tenant-room", tenantId);
+    });
+
+    socket.on("TableUpdated", (data) => {
+        console.log("EVENT RECEIVED!", data);
+        refreshTree();
+        Swal.fire({
+            icon: "info",
+            title: "تحديث في الطاولات",
+            toast: true,
+            position: "top-end",
+            timer: 3000,
         });
+    });
 
-        socket.on("TableUpdated", (data) => {
-            console.log("EVENT RECEIVED!", data); // هذا السطر سيخبرنا إذا وصل الحدث
-            refreshTree();
-            Swal.fire({
-                icon: "info",
-                title: "تحديث في الطاولات",
-                toast: true,
-                position: "top-end",
-                timer: 3000,
-            });
-        });
+    return () => socket.disconnect();
+}, []);
 
-        return () => socket.disconnect();
-    }, []); // تأكد أن المصفوفة فارغة ليعمل مرة واحدة عند التشغيل
+
+
     const handleSubmit = async (form) => {
         //event.preventDefault();
         //event.stopPropagation();

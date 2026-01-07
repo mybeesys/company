@@ -107,7 +107,6 @@ class OrderController extends Controller
     public function storeApi(Request $request)
     {
 
-return    $tenantId = (string) tenancy()->tenant->id;
 
         try {
             $transactionUtil = new TransactionUtils();
