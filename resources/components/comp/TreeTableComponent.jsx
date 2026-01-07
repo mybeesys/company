@@ -71,7 +71,7 @@ const TreeTableComponent = ({
 
 
     useEffect(() => {
-        const socket = io("http://3.95.164.155:3001");
+        const socket = io("http://52.203.236.150:3001");
 
         const tenantId = rootElement.getAttribute("tenant-id");
 
@@ -85,7 +85,7 @@ const TreeTableComponent = ({
                 title: "تحديث في الطاولات",
                 toast: true,
                 position: "top-end",
-                timer: 3000,
+                timer: 3001,
             });
         });
 
