@@ -247,15 +247,21 @@ class OrderController extends Controller
             }
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
-            // Http::post('http://127.0.0.1:3000/api/order-created', [
-            //     'type' => 'reservation',
-            //     'table_id' => $table->id,
-            //     'table_name' => $table->name,
-            //     'message' => 'تم حجز طاولة جديدة',
-            //     'order_id' => $transaction->id,
-            // ]);
+
 
             DB::commit();
+            try {
+                $tenant = tenancy()->tenant;
+                $tenantId = $tenant->id;
+
+                // $tenantId = $table->area->establishment_id;
+                $response = \Illuminate\Support\Facades\Http::post("http://172.31.80.61:3001/broadcast", [
+                    'tenant_id' => $tenantId,
+                    'event' => 'TableUpdated',
+                    'data' => ['table_id' => $table->id]
+                ]);
+            } catch (\Exception $e) {
+            }
             return response()->json([
                 'status' => true,
                 'order_id' => $transaction->id,

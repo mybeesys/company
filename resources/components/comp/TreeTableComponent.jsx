@@ -7,7 +7,7 @@ import { Column } from "primereact/column";
 import { getName, getRowName, toDate } from "../lang/Utils";
 import { Calendar } from "primereact/calendar";
 import AsyncSelectComponent from "./AsyncSelectComponent";
-import { io } from "socket.io-client";
+    import { io } from "socket.io-client";
 import Swal from "sweetalert2";
 const TreeTableComponent = ({
     translations,
@@ -69,34 +69,27 @@ const TreeTableComponent = ({
 
     const tenant = window.location.hostname.split(".")[0];
 
-    const socketRef = useRef(null);
-    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-    const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
     useEffect(() => {
-        socketRef.current = io(`${SOCKET_URL}/${tenant}`, {
-            transports: ["websocket"],
-        });
+        const socket = io("http://172.31.80.61:3001");
 
-        socketRef.current.on("table-reserved", (data) => {
-            Toast.fire({
-                icon: "success",
-                title: data.message,
-            });
+        const tenantId = rootElement.getAttribute("tenant-id");
 
+        socket.emit("join-tenant-room", tenantId);
+
+        socket.on("TableUpdated", (data) => {
             refreshTree();
-            //  refreshTables
+
+            Swal.fire({
+                icon: "info",
+                title: "تحديث في الطاولات",
+                toast: true,
+                position: "top-end",
+                timer: 3000,
+            });
         });
 
-        return () => {
-            socketRef.current.disconnect();
-        };
+        return () => socket.disconnect();
     }, []);
 
     const handleSubmit = async (form) => {
