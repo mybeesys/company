@@ -276,20 +276,21 @@ class OrderController extends Controller
     public function generateOrdNo()
     {
         $prefix = 'ORD';
-        // Get the last invoice number (if any)
-        $lastOrd = Transaction::where('local_id', 'table_order')->orderBy('id', 'desc')->first();
 
-        // Check if there is a previous invoice
-        $newOrdNumber = $prefix . '000001';  // Default starting number
-        if ($lastOrd) {
-            // Extract the number part from the last invoice
-            preg_match('/(\d+)/', $lastOrd->no, $matches);
-            $lastNumber = (int)$matches[0];
-            $newOrdNumber = $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+        $lastOrd = Transaction::where('local_id', 'table_order')
+            ->whereNotNull('ref_no')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $lastNumber = 0;
+
+        if ($lastOrd && preg_match('/(\d+)/', $lastOrd->ref_no, $matches)) {
+            $lastNumber = (int) $matches[1];
         }
 
-        return $newOrdNumber;
+        return $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
     }
+
     /**
      * Show the specified resource.
      */
