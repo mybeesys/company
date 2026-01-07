@@ -250,18 +250,19 @@ class OrderController extends Controller
 
 
             DB::commit();
-            try {
-                $tenant = tenancy()->tenant;
-                $tenantId = $tenant->id;
 
-                // $tenantId = $table->area->establishment_id;
-                $response = \Illuminate\Support\Facades\Http::post("http://127.0.0.1:3001/broadcast", [
-                    'tenant_id' => $tenantId,
-                    'event' => 'TableUpdated',
-                    'data' => ['table_id' => $table->id]
-                ]);
-            } catch (\Exception $e) {
-            }
+            try {
+    $tenantId = (string) tenancy()->tenant->id;
+
+    \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
+        'tenant_id' => $tenantId,
+        'event'     => 'TableUpdated',
+        'data'      => ['table_id' => $table->id]
+    ]);
+} catch (\Exception $e) {
+    \Log::error("Socket Error: " . $e->getMessage());
+}
+
             return response()->json([
                 'status' => true,
                 'order_id' => $transaction->id,
