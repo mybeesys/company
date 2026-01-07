@@ -69,41 +69,46 @@ const TreeTableComponent = ({
 
     const tenant = window.location.hostname.split(".")[0];
 
-
     useEffect(() => {
-    const socket = io("http://52.203.236.150:3001");
+        const socket = io("http://52.203.236.150:3001");
 
-    // محاولة جلب الـ tenant من الدومين إذا كان الـ attribute غير موجود
-    let tenantId = rootElement.getAttribute("tenant-id");
+        let tenantId = rootElement.getAttribute("tenant-id");
 
-    if (!tenantId) {
-        // إذا كان الرابط http://test1.my-bee.info فسيأخذ "test1"
-        tenantId = window.location.hostname.split('.')[0];
-    }
-
-    console.log("Corrected Tenant ID:", tenantId);
-
-    socket.on("connect", () => {
-        console.log("Connected to Socket Server!");
-        socket.emit("join-tenant-room", tenantId);
-    });
-
-    socket.on("TableUpdated", (data) => {
-        console.log("EVENT RECEIVED!", data);
-        refreshTree();
-        Swal.fire({
-            icon: "info",
-            title: "تحديث في الطاولات",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
+        if (!tenantId) {
+            tenantId = window.location.hostname.split(".")[0];
+        }
+        socket.on("connect", () => {
+            socket.emit("join-tenant-room", tenantId);
         });
-    });
 
-    return () => socket.disconnect();
-}, []);
+        socket.on("TableUpdated", (data) => {
+            refreshTree();
 
+            const title = translations["Table Update"] || "تحديث في الطاولات";
 
+            const message =
+                dir === "rtl"
+                    ? `تم حجز الطاولة ${data.table_code} برقم فاتورة ${data.transaction_ref_no}`
+                    : `Table ${data.table_code} has been reserved with Invoice No: ${data.transaction_ref_no}`;
+
+            Swal.fire({
+                icon: "success",
+                title: title,
+                text: message,
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 10000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener("mouseenter", Swal.stopTimer);
+                    toast.addEventListener("mouseleave", Swal.resumeTimer);
+                },
+            });
+        });
+
+        return () => socket.disconnect();
+    }, []);
 
     const handleSubmit = async (form) => {
         //event.preventDefault();
