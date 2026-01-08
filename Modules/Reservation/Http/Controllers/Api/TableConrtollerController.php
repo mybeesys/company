@@ -121,13 +121,13 @@ class TableConrtollerController extends Controller
                 'id' => $order->id,
                 'ref_no' => $order->ref_no,
                 'status' => $order->order_status,
-                'payment_status' => $order->payment_status,
+                'payment_status' => $order?->payment_status,
                 'invoice_created' => !empty($order->id),
                 'invoice_id' => $order->id,
-                'paid_amount' => $order->payment?->sum('amount') ?? 0,
+                'paid_amount' => $order?->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
                 'items' => $order->sell_lines,
-                'payment' => $order->payment,
+                'payment' => $order?->payment,
             ] : null,
         ]);
     }
