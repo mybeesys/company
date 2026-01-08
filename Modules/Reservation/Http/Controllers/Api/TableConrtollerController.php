@@ -30,31 +30,38 @@ class TableConrtollerController extends Controller
         ])->where('active', 1)->get();
 
         return response()->json([
-            'data' => $tables->map(fn($table) => [
-                'id' => $table->id,
-                'name' => $table->code,
-                'capacity' => $table->steating_capacity,
-                'status' => $table->table_status,
+            'data' => $tables->map(function ($table) {
+                $status = 'available';
+                if ($table->table_status == 2) {
+                    $status = 'notAvailable';
+                }
 
-                'current_order_id' => optional($table->activeOrder)->id,
-                'current_order' => optional($table->activeOrder)->order_status,
-                'order_create_by' => optional($table->activeOrder)->created_by ?? null,
+                return [
+                    'id' => $table->id,
+                    'name' => $table->code,
+                    'capacity' => $table->steating_capacity,
+                    'status' => $status,
 
-                'current_guests' => optional($table->reservation)->guests_count,
-                'opened_at' => optional($table->activeOrder)->created_at,
+                    'current_order_id' => optional($table->activeOrder)->id,
+                    'current_order' => optional($table->activeOrder)->order_status,
+                    'order_create_by' => optional($table->activeOrder)->created_by ?? null,
+                    'assigned_waiter_id' => $table->assigned_waiter_id,
+                    'current_guests' => optional($table->reservation)->guests_count,
+                    'opened_at' => optional($table->activeOrder)->created_at,
 
-                'area' => optional($table->area)->name_en,
-                'floor' => optional($table->area)->floor ?? 1,
+                    'area' => optional($table->area)->name_en,
+                    'floor' => optional($table->area)->floor ?? 1,
 
-                'assigned_waiter_id' => $table->assigned_waiter_id ?? null,
+                    'assigned_waiter_id' => $table->assigned_waiter_id ?? null,
 
-                'reservation' => $table->reservation ? [
-                    'customer_name' => $table->reservation->customer_name,
-                    'customer_phone' => $table->reservation->customer_phone,
-                    'reservation_time' => $table->reservation->reservation_time,
-                    'guests_count' => $table->reservation->guests_count,
-                ] : null,
-            ])
+                    'reservation' => $table->reservation ? [
+                        'customer_name' => $table->reservation->customer_name,
+                        'customer_phone' => $table->reservation->customer_phone,
+                        'reservation_time' => $table->reservation->reservation_time,
+                        'guests_count' => $table->reservation->guests_count,
+                    ] : null,
+                ];
+            })
         ]);
     }
 
@@ -117,8 +124,8 @@ class TableConrtollerController extends Controller
                 'invoice_id' => $order->id,
                 'paid_amount' => $order->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
-                'items'=>$order->sell_lines,
-                'payment'=>$order->payment,
+                'items' => $order->sell_lines,
+                'payment' => $order->payment,
             ] : null,
         ]);
     }
