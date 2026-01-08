@@ -43,8 +43,8 @@ class TableConrtollerController extends Controller
                     },
 
                     'current_order_id' => optional($table->activeOrder)->id,
-                    'current_order' => optional($table->activeOrder)->order_status,
-                    'order_create_by' => optional($table->activeOrder)->created_by ?? null,
+                    // 'current_order' => optional($table->activeOrder)->order_status,
+                    // 'order_create_by' => optional($table->activeOrder)->created_by ?? null,
                     'assigned_waiter_id' => $table->assigned_waiter_id,
                     'current_guests' => optional($table->reservation)->guests_count,
                     'opened_at' => optional($table->activeOrder)->created_at,
