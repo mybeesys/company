@@ -158,6 +158,7 @@ class OrderController extends Controller
                 'status' => 'draft',
                 'notice' => null,
                 'establishment_id' => $table->area->establishment_id,
+                'table_id'=>$table->id,
 
             ]);
 

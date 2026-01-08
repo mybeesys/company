@@ -1,0 +1,73 @@
+============================================================
+DOCUMENTATION: REAL-TIME NOTIFICATION SYSTEM (SOCKET.IO)
+Project: MyBee Company - Table Management
+Date: 2026-01-07
+============================================================
+
+1. SYSTEM COMPONENTS
+--------------------
+- Backend: Laravel (Tenancy for Laravel)
+- Real-time Engine: Node.js + Socket.io
+- Frontend: React.js
+- Infrastructure: AWS EC2 (Ubuntu)
+- Process Manager: PM2
+
+2. SERVER-SIDE CONFIGURATION (NODE.JS)
+--------------------------------------
+- Directory: /var/www/mybee-socket-server
+- Main File: index.js
+- Port: 3001
+- Dependencies: express, socket.io, http, body-parser
+
+Commands for Management:
+- Start Server: pm2 start index.js --name "mybee-socket"
+- View Logs: pm2 logs mybee-socket
+- Check Status: pm2 status
+- Restart Server: pm2 restart mybee-socket
+
+3. NETWORK & SECURITY (AWS)
+---------------------------
+- Port 3001 opened in AWS Security Groups (Inbound Rules).
+- Protocol: TCP
+- Port Range: 3001
+- Source: 0.0.0.0/0 (Allows external React clients to connect).
+
+4. LARAVEL INTEGRATION (SENDER)
+-------------------------------
+Location: StoreApi Method (Controller)
+Function: Sends an HTTP POST to the local Node.js server.
+
+Payload Structure:
+{
+    "tenant_id": "test1",
+    "event": "TableUpdated",
+    "data": {
+        "table_id": 1,
+        "table_code": "T10",
+        "transaction_ref_no": "INV-001"
+    }
+}
+
+5. REACT INTEGRATION (RECEIVER)
+-------------------------------
+Location: TreeTableComponent.js
+Logic:
+- Connects to: http://52.203.236.150:3001
+- Room Joining: Based on Tenant ID (extracted from hostname or attribute).
+- Action:
+  1. Calls refreshTree() to sync UI.
+  2. Displays SweetAlert2 (Success/Green) with bilingual support (AR/EN).
+
+6. TROUBLESHOOTING STEPS
+------------------------
+1. Check if Node.js is alive:
+   Run 'pm2 status' in Terminal.
+2. Check if Laravel is sending:
+   Check 'storage/logs/laravel.log' for connection errors.
+3. Check Browser Connection:
+   Open Browser Console (F12) -> Look for "Connected to Socket Server".
+4. Manual Test Command:
+   curl -X POST http://127.0.0.1:3001/broadcast -H "Content-Type: application/json" -d '{"tenant_id": "test1", "event": "TableUpdated", "data": {"table_code":"Test"}}'
+
+============================================================
+End of Documentation
