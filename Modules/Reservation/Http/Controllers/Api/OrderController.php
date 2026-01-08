@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
@@ -21,8 +22,10 @@ use Modules\Product\Models\ProductCombo;
 use Modules\Reservation\Events\OrderCreated;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
+use Modules\Reservation\Models\OrderTableItems;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
+use Modules\Reservation\Models\TableOrders;
 use Modules\Sales\Utils\SalesUtile;
 
 class OrderController extends Controller
@@ -140,7 +143,7 @@ class OrderController extends Controller
                 'assigned_waiter_id' => $request->created_by
             ]);
 
-            $transaction =   Transaction::create([
+            $transaction =   TableOrders::create([
                 'type' => 'sell',
                 'invoice_type' => 'cash',
                 'due_date' => null,
@@ -171,7 +174,7 @@ class OrderController extends Controller
                     return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
                 }
 
-                TransactionSellLine::create([
+                OrderTableItems::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->product_id,
                     'qyt' => $product->quantity,
@@ -192,7 +195,7 @@ class OrderController extends Controller
                         return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
                     }
 
-                    TransactionSellLine::create([
+                    OrderTableItems::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $modifier->modifier_id,
                         'qyt' => $modifier->quantity,
@@ -214,7 +217,7 @@ class OrderController extends Controller
                         return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
                     }
 
-                    TransactionSellLine::create([
+                    OrderTableItems::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $find_product->product_id,
                         'qyt' => $find_product->quantity,
@@ -267,7 +270,7 @@ class OrderController extends Controller
                     ]
                 ]);
             } catch (\Exception $e) {
-                \Log::error("Socket Error: " . $e->getMessage());
+                Log::error("Socket Error: " . $e->getMessage());
             }
 
             return response()->json([
@@ -285,7 +288,7 @@ class OrderController extends Controller
     {
         $prefix = 'ORD';
 
-        $lastOrd = Transaction::where('local_id', 'table_order')
+        $lastOrd = TableOrders::where('local_id', 'table_order')
             ->whereNotNull('ref_no')
             ->orderBy('id', 'desc')
             ->first();

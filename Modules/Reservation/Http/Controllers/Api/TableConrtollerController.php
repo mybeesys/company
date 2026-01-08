@@ -4,7 +4,11 @@ namespace Modules\Reservation\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
+use Modules\Reservation\Models\TableOrders;
 use Modules\Reservation\Transformers\TableResource;
 
 use function Laravel\Prompts\table;
@@ -43,8 +47,6 @@ class TableConrtollerController extends Controller
                     },
 
                     'current_order_id' => optional($table->activeOrder)->id,
-                    // 'current_order' => optional($table->activeOrder)->order_status,
-                    // 'order_create_by' => optional($table->activeOrder)->created_by ?? null,
                     'assigned_waiter_id' => $table->assigned_waiter_id,
                     'current_guests' => optional($table->reservation)->guests_count,
                     'opened_at' => optional($table->activeOrder)->created_at,
@@ -131,28 +133,83 @@ class TableConrtollerController extends Controller
     }
 
 
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function changeStatus(Request $request, $id)
     {
-        return view('reservation::edit');
+        $request->validate([
+            'status' => 'required|in:0,1,2',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $table = Table::findOrFail($id);
+
+            $hasActiveOrder = TableOrders::where('table_id', $table->id)
+                ->where('status', 'draft')
+                ->exists();
+
+            if ($hasActiveOrder) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'لا يمكن تغيير حالة الطاولة يدوياً لوجود طلب مفتوح عليها.'
+                ], 422);
+            }
+
+            if ($request->status == 1) {
+                Reservation::updateOrCreate(
+                    ['table_id' => $table->id, 'status' => 'active'],
+                    [
+                        'customer_name' => $request->customer_name ?? 'Guest',
+                        'reservation_time' => now(),
+                        'guests_count' => $request->guests_count ?? $table->steating_capacity,
+                    ]
+                );
+            }
+
+            if ($request->status == 0) {
+                Reservation::where('table_id', $table->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'completed']);
+
+                $table->assigned_waiter_id = null;
+            }
+
+            $table->table_status = $request->status;
+            $table->save();
+
+            DB::commit();
+
+            $this->broadcastTableUpdate($table);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'تم تحديث الحالة بنجاح',
+                'data' => [
+                    'table_id' => $table->id,
+                    'status' => $table->table_status,
+                    'updated_at' => now()->toDateTimeString()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => false, 'message' => 'خطأ: ' . $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    private function broadcastTableUpdate($table)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        try {
+            $tenantId = (string) tenancy()->tenant->id;
+            \Illuminate\Support\Facades\Http::timeout(1)->post("http://127.0.0.1:3001/broadcast", [
+                'tenant_id' => $tenantId,
+                'event'     => 'TableUpdated',
+                'data'      => [
+                    'table_id' => $table->id,
+                    'status'   => $table->table_status
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Socket Error: " . $e->getMessage());
+        }
     }
 }
