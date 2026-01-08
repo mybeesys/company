@@ -79,13 +79,19 @@ class TableConrtollerController extends Controller
         ]);
 
         $order = $table->activeOrder;
-
+        $table_status = 'available';
+        if ($table->table_status == 1) {
+            $table_status = 'available';
+        } else if ($table->table_status == 2) {
+            $table_status = 'notAvailable';
+        }
         return response()->json([
             'table' => [
                 'id' => $table->id,
                 'code' => $table->code,
-                'status' => $table->table_status,
+                'status' => $table_status,
                 'capacity' => $table->steating_capacity,
+                'assigned_waiter_id' => $table->assigned_waiter_id,
                 'area' => [
                     'id' => $table->area?->id,
                     'name_ar' => $table->area?->name_ar,
@@ -111,6 +117,8 @@ class TableConrtollerController extends Controller
                 'invoice_id' => $order->id,
                 'paid_amount' => $order->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
+                'items'=>$order->sell_lines,
+                'payment'=>$order->payment,
             ] : null,
         ]);
     }
