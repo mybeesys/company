@@ -232,26 +232,26 @@ class OrderController extends Controller
                 }
             }
 
-            $payments = json_decode(json_encode($request->payments));
-            foreach ($payments as $payment) {
+            // $payments = json_decode(json_encode($request->payments));
+            // foreach ($payments as $payment) {
 
-                $find_payment = PaymentMethod::find($payment->method_id);
-                if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
-                }
+            //     $find_payment = PaymentMethod::find($payment->method_id);
+            //     if (!$find_payment) {
+            //         return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+            //     }
 
-                $request['payment_method_id'] = $request->method;
-                $request['created_by'] = $request->user_id;
-                if ($payment->amount) {
-                    $request['paid_amount'] = $payment->amount;
-                    $request['payment_method_id'] = $payment->method_id;
-                    $request['invoice_type'] = $request->method;
+            //     $request['payment_method_id'] = $request->method;
+            //     $request['created_by'] = $request->user_id;
+            //     if ($payment->amount) {
+            //         $request['paid_amount'] = $payment->amount;
+            //         $request['payment_method_id'] = $payment->method_id;
+            //         $request['invoice_type'] = $request->method;
 
 
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-                }
-            }
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+            //         $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            //     }
+            // }
+            // $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
 
 
