@@ -49,6 +49,7 @@ return new class extends Migration
 
             $table->longText('settings_terms_notes')->nullable();
             $table->unsignedBigInteger('device_id')->nullable();
+             $table->string('table_id')->nullable();
 
             $table->timestamps();
         });
