@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Models\Employee;
-use Modules\General\Models\Transaction;
 
 class Table extends Model
 {
@@ -30,12 +29,12 @@ class Table extends Model
 
     public function orders()
     {
-        return $this->hasMany(Transaction::class, 'table_id');
+        return $this->hasMany(TableOrders::class, 'table_id');
     }
 
     public function activeOrder()
     {
-        return $this->hasOne(Transaction::class, 'table_id')
+        return $this->hasOne(TableOrders::class, 'table_id')
             // ->whereIn('order_status', ['in_the_kitchen', 'done', 'delivered'])
             ->latest();
     }

@@ -14,6 +14,7 @@ Route::controller(TableConrtollerController::class)->group(function () {
     Route::get('/tables', 'index');
     Route::get('/get-tables', 'tables');
     Route::get('/tables/{id}', 'details');
+    Route::post('/change-status/{id}', 'changeStatus');
 });
 
 

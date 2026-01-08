@@ -9,5 +9,6 @@ Route::middleware(['auth-central'])->group(function () {
 
 Route::middleware(['auth-central'])->group(function(){
     Route::post('employee-login', [AuthController::class, 'store'])->name('employee-login');
+    Route::post('waiter-login', [AuthController::class, 'waiterLogin'])->name('waiter-login');
+    
 });
-
