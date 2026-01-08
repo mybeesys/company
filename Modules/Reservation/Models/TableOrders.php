@@ -45,14 +45,10 @@ class TableOrders extends Model
 
     public function sell_lines()
     {
-        return $this->hasMany(TransactionSellLine::class, 'transaction_id')->where('is_show', 1);;
+        return $this->hasMany(OrderTableItems::class, 'transaction_id')->where('is_show', 1);;
     }
 
-    public function purchases_lines()
-    {
-        return $this->hasMany(TransactionePurchasesLine::class, 'transaction_id');
-    }
-
+ 
     public function payment()
     {
         return $this->hasMany(TransactionPayments::class, 'transaction_id');
