@@ -31,16 +31,16 @@ class TableConrtollerController extends Controller
 
         return response()->json([
             'data' => $tables->map(function ($table) {
-                $status = 'available';
-                if ($table->table_status == 2) {
-                    $status = 'notAvailable';
-                }
 
                 return [
                     'id' => $table->id,
                     'name' => $table->code,
                     'capacity' => $table->steating_capacity,
-                    'status' => $status,
+                    'status' => match ($table->table_status) {
+                        "1" => 'reserved',
+                        "2" => 'notAvailable',
+                        default => 'available',
+                    },
 
                     'current_order_id' => optional($table->activeOrder)->id,
                     'current_order' => optional($table->activeOrder)->order_status,
@@ -88,7 +88,7 @@ class TableConrtollerController extends Controller
         $order = $table->activeOrder;
         $table_status = 'available';
         if ($table->table_status == 1) {
-            $table_status = 'available';
+            $table_status = 'reserved';
         } else if ($table->table_status == 2) {
             $table_status = 'notAvailable';
         }
