@@ -129,108 +129,191 @@ class OrderController extends Controller
                 ], 409);
             }
 
-            $reservation = Reservation::create([
-                'table_id' => $table->id,
-                'customer_name' => $request->customer_name,
-                'customer_phone' => $request->customer_phone ?? null,
-                'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                'guests_count' => $request->guests_count,
-                'status' => 'active',
-            ]);
-
-            $table->update([
-                'table_status' => 2,
-                'assigned_waiter_id' => $request->created_by
-            ]);
-
-            $transaction =   TableOrders::create([
-                'type' => 'sell',
-                'invoice_type' => 'cash',
-                'due_date' => null,
-                'local_id' => 'table_order',
-                'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                'discount_amount' => $request->discount_value,
-                'discount_type' => $request->discount_type,
-                'total_before_tax' => $request->total_before_discount,
-                'total_after_discount' => $request->total_after_discount,
-                'tax_amount' => $request->total_tax,
-                'final_total' => $request->total_paid,
-                'created_by' => $request->created_by,
-                'description' => $request->note,
-                'ref_no' => $this->generateOrdNo(),
-                'status' => 'draft',
-                'notice' => null,
-                'establishment_id' => $table->area->establishment_id,
-                'table_id'=>$table->id,
-
-            ]);
+            if (isset($request->order_id)) {
+                $transaction = Transaction::where('table_order_id', $request->order_id)->first();
+                if ($transaction) {
+                    $transaction->update([
+                        'discount_amount' => $request->discount_value,
+                        'discount_type' => $request->discount_type,
+                        'total_before_tax' => $request->total_before_discount,
+                        'total_after_discount' => $request->total_after_discount,
+                        'tax_amount' => $request->total_tax,
+                        'final_total' => $request->total_paid,
+                        'created_by' => $request->created_by,
+                        'description' => $request->note,
+                    ]);
 
 
-            $products = json_decode(json_encode($request->items));
+                    $products = json_decode(json_encode($request->items));
 
-            foreach ($products as $product) {
-                $find_product = Product::find($product->product_id);
-                if (!$find_product) {
-                    return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                    foreach ($products as $product) {
+                        $find_product = Product::find($product->product_id);
+                        if (!$find_product) {
+                            return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                        }
+                        OrderTableItems::create([
+                            'transaction_id' => $transaction->id,
+                            'product_id' => $product->product_id,
+                            'qyt' => $product->quantity,
+                            'unit_price_before_discount' => $product->price_after_discount,
+                            'unit_price' => $product->price,
+                            'discount_type' => $product->discount_type,
+                            'discount_amount' => $product->discount_amount,
+                            'unit_price_inc_tax' => $product->price_with_tax_after_discount,
+                            'tax_id' => $product->tax_id,
+                            'tax_value' => $product->tax_value,
+                        ]);
+
+                        $modifiers = json_decode(json_encode($product->order_item_modifiers));
+
+                        foreach ($modifiers as $modifier) {
+                            $find_product = Product::find($modifier->modifier_id);
+                            if (!$find_product) {
+                                return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                            }
+
+                            OrderTableItems::create([
+                                'transaction_id' => $transaction->id,
+                                'product_id' => $modifier->modifier_id,
+                                'qyt' => $modifier->quantity,
+                                'unit_price_before_discount' => $modifier->price,
+                                'unit_price' => $modifier->price,
+                                'discount_type' => $modifier->discount_type,
+                                'discount_amount' => $modifier->discount_amount,
+                                'unit_price_inc_tax' => $modifier->price_with_tax,
+                                // 'tax_id' => $product->tax_id,
+                                'tax_value' => $modifier->tax_value,
+                            ]);
+                        }
+
+                        $order_item_combos = json_decode(json_encode($product->order_item_combos));
+
+                        foreach ($order_item_combos as $order_item_combo) {
+                            $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
+                            if (!$find_product) {
+                                return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                            }
+
+                            OrderTableItems::create([
+                                'transaction_id' => $transaction->id,
+                                'product_id' => $find_product->product_id,
+                                'qyt' => $find_product->quantity,
+                                'unit_price_before_discount' => $find_product->price,
+                                'unit_price' => $find_product->price,
+                                'discount_type' => null,
+                                'discount_amount' => null,
+                                'unit_price_inc_tax' => null,
+                                // 'tax_id' => $product->tax_id,
+                                'tax_value' => null,
+                            ]);
+                        }
+                    }
                 }
-
-                OrderTableItems::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->product_id,
-                    'qyt' => $product->quantity,
-                    'unit_price_before_discount' => $product->price_after_discount,
-                    'unit_price' => $product->price,
-                    'discount_type' => $product->discount_type,
-                    'discount_amount' => $product->discount_amount,
-                    'unit_price_inc_tax' => $product->price_with_tax_after_discount,
-                    'tax_id' => $product->tax_id,
-                    'tax_value' => $product->tax_value,
+            } else {
+                $reservation = Reservation::create([
+                    'table_id' => $table->id,
+                    'customer_name' => $request->customer_name,
+                    'customer_phone' => $request->customer_phone ?? null,
+                    'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                    'guests_count' => $request->guests_count,
+                    'status' => 'active',
                 ]);
 
-                $modifiers = json_decode(json_encode($product->order_item_modifiers));
+                $table->update([
+                    'table_status' => 2,
+                    'assigned_waiter_id' => $request->created_by
+                ]);
 
-                foreach ($modifiers as $modifier) {
-                    $find_product = Product::find($modifier->modifier_id);
+                $transaction =   TableOrders::create([
+                    'type' => 'sell',
+                    'invoice_type' => 'cash',
+                    'due_date' => null,
+                    'local_id' => 'table_order',
+                    'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                    'discount_amount' => $request->discount_value,
+                    'discount_type' => $request->discount_type,
+                    'total_before_tax' => $request->total_before_discount,
+                    'total_after_discount' => $request->total_after_discount,
+                    'tax_amount' => $request->total_tax,
+                    'final_total' => $request->total_paid,
+                    'created_by' => $request->created_by,
+                    'description' => $request->note,
+                    'ref_no' => $this->generateOrdNo(),
+                    'status' => 'draft',
+                    'notice' => null,
+                    'establishment_id' => $table->area->establishment_id,
+                    'table_id' => $table->id,
+
+                ]);
+
+
+                $products = json_decode(json_encode($request->items));
+
+                foreach ($products as $product) {
+                    $find_product = Product::find($product->product_id);
                     if (!$find_product) {
-                        return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                        return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
                     }
 
                     OrderTableItems::create([
                         'transaction_id' => $transaction->id,
-                        'product_id' => $modifier->modifier_id,
-                        'qyt' => $modifier->quantity,
-                        'unit_price_before_discount' => $modifier->price,
-                        'unit_price' => $modifier->price,
-                        'discount_type' => $modifier->discount_type,
-                        'discount_amount' => $modifier->discount_amount,
-                        'unit_price_inc_tax' => $modifier->price_with_tax,
-                        // 'tax_id' => $product->tax_id,
-                        'tax_value' => $modifier->tax_value,
+                        'product_id' => $product->product_id,
+                        'qyt' => $product->quantity,
+                        'unit_price_before_discount' => $product->price_after_discount,
+                        'unit_price' => $product->price,
+                        'discount_type' => $product->discount_type,
+                        'discount_amount' => $product->discount_amount,
+                        'unit_price_inc_tax' => $product->price_with_tax_after_discount,
+                        'tax_id' => $product->tax_id,
+                        'tax_value' => $product->tax_value,
                     ]);
-                }
 
-                $order_item_combos = json_decode(json_encode($product->order_item_combos));
+                    $modifiers = json_decode(json_encode($product->order_item_modifiers));
 
-                foreach ($order_item_combos as $order_item_combo) {
-                    $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                    foreach ($modifiers as $modifier) {
+                        $find_product = Product::find($modifier->modifier_id);
+                        if (!$find_product) {
+                            return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                        }
+
+                        OrderTableItems::create([
+                            'transaction_id' => $transaction->id,
+                            'product_id' => $modifier->modifier_id,
+                            'qyt' => $modifier->quantity,
+                            'unit_price_before_discount' => $modifier->price,
+                            'unit_price' => $modifier->price,
+                            'discount_type' => $modifier->discount_type,
+                            'discount_amount' => $modifier->discount_amount,
+                            'unit_price_inc_tax' => $modifier->price_with_tax,
+                            // 'tax_id' => $product->tax_id,
+                            'tax_value' => $modifier->tax_value,
+                        ]);
                     }
 
-                    OrderTableItems::create([
-                        'transaction_id' => $transaction->id,
-                        'product_id' => $find_product->product_id,
-                        'qyt' => $find_product->quantity,
-                        'unit_price_before_discount' => $find_product->price,
-                        'unit_price' => $find_product->price,
-                        'discount_type' => null,
-                        'discount_amount' => null,
-                        'unit_price_inc_tax' => null,
-                        // 'tax_id' => $product->tax_id,
-                        'tax_value' => null,
-                    ]);
+                    $order_item_combos = json_decode(json_encode($product->order_item_combos));
+
+                    foreach ($order_item_combos as $order_item_combo) {
+                        $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
+                        if (!$find_product) {
+                            return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                        }
+
+                        OrderTableItems::create([
+                            'transaction_id' => $transaction->id,
+                            'product_id' => $find_product->product_id,
+                            'qyt' => $find_product->quantity,
+                            'unit_price_before_discount' => $find_product->price,
+                            'unit_price' => $find_product->price,
+                            'discount_type' => null,
+                            'discount_amount' => null,
+                            'unit_price_inc_tax' => null,
+                            // 'tax_id' => $product->tax_id,
+                            'tax_value' => null,
+                        ]);
+                    }
                 }
             }
+
 
             // $payments = json_decode(json_encode($request->payments));
             // foreach ($payments as $payment) {
@@ -283,6 +366,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'something went wrong \n' . $e], 500);
         }
     }
+
 
     public function generateOrdNo()
     {
