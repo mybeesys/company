@@ -71,7 +71,7 @@ class SalesUtile
             ->first();
 
         if ($transaction && $transaction->ref_no) {
-            list(, $yearAndNumber) = explode('-', $transaction->ref_no);
+            list($year, $yearAndNumber) = explode('-', $transaction->ref_no);
             list($year, $number) = explode('/', $yearAndNumber);
 
             if ($year == $currentYear) {
