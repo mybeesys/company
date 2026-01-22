@@ -417,7 +417,12 @@ class SellController extends Controller
         }
         // return $request;
         if ($request->paid_amount) {
+            if($transaction->final_total>$request->paid_amount){
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+
+            }else{
+                 $this->createPaymentLines($transaction, $request);
+            }
         } else {
             $acc_trans_mapping = new AccountingAccTransMapping();
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
@@ -504,6 +509,81 @@ class SellController extends Controller
     }
 
 
+    public function createPaymentLines($transaction,$request){
+          $acc_trans_mapping = new AccountingAccTransMapping();
+
+        $accountUtil = new AccountingUtil();
+           $cash_account_id = $request->cash_account;
+          $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
+            $acc_trans_mapping->ref_no = $ref_number;
+            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->type = 'journal_entry';
+            $acc_trans_mapping->created_by = Auth::user()->id;
+            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->save();
+            $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+            $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
+            $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+
+            $client = Contact::find($request->client_id);
+            $transactionPayment = new \stdClass();
+
+            $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $transactionPayment->account_id = $client->account_id;
+            $transactionPayment->created_by = Auth::user()->id;
+            $transactionPayment->created_by = Auth::user()->id;
+            $transactionPayment->transaction_id = $transaction->id;
+            $transactionPayment->id = null;
+
+            $transactionPayment->amount = $transaction->final_total - $request->paid_amount ;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'credit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+
+
+              $transactionPayment->account_id = $cash_account_id;
+            $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'credit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+
+
+
+             $transactionPayment->account_id = $sales_sales->account_id;
+            $transactionPayment->amount = $transaction->total_before_tax;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'debit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+
+
+
+            $transactionPayment->account_id = $sales_vat_calculation->account_id;
+            $transactionPayment->amount = $transaction->tax_amount;
+
+            $accountUtil->saveAccountRouteTransaction(
+                'debit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+    }
 
     public function validateInvoiceRequest($request)
     {
