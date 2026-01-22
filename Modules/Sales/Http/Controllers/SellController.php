@@ -513,7 +513,7 @@ class SellController extends Controller
           $acc_trans_mapping = new AccountingAccTransMapping();
 
         $accountUtil = new AccountingUtil();
-           $cash_account_id = $request->cash_account;
+           $cash_account_id = $request->account_id;
           $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = '';
