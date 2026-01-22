@@ -45,46 +45,45 @@ class SalesUtile
 
 
     public static function generateReferenceNumber($type)
-    {
-        $currentYear = date('Y');
-        $type_prefix = '';
-        if (in_array($type, ['sell', 'sell-return', 'purchases-return', 'purchases'])) {
-            $type_prefix = 'invoices';
-        }
+{
+    $currentYear = date('Y');
+    $type_prefix = '';
 
-        $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
-        $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
-
-        if($type=='period'){
-          $prefix ='PERIOD';
-        }
-
-         if($type=='sell-return'){
-          $prefix ='RET';
-        }
-        if($type=='purchases-return'){
-          $prefix ='RET';
-        }
-        $transaction = Transaction::where('type', $type)
-            ->whereYear('created_at', $currentYear)
-            ->latest()
-            ->first();
-
-        if ($transaction && $transaction->ref_no) {
-            list($year, $yearAndNumber) = explode('-', $transaction->ref_no);
-            list($year, $number) = explode('/', $yearAndNumber);
-
-            if ($year == $currentYear) {
-                $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-            } else {
-                $newNumber = '0001';
-            }
-        } else {
-            $newNumber = '0001';
-        }
-
-        $new_ref_no = $prefix . '-' . $currentYear . '/' . $newNumber;
-
-        return $new_ref_no;
+     if (in_array($type, ['sell', 'sell-return', 'purchases-return', 'purchases'])) {
+        $type_prefix = 'invoices';
     }
+
+    $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
+    $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
+
+    if ($type == 'period') $prefix = 'PERIOD';
+    if (in_array($type, ['sell-return', 'purchases-return'])) $prefix = 'RET';
+
+    $transaction = Transaction::where('type', $type)
+        ->whereYear('created_at', $currentYear)
+        ->latest('id')
+        ->first();
+
+    $newNumber = '0001';
+
+    if ($transaction && $transaction->ref_no) {
+        $parts = explode('-', $transaction->ref_no);
+
+        if (count($parts) > 1) {
+            $yearAndNumber = $parts[1];
+            $subParts = explode('/', $yearAndNumber);
+
+            if (count($subParts) > 1) {
+                $year = $subParts[0];
+                $number = $subParts[1];
+
+                if ($year == $currentYear) {
+                    $newNumber = str_pad((int)$number + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
+        }
+    }
+
+    return $prefix . '-' . $currentYear . '/' . $newNumber;
+}
 }
