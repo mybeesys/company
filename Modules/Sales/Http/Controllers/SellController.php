@@ -32,6 +32,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Sales\Utils\SalesUtile;
+
 //use Illuminate\Support\Facades\Log;
 
 class SellController extends Controller
@@ -527,15 +528,34 @@ class SellController extends Controller
         $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
         $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
 
-        $client = Contact::find($request->client_id);
-        $transactionPayment = new \stdClass();
+        $payment_method_id = null;
 
-        $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
-        $transactionPayment->account_id = $client->account_id;
-        $transactionPayment->created_by = Auth::user()->id;
-        $transactionPayment->created_by = Auth::user()->id;
-        $transactionPayment->transaction_id = $transaction->id;
-        $transactionPayment->id = null;
+        if (!$request->has('payment_method_id')) {
+            $payment_method_id = $request->payment_method_id;
+        }
+        $date = Carbon::parse($request->payment_on);
+        $payment_on = $date->format('Y-m-d H:i:s');
+        $transactionUtil = new TransactionUtils();
+        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+
+        $payment_ref_no = $transactionUtil->generateReferenceNumber($prefix_type);
+
+        $client = Contact::find($request->client_id);
+        $transactionPayment = TransactionPayments::create([
+            'transaction_id' => $transaction->id,
+            'payment_type' => $transaction->invoice_type,
+            'amount' => $request->paid_amount,
+            'method' => 'due',
+            'payment_method_id' => $payment_method_id,
+            'is_return' => $transaction->type == 'sell-return' ?? 0,
+            'note' => $request->additionalNotes,
+            'paid_on' => $payment_on,
+            'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
+            'payment_for' => $transaction->contact_id,
+            'payment_ref_no' => $payment_ref_no,
+            'account_id' => $cash_account_id,
+        ]);
+
 
         $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
 
