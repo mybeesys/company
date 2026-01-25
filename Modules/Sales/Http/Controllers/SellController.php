@@ -555,7 +555,9 @@ class SellController extends Controller
             'payment_ref_no' => $payment_ref_no,
             'account_id' => $cash_account_id,
         ]);
+        $client = Contact::find($transactionPayment->payment_for);
 
+        $transactionPayment->account_id = $client->account_id;
 
         $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
 
