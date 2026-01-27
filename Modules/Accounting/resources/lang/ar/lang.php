@@ -323,7 +323,7 @@ return [
     'to' => 'الى',
     'no_periodic_inventory_log' => 'لا يوجد سجلات جرد دوري',
     'Last used' => "آخر استخدام",
- 'accounting_dashboard' => 'لوحة التحكم المحاسبية',
+    'accounting_dashboard' => 'لوحة التحكم المحاسبية',
     'total_transactions' => 'إجمالي الحركات',
     'total_balance' => 'الرصيد الكلي',
     'total_debit' => 'إجمالي المدين',
@@ -355,6 +355,8 @@ return [
     'filter' => 'تصفية',
     'reset' => 'إعادة تعيين',
     'all' => 'الكل',
-    'view_journalEntry'=>'عرض القيد اليومي',
+    'view_journalEntry' => 'عرض القيد اليومي',
+
+    'nature_account' => 'طبيعة الحساب: ',
 
 ];

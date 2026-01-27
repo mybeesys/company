@@ -496,13 +496,14 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             />
             <div>
                 <button
+                type="button"
                     className="btn btn-secondary"
                     onClick={expandAll}
                     style={{ margin: "5px" }}
                 >
                     {translations.ExpandAll}
                 </button>
-                <button className="btn btn-secondary" onClick={collapseAll}>
+                <button type="button" className="btn btn-secondary" onClick={collapseAll}>
                     {translations.CollapseAll}
                 </button>
             </div>

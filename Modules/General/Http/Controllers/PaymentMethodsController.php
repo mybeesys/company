@@ -22,7 +22,7 @@ class PaymentMethodsController extends Controller
 
         $columns = PaymentMethod::getsPaymentMethodsColumns();
 
-        return view('general::payment-methods.index',compact('columns'));
+        return view('general::payment-methods.index', compact('columns'));
     }
 
     /**
@@ -62,7 +62,20 @@ class PaymentMethodsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'account_id' => 'required|exists:accounting_accounts,id',
+            'description_ar' => 'required|string',
+            'description_en' => 'required|string',
+        ]);
+
+        $paymentMethod = PaymentMethod::findOrFail($id);
+        $paymentMethod->update([
+            'account_id' => $request->account_id,
+            'description_ar' => $request->description_ar,
+            'description_en' => $request->description_en,
+        ]);
+
+        return redirect()->back()->with('success', __('messages.updated_successfully'));
     }
 
     /**

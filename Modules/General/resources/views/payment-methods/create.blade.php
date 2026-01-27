@@ -58,6 +58,20 @@
                     </div>
 
 
+                    <div class="fv-row mb-5">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('accounting::lang.account')</span>
+                        </label>
+                        <select name="account_id" class="form-select form-select-solid" data-control="select2" required>
+                            <option value="">@lang('messages.select')</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->id }}">
+                                    {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
+                                    - (@lang('accounting::lang.' . $account->account_primary_type))
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
 
                     <div class="text-center">

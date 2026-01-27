@@ -4,6 +4,7 @@ namespace Modules\General\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Accounting\Models\AccountingAccount;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\PaymentMethodFactory;
@@ -17,16 +18,18 @@ class PaymentMethod extends Model
     public static function getsPaymentMethodsColumns()
     {
         return [
-
-            ["class" => "text-start min-w-150px ", "name" => "name_ar"],
-            ["class" => "text-start min-w-150px ", "name" => "name_en"],
-            ["class" => "text-start min-w-150px  ", "name" => "description_ar"],
-            ["class" => "text-start min-w-150px  ", "name" => "description_en"],
-
+            ["class" => "text-start min-w-150px", "name" => "name_ar"],
+            ["class" => "text-start min-w-150px", "name" => "name_en"],
+            ["class" => "text-start min-w-150px", "name" => "account_id"],
+            ["class" => "text-start min-w-150px", "name" => "description_ar"],
+            ["class" => "text-start min-w-150px", "name" => "description_en"],
         ];
     }
 
-
+    public function account()
+    {
+        return $this->belongsTo(AccountingAccount::class, 'account_id');
+    }
     public static function getPaymentMethodsTable($paymentMethods)
     {
         return DataTables::of($paymentMethods)
@@ -40,14 +43,20 @@ class PaymentMethod extends Model
                     return    '<span class="badge badge-light-success px-3 py-3 fs-base">
 
                ' . __('messages.active') . ' </span>';
-                } else  {
+                } else {
                     return    '<span class="badge badge-light-danger px-3 py-3 fs-base">
 
                ' . __('messages.in_active') . ' </span>';
                 }
             })
 
-
+            ->editColumn('account_id', function ($row) {
+                if ($row->account) {
+                    $name = app()->getLocale() == 'ar' ? $row->account->name_ar : $row->account->name_en;
+                    return $name . ' <br><small class="text-muted">' . __('accounting::lang.' . $row->account->account_primary_type) . '</small>';
+                }
+                return '--';
+            })
             ->addColumn(
                 'actions',
                 function ($row) {
@@ -60,17 +69,15 @@ class PaymentMethod extends Model
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
 
 
-                                $actions .= '<div class="menu-item px-3">
-                            <a href="#"
-                            class="menu-link px-3 open-tax-modal"
-                            id="open_tax_modal"
-                            data-name="' . $row->name . '"
-                            data-amount="' . $row->amount . '">
-                            ' . __('messages.edit') . '
-                            </a>
-                        </div>
-                        ';
-
+                       $actions .= '<div class="menu-item px-3">
+                <a href="#" class="menu-link px-3 edit-payment-method"
+                   data-id="'.$row->id.'"
+                   data-desc-ar="'.$row->description_ar.'"
+                   data-desc-en="'.$row->description_en.'"
+                   data-account-id="'.$row->account_id.'">
+                   '.__('messages.edit').'
+                </a>
+            </div>';
 
 
                         $actions .= '<div class="menu-item px-3">
@@ -81,7 +88,7 @@ class PaymentMethod extends Model
                 }
             )
 
-            ->rawColumns(['actions','active', 'id'])
+           ->rawColumns(['actions', 'active', 'id', 'account_id'])
             ->make(true);
     }
 }

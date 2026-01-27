@@ -102,4 +102,5 @@
     @include('general::tax.create')
     @include('general::tax.edit')
     @include('general::payment-methods.create')
+    @include('general::payment-methods.edit')
 </div>

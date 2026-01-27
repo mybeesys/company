@@ -15,6 +15,8 @@ return [
     'name_en' => 'Name in English',
     'minimum_limit' => 'Minimum Limit',
     'minimum_limit_hint' => 'Enter the minimum tax limit if applicable',
+    'account_id'=>'Account'
+
 
 
 

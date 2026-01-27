@@ -562,7 +562,7 @@ class SellController extends Controller
         $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
 
         $accountUtil->saveAccountRouteTransaction(
-            'credit',
+            'debit',
             $transactionPayment,
             $transaction,
             $acc_trans_mapping_id,
@@ -574,7 +574,7 @@ class SellController extends Controller
         $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
 
         $accountUtil->saveAccountRouteTransaction(
-            'credit',
+            'debit',
             $transactionPayment,
             $transaction,
             $acc_trans_mapping_id,
@@ -587,7 +587,7 @@ class SellController extends Controller
         $transactionPayment->amount = $transaction->total_before_tax;
 
         $accountUtil->saveAccountRouteTransaction(
-            'debit',
+            'credit',
             $transactionPayment,
             $transaction,
             $acc_trans_mapping_id,
@@ -600,7 +600,7 @@ class SellController extends Controller
         $transactionPayment->amount = $transaction->tax_amount;
 
         $accountUtil->saveAccountRouteTransaction(
-            'debit',
+            'credit',
             $transactionPayment,
             $transaction,
             $acc_trans_mapping_id,

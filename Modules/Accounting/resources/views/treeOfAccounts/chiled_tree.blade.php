@@ -16,7 +16,7 @@
                      @endif
                      - {{ $child_account->name_en }}
                  @endif
-                 - @format_currency($child_account->balance) 
+                 - @format_currency($child_account->balance)
              </span>
              @if ($child_account->status == 'active')
                  <span><i class="fas fa-check text-success" title="@lang('accounting::lang.active')"></i></span>
@@ -45,7 +45,9 @@
                              </a>
                          </li>
                          <li><a class="btn-xs btn-default text-primary" style="margin: 2px;" data-bs-toggle="modal"
-                                 onclick="setAccountId({{ $child_account->id }})"
+                                 {{-- onclick="setAccountId({{ $child_account->id }})" --}}
+                                 onclick="setAccountId({{ $child_account->id }}, '{{ $child_account->account_primary_type }}')"
+
                                  data-bs-target="#kt_modal_create_account">
                                  <i class="fas fa-plus"></i><span style="margin-left: 5px;">@lang('accounting::lang.add_account')
                              </a></li>

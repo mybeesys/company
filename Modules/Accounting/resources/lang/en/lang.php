@@ -338,7 +338,7 @@ return [
     'reset_filter' => 'Reset',
     'to' => 'To',
     'Last used' => "Last used",
-     'accounting_dashboard' => 'Accounting Dashboard',
+    'accounting_dashboard' => 'Accounting Dashboard',
     'total_transactions' => 'Total Transactions',
     'total_balance' => 'Total Balance',
     'total_debit' => 'Total Debit',
@@ -360,7 +360,7 @@ return [
 
 
 
-'entry_type' => 'Entry Type',
+    'entry_type' => 'Entry Type',
     'created_by' => 'Created By',
     'entry_source' => 'Entry Source',
     'manual' => 'Manual',
@@ -372,8 +372,8 @@ return [
     'filter' => 'Filter',
     'reset' => 'Reset',
     'all' => 'All',
-
-    'view_journalEntry'=>'View Journal Entry',
+    'nature_account' => 'Account Nature: ',
+    'view_journalEntry' => 'View Journal Entry',
 
 
 

@@ -13,6 +13,11 @@
                     <h1 class="mb-3">@lang('accounting::lang.edit_account')</h1>
                 </div>
 
+
+<div class="mb-5">
+    <label class="fw-bold">@lang('accounting::lang.nature_account')</label>
+    <span id="account_nature_display_1" class="badge"></span>
+</div>
                 <div class="separator d-flex flex-center mb-5">
                     <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
                 </div>

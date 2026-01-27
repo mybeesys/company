@@ -46,6 +46,7 @@ Route::middleware([
 
 
         Route::get('payment-methods', [PaymentMethodsController::class, 'index'])->name('payment-methods');
+          Route::post('update-payment-methods/{id}', [PaymentMethodsController::class, 'update'])->name('update-payment-methods');
 
         Route::get('transaction-show/{id}', [TransactionController::class, 'show'])->name('transaction-show');
         Route::get('show-receipts-payments/{id}', [TransactionController::class, 'showReceiptsPayments'])->name('show-receipts-payments');
