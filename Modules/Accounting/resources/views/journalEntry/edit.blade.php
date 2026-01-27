@@ -453,58 +453,44 @@
             </td>
         </tr>
     `;
-        $('#addJournalEntry').on('click', function() {
+      $('#addJournalEntry').on('click', function() {
+    var $row1 = $(newRow);
+    var $row2 = $(newRow);
 
+    $('table tbody').append($row1);
+    $('table tbody').append($row2);
 
+    $row1.find('.kt_ecommerce_select2_cost_center').select2();
+    $row2.find('.kt_ecommerce_select2_cost_center').select2();
 
-            $('table tbody').append(newRow);
-            $('table tbody').append(newRow);
-            $('.kt_ecommerce_select2_cost_center').select2();
-            $('.kt_ecommerce_select2_account').select2({
-                ajax: {
-                    url: '{{ route('accounts-dropdown') }}',
-                    dataType: 'json',
-                    processResults: function(data) {
-                        return {
-                            results: data
-                        }
-                    },
-                },
-
-                language: {
-                    noResults: function() {
-                        var newAccountText = "@lang('accounting::lang.add_account')";
-                        var $newAccountButton = $(
-                            '<a class="link-underline" data-bs-toggle="modal" data-bs-target="#kt_modal_create_account" id="addNewAccountBtn">' +
-                            newAccountText + '</a>'
-                        );
-                        $newAccountButton.on('click', function() {
-                            $('.kt_ecommerce_select2_account').select2('close');
-                        });
-                        return $newAccountButton;
-                    }
-                },
-
-                escapeMarkup: function(markup) {
-                    return markup;
-                },
-
-                templateResult: function(data) {
-                    return data.html || data.text;
-                },
-                templateSelection: function(data) {
-                    return data.text;
-                }
-            });
-            updateTotals();
-            if ($('#toggleCostCenter').is(':checked')) {
-                $('.cost-center-column').show();
-            } else {
-                $('.cost-center-column').hide();
+    var select2Config = {
+        ajax: {
+            url: '{{ route("accounts-dropdown") }}',
+            dataType: 'json',
+            processResults: function(data) {
+                return { results: data };
+            },
+        },
+        language: {
+            noResults: function() {
+                return `<a class="link-underline" data-bs-toggle="modal" data-bs-target="#kt_modal_create_account">@lang('accounting::lang.add_account')</a>`;
             }
-        });
+        },
+        escapeMarkup: function(markup) { return markup; },
+        templateResult: function(data) { return data.html || data.text; },
+        templateSelection: function(data) { return data.text; }
+    };
 
+    $row1.find('.kt_ecommerce_select2_account').select2(select2Config);
+    $row2.find('.kt_ecommerce_select2_account').select2(select2Config);
 
+    updateTotals();
+    if ($('#toggleCostCenter').is(':checked')) {
+        $('.cost-center-column').show();
+    } else {
+        $('.cost-center-column').hide();
+    }
+});
         $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
             $(this).find('#kt_ecommerce_select2_account_type').select2({
                 dropdownParent: $('#kt_modal_create_account')
@@ -759,7 +745,4 @@
 
         });
     </script>
-
-
-
 @stop

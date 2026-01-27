@@ -9,6 +9,7 @@ use DB;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as FacadesDB;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\Country;
 use Modules\General\Models\NotificationSetting;
@@ -69,6 +70,7 @@ class GeneralController extends Controller
         $currencies = Country::all();
         $setting_currency = Setting::getCurrency();
 
+         $accounts =AccountingAccount::all();
         $enabledModules = json_decode(Setting::where('key', 'enabled_modules')->value('value'), true) ?? [];
         $reward_points_settings = json_decode(Setting::where('key', 'reward_points_settings')->value('value'), true) ?? [];
         $modules = [
@@ -110,7 +112,7 @@ class GeneralController extends Controller
         // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
         $unit = UnitTransfer::where("default", 1)->first();
-        return view('general::settings.index', compact('cards','reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
+        return view('general::settings.index', compact('cards','accounts','reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription()

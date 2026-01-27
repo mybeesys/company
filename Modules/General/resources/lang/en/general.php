@@ -107,6 +107,8 @@ return [
     'quarterly' => 'Quarterly',
     'yearly' => 'Yearly',
     'Default Unit' => 'Default Unit',
+    'edit_payment_method' => 'Edit Payment Method',
+
 
 
 ];

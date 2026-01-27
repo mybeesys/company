@@ -274,60 +274,37 @@
 
         $('#kt_ecommerce_select2_account').select2();
         $('#kt_ecommerce_select2_cost_center').select2();
-        const newRow = `
-        <tr>
-            <td>
-
-                    <select id="kt_ecommerce_select2_account" required
-                                    class="form-select form-select-solid select-2" name="account_id">
-
-                                    @foreach ($accounts as $account)
-                                        <option value="{{ $account->id }}">
-                                            @if (app()->getLocale() == 'ar')
-                                               {{ $account->gl_code }} - {{ $account->name_ar }} - <span
-                                                    class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                                            @else
-                                               {{ $account->gl_code }} - {{ $account->name_en }} -  <span
-                                                    class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                                            @endif
-                                        </option>
-                                    @endforeach
-
-                </select>
-            </td>
-            <td class="cost-center-column" style="display:none">
-
-                    <select id="kt_ecommerce_select2_cost_center" value="null"
-                                    class="form-select form-select-solid select-2" name="cost_center">
-                        <option selected value="">@lang('messages.select')</option>
-
-                                    @foreach ($cost_centers as $cost_center)
-                                        <option value="{{ $cost_center->id }}">
-                                            @if (app()->getLocale() == 'ar')
-                                                {{ $cost_center->name_ar }} - <span
-                                                    class="fw-semibold mx-2 text-muted fs-7">
-                                                    {{ $cost_center->account_center_number }}</span>
-                                            @else
-                                                {{ $cost_center->name_en }} - <span
-                                                    class="fw-semibold mx-2 text-muted fs-7">{{ $cost_center->account_center_number }}</span>
-                                            @endif
-                                        </option>
-                                    @endforeach
-
-
-
-                </select>
-            </td>
-            <td><input type="number" step="any" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" step="any" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
-            <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
-            <td>
-                <button class="btn btn-icon btn-danger delete-row" type="button">
-                    <i class="ki-outline ki-trash fs-2"></i>
-                </button>
-            </td>
-        </tr>
-    `;
+      const newRow = `
+<tr>
+    <td>
+        <select required class="form-select form-select-solid select-2 kt_ecommerce_select2_account" name="account_id">
+            @foreach ($accounts as $account)
+                <option value="{{ $account->id }}">
+                    {{ $account->gl_code }} - {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
+                </option>
+            @endforeach
+        </select>
+    </td>
+    <td class="cost-center-column" style="display:none">
+        <select class="form-select form-select-solid select-2 kt_ecommerce_select2_cost_center" name="cost_center">
+            <option selected value="">@lang('messages.select')</option>
+            @foreach ($cost_centers as $cost_center)
+                <option value="{{ $cost_center->id }}">
+                    {{ app()->getLocale() == 'ar' ? $cost_center->name_ar : $cost_center->name_en }}
+                </option>
+            @endforeach
+        </select>
+    </td>
+    <td><input type="number" step="any" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
+    <td><input type="number" step="any" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
+    <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
+    <td>
+        <button class="btn btn-icon btn-danger delete-row" type="button">
+            <i class="ki-outline ki-trash fs-2"></i>
+        </button>
+    </td>
+</tr>
+`;
 
 
         $(document).on('keydown', function(event) {
@@ -336,38 +313,24 @@
             }
         });
 
-        $('#addJournalEntry').on('click', function() {
+     $('#addJournalEntry').on('click', function() {
+    var $row1 = $(newRow);
+    var $row2 = $(newRow);
+    $('table tbody').append($row1);
+    $('table tbody').append($row2);
 
+    $row1.find('.kt_ecommerce_select2_account').select2();
+    $row1.find('.kt_ecommerce_select2_cost_center').select2();
 
+    $row2.find('.kt_ecommerce_select2_account').select2();
+    $row2.find('.kt_ecommerce_select2_cost_center').select2();
 
-            $('table tbody').append(newRow);
-            $('table tbody').append(newRow);
-            $('#kt_ecommerce_select2_account').select2();
-            $('#kt_ecommerce_select2_cost_center').select2();
-            updateTotals();
-            if ($('#toggleCostCenter').is(':checked')) {
-                $('.cost-center-column').show();
-            } else {
-                $('.cost-center-column').hide();
-            }
-        });
+    updateTotals();
 
-
-        $(document).ready(function() {
-            for (i = 0; i < 2; i++) {
-                $('table tbody').append(newRow);
-            }
-
-            $('#kt_ecommerce_select2_account').select2();
-            $('#kt_ecommerce_select2_cost_center').select2();
-            updateTotals();
-            if ($('#toggleCostCenter').is(':checked')) {
-                $('.cost-center-column').show();
-            } else {
-                $('.cost-center-column').hide();
-            }
-        });
-
+    if ($('#toggleCostCenter').is(':checked')) {
+        $('.cost-center-column').show();
+    }
+});
         let totalDebit = 0;
         let totalCredit = 0;
 

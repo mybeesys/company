@@ -186,7 +186,7 @@
                     href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
             </li>
 
-            
+
 
 
             {{-- <li class="nav-item">
@@ -284,6 +284,21 @@
                 $('#kt_modal_create_add_tax').modal('show');
             });
 
+
+              $(document).on('click', '.edit-payment-method', function() {
+    let id = $(this).data('id');
+    let descAr = $(this).data('desc-ar');
+    let descEn = $(this).data('desc-en');
+    let accountId = $(this).data('account-id');
+
+    $('#edit_payment_form').attr('action', '/update-payment-methods/' + id);
+
+    $('#edit_desc_ar').val(descAr);
+    $('#edit_desc_en').val(descEn);
+    $('#edit_account_id').val(accountId).trigger('change');
+
+    $('#edit_payment_method_modal').modal('show');
+});
             $('#kt_tax_table').on('click', '.open-tax-modal', function(event) {
                 event.preventDefault();
 
@@ -421,16 +436,21 @@
                         data: 'name_en',
                         name: 'name_en'
                     },
+                     {
+                        data: 'account_id',
+                        name: 'account_id'
+                    },
+                   
                     {
-                        data: 'description_ar',
-                        name: 'description_ar'
+                        data: 'description_en',
+                        name: 'description_en',
+                        // visible: false
                     },
                     {
                         data: 'description_en',
                         name: 'description_en',
                         // visible: false
                     },
-
                     {
                         data: 'active',
                         name: 'active',
