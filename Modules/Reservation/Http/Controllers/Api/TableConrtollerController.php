@@ -122,7 +122,7 @@ class TableConrtollerController extends Controller
             'order' => $order ? [
                 'id' => $order->id,
                 'ref_no' => $order->ref_no,
-                'status' => $order->order_status,
+                'status' => $order->status,
                 'order_status' => $order->order_status,
                 'payment_status' => $order?->payment_status,
                 'invoice_created' => !empty($order->id),
