@@ -47,9 +47,11 @@ class TableConrtollerController extends Controller
                     },
 
                     'current_order_id' => optional($table->activeOrder)->id,
+                    'order_status' => optional($table->activeOrder)->order_status,
                     'assigned_waiter_id' => $table->assigned_waiter_id,
                     'current_guests' => optional($table->reservation)->guests_count,
                     'opened_at' => optional($table->activeOrder)->created_at,
+
 
                     'area' => optional($table->area)->name_en,
                     'floor' => optional($table->area)->floor ?? 1,
@@ -121,6 +123,7 @@ class TableConrtollerController extends Controller
                 'id' => $order->id,
                 'ref_no' => $order->ref_no,
                 'status' => $order->order_status,
+                'order_status' => $order->order_status,
                 'payment_status' => $order?->payment_status,
                 'invoice_created' => !empty($order->id),
                 'invoice_id' => $order->id,

@@ -110,7 +110,7 @@ class OrderController extends Controller
     public function storeApi(Request $request)
     {
 
-
+        //
         try {
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
@@ -243,6 +243,7 @@ class OrderController extends Controller
                     'notice' => null,
                     'establishment_id' => $table->area->establishment_id,
                     'table_id' => $table->id,
+                    'order_status' => 'inpreparation',
 
                 ]);
 
