@@ -68,7 +68,7 @@
 
 @section('script')
     @parent
-    <script src="{{ url('js/table.js') }}"></script>
+     <script src="{{ url('js/table.js') }}"></script>
     <script>
         "use strict";
         let dataTable;
@@ -82,13 +82,9 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
-            $('#cash_account').select2({
-
-            });
-
-            $('#from_account').select2({
-
-            });
+          $('#from_account, #cash_account').select2({
+        dropdownParent: $('#receipt-vouchers-Modal')
+    });
 
         });
 

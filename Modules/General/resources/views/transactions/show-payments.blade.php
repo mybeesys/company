@@ -190,6 +190,8 @@
 
     <script>
         $('#client_id').select2();
+        $('#account_id').select2();
+
     </script>
 
 @endsection
