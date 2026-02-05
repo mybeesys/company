@@ -280,35 +280,29 @@ const WasteDetail = ({ dir, translations }) => {
                                     type: "Button",
                                     width: "10%",
                                     editable: false,
-                                    customCell: (
-                                        data,
-                                        key,
-                                        currentEditing,
-                                        editable,
-                                        rowKey
-                                    ) => (
-                                        <button
-                                            className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-                                            onClick={() => {
-                                                const updatedItems = [
-                                                    ...currentObject.items,
-                                                ];
-                                                updatedItems.splice(rowKey, 1);
-                                                onProductChange(
-                                                    "items",
-                                                    updatedItems
-                                                );
-                                            }}
-                                        >
-                                            <i className="ki-outline ki-trash fs-2"></i>
-                                        </button>
-                                    ),
+                                   customCell: (data, key, currentEditing, editable, rowKey) => (
+    <button
+        type="button" // تأكد من إضافة type="button" لمنع عمل submit للفورم
+        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+        onClick={() => {
+            setCurrentObject(prev => {
+                const updatedItems = [...prev.items];
+                updatedItems.splice(rowKey, 1);
+                return { ...prev, items: updatedItems };
+            });
+        }}
+    >
+        <i className="ki-outline ki-trash fs-2"></i>
+    </button>
+)
                                 },
                             ]}
                             actions={[]}
-                            onUpdate={(nodes) =>
-                                onProductChange("items", nodes)
-                            }
+                         onUpdate={(nodes) => {
+         if (Array.isArray(nodes)) {
+            onProductChange("items", nodes);
+        }
+    }}
                             onDelete={null}
                         />
                     ),

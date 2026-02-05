@@ -22,7 +22,9 @@ const TransferTable = ({ dir, translations }) => {
                 .post(`${window.location.origin}/transfer/full-receiving`, {
                     id: data.id,
                 })
-                .then((response) => {})
+                .then((response) => {
+                    // if(refreshTree) refreshTree();
+                })
                 .catch((error) => {
                     alert("error");
                 });

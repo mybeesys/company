@@ -8,11 +8,11 @@
             @lang('general.export_as_excel')
         </a>
     </div>
-    <div class="menu-item px-3">
+    {{-- <div class="menu-item px-3">
         <a href="javascript:void(0)" class="menu-link px-3" data-kt-export="pdf">
             @lang('general.export_as_pdf')
         </a>
-    </div>
+    </div> --}}
     <div class="menu-item px-3">
         <a href="javascript:void(0)" class="menu-link px-3" data-kt-export="print">
             @lang('general.print')

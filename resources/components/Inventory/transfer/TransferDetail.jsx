@@ -4,10 +4,14 @@ import BasicInfoComponent from "../../comp/BasicInfoComponent";
 import TreeTableEditor from "../../comp/TreeTableEditor";
 import { getName } from "../../lang/Utils";
 import SweetAlert2 from "react-sweetalert2";
+import axios from "axios";
 
 const TransferDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
     let transfer = JSON.parse(rootElement.getAttribute("transfer"));
+
+    if (!transfer.items) transfer.items = [];
+
     const [currentObject, setcurrentObject] = useState(transfer);
     const [showAlert, setShowAlert] = useState(false);
     const [addNewRow, setAddNewRow] = useState(true);
@@ -15,7 +19,6 @@ const TransferDetail = ({ dir, translations }) => {
     const type = urlParams.get("type");
 
     useEffect(() => {
-        //updateTotals(currentObject);
         if (type) {
             setAddNewRow(false);
         }
@@ -27,18 +30,31 @@ const TransferDetail = ({ dir, translations }) => {
         setcurrentObject({ ...r });
     };
 
-    // const updateTotals = (row) =>{
-    //     row.subtotal = row.items ?
-    //     row.items.reduce((accumulator, item) => accumulator + Number(item.total_before_vat ?? 0), 0) : 0;
-    //     row.total = row.subtotal + Number(row.tax ?? 0);
-    //     row.grand_total = row.total + Number(row.shipping_amount ?? 0) + Number(row.misc_amount ?? 0);
-    // }
-
     const onProductChange = (key, val) => {
-        currentObject[key] = val;
-        //updateTotals(currentObject);
-        setcurrentObject({ ...currentObject });
+        const updatedItems = Array.isArray(val) ? val : [];
+        setcurrentObject((prev) => ({ ...prev, [key]: updatedItems }));
         return { message: "Done" };
+    };
+
+    const handleOnDelete = (deletedNode) => {
+        setcurrentObject((prev) => {
+            const currentItems = Array.isArray(prev.items)
+                ? [...prev.items]
+                : [];
+
+            const filteredItems = currentItems.filter((item) => {
+                const itemKey = item.id || item.key;
+                const deletedKey =
+                    deletedNode.id || deletedNode.key || deletedNode.data?.id;
+
+                if (!itemKey && !deletedKey) {
+                    return item !== deletedNode;
+                }
+                return itemKey !== deletedKey;
+            });
+
+            return { ...prev, items: filteredItems };
+        });
     };
 
     const getErrorMessage = (data) => {
@@ -65,7 +81,7 @@ const TransferDetail = ({ dir, translations }) => {
             showCancelButton: false,
             showConfirmButton: false,
         }).then(() => {
-            setShowAlert(false); // Reset the state after alert is dismissed
+            setShowAlert(false);
         });
     };
 
@@ -76,6 +92,7 @@ const TransferDetail = ({ dir, translations }) => {
             return `${translations.to} ${translations.required}`;
         if (
             !!currentObject.items &&
+            Array.isArray(currentObject.items) &&
             currentObject.items.filter((x) => !!!x.unit).length > 0
         )
             return translations["item_unit_error"];
@@ -143,7 +160,11 @@ const TransferDetail = ({ dir, translations }) => {
                                 addNewRow={addNewRow}
                                 type={"items"}
                                 title={translations.items}
-                                currentNodes={[...currentObject.items]}
+                                currentNodes={
+                                    Array.isArray(currentObject.items)
+                                        ? [...currentObject.items]
+                                        : []
+                                }
                                 defaultValue={{ taxed: 0 }}
                                 cols={[
                                     {
@@ -159,17 +180,15 @@ const TransferDetail = ({ dir, translations }) => {
                                             key,
                                             val,
                                             rowKey,
-                                            postExecute
+                                            postExecute,
                                         ) => {
                                             const result = val.id.split("-");
                                             axios
                                                 .get(
-                                                    `${window.location.origin}/getProductInventory/${val.id}`
+                                                    `${window.location.origin}/getProductInventory/${val.id}`,
                                                 )
                                                 .then((response) => {
                                                     let prod = response.data;
-                                                    nodes[rowKey].data.SKU =
-                                                        prod.SKU;
                                                     nodes[rowKey].data.SKU =
                                                         prod.SKU;
                                                     nodes[
@@ -206,7 +225,7 @@ const TransferDetail = ({ dir, translations }) => {
                                                         ].data.total = null;
                                                     }
                                                     return axios.get(
-                                                        `${window.location.origin}/searchUnitTransfers?product_id=${result[0]}`
+                                                        `${window.location.origin}/searchUnitTransfers?product_id=${result[0]}`,
                                                     );
                                                 })
                                                 .then((response) => {
@@ -219,18 +238,12 @@ const TransferDetail = ({ dir, translations }) => {
                                                             units.find(
                                                                 (unit) =>
                                                                     unit.unit2 ===
-                                                                    null
+                                                                    null,
                                                             );
-                                                        if (defaultUnit) {
-                                                            nodes[
-                                                                rowKey
-                                                            ].data.unit =
-                                                                defaultUnit;
-                                                        } else {
-                                                            nodes[
-                                                                rowKey
-                                                            ].data.unit = null;
-                                                        }
+                                                        nodes[
+                                                            rowKey
+                                                        ].data.unit =
+                                                            defaultUnit || null;
                                                     } else {
                                                         nodes[
                                                             rowKey
@@ -238,14 +251,13 @@ const TransferDetail = ({ dir, translations }) => {
                                                     }
                                                     postExecute(nodes);
                                                 })
-                                                .catch((error) => {
-                                                    postExecute(nodes);
-                                                });
+                                                .catch(() =>
+                                                    postExecute(nodes),
+                                                );
                                         },
                                     },
                                     {
                                         key: "SKU",
-                                        autoFocus: true,
                                         type: "Text",
                                         width: "15%",
                                         editable: type !== "partiallyReceived",
@@ -259,7 +271,6 @@ const TransferDetail = ({ dir, translations }) => {
                                     },
                                     {
                                         key: "unit",
-                                        autoFocus: true,
                                         type: "AsyncDropDown",
                                         width: "25%",
                                         editable: type !== "partiallyReceived",
@@ -272,56 +283,33 @@ const TransferDetail = ({ dir, translations }) => {
                                     },
                                     {
                                         key: "qty",
-                                        autoFocus: true,
                                         type: "Decimal",
                                         width: "25%",
                                         editable: type !== "partiallyReceived",
                                         required: true,
-                                        onChangeValue: (
-                                            nodes,
-                                            key,
-                                            val,
-                                            rowKey,
-                                            postExecute
-                                        ) => {},
                                     },
                                     {
                                         key: "receivedQuantity",
-                                        autoFocus: true,
                                         width: "22%",
                                         editable: false,
-                                        required: true,
-                                        customCell: (data) => {
-                                            return (
-                                                <span>
-                                                    {data.receivedQuantity !==
-                                                    undefined
-                                                        ? data.receivedQuantity
-                                                        : 0}
-                                                </span>
-                                            );
-                                        },
+                                        customCell: (data) => (
+                                            <span>
+                                                {data.receivedQuantity ?? 0}
+                                            </span>
+                                        ),
                                     },
                                     {
                                         key: "remainingQuantity",
-                                        autoFocus: true,
                                         width: "20%",
                                         editable: false,
-                                        required: true,
-                                        customCell: (data) => {
-                                            return (
-                                                <span>
-                                                    {data.remainingQuantity !==
-                                                    undefined
-                                                        ? data.remainingQuantity
-                                                        : 0}
-                                                </span>
-                                            );
-                                        },
+                                        customCell: (data) => (
+                                            <span>
+                                                {data.remainingQuantity ?? 0}
+                                            </span>
+                                        ),
                                     },
                                     {
                                         key: "quantityToReceive",
-                                        autoFocus: true,
                                         width: "22%",
                                         editable: type === "partiallyReceived",
                                         style: {
@@ -331,21 +319,19 @@ const TransferDetail = ({ dir, translations }) => {
                                                     : "visible",
                                         },
                                         type: "Decimal",
-                                        required: true,
-                                        onChangeValue: (
-                                            nodes,
-                                            key,
-                                            val,
-                                            rowKey,
-                                            postExecute
-                                        ) => {},
                                     },
                                 ]}
                                 actions={[]}
-                                onUpdate={(nodes) =>
-                                    onProductChange("items", nodes)
-                                }
-                                onDelete={null}
+                                onUpdate={(nodes) => {
+                                    if (Array.isArray(nodes)) {
+                                        setcurrentObject((prev) => ({
+                                            ...prev,
+                                            items: nodes,
+                                        }));
+                                    }
+                                }}
+                                onDelete={handleOnDelete}
+                                showDeleteConfirmation={false}
                             />
                         ),
                     },
