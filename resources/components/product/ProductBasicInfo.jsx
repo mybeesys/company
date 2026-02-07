@@ -272,9 +272,27 @@ const ProductBasicInfo = ({
                                 isMulti
                                 options={allergensList}
                                 components={animatedComponents}
-                               value={allergensList.filter(option => 
-        (currentObject.allergens || []).some(selected => selected.value === option.value)
-    )}
+                            value={(() => {
+        let selectedAllergens = currentObject.allergens;
+        
+        if (typeof selectedAllergens === 'string') {
+            try {
+                selectedAllergens = JSON.parse(selectedAllergens);
+            } catch (e) {
+                selectedAllergens = [];
+            }
+        }
+
+         if (!Array.isArray(selectedAllergens)) {
+            selectedAllergens = [];
+        }
+
+        return allergensList.filter(option => 
+            selectedAllergens.some(selected => 
+               (selected.value ? selected.value === option.value : selected === option.value)
+            )
+        );
+    })()}
                                 onChange={(val) => handleChange("allergens", val)}
                                 getOptionLabel={(e) => (
                                     <div style={{ display: "flex", alignItems: "center" }}>

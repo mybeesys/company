@@ -73,7 +73,7 @@ class ProductController extends Controller
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
         'show_in_menu' => 'required|boolean',
-        'allergens' => 'nullable|array',
+        'allergens' => 'nullable',
     ];
 
 
