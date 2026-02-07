@@ -105,7 +105,7 @@ const TreeTableEditorUnit = ({
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
             return;
         }
@@ -137,7 +137,7 @@ const TreeTableEditorUnit = ({
                 showCancelButton: false,
                 showConfirmButton: false,
             }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
+                setShowAlert(false);
             });
             return;
         }
@@ -162,7 +162,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderCell = (node, col, index) => {
-        //key, autoFocus, options, type, editable, required, index, customCell) => {
         if (!!col.customCell && !!!node.data.empty) {
             return col.customCell(
                 node.data,
@@ -174,26 +173,20 @@ const TreeTableEditorUnit = ({
         let firstCell = index == "0" ? true : false;
 
         if (col.type == "Text") return renderTextCell(node, col, firstCell);
-        //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Number")
             return renderNumberCell(node, col, firstCell);
-        //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Decimal")
             return renderDecimalCell(node, col, firstCell);
-        //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Date")
             return renderDateCell(node, col, firstCell);
-        //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Check")
             return renderCheckCell(node, col, firstCell);
-        //key, autoFocus, editable, required, firstCell);
         else if (col.type == "DropDown") {
-            return renderDropDownCell(node, col, firstCell); //key, autoFocus, options, editable, required, firstCell);
+            return renderDropDownCell(node, col, firstCell);
         } else if (col.type == "AsyncDropDown")
             return renderAsyncDropDownCell(node, col, firstCell);
-        //key, autoFocus, options, editable, required, firstCell);
         else if (col.type == "MultiDropDown")
-            return renderMultiDropDownCell(node, col, firstCell); //key, autoFocus, options, editable, required, firstCell);
+            return renderMultiDropDownCell(node, col, firstCell);
     };
 
     const renderTextCell = (node, col, firstCell) => {
@@ -243,7 +236,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderNumberCell = (node, col, firstCell) => {
-        //key, autoFocus, editable, required, firstCell) => {
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
             if (!!firstCell)
@@ -286,7 +278,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderDateCell = (node, col, firstCell) => {
-        //key, autoFocus, editable, required) => {
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
             if (!!firstCell)
@@ -334,7 +325,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderDecimalCell = (node, col, firstCell) => {
-        //key, autoFocus, editable, required) => {
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
             if (!!firstCell)
@@ -378,7 +368,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderCheckCell = (node, col, firstCell) => {
-        //key, autoFocus, editable) => {
         if (!!node.data.empty) {
             if (!!firstCell)
                 return (
@@ -429,7 +418,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderDropDownCell = (node, col, firstCell) => {
-        //key, autoFocus, options, editable, required, firstCell) => {
         const val = col.options.find((x) => x.value == node.data[col.key]);
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
@@ -476,13 +464,12 @@ const TreeTableEditorUnit = ({
     };
 
     const get = (row, key) => {
-        const keys = key.split("."); // Split the key on '.'
+        const keys = key.split(".");
         let value = row;
 
         for (const k of keys) {
-            // Check if the key exists and its value is not null
             if (value[k] === null || value[k] === undefined) {
-                value = null; // Set value to null if any key in the chain is null/undefined
+                value = null;
                 break;
             }
             value = value[k];
@@ -491,7 +478,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderAsyncDropDownCell = (node, col, firstCell) => {
-        //key, autoFocus, options, editable, required, firstCell) => {
         const indent = node.key.toString().split("-").length;
         let url = !!col.relatedTo
             ? `${col.searchUrl}?${col.relatedTo.key}=${
@@ -542,7 +528,6 @@ const TreeTableEditorUnit = ({
     };
 
     const renderMultiDropDownCell = (node, col, firstCell) => {
-        //key, autoFocus, options, editable) => {
         if (!node.data[col.key]) node.data[col.key] = [];
 
         const val = col.options.filter((x) =>
@@ -572,7 +557,7 @@ const TreeTableEditorUnit = ({
                     options={col.options}
                     value={val}
                     onChange={(newVal) => {
-                        const updatedValues = newVal.map((item) => item.value); // Extract values
+                        const updatedValues = newVal.map((item) => item.value);
                         handleEditorChange(
                             updatedValues,
                             col.key,
@@ -622,10 +607,6 @@ const TreeTableEditorUnit = ({
     };
 
     const addInline = (nodeKey, type, parentKeyName) => {
-        if (nodes.length >= 2) {
-            return;
-        }
-
         let node = findNodeByKey(nodes, nodeKey);
         nodeKey = nodeKey.toString();
         let seg = nodeKey.split("-");
