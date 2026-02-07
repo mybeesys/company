@@ -6,6 +6,24 @@ import makeAnimated from "react-select/animated";
 import { getRowName } from "../lang/Utils";
 
 const animatedComponents = makeAnimated();
+
+const allergensList = [
+    { value: "eggs", label: "Eggs | بيض", icon: "🍳" },
+    { value: "milk", label: "Milk | حليب", icon: "🥛" },
+    { value: "fish", label: "Fish | سمك", icon: "🐟" },
+    { value: "crustaceans", label: "Crustaceans | قشريات", icon: "🦀" },
+    { value: "tree_nuts", label: "Tree Nuts | مكسرات", icon: "🥜" },
+    { value: "peanuts", label: "Peanuts | فول سوداني", icon: "🥜" },
+    { value: "wheat", label: "Wheat | قمح", icon: "🌾" },
+    { value: "soybeans", label: "Soybeans | صويا", icon: "🫘" },
+    { value: "sesame", label: "Sesame | سمسم", icon: "🌱" },
+    { value: "mustard", label: "Mustard | خردل", icon: "🍯" },
+    { value: "celery", label: "Celery | كرفس", icon: "🌿" },
+    { value: "lupin", label: "Lupin | ترمس", icon: "🌼" },
+    { value: "molluscs", label: "Molluscs | رخويات", icon: "🐚" },
+    { value: "sulphites", label: "Sulphites | كبريتات", icon: "🧪" },
+];
+
 const ProductBasicInfo = ({
     translations,
     parentHandlechanges,
@@ -19,7 +37,6 @@ const ProductBasicInfo = ({
     const listSubCategoryurl = JSON.parse(
         rootElement.getAttribute("listSubCategory-url")
     );
-    let imageurl = rootElement.getAttribute("image-url");
     let dir = rootElement.getAttribute("dir");
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [subcategoryOption, setSubCategoryOptions] = useState([]);
@@ -29,8 +46,8 @@ const ProductBasicInfo = ({
             let subCategories = [];
             let response = await axios.get(listCategoryurl);
             const categories = response.data.map((category) => ({
-                label: getRowName(category, dir), // The text shown in the select options
-                value: category.id, // The value of the selected option
+                label: getRowName(category, dir),
+                value: category.id,
             }));
             if (response.data.length > 0) {
                 if (!!!currentObject.category_id) {
@@ -65,8 +82,8 @@ const ProductBasicInfo = ({
                 listSubCategoryurl + "/" + categoryId
             );
             const subCategories = response.data.map((subCategory) => ({
-                label: getRowName(subCategory, dir), // The text shown in the select options
-                value: subCategory.id, // The value of the selected option
+                label: getRowName(subCategory, dir),
+                value: subCategory.id,
             }));
             return subCategories;
         } catch (error) {
@@ -89,15 +106,17 @@ const ProductBasicInfo = ({
         } else if (key === "subcategory_id") {
             updatedObject["subcategory_id"] = value;
             updatedObject["subcategory"] = option;
+        } else if (key === "allergens") {
+            updatedObject["allergens"] = value;
         } else {
             updatedObject[key] = value;
         }
 
         parentHandlechanges(updatedObject);
     };
-    // Clean up object URLs to avoid memory leaks
+
     React.useEffect(() => {
-        fetchCategoryOptions(); // Trigger the fetch
+        fetchCategoryOptions();
         const tooltipTriggerList = [].slice.call(
             document.querySelectorAll('[data-bs-toggle="tooltip"]')
         );
@@ -105,14 +124,15 @@ const ProductBasicInfo = ({
             (tooltipTriggerEl) => new window.bootstrap.Tooltip(tooltipTriggerEl)
         );
     }, []);
+
     return (
         <>
             <div
-                class="card-body"
+                className="card-body"
                 dir={dir}
                 style={{ display: visible ? "block" : "none" }}
             >
-                <div class="d-flex  align-items-center pt-3">
+                <div className="d-flex align-items-center pt-3">
                     <label
                         className="fs-6 fw-semibold mb-2 me-0"
                         style={{ width: "50px" }}
@@ -127,42 +147,14 @@ const ProductBasicInfo = ({
                             <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                         </span>
                     </label>
-                    <div class="form-check p-0 form-switch">
+                    <div className="form-check p-0 form-switch">
                         <InputSwitch
-                            checked={
-                                !!currentObject.active
-                                    ? !!currentObject.active
-                                    : false
-                            }
+                            checked={!!currentObject.active}
                             onChange={(e) => handleChange("active", e.value)}
                         />
                     </div>
-                    {/* <label
-                        class="ps-10 fs-6 fw-semibold mb-2 me-3 "
-                        style={{ width: "120px" }}
-                    >
-                        {translations.forSell}
-                        <span
-                            className="ms-1"
-                            data-bs-toggle="tooltip"
-                            aria-label={translations.forSell_status}
-                            data-bs-original-title={translations.forSell_status}
-                        >
-                            <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
-                        </span>
-                    </label> */}
-                    {/* <div class="form-check form-switch p-0">
-                        <InputSwitch
-                            checked={
-                                !!currentObject.for_sell
-                                    ? !!currentObject.for_sell
-                                    : false
-                            }
-                            onChange={(e) => handleChange("for_sell", e.value)}
-                        />
-                    </div> */}
                     <label
-                        class="ps-10 fs-6 fw-semibold mb-2 me-3"
+                        className="ps-10 fs-6 fw-semibold mb-2 me-3"
                         style={{ width: "150px" }}
                     >
                         {translations.showInMenu}
@@ -170,76 +162,54 @@ const ProductBasicInfo = ({
                             className="ms-1"
                             data-bs-toggle="tooltip"
                             aria-label={translations.showInMenu_status}
-                            data-bs-original-title={
-                                translations.showInMenu_status
-                            }
+                            data-bs-original-title={translations.showInMenu_status}
                         >
                             <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                         </span>
                     </label>
-                    <div class="form-check form-switch p-0">
+                    <div className="form-check form-switch p-0">
                         <InputSwitch
-                            checked={
-                                !!currentObject.show_in_menu
-                                    ? !!currentObject.show_in_menu
-                                    : false
-                            }
-                            onChange={(e) =>
-                                handleChange("show_in_menu", e.value)
-                            }
+                            checked={!!currentObject.show_in_menu}
+                            onChange={(e) => handleChange("show_in_menu", e.value)}
                         />
                     </div>
                 </div>
-                <div class="d-flex  align-items-center pt-3"></div>
-                <div class="d-flex  align-items-center pt-3"></div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="name_ar" class="col-form-label">
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label htmlFor="name_ar" className="col-form-label">
                                 {translations.name_ar}
                             </label>
                             <input
                                 type="text"
-                                class="form-control form-control-solid custom-height"
+                                className="form-control form-control-solid custom-height"
                                 id="name_ar"
-                                value={
-                                    !!currentObject.name_ar
-                                        ? currentObject.name_ar
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("name_ar", e.target.value)
-                                }
+                                value={currentObject.name_ar || ""}
+                                onChange={(e) => handleChange("name_ar", e.target.value)}
                                 required
-                            ></input>
+                            />
                         </div>
-                        <div class="col-6">
-                            <label for="name_en" class="col-form-label">
+                        <div className="col-6">
+                            <label htmlFor="name_en" className="col-form-label">
                                 {translations.name_en}
                             </label>
                             <input
                                 type="text"
-                                class="form-control form-control-solid custom-height"
+                                className="form-control form-control-solid custom-height"
                                 id="name_en"
-                                value={
-                                    !!currentObject.name_en
-                                        ? currentObject.name_en
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("name_en", e.target.value)
-                                }
+                                value={currentObject.name_en || ""}
+                                onChange={(e) => handleChange("name_en", e.target.value)}
                                 required
-                            ></input>
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="name_ar" class="col-form-label">
-                                {translations.category}
-                            </label>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.category}</label>
                             <Select
                                 id="category_id"
                                 isMulti={false}
@@ -247,25 +217,13 @@ const ProductBasicInfo = ({
                                 closeMenuOnSelect={true}
                                 components={animatedComponents}
                                 value={currentObject.category}
-                                onChange={(val) =>
-                                    handleChange("category_id", val.value, val)
-                                }
+                                onChange={(val) => handleChange("category_id", val.value, val)}
                                 menuPortalTarget={document.body}
-                                styles={{
-                                    menuPortal: (base) => ({
-                                        ...base,
-                                        zIndex: 100000,
-                                    }),
-                                }}
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 100000 }) }}
                             />
                         </div>
                         <div className="col-6">
-                            <label
-                                htmlFor="subcategory_id"
-                                className="col-form-label"
-                            >
-                                {translations.subcategory}
-                            </label>
+                            <label className="col-form-label">{translations.subcategory}</label>
                             <Select
                                 id="subcategory_id"
                                 isMulti={false}
@@ -273,181 +231,121 @@ const ProductBasicInfo = ({
                                 closeMenuOnSelect={true}
                                 components={animatedComponents}
                                 value={currentObject.subcategory}
-                                onChange={(val) =>
-                                    handleChange(
-                                        "subcategory_id",
-                                        val.value,
-                                        val
-                                    )
-                                }
+                                onChange={(val) => handleChange("subcategory_id", val.value, val)}
                                 menuPortalTarget={document.body}
-                                styles={{
-                                    menuPortal: (base) => ({
-                                        ...base,
-                                        zIndex: 100000,
-                                    }),
-                                }}
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 100000 }) }}
                             />
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="name_ar" class="col-form-label">
-                                {translations.deacription_ar}
-                            </label>
-                            <textarea
-                                type="text"
-                                class="form-control form-control-solid"
-                                id="description_ar"
-                                value={
-                                    !!currentObject.description_ar
-                                        ? currentObject.description_ar
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        "description_ar",
-                                        e.target.value
-                                    )
-                                }
-                            ></textarea>
-                        </div>
-                        <div class="col-6">
-                            <label for="name_en" class="col-form-label">
-                                {translations.deacription_en}
-                            </label>
-                            <textarea
-                                type="text"
-                                class="form-control form-control-solid"
-                                id="description_en"
-                                value={
-                                    !!currentObject.description_en
-                                        ? currentObject.description_en
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        "description_en",
-                                        e.target.value
-                                    )
-                                }
-                            ></textarea>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-12">
+                            <label className="col-form-label">{translations.allergens || "Allergens | مسببات الحساسية"}</label>
+                            <Select
+                                isMulti
+                                options={allergensList}
+                                components={animatedComponents}
+                                value={currentObject.allergens || []}
+                                onChange={(val) => handleChange("allergens", val)}
+                                getOptionLabel={(e) => (
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <span style={{ marginRight: "10px" }}>{e.icon}</span>
+                                        <span>{e.label}</span>
+                                    </div>
+                                )}
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 100000 }) }}
+                                placeholder="Select allergens..."
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label
-                                for="preparation_time"
-                                class="col-form-label"
-                            >
-                                {translations.preparationTime}
-                            </label>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.deacription_ar}</label>
+                            <textarea
+                                className="form-control form-control-solid"
+                                value={currentObject.description_ar || ""}
+                                onChange={(e) => handleChange("description_ar", e.target.value)}
+                            />
+                        </div>
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.deacription_en}</label>
+                            <textarea
+                                className="form-control form-control-solid"
+                                value={currentObject.description_en || ""}
+                                onChange={(e) => handleChange("description_en", e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.preparationTime}</label>
                             <input
                                 type="number"
-                                class="form-control form-control-solid custom-height"
-                                id="preparation_time"
-                                value={
-                                    !!currentObject.preparation_time
-                                        ? currentObject.preparation_time
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        "preparation_time",
-                                        e.target.value
-                                    )
-                                }
-                            ></input>
+                                className="form-control form-control-solid custom-height"
+                                value={currentObject.preparation_time || ""}
+                                onChange={(e) => handleChange("preparation_time", e.target.value)}
+                            />
                         </div>
-                        <div class="col-6">
-                            <label for="calories" class="col-form-label">
-                                {translations.calories}
-                            </label>
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.calories}</label>
                             <input
                                 type="number"
                                 min="0"
                                 step=".01"
-                                class="form-control form-control-solid custom-height"
-                                id="calories"
-                                value={
-                                    !!currentObject.calories
-                                        ? currentObject.calories
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("calories", e.target.value)
-                                }
-                            ></input>
+                                className="form-control form-control-solid custom-height"
+                                value={currentObject.calories || ""}
+                                onChange={(e) => handleChange("calories", e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="SKU" class="col-form-label">
-                                {translations.SKU}
-                            </label>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.SKU}</label>
                             <input
                                 type="text"
-                                class="form-control form-control-solid custom-height"
-                                id="SKU"
-                                value={
-                                    !!currentObject.SKU ? currentObject.SKU : ""
-                                }
+                                className="form-control form-control-solid custom-height"
+                                value={currentObject.SKU || ""}
                                 placeholder="00000"
-                                pattern="^\d{5}$"
-                                onChange={(e) =>
-                                    handleChange("SKU", e.target.value)
-                                }
-                            ></input>
+                                onChange={(e) => handleChange("SKU", e.target.value)}
+                            />
                         </div>
-                        <div class="col-6">
-                            <label for="barcode" class="col-form-label">
-                                {translations.barcode}
-                            </label>
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.barcode}</label>
                             <input
                                 type="text"
-                                class="form-control form-control-solid custom-height"
-                                id="barcode"
-                                value={
-                                    !!currentObject.barcode
-                                        ? currentObject.barcode
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("barcode", e.target.value)
-                                }
-                            ></input>
+                                className="form-control form-control-solid custom-height"
+                                value={currentObject.barcode || ""}
+                                onChange={(e) => handleChange("barcode", e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="SKU" class="col-form-label">
-                                {translations.order}
-                            </label>
+
+                <div className="form-group">
+                    <div className="row">
+                        <div className="col-6">
+                            <label className="col-form-label">{translations.order}</label>
                             <input
                                 type="number"
-                                class="form-control form-control-solid custom-height"
-                                id="class"
-                                value={
-                                    !!currentObject.order
-                                        ? currentObject.order
-                                        : ""
-                                }
-                                onChange={(e) =>
-                                    handleChange("order", e.target.value)
-                                }
-                            ></input>
+                                className="form-control form-control-solid custom-height"
+                                value={currentObject.order || ""}
+                                onChange={(e) => handleChange("order", e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="form-group" style={{ paddingtop: "5px" }}></div>
             </div>
         </>
     );
