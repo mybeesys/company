@@ -272,7 +272,9 @@ const ProductBasicInfo = ({
                                 isMulti
                                 options={allergensList}
                                 components={animatedComponents}
-                                value={currentObject.allergens || []}
+                               value={allergensList.filter(option => 
+        (currentObject.allergens || []).some(selected => selected.value === option.value)
+    )}
                                 onChange={(val) => handleChange("allergens", val)}
                                 getOptionLabel={(e) => (
                                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -287,7 +289,7 @@ const ProductBasicInfo = ({
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="form-group">
                     <div className="row">
                         <div className="col-6">
