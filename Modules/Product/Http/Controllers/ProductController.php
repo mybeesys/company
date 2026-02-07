@@ -73,6 +73,7 @@ class ProductController extends Controller
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
         'show_in_menu' => 'required|boolean',
+        'allergens' => 'nullable|array',
     ];
 
 
@@ -632,6 +633,7 @@ class ProductController extends Controller
             $product->description_en = $request->description_en ?? Null;
             $product->calories = $request->calories ?? Null;
             $product->preparation_time = $request->preparation_time ?? Null;
+            $product->allergens = $validated['allergens'] ?? [];
             $unit = UnitTransfer::where('product_id', $request->parent_id)
                 ->whereNull('unit2')
                 ->first();

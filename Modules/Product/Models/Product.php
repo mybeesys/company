@@ -52,7 +52,7 @@ class Product extends Model
         'preparation_time',
         'calories',
         'show_in_menu',
-
+'allergens',
         'vendor_id',
         'alertQuantity',
         'defaultOrderQuantity',

@@ -239,29 +239,7 @@ const ProductBasicInfo = ({
                     </div>
                 </div>
 
-                <div className="form-group">
-                    <div className="row">
-                        <div className="col-12">
-                            <label className="col-form-label">{translations.allergens || "Allergens | مسببات الحساسية"}</label>
-                            <Select
-                                isMulti
-                                options={allergensList}
-                                components={animatedComponents}
-                                value={currentObject.allergens || []}
-                                onChange={(val) => handleChange("allergens", val)}
-                                getOptionLabel={(e) => (
-                                    <div style={{ display: "flex", alignItems: "center" }}>
-                                        <span style={{ marginRight: "10px" }}>{e.icon}</span>
-                                        <span>{e.label}</span>
-                                    </div>
-                                )}
-                                menuPortalTarget={document.body}
-                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 100000 }) }}
-                                placeholder="Select allergens..."
-                            />
-                        </div>
-                    </div>
-                </div>
+              
 
                 <div className="form-group">
                     <div className="row">
@@ -284,6 +262,32 @@ const ProductBasicInfo = ({
                     </div>
                 </div>
 
+
+
+  <div className="form-group">
+                    <div className="row">
+                        <div className="col-12">
+                            <label className="col-form-label">{translations.allergens || "Allergens | مسببات الحساسية"}</label>
+                            <Select
+                                isMulti
+                                options={allergensList}
+                                components={animatedComponents}
+                                value={currentObject.allergens || []}
+                                onChange={(val) => handleChange("allergens", val)}
+                                getOptionLabel={(e) => (
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        {/* <span style={{ marginRight: "10px" }}>{e.icon}</span> */}
+                                        <span>{e.label}</span>
+                                    </div>
+                                )}
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 100000 }) }}
+                                placeholder="Select allergens..."
+                            />
+                        </div>
+                    </div>
+                </div>
+                
                 <div className="form-group">
                     <div className="row">
                         <div className="col-6">
