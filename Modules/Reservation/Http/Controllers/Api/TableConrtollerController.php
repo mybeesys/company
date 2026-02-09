@@ -139,7 +139,22 @@ class TableConrtollerController extends Controller
                 'invoice_id' => $order->id,
                 'paid_amount' => $order?->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
-                'items' => $order->sell_lines,
+                'items' => $order->sell_lines->map(function ($item) {
+    return [
+        'id'                         => $item->id,
+        'product_id'                 => $item->product_id,
+        'quantity'                   => $item->qyt,
+        'price'                      => $item->unit_price,
+        'price_after_discount'       => $item->unit_price_before_discount,
+        'discount_type'              => $item->discount_type,
+        'discount_amount'            => $item->discount_amount,
+        'tax_id'                     => $item->tax_id,
+        'tax_value'                  => $item->tax_value,
+        'price_with_tax_after_discount' => $item->unit_price_inc_tax,
+        'order_item_modifiers'       => $item->modifier ?: [], 
+        'order_item_combos'          => $item->combo ?: [],    
+    ];
+}),
                 'payment' => $order?->payment,
             ] : null,
 
