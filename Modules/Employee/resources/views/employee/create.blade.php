@@ -36,4 +36,35 @@
 
         });
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+         if (typeof tempusDominus !== 'undefined') {
+            const config = {
+                localization: {
+                    locale: 'en-US',
+                    numeric: false,
+                    format: 'yyyy-MM-dd', 
+                },
+                display: {
+                    components: {
+                        clock: false 
+                    }
+                }
+            };
+
+            new tempusDominus.TempusDominus(document.getElementById('employment_start_date'), config);
+            
+            new tempusDominus.TempusDominus(document.getElementById('employment_end_date'), config);
+        }
+
+        const forceLatin = (e) => {
+            const arabicDigits = /[٠١٢٣٤٥٦٧٨٩]/g;
+            e.target.value = e.target.value.replace(arabicDigits, d => d.charCodeAt(0) - 1632);
+        };
+
+        document.getElementById('employment_start_date_input').addEventListener('change', forceLatin);
+        document.getElementById('employment_end_date_input').addEventListener('change', forceLatin);
+    });
+</script>
 @endsection
