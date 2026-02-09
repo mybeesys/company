@@ -8,6 +8,7 @@ use Modules\General\Models\Transaction;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Product\Models\ProductCombo;
 
 // use Modules\Reservation\Database\Factories\OrderTableItemsFactory;
 
@@ -25,7 +26,12 @@ class OrderTableItems extends Model
 
     public function modifier()
     {
-        return $this->belongsTo(Modifier::class, 'modifier_id');
+        return $this->belongsTo(Modifier::class, 'product_id');
+    }
+
+       public function combo()
+    {
+        return $this->belongsTo(ProductCombo::class, 'product_id');
     }
 
     public function unitTransfer()
