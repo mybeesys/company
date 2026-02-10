@@ -454,7 +454,7 @@ $order->update([
             'totalAfterDiscount' => $order->totalAfterDiscount,
             'tax_amount' => $order->tax_amount,
             'final_total' => $order->final_total,
-            'created_by' => Auth::user()->id,
+            'created_by' => $order->created_by,
             'description' => $order->description,
             'ref_no' => $ref_no,
             'status' => $order->status,
