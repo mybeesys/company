@@ -465,7 +465,7 @@ $order->update([
         
         ]);
 
-        $order->sell_lines->map(function ($item) {
+        $order->sell_lines->map(function ($item) use ($transaction){
      TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $item->product_id,
