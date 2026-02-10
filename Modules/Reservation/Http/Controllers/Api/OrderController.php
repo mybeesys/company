@@ -423,7 +423,8 @@ class OrderController extends Controller
         $contactUtils = new ContactUtils();
         $accountUtil = new AccountingUtil();
          $ref_no =  SalesUtile::generateReferenceNumber('sell');
-
+    $transactionUtil = new TransactionUtils();
+         
             $order = TableOrders::find($request->id);
 
       if(!$order){
