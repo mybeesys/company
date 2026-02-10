@@ -415,7 +415,7 @@ class OrderController extends Controller
     /**
      * Show the specified resource.
      */
-    public function cancelOrder(Reqest $id)
+    public function cancelOrder(Reqest $request)
     {
         try{
 
