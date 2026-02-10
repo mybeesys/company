@@ -415,7 +415,7 @@ class OrderController extends Controller
     /**
      * Show the specified resource.
      */
-    public function cancelOrder(Reqest $id)
+    public function cancelOrder(Request $request)
     {
         try{
 
@@ -438,7 +438,7 @@ class OrderController extends Controller
                     'assigned_waiter_id' => null
                 ]);
 $order->update([
-    'status'=>'served'
+    'order_status'=>'served'
 ]);
 
              $transaction =   Transaction::create([
@@ -667,7 +667,7 @@ $order->update([
                                             ], 409);
                       }
 
-                 return  TableOrders::where('establishment_id',$id)->where('status','<>','served')->with('sell_lines')->get();
+                 return  TableOrders::where('establishment_id',$id)->where('order_status','<>','served')->with('sell_lines')->get();
 
 
  
@@ -694,7 +694,9 @@ $order->update([
                                             ], 409);
                       }
                  $order->update([
-    'status'=>$request->status
+    // 'status'=>$request->status
+    'order_status'=>$request->status
+    
 ]);
   return response()->json([
                                                 'message' => $order
