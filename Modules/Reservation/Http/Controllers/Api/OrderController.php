@@ -667,7 +667,7 @@ $order->update([
                                             ], 409);
                       }
 
-                 return  TableOrders::where('establishment_id',$id)->with('sell_lines')->get();
+                 return  TableOrders::where('establishment_id',$id)->where('status','<>','served')->with('sell_lines')->get();
 
 
  
