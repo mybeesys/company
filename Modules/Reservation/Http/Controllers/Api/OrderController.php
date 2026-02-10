@@ -417,7 +417,7 @@ class OrderController extends Controller
      */
     public function cancelOrder(Request $request)
     {
-        try{
+        // try{
 
           $actionUtil = new ActionUtil();
         $contactUtils = new ContactUtils();
@@ -550,11 +550,11 @@ $order->update([
                     'message' => 'done'
                 ], 200);
       }
-        }catch(Exception $e){
- return response()->json([
-                    'message' => $e
-                ], 500);
-        }
+//         }catch(Exception $e){
+//  return response()->json([
+//                     'message' => $e
+//                 ], 500);
+//         }
     }
 
        public function createPaymentLines($transaction, $request)
