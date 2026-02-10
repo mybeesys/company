@@ -99,7 +99,7 @@ class AccountingUtil
             'amount' => $transactionPayment->amount,
             'accounting_account_id' => $transactionPayment->account_id,
             'type' =>  $type,
-            'cost_center_id' => $request->cost_center_id,
+            'cost_center_id' => $request->cost_center_id ?? null,
             'sub_type' => $transaction->type,
             'operation_date' => $transactionPayment->paid_on,
             'created_by' => $transactionPayment->created_by,

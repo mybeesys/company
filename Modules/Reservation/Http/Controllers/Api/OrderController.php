@@ -28,6 +28,31 @@ use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
 use Modules\Sales\Utils\SalesUtile;
 
+
+
+
+
+
+
+use Illuminate\Support\Facades\Mail;
+use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Utils\AccountingUtil;
+use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\ClientsAndSuppliers\utils\ContactUtils;
+use Modules\General\Models\Actions;
+use Modules\General\Models\Country;
+use Modules\General\Models\Setting;
+use Modules\General\Models\Tax;
+use Modules\General\Models\TransactionPayments;
+use Modules\General\Utils\ActionUtil;
+use Modules\Inventory\Models\Transfer;
+use Modules\Product\Http\Controllers\Api\ProductController;
+use Modules\Product\Models\RecipeProduct;
+use Modules\Product\Models\Transformers\Collections\ProductCollection;
+
 class OrderController extends Controller
 {
     /**
@@ -390,19 +415,294 @@ class OrderController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function cancelOrder(Reqest $id)
     {
-        return view('reservation::show');
+        try{
+
+          $actionUtil = new ActionUtil();
+        $contactUtils = new ContactUtils();
+        $accountUtil = new AccountingUtil();
+         $ref_no =  SalesUtile::generateReferenceNumber('sell');
+
+            $order = TableOrders::find($request->id);
+
+      if(!$order){
+      return response()->json([
+                    'message' => 'No Order with given id'
+                ], 409);
+      }
+          
+             $table = Table::find($order->table_id);
+             $table->update([
+                    'table_status' => 0,
+                    'assigned_waiter_id' => null
+                ]);
+$order->update([
+    'status'=>'served'
+]);
+
+             $transaction =   Transaction::create([
+            'type' => 'sell',
+            'invoice_type' => $order->invoice_type,
+            'due_date' => $order->due_date,
+            'transaction_date' => $order->transaction_date,
+            'contact_id' => $order->contact_id,
+            'cost_center' => $order->cost_center ?? null,
+            'discount_amount' => $order->discount_amount,
+            'discount_type' => $order->discount_type,
+            'total_before_tax' => $order->total_before_tax,
+            'totalAfterDiscount' => $order->totalAfterDiscount,
+            'tax_amount' => $order->tax_amount,
+            'final_total' => $order->final_total,
+            'created_by' => Auth::user()->id,
+            'description' => $order->description,
+            'ref_no' => $ref_no,
+            'status' => $order->status,
+            'notice' => $order->notice,
+            'establishment_id' => $order->establishment_id,
+            // 'settings_terms_notes' => $order,
+
+        
+        ]);
+
+        $order->sell_lines->map(function ($item) {
+     TransactionSellLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $item->product_id,
+                'qyt' => $item->qyt,
+                'unit_id' => $item->unit_id,
+                'unit_price_before_discount' => $item->unit_price_before_discount,
+                'unit_price' => $item->unit_price,
+                'discount_type' => $item->discount_type,
+                'discount_amount' => $item->discount_amount,
+                'unit_price_inc_tax' => $item->unit_price_inc_tax,
+                'tax_id' => $item->tax_id,
+                'tax_value' => $item->tax_value,
+                'total_before_vat' => $item->total_before_vat,
+            ]);
+        });
+      $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
+        // if ($request->paid_amount) {
+        //     if ($transaction->final_total == $request->paid_amount) {
+        //         $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        //     } else {
+        //         $this->createPaymentLines($transaction, $request);
+        //     }
+        // } else {
+        //     $acc_trans_mapping = new AccountingAccTransMapping();
+        //     $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
+        //     $acc_trans_mapping->ref_no = $ref_number;
+        //     $acc_trans_mapping->note = '';
+        //     $acc_trans_mapping->type = 'journal_entry';
+        //     $acc_trans_mapping->created_by = Auth::user()->id;
+        //     $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+        //     $acc_trans_mapping->save();
+        //     $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+        //     $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
+        //     $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+
+        //     $client = Contact::find($request->client_id);
+        //     $transactionPayment = new \stdClass();
+
+        //     $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
+        //     $transactionPayment->account_id = $client->account_id;
+        //     $transactionPayment->created_by = Auth::user()->id;
+        //     $transactionPayment->created_by = Auth::user()->id;
+        //     $transactionPayment->transaction_id = $transaction->id;
+        //     $transactionPayment->id = null;
+
+        //     $transactionPayment->amount = $transaction->final_total;
+
+        //     $accountUtil->saveAccountRouteTransaction(
+        //         'debit',
+        //         $transactionPayment,
+        //         $transaction,
+        //         $acc_trans_mapping_id,
+        //         $request
+        //     );
+
+        //     $transactionPayment->account_id = $sales_sales->account_id;
+        //     $transactionPayment->amount = $transaction->total_before_tax;
+
+        //     $accountUtil->saveAccountRouteTransaction(
+        //         'credit',
+        //         $transactionPayment,
+        //         $transaction,
+        //         $acc_trans_mapping_id,
+        //         $request
+        //     );
+
+        //     $transactionPayment->account_id = $sales_vat_calculation->account_id;
+        //     $transactionPayment->amount = $transaction->tax_amount;
+
+        //     $accountUtil->saveAccountRouteTransaction(
+        //         'credit',
+        //         $transactionPayment,
+        //         $transaction,
+        //         $acc_trans_mapping_id,
+        //         $request
+        //     );
+        // }
+         if(!$order){
+      return response()->json([
+                    'message' => 'done'
+                ], 200);
+      }
+        }catch(Exception $e){
+ return response()->json([
+                    'message' => $e
+                ], 500);
+        }
     }
 
+       public function createPaymentLines($transaction, $request)
+    {
+        // dd($transaction, $request);
+        $acc_trans_mapping = new AccountingAccTransMapping();
+
+        $accountUtil = new AccountingUtil();
+        $cash_account_id = $request->account_id;
+        $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
+        $acc_trans_mapping->ref_no = $ref_number;
+        $acc_trans_mapping->note = '';
+        $acc_trans_mapping->type = 'journal_entry';
+        $acc_trans_mapping->created_by = Auth::user()->id;
+        $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->save();
+        $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+        $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
+        $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+
+        $payment_method_id = null;
+
+        if (!$request->has('payment_method_id')) {
+            $payment_method_id = $request->payment_method_id;
+        }
+        $date = Carbon::parse($request->payment_on);
+        $payment_on = $date->format('Y-m-d H:i:s');
+        $transactionUtil = new TransactionUtils();
+        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+
+        $payment_ref_no = $transactionUtil->generateReferenceNumber($prefix_type);
+
+        $client = Contact::find($request->client_id);
+        $transactionPayment = TransactionPayments::create([
+            'transaction_id' => $transaction->id,
+            'payment_type' => $transaction->invoice_type,
+            'amount' => $request->paid_amount,
+            'method' => 'due',
+            'payment_method_id' => $payment_method_id,
+            'is_return' => $transaction->type == 'sell-return' ?? 0,
+            'note' => $request->additionalNotes,
+            'paid_on' => $payment_on,
+            'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
+            'payment_for' => $transaction->contact_id,
+            'payment_ref_no' => $payment_ref_no,
+            'account_id' => $cash_account_id,
+        ]);
+        $client = Contact::find($transactionPayment->payment_for);
+
+        $transactionPayment->account_id = $client->account_id;
+
+        $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
+
+        $accountUtil->saveAccountRouteTransaction(
+            'debit',
+            $transactionPayment,
+            $transaction,
+            $acc_trans_mapping_id,
+            $request
+        );
+
+
+        $transactionPayment->account_id = $cash_account_id;
+        $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
+
+        $accountUtil->saveAccountRouteTransaction(
+            'debit',
+            $transactionPayment,
+            $transaction,
+            $acc_trans_mapping_id,
+            $request
+        );
+
+
+
+        $transactionPayment->account_id = $sales_sales->account_id;
+        $transactionPayment->amount = $transaction->total_before_tax;
+
+        $accountUtil->saveAccountRouteTransaction(
+            'credit',
+            $transactionPayment,
+            $transaction,
+            $acc_trans_mapping_id,
+            $request
+        );
+
+
+
+        $transactionPayment->account_id = $sales_vat_calculation->account_id;
+        $transactionPayment->amount = $transaction->tax_amount;
+
+        $accountUtil->saveAccountRouteTransaction(
+            'credit',
+            $transactionPayment,
+            $transaction,
+            $acc_trans_mapping_id,
+            $request
+        );
+    }
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function establishmentOrders($id)
     {
-        return view('reservation::edit');
+                     $establishment = Establishment::find($id);
+                     if(!$establishment){
+                            return response()->json([
+                                                'message' => 'no establishment with given id'
+                                            ], 409);
+                      }
+
+                 return  TableOrders::where('establishment_id',$id)->with('sell_lines')->get();
+
+
+ 
     }
 
+
+        public function orders()
+    {
+                  
+                 return  TableOrders::with('sell_lines')->get();
+
+
+ 
+    }
+
+        public function updateOrders(Request $request,$id)
+    {
+                  
+  
+                 $order =  TableOrders::find($id);
+                    if(!$order){
+                            return response()->json([
+                                                'message' => 'no order with given id'
+                                            ], 409);
+                      }
+                 $order->update([
+    'status'=>$request->status
+]);
+  return response()->json([
+                                                'message' => $order
+                                            ], 200);
+
+
+ 
+    }
     /**
      * Update the specified resource in storage.
      */
