@@ -565,11 +565,11 @@ $order->update([
         //         $request
         //     );
         // }
-         if(!$order){
+       
       return response()->json([
                     'message' => 'done'
                 ], 200);
-      }
+      
 //         }catch(Exception $e){
 //  return response()->json([
 //                     'message' => $e
