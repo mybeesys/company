@@ -26,7 +26,7 @@ class OrderTableItems extends Model
 
     public function modifier()
     {
-        return $this->belongsTo(Modifier::class, 'product_id');
+        return $this->belongsTo(Modifier::class, 'modifier_id');
     }
 
        public function combo()
