@@ -192,9 +192,10 @@ class OrderController extends Controller
 
                             OrderTableItems::create([
                                 'transaction_id' => $transaction->id,
-                                'product_id' => $modifier->modifier_id,
-                               'parent_id'      => $mainItem->id,
-                             'qyt' => $modifier->quantity,
+                                'modifier_id' => $modifier->modifier_id,
+                                 'product_id' => $modifier->modifier_id,
+                                'parent_id'      => $mainItem->id,
+                                'qyt' => $modifier->quantity,
                                 'unit_price_before_discount' => $modifier->price,
                                 'unit_price' => $modifier->price,
                                 'discount_type' => $modifier->discount_type,
@@ -215,8 +216,9 @@ class OrderController extends Controller
 
                             OrderTableItems::create([
                                 'transaction_id' => $transaction->id,
-                                'product_id' => $find_product->product_id,
-                            'parent_id'      => $mainItem->id,
+                                'combo_id' => $find_product->product_id,
+                                 'product_id' => $find_product->product_id,
+                                'parent_id'      => $mainItem->id,
                                 'qyt' => $find_product->quantity,
                                 'unit_price_before_discount' => $find_product->price,
                                 'unit_price' => $find_product->price,
@@ -299,7 +301,8 @@ class OrderController extends Controller
 
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
-                            'product_id' => $modifier->modifier_id,
+                            'modifier_id' => $modifier->modifier_id,
+                            'product_id' =>$modifier->modifier_id,
                             'parent_id'      => $mainItem->id,
                             'qyt' => $modifier->quantity,
                             'unit_price_before_discount' => $modifier->price,
@@ -322,8 +325,9 @@ class OrderController extends Controller
  
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
-                            'product_id' => $find_product->product_id,
-                          'parent_id'      => $mainItem->id,
+                            'combo_id' => $find_product->product_id,
+                            'product_id' =>$find_product->product_id,
+                            'parent_id'   => $mainItem->id,
                             'qyt' => $find_product->quantity,
                             'unit_price_before_discount' => $find_product->price,
                             'unit_price' => $find_product->price,
