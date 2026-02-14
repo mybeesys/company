@@ -281,7 +281,7 @@ class OrderController extends Controller
                         return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
                     }
 
-                    OrderTableItems::create([
+                $mainItem =    OrderTableItems::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $product->product_id,
                         'qyt' => $product->quantity,
@@ -305,6 +305,7 @@ class OrderController extends Controller
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'product_id' => $modifier->modifier_id,
+                            'parent_id'      => $mainItem->id,
                             'qyt' => $modifier->quantity,
                             'unit_price_before_discount' => $modifier->price,
                             'unit_price' => $modifier->price,
@@ -323,10 +324,11 @@ class OrderController extends Controller
                         if (!$find_product) {
                             return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
                         }
-
+ 
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'product_id' => $find_product->product_id,
+                          'parent_id'      => $mainItem->id,
                             'qyt' => $find_product->quantity,
                             'unit_price_before_discount' => $find_product->price,
                             'unit_price' => $find_product->price,
@@ -659,21 +661,57 @@ $order->update([
     /**
      * Show the form for editing the specified resource.
      */
-    public function establishmentOrders($id)
-    {
-                     $establishment = Establishment::find($id);
-                     if(!$establishment){
-                            return response()->json([
-                                                'message' => 'no establishment with given id'
-                                            ], 409);
-                      }
+   public function establishmentOrders($id)
+{
+    $orders = TableOrders::where('establishment_id', $id)
+        ->where('order_status', '<>', 'served')
+        ->with(['sell_lines.product', 'createdBy'])
+        ->get();
 
-                 return  TableOrders::where('establishment_id',$id)->where('order_status','<>','served')->with('sell_lines')->get();
+    $formattedOrders = $orders->map(function ($order) {
+        $reservation = Reservation::where('table_id', $order->table_id)
+            ->where('status', 'active')->first();
 
+        $allLines = $order->sell_lines;
+        $parentItems = $allLines->where('parent_id', null);
 
- 
-    }
+        return [
+            'id'               => $order->id,
+            'table_id'         => $order->table_id,
+            'customer_name'    => $reservation->customer_name ?? 'Guest',
+            
+            'items' => $parentItems->map(function ($mainItem) use ($allLines) {
+                $subItems = $allLines->where('parent_id', $mainItem->id);
 
+                return [
+                    'product_id'   => $mainItem->product_id,
+                    'product_name' => $mainItem->product->name_ar ?? '',
+                    'quantity'     => (float)$mainItem->qyt,
+                    'price'        => (float)$mainItem->unit_price,
+                    
+                    'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
+                        return [
+                            'modifier_id'   => $mod->product_id,
+                            'modifier_name' => $mod->product->name_ar ?? '',
+                            'quantity'      => (float)$mod->qyt,
+                            'price'         => (float)$mod->unit_price,
+                        ];
+                    })->values(),
+
+                    'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
+                        return [
+                            'option_id'   => $combo->product_id,
+                            'option_name' => $combo->product->name_ar ?? '',
+                            'price'       => (float)$combo->unit_price,
+                        ];
+                    })->values(),
+                ];
+            })->values()
+        ];
+    });
+
+    return response()->json($formattedOrders);
+}
 
         public function orders()
     {

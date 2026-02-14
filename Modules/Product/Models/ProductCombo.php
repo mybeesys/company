@@ -30,6 +30,7 @@ class ProductCombo extends Model
         'price'
     ];
 
+    
     public function items()
     {
         return $this->hasMany(ProductComboItem::class, 'combo_id', 'id');
