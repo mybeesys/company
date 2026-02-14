@@ -713,14 +713,78 @@ $order->update([
     return response()->json($formattedOrders);
 }
 
-        public function orders()
-    {
-                  
-                 return  TableOrders::with('sell_lines')->get();
+  public function orders()
+{
+    $orders = TableOrders::with(['sell_lines.product', 'createdBy'])
+        ->get();
 
+    $formattedOrders = $orders->map(function ($order) {
+        $reservation = \Modules\Reservation\Models\Reservation::where('table_id', $order->table_id)
+            ->where('status', 'active')
+            ->first();
 
- 
-    }
+        $allLines = $order->sell_lines;
+
+         $parentItems = $allLines->where('parent_id', null);
+
+        return [
+            'id'                     => $order->id,
+            'table_id'               => $order->table_id,
+            'created_by'             => $order->created_by,
+            'created_at'             => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
+            'customer_name'          => $reservation->customer_name ?? 'Guest',
+            'customer_phone'         => $reservation->customer_phone ?? '',
+            'guests_count'           => $reservation->guests_count ?? 0,
+            'discount_type'          => $order->discount_type,
+            'discount_value'         => (float)$order->discount_amount,
+            'total_before_discount'  => (float)$order->total_before_tax,
+            'total_after_discount'   => (float)$order->total_after_discount,
+            'total_tax'              => (float)$order->tax_amount,
+            'total_paid'             => (float)$order->final_total,
+            'note'                   => $order->description,
+            'items' => $parentItems->map(function ($mainItem) use ($allLines) {
+                $subItems = $allLines->where('parent_id', $mainItem->id);
+
+                return [
+                    'id'                => $mainItem->id,
+                    'order_id'          => $mainItem->transaction_id,
+                    'product_id'        => $mainItem->product_id,
+                    'product_name'      => $mainItem->product->name_ar ?? '',
+                    'quantity'          => (float)$mainItem->qyt,
+                    'price'             => (float)$mainItem->unit_price,
+                    'price_with_tax'    => (float)$mainItem->unit_price_inc_tax,
+                    'tax_id'            => $mainItem->tax_id,
+                    'tax_value'         => (float)$mainItem->tax_value,
+                    'discount_type'     => $mainItem->discount_type,
+                    'discount_amount'   => (float)$mainItem->discount_amount,
+                    
+                    'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
+                        return [
+                            'id'              => $mod->id,
+                            'modifier_id'     => $mod->product_id,
+                            'modifier_name'   => $mod->product->name_ar ?? '',
+                            'quantity'        => (float)$mod->qyt,
+                            'price'           => (float)$mod->unit_price,
+                            'price_with_tax'  => (float)$mod->unit_price_inc_tax,
+                        ];
+                    })->values(),
+
+                    'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
+                        return [
+                            'id'              => $combo->id,
+                            'combo_group_id'  => $combo->product_id,
+                            'option_id'       => $combo->product_id,
+                            'option_name'     => $combo->product->name_ar ?? '',
+                            'price'           => (float)$combo->unit_price,
+                        ];
+                    })->values(),
+                ];
+            })->values()
+        ];
+    });
+
+    return response()->json($formattedOrders);
+}
 
         public function updateOrders(Request $request,$id)
     {
