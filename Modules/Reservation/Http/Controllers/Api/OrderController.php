@@ -479,6 +479,8 @@ $order->update([
         });
 
 
+        if(isset($request->payments))
+            {
          $payments = json_decode(json_encode($request->payments));
             foreach ($payments as $payment) {
 
@@ -499,7 +501,7 @@ $order->update([
                 }
             }
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-
+}
     
         // if ($request->paid_amount) {
         //     if ($transaction->final_total == $request->paid_amount) {
