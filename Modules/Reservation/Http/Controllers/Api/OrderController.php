@@ -443,15 +443,11 @@ $order->update([
     'order_status'=>'served'
 ]);
 
-$reservation = Reservation::where('table_id', $table->id)
+Reservation::where('table_id', $table->id)
     ->where('status', 'active')
-    ->first();
+    ->update(['status' => 'completed']);
 
-if ($reservation) {
-    $reservation->update([
-        'status' => 'completed'
-    ]);
-}
+    
              $transaction =   Transaction::create([
             'type' => 'sell',
             'invoice_type' => $order->invoice_type,
