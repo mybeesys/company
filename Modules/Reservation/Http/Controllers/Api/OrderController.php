@@ -465,7 +465,7 @@ Reservation::where('table_id', $table->id)
             'created_by' => $order->created_by,
             'description' => $order->description,
             'ref_no' => $ref_no,
-            'status' => $order->status,
+            'status' => 'approved',
             'notice' => $order->notice,
             'establishment_id' => $order->establishment_id,
             // 'settings_terms_notes' => $order,
