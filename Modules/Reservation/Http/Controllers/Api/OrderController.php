@@ -266,7 +266,7 @@ class OrderController extends Controller
                     'establishment_id' => $table->area->establishment_id,
                     'table_id' => $table->id,
                     'order_status' => 'inpreparation',
-                    'order_type'=>$request->order_type
+                   'order_type' => $request->filled('order_type') ? $request->order_type : 'local'
 
                 ]);
 
