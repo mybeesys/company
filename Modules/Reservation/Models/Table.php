@@ -35,7 +35,7 @@ class Table extends Model
     public function activeOrder()
     {
         return $this->hasOne(TableOrders::class, 'table_id')
-            ->whereIn('order_status', ['active'])
+            ->whereIn('order_status', ['inpreparation'])
             ->latest();
     }
 
