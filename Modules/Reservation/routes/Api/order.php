@@ -23,6 +23,7 @@ Route::post('/cancel-order', [ApiOrderController::class, 'cancelOrder']);
 Route::get('/establishment-orders/{id}', [ApiOrderController::class, 'establishmentOrders']);
 Route::get('/orders', [ApiOrderController::class, 'orders']);
 Route::post('/update-orders/{id}', [ApiOrderController::class, 'updateOrders']);
+Route::post('/types-of-service', [ApiOrderController::class, 'typesOfService']);
 
 
 
