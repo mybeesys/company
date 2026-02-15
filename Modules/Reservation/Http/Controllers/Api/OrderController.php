@@ -44,6 +44,8 @@ use Modules\General\Utils\ActionUtil;
 use Modules\Inventory\Models\Transfer;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\RecipeProduct;
+use Modules\Product\Models\TypesOfService;
+
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 
 class OrderController extends Controller
@@ -465,8 +467,10 @@ Reservation::where('table_id', $table->id)
             'created_by' => $order->created_by,
             'description' => $order->description,
             'ref_no' => $ref_no,
-            'status' => $order->status,
+            'status' => 'approved',
             'notice' => $order->notice,
+             'shift_number' => $request->shift_id,
+              
             'establishment_id' => $order->establishment_id,
             // 'settings_terms_notes' => $order,
 
@@ -867,10 +871,23 @@ $type = $request->query('type');
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+   public function typesOfService()
+{
+    $typesOfService = TypesOfService::all();
+
+    $formattedData = $typesOfService->map(function ($service) {
+        return [
+            'id'                  => $service->id,
+            'name_en'            => $service->name_en,
+            'name_ar'            => $service->name_ar,
+            'description'         => $service->description,
+            'packing_charge'      => (float) $service->packing_charge,
+            'packing_charge_type' => $service->packing_charge_type,
+        ];
+    });
+
+    return response()->json($formattedData);
+}
 
     /**
      * Remove the specified resource from storage.
