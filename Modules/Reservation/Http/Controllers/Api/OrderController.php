@@ -491,28 +491,26 @@ Reservation::where('table_id', $table->id)
         });
 
 
-        if(isset($request->payments))
-            {
-         $payments = json_decode(json_encode($request->payments));
-            foreach ($payments as $payment) {
+       if (isset($request->payments) && is_array($request->payments)) {
+     $payments = json_decode(json_encode($request->payments));
 
-                $find_payment = PaymentMethod::find($payment->method_id);
-                if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
-                }
+    foreach ($payments as $payment) {
+        $find_payment = PaymentMethod::find($payment->method_id);
+        if (!$find_payment) {
+            return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+        }
 
-                $request['payment_method_id'] = $request->method;
-                $request['created_by'] = $request->user_id;
-                if ($payment->amount) {
-                    $request['paid_amount'] = $payment->amount;
-                    $request['payment_method_id'] = $payment->method_id;
-                    $request['invoice_type'] = $request->method;
+        if ($payment->amount > 0) {
+            $payment_data = [
+                'paid_amount' => $payment->amount,
+                'payment_method_id' => $payment->method_id,
+                 ];
 
+           $transactionUtil->createOrUpdatePaymentLines($transaction, $payment_data);
+        }
+    }
 
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-                }
-            }
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+    $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 }
     
         // if ($request->paid_amount) {
