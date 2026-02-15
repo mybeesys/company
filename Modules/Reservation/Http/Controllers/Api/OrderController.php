@@ -443,6 +443,11 @@ $order->update([
     'order_status'=>'served'
 ]);
 
+ $reservation = Reservation::wehre('table_id' , $table->id)->where('status','active')->first();
+
+$reservation->update([
+    'status'=>'completed'
+]);
              $transaction =   Transaction::create([
             'type' => 'sell',
             'invoice_type' => $order->invoice_type,
@@ -702,7 +707,23 @@ $order->update([
             'id'               => $order->id,
             'table_id'         => $order->table_id,
             'customer_name'    => $reservation->customer_name ?? 'Guest',
-            
+            'ref_no' => $order->ref_no,
+            'status' => $order->status,
+            'invoice_type' => $order->invoice_type,
+            'transaction_date' => $order->transaction_date,
+            'discount_amount' => $order->discount_amount,
+            'discount_type' => $order->discount_type,
+            'total_before_tax' => $order->total_before_tax,
+            'total_after_discount' => $order->total_after_discount,
+            'created_by' => $order->created_by,
+            'description' => $order->description,
+            'tax_amount' => $order->tax_amount,
+            'order_status' => $order->order_status,
+            'payment_status' => $order?->payment_status,
+            'invoice_created' => !empty($order->id),
+            'invoice_id' => $order->id,
+            'paid_amount' => $order?->payment?->sum('amount') ?? 0,
+            'total_amount' => $order->final_total ?? 0,
             'items' => $parentItems->map(function ($mainItem) use ($allLines) {
                 $subItems = $allLines->where('parent_id', $mainItem->id);
 

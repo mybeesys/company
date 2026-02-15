@@ -201,6 +201,7 @@ class TableConrtollerController extends Controller
 
             $hasActiveOrder = TableOrders::where('table_id', $table->id)
                 ->where('status', 'draft')
+                ->where( 'order_status','<>','served')
                 ->exists();
 
             if ($hasActiveOrder) {
