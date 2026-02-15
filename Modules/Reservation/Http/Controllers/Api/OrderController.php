@@ -45,92 +45,13 @@ use Modules\Inventory\Models\Transfer;
 use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\TypesOfService;
-
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('reservation::index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('reservation::create');
-    }
-
-    // public function storeApi(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'table_id' => 'required|exists:reservation_tables,id',
-    //         'order_status' => 'required|string',
-    //         'items' => 'required|array|min:1',
-    //         'items.*.item_id' => 'required|numeric',
-    //         'items.*.quantity' => 'required|numeric|min:1',
-    //         'items.*.item_price' => 'required|numeric|min:0',
-    //         'customer_name' => 'required|string',
-    //         'customer_phone' => 'required|string',
-    //         'reservation_time' => 'required|date',
-    //         'guests_count' => 'required|integer|min:1',
-    //     ]);
-
-    //     return DB::transaction(function () use ($validated, $request) {
-
-    //         $table = Table::findOrFail($validated['table_id']);
-
-    //         if ($table->table_status != 0) {
-    //             abort(409, 'Table not available for reservation');
-    //         }
-
-    //         $reservation = Reservation::create([
-    //             'table_id' => $table->id,
-    //             'customer_name' => $validated['customer_name'],
-    //             'customer_phone' => $validated['customer_phone'],
-    //             'reservation_time' => $validated['reservation_time'],
-    //             'guests_count' => $validated['guests_count'],
-    //             'status' => 'active',
-    //         ]);
-
-    //         $table->update([
-    //             'table_status' => 2,
-    //             // 'assigned_waiter_id' => Auth::user()->id
-
-    //         ]);
-
-    //         $order = Order::create([
-    //             'no' => $this->generateOrdNo(),
-    //             'order_date' => now(),
-    //             'order_status' => $validated['order_status'],
-    //             'table_id' => $table->id,
-    //             'establishment_id' => $table->area->establishment_id,
-    //         ]);
-
-    //         foreach ($validated['items'] as $item) {
-    //             OrderItem::create([
-    //                 'order_id' => $order->id,
-    //                 'item_id' => $item['item_id'],
-    //                 'quantity' => $item['quantity'],
-    //                 'item_price' => $item['item_price'],
-    //                 'item_total_price' => $item['quantity'] * $item['item_price'],
-    //             ]);
-    //         }
-
-    //         // event(new OrderCreated($order));
-
-    //     });
-    // }
-
+   
     public function storeApi(Request $request)
     {
-
-        //
         try {
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
@@ -163,7 +84,6 @@ class OrderController extends Controller
                         'description' => $request->note,
                     ]);
 
-
                     $products = json_decode(json_encode($request->items));
 
                     foreach ($products as $product) {
@@ -171,7 +91,7 @@ class OrderController extends Controller
                         if (!$find_product) {
                             return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
                         }
-                      $mainItem =    OrderTableItems::create([
+                        $mainItem = OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'product_id' => $product->product_id,
                             'qyt' => $product->quantity,
@@ -185,7 +105,6 @@ class OrderController extends Controller
                         ]);
 
                         $modifiers = json_decode(json_encode($product->order_item_modifiers));
-
                         foreach ($modifiers as $modifier) {
                             $find_product = Product::find($modifier->modifier_id);
                             if (!$find_product) {
@@ -195,21 +114,19 @@ class OrderController extends Controller
                             OrderTableItems::create([
                                 'transaction_id' => $transaction->id,
                                 'modifier_id' => $modifier->modifier_id,
-                                 'product_id' => $modifier->modifier_id,
-                                'parent_id'      => $mainItem->id,
+                                'product_id' => $modifier->modifier_id,
+                                'parent_id' => $mainItem->id,
                                 'qyt' => $modifier->quantity,
                                 'unit_price_before_discount' => $modifier->price,
                                 'unit_price' => $modifier->price,
                                 'discount_type' => $modifier->discount_type,
                                 'discount_amount' => $modifier->discount_amount,
                                 'unit_price_inc_tax' => $modifier->price_with_tax,
-                                // 'tax_id' => $product->tax_id,
                                 'tax_value' => $modifier->tax_value,
                             ]);
                         }
 
                         $order_item_combos = json_decode(json_encode($product->order_item_combos));
-
                         foreach ($order_item_combos as $order_item_combo) {
                             $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
                             if (!$find_product) {
@@ -219,15 +136,14 @@ class OrderController extends Controller
                             OrderTableItems::create([
                                 'transaction_id' => $transaction->id,
                                 'combo_id' => $find_product->product_id,
-                                 'product_id' => $find_product->product_id,
-                                'parent_id'      => $mainItem->id,
+                                'product_id' => $find_product->product_id,
+                                'parent_id' => $mainItem->id,
                                 'qyt' => $find_product->quantity,
                                 'unit_price_before_discount' => $find_product->price,
                                 'unit_price' => $find_product->price,
                                 'discount_type' => null,
                                 'discount_amount' => null,
                                 'unit_price_inc_tax' => null,
-                                // 'tax_id' => $product->tax_id,
                                 'tax_value' => null,
                             ]);
                         }
@@ -248,7 +164,7 @@ class OrderController extends Controller
                     'assigned_waiter_id' => $request->created_by
                 ]);
 
-                $transaction =   TableOrders::create([
+                $transaction = TableOrders::create([
                     'type' => 'sell',
                     'invoice_type' => 'cash',
                     'due_date' => null,
@@ -268,20 +184,17 @@ class OrderController extends Controller
                     'establishment_id' => $table->area->establishment_id,
                     'table_id' => $table->id,
                     'order_status' => 'inpreparation',
-                   'order_type' => $request->filled('order_type') ? $request->order_type : 'local'
-
+                    'order_type' => $request->order_type ?? 1
                 ]);
 
-
                 $products = json_decode(json_encode($request->items));
-
                 foreach ($products as $product) {
                     $find_product = Product::find($product->product_id);
                     if (!$find_product) {
                         return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
                     }
 
-                $mainItem =    OrderTableItems::create([
+                    $mainItem = OrderTableItems::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $product->product_id,
                         'qyt' => $product->quantity,
@@ -295,7 +208,6 @@ class OrderController extends Controller
                     ]);
 
                     $modifiers = json_decode(json_encode($product->order_item_modifiers));
-
                     foreach ($modifiers as $modifier) {
                         $find_product = Product::find($modifier->modifier_id);
                         if (!$find_product) {
@@ -305,77 +217,49 @@ class OrderController extends Controller
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'modifier_id' => $modifier->modifier_id,
-                            'product_id' =>$modifier->modifier_id,
-                            'parent_id'      => $mainItem->id,
+                            'product_id' => $modifier->modifier_id,
+                            'parent_id' => $mainItem->id,
                             'qyt' => $modifier->quantity,
                             'unit_price_before_discount' => $modifier->price,
                             'unit_price' => $modifier->price,
                             'discount_type' => $modifier->discount_type,
                             'discount_amount' => $modifier->discount_amount,
                             'unit_price_inc_tax' => $modifier->price_with_tax,
-                            // 'tax_id' => $product->tax_id,
                             'tax_value' => $modifier->tax_value,
                         ]);
                     }
 
                     $order_item_combos = json_decode(json_encode($product->order_item_combos));
-
                     foreach ($order_item_combos as $order_item_combo) {
                         $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
                         if (!$find_product) {
                             return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
                         }
- 
+
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'combo_id' => $find_product->product_id,
-                            'product_id' =>$find_product->product_id,
-                            'parent_id'   => $mainItem->id,
+                            'product_id' => $find_product->product_id,
+                            'parent_id' => $mainItem->id,
                             'qyt' => $find_product->quantity,
                             'unit_price_before_discount' => $find_product->price,
                             'unit_price' => $find_product->price,
                             'discount_type' => null,
                             'discount_amount' => null,
                             'unit_price_inc_tax' => null,
-                            // 'tax_id' => $product->tax_id,
                             'tax_value' => null,
                         ]);
                     }
                 }
             }
 
-
-            // $payments = json_decode(json_encode($request->payments));
-            // foreach ($payments as $payment) {
-
-            //     $find_payment = PaymentMethod::find($payment->method_id);
-            //     if (!$find_payment) {
-            //         return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
-            //     }
-
-            //     $request['payment_method_id'] = $request->method;
-            //     $request['created_by'] = $request->user_id;
-            //     if ($payment->amount) {
-            //         $request['paid_amount'] = $payment->amount;
-            //         $request['payment_method_id'] = $payment->method_id;
-            //         $request['invoice_type'] = $request->method;
-
-
-            //         $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            //     }
-            // }
-            // $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-
-
-
             DB::commit();
 
             try {
                 $tenantId = (string) tenancy()->tenant->id;
-
                 \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
                     'tenant_id' => $tenantId,
-                    'event'     => 'TableUpdated',
+                    'event' => 'TableUpdated',
                     'data' => [
                         'table_id' => $table->id,
                         'table_code' => $table->code,
@@ -397,18 +281,15 @@ class OrderController extends Controller
         }
     }
 
-
     public function generateOrdNo()
     {
         $prefix = 'ORD';
-
         $lastOrd = TableOrders::where('local_id', 'table_order')
             ->whereNotNull('ref_no')
             ->orderBy('id', 'desc')
             ->first();
 
         $lastNumber = 0;
-
         if ($lastOrd && preg_match('/(\d+)/', $lastOrd->ref_no, $matches)) {
             $lastNumber = (int) $matches[1];
         }
@@ -416,42 +297,37 @@ class OrderController extends Controller
         return $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Show the specified resource.
-     */
     public function cancelOrder(Request $request)
     {
-        // try{
-
-          $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil();
         $contactUtils = new ContactUtils();
         $accountUtil = new AccountingUtil();
-         $ref_no =  SalesUtile::generateReferenceNumber('sell');
-    $transactionUtil = new TransactionUtils();
-         
-            $order = TableOrders::find($request->id);
+        $ref_no = SalesUtile::generateReferenceNumber('sell');
+        $transactionUtil = new TransactionUtils();
 
-      if(!$order){
-      return response()->json([
-                    'message' => 'No Order with given id'
-                ], 409);
-      }
-          
-             $table = Table::find($order->table_id);
-             $table->update([
-                    'table_status' => 0,
-                    'assigned_waiter_id' => null
-                ]);
-$order->update([
-    'order_status'=>'served'
-]);
+        $order = TableOrders::find($request->id);
 
-Reservation::where('table_id', $table->id)
-    ->where('status', 'active')
-    ->update(['status' => 'completed']);
+        if (!$order) {
+            return response()->json([
+                'message' => 'No Order with given id'
+            ], 409);
+        }
 
+        $table = Table::find($order->table_id);
+        $table->update([
+            'table_status' => 0,
+            'assigned_waiter_id' => null
+        ]);
 
-             $transaction =   Transaction::create([
+        $order->update([
+            'order_status' => 'served'
+        ]);
+
+        Reservation::where('table_id', $table->id)
+            ->where('status', 'active')
+            ->update(['status' => 'completed']);
+
+        $transaction = Transaction::create([
             'type' => 'sell',
             'invoice_type' => $order->invoice_type,
             'due_date' => $order->due_date,
@@ -469,16 +345,12 @@ Reservation::where('table_id', $table->id)
             'ref_no' => $ref_no,
             'status' => 'approved',
             'notice' => $order->notice,
-             'shift_number' => $request->shift_id,
-              
+            'shift_number' => $request->shift_id,
             'establishment_id' => $order->establishment_id,
-            // 'settings_terms_notes' => $order,
-
-        
         ]);
 
-        $order->sell_lines->map(function ($item) use ($transaction){
-     TransactionSellLine::create([
+        $order->sell_lines->map(function ($item) use ($transaction) {
+            TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $item->product_id,
                 'qyt' => $item->qyt,
@@ -494,404 +366,211 @@ Reservation::where('table_id', $table->id)
             ]);
         });
 
+        if (isset($request->payments) && is_array($request->payments)) {
+            $payments = json_decode(json_encode($request->payments));
+            foreach ($payments as $payment) {
+                $find_payment = PaymentMethod::find($payment->method_id);
+                if (!$find_payment) {
+                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                }
 
-       if (isset($request->payments) && is_array($request->payments)) {
-     $payments = json_decode(json_encode($request->payments));
-
-    foreach ($payments as $payment) {
-        $find_payment = PaymentMethod::find($payment->method_id);
-        if (!$find_payment) {
-            return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                if ($payment->amount > 0) {
+                    $payment_data = [
+                        'paid_amount' => $payment->amount,
+                        'payment_method_id' => $payment->method_id,
+                    ];
+                    $transactionUtil->createOrUpdatePaymentLines($transaction, $payment_data);
+                }
+            }
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
         }
 
-        if ($payment->amount > 0) {
-            $payment_data = [
-                'paid_amount' => $payment->amount,
-                'payment_method_id' => $payment->method_id,
-                 ];
-
-           $transactionUtil->createOrUpdatePaymentLines($transaction, $payment_data);
-        }
+        return response()->json([
+            'message' => 'done'
+        ], 200);
     }
 
-    $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-}
-    
-        // if ($request->paid_amount) {
-        //     if ($transaction->final_total == $request->paid_amount) {
-        //         $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-        //     } else {
-        //         $this->createPaymentLines($transaction, $request);
-        //     }
-        // } else {
-        //     $acc_trans_mapping = new AccountingAccTransMapping();
-        //     $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
-        //     $acc_trans_mapping->ref_no = $ref_number;
-        //     $acc_trans_mapping->note = '';
-        //     $acc_trans_mapping->type = 'journal_entry';
-        //     $acc_trans_mapping->created_by = Auth::user()->id;
-        //     $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
-        //     $acc_trans_mapping->save();
-        //     $acc_trans_mapping_id = $acc_trans_mapping->id;
-
-        //     $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
-        //     $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
-
-        //     $client = Contact::find($request->client_id);
-        //     $transactionPayment = new \stdClass();
-
-        //     $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
-        //     $transactionPayment->account_id = $client->account_id;
-        //     $transactionPayment->created_by = Auth::user()->id;
-        //     $transactionPayment->created_by = Auth::user()->id;
-        //     $transactionPayment->transaction_id = $transaction->id;
-        //     $transactionPayment->id = null;
-
-        //     $transactionPayment->amount = $transaction->final_total;
-
-        //     $accountUtil->saveAccountRouteTransaction(
-        //         'debit',
-        //         $transactionPayment,
-        //         $transaction,
-        //         $acc_trans_mapping_id,
-        //         $request
-        //     );
-
-        //     $transactionPayment->account_id = $sales_sales->account_id;
-        //     $transactionPayment->amount = $transaction->total_before_tax;
-
-        //     $accountUtil->saveAccountRouteTransaction(
-        //         'credit',
-        //         $transactionPayment,
-        //         $transaction,
-        //         $acc_trans_mapping_id,
-        //         $request
-        //     );
-
-        //     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-        //     $transactionPayment->amount = $transaction->tax_amount;
-
-        //     $accountUtil->saveAccountRouteTransaction(
-        //         'credit',
-        //         $transactionPayment,
-        //         $transaction,
-        //         $acc_trans_mapping_id,
-        //         $request
-        //     );
-        // }
-       
-      return response()->json([
-                    'message' => 'done'
-                ], 200);
-      
-//         }catch(Exception $e){
-//  return response()->json([
-//                     'message' => $e
-//                 ], 500);
-//         }
-    }
-
-       public function createPaymentLines($transaction, $request)
+    public function establishmentOrders(Request $request, $id)
     {
-        // dd($transaction, $request);
-        $acc_trans_mapping = new AccountingAccTransMapping();
+        $type = $request->query('type');
+        $orders = TableOrders::where('establishment_id', $id)
+            ->where('order_status', '<>', 'served')
+            ->with(['sell_lines.product', 'createdBy'])
+            ->when($type, function ($query, $type) {
+                return $query->where('order_type', $type);
+            })
+            ->get();
 
-        $accountUtil = new AccountingUtil();
-        $cash_account_id = $request->account_id;
-        $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
-        $acc_trans_mapping->ref_no = $ref_number;
-        $acc_trans_mapping->note = '';
-        $acc_trans_mapping->type = 'journal_entry';
-        $acc_trans_mapping->created_by = Auth::user()->id;
-        $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
-        $acc_trans_mapping->save();
-        $acc_trans_mapping_id = $acc_trans_mapping->id;
+        $formattedOrders = $orders->map(function ($order) {
+            $reservation = Reservation::where('table_id', $order->table_id)
+                ->where('status', 'active')->first();
 
-        $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
-        $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+            $allLines = $order->sell_lines;
+            $parentItems = $allLines->where('parent_id', null);
+            
+            $service = TypesOfService::find($order->order_type);
 
-        $payment_method_id = null;
+            return [
+                'id' => $order->id,
+                'table_id' => $order->table_id,
+                'customer_name' => $reservation->customer_name ?? 'Guest',
+                'ref_no' => $order->ref_no,
+                'status' => $order->status,
+                'invoice_type' => $order->invoice_type,
+                'transaction_date' => $order->transaction_date,
+                'discount_amount' => $order->discount_amount,
+                'discount_type' => $order->discount_type,
+                'total_before_tax' => $order->total_before_tax,
+                'total_after_discount' => $order->total_after_discount,
+                'created_by' => $order->created_by,
+                'description' => $order->description,
+                'tax_amount' => $order->tax_amount,
+                'order_status' => $order->order_status,
+                'order_type' => $service->name_ar ?? 'محلي',
+                'payment_status' => $order?->payment_status,
+                'invoice_created' => !empty($order->id),
+                'invoice_id' => $order->id,
+                'paid_amount' => $order?->payment?->sum('amount') ?? 0,
+                'total_amount' => $order->final_total ?? 0,
+                'items' => $parentItems->map(function ($mainItem) use ($allLines) {
+                    $subItems = $allLines->where('parent_id', $mainItem->id);
+                    return [
+                        'product_id' => $mainItem->product_id,
+                        'product_name' => $mainItem->product->name_ar ?? '',
+                        'quantity' => (float)$mainItem->qyt,
+                        'price' => (float)$mainItem->unit_price,
+                        'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
+                            return [
+                                'modifier_id' => $mod->product_id,
+                                'modifier_name' => $mod->product->name_ar ?? '',
+                                'quantity' => (float)$mod->qyt,
+                                'price' => (float)$mod->unit_price,
+                            ];
+                        })->values(),
+                        'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
+                            return [
+                                'option_id' => $combo->product_id,
+                                'option_name' => $combo->product->name_ar ?? '',
+                                'price' => (float)$combo->unit_price,
+                            ];
+                        })->values(),
+                    ];
+                })->values()
+            ];
+        });
 
-        if (!$request->has('payment_method_id')) {
-            $payment_method_id = $request->payment_method_id;
+        return response()->json($formattedOrders);
+    }
+
+    public function orders(Request $request)
+    {
+        $type = $request->query('type');
+        $orders = TableOrders::with(['sell_lines.product', 'createdBy'])
+            ->when($type, function ($query, $type) {
+                return $query->where('order_type', $type);
+            })
+            ->get();
+
+        $formattedOrders = $orders->map(function ($order) {
+            $reservation = Reservation::where('table_id', $order->table_id)
+                ->where('status', 'active')
+                ->first();
+
+            $allLines = $order->sell_lines;
+            $parentItems = $allLines->where('parent_id', null);
+            
+            $service = TypesOfService::find($order->order_type);
+
+            return [
+                'id' => $order->id,
+                'table_id' => $order->table_id,
+                'created_by' => $order->created_by,
+                'order_type' => $service->name_ar ?? 'محلي',
+                'order_status' => $order->order_status,
+                'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
+                'customer_name' => $reservation->customer_name ?? 'Guest',
+                'customer_phone' => $reservation->customer_phone ?? '',
+                'guests_count' => $reservation->guests_count ?? 0,
+                'discount_type' => $order->discount_type,
+                'discount_value' => (float)$order->discount_amount,
+                'total_before_discount' => (float)$order->total_before_tax,
+                'total_after_discount' => (float)$order->total_after_discount,
+                'total_tax' => (float)$order->tax_amount,
+                'total_paid' => (float)$order->final_total,
+                'note' => $order->description,
+                'items' => $parentItems->map(function ($mainItem) use ($allLines) {
+                    $subItems = $allLines->where('parent_id', $mainItem->id);
+                    return [
+                        'id' => $mainItem->id,
+                        'order_id' => $mainItem->transaction_id,
+                        'product_id' => $mainItem->product_id,
+                        'product_name' => $mainItem->product->name_ar ?? '',
+                        'quantity' => (float)$mainItem->qyt,
+                        'price' => (float)$mainItem->unit_price,
+                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                        'tax_id' => $mainItem->tax_id,
+                        'tax_value' => (float)$mainItem->tax_value,
+                        'discount_type' => $mainItem->discount_type,
+                        'discount_amount' => (float)$mainItem->discount_amount,
+                        'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
+                            return [
+                                'id' => $mod->id,
+                                'modifier_id' => $mod->product_id,
+                                'modifier_name' => $mod->product->name_ar ?? '',
+                                'quantity' => (float)$mod->qyt,
+                                'price' => (float)$mod->unit_price,
+                                'price_with_tax' => (float)$mod->unit_price_inc_tax,
+                            ];
+                        })->values(),
+                        'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
+                            return [
+                                'id' => $combo->id,
+                                'combo_group_id' => $combo->product_id,
+                                'option_id' => $combo->product_id,
+                                'option_name' => $combo->product->name_ar ?? '',
+                                'price' => (float)$combo->unit_price,
+                            ];
+                        })->values(),
+                    ];
+                })->values()
+            ];
+        });
+
+        return response()->json($formattedOrders);
+    }
+
+    public function updateOrders(Request $request, $id)
+    {
+        $order = TableOrders::find($id);
+        if (!$order) {
+            return response()->json([
+                'message' => 'no order with given id'
+            ], 409);
         }
-        $date = Carbon::parse($request->payment_on);
-        $payment_on = $date->format('Y-m-d H:i:s');
-        $transactionUtil = new TransactionUtils();
-        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
-
-        $payment_ref_no = $transactionUtil->generateReferenceNumber($prefix_type);
-
-        $client = Contact::find($request->client_id);
-        $transactionPayment = TransactionPayments::create([
-            'transaction_id' => $transaction->id,
-            'payment_type' => $transaction->invoice_type,
-            'amount' => $request->paid_amount,
-            'method' => 'due',
-            'payment_method_id' => $payment_method_id,
-            'is_return' => $transaction->type == 'sell-return' ?? 0,
-            'note' => $request->additionalNotes,
-            'paid_on' => $payment_on,
-            'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
-            'payment_for' => $transaction->contact_id,
-            'payment_ref_no' => $payment_ref_no,
-            'account_id' => $cash_account_id,
+        $order->update([
+            'order_status' => $request->status
         ]);
-        $client = Contact::find($transactionPayment->payment_for);
-
-        $transactionPayment->account_id = $client->account_id;
-
-        $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
-
-        $accountUtil->saveAccountRouteTransaction(
-            'debit',
-            $transactionPayment,
-            $transaction,
-            $acc_trans_mapping_id,
-            $request
-        );
-
-
-        $transactionPayment->account_id = $cash_account_id;
-        $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
-
-        $accountUtil->saveAccountRouteTransaction(
-            'debit',
-            $transactionPayment,
-            $transaction,
-            $acc_trans_mapping_id,
-            $request
-        );
-
-
-
-        $transactionPayment->account_id = $sales_sales->account_id;
-        $transactionPayment->amount = $transaction->total_before_tax;
-
-        $accountUtil->saveAccountRouteTransaction(
-            'credit',
-            $transactionPayment,
-            $transaction,
-            $acc_trans_mapping_id,
-            $request
-        );
-
-
-
-        $transactionPayment->account_id = $sales_vat_calculation->account_id;
-        $transactionPayment->amount = $transaction->tax_amount;
-
-        $accountUtil->saveAccountRouteTransaction(
-            'credit',
-            $transactionPayment,
-            $transaction,
-            $acc_trans_mapping_id,
-            $request
-        );
+        return response()->json([
+            'message' => $order
+        ], 200);
     }
-    /**
-     * Show the form for editing the specified resource.
-     */
-   public function establishmentOrders(Request $request,$id)
-{
-   
-$type = $request->query('type');
 
-         $orders = TableOrders::where('establishment_id', $id)
-        ->where('order_status', '<>', 'served')
-        ->with(['sell_lines.product', 'createdBy'])
-        ->when($type, function ($query, $type) {
-            return $query->where('order_type', $type); 
-          })
-        ->get();
-
-    $formattedOrders = $orders->map(function ($order) {
-        $reservation = Reservation::where('table_id', $order->table_id)
-            ->where('status', 'active')->first();
-
-        $allLines = $order->sell_lines;
-        $parentItems = $allLines->where('parent_id', null);
-
-        return [
-            'id'               => $order->id,
-            'table_id'         => $order->table_id,
-            'customer_name'    => $reservation->customer_name ?? 'Guest',
-            'ref_no' => $order->ref_no,
-            'status' => $order->status,
-            'invoice_type' => $order->invoice_type,
-            'transaction_date' => $order->transaction_date,
-            'discount_amount' => $order->discount_amount,
-            'discount_type' => $order->discount_type,
-            'total_before_tax' => $order->total_before_tax,
-            'total_after_discount' => $order->total_after_discount,
-            'created_by' => $order->created_by,
-            'description' => $order->description,
-            'tax_amount' => $order->tax_amount,
-            'order_status' => $order->order_status,
-            'order_type'=>$order->order_type,
-            'payment_status' => $order?->payment_status,
-            'invoice_created' => !empty($order->id),
-            'invoice_id' => $order->id,
-            'paid_amount' => $order?->payment?->sum('amount') ?? 0,
-            'total_amount' => $order->final_total ?? 0,
-            'items' => $parentItems->map(function ($mainItem) use ($allLines) {
-                $subItems = $allLines->where('parent_id', $mainItem->id);
-
-                return [
-                    'product_id'   => $mainItem->product_id,
-                    'product_name' => $mainItem->product->name_ar ?? '',
-                    'quantity'     => (float)$mainItem->qyt,
-                    'price'        => (float)$mainItem->unit_price,
-                    
-                    'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
-                        return [
-                            'modifier_id'   => $mod->product_id,
-                            'modifier_name' => $mod->product->name_ar ?? '',
-                            'quantity'      => (float)$mod->qyt,
-                            'price'         => (float)$mod->unit_price,
-                        ];
-                    })->values(),
-
-                    'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
-                        return [
-                            'option_id'   => $combo->product_id,
-                            'option_name' => $combo->product->name_ar ?? '',
-                            'price'       => (float)$combo->unit_price,
-                        ];
-                    })->values(),
-                ];
-            })->values()
-        ];
-    });
-
-    return response()->json($formattedOrders);
-}
-
-  public function orders(Request $request)
-{
-  $type = $request->query('type');
-
-    $orders = TableOrders::with(['sell_lines.product', 'createdBy'])
-        ->when($type, function ($query, $type) {
-            return $query->where('order_type', $type); 
-          })
-        ->get();
-    $formattedOrders = $orders->map(function ($order) {
-        $reservation = \Modules\Reservation\Models\Reservation::where('table_id', $order->table_id)
-            ->where('status', 'active')
-            ->first();
-
-        $allLines = $order->sell_lines;
-
-         $parentItems = $allLines->where('parent_id', null);
-
-        return [
-            'id'                     => $order->id,
-            'table_id'               => $order->table_id,
-            'created_by'             => $order->created_by,
-            'order_type'             =>$order->order_type,
-            'order_status'             =>$order->order_status,
-            'created_at'             => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
-            'customer_name'          => $reservation->customer_name ?? 'Guest',
-            'customer_phone'         => $reservation->customer_phone ?? '',
-            'guests_count'           => $reservation->guests_count ?? 0,
-            'discount_type'          => $order->discount_type,
-            'discount_value'         => (float)$order->discount_amount,
-            'total_before_discount'  => (float)$order->total_before_tax,
-            'total_after_discount'   => (float)$order->total_after_discount,
-            'total_tax'              => (float)$order->tax_amount,
-            'total_paid'             => (float)$order->final_total,
-            'note'                   => $order->description,
-            'items' => $parentItems->map(function ($mainItem) use ($allLines) {
-                $subItems = $allLines->where('parent_id', $mainItem->id);
-
-                return [
-                    'id'                => $mainItem->id,
-                    'order_id'          => $mainItem->transaction_id,
-                    'product_id'        => $mainItem->product_id,
-                    'product_name'      => $mainItem->product->name_ar ?? '',
-                    'quantity'          => (float)$mainItem->qyt,
-                    'price'             => (float)$mainItem->unit_price,
-                    'price_with_tax'    => (float)$mainItem->unit_price_inc_tax,
-                    'tax_id'            => $mainItem->tax_id,
-                    'tax_value'         => (float)$mainItem->tax_value,
-                    'discount_type'     => $mainItem->discount_type,
-                    'discount_amount'   => (float)$mainItem->discount_amount,
-                    
-                    'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
-                        return [
-                            'id'              => $mod->id,
-                            'modifier_id'     => $mod->product_id,
-                            'modifier_name'   => $mod->product->name_ar ?? '',
-                            'quantity'        => (float)$mod->qyt,
-                            'price'           => (float)$mod->unit_price,
-                            'price_with_tax'  => (float)$mod->unit_price_inc_tax,
-                        ];
-                    })->values(),
-
-                    'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
-                        return [
-                            'id'              => $combo->id,
-                            'combo_group_id'  => $combo->product_id,
-                            'option_id'       => $combo->product_id,
-                            'option_name'     => $combo->product->name_ar ?? '',
-                            'price'           => (float)$combo->unit_price,
-                        ];
-                    })->values(),
-                ];
-            })->values()
-        ];
-    });
-
-    return response()->json($formattedOrders);
-}
-
-        public function updateOrders(Request $request,$id)
+    public function typesOfService()
     {
-                  
-  
-                 $order =  TableOrders::find($id);
-                    if(!$order){
-                            return response()->json([
-                                                'message' => 'no order with given id'
-                                            ], 409);
-                      }
-                 $order->update([
-    // 'status'=>$request->status
-    'order_status'=>$request->status
-    
-]);
-  return response()->json([
-                                                'message' => $order
-                                            ], 200);
-
-
- 
+        $typesOfService = TypesOfService::all();
+        $formattedData = $typesOfService->map(function ($service) {
+            return [
+                'id' => $service->id,
+                'name_en' => $service->name_en,
+                'name_ar' => $service->name_ar,
+                'description' => $service->description,
+                'packing_charge' => (float) $service->packing_charge,
+                'packing_charge_type' => $service->packing_charge_type,
+            ];
+        });
+        return response()->json($formattedData);
     }
-    /**
-     * Update the specified resource in storage.
-     */
-   public function typesOfService()
-{
-    $typesOfService = TypesOfService::all();
 
-    $formattedData = $typesOfService->map(function ($service) {
-        return [
-            'id'                  => $service->id,
-            'name_en'            => $service->name_en,
-            'name_ar'            => $service->name_ar,
-            'description'         => $service->description,
-            'packing_charge'      => (float) $service->packing_charge,
-            'packing_charge_type' => $service->packing_charge_type,
-        ];
-    });
-
-    return response()->json($formattedData);
-}
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         //
