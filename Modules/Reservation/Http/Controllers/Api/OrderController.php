@@ -266,6 +266,7 @@ class OrderController extends Controller
                     'establishment_id' => $table->area->establishment_id,
                     'table_id' => $table->id,
                     'order_status' => 'inpreparation',
+                    'order_type'=>$request->order_type
 
                 ]);
 
@@ -447,7 +448,7 @@ Reservation::where('table_id', $table->id)
     ->where('status', 'active')
     ->update(['status' => 'completed']);
 
-    
+
              $transaction =   Transaction::create([
             'type' => 'sell',
             'invoice_type' => $order->invoice_type,
@@ -689,11 +690,17 @@ Reservation::where('table_id', $table->id)
     /**
      * Show the form for editing the specified resource.
      */
-   public function establishmentOrders($id)
+   public function establishmentOrders(Request $request,$id)
 {
-    $orders = TableOrders::where('establishment_id', $id)
+   
+$type = $request->query('type');
+
+         $orders = TableOrders::where('establishment_id', $id)
         ->where('order_status', '<>', 'served')
         ->with(['sell_lines.product', 'createdBy'])
+        ->when($type, function ($query, $type) {
+            return $query->where('order_type', $type); 
+          })
         ->get();
 
     $formattedOrders = $orders->map(function ($order) {
@@ -719,6 +726,7 @@ Reservation::where('table_id', $table->id)
             'description' => $order->description,
             'tax_amount' => $order->tax_amount,
             'order_status' => $order->order_status,
+            'order_type'=>$order->order_type,
             'payment_status' => $order?->payment_status,
             'invoice_created' => !empty($order->id),
             'invoice_id' => $order->id,
@@ -757,11 +765,15 @@ Reservation::where('table_id', $table->id)
     return response()->json($formattedOrders);
 }
 
-  public function orders()
+  public function orders(Request $request)
 {
-    $orders = TableOrders::with(['sell_lines.product', 'createdBy'])
-        ->get();
+  $type = $request->query('type');
 
+    $orders = TableOrders::with(['sell_lines.product', 'createdBy'])
+        ->when($type, function ($query, $type) {
+            return $query->where('order_type', $type); 
+          })
+        ->get();
     $formattedOrders = $orders->map(function ($order) {
         $reservation = \Modules\Reservation\Models\Reservation::where('table_id', $order->table_id)
             ->where('status', 'active')
