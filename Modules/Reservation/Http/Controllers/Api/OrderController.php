@@ -135,7 +135,7 @@ class OrderController extends Controller
 
                             OrderTableItems::create([
                                 'transaction_id' => $transaction->id,
-                                'combo_id' => $find_product->product_id,
+                                'combo_id' => $order_item_combo->option_id,
                                 'product_id' => $find_product->product_id,
                                 'parent_id' => $mainItem->id,
                                 'qyt' => $find_product->quantity,
@@ -238,7 +238,7 @@ class OrderController extends Controller
 // option
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
-                            'combo_id' => $find_product->product_id,
+                            'combo_id' => $order_item_combo->option_id,
                             'product_id' => $find_product->product_id,
                             'parent_id' => $mainItem->id,
                             'qyt' => $find_product->quantity,
@@ -525,10 +525,10 @@ class OrderController extends Controller
                         'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
                             return [
                                 'id' => $combo->id,
-                                'combo_group_id' => $combo->product_id,
-                                'option_id' => $combo->product_id,
-                                'option_name' => $combo->product->name_ar ?? '',
+                                'option_id' => $combo->combo_id,
+                                'option_name' => $combo->productCombo->name_ar ?? '',
                                 'price' => (float)$combo->unit_price,
+                                'combo_group_id' => $combo->product_id,
                             ];
                         })->values(),
                     ];
