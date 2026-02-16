@@ -114,9 +114,9 @@ class TableConrtollerController extends Controller
                     'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
                         return [
                             'id' => $combo->id,
-                            'option_id' => $combo->product_id,
-                            'option_name' => $combo->product->name_ar ?? 'Option',
-                            'price' => (float)$combo->unit_price,
+                              'option_id' => $combo->combo_id,
+                                'option_name' => $combo->productCombo->name_ar ?? '',
+                                'price' => (float)$combo->unit_price,
                         ];
                     })->values(),
                 ];
