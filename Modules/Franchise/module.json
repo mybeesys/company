@@ -1,0 +1,11 @@
+{
+    "name": "Franchise",
+    "alias": "franchise",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Franchise\\Providers\\FranchiseServiceProvider"
+    ],
+    "files": []
+}
