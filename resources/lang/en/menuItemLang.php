@@ -10,6 +10,8 @@ return [
     'employees_management_module' => 'Employee management',
     'establishments_module' => 'Establishments',
     'users' => 'Users',
+    'franchise' => 'Franchise',
+
     'roles' => 'Roles',
     'crm' => 'CRM',
     'reports_module' => 'Reports',
@@ -19,6 +21,11 @@ return [
     'establishments' => 'Establishments',
     'reports' => 'Reports',
     'schedules' => 'Schedules',
+    'branches_mgmt' => 'Franchise Branches Management',
+    'franchise_product_mgmt' => 'Franchise Products Management',
+    "custom_menus_mgmt" => 'Custom Menus Management',
+    'franchise_com' => ' Franchise Companies',
+
     'accounting_dashboard' => 'Accounting Dashboard',
     'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
@@ -136,7 +143,7 @@ return [
     'inventory_dashboard' => 'Stock Dashboard',
     'product-inventory-summary' => "Product inventory summary",
     'product-inventory-record' => "Product inventory record",
-    "product-inventory"=>"Item Inventory Report",
+    "product-inventory" => "Item Inventory Report",
 
 
 

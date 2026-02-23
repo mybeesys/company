@@ -4,50 +4,71 @@ namespace Modules\Franchise\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Franchise\Entities\FranchiseCompany;
 use Modules\Franchise\Entities\FranchiseContract;
 use Yajra\DataTables\Facades\DataTables;
-use DB;
+use Modules\Franchise\Models\FranchiseCompanies;
 
 class FranchiseCompanyController extends Controller
 {
-    /**
-     * عرض قائمة الشركات مع الفلترة الذكية
-     */
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = FranchiseCompany::query();
+            $query = FranchiseCompanies::query();
 
-            // منطق التقسيم المطلوب:
             if ($request->view_type == 'new_no_contract') {
-                // شركات جديدة بلا أي عقد
                 $query->doesntHave('contracts');
             } elseif ($request->view_type == 'active_contracts') {
-                // شركات لديها عقود سارية المفعول حالياً
-                $query->whereHas('contracts', function($q) {
-                    $q->where('status', 'active')
-                      ->where('end_date', '>=', now()->format('Y-m-d'));
+                $query->whereHas('contracts', function ($q) {
+                    $q->where('end_date', '>=', now()->format('Y-m-d'));
                 });
             } elseif ($request->view_type == 'expired_contracts') {
-                // شركات عقودها منتهية (ولا تملك أي عقد ساري آخر)
-                $query->whereHas('contracts', function($q) {
+                $query->whereHas('contracts', function ($q) {
                     $q->where('end_date', '<', now()->format('Y-m-d'));
-                })->whereDoesntHave('contracts', function($q) {
+                })->whereDoesntHave('contracts', function ($q) {
                     $q->where('end_date', '>=', now()->format('Y-m-d'));
                 });
             }
 
             return Datatables::of($query)
-                ->addColumn('actions', function($row) {
-                    return view('franchise::companies.partials.actions', compact('row'));
+                ->addColumn('actions', function ($row) {
+                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'
+                        . __('franchise::lang.actions') .
+                        '<i class="ki-outline ki-down fs-5 ms-1"></i></a>';
+
+                    $actions .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-150px py-4" data-kt-menu="true">';
+
+                    $actions .= '<div class="menu-item px-3">
+                    <a href="' . route('franchise.companies.show', $row->id) . '" class="menu-link px-3">
+                        <i class="ki-outline ki-eye fs-4 me-2"></i> ' . __('franchise::lang.view') . '
+                    </a>
+                </div>';
+
+                    $actions .= '<div class="menu-item px-3">
+                    <a href="javascript:void(0)" onclick="editCompany(' . $row->id . ')" class="menu-link px-3">
+                        <i class="ki-outline ki-pencil fs-4 me-2"></i> ' . __('franchise::lang.edit') . '
+                    </a>
+                </div>';
+
+
+                    $actions .= '<div class="separator mt-3 opacity-75"></div>';
+
+                    $actions .= '<div class="menu-item px-3">
+                    <a href="javascript:void(0)" onclick="deleteCompany(' . $row->id . ', \'' . $row->name_ar . '\')" class="menu-link px-3 text-danger">
+                        <i class="ki-outline ki-trash fs-4 me-2 text-danger"></i> ' . __('franchise::lang.delete') . '
+                    </a>
+                </div>';
+
+                    $actions .= '</div>';
+                    return $actions;
                 })
-                ->editColumn('status_label', function($row) {
-                    // تصنيف لوني سريع في الجدول
-                    if ($row->contracts()->count() == 0) return '<span class="badge badge-light-warning">جديد - بلا عقد</span>';
-                    return $row->contracts()->where('end_date', '>=', now())->exists() 
-                        ? '<span class="badge badge-light-success">فعال</span>' 
-                        : '<span class="badge badge-light-danger">منتهي</span>';
+                ->editColumn('city', function($row) {
+                    return __('franchise::lang.cities.' . $row->city);
+                })
+                ->editColumn('status_label', function ($row) {
+                    if ($row->contracts()->count() == 0) return '<span class="badge badge-light-warning">'.__('franchise::lang.new_no_contract').'</span>';
+                    return $row->contracts()->where('end_date', '>=', now())->exists()
+                        ? '<span class="badge badge-light-success">'.__('franchise::lang.active_contracts').'</span>'
+                        : '<span class="badge badge-light-danger">'.__('franchise::lang.expired_contracts').'</span>';
                 })
                 ->rawColumns(['actions', 'status_label'])
                 ->make(true);
@@ -55,66 +76,46 @@ class FranchiseCompanyController extends Controller
         return view('franchise::companies.index');
     }
 
-    /**
-     * حفظ شركة جديدة
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name_ar' => 'required|string|max:255',
-            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string',
+            'name_en' => 'required|string',
             'city'    => 'required',
+            'street'  => 'nullable',
+            'national_address' => 'nullable',
             'vat_no'  => 'required|unique:franchise_companies,vat_no',
             'mobile'  => 'required',
+            'tel'     => 'nullable',
             'email'   => 'required|email|unique:franchise_companies,email',
-            'account' => 'required', // الحساب المالي
+            'account' => 'required',
         ]);
 
-        FranchiseCompany::create($data);
-
-        return response()->json(['success' => true, 'message' => 'تمت إضافة الممنوح بنجاح']);
+        FranchiseCompanies::create($data);
+        return response()->json(['success' => true, 'message' => __('franchise::lang.save')]);
     }
 
-    /**
-     * عرض تفصيلي للشركة مع سجل عقودها
-     */
-    public function show($id)
+   public function show($id)
     {
-        $company = FranchiseCompany::with(['contracts' => function($q) {
-            $q->orderBy('start_date', 'desc');
-        }])->findOrFail($id);
-
+        $company = FranchiseCompanies::with('contracts')->findOrFail($id);
+        if (request()->ajax()) {
+            return response()->json($company);
+        }
         return view('franchise::companies.show', compact('company'));
     }
 
-    /**
-     * تحديث بيانات الشركة
-     */
+
     public function update(Request $request, $id)
     {
-        $company = FranchiseCompany::findOrFail($id);
+        $company = FranchiseCompanies::findOrFail($id);
         $data = $request->validate([
             'name_ar' => 'required',
-            'vat_no'  => 'required|unique:franchise_companies,vat_no,'.$id,
-            'email'   => 'required|email|unique:franchise_companies,email,'.$id,
+            'name_en' => 'required',
+            'vat_no'  => 'required|unique:franchise_companies,vat_no,' . $id,
+            'email'   => 'required|email|unique:franchise_companies,email,' . $id,
         ]);
 
         $company->update($request->all());
-        return response()->json(['success' => true, 'message' => 'تم تحديث البيانات بنجاح']);
-    }
-
-    /**
-     * حذف الشركة (مع التحقق من وجود عقود)
-     */
-    public function destroy($id)
-    {
-        $company = FranchiseCompany::findOrFail($id);
-        
-        if ($company->contracts()->exists()) {
-            return response()->json(['success' => false, 'message' => 'لا يمكن حذف الشركة لوجود عقود مرتبطة بها']);
-        }
-
-        $company->delete();
-        return response()->json(['success' => true, 'message' => 'تم حذف الممنوح بنجاح']);
+        return response()->json(['success' => true, 'message' => __('franchise::lang.save')]);
     }
 }

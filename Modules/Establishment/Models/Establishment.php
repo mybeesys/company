@@ -11,6 +11,7 @@ use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
+use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Product\Models\CustomMenu;
 use Modules\Sales\Models\Coupon;
 
@@ -23,6 +24,13 @@ class Establishment extends Model
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected static function booted()
+{
+    static::addGlobalScope('excludeFranchise', function (Builder $builder) {
+        $builder->whereNull('franchise_id');
+    });
+}
 
     public function posRoles()
     {
@@ -96,6 +104,9 @@ class Establishment extends Model
         return false;
     }
 
+    public function franchise() {
+    return $this->belongsTo(FranchiseCompanies::class, 'franchise_id');
+}
     public function coupons()
     {
         return $this->belongsToMany(Coupon::class, 'sales_coupons_establishments');

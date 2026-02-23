@@ -26,6 +26,8 @@ class FranchiseServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+          $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'franchise');
+
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
