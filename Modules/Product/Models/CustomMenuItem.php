@@ -29,5 +29,8 @@ class CustomMenuItem extends Model
         return $this->fillable;
     }
 
+    public function product(){
+        return $this->belongsTo(Product::class,'product_id');
+    }
+
 }
-?>

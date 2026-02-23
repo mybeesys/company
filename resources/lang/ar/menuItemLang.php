@@ -10,6 +10,12 @@ return [
     'employees_management_module' => 'إدارة الموظفين',
     'establishments_module' => 'المنشآت',
     'users' => 'المستخدمون',
+    'branches_mgmt' => 'إدارة فروع الفرنشايز',
+    'franchise_product_mgmt' => 'إدارة منتجات الفرنشايز',
+    "custom_menus_mgmt" => 'صلاحيات القوائم المخصصة',
+
+    'franchise' => 'الامتياز التجاري',
+    'franchise_com' => ' شركات الامتياز التجاري',
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
     'reports_module' => 'التقارير',
@@ -139,7 +145,7 @@ return [
     'inventory_dashboard' => 'لوحة تحكم المخزون',
     'product-inventory-summary' => "تقرير رصيد المخزون",
     'product-inventory-record' => "سجل مخزون الصنف",
-    "product-inventory"=>"تقرير مخزون الصنف",
+    "product-inventory" => "تقرير مخزون الصنف",
 
 
 

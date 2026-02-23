@@ -15,7 +15,6 @@
 
     <div class="row g-3 align-items-center">
 
-        {{-- التاريخ من وإلى --}}
         <div class="col-md-3">
             <label>{{ __('accounting::lang.from_date') }}</label>
             <input type="date" id="from_date" class="form-control" />
@@ -26,7 +25,6 @@
         </div>
 
 
-        {{-- المستخدم --}}
         <div class="col-md-3">
             <label>{{ __('accounting::lang.created_by') }}</label>
             <select id="created_by_filter" class="form-select" data-control="select2">
@@ -37,7 +35,6 @@
             </select>
         </div>
 
-        {{-- قيد يدوي أم آلي --}}
         <div class="col-md-3">
             <label>{{ __('accounting::lang.entry_source') }}</label>
             <select id="is_manual_filter" class="form-select" data-control="select2">

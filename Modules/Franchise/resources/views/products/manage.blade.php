@@ -1,0 +1,364 @@
+@extends('layouts.app')
+@section('title', __('franchise::lang.manage_franchise_products'))
+
+@section('content')
+    <div class="card card-flush mb-5">
+        <div class="card-body">
+            <div class="d-flex flex-stack flex-wrap">
+                <div class="d-flex align-items-center me-3">
+                    <div class="d-flex flex-column">
+                        <h1 class="text-gray-900 fw-bold fs-2 mb-2">{{ __('franchise::lang.manage_franchise_products') }}</h1>
+                        <div class="d-flex align-items-center">
+                            <select id="franchise_select" class="form-select form-select-solid w-300px" data-control="select2"
+                                data-placeholder="{{ __('franchise::lang.select_franchise_company') }}">
+                                <option></option>
+                                @foreach ($franchises as $franchise)
+                                    <option value="{{ $franchise->id }}">
+                                        {{ app()->getLocale() == 'ar' ? $franchise->name_ar : $franchise->name_en }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="align-items-center gap-2" id="global_controls" style="display: none !important;">
+                    <div class="d-flex flex-column align-items-end me-5">
+                        <span class="text-muted fw-bold fs-7 mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي التحديد' : 'Overall Selection' }}</span>
+                        <span class="text-primary fw-bolder fs-4" id="overall_count">0/0</span>
+                    </div>
+                    <button type="button" class="btn btn-light-primary btn-sm" onclick="toggleAllAccordions(true)">{{ app()->getLocale() == 'ar' ? 'فتح الكل' : 'Expand All' }}</button>
+                    <button type="button" class="btn btn-light-danger btn-sm" onclick="toggleAllAccordions(false)">{{ app()->getLocale() == 'ar' ? 'إغلاق الكل' : 'Collapse All' }}</button>
+                    <button type="button" class="btn btn-primary" id="save_permissions" disabled>
+                        <span class="indicator-label"><i class="ki-outline ki-check fs-2"></i> {{ __('franchise::lang.save') }}</span>
+                        <span class="indicator-progress"><span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="overall_progress_container" style="display: none;" class="mt-5">
+                <div class="progress h-8px w-100 bg-light-primary">
+                    <div id="overall_progress_bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-flush">
+        <div class="card-header border-0 pt-5">
+            <h3 class="card-title align-items-start flex-column">
+                <ul class="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold">
+                    <li class="nav-item">
+                        <a class="nav-link text-active-primary active" data-bs-toggle="tab" href="#tab_products">
+                            <i class="ki-outline ki-basket fs-4 me-2"></i>{{ app()->getLocale() == 'ar' ? 'المنتجات' : 'Products' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-active-primary" data-bs-toggle="tab" href="#tab_ingredients">
+                            <i class="ki-outline ki-layer fs-4 me-2"></i>{{ app()->getLocale() == 'ar' ? 'المكونات' : 'Ingredients' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-active-primary" data-bs-toggle="tab" href="#tab_modifiers">
+                            <i class="ki-outline ki-setting-4 fs-4 me-2"></i>{{ app()->getLocale() == 'ar' ? 'الإضافات' : 'Modifiers' }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-active-primary" data-bs-toggle="tab" href="#tab_attributes">
+                            <i class="ki-outline ki-dna fs-4 me-2"></i>{{ app()->getLocale() == 'ar' ? 'المتغيرات' : 'Attributes' }}
+                        </a>
+                    </li>
+                </ul>
+            </h3>
+        </div>
+
+        <div class="card-body pt-0">
+            <div id="main_content_area" style="display: none;">
+                <div class="tab-content" id="main_franchise_tabs">
+                    <div class="tab-pane fade show active" id="tab_products" role="tabpanel">
+                        <div class="accordion accordion-icon-toggle" id="products_accordion">
+                            @foreach ($categories as $cat)
+                                @if ($cat->subcategories->count() > 0)
+                                    <div class="accordion-item mb-5 border rounded main-cat-item">
+                                        <div class="accordion-header d-flex align-items-center bg-light">
+                                            <div class="form-check form-check-custom form-check-solid ms-5 me-2">
+                                                <input class="form-check-input select-all-main" type="checkbox" data-cat-id="{{ $cat->id }}" />
+                                            </div>
+                                            <button class="accordion-button fs-4 fw-bold collapsed py-5" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_cat_{{ $cat->id }}">
+                                                <div class="d-flex justify-content-between align-items-center w-100 me-5">
+                                                    <span>{{ app()->getLocale() == 'ar' ? $cat->name_ar : $cat->name_en }}</span>
+                                                    <span class="badge badge-light-danger fs-7 main-counter" id="main_counter_{{ $cat->id }}">0 / 0</span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div id="collapse_cat_{{ $cat->id }}" class="accordion-collapse collapse">
+                                            <div class="accordion-body border-top p-5">
+                                                <div class="accordion accordion-icon-toggle" id="sub_accordion_{{ $cat->id }}">
+                                                    @foreach ($cat->subcategories as $sub)
+                                                        @if ($sub->products->count() > 0)
+                                                            <div class="accordion-item mb-3 border rounded">
+                                                                <div class="accordion-header d-flex align-items-center bg-white shadow-sm">
+                                                                    <div class="form-check form-check-custom form-check-solid ms-5 me-2">
+                                                                        <input class="form-check-input select-all-sub" type="checkbox" data-sub-id="{{ $sub->id }}" />
+                                                                    </div>
+                                                                    <button class="accordion-button fs-6 fw-semibold collapsed py-3" data-bs-toggle="collapse" data-bs-target="#sub_collapse_{{ $sub->id }}">
+                                                                        <div class="d-flex justify-content-between align-items-center w-100 me-5">
+                                                                            <span>{{ app()->getLocale() == 'ar' ? $sub->name_ar : $sub->name_en }}</span>
+                                                                            <span class="badge badge-light-info fs-8 sub-counter" id="sub_counter_{{ $sub->id }}">0 / {{ $sub->products->count() }}</span>
+                                                                        </div>
+                                                                    </button>
+                                                                </div>
+                                                                <div id="sub_collapse_{{ $sub->id }}" class="accordion-collapse collapse">
+                                                                    <div class="accordion-body row g-3">
+                                                                        @foreach ($sub->products as $product)
+                                                                            <div class="col-md-3">
+                                                                                <div class="form-check form-check-custom form-check-solid p-2">
+                                                                                    <input class="form-check-input perm-check main-child-{{ $cat->id }} sub-child-{{ $sub->id }}" type="checkbox" value="{{ $product->id }}" data-type="product" id="prod_{{ $product->id }}" />
+                                                                                    <label class="form-check-label fs-7" for="prod_{{ $product->id }}">{{ app()->getLocale() == 'ar' ? $product->name_ar : $product->name_en }}</label>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab_ingredients" role="tabpanel">
+                        <div class="row g-5">
+                            @foreach ($ingredients as $ing)
+                                <div class="col-md-3">
+                                    <div class="form-check form-check-custom form-check-solid p-4 border rounded bg-light">
+                                        <input class="form-check-input perm-check" type="checkbox" value="{{ $ing->id }}" data-type="ingredient" id="ing_{{ $ing->id }}" />
+                                        <label class="form-check-label fw-bold" for="ing_{{ $ing->id }}">{{ app()->getLocale() == 'ar' ? $ing->name_ar : $ing->name_en }}</label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab_modifiers" role="tabpanel">
+                        <div class="accordion accordion-icon-toggle" id="modifiers_accordion">
+                            @foreach ($modifierClasses as $mClass)
+                                <div class="accordion-item mb-5 border rounded">
+                                    <div class="accordion-header d-flex align-items-center bg-light">
+                                        <div class="form-check form-check-custom form-check-solid ms-5 me-2">
+                                            <input class="form-check-input select-all-mod-class" type="checkbox" data-class-id="{{ $mClass->id }}" />
+                                        </div>
+                                        <button class="accordion-button fs-5 fw-bold collapsed py-5" data-bs-toggle="collapse" data-bs-target="#mod_class_{{ $mClass->id }}">
+                                            <div class="d-flex justify-content-between align-items-center w-100 me-5">
+                                                <span>{{ app()->getLocale() == 'ar' ? $mClass->name_ar : $mClass->name_en }}</span>
+                                                <span class="badge badge-light-primary mod-counter" id="mod_counter_{{ $mClass->id }}">0 / {{ $mClass->children->count() }}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <div id="mod_class_{{ $mClass->id }}" class="accordion-collapse collapse">
+                                        <div class="accordion-body row g-4">
+                                            @foreach ($mClass->children as $mod)
+                                                <div class="col-md-3">
+                                                    <div class="form-check form-check-custom form-check-solid">
+                                                        <input class="form-check-input perm-check mod-child-{{ $mClass->id }}" type="checkbox" value="{{ $mod->id }}" data-type="modifier" id="mod_{{ $mod->id }}" />
+                                                        <label class="form-check-label" for="mod_{{ $mod->id }}">{{ app()->getLocale() == 'ar' ? $mod->name_ar : $mod->name_en }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab_attributes" role="tabpanel">
+                        <div class="accordion accordion-icon-toggle" id="attributes_accordion">
+                            @foreach ($attributeClasses as $aClass)
+                                <div class="accordion-item mb-5 border rounded">
+                                    <div class="accordion-header d-flex align-items-center bg-light">
+                                        <div class="form-check form-check-custom form-check-solid ms-5 me-2">
+                                            <input class="form-check-input select-all-attr-class" type="checkbox" data-class-id="{{ $aClass->id }}" />
+                                        </div>
+                                        <button class="accordion-button fs-5 fw-bold collapsed py-5" data-bs-toggle="collapse" data-bs-target="#attr_class_{{ $aClass->id }}">
+                                            <div class="d-flex justify-content-between align-items-center w-100 me-5">
+                                                <span>{{ app()->getLocale() == 'ar' ? $aClass->name_ar : $aClass->name_en }}</span>
+                                                <span class="badge badge-light-primary attr-counter" id="attr_counter_{{ $aClass->id }}">0 / {{ $aClass->children->count() }}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <div id="attr_class_{{ $aClass->id }}" class="accordion-collapse collapse">
+                                        <div class="accordion-body row g-4">
+                                            @foreach ($aClass->children as $attr)
+                                                <div class="col-md-3">
+                                                    <div class="form-check form-check-custom form-check-solid">
+                                                        <input class="form-check-input perm-check attr-child-{{ $aClass->id }}" type="checkbox" value="{{ $attr->id }}" data-type="attribute" id="attr_{{ $attr->id }}" />
+                                                        <label class="form-check-label" for="attr_{{ $attr->id }}">{{ app()->getLocale() == 'ar' ? $attr->name_ar : $attr->name_en }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="empty_state" class="text-center py-20">
+                <i class="ki-outline ki-information-2 fs-4x text-gray-300"></i>
+                <h3 class="text-gray-400 mt-5">{{ app()->getLocale() == 'ar' ? 'يرجى اختيار شركة فرنشايز لبدء إدارة الصلاحيات' : 'Please select a franchise company to manage permissions' }}</h3>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('script')
+    <script>
+        $(document).ready(function() {
+            $('#global_controls, #overall_progress_container, #main_content_area').css('display', 'none');
+
+            $('#franchise_select').on('change', function() {
+                const id = $(this).val();
+
+                if (!id) {
+                    $('#global_controls, #overall_progress_container, #main_content_area').hide();
+                    $('#empty_state').show();
+                    return;
+                }
+
+                $('.perm-check, .form-check-input').prop('checked', false);
+
+                $.ajax({
+                    url: `/franchise/products/permissions/${id}`,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#empty_state').hide();
+                        $('#global_controls').css('display', 'flex').attr('style', 'display: flex !important');
+                        $('#overall_progress_container').show();
+                        $('#main_content_area').show();
+                        $('#save_permissions').prop('disabled', false);
+
+                         if (data.product) data.product.forEach(v => $(`#prod_${v}`).prop('checked', true));
+                        if (data.ingredient) data.ingredient.forEach(v => $(`#ing_${v}`).prop('checked', true));
+                        if (data.modifier) data.modifier.forEach(v => $(`#mod_${v}`).prop('checked', true));
+                        if (data.attribute) data.attribute.forEach(v => $(`#attr_${v}`).prop('checked', true));
+
+                        updateAllUI();
+                    },
+                    error: function() {
+                        Swal.fire({ text: "Error loading data", icon: "error" });
+                    }
+                });
+            });
+
+            $(document).on('change', '.perm-check', function() { updateAllUI(); });
+
+            $(document).on('change', '.select-all-main', function(e) {
+                e.stopPropagation();
+                const id = $(this).data('cat-id');
+                $(`.main-child-${id}`).prop('checked', $(this).is(':checked'));
+                updateAllUI();
+            });
+
+            $(document).on('change', '.select-all-sub', function(e) {
+                e.stopPropagation();
+                const id = $(this).data('sub-id');
+                $(`.sub-child-${id}`).prop('checked', $(this).is(':checked'));
+                updateAllUI();
+            });
+
+            $(document).on('change', '.select-all-mod-class', function(e) {
+                e.stopPropagation();
+                const id = $(this).data('class-id');
+                $(`.mod-child-${id}`).prop('checked', $(this).is(':checked'));
+                updateAllUI();
+            });
+
+            $(document).on('change', '.select-all-attr-class', function(e) {
+                e.stopPropagation();
+                const id = $(this).data('class-id');
+                $(`.attr-child-${id}`).prop('checked', $(this).is(':checked'));
+                updateAllUI();
+            });
+
+            $('#save_permissions').on('click', function() {
+                const btn = $(this);
+                let permissions = [];
+                $('.perm-check:checked').each(function() {
+                    permissions.push({ id: $(this).val(), type: $(this).data('type') });
+                });
+
+                btn.attr('data-kt-indicator', 'on').prop('disabled', true);
+                $.ajax({
+                    url: "{{ route('franchise.products.update') }}",
+                    method: 'POST',
+                    data: { _token: "{{ csrf_token() }}", franchise_id: $('#franchise_select').val(), permissions: permissions },
+                    success: function(res) {
+                        btn.removeAttr('data-kt-indicator').prop('disabled', false);
+                        Swal.fire({ text: res.message, icon: "success" });
+                    },
+                    error: function() {
+                        btn.removeAttr('data-kt-indicator').prop('disabled', false);
+                        Swal.fire({ text: "Error", icon: "error" });
+                    }
+                });
+            });
+        });
+
+        function updateAllUI() {
+            let totalAll = $('.perm-check').length;
+            let selectedAll = $('.perm-check:checked').length;
+            $('#overall_count').text(`${selectedAll} / ${totalAll}`);
+            $('#overall_progress_bar').css('width', (totalAll > 0 ? (selectedAll / totalAll) * 100 : 0) + '%');
+
+            $('.select-all-main').each(function() {
+                let id = $(this).data('cat-id');
+                let t = $(`.main-child-${id}`).length;
+                let s = $(`.main-child-${id}:checked`).length;
+                $(`#main_counter_${id}`).text(`${s} / ${t}`).toggleClass('badge-light-success', s === t && t > 0).toggleClass('badge-light-danger', s === 0);
+                $(this).prop('checked', s === t && t > 0);
+            });
+
+            $('.select-all-sub').each(function() {
+                let id = $(this).data('sub-id');
+                let t = $(`.sub-child-${id}`).length;
+                let s = $(`.sub-child-${id}:checked`).length;
+                $(`#sub_counter_${id}`).text(`${s} / ${t}`).toggleClass('badge-light-success', s === t && t > 0).toggleClass('badge-light-danger', s === 0);
+                $(this).prop('checked', s === t && t > 0);
+            });
+
+            $('.select-all-mod-class').each(function() {
+                let id = $(this).data('class-id');
+                let t = $(`.mod-child-${id}`).length;
+                let s = $(`.mod-child-${id}:checked`).length;
+                $(`#mod_counter_${id}`).text(`${s} / ${t}`).toggleClass('badge-light-success', s === t && t > 0).toggleClass('badge-light-danger', s === 0);
+                $(this).prop('checked', s === t && t > 0);
+            });
+
+            $('.select-all-attr-class').each(function() {
+                let id = $(this).data('class-id');
+                let t = $(`.attr-child-${id}`).length;
+                let s = $(`.attr-child-${id}:checked`).length;
+                $(`#attr_counter_${id}`).text(`${s} / ${t}`).toggleClass('badge-light-success', s === t && t > 0).toggleClass('badge-light-danger', s === 0);
+                $(this).prop('checked', s === t && t > 0);
+            });
+        }
+
+        function toggleAllAccordions(expand) {
+            if (expand) {
+                $('.accordion-collapse').addClass('show');
+                $('.accordion-button').removeClass('collapsed').attr('aria-expanded', "true");
+            } else {
+                $('.accordion-collapse').removeClass('show');
+                $('.accordion-button').addClass('collapsed').attr('aria-expanded', "false");
+            }
+        }
+    </script>
+@endsection
