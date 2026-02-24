@@ -10,7 +10,36 @@ return [
     ],
 
 
-    
+    [
+        'name' => 'franchise',
+        'url' => '/franchise/companies',
+        'icon' => 'fas fa-certificate',
+        'permission' => '',
+        'subMenu' => [
+            [
+                'name' => 'franchise_com',
+                'url' => 'franchise/companies',
+                'permission' => 'products.dashboard.show',
+            ],
+            [
+                'name' => 'branches_mgmt',
+                'url' => 'franchise/branches',
+                'permission' => 'products.dashboard.show',
+            ],
+            [
+                'name' => 'franchise_product_mgmt',
+                'url' => 'franchise/products-management',
+                'permission' => 'products.dashboard.show',
+            ],
+            [
+                'name' => 'custom_menus_mgmt',
+                'url' => 'franchise/custom-menus',
+                'permission' => 'products.dashboard.show',
+            ],
+
+
+        ]
+    ],
 
 
     [
