@@ -235,7 +235,7 @@ class OrderController extends Controller
                         if (!$find_product) {
                             return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
                         }
-// option
+                        // option
                         OrderTableItems::create([
                             'transaction_id' => $transaction->id,
                             'combo_id' => $order_item_combo->option_id,
