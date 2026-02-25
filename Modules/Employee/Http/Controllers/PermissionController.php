@@ -110,6 +110,7 @@ class PermissionController extends Controller
             'dashboard_role_ids.*' => ['integer', Rule::exists('roles', 'id')]
         ]);
 
+        
         // Handle permissions
         $permissions = new DashboardRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee, false);

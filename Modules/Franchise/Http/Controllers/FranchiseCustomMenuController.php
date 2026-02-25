@@ -16,7 +16,8 @@ class FranchiseCustomMenuController extends Controller
         return view('franchise::custom_menus.index', compact('franchises'));
     }
 
-     public function getFranchiseData($id)
+   
+    public function getFranchiseData($id)
     {
         $allowedProductIds = DB::table('franchise_product_permissions')
             ->where('franchise_id', $id)
@@ -27,16 +28,15 @@ class FranchiseCustomMenuController extends Controller
             ->where('franchise_id', $id)
             ->pluck('custom_menu_id')->toArray();
 
-        $allMenus = CustomMenu::with(['products.product' => function ($q) {
-            $q->select('id', 'name_ar', 'name_en');
-        }])->get();
+        $allMenus = CustomMenu::with(['products.product'])->get();
 
         $data = $allMenus->map(function ($menu) use ($allowedProductIds, $allowedMenuIds) {
             $missingProducts = [];
-            $totalItems = $menu->products->count();
+            $missingIds = [];
 
             foreach ($menu->products as $item) {
                 if (!in_array($item->product_id, $allowedProductIds)) {
+                    $missingIds[] = $item->product_id;
                     $missingProducts[] = app()->getLocale() == 'ar'
                         ? ($item->product->name_ar ?? 'منتج غير معروف')
                         : ($item->product->name_en ?? 'Unknown Product');
@@ -47,8 +47,9 @@ class FranchiseCustomMenuController extends Controller
                 'id' => $menu->id,
                 'name' => app()->getLocale() == 'ar' ? $menu->name_ar : $menu->name_en,
                 'is_active' => in_array($menu->id, $allowedMenuIds),
-                'total_items' => $totalItems,
+                'total_items' => $menu->products->count(),
                 'missing_items_names' => $missingProducts,
+                'missing_items_ids' => $missingIds,
                 'missing_count' => count($missingProducts),
                 'has_warning' => count($missingProducts) > 0,
             ];
@@ -61,24 +62,31 @@ class FranchiseCustomMenuController extends Controller
     {
         $franchiseId = $request->franchise_id;
         $menuIds = $request->menu_ids ?? [];
+        $productsToGrant = $request->products_to_grant ?? [];
 
-        DB::transaction(function () use ($franchiseId, $menuIds) {
+        DB::transaction(function () use ($franchiseId, $menuIds, $productsToGrant) {
             DB::table('franchise_custom_menu_permissions')->where('franchise_id', $franchiseId)->delete();
-
-            $insertData = [];
+            $insertMenus = [];
             foreach ($menuIds as $menuId) {
-                $insertData[] = [
+                $insertMenus[] = [
                     'franchise_id' => $franchiseId,
                     'custom_menu_id' => $menuId,
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
             }
-            if (!empty($insertData)) {
-                DB::table('franchise_custom_menu_permissions')->insert($insertData);
+            if (!empty($insertMenus)) DB::table('franchise_custom_menu_permissions')->insert($insertMenus);
+
+            if (!empty($productsToGrant)) {
+                foreach ($productsToGrant as $pId) {
+                    DB::table('franchise_product_permissions')->updateOrInsert(
+                        ['franchise_id' => $franchiseId, 'permitted_id' => $pId, 'permitted_type' => 'product'],
+                        ['updated_at' => now(), 'created_at' => now()]
+                    );
+                }
             }
         });
 
-        return response()->json(['message' => 'تم تحديث صلاحيات القوائم بنجاح']);
+        return response()->json(['message' => app()->getLocale() == 'ar' ? 'تم تحديث القوائم ومنح صلاحيات المنتجات المرتبطة تلقائياً' : 'Menus updated and product permissions granted automatically']);
     }
 }

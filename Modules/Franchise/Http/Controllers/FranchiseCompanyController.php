@@ -4,6 +4,7 @@ namespace Modules\Franchise\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Franchise\Entities\FranchiseContract;
 use Yajra\DataTables\Facades\DataTables;
 use Modules\Franchise\Models\FranchiseCompanies;
@@ -61,14 +62,14 @@ class FranchiseCompanyController extends Controller
                     $actions .= '</div>';
                     return $actions;
                 })
-                ->editColumn('city', function($row) {
+                ->editColumn('city', function ($row) {
                     return __('franchise::lang.cities.' . $row->city);
                 })
                 ->editColumn('status_label', function ($row) {
-                    if ($row->contracts()->count() == 0) return '<span class="badge badge-light-warning">'.__('franchise::lang.new_no_contract').'</span>';
+                    if ($row->contracts()->count() == 0) return '<span class="badge badge-light-warning">' . __('franchise::lang.new_no_contract') . '</span>';
                     return $row->contracts()->where('end_date', '>=', now())->exists()
-                        ? '<span class="badge badge-light-success">'.__('franchise::lang.active_contracts').'</span>'
-                        : '<span class="badge badge-light-danger">'.__('franchise::lang.expired_contracts').'</span>';
+                        ? '<span class="badge badge-light-success">' . __('franchise::lang.active_contracts') . '</span>'
+                        : '<span class="badge badge-light-danger">' . __('franchise::lang.expired_contracts') . '</span>';
                 })
                 ->rawColumns(['actions', 'status_label'])
                 ->make(true);
@@ -91,11 +92,25 @@ class FranchiseCompanyController extends Controller
             'account' => 'required',
         ]);
 
+
         FranchiseCompanies::create($data);
+        $contact = Contact::create([
+            'name' => $request->name_ar,
+            'business_type' => 'customer',
+            'phone_number' => $request->tel,
+            'mobile_number' => $request->mobile,
+
+            'email' => $request->email,
+            'point_of_sale_client' =>  0,
+            'tax_number' => $request->vat_no,
+            'account_id' => $request->account,
+            'status' => 'active',
+
+        ]);
         return response()->json(['success' => true, 'message' => __('franchise::lang.save')]);
     }
 
-   public function show($id)
+    public function show($id)
     {
         $company = FranchiseCompanies::with('contracts')->findOrFail($id);
         if (request()->ajax()) {

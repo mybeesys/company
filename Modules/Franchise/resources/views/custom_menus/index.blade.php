@@ -15,7 +15,6 @@
                         <h2 class="fw-bold text-gray-900 fs-2 mb-0">
                             {{ app()->getLocale() == 'ar' ? 'إدارة قوائم الفرنشايز المخصصة' : 'Franchise Custom Menus Management' }}
                         </h2>
-                        {{-- <span class="text-muted fw-semibold fs-7">{{ app()->getLocale() == 'ar' ? 'تحكم في القوائم المتاحة لكل شركة مع مراقبة صلاحيات المنتجات' : 'Control menus per company with product permission monitoring' }}</span> --}}
                     </div>
                 </div>
                 <div class="d-flex gap-3">
@@ -65,20 +64,13 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="fw-bold">{{ app()->getLocale() == 'ar' ? 'المنتجات الناقصة' : 'Missing Products' }}</h3>
+                    <h3 class="fw-bold">{{ app()->getLocale() == 'ar' ? 'المنتجات المرتبطة' : 'Linked Products' }}</h3>
                     <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
                         <i class="ki-outline ki-cross fs-1"></i>
                     </div>
                 </div>
                 <div class="modal-body">
-                    <div class="notice d-flex bg-light-danger rounded border-danger border border-dashed mb-5 p-4">
-                        <i class="ki-outline ki-information-5 fs-2tx text-danger me-4"></i>
-                        <div class="d-flex flex-stack flex-grow-1">
-                            <div class="fw-semibold text-gray-700">
-                                {{ app()->getLocale() == 'ar' ? 'هذه المنتجات موجودة في المنيو ولكن الفرنشايز لا يملك صلاحية بيعها.' : 'These products exist in the menu but the franchise has no permission to sell them.' }}
-                            </div>
-                        </div>
-                    </div>
+                    <div id="modal_status_area"></div>
                     <ul id="missing_list" class="list-group list-group-flush fs-6 fw-bold text-gray-700"></ul>
                 </div>
             </div>
@@ -95,7 +87,6 @@
             const id = $(this).val();
             if (!id) return;
 
-            // إظهار اللودر
             $('#menus_container').html('<div class="col-12 text-center py-10"><span class="spinner-border text-primary"></span></div>').removeClass('d-none');
             $('#empty_state').addClass('d-none');
 
@@ -121,7 +112,7 @@
                     statusBadge = `
                         <div class="badge badge-light-warning fw-bolder cursor-pointer show-missing" data-id="${menu.id}">
                             <i class="ki-outline ki-warning text-warning fs-7 me-1"></i>
-                            ${menu.missing_count} ${ "{{ app()->getLocale() == 'ar' ? 'ناقص' : 'Missing' }}" }
+                            ${menu.missing_count} {{ app()->getLocale() == 'ar' ? 'غير مفعل' : 'Unpermitted' }}
                         </div>`;
                 } else {
                     statusBadge = `<div class="badge badge-light-success fw-bolder">{{ app()->getLocale() == 'ar' ? 'مكتمل' : 'Complete' }}</div>`;
@@ -140,11 +131,10 @@
                                 </div>
                                 ${statusBadge}
                             </div>
-
                             <div class="d-flex flex-stack bg-light rounded p-3">
                                 <div class="d-flex align-items-center me-2">
                                     <i class="ki-outline ki-handcart fs-3 text-primary me-2"></i>
-                                    <span class="text-muted fw-bold fs-7">{{ app()->getLocale() == 'ar' ? 'عدد العناصر' : 'Total Items' }}:</span>
+                                    <span class="text-muted fw-bold fs-7">{{ app()->getLocale() == 'ar' ? 'إجمالي المنتجات' : 'Total Products' }}:</span>
                                 </div>
                                 <span class="text-gray-800 fw-bolder fs-6">${menu.total_items}</span>
                             </div>
@@ -163,43 +153,98 @@
             });
         });
 
-        // عرض المنتجات الناقصة في مودال
+        // عرض تفاصيل المنتجات الناقصة
         $(document).on('click', '.show-missing', function() {
             let id = $(this).data('id');
             let menu = menuData.find(m => m.id == id);
             let listHtml = '';
+
+            let statusHtml = `
+                <div class="notice d-flex bg-light-danger rounded border-danger border border-dashed mb-5 p-4">
+                    <i class="ki-outline ki-information-5 fs-2tx text-danger me-4"></i>
+                    <div class="fw-semibold text-gray-700">
+                        {{ app()->getLocale() == 'ar' ? 'المنتجات التالية سيتم تفعيل صلاحياتها تلقائياً عند حفظ المنيو.' : 'The following products will be automatically permitted upon saving.' }}
+                    </div>
+                </div>`;
+
             menu.missing_items_names.forEach(name => {
                 listHtml += `<li class="list-group-item d-flex align-items-center">
                     <span class="bullet bullet-vertical h-20px bg-danger me-5"></span> ${name}
                 </li>`;
             });
+
+            $('#modal_status_area').html(statusHtml);
             $('#missing_list').html(listHtml);
             $('#missing_products_modal').modal('show');
         });
 
+        // منطق الحفظ الذكي
         $('#save_btn').on('click', function() {
             let btn = $(this);
             let selectedMenus = $('.menu-checkbox:checked').map(function() { return $(this).val(); }).get();
 
-            btn.attr('data-kt-indicator', 'on').prop('disabled', true);
+            // تجميع معرفات وأسماء المنتجات الناقصة في القوائم المختارة فقط
+            let allMissingIds = [];
+            let allMissingNames = [];
 
-            $.post("{{ route('franchise.custom_menus.update') }}", {
-                _token: "{{ csrf_token() }}",
-                franchise_id: $('#franchise_id').val(),
-                menu_ids: selectedMenus
-            }, function(res) {
-                btn.removeAttr('data-kt-indicator').prop('disabled', false);
-                Swal.fire({
-                    text: res.message,
-                    icon: "success",
-                    buttonsStyling: false,
-                    confirmButtonText: "{{ app()->getLocale() == 'ar' ? 'حسناً' : 'OK' }}",
-                    customClass: { confirmButton: "btn btn-primary" }
-                });
-            }).fail(function() {
-                btn.removeAttr('data-kt-indicator').prop('disabled', false);
-                Swal.fire("Error", "Something went wrong", "error");
+            selectedMenus.forEach(menuId => {
+                let menu = menuData.find(m => m.id == menuId);
+                if (menu && menu.has_warning) {
+                    menu.missing_items_ids.forEach(id => {
+                        if(!allMissingIds.includes(id)) allMissingIds.push(id);
+                    });
+                    menu.missing_items_names.forEach(name => {
+                        if(!allMissingNames.includes(name)) allMissingNames.push(name);
+                    });
+                }
             });
+
+            const submitRequest = (productIdsToGrant = []) => {
+                btn.attr('data-kt-indicator', 'on').prop('disabled', true);
+                $.post("{{ route('franchise.custom_menus.update') }}", {
+                    _token: "{{ csrf_token() }}",
+                    franchise_id: $('#franchise_id').val(),
+                    menu_ids: selectedMenus,
+                    products_to_grant: productIdsToGrant
+                }, function(res) {
+                    btn.removeAttr('data-kt-indicator').prop('disabled', false);
+                    Swal.fire({
+                        text: res.message,
+                        icon: "success",
+                        confirmButtonText: "{{ app()->getLocale() == 'ar' ? 'حسناً' : 'OK' }}",
+                        customClass: { confirmButton: "btn btn-primary" }
+                    }).then(() => {
+                        // إعادة تحميل البيانات لتحديث الحالات والعدادات
+                        $('#franchise_id').trigger('change');
+                    });
+                }).fail(function() {
+                    btn.removeAttr('data-kt-indicator').prop('disabled', false);
+                    Swal.fire("Error", "Something went wrong", "error");
+                });
+            };
+
+            // التحقق من وجود نواقص قبل الحفظ
+            if (allMissingIds.length > 0) {
+                let namesHtml = '<div class="text-start mt-4 p-3 bg-light rounded" style="max-height:150px; overflow-y:auto;"><ul class="fs-7 text-gray-700">';
+                allMissingNames.forEach(n => namesHtml += `<li>${n}</li>`);
+                namesHtml += '</ul></div>';
+
+                Swal.fire({
+                    title: "{{ app()->getLocale() == 'ar' ? 'تأكيد منح الصلاحيات' : 'Confirm Granting Permissions' }}",
+                    html: `{{ app()->getLocale() == 'ar' ? 'هذه القوائم تحتوي على منتجات غير مفعلة للفرنشايز. هل توافق على منح صلاحية بيعها تلقائياً؟' : 'These menus contain products without franchise permission. Do you agree to grant them automatically?' }} ${namesHtml}`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "{{ app()->getLocale() == 'ar' ? 'نعم، حفظ ومنح' : 'Yes, Save & Grant' }}",
+                    cancelButtonText: "{{ app()->getLocale() == 'ar' ? 'إلغاء' : 'Cancel' }}",
+                    customClass: { confirmButton: "btn btn-primary", cancelButton: "btn btn-active-light" }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        submitRequest(allMissingIds);
+                    }
+                });
+            } else {
+                submitRequest([]);
+            }
         });
     });
 </script>
@@ -209,5 +254,6 @@
     .border-start-4 { border-left-width: 4px !important; }
     [dir="rtl"] .border-start-4 { border-right-width: 4px !important; border-left-width: 0 !important; }
     .hover-elevate-up:hover { transform: translateY(-5px); }
+    .form-check-warning .form-check-input:checked { background-color: #ffc107; border-color: #ffc107; }
 </style>
 @endsection
