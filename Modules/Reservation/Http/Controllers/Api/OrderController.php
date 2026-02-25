@@ -49,7 +49,7 @@ use Modules\Product\Models\Transformers\Collections\ProductCollection;
 
 class OrderController extends Controller
 {
-   
+
     public function storeApi(Request $request)
     {
         try {
@@ -320,7 +320,7 @@ class OrderController extends Controller
         ]);
 
         $order->update([
-            'order_status' => 'served'
+            'order_status' => 'canceled'
         ]);
 
         Reservation::where('table_id', $table->id)
@@ -394,7 +394,7 @@ class OrderController extends Controller
     {
         $type = $request->query('type');
         $orders = TableOrders::where('establishment_id', $id)
-            ->where('order_status', '<>', 'served')
+            ->where('order_status', '<>', 'canceled')
             ->with(['sell_lines.product', 'createdBy'])
             ->when($type, function ($query, $type) {
                 return $query->where('order_type', $type);
@@ -407,7 +407,7 @@ class OrderController extends Controller
 
             $allLines = $order->sell_lines;
             $parentItems = $allLines->where('parent_id', null);
-            
+
             $service = TypesOfService::find($order->order_type);
 
             return [
@@ -478,7 +478,7 @@ class OrderController extends Controller
 
             $allLines = $order->sell_lines;
             $parentItems = $allLines->where('parent_id', null);
-            
+
             $service = TypesOfService::find($order->order_type);
 
             return [
