@@ -113,7 +113,7 @@ class ClientController extends Controller
                     'file_path' => $attachment_name,
                     'credit_limit' => $request->credit_limit,
                     'status' => 'active',
-
+ 
                 ]);
 
                 if (

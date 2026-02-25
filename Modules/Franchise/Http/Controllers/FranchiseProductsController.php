@@ -14,6 +14,7 @@ use Modules\Product\Models\Product;
 
 class FranchiseProductsController extends Controller
 {
+    
     public function index()
     {
         $franchises = FranchiseCompanies::all();

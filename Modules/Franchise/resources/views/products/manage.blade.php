@@ -2,6 +2,25 @@
 @section('title', __('franchise::lang.manage_franchise_products'))
 
 @section('content')
+ @php
+    $productsData = [];
+    foreach ($categories as $cat) {
+        if ($cat->subcategories) {
+            foreach ($cat->subcategories as $sub) {
+                if ($sub->products) {
+                    foreach ($sub->products as $prod) {
+                        $productsData[$prod->id] = [
+                            'ingredients' => $prod->ingredients ? $prod->ingredients->pluck('id')->toArray() : [],
+                            'modifiers'   => $prod->modifiers ? $prod->modifiers->pluck('modifier_class_id')->toArray() : [],
+                            'attributes'  => $prod->attributeClasses ? $prod->attributeClasses->pluck('id')->toArray() : [],
+                        ];
+                    }
+                }
+            }
+        }
+    }
+@endphp
+
     <div class="card card-flush mb-5">
         <div class="card-body">
             <div class="d-flex flex-stack flex-wrap">
@@ -24,7 +43,7 @@
 
                 <div class="align-items-center gap-2" id="global_controls" style="display: none !important;">
                     <div class="d-flex flex-column align-items-end me-5">
-                        <span class="text-muted fw-bold fs-7 mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي التحديد' : 'Overall Selection' }}</span>
+                        <span class="text-muted fw-bold fs-7 mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي التحديد (سيتم حفظ التبعيات تلقائياً)' : 'Overall Selection (Dependencies auto-saved)' }}</span>
                         <span class="text-primary fw-bolder fs-4" id="overall_count">0/0</span>
                     </div>
                     <button type="button" class="btn btn-light-primary btn-sm" onclick="toggleAllAccordions(true)">{{ app()->getLocale() == 'ar' ? 'فتح الكل' : 'Expand All' }}</button>
@@ -113,7 +132,8 @@
                                                                         @foreach ($sub->products as $product)
                                                                             <div class="col-md-3">
                                                                                 <div class="form-check form-check-custom form-check-solid p-2">
-                                                                                    <input class="form-check-input perm-check main-child-{{ $cat->id }} sub-child-{{ $sub->id }}" type="checkbox" value="{{ $product->id }}" data-type="product" id="prod_{{ $product->id }}" />
+                                                                                    <input class="form-check-input perm-check main-child-{{ $cat->id }} sub-child-{{ $sub->id }}"
+                                                                                        type="checkbox" value="{{ $product->id }}" data-type="product" id="prod_{{ $product->id }}" />
                                                                                     <label class="form-check-label fs-7" for="prod_{{ $product->id }}">{{ app()->getLocale() == 'ar' ? $product->name_ar : $product->name_en }}</label>
                                                                                 </div>
                                                                             </div>
@@ -221,12 +241,13 @@
 
 @section('script')
     <script>
+        const productsRelationData = @json($productsData);
+
         $(document).ready(function() {
             $('#global_controls, #overall_progress_container, #main_content_area').css('display', 'none');
 
             $('#franchise_select').on('change', function() {
                 const id = $(this).val();
-
                 if (!id) {
                     $('#global_controls, #overall_progress_container, #main_content_area').hide();
                     $('#empty_state').show();
@@ -245,7 +266,7 @@
                         $('#main_content_area').show();
                         $('#save_permissions').prop('disabled', false);
 
-                         if (data.product) data.product.forEach(v => $(`#prod_${v}`).prop('checked', true));
+                        if (data.product) data.product.forEach(v => $(`#prod_${v}`).prop('checked', true));
                         if (data.ingredient) data.ingredient.forEach(v => $(`#ing_${v}`).prop('checked', true));
                         if (data.modifier) data.modifier.forEach(v => $(`#mod_${v}`).prop('checked', true));
                         if (data.attribute) data.attribute.forEach(v => $(`#attr_${v}`).prop('checked', true));
@@ -258,20 +279,38 @@
                 });
             });
 
+            $(document).on('change', '.perm-check[data-type="product"]', function() {
+                if ($(this).is(':checked')) {
+                    const productId = $(this).val();
+                    const relations = productsRelationData[productId];
+
+                    if (relations) {
+                        relations.ingredients.forEach(id => $(`#ing_${id}`).prop('checked', true));
+
+                        relations.modifiers.forEach(classId => {
+                            $(`.mod-child-${classId}`).prop('checked', true);
+                        });
+
+                        relations.attributes.forEach(classId => {
+                            $(`.attr-child-${classId}`).prop('checked', true);
+                        });
+                    }
+                }
+                updateAllUI();
+            });
+
             $(document).on('change', '.perm-check', function() { updateAllUI(); });
 
             $(document).on('change', '.select-all-main', function(e) {
                 e.stopPropagation();
                 const id = $(this).data('cat-id');
-                $(`.main-child-${id}`).prop('checked', $(this).is(':checked'));
-                updateAllUI();
+                $(`.main-child-${id}`).prop('checked', $(this).is(':checked')).trigger('change');
             });
 
             $(document).on('change', '.select-all-sub', function(e) {
                 e.stopPropagation();
                 const id = $(this).data('sub-id');
-                $(`.sub-child-${id}`).prop('checked', $(this).is(':checked'));
-                updateAllUI();
+                $(`.sub-child-${id}`).prop('checked', $(this).is(':checked')).trigger('change');
             });
 
             $(document).on('change', '.select-all-mod-class', function(e) {
