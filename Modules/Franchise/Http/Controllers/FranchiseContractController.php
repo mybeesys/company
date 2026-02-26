@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 use Modules\Franchise\Models\FranchiseCompanies;
@@ -140,5 +141,50 @@ class FranchiseContractController extends Controller
     {
         FranchiseContract::findOrFail($id)->delete();
         return response()->json(['message' => __('franchise::lang.deleted_successfully')]);
+    }
+
+
+    
+    public function edit($id)
+    {
+        $contract = FranchiseContract::findOrFail($id);
+        return response()->json($contract);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'contract_duration' => 'required|integer',
+            'start_date' => 'required|date',
+            'reality_fees' => 'required|numeric',
+            'contract_file' => 'nullable|mimes:pdf,jpg,png',
+        ]);
+
+        $contract = FranchiseContract::findOrFail($id);
+
+        $data = $request->only([
+            'contract_duration',
+            'start_date',
+            'reality_fees',
+            'unite_no',
+            'notes'
+        ]);
+
+        $data['end_date'] = \Carbon\Carbon::parse($request->start_date)
+            ->addMonths((int) $request->contract_duration);
+
+        if ($request->hasFile('contract_file')) {
+            if ($contract->contract_file && Storage::disk('public')->exists($contract->contract_file)) {
+                Storage::disk('public')->delete($contract->contract_file);
+            }
+
+            $file = $request->file('contract_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $data['contract_file'] = $file->storeAs('franchise_contracts', $fileName, 'public');
+        }
+
+        $contract->update($data);
+
+        return response()->json(['message' => __('franchise::lang.updated_successfully')]);
     }
 }

@@ -98,21 +98,21 @@
                 <div class="card-header">
                     <h2 class="card-title">{{ __('franchise::lang.contract_history') }}</h2>
                     <div class="card-toolbar">
-                       @php
-        $hasActiveContract = $company->contracts->where('status', 'active')->count() > 0;
-    @endphp
+                        @php
+                            $hasActiveContract = $company->contracts->where('status', 'active')->count() > 0;
+                        @endphp
 
-    @if(!$hasActiveContract)
-        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                data-bs-target="#kt_modal_add_contract">
-            <i class="ki-outline ki-plus fs-2"></i> {{ __('franchise::lang.add_new_contract') }}
-        </button>
-    @else
-        <span class="badge badge-light-warning fw-bold px-4 py-3">
-            <i class="ki-outline ki-information fs-7 me-1 text-warning"></i>
-            {{ __('franchise::lang.active_contract_exists') }}
-        </span>
-    @endif
+                        @if (!$hasActiveContract)
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#kt_modal_add_contract">
+                                <i class="ki-outline ki-plus fs-2"></i> {{ __('franchise::lang.add_new_contract') }}
+                            </button>
+                        @else
+                            <span class="badge badge-light-warning fw-bold px-4 py-3">
+                                <i class="ki-outline ki-information fs-7 me-1 text-warning"></i>
+                                {{ __('franchise::lang.active_contract_exists') }}
+                            </span>
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">
@@ -138,10 +138,15 @@
                                     <td class="text-end">
                                         @if ($contract->contract_file)
                                             <a href="{{ asset('storage/' . $contract->contract_file) }}" target="_blank"
-                                                class="btn btn-icon btn-light-primary btn-sm">
+                                                class="btn btn-icon btn-light-primary btn-sm me-1">
                                                 <i class="ki-outline ki-file fs-2"></i>
                                             </a>
                                         @endif
+                                        <button type="button"
+                                            class="btn btn-icon btn-light-warning btn-sm edit-contract-btn"
+                                            data-id="{{ $contract->id }}">
+                                            <i class="ki-outline ki-pencil fs-2"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -214,6 +219,71 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="kt_modal_edit_contract" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <form id="kt_modal_edit_contract_form" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT') <input type="hidden" name="contract_id" id="edit_contract_id">
+                    <div class="modal-header">
+                        <h2 class="fw-bold">{{ __('franchise::lang.edit_contract') }}</h2>
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                            <i class="ki-outline ki-cross fs-1"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body py-10 px-lg-17">
+                        <div class="row g-9 mb-7">
+                            <div class="col-md-6 fv-row">
+                                <label
+                                    class="required fs-6 fw-semibold mb-2">{{ __('franchise::lang.start_date') }}</label>
+                                <input type="date" class="form-control form-control-solid" name="start_date"
+                                    id="edit_start_date" required />
+                            </div>
+                            <div class="col-md-6 fv-row">
+                                <label
+                                    class="required fs-6 fw-semibold mb-2">{{ __('franchise::lang.contract_duration') }}</label>
+                                <input type="number" class="form-control form-control-solid" name="contract_duration"
+                                    id="edit_contract_duration" required />
+                            </div>
+                        </div>
+                        <div class="row g-9 mb-7">
+                            <div class="col-md-6 fv-row">
+                                <label
+                                    class="required fs-6 fw-semibold mb-2">{{ __('franchise::lang.reality_fees') }}</label>
+                                <input type="number" step="0.01" class="form-control form-control-solid"
+                                    name="reality_fees" id="edit_reality_fees" required />
+                            </div>
+                            <div class="col-md-6 fv-row">
+                                <label class="required fs-6 fw-semibold mb-2">{{ __('franchise::lang.unite_no') }}</label>
+                                <input type="number" class="form-control form-control-solid" name="unite_no"
+                                    id="edit_unite_no" required />
+                            </div>
+                        </div>
+                        <div class="fv-row mb-7">
+                            <label class="fs-6 fw-semibold mb-2">{{ __('franchise::lang.contract_file') }}</label>
+                            <input type="file" class="form-control form-control-solid" name="contract_file"
+                                accept=".pdf,.jpg,.png" />
+                            <small class="text-muted">اتركه فارغاً للحفاظ على الملف الحالي</small>
+                        </div>
+                        <div class="fv-row mb-7">
+                            <label class="fs-6 fw-semibold mb-2">{{ __('franchise::lang.notes') }}</label>
+                            <textarea class="form-control form-control-solid" name="notes" id="edit_notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer flex-center">
+                        <button type="reset" class="btn btn-light me-3"
+                            data-bs-dismiss="modal">{{ __('franchise::lang.cancel') }}</button>
+                        <button type="submit" id="kt_modal_edit_contract_submit" class="btn btn-warning">
+                            <span class="indicator-label">{{ __('franchise::lang.update') }}</span>
+                            <span class="indicator-progress">{{ __('franchise::lang.please_wait') }}
+                                <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('script')
@@ -241,7 +311,7 @@
                     } else {
                         btn.removeAttribute('data-kt-indicator');
                         btn.disabled = false;
-                    location.reload();
+                        location.reload();
 
                         // alert('Error: ' + err.statusText);
                     }
@@ -249,4 +319,49 @@
             });
         });
     </script>
+    <script>
+    // عند الضغط على زر التعديل: جلب البيانات وفتح المودال
+    $(document).on('click', '.edit-contract-btn', function() {
+        const id = $(this).data('id');
+
+        $.get(`/franchise/contracts/${id}/edit`, function(data) {
+            $('#edit_contract_id').val(data.id);
+            $('#edit_start_date').val(data.start_date.split('T')[0]); // تنسيق التاريخ
+            $('#edit_contract_duration').val(data.contract_duration);
+            $('#edit_reality_fees').val(data.reality_fees);
+            $('#edit_unite_no').val(data.unite_no);
+            $('#edit_notes').val(data.notes);
+
+            $('#kt_modal_edit_contract').modal('show');
+        });
+    });
+
+    // إرسال نموذج التعديل عبر AJAX
+    $('#kt_modal_edit_contract_form').on('submit', function(e) {
+        e.preventDefault();
+        const id = $('#edit_contract_id').val();
+        const btn = document.querySelector('#kt_modal_edit_contract_submit');
+
+        btn.setAttribute('data-kt-indicator', 'on');
+        btn.disabled = true;
+
+        let formData = new FormData(this);
+
+        $.ajax({
+            url: `/franchise/contracts/${id}`, // تأكد من مطابقة الـ Route في Laravel
+            method: 'POST', // نستخدم POST مع _method PUT في الفورم
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                location.reload();
+            },
+            error: function(err) {
+                btn.removeAttribute('data-kt-indicator');
+                btn.disabled = false;
+                Swal.fire('خطأ', 'حدث خطأ أثناء التحديث', 'error');
+            }
+        });
+    });
+</script>
 @endsection
