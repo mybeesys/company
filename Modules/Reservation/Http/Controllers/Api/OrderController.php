@@ -101,6 +101,7 @@ class OrderController extends Controller
                             'discount_amount' => $product->discount_amount,
                             'unit_price_inc_tax' => $product->price_with_tax_after_discount,
                             'tax_id' => $product->tax_id,
+                            'line_status' => 'inpreparation',
                             'tax_value' => $product->tax_value,
                         ]);
 
@@ -123,6 +124,8 @@ class OrderController extends Controller
                                 'discount_amount' => $modifier->discount_amount,
                                 'unit_price_inc_tax' => $modifier->price_with_tax,
                                 'tax_value' => $modifier->tax_value,
+                                'line_status' => 'inpreparation',
+
                             ]);
                         }
 
@@ -145,6 +148,8 @@ class OrderController extends Controller
                                 'discount_amount' => null,
                                 'unit_price_inc_tax' => null,
                                 'tax_value' => null,
+                                'line_status' => 'inpreparation',
+
                             ]);
                         }
                     }
@@ -205,6 +210,8 @@ class OrderController extends Controller
                         'unit_price_inc_tax' => $product->price_with_tax_after_discount,
                         'tax_id' => $product->tax_id,
                         'tax_value' => $product->tax_value,
+                        'line_status' => 'inpreparation',
+
                     ]);
 
                     $modifiers = json_decode(json_encode($product->order_item_modifiers));
@@ -226,6 +233,7 @@ class OrderController extends Controller
                             'discount_amount' => $modifier->discount_amount,
                             'unit_price_inc_tax' => $modifier->price_with_tax,
                             'tax_value' => $modifier->tax_value,
+                            'line_status' => 'inpreparation',
                         ]);
                     }
 
@@ -248,6 +256,8 @@ class OrderController extends Controller
                             'discount_amount' => null,
                             'unit_price_inc_tax' => null,
                             'tax_value' => null,
+                            'line_status' => 'inpreparation',
+
                         ]);
                     }
                 }
@@ -571,8 +581,109 @@ class OrderController extends Controller
         return response()->json($formattedData);
     }
 
-    public function destroy($id)
+    public function getFilteredOrdersByCategory(Request $request)
     {
-        //
+        $category_ids = $request->input('category_ids', []);
+
+        $orders = TableOrders::where('order_status', '<>', 'canceled')
+            ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
+                $query->whereIn('category_id', $category_ids);
+            })
+            ->with(['sell_lines.product', 'createdBy'])
+            ->get();
+
+        $formattedOrders = $orders->map(function ($order) use ($category_ids) {
+            $reservation = Reservation::where('table_id', $order->table_id)
+                ->where('status', 'active')
+                ->first();
+
+            $allLines = $order->sell_lines;
+
+            $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
+                return $line->product && in_array($line->product->category_id, $category_ids);
+            });
+
+            $service = TypesOfService::find($order->order_type);
+
+            return [
+                'id' => $order->id,
+                'table_id' => $order->table_id,
+                'created_by' => $order->created_by,
+                'order_type' => $service->name_ar ?? 'محلي',
+                'order_status' => $order->order_status,
+                'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
+                'customer_name' => $reservation->customer_name ?? 'Guest',
+                'customer_phone' => $reservation->customer_phone ?? '',
+                'guests_count' => $reservation->guests_count ?? 0,
+                'discount_type' => $order->discount_type,
+                'discount_value' => (float)$order->discount_amount,
+                'total_before_discount' => (float)$order->total_before_tax,
+                'total_after_discount' => (float)$order->total_after_discount,
+                'total_tax' => (float)$order->tax_amount,
+                'total_paid' => (float)$order->final_total,
+                'note' => $order->description,
+                'items' => $filteredLines->map(function ($mainItem) {
+                    return [
+                        'id' => $mainItem->id,
+                        'order_id' => $mainItem->transaction_id,
+                        'product_id' => $mainItem->product_id,
+                        'product_name' => $mainItem->product->name_ar ?? '',
+                        'category_id' => $mainItem->product->category_id,
+                        'quantity' => (float)$mainItem->qyt,
+                        'price' => (float)$mainItem->unit_price,
+                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                        'tax_id' => $mainItem->tax_id,
+                        'tax_value' => (float)$mainItem->tax_value,
+                        'discount_type' => $mainItem->discount_type,
+                        'discount_amount' => (float)$mainItem->discount_amount,
+                        'status' => $mainItem->line_status ?? 'inpreparation',
+                    ];
+                })->values()
+            ];
+        });
+
+        return response()->json($formattedOrders);
+    }
+
+
+    public function updateItemStatus(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required',
+            'status' => 'required|string'
+        ]);
+
+        $item = OrderTableItems::with('product')->find($request->item_id);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $item->update([
+            'line_status' => $request->status
+        ]);
+
+        try {
+            $tenantId = (string) tenancy()->tenant->id;
+            \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
+                'tenant_id' => $tenantId,
+                'event' => 'ItemStatusUpdated',
+                'data' => [
+                    'item_id' => $item->id,
+                    'order_id' => $item->transaction_id,
+                    'status' => $item->line_status,
+                    'product_name' => $item->product->name_ar ?? '',
+                    'updated_at' => now()->toDateTimeString()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Socket Error (ItemStatusUpdated): " . $e->getMessage());
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Status updated successfully',
+            'new_status' => $item->line_status
+        ]);
     }
 }
