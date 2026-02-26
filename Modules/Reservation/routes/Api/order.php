@@ -25,5 +25,6 @@ Route::get('/orders', [ApiOrderController::class, 'orders']);
 Route::post('/update-orders/{id}', [ApiOrderController::class, 'updateOrders']);
 Route::get('/types-of-service', [ApiOrderController::class, 'typesOfService']);
 
+Route::get('/kitchen-orders', [ApiOrderController::class, 'getFilteredOrdersByCategory']);
 
-
+Route::post('/update-item-status', [ApiOrderController::class, 'updateItemStatus']);
