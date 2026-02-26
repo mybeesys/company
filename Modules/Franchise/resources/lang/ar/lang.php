@@ -142,5 +142,8 @@ return [
     'select_all' => 'تحديد الكل',
     'please_select_company' => 'يرجى اختيار شركة فرنشايز لعرض المنتجات',
     'permissions_updated' => 'تم تحديث الصلاحيات بنجاح',
+    'update' => 'تعديل',
+    'edit_contract' => 'تعديل عقد',
+
 
 ];

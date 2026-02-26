@@ -40,7 +40,6 @@ Route::middleware([
 
         Route::prefix('contracts')->name('contracts.')->group(function () {
             Route::post('/store', [FranchiseContractController::class, 'store'])->name('store');
-
             Route::delete('/{id}', [FranchiseContractController::class, 'destroy'])->name('destroy');
 
             Route::get('/{id}/edit', [FranchiseContractController::class, 'edit'])->name('edit');

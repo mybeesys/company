@@ -110,4 +110,7 @@ return [
     'select_all' => 'Select All',
     'please_select_company' => 'Please select a franchise company to display products',
     'permissions_updated' => 'Permissions updated successfully',
+    'update' => 'update',
+    'edit_contract' => 'Edit Contract',
+
 ];
