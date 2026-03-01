@@ -584,8 +584,16 @@ class OrderController extends Controller
     public function getFilteredOrdersByCategory(Request $request)
     {
         $category_ids = $request->input('category_ids', []);
+        $establishment_id = $request->input('establishment_id');
 
-        $orders = TableOrders::where('order_status', '<>', 'canceled')
+
+        if (!Establishment::find($establishment_id) || !$establishment_id) {
+            return response()->json(['message' => 'Establishment not found'], 404);
+        }
+
+        $orders = TableOrders::where('establishment_id', $establishment_id)
+
+            // where('order_status', '<>', 'canceled')
             ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
                 $query->whereIn('category_id', $category_ids);
             })
