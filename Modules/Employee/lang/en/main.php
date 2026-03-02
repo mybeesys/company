@@ -47,6 +47,7 @@ return [
     'accountingReports_management_module' => 'Accounting Reports',
     'setting_management_module' => 'Setting',
     'reports_module_management_module' => 'General Reports',
+    'Franchise Companies_management_module' => 'Franchise',
 
     'notifications_settings' => 'Notifications settings',
     'system_settings' => 'System settings',
@@ -72,8 +73,8 @@ return [
     'from_yesterday' => 'from yesterday',
     'from_last_month' => 'from last month',
     'daily_purchases' => 'Today Purchases',
-    'Today expenses'=>'Today expenses',
-    'Monthly expenses'=>'Monthly expenses',
+    'Today expenses' => 'Today expenses',
+    'Monthly expenses' => 'Monthly expenses',
     'monthly_purchases' => 'Monthly Purchases',
     'unpaid' => 'Unpaid Invoices',
     'total_invoices' => 'Total Invoices',

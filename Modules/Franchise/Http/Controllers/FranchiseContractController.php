@@ -115,8 +115,19 @@ class FranchiseContractController extends Controller
                     'ems_access' => 1,
                 ]);
 
-                $allPermissionIds = Permission::whereIn('type', ['pos', 'ems'])->pluck('id')->toArray();
+                $excludedPermissions = [
+                    'Franchise Companies.all.show',
+                    'Franchise Companies.all.print',
+                    'Franchise Companies.all.create',
+                    'Franchise Companies.all.update',
+                    'Franchise Companies.all.delete',
+                ];
 
+                $allPermissionIds = Permission::whereIn('type', ['pos', 'ems'])
+                    ->whereNotIn('name', $excludedPermissions)
+                    ->pluck('id')
+                    ->toArray();
+                    
                 if (!empty($allPermissionIds)) {
                     $employee->permissions()->sync($allPermissionIds);
                 }
@@ -144,7 +155,7 @@ class FranchiseContractController extends Controller
     }
 
 
-    
+
     public function edit($id)
     {
         $contract = FranchiseContract::findOrFail($id);

@@ -1,7 +1,46 @@
 <?php
 
 return [
+ [
+        // module.model.permission
+        'name' => 'Franchise Companies.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
     [
+        'name' => 'Franchise Companies.all.print',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'Franchise Companies.all.create',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'Franchise Companies.all.update',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'Franchise Companies.all.delete',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+////////////////////////////////////
+
+
+[
         // module.model.permission
         'name' => 'employees.all.show',
         'name_ar' => '',
