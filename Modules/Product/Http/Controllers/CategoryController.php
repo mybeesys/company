@@ -21,6 +21,7 @@ class CategoryController extends Controller
     public function getminicategorylist()
     {
         $categories = Category::all();
+
         return response()->json($categories);
     }
 
@@ -34,6 +35,9 @@ class CategoryController extends Controller
     {
         $TreeBuilder = new TreeBuilder();
         $categories = Category::all();
+         $categories = Category::
+        restrictByFranchise()
+        ->get();
         $tree = $TreeBuilder->buildTrees($categories, null, 'category', null, null, null);
         return response()->json($tree);
     }

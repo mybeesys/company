@@ -46,13 +46,12 @@ class CustomMenuController extends Controller
     public function getCustomMenus()
     {
         $TreeBuilder = new TreeBuilder();
-        $customMenues = CustomMenu::get();
-        // تحميل ملف الترجمة JSON
+        // $customMenues = CustomMenu::get();
+        $customMenues = CustomMenu::restrictByFranchise()->get();
         $translationFilePath = resource_path('components/lang/ar.json');
         $translations = File::exists($translationFilePath)
             ? json_decode(File::get($translationFilePath), true)
             : [];
-        // تحويل mode من القيم الرقمية إلى الترجمة
         $customMenues->transform(function ($menu) use ($translations) {
             if (!empty($menu->mode)) {
                 $modeArray = json_decode($menu->mode, true);

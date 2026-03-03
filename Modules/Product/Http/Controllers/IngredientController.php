@@ -25,7 +25,9 @@ class IngredientController extends Controller
     public function getIngredientsTree()
     {
         // $ingredients = Ingredient::all();
-        $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->get();
+        // $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->get();
+         $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->restrictByFranchise()->get();
+
         $treeBuilder = new TreeBuilder();
         $tree = $treeBuilder->buildTreeIngredient($ingredients, null, 'Ingredient', null, null, null);
         return response()->json($tree);

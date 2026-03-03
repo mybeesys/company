@@ -21,15 +21,15 @@ class AttributeController extends Controller
 
     public function getProductMatrix($id)
     {
-        $product_att = Product_Attribute::where('product_id', $id)->get();
+         $product_att = Product_Attribute::where('product_id', $id)->get();
 
         foreach ($product_att as $att) {
             $att->load(['attribute1', 'attribute2']);
 
-            /* 
+            /*
              if(isset($att->attribute1))
              $att->attribute1->load('attributeClass');
-                  
+
             if(isset($att->attribute2))
              $att->attribute2->load('attributeClass');
             */

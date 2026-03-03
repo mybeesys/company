@@ -79,7 +79,9 @@ class ProductController extends Controller
 
     public function all()
     {
-        $products = Product::all();
+        // $products = Product::all();
+
+        $products = Product::active()->restrictByFranchise()->get();
         return response()->json($products);
     }
 
@@ -127,6 +129,7 @@ class ProductController extends Controller
         $prodRecipes = [];
         $prodIds = [];
         $modIds = [];
+
         $groupedData = collect($request['data'])
             ->groupBy('item_id')
             ->flatMap(function ($items) {
@@ -1321,6 +1324,7 @@ class ProductController extends Controller
         $search = $request->input('search');
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
             ->whereIn('type', ['product', 'variable'])
+            ->restrictByFranchise()
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name_ar', 'like', "%$search%")
@@ -1341,21 +1345,31 @@ class ProductController extends Controller
     public function productsForSale(Request $request)
     {
         $search = $request->input('search');
+        $user = auth()->user();
 
-
-         $products = DB::table('product_products')
+        $query = DB::table('product_products')
             ->where('active', 1)
             ->where('for_sell', 1)
             ->whereIn('type', ['product', 'variable'])
-            ->whereNull('deleted_at')
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name_ar', 'like', "%{$search}%")
-                        ->orWhere('name_en', 'like', "%{$search}%")
-                        ->orWhere('SKU', 'like', "%{$search}%");
-                });
-            })
-            ->get();
+            ->whereNull('deleted_at');
+
+        if ($user && $user->franchise_id) {
+            $query->whereExists(function ($q) use ($user) {
+                $q->select(DB::raw(1))
+                    ->from('franchise_product_permissions')
+                    ->whereColumn('franchise_product_permissions.permitted_id', 'product_products.id')
+                    ->where('franchise_product_permissions.permitted_type', 'product')
+                    ->where('franchise_product_permissions.franchise_id', $user->franchise_id);
+            });
+        }
+
+        $products = $query->when($search, function ($q) use ($search) {
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name_ar', 'like', "%{$search}%")
+                    ->orWhere('name_en', 'like', "%{$search}%")
+                    ->orWhere('SKU', 'like', "%{$search}%");
+            });
+        })->get();
 
         $products->transform(function ($product) {
             $inventoryQty = DB::table('product_inventories')
@@ -1366,11 +1380,7 @@ class ProductController extends Controller
             return $product;
         });
 
-
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        return response()->json(['success' => true, 'data' => $products]);
     }
 
     //
@@ -1379,34 +1389,22 @@ class ProductController extends Controller
         $contactId = $request->contact_id;
         $search = $request->input('search');
 
-        // if (!$contactId) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' =>
-        //     ]);
-        // }
-
-        $transactionIds = Transaction::where('type', 'sell')
-            ->where('contact_id', $contactId)
-            ->pluck('id');
+        $transactionIds = Transaction::where('type', 'sell')->where('contact_id', $contactId)->pluck('id');
 
         if ($transactionIds->isEmpty()) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
+            return response()->json(['success' => true, 'data' => []]);
         }
 
         $productLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
             ->where('line_status', '<>', 'completed')
-            ->get()
-            ->groupBy('product_id');
+            ->get()->groupBy('product_id');
 
         $productIds = $productLines->keys();
 
         $products = Product::whereIn('id', $productIds)
             ->where([['active', 1], ['for_sell', 1]])
             ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->restrictByFranchise()
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name_ar', 'like', "%$search%")
@@ -1419,19 +1417,13 @@ class ProductController extends Controller
             ->map(function ($product) use ($productLines) {
                 $lines = $productLines[$product->id] ?? collect();
                 $soldQty = $lines->sum('qyt');
-
                 $returnedQty = TransactionePurchasesLine::whereIn('transaction_id', $lines->pluck('transaction_id'))
                     ->where('product_id', $product->id)
                     ->sum('qyt');
-
                 $product->remaining_qty = max(0, $soldQty - $returnedQty);
-
                 return $product;
             });
 
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        return response()->json(['success' => true, 'data' => $products]);
     }
 }

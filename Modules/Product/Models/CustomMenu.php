@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuItem;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 
 class CustomMenu extends Model
@@ -33,6 +34,23 @@ class CustomMenu extends Model
         'price_tier_id'
         // add more fields as needed
     ];
+
+
+    public function scopeRestrictByFranchise($query)
+{
+    $user = auth()->user();
+
+    if ($user && $user->franchise_id) {
+        return $query->whereExists(function ($q) use ($user) {
+            $q->select(DB::raw(1))
+              ->from('franchise_custom_menu_permissions')
+              ->whereColumn('franchise_custom_menu_permissions.custom_menu_id', 'product_custom_menus.id')
+              ->where('franchise_custom_menu_permissions.franchise_id', $user->franchise_id);
+        });
+    }
+
+    return $query;
+}
 
     public function getFillable()
     {
