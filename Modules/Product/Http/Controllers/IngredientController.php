@@ -9,24 +9,21 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\Product_Attribute;
-use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
-use Modules\Product\Models\Vendor;
-use Illuminate\Support\Facades\Log;
 
 class IngredientController extends Controller
 {
+    private const PRODUCT_TYPE = 'ingredint';
 
     public function getIngredientsTree()
     {
-        // $ingredients = Ingredient::all();
-        // $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->get();
-         $ingredients = Product::with('unitTransfers')->where('type', 'ingredint')->restrictByFranchise()->get();
+        $ingredients = Product::with('unitTransfers')
+            ->where('type', self::PRODUCT_TYPE)
+            ->restrictByFranchise()
+            ->get();
 
         $treeBuilder = new TreeBuilder();
         $tree = $treeBuilder->buildTreeIngredient($ingredients, null, 'Ingredient', null, null, null);
@@ -35,29 +32,22 @@ class IngredientController extends Controller
 
     public function ingredientProductList()
     {
-        // $ingredients = Ingredient::all();
-        // $product = Product::all();
-        // $product = array_map(fn($item) => $item + ['type' => "-p"], $product->toArray());
-        // $ingredients = array_map(fn($item) => $item + ['type' => "-i"], $ingredients->toArray());
-        // $tree = array_merge($ingredients , $product);
-        // return response()->json($tree);
+        $product = Product::where('type', self::PRODUCT_TYPE)
+            ->restrictByFranchise()
+            ->get();
 
-        $product = Product::where('type', 'ingredint')->get();
-        $product = array_map(fn($item) => $item + ['type' => "{$item['id']}-ingredint"], $product->toArray());
+        $product = array_map(fn($item) => $item + ['type' => "{$item['id']}-" . self::PRODUCT_TYPE], $product->toArray());
         return response()->json($product);
     }
 
-
     public function getUnitTypeList()
     {
-        $units = Unit::all();
-        return response()->json($units);
+        return response()->json(Unit::all());
     }
 
     public function getVendors()
     {
-        $units = Contact::where('business_type', 'supplier')->get();
-        return response()->json($units);
+        return response()->json(Contact::where('business_type', 'supplier')->get());
     }
 
     public function index()
@@ -66,30 +56,20 @@ class IngredientController extends Controller
     }
 
     public function edit($id)
-
     {
-        $ingredient = Product::with([
-            'establishments.establishment',
-            'unitTransfers',
-        ])->findOrFail($id);
-        $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
+        $ingredient = Product::where('type', self::PRODUCT_TYPE)
+            ->with(['establishments.establishment', 'unitTransfers'])
+            ->restrictByFranchise()
+            ->findOrFail($id);
 
-        // $ingredient  = Product::with(['establishments' => function ($query) {
-        //     $query->with('establishment');
-        // }])->with(['unitTransfers' => function ($query) {
-        //     // $query->with('unitTransfer');
-        // }])->find($id);
-        // return $ingredient;
+        $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
         return view('product::ingredient.edit', compact('ingredient'));
     }
 
     public function create()
     {
-        $ingredient  = new Product();
-        $establishments = Establishment::where('is_main', 0)->get();
-        $ingredient->establishments = $establishments;
-
-
+        $ingredient = new Product();
+        $ingredient->establishments = Establishment::where('is_main', 0)->get();
         $ingredient->active = 1;
         return view('product::ingredient.create', compact('ingredient'));
     }
@@ -100,35 +80,30 @@ class IngredientController extends Controller
             ['item_id', '=', $ingredient_id],
             ['item_type', '=', 'i']
         ])->first();
-        if ($product != null)
-            return response()->json(["message" => "INGREDIENT_USED_RECIPE"]);
-        return null;
-    }
 
+        return $product != null ? response()->json(["message" => "INGREDIENT_USED_RECIPE"]) : null;
+    }
 
     public function store(Request $request)
     {
-        error_log(json_encode($request->all()));
         $validated = $request->all();
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $validateUsing = $this->validateInUse($validated['id']);
-            if ($validateUsing != null)
-                return $validateUsing;
-            $product = Product::find($validated['id']);
-            $product->delete();
-            return response()->json(["message" => "Done"]);
-        } else if (isset($validated['id'])) {
-            $validated['tax_id'] = $validated['order_tax_id'];
+            if ($validateUsing != null) return $validateUsing;
 
+            $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise()->find($validated['id']);
+            if ($product) $product->delete();
+            return response()->json(["message" => "Done"]);
+        }
+
+        if (isset($validated['id'])) {
+            $validated['tax_id'] = $validated['order_tax_id'] ?? null;
             $res = $this->validateProduct($validated['id'], $validated);
-            if (count($res) > 0)
-                return $res;
+            if (count($res) > 0) return $res;
             $this->saveProduct($validated, $request);
         } else {
-
             $res = $this->validateProduct(null, $validated);
-            if (count($res) > 0)
-                return $res;
+            if (count($res) > 0) return $res;
             $this->createProduct($validated, $request);
         }
         return response()->json(["message" => "Done"]);
@@ -138,160 +113,145 @@ class IngredientController extends Controller
     {
         $checkResult = [];
         $uniqueFields = ['name_ar', 'name_en'];
-        if (isset($product['SKU']))
-            $uniqueFields[] = 'SKU';
-        if ($id != null)
-            $query = Product::where('id', '!=', $id);
-        else
-            $query = Product::whereRaw('1 = 1');
-        $query = $query->where(function ($subQuery) use ($uniqueFields, $product) {
-            for ($i = 0; $i < count($uniqueFields); $i++) {
-                $subQuery = $subQuery->orWhere($uniqueFields[$i], '=', $product[$uniqueFields[$i]]);
+        if (isset($product['SKU'])) $uniqueFields[] = 'SKU';
+
+        $query = Product::where('type', self::PRODUCT_TYPE);
+        if ($id != null) $query->where('id', '!=', $id);
+
+        $query->where(function ($subQuery) use ($uniqueFields, $product) {
+            foreach ($uniqueFields as $field) {
+                $subQuery->orWhere($field, '=', $product[$field]);
             }
         });
+
         $products = $query->get();
-        for ($i = 0; $i < count($uniqueFields); $i++) {
-            $res = array_filter($products->toArray(), function ($prod) use ($product, $uniqueFields, $i) {
-                return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]]; // Keep only even numbers
-            });
-            if (count($res) > 0)
-                $checkResult[] = $uniqueFields[$i];
+        foreach ($uniqueFields as $field) {
+            if ($products->contains($field, $product[$field])) {
+                $checkResult[] = $field;
+            }
         }
-        if (count($checkResult) > 0) {
-            return [
-                'message' => 'UNIQUE',
-                'data' => $checkResult
-            ];
-        }
-        return $checkResult;
+
+        return count($checkResult) > 0 ? ['message' => 'UNIQUE', 'data' => $checkResult] : $checkResult;
     }
 
     protected function saveProduct($validated, $request)
     {
-        $product = Product::find($validated['id']);
-        // $validated['type'] = 'ingredint';
+        $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise()->find($validated['id']);
         $product->fill($validated);
+
         DB::transaction(function () use ($product, $request) {
             $product->save();
+            $user = auth()->user();
 
+            if ($user->franchise_id) {
+                DB::table('franchise_product_permissions')->insert([
+                    'franchise_id'    => $user->franchise_id,
+                    'permitted_type'  => self::PRODUCT_TYPE,
+                    'permitted_id'    => $product->id,
+                    'created_at'      => now(),
+                    'updated_at'      => now()
+                ]);
+            }
             $oldUnites = UnitTransfer::where('product_id', $product->id)->get();
 
             if (isset($request["transfer"])) {
                 $ids = [];
                 $insertedIds = [];
-                $updatedTransfers = [];
-                $requestIds = array_map(function ($item) {
-                    return $item["id"];
-                }, $request["transfer"]);
-                UnitTransfer::where('product_id', '=',  $product->id)->whereNotIn('id', $requestIds)->delete();
-                foreach ($oldUnites  as $old) {
-                    $newid = [];
-                    $newid['oldId'] = $old['id'];
-                    $newid['newId'] = $old['id'];
-                    $ids[] = $newid;
-                }
+                $requestIds = array_map(fn($item) => $item["id"], $request["transfer"]);
+                UnitTransfer::where('product_id', $product->id)->whereNotIn('id', $requestIds)->delete();
+
+                foreach ($oldUnites as $old) $ids[] = ['oldId' => $old['id'], 'newId' => $old['id']];
+
                 foreach ($request["transfer"] as $transfer) {
                     if ($transfer['id'] <= 0) {
-                        $newid = [];
-                        $inserted = [];
-                        $tran = [];
-                        $newid['oldId'] =  $transfer['id'];
-                        $tran['product_id'] =  $product->id;
-                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
-                        $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
-                        $tran['unit1'] = $transfer['unit1'];
-                        $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
-                        $id = UnitTransfer::create($tran)->id;
-                        $inserted['id'] = $id;
-                        $inserted['unit2'] = $transfer['unit2'];
-                        $newid['newId'] =  $id;
-                        $ids[] = $newid;
-                        $insertedIds[] = $inserted;
-                    } else if (!isset($transfer['unit2'])) {
-                        $updatedTransfer = UnitTransfer::find($transfer['id']);
-                        $updatedTransfer['unit1'] = $transfer['unit1'];
-                        $updatedTransfer->save();
+                        $id = UnitTransfer::create([
+                            'product_id' => $product->id,
+                            'transfer' => ($transfer['transfer'] ?? null) != -100 ? $transfer['transfer'] : null,
+                            'primary' => ($transfer['primary'] ?? false) ? 1 : 0,
+                            'unit1' => $transfer['unit1'],
+                            'unit2' => null
+                        ])->id;
+                        $insertedIds[] = ['id' => $id, 'unit2' => $transfer['unit2']];
+                        $ids[] = ['oldId' => $transfer['id'], 'newId' => $id];
                     } else {
-                        $updatedTransfer = UnitTransfer::find($transfer['id']);
-                        $updatedTransfer['unit1'] = $transfer['unit1'];
-                        $updatedTransfer['unit2'] = $transfer['unit2'];
-                        $updatedTransfer['primary'] = $transfer['primary'];
-                        $updatedTransfer['transfer'] = $transfer['transfer'];
-                        $updatedTransfer->save();
+                        UnitTransfer::where('id', $transfer['id'])->update([
+                            'unit1' => $transfer['unit1'],
+                            'unit2' => $transfer['unit2'] ?? null,
+                            'primary' => $transfer['primary'] ?? 0,
+                            'transfer' => $transfer['transfer'] ?? null
+                        ]);
                     }
                 }
                 foreach ($insertedIds as $transfer) {
                     foreach ($ids as $updateId) {
                         if ($transfer['unit2'] == $updateId['oldId']) {
-                            $updateObject = UnitTransfer::find($transfer['id']);
-                            $updateObject->unit2 =  $updateId['newId'];
-                            $updateObject->save();
+                            UnitTransfer::where('id', $transfer['id'])->update(['unit2' => $updateId['newId']]);
                         }
                     }
                 }
             }
-            EstablishmentProduct::where('product_id', '=', $product->id)->delete();
-            if (isset($request["establishments"])) {
-                foreach ($request["establishments"] as $newEstablishment) {
 
-                    $establishment = new EstablishmentProduct();
-                    $establishment->product_id = $product->id;
-                    $establishment->establishment_id = $newEstablishment["establishment_id"];
-                    $establishment->save();
+            EstablishmentProduct::where('product_id', $product->id)->delete();
+            if (isset($request["establishments"])) {
+                foreach ($request["establishments"] as $newEst) {
+                    EstablishmentProduct::create(['product_id' => $product->id, 'establishment_id' => $newEst["establishment_id"]]);
                 }
             }
         });
     }
 
-
     protected function createProduct($validated, $request)
     {
         DB::transaction(function () use ($validated, $request) {
-            $validated['type'] = 'ingredint';
-
+            $validated['type'] = self::PRODUCT_TYPE;
             $product = Product::create($validated);
+            $user = auth()->user();
 
+            if ($user->franchise_id) {
+                DB::table('franchise_product_permissions')->insert([
+                    'franchise_id'    => $user->franchise_id,
+                    'permitted_type'  => self::PRODUCT_TYPE,
+                    'permitted_id'    => $product->id,
+                    'created_at'      => now(),
+                    'updated_at'      => now()
+                ]);
+            }
             if (isset($request["transfer"])) {
                 $ids = [];
                 $insertedIds = [];
+
                 foreach ($request["transfer"] as $transfer) {
-                    $newid = [];
-                    $inserted = [];
-                    $tran = [];
-                    $newid['oldId'] =  $transfer['id'];
-                    $tran['product_id'] =  $product->id;
-                    $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
-                    $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
-                    $tran['unit1'] = $transfer['unit1'];
-                    $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                    $tran = [
+                        'product_id' => $product->id,
+                        'transfer' => isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null,
+                        'primary' => isset($transfer['primary']) && $transfer['primary'] == true ? 1 : 0,
+                        'unit1' => $transfer['unit1'],
+                        'unit2' => null
+                    ];
+
                     $id = UnitTransfer::create($tran)->id;
-                    $inserted['id'] = $id;
-                    $inserted['unit2'] = $transfer['unit2'];
-                    $newid['newId'] =  $id;
-                    $ids[] = $newid;
-                    $insertedIds[] = $inserted;
+                    $insertedIds[] = ['id' => $id, 'unit2' => $transfer['unit2']];
+                    $ids[] = ['oldId' => $transfer['id'], 'newId' => $id];
                 }
+
                 foreach ($insertedIds as $transfer) {
                     foreach ($ids as $updateId) {
                         if ($transfer['unit2'] == $updateId['oldId']) {
-                            $updateObject = UnitTransfer::find($transfer['id']);
-                            $updateObject->unit2 =  $updateId['newId'];
-                            $updateObject->save();
+                            UnitTransfer::where('id', $transfer['id'])->update(['unit2' => $updateId['newId']]);
                         }
                     }
                 }
             }
-            $product->save();
 
             if (isset($request["establishments"])) {
-                foreach ($request["establishments"] as $newEstablishment) {
-
-                    $establishment = new EstablishmentProduct();
-                    $establishment->product_id = $product->id;
-                    $establishment->establishment_id = $newEstablishment["id"];;
-                    $establishment->save();
+                foreach ($request["establishments"] as $newEst) {
+                    EstablishmentProduct::create([
+                        'product_id' => $product->id,
+                        'establishment_id' => $newEst["id"]
+                    ]);
                 }
             }
+
             if ($request->unit) {
                 UnitTransfer::create([
                     'unit1' => $request->unit,

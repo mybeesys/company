@@ -19,34 +19,12 @@ class CustomMenuController extends Controller
 {
     public function index()
     {
-        // Pass the posts to the view
         return view('product::customMenu.index');
     }
-
-    // public function getCustomMenus()
-    // {
-    //     $TreeBuilder = new TreeBuilder();
-    //     $customMenues = CustomMenu::all();
-
-    //     $customMenues->transform(function ($menu) {
-    //         if (!empty($menu->mode)) {
-    //             $modeArray = json_decode($menu->mode, true);
-    //             $menu->mode = is_array($modeArray) ? implode(',', $modeArray) : $menu->mode;
-    //         }
-    //         return $menu;
-    //     });
-
-    //     $tree = $TreeBuilder->buildTree($customMenues, null, 'customMenu', null, null, null);
-    //     return response()->json($tree);
-    // }
-
-
-
 
     public function getCustomMenus()
     {
         $TreeBuilder = new TreeBuilder();
-        // $customMenues = CustomMenu::get();
         $customMenues = CustomMenu::restrictByFranchise()->get();
         $translationFilePath = resource_path('components/lang/ar.json');
         $translations = File::exists($translationFilePath)
@@ -95,7 +73,6 @@ class CustomMenuController extends Controller
         return response()->json($tree);
     }
 
-
     public function create()
     {
         $custommenu  = new CustomMenu();
@@ -136,20 +113,32 @@ class CustomMenuController extends Controller
 
         if (isset($validated['method']) && ($validated['method'] == "delete")) {
             $customMenu = CustomMenu::find($validated['id']);
+            DB::table('franchise_custom_menu_permissions')->where('custom_menu_id', $customMenu->id)->delete();
             $customMenu->delete();
             return response()->json(["message" => "Done"]);
         }
 
         if (!isset($validated['id'])) {
-            // try {
             $cMenu = CustomMenu::where('name_ar', $validated['name_ar'])->first();
             if ($cMenu != null)
                 return response()->json(["message" => "NAME_AR_EXIST"]);
             $cMenu = CustomMenu::where('name_en', $validated['name_en'])->first();
             if ($cMenu != null)
                 return response()->json(["message" => "NAME_EN_EXIST"]);
+
             DB::transaction(function () use ($validated, $request) {
                 $customMenu = CustomMenu::create($validated);
+
+                $user = auth()->user();
+                if ($user && $user->franchise_id) {
+                    DB::table('franchise_custom_menu_permissions')->insert([
+                        'franchise_id' => $user->franchise_id,
+                        'custom_menu_id' => $customMenu->id,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+
                 if ($validated['application_type'] == 3) {
                     $customMenu->mode = null;
                     $customMenu->save();
@@ -187,9 +176,6 @@ class CustomMenuController extends Controller
                     }
                 }
             });
-            // } catch (QueryException $e) {
-            //     return response()->json(["message" => "ERROR_SAVING"]);
-            // }
         } else {
             $modifier = CustomMenu::where([
                 ['id', '!=', $validated['id']],
@@ -222,7 +208,6 @@ class CustomMenuController extends Controller
 
             $customMenu->active = $validated['active'];
             $customMenu->price_tier_id = $validated['price_tier_id'] ?? null;
-            //try {
             DB::transaction(function () use ($customMenu, $request) {
                 $customMenu->save();
                 if (isset($request['dates'])) {
@@ -253,9 +238,6 @@ class CustomMenuController extends Controller
                     }
                 }
             });
-            //} catch (QueryException $e) {
-            //   return response()->json(["message" => "ERROR_SAVING"]);
-            //}
         }
         return response()->json(["message" => "Done"]);
     }
@@ -292,11 +274,9 @@ class CustomMenuController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Logic to update a specific post
     }
 
     public function destroy($id)
     {
-        // Logic to delete a specific post
     }
 }
