@@ -24,7 +24,6 @@ use Modules\Product\Models\EstablishmentProduct;
 use Modules\Product\Models\Ingredient;
 use Modules\Product\Models\Modifier;
 use Modules\General\Models\Transaction;
-
 use Modules\Product\Models\PriceTier;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\ProductTax;
@@ -69,18 +68,14 @@ class ProductController extends Controller
         'use_upcharge' => 'nullable|boolean',
         'linked_combo' => 'nullable|boolean',
         'promot_upsell' => 'nullable|numeric',
-        // 'for_sell' => 'required|boolean',
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
         'show_in_menu' => 'required|boolean',
         'allergens' => 'nullable',
     ];
 
-
     public function all()
     {
-        // $products = Product::all();
-
         $products = Product::active()->restrictByFranchise()->get();
         return response()->json($products);
     }
@@ -134,7 +129,6 @@ class ProductController extends Controller
             ->groupBy('item_id')
             ->flatMap(function ($items) {
                 $sumTimes = $items->sum('times');
-                // Modify the first item to store the summed quantity
                 $first = $items->first();
                 $first['times'] = $sumTimes;
                 return [$first];
@@ -161,7 +155,6 @@ class ProductController extends Controller
             ->groupBy('item_id')
             ->flatMap(function ($items) {
                 $sumQuantity = $items->sum('quantity');
-                // Modify the first item to store the summed quantity
                 $first = $items->first();
                 $first['quantity'] = $sumQuantity;
                 return [$first];
@@ -186,9 +179,6 @@ class ProductController extends Controller
         return view('product::product.barcode');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $product  = new Product();
@@ -204,7 +194,6 @@ class ProductController extends Controller
         $product->price_tiers = [];
         $product->recipe = [];
         $product->attributes = [];
-        //$product->taxIds = [];
         $product->active = 1;
         $product->for_sell = 1;
         $product->show_in_menu = 0;
@@ -252,7 +241,7 @@ class ProductController extends Controller
         $products = $query->get();
         for ($i = 0; $i < count($uniqueFields); $i++) {
             $res = array_filter($products->toArray(), function ($prod) use ($product, $uniqueFields, $i) {
-                return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]]; // Keep only even numbers
+                return $prod[$uniqueFields[$i]] == $product[$uniqueFields[$i]];
             });
             if (count($res) > 0)
                 $checkResult[] = $uniqueFields[$i];
@@ -266,9 +255,6 @@ class ProductController extends Controller
         return $checkResult;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         error_log(json_encode($request->all()));
@@ -303,7 +289,6 @@ class ProductController extends Controller
 
     protected function saveProduct($validated, $request)
     {
-        //Log::info($request);
         $image = null;
         $product = Product::find($validated['id']);
         $product->fill($validated);
@@ -316,31 +301,7 @@ class ProductController extends Controller
             $product->price_with_tax = $validated['price'];
             $product->price = TaxHelper::getAmountBeforeTax($validated['price'], $taxRate);;
         }
-        // $product->name_ar = $validated['name_ar'];
-        // $product->name_en = $validated['name_en'];
-        // $product->description_ar = isset($validated['description_ar'])? $validated['description_ar'] :"";
-        // $product->description_en = isset($validated['description_en'])? $validated['description_en']:"";
-        // $product->SKU = isset($validated['SKU'])? $validated['SKU'] :  $product->SKU;
-        // $product->barcode =isset($validated['barcode'])? $validated['barcode']: $product->barcode;
-        // $product->category_id = $validated['category_id'];
-        // $product->tax_id = $validated['tax_id'];
-        // $product->subcategory_id = $validated['subcategory_id'];
-        // $product->active = $validated['active'];
-        // $product->order = $validated['order'] ?? null;
-        // $product->for_sell = $validated['for_sell'];
-        // $product->sold_by_weight = $validated['sold_by_weight'];
-        // $product->track_serial_number = $validated['track_serial_number'];
-        // $product->commissions = isset($validated['commissions'])? $validated['commissions']: $product->commissions;
-        // $product->price = $validated['price'];
-        // $product->cost = $validated['cost'];
-        // $product->color = isset($validated['color'])?$validated['color']: $product->color ;
-        // $product->prep_recipe = isset($validated['prep_recipe'])? $validated['prep_recipe']: $product->prep_recipe;
-        // $product->recipe_yield = isset($validated['recipe_yield'])? $validated['recipe_yield']: $product->recipe_yield;
-        // $product->group_combo = $validated['group_combo'] ?? 0;
-        // $product->set_price = isset($validated['set_price'])? $validated['set_price'] : null;
-        // $product->use_upcharge = isset($validated['use_upcharge']) ?$validated['use_upcharge'] : null;
-        // $product->linked_combo = $validated['linked_combo'] ?? 0;
-        // $product->promot_upsell = isset($validated['promot_upsell']) ?$validated['promot_upsell'] : null ;
+
         if (isset($request["image_deleted"])) {
             $filePath = public_path($product->image);
             if (File::exists($product->image))
@@ -349,13 +310,9 @@ class ProductController extends Controller
             $tenantId = $tenant->id;
             $filePath = '/product/images';
             $sourcePath = public_path('images.png');
-
             $defaultFileName = $product->id . '.png';
-
             $destinationPath = $filePath . '/' . $defaultFileName;
-
             Storage::disk('public')->put($destinationPath, file_get_contents($sourcePath));
-
             $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $defaultFileName;
             $product->save();
         }
@@ -365,17 +322,10 @@ class ProductController extends Controller
                 File::delete($product->image);
             $tenant = tenancy()->tenant;
             $tenantId = $tenant->id;
-            // Get the uploaded file
             $file = $request->file('image_file');
-
-            // Define the path based on the tenant's ID
             $filePath =  '/product/images';
-
-            // Store the file
             $fileExtension = $file->getClientOriginalExtension();
-            $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public'); // Store in public disk
-
-            // Optionally save the file path to the database
+            $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public');
             $product->image = 'storage/' . 'tenant' . $tenantId  . $filePath . '/' . $product->id . '.' . $fileExtension;
             $image = $product->image;
         }
@@ -399,8 +349,6 @@ class ProductController extends Controller
                         $newid = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $newid);
                     }
                     $recipeIngredient = explode("-", $newid);
-
-                    //Log::info("Request data recipe:", $recipeIngredient);
                     $rec['item_id'] = $recipeIngredient[0];
                     $rec['item_type'] = $recipeIngredient[1];
                     $rec["unit_transfer_id"] = $recipe["unit_transfer"]["id"];
@@ -434,7 +382,7 @@ class ProductController extends Controller
                         $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
                         $tran['primary'] = isset($transfer['primary']) &&  $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
-                        $tran['unit2'] = null; //$transfer['unit2'] != -100? $transfer['unit2'] : null;
+                        $tran['unit2'] = null;
                         $id = UnitTransfer::create($tran)->id;
                         $inserted['id'] = $id;
                         $inserted['unit2'] = $transfer['unit2'];
@@ -581,7 +529,6 @@ class ProductController extends Controller
             EstablishmentProduct::where('product_id', '=', $product->id)->delete();
             if (isset($request["establishments"])) {
                 foreach ($request["establishments"] as $newEstablishment) {
-
                     $establishment = new EstablishmentProduct();
                     $establishment->product_id = $product->id;
                     $establishment->establishment_id = $newEstablishment["id"];
@@ -591,7 +538,6 @@ class ProductController extends Controller
             ProductPriceTier::where('product_id', '=', $product->id)->delete();
             if (isset($request["price_tiers"])) {
                 foreach ($request["price_tiers"] as $newPriceTier) {
-
                     $PriceTier = new ProductPriceTier();
                     $pt = $newPriceTier['price_tier'];
                     $PriceTier->product_id = $product->id;
@@ -600,27 +546,25 @@ class ProductController extends Controller
                     $PriceTier->save();
                 }
             }
-            // ProductTax::where('product_id', '=', $product->id)->delete();
-            // if(isset($request["taxIds"]))
-            // {
-            //     foreach ($request["taxIds"] as $newTax) {
-
-            //         $tax = new ProductTax();
-            //         $tax->product_id = $product->id;
-            //         $tax->tax_id = $newTax;
-            //         $tax->save();
-            //     }
-            // }
         });
     }
 
     protected function createProduct($validated, $request)
     {
-        Log::info($request);
         DB::transaction(function () use ($validated, $request) {
-
-            // 1. Create the product
             $product = Product::create($validated);
+
+            $user = auth()->user();
+            if ($user && $user->franchise_id) {
+                DB::table('franchise_product_permissions')->insert([
+                    'franchise_id' => $user->franchise_id,
+                    'permitted_id' => $product->id,
+                    'permitted_type' => 'product',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
             $tax = Tax::where("default", 1)->first();
             $taxRate = $tax ? $tax->amount : 0;
             if (isset($validated['price_with_tax'])) {
@@ -629,7 +573,6 @@ class ProductController extends Controller
                 $product->price_with_tax = $validated['price'];
                 $product->price = TaxHelper::getAmountBeforeTax($validated['price'], $taxRate);;
             }
-            // $product->name_ar = $validated['name_ar'];
             $product->color = $validated['color'] ?? '#37D67A';
             $product->parent_id = $request->parent_id ?? Null;
             $product->description_ar = $request->description_ar ?? Null;
@@ -659,7 +602,6 @@ class ProductController extends Controller
                     'transfer' => -100,
                 ]);
             }
-            // 5. Handle image upload if a file is provided
             if ($request->hasFile('image_file')) {
                 $this->handleImageUpload($request->file('image_file'), $product);
             } else {
@@ -667,13 +609,9 @@ class ProductController extends Controller
                 $tenantId = $tenant->id;
                 $filePath = '/product/images';
                 $sourcePath = public_path('images.png');
-
                 $defaultFileName = $product->id . '.png';
-
                 $destinationPath = $filePath . '/' . $defaultFileName;
-
                 Storage::disk('public')->put($destinationPath, file_get_contents($sourcePath));
-
                 $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $defaultFileName;
                 $product->save();
             }
@@ -685,15 +623,12 @@ class ProductController extends Controller
                     $product->save();
                 }
             }
-            // 2. Save modifiers if they exist
             if (isset($request["modifiers"])) {
                 $this->saveModifiers($request["modifiers"], $product->id);
             }
-            // 4. Save transfer details if they exist
             if (isset($request["transfer"])) {
                 $this->saveTransferDetails($request["transfer"], $product->id);
             }
-            // 3. Save attributes if they exist
             if (isset($request["attributes"])) {
                 $product->type = "variable";
                 $product->parent_id = null;
@@ -701,48 +636,31 @@ class ProductController extends Controller
                 $product->save();
                 $this->saveAttributes($request["attributes"], $product->id, $product);
             }
-
-            // 6. Save recipe details if they exist
             if (isset($request["recipe"])) {
                 $this->saveRecipe($request["recipe"], $product->id);
             }
-
-            // 7. Save combos if they exist
             if (isset($request["combos"])) {
                 $this->saveCombos($request["combos"], $product->id);
             }
-
-            // 8. Save linked combos if they exist
             if (isset($request["linkedCombos"])) {
                 $this->saveLinkedCombos($request["linkedCombos"], $product->id);
             }
-
-            // 9. Save establishments if they exist
             if (isset($request["establishments"])) {
                 $this->saveEstablishments($request["establishments"], $product->id);
             }
-
-            // 10. Save price tiers if they exist
             if (isset($request["price_tiers"])) {
                 $this->savePriceTiers($request["price_tiers"], $product->id);
             }
-
-            // Optionally: Handle taxes if they exist (uncomment if needed)
-            // if (isset($request["taxIds"])) {
-            //     $this->saveTaxes($request["taxIds"], $product->id);
-            // }
         });
     }
 
-    // Method to save modifiers
     private function saveModifiers($modifiers, $productId)
     {
         ProductModifier::where('product_id', $productId)->delete();
-
         foreach ($modifiers as $modifierGroup) {
             if (isset($modifierGroup['class'])) {
                 $classData = $modifierGroup['class'];
-                $mainModifier = ProductModifier::create([
+                ProductModifier::create([
                     'product_id' => $productId,
                     'modifier_class_id' => $classData['modifier_class_id'],
                     'modifier_id' => null,
@@ -801,7 +719,6 @@ class ProductController extends Controller
         }
     }
 
-    // Method to save attributes
     private function saveAttributes($attributes, $productId, $product)
     {
         $tax = Tax::where("default", 1)->first();
@@ -839,6 +756,17 @@ class ProductController extends Controller
             $att['show_in_menu'] = $product->show_in_menu;
             $newProduct = Product::create($att);
 
+            $user = auth()->user();
+            if ($user && $user->franchise_id) {
+                DB::table('franchise_product_permissions')->insert([
+                    'franchise_id' => $user->franchise_id,
+                    'permitted_id' => $newProduct->id,
+                    'permitted_type' => 'product',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
             $unit = UnitTransfer::where('product_id', $product->id)
                 ->whereNull('unit2')
                 ->first();
@@ -859,12 +787,10 @@ class ProductController extends Controller
         $product->save();
     }
 
-    // Method to save transfer details
     private function saveTransferDetails($transfers, $productId)
     {
         $ids = [];
         $insertedIds = [];
-
         foreach ($transfers as $transfer) {
             $tran = [
                 'product_id' => $productId,
@@ -877,7 +803,6 @@ class ProductController extends Controller
             $insertedIds[] = ['id' => $newId, 'unit2' => $transfer['unit2']];
             $ids[] = ['oldId' => $transfer['id'], 'newId' => $newId];
         }
-
         foreach ($insertedIds as $transfer) {
             foreach ($ids as $updateId) {
                 if ($transfer['unit2'] == $updateId['oldId']) {
@@ -889,7 +814,6 @@ class ProductController extends Controller
         }
     }
 
-    // Method to handle image upload
     private function handleImageUpload($file, $product)
     {
         $tenant = tenancy()->tenant;
@@ -897,13 +821,10 @@ class ProductController extends Controller
         $filePath = '/product/images';
         $fileExtension = $file->getClientOriginalExtension();
         $file->storeAs($filePath, $product->id . '.' . $fileExtension, 'public');
-
-        // Save the file path to the database
         $product->image = 'storage/tenant' . $tenantId . $filePath . '/' . $product->id . '.' . $fileExtension;
         $product->save();
     }
 
-    // Method to save recipe details
     private function saveRecipe($recipes, $productId)
     {
         $order = 0;
@@ -912,9 +833,7 @@ class ProductController extends Controller
             if (!str_contains($newid, '-')) {
                 $newid = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $newid);
             }
-
             $recipeIngredient = explode("-", $newid);
-            //Log::info("Request data recipe:", $recipe);
             RecipeProduct::create([
                 'product_id' => $productId,
                 'quantity' => $recipe['quantity'],
@@ -926,7 +845,6 @@ class ProductController extends Controller
         }
     }
 
-    // Method to save combos
     private function saveCombos($combos, $productId)
     {
         ProductCombo::where('product_id', '=', $productId)->delete();
@@ -939,10 +857,8 @@ class ProductController extends Controller
                 'quantity' => $combo["quantity"] ?? 1,
                 'price' => $combo["price"] ?? null,
             ]);
-
             if (isset($combo["products"])) {
                 ProductComboItem::where('combo_id', '=', $productCombo->id)->delete();
-
                 foreach ($combo["products"] as $comboProductId) {
                     $comboItem = new ProductComboItem();
                     $comboItem->item_id = $comboProductId;
@@ -955,26 +871,20 @@ class ProductController extends Controller
                             }
                         }
                     }
-
                     $comboItem->save();
                 }
             }
         }
     }
 
-
-
-    // Method to save linked combos
     private function saveLinkedCombos($linkedCombos, $productId)
     {
         ProductLinkedComboItem::where('product_id', '=', $productId)->delete();
-
         foreach ($linkedCombos as $linkedCombo) {
             $productLinkedComboItem = ProductLinkedComboItem::create([
                 'product_id' => $productId,
                 'linked_combo_id' => $linkedCombo["linked_combo_id"],
             ]);
-
             if (isset($linkedCombo["upchargePrices"])) {
                 ProductLinkedComboUpcharge::where('product_combo_id', '=', $productLinkedComboItem->linked_combo_id)->delete();
                 foreach ($linkedCombo["upchargePrices"] as $upchargePrice) {
@@ -987,7 +897,6 @@ class ProductController extends Controller
         }
     }
 
-    // Method to save establishments
     private function saveEstablishments($establishments, $productId)
     {
         foreach ($establishments as $newEstablishment) {
@@ -998,7 +907,6 @@ class ProductController extends Controller
         }
     }
 
-    // Method to save price tiers
     private function savePriceTiers($priceTiers, $productId)
     {
         foreach ($priceTiers as $newPriceTier) {
@@ -1010,23 +918,15 @@ class ProductController extends Controller
         }
     }
 
-
-    /**
-     * Show the specified resource.
-     */
     public function show($id)
     {
         $item = Product::find($id);
-
         if ($item) {
             return response()->json($item);
         }
         return response()->json(['error' => 'Item not found'], 404);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
         $product = Product::with([
@@ -1057,7 +957,6 @@ class ProductController extends Controller
                 $attr->attribute1Name_en = null;
                 $attr->attribute1Name_ar = null;
             }
-
             if ($attr->attribute2) {
                 $attr->attribute2Name_en = $attr->attribute2->name_en;
                 $attr->attribute2Name_ar = $attr->attribute2->name_ar;
@@ -1067,9 +966,6 @@ class ProductController extends Controller
             }
         }
         $product->combos = $product->combos;
-        // $product->taxIds = array_map(function($item) {
-        //     return $item["tax_id"];
-        // }, $product->taxes->toArray());
         foreach ($product->combos as $d) {
             $d->products = array_map(function ($item) {
                 return $item["item_id"];
@@ -1095,7 +991,6 @@ class ProductController extends Controller
         $modifierGroups = $product->modifiers->groupBy('modifier_class_id')->map(function ($modifiers, $classId) use ($product) {
             $firstModifier = $modifiers->first();
             $class = optional($firstModifier)->modifierClass;
-
             return [
                 'class' => [
                     'modifier_class_id' => $classId,
@@ -1130,8 +1025,6 @@ class ProductController extends Controller
 
     public function searchProducts(Request $request)
     {
-        Log::info($request);
-        $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $products = Product::where('name_ar', 'like', '%' . $key . '%')
             ->orWhere('name_en', 'like', '%' . $key . '%')
@@ -1149,26 +1042,25 @@ class ProductController extends Controller
             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
-            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
+            $newProduct["id"] = $product["id"] . '-p';
             return $newProduct;
         });
         $modifiers = $modifiers->map(function ($modifier) {
             $newModifier = $modifier->toArray();
-            $newModifier["id"] = $modifier["id"] . '-m'; // Set the value of 'item_type'
+            $newModifier["id"] = $modifier["id"] . '-m';
             return $newModifier;
         });
         $ingredients = $ingredients->map(function ($ingredient) {
             $newIngredient = $ingredient->toArray();
-            $newIngredient["id"] = $ingredient["id"] . '-i'; // Set the value of 'item_type'
+            $newIngredient["id"] = $ingredient["id"] . '-i';
             return $newIngredient;
         });
         $result = array_merge($products->toArray(), $modifiers->toArray(), $ingredients->toArray());
         return response()->json($result);
     }
+
     public function searchProduct(Request $request)
     {
-        Log::info($request);
-        $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $products = Product::where('type', 'product')
             ->where(function ($query) use ($key) {
@@ -1184,10 +1076,10 @@ class ProductController extends Controller
             $newProduct["name_en"] = $product["name_en"];
             return $newProduct;
         });
-
         $result = array_merge($products->toArray());
         return response()->json($result);
     }
+
     public function getProductsByEstablishment($establishmentId)
     {
         $products = DB::table('product_inventories')
@@ -1195,9 +1087,9 @@ class ProductController extends Controller
             ->where('product_inventories.establishment_id', $establishmentId)
             ->select('product_products.*', 'product_inventories.*')
             ->get();
-
         return response()->json($products);
     }
+
     public function getProductsByEstablishments(Request $request)
     {
         $establishmentId = $request->input('establishmentId');
@@ -1213,7 +1105,7 @@ class ProductController extends Controller
             ->get();
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
-            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
+            $newProduct["id"] = $product["id"] . '-p';
             return $newProduct;
         });
         $result = array_merge($products->toArray());
@@ -1222,11 +1114,10 @@ class ProductController extends Controller
 
     public function searchPrepProducts(Request $request)
     {
-        $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
         $products = Product::where(function ($query) use ($key) {
-            $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
-                ->orWhere('name_en', 'like', '%' . $key . '%');           // OR status = 'pending')
+            $query->where('name_ar', 'like', '%' . $key . '%')
+                ->orWhere('name_en', 'like', '%' . $key . '%');
         })
             ->whereIn('id', function ($query) {
                 $query->select('product_id')
@@ -1236,8 +1127,8 @@ class ProductController extends Controller
             ->get();
         $productCount = count($products);
         $modifiers = Product::where('type', 'modifier')->where(function ($query) use ($key) {
-            $query->where('name_ar', 'like', '%' . $key . '%')                // (status = 'active'
-                ->orWhere('name_en', 'like', '%' . $key . '%');           // OR status = 'pending')
+            $query->where('name_ar', 'like', '%' . $key . '%')
+                ->orWhere('name_en', 'like', '%' . $key . '%');
         })
             ->whereIn('id', function ($query) {
                 $query->select('modifier_id')
@@ -1245,15 +1136,14 @@ class ProductController extends Controller
             })
             ->take($productCount > 10 ? 0 : 10 - $productCount)
             ->get();
-
         $products = $products->map(function ($product) {
             $newProduct = $product->toArray();
-            $newProduct["id"] = $product["id"] . '-p'; // Set the value of 'item_type'
+            $newProduct["id"] = $product["id"] . '-p';
             return $newProduct;
         });
         $modifiers = $modifiers->map(function ($modifier) {
             $newModifier = $modifier->toArray();
-            $newModifier["id"] = $modifier["id"] . '-m'; // Set the value of 'item_type'
+            $newModifier["id"] = $modifier["id"] . '-m';
             return $newModifier;
         });
         $result = array_merge($products->toArray(), $modifiers->toArray());
@@ -1286,7 +1176,6 @@ class ProductController extends Controller
             'unit1' => 'nullable|string|max:255',
             'primary' => 'nullable|boolean'
         ]);
-
         try {
             return DB::transaction(function () use ($validated) {
                 $lastOrder = Product::max('order') ?? 0;
@@ -1296,7 +1185,6 @@ class ProductController extends Controller
                 $productData['cost'] = $productData['cost'] ?? 0;
                 $productData['active'] = 1;
                 $product = Product::create($productData);
-
                 if (isset($validated['unit1'])) {
                     UnitTransfer::create([
                         'unit1' => $validated['unit1'],
@@ -1304,7 +1192,6 @@ class ProductController extends Controller
                         'primary' => 1
                     ]);
                 }
-
                 return response()->json([
                     'message' => 'Product saved successfully',
                     'product' => $product
@@ -1317,7 +1204,6 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
 
     public function productsForQuotation(Request $request)
     {
@@ -1332,27 +1218,23 @@ class ProductController extends Controller
                         ->orWhere('SKU', 'like', "%$search%");
                 });
             })
-            ->with(['unitTransfers' => function ($query) {
-                // $query->whereNull('unit2');
-            }])
+            ->with(['unitTransfers' => function ($query) {}])
             ->get();
-
         return response()->json([
             'success' => true,
             'data' => $products
         ]);
     }
+
     public function productsForSale(Request $request)
     {
         $search = $request->input('search');
         $user = auth()->user();
-
         $query = DB::table('product_products')
             ->where('active', 1)
             ->where('for_sell', 1)
             ->whereIn('type', ['product', 'variable'])
             ->whereNull('deleted_at');
-
         if ($user && $user->franchise_id) {
             $query->whereExists(function ($q) use ($user) {
                 $q->select(DB::raw(1))
@@ -1362,7 +1244,6 @@ class ProductController extends Controller
                     ->where('franchise_product_permissions.franchise_id', $user->franchise_id);
             });
         }
-
         $products = $query->when($search, function ($q) use ($search) {
             $q->where(function ($sub) use ($search) {
                 $sub->where('name_ar', 'like', "%{$search}%")
@@ -1370,37 +1251,28 @@ class ProductController extends Controller
                     ->orWhere('SKU', 'like', "%{$search}%");
             });
         })->get();
-
         $products->transform(function ($product) {
             $inventoryQty = DB::table('product_inventories')
                 ->where('product_id', $product->id)
                 ->sum('qty');
-
             $product->inventory_qty = $inventoryQty;
             return $product;
         });
-
         return response()->json(['success' => true, 'data' => $products]);
     }
 
-    //
     public function productsForClient(Request $request)
     {
         $contactId = $request->contact_id;
         $search = $request->input('search');
-
         $transactionIds = Transaction::where('type', 'sell')->where('contact_id', $contactId)->pluck('id');
-
         if ($transactionIds->isEmpty()) {
             return response()->json(['success' => true, 'data' => []]);
         }
-
         $productLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
             ->where('line_status', '<>', 'completed')
             ->get()->groupBy('product_id');
-
         $productIds = $productLines->keys();
-
         $products = Product::whereIn('id', $productIds)
             ->where([['active', 1], ['for_sell', 1]])
             ->whereIn('type', ['product', 'variable', 'ingredint'])
@@ -1423,7 +1295,6 @@ class ProductController extends Controller
                 $product->remaining_qty = max(0, $soldQty - $returnedQty);
                 return $product;
             });
-
         return response()->json(['success' => true, 'data' => $products]);
     }
 }
