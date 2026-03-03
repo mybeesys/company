@@ -4,6 +4,7 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\AttributeClass;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Attribute;
@@ -18,13 +19,31 @@ class AttributesClassController extends Controller
         return view('product::attribute.index');
     }
 
-    public function getAttributes()
-    {
-        $TreeBuilder = new TreeBuilder();
-        $attributes = AttributeClass::all();
-        $tree = $TreeBuilder->buildTree($attributes, null, 'attributeClass', null, null, null);
-        return response()->json($tree);
+ public function getAttributes()
+{
+    $user = auth()->user();
+    $TreeBuilder = new TreeBuilder();
+
+    $query = AttributeClass::query();
+
+    if ($user && $user->franchise_id) {
+        $query->whereHas('children', function ($q) use ($user) {
+            $q->whereExists(function ($subQ) use ($user) {
+                $subQ->select(DB::raw(1))
+                    ->from('franchise_product_permissions')
+                    ->whereColumn('franchise_product_permissions.permitted_id', 'product_attributes.id')
+                    ->where('franchise_product_permissions.permitted_type', 'attribute')
+                    ->where('franchise_product_permissions.franchise_id', $user->franchise_id);
+            });
+        });
     }
+
+    $attributes = $query->get();
+
+    $tree = $TreeBuilder->buildTree($attributes, null, 'attributeClass', null, null, null);
+
+    return response()->json($tree);
+}
 
     /**
      * Store a newly created resource in storage.

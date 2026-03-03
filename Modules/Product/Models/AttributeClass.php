@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AttributeClass extends Model
 {
     use HasFactory;
-    
+
     use SoftDeletes;
-    
+
     protected $table = 'product_attributeclass';
-        
+
     public $timestamps = true;
     /**
      * The attributes that are mass assignable.
@@ -26,7 +26,8 @@ class AttributeClass extends Model
         'active'
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -36,6 +37,7 @@ class AttributeClass extends Model
 
     public function children()
     {
-        return $this->hasMany(Attribute::class, 'parent_id', 'id');
+        return $this->hasMany(Attribute::class, 'parent_id', 'id')
+            ->restrictByFranchise();
     }
 }

@@ -23,8 +23,19 @@ class ModifierClassController extends Controller
 
     public function getModifiers()
     {
+        $user = auth()->user();
         $TreeBuilder = new TreeBuilder();
-        $modifiers = ModifierClass::all();
+
+        $query = ModifierClass::query();
+
+        if ($user && $user->franchise_id) {
+            $query->whereHas('children', function ($q) {});
+        }
+
+        $modifiers = $query->get();
+
+        $modifiers->load('children');
+
         $tree = $TreeBuilder->buildTree($modifiers, null, 'modifierClass', null, null, null);
         return response()->json($tree);
     }

@@ -6,6 +6,7 @@ use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Modules\General\Models\Tax;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Inventory\Models\ProductInventoryTotal;
@@ -18,7 +19,7 @@ class Product extends Model
     use SoftDeletes;
     public $timestamps = true;
 
-    
+
     // Define fillable fields for mass assignment
     protected $fillable = [
         'name_ar',
@@ -52,7 +53,7 @@ class Product extends Model
         'preparation_time',
         'calories',
         'show_in_menu',
-'allergens',
+        'allergens',
         'vendor_id',
         'alertQuantity',
         'defaultOrderQuantity',
@@ -67,6 +68,21 @@ class Product extends Model
         'last_counted_date'
 
     ];
+
+
+    public function scopeRestrictByFranchise($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->franchise_id) {
+            $allowed = DB::table('franchise_product_permissions')
+                ->where('franchise_id', $user->franchise_id)
+                // ->where('permitted_type', 'product')
+                ->pluck('permitted_id');
+
+            return $query->whereIn('id', $allowed);
+        }
+        return $query;
+    }
 
     /*protected $appends = ['price_with_tax'];
 

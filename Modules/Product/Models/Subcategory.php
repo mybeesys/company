@@ -51,16 +51,18 @@ class Subcategory extends Model
         return $this->hasMany(SubCategory::class, 'parent_id');
     }
 
-    public function children1()
-    {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id')
-            ->whereNull('parent_id');
-    }
+ public function children1()
+{
+    return $this->hasMany(Product::class, 'subcategory_id', 'id')
+        ->whereNull('parent_id')
+        ->restrictByFranchise(); // سنستدعي سكوب قمنا بإنشائه
+}
 
-    public function products()
-    {
-        return $this->hasMany(Product::class, 'subcategory_id', 'id');
-    }
+public function products()
+{
+    return $this->hasMany(Product::class, 'subcategory_id', 'id')
+        ->restrictByFranchise(); // نفس السكوب هنا
+}
 
     public function productsForSale()
     {
