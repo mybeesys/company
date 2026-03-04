@@ -12,6 +12,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Franchise\Models\FranchiseContract;
+use Spatie\Permission\Models\Role;
 
 class FranchiseContractController extends Controller
 {
@@ -115,34 +116,84 @@ class FranchiseContractController extends Controller
                     'ems_access' => 1,
                 ]);
 
-                $excludedPermissions = [
-                    'Franchise Companies.all.show',
-                    'Franchise Companies.all.print',
-                    'Franchise Companies.all.create',
-                    'Franchise Companies.all.update',
-                    'Franchise Companies.all.delete',
-                ];
+                // $excludedPermissions = [
+                //     'Franchise Companies.all.show',
+                //     'Franchise Companies.all.print',
+                //     'Franchise Companies.all.create',
+                //     'Franchise Companies.all.update',
+                //     'Franchise Companies.all.delete',
+                // ];
 
-                $allPermissionIds = Permission::whereIn('type', ['pos', 'ems'])
-                    ->whereNotIn('name', $excludedPermissions)
-                    ->pluck('id')
-                    ->toArray();
-                    
-                if (!empty($allPermissionIds)) {
-                    $employee->permissions()->sync($allPermissionIds);
-                }
+                // $allPermissionIds = Permission::whereIn('type', ['pos', 'ems'])
+                //     ->whereNotIn('name', $excludedPermissions)
+                //     ->pluck('id')
+                //     ->toArray();
+
+                // if (!empty($allPermissionIds)) {
+                //     $employee->permissions()->sync($allPermissionIds);
+                // }
 
 
-                $adminRole = DB::table('roles')->where('name', 'Admin')->first();
-                if ($adminRole) {
-                    DB::table('emp_employee_establishments_roles')->insert([
-                        'employee_id' => $employee->id,
-                        'role_id'     => $adminRole->id,
-                        'establishment_id' => null,
-                        'created_at'  => now(),
-                        'updated_at'  => now(),
+                // $adminRole = DB::table('roles')->where('name', 'Admin')->first();
+                // if ($adminRole) {
+                //     DB::table('emp_employee_establishments_roles')->insert([
+                //         'employee_id' => $employee->id,
+                //         'role_id'     => $adminRole->id,
+                //         'establishment_id' => null,
+                //         'created_at'  => now(),
+                //         'updated_at'  => now(),
+                //     ]);
+                // }
+
+
+
+                $roleName = 'صلاحيات ممنوح';
+
+                $role = DB::table('roles')->where('name', $roleName)->first();
+
+                if (!$role) {
+                    $roleId = DB::table('roles')->insertGetId([
+                        'name' => $roleName,
+                        'guard_name' => 'web',
+                        'type' => 'ems',
+                        'is_active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
+
+                    $excludedPermissions = [
+                        'Franchise Companies.all.show',
+                        'Franchise Companies.all.print',
+                        'Franchise Companies.all.create',
+                        'Franchise Companies.all.update',
+                        'Franchise Companies.all.delete',
+                    ];
+
+                    $allPermissionIds = Permission::whereIn('type', ['pos', 'ems'])
+                        ->whereNotIn('name', $excludedPermissions)
+                        ->pluck('id')
+                        ->toArray();
+
+                     $roleModel = Role::find($roleId);
+                    if ($roleModel && !empty($allPermissionIds)) {
+                        $roleModel->permissions()->sync($allPermissionIds);
+                    }
+                } else {
+                    $roleId = $role->id;
                 }
+
+                DB::table('emp_employee_establishments_roles')->insert([
+                    'employee_id' => $employee->id,
+                    'role_id'     => $roleId,
+                    'establishment_id' => null,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+
+                //////////////////////////////////////////////////////////
+
+
+
             }
         });
 
