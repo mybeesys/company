@@ -105,10 +105,8 @@ class TransactionUtils
             return true;
         }
 
-// dd($request);
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
-        $date = $request->filled('payment_on') ? Carbon::parse($request->payment_on) : now();
-
+        $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
         $due_account_id = '';
         $cash_account_id = '';
