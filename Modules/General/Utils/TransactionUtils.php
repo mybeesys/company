@@ -151,7 +151,7 @@ class TransactionUtils
         $transactionPayment = TransactionPayments::create([
             'transaction_id'    => $transaction->id,
             'payment_type'      => $transaction->invoice_type,
-            'amount'            => $get_val('paid_amount'),
+            'amount'            => $get_val('amount'),
             'method'            => $payment_method,
             'payment_method_id' => $payment_method_id,
             'is_return'         => $transaction->type == 'sell-return' ? 1 : 0,
