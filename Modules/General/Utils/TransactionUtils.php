@@ -107,7 +107,6 @@ class TransactionUtils
 
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
 
-        // استخدام helper function للوصول للبيانات سواء كانت مصفوفة أو كائن
         $get_val = function ($key) use ($request) {
             if (is_array($request)) {
                 return $request[$key] ?? null;
@@ -115,7 +114,6 @@ class TransactionUtils
             return $request->{$key} ?? null;
         };
 
-        // معالجة التاريخ: إذا لم يوجد يأخذ الآن
         $payment_on_raw = $get_val('payment_on');
         $date = !empty($payment_on_raw) ? Carbon::parse($payment_on_raw) : now();
         $payment_on = $date->format('Y-m-d H:i:s');
@@ -139,10 +137,8 @@ class TransactionUtils
 
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
 
-        // تصحيح منطق التحقق من وجود القيمة
         $payment_method_id = $get_val('payment_method_id');
 
-        // التحقق من وجود Shift ID
         $shift_id = $get_val('shift_id');
         if ($shift_id) {
             $account_id = null;
@@ -163,6 +159,7 @@ class TransactionUtils
             'account_id'        => $account_id,
         ]);
 
+        dd($shift_id);
         if (!$shift_id) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
