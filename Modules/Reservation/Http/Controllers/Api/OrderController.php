@@ -385,9 +385,9 @@ class OrderController extends Controller
                 }
 
                 if ($payment->amount > 0) {
-                    $payment_data = [
-                        'paid_amount' => $payment->amount,
-                        // 'payment_on' => $payment->payment_on,
+                    $payment_data = (object) [
+                        'paid_amount'       => $payment->amount,
+                        'payment_on'        => $payment?->payment_on ,
                         'payment_method_id' => $payment->method_id,
                     ];
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $payment_data);
