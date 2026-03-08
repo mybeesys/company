@@ -367,6 +367,7 @@ class OrderController extends Controller
                 'unit_id' => $item->unit_id,
                 'unit_price_before_discount' => $item->unit_price_before_discount,
                 'unit_price' => $item->unit_price,
+               
                 'discount_type' => $item->discount_type,
                 'discount_amount' => $item->discount_amount,
                 'unit_price_inc_tax' => $item->unit_price_inc_tax,
