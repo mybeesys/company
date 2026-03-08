@@ -105,7 +105,7 @@ class TransactionUtils
             return true;
         }
 
-dd($request);
+// dd($request);
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
         $date = $request->filled('payment_on') ? Carbon::parse($request->payment_on) : now();
 
