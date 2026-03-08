@@ -107,8 +107,8 @@ class TransactionUtils
 
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
         $date = (isset($request['payment_on']) && !empty($request['payment_on']))
-        ? Carbon::parse($request['payment_on'])
-        : now();
+            ? Carbon::parse($request['payment_on'])
+            : now();
         // $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
         $due_account_id = '';
@@ -117,8 +117,8 @@ class TransactionUtils
         $account_id = null;
 
         if ($transaction->invoice_type == 'cash') {
-            $account_id = $request->cash_account;
-            $cash_account_id = $request->cash_account;
+            $account_id = isset($request['payment_on']) ? $request->cash_account : null;
+            $cash_account_id = isset($request['payment_on']) ? $request->cash_account : null;
             $payment_method = 'cash';
             $type = 'sell_cash';
         } elseif ($transaction->invoice_type == 'due') {
