@@ -390,7 +390,7 @@ class OrderController extends Controller
                         // 'payment_on'        => $payment?->payment_on ,
                         'payment_method_id' => $payment->method_id,
                     ];
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $payment_data);
+                    $transactionUtil->createOrUpdatePaymentLines($transaction, $payment);
                 }
             }
             $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
