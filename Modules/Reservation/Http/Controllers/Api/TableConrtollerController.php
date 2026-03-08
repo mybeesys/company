@@ -45,6 +45,7 @@ class TableConrtollerController extends Controller
                     'current_guests' => optional($table->reservation)->guests_count,
                     'opened_at' => optional($table->activeOrder)->created_at,
                     'area' => optional($table->area)->name_en,
+                    "establishment_id" => optional($table->area)->establishment_id,
                     'floor' => optional($table->area)->floor ?? 1,
                     'reservation' => $table->reservation ? [
                         'customer_name' => $table->reservation->customer_name,
@@ -114,9 +115,9 @@ class TableConrtollerController extends Controller
                     'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
                         return [
                             'id' => $combo->id,
-                              'option_id' => $combo->combo_id,
-                                'option_name' => $combo->productCombo->name_ar ?? '',
-                                'price' => (float)$combo->unit_price,
+                            'option_id' => $combo->combo_id,
+                            'option_name' => $combo->productCombo->name_ar ?? '',
+                            'price' => (float)$combo->unit_price,
                         ];
                     })->values(),
                 ];
