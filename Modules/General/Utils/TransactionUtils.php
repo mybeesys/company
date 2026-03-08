@@ -106,63 +106,66 @@ class TransactionUtils
         }
 
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
-        $date = (isset($request['payment_on']) && !empty($request['payment_on']))
-            ? Carbon::parse($request['payment_on'])
-            : now();
-        // $date = Carbon::parse($request->payment_on);
+
+        // استخدام helper function للوصول للبيانات سواء كانت مصفوفة أو كائن
+        $get_val = function ($key) use ($request) {
+            if (is_array($request)) {
+                return $request[$key] ?? null;
+            }
+            return $request->{$key} ?? null;
+        };
+
+        // معالجة التاريخ: إذا لم يوجد يأخذ الآن
+        $payment_on_raw = $get_val('payment_on');
+        $date = !empty($payment_on_raw) ? Carbon::parse($payment_on_raw) : now();
         $payment_on = $date->format('Y-m-d H:i:s');
+
         $due_account_id = '';
         $cash_account_id = '';
         $payment_method = 'cash';
         $account_id = null;
 
         if ($transaction->invoice_type == 'cash') {
-            $account_id = isset($request['cash_account']) ? $request->cash_account : null;
-            $cash_account_id = isset($request['cash_account']) ? $request->cash_account : null;
+            $cash_acc = $get_val('cash_account');
+            $account_id = $cash_acc;
+            $cash_account_id = $cash_acc;
             $payment_method = 'cash';
-            $type = 'sell_cash';
         } elseif ($transaction->invoice_type == 'due') {
-            $account_id = $request->account_id;
-            $due_account_id = $request->account_id;
+            $acc_id = $get_val('account_id');
+            $account_id = $acc_id;
+            $due_account_id = $acc_id;
             $payment_method = 'due';
-            $type = 'sales_revenue';
         }
 
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
-        $payment_method_id = null;
 
-        if (!$request->has('payment_method_id')) {
-            $payment_method_id = $request->payment_method_id;
-        }
+        // تصحيح منطق التحقق من وجود القيمة
+        $payment_method_id = $get_val('payment_method_id');
 
-        if ($request->has('shift_id')) {
+        // التحقق من وجود Shift ID
+        $shift_id = $get_val('shift_id');
+        if ($shift_id) {
             $account_id = null;
         }
-        // return $transaction;
+
         $transactionPayment = TransactionPayments::create([
-            'transaction_id' => $transaction->id,
-            'payment_type' => $transaction->invoice_type,
-            'amount' => $request->paid_amount,
-            'method' => $payment_method,
+            'transaction_id'    => $transaction->id,
+            'payment_type'      => $transaction->invoice_type,
+            'amount'            => $get_val('paid_amount'),
+            'method'            => $payment_method,
             'payment_method_id' => $payment_method_id,
-            'is_return' => $transaction->type == 'sell-return' ?? 0,
-            'note' => $request->additionalNotes,
-            'paid_on' => $payment_on,
-            'created_by' => Auth::check() ? Auth::user()->id : $request->created_by,
-            'payment_for' => $transaction->contact_id,
-            'payment_ref_no' => $payment_ref_no,
-            'account_id' => $account_id,
+            'is_return'         => $transaction->type == 'sell-return' ? 1 : 0,
+            'note'              => $get_val('additionalNotes'),
+            'paid_on'           => $payment_on,
+            'created_by'        => Auth::check() ? Auth::user()->id : $get_val('created_by'),
+            'payment_for'       => $transaction->contact_id,
+            'payment_ref_no'    => $payment_ref_no,
+            'account_id'        => $account_id,
         ]);
 
-        if (!$request->has('shift_id')) {
+        if (!$shift_id) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
-        // $accountUtil->saveAccountTransaction($transaction->type, $transactionPayment, $transaction);
-
-        // $inventoryMethod = Setting::where('key', 'inventory_tracking_policy')->first()->value;
-        // if ($inventoryMethod == 'perpetual' && $transaction->type == 'sell') {
-        //     $this->recordCOGS($transaction);
-        // }
 
         return true;
     }
