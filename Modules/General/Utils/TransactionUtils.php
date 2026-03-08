@@ -106,6 +106,9 @@ class TransactionUtils
         }
 
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+        if (!$request->has('payment_on')) {
+            $request['payment_on'] = now();
+        }
         $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
         $due_account_id = '';
