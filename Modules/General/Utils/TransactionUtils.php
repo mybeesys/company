@@ -117,8 +117,8 @@ class TransactionUtils
         $account_id = null;
 
         if ($transaction->invoice_type == 'cash') {
-            $account_id = isset($request['payment_on']) ? $request->cash_account : null;
-            $cash_account_id = isset($request['payment_on']) ? $request->cash_account : null;
+            $account_id = isset($request['cash_account']) ? $request->cash_account : null;
+            $cash_account_id = isset($request['cash_account']) ? $request->cash_account : null;
             $payment_method = 'cash';
             $type = 'sell_cash';
         } elseif ($transaction->invoice_type == 'due') {
