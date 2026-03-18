@@ -436,12 +436,7 @@ class AccountingUtil
 
             if ($transaction->type == 'sell-return') {
                 $accountsRoute = AccountsRoting::where('type', 'sales_sell_return')->first();
-                //   dd($accountsRoute);
-                if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
-                    $transactionPayment->account_id = $accountsRoute->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
-                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                }
+              
             } else if ($transaction->type == 'purchases-return') {
                 $accountsRoute = AccountsRoting::where('type', 'purchases_purchase_return')->first();
                 if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
