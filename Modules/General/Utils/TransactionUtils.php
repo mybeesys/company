@@ -99,7 +99,10 @@ class TransactionUtils
 
     public function createOrUpdatePaymentLines($transaction, $request)
     {
-        $request['amount'] = $request->paid_amount;
+        if ($request->filled('paid_amount')) {
+            $request->merge(['amount' => $request->paid_amount]);
+        }
+
         $accountUtil = new AccountingUtil();
 
         if ($transaction->status == 'draft') {
