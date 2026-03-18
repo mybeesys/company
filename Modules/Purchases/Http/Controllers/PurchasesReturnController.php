@@ -54,7 +54,7 @@ class PurchasesReturnController extends Controller
                     }
                 });
 
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
@@ -174,6 +174,12 @@ class PurchasesReturnController extends Controller
                     'total_before_vat' => $product->total_before_vat,
                 ]);
             }
+
+            if ($transaction) {
+                $request['amount'] = $transaction->final_total;
+
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            }
             DB::commit();
             return redirect()->route('purchases-return')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
@@ -226,6 +232,14 @@ class PurchasesReturnController extends Controller
                 'establishment_id' => $establishment_id,
 
             ]);
+
+            if ($transaction) {
+                $request['amount'] = $transaction->final_total;
+
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            }
+
+
 
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
             $products = json_decode(json_encode($request->products));
