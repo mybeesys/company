@@ -190,6 +190,8 @@ class SellReturnController extends Controller
 
 
         if ($transaction) {
+                $request['amount'] = $transaction->final_total;
+
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
         if ($transaction) {
