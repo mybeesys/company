@@ -358,5 +358,6 @@ return [
     'view_journalEntry' => 'عرض القيد اليومي',
 
     'nature_account' => 'طبيعة الحساب: ',
+    'sell-return' => "مردود المبيعات",
 
 ];

@@ -56,7 +56,7 @@ class JournalEntryController extends Controller
             }
 
 
-
+            $acc_trans_mapping->orderBy('operation_date', 'desc')->orderBy('id', 'desc');
             return  AccountingAccTransMappingTable::getAccTransMappingTable($acc_trans_mapping);
         }
         $columns = AccountingAccTransMappingTable::getAccTransMappingColumns();

@@ -374,6 +374,8 @@ return [
     'all' => 'All',
     'nature_account' => 'Account Nature: ',
     'view_journalEntry' => 'View Journal Entry',
+    'sell-return' => "Sell Return",
+
 
 
 
