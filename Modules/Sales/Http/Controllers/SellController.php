@@ -419,6 +419,7 @@ class SellController extends Controller
         // return [$request->paid_amount,$transaction->final_total == $request->paid_amount,$transaction->final_total];
         if ($request->paid_amount) {
             if ($transaction->final_total == $request->paid_amount) {
+                $request['amount'] = $request->paid_amount;
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
             } else {
                 $this->createPaymentLines($transaction, $request);
