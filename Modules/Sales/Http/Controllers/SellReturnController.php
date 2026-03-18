@@ -190,6 +190,9 @@ class SellReturnController extends Controller
 
 
         if ($transaction) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
+        if ($transaction) {
             $this->updateSalesReturnStatus(
                 $sell->id
 
@@ -207,83 +210,83 @@ class SellReturnController extends Controller
     {
         // return $request;
         // try {
-            $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
-            $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-            $main_establishment = Establishment::notMain()->active()->first();
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
-            $termsNotesData = null;
-            if (isset($request->toggle_terms_notes)) {
-                $termsNotesData = json_encode([
-                    'terms_en' => request('terms_and_conditions_en'),
-                    'terms_ar' => request('terms_and_conditions_ar'),
-                    'note_en' => request('note_en'),
-                    'note_ar' => request('note_ar'),
-                ]);
-                DB::beginTransaction();
-            }
-            $transaction =   Transaction::create([
-                'type' => 'sell-return',
-                'invoice_type' => $request->invoice_type,
-                'due_date' => $request->due_date,
-                'transaction_date' => $request->transaction_date,
-                'contact_id' => $request->client_id,
-                'cost_center' => $request->cost_center ?? null,
-                'discount_amount' => $request->invoice_discount,
-                'discount_type' => $invoiced_discount_type,
-                'total_before_tax' => $request->totalBeforeVat,
-                'totalAfterDiscount' => $request->totalAfterDiscount,
-                'tax_amount' => $request->totalVat,
-                'final_total' => $request->totalAfterVat,
-                'created_by' => Auth::user()->id,
-                'description' => $request->invoice_note,
-                'ref_no' => $ref_no,
-                'status' => 'approved',
-                'notice' => $request->notice,
-                'establishment_id' => $establishment_id,
-                'settings_terms_notes' => $termsNotesData,
-
-
+        $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+        $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+        $main_establishment = Establishment::notMain()->active()->first();
+        $establishment_id = $request->storehouse;
+        if ($request->storehouse == $main_establishment->id) {
+            $establishment_id = $main_establishment->id;
+        }
+        $termsNotesData = null;
+        if (isset($request->toggle_terms_notes)) {
+            $termsNotesData = json_encode([
+                'terms_en' => request('terms_and_conditions_en'),
+                'terms_ar' => request('terms_and_conditions_ar'),
+                'note_en' => request('note_en'),
+                'note_ar' => request('note_ar'),
             ]);
-            $transactionUtil = new TransactionUtils();
+            DB::beginTransaction();
+        }
+        $transaction =   Transaction::create([
+            'type' => 'sell-return',
+            'invoice_type' => $request->invoice_type,
+            'due_date' => $request->due_date,
+            'transaction_date' => $request->transaction_date,
+            'contact_id' => $request->client_id,
+            'cost_center' => $request->cost_center ?? null,
+            'discount_amount' => $request->invoice_discount,
+            'discount_type' => $invoiced_discount_type,
+            'total_before_tax' => $request->totalBeforeVat,
+            'totalAfterDiscount' => $request->totalAfterDiscount,
+            'tax_amount' => $request->totalVat,
+            'final_total' => $request->totalAfterVat,
+            'created_by' => Auth::user()->id,
+            'description' => $request->invoice_note,
+            'ref_no' => $ref_no,
+            'status' => 'approved',
+            'notice' => $request->notice,
+            'establishment_id' => $establishment_id,
+            'settings_terms_notes' => $termsNotesData,
 
 
-            $products = json_decode(json_encode($request->products));
-
-            foreach ($products as $product) {
-                $discount_type =  null;
-                TransactionePurchasesLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit ?? 0,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => 0,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
-            }
-
-            $this->distributeReturnToInvoiceLines($transaction);
-
-            if ($request->paid_amount) {
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            }
+        ]);
+        $transactionUtil = new TransactionUtils();
 
 
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        $products = json_decode(json_encode($request->products));
+
+        foreach ($products as $product) {
+            $discount_type =  null;
+            TransactionePurchasesLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->products_id,
+                'qyt' => $product->qty,
+                'unit_id' => $product->unit ?? 0,
+                'unit_price_before_discount' => $product->unit_price,
+                'unit_price' => $product->unit_price,
+                'discount_type' => $discount_type,
+                'discount_amount' => 0,
+                'unit_price_inc_tax' => $product->total_after_vat,
+                'tax_id' => $product->tax_vat,
+                'tax_value' => $product->vat_value,
+                'total_before_vat' => $product->total_before_vat,
+            ]);
+        }
+
+        $this->distributeReturnToInvoiceLines($transaction);
+
+        if ($request->paid_amount) {
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+        }
 
 
-            $msg = __('messages.add_successfully');
-            $status = 'success';
-            DB::commit();
-            return redirect()->route('sell-return')->with($status, $msg);
+        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+
+
+        $msg = __('messages.add_successfully');
+        $status = 'success';
+        DB::commit();
+        return redirect()->route('sell-return')->with($status, $msg);
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('sell-return')->with('error', __('messages.something_went_wrong'));
@@ -298,8 +301,8 @@ class SellReturnController extends Controller
         if (!$invoice_id) return;
 
         $returnLines = TransactionePurchasesLine::where('transaction_id', $returnTransaction->id)->get();
-           $transactionIds = Transaction::where('type', 'sell')
-            ->where('contact_id',$returnTransaction->contact_id)
+        $transactionIds = Transaction::where('type', 'sell')
+            ->where('contact_id', $returnTransaction->contact_id)
             ->pluck('id');
 
         $invoiceLines = TransactionSellLine::whereIn('transaction_id', $transactionIds)
