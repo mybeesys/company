@@ -99,6 +99,7 @@ class TransactionUtils
 
     public function createOrUpdatePaymentLines($transaction, $request)
     {
+        $request['amount'] = $request->paid_amount;
         $accountUtil = new AccountingUtil();
 
         if ($transaction->status == 'draft') {
@@ -240,7 +241,7 @@ class TransactionUtils
             $client = Contact::find($transactionPayment->payment_for);
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
-                $transactionPayment->amount = $transaction->final_total;
+                $transactionPayment->amount = $request->paid_amount;
                 $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             }
             $transactionPayment->account_id = $account_id;
@@ -252,7 +253,7 @@ class TransactionUtils
             $client = Contact::find($transactionPayment->payment_for);
             if ($client) {
                 $transactionPayment->account_id = $client->account_id;
-                $transactionPayment->amount = $transaction->final_total;
+                $transactionPayment->amount = $request->paid_amount;
                 $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             }
             $transactionPayment->account_id = $account_id;
