@@ -159,7 +159,7 @@ class TransactionUtils
             'account_id'        => $account_id,
         ]);
 
-        if ($shift_id) {
+        if (!$shift_id) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
 
