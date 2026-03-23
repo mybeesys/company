@@ -144,7 +144,7 @@ class TransactionUtils
         $payment_method_id = $get_val('payment_method_id');
 
         $shift_id = $get_val('shift_id');
-        if ($shift_id) {
+        if (!empty($shift_id) && $shift_id !== 'null' && $shift_id !== 0) {
             $account_id = null;
         }
 
@@ -163,7 +163,7 @@ class TransactionUtils
             'account_id'        => $account_id,
         ]);
 
-        if (!$shift_id) {
+        if (empty($shift_id) || $shift_id === 'null') {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
 
