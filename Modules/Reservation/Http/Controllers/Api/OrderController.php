@@ -259,6 +259,7 @@ class OrderController extends Controller
         if (isset($request->payments)) {
             foreach ($request->payments as $payment) {
                 if ($payment['amount'] > 0) {
+                    $payment['created_by'] = $order->created_by;
                     $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$payment);
                 }
             }
