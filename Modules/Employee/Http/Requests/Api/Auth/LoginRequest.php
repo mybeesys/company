@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pin' => ['required', 'exists:emp_employees,pin'],
+            'pin' => ['nullable', 'exists:emp_employees,pin'],
             'clock_in_time' => ['required', 'date_format:Y-m-d H:i:s'],
             'date' => ['required', 'date_format:Y-m-d'],
             'establishment_id' => ['required', 'exists:est_establishments,id']
