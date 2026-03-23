@@ -50,6 +50,7 @@ use Modules\Product\Models\Transformers\Collections\ProductCollection;
 class OrderController extends Controller
 {
 
+
     public function storeApi(Request $request)
     {
         try {
@@ -63,15 +64,17 @@ class OrderController extends Controller
 
             $table = Table::findOrFail($request->table_id);
 
-            if ($table->table_status != 0) {
+            if (!isset($request->order_id) && $table->table_status != 0) {
                 DB::rollBack();
                 return response()->json([
                     'message' => 'Table not available for reservation'
                 ], 409);
             }
 
+            $transaction = null;
+
             if (isset($request->order_id)) {
-                $transaction = Transaction::where('table_order_id', $request->order_id)->first();
+                $transaction = TableOrders::find($request->order_id);
                 if ($transaction) {
                     $transaction->update([
                         'discount_amount' => $request->discount_value,
@@ -84,77 +87,10 @@ class OrderController extends Controller
                         'description' => $request->note,
                     ]);
 
-                    $products = json_decode(json_encode($request->items));
-
-                    foreach ($products as $product) {
-                        $find_product = Product::find($product->product_id);
-                        if (!$find_product) {
-                            return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
-                        }
-                        $mainItem = OrderTableItems::create([
-                            'transaction_id' => $transaction->id,
-                            'product_id' => $product->product_id,
-                            'qyt' => $product->quantity,
-                            'unit_price_before_discount' => $product->price_after_discount,
-                            'unit_price' => $product->price,
-                            'discount_type' => $product->discount_type,
-                            'discount_amount' => $product->discount_amount,
-                            'unit_price_inc_tax' => $product->price_with_tax_after_discount,
-                            'tax_id' => $product->tax_id,
-                            'line_status' => 'inpreparation',
-                            'tax_value' => $product->tax_value,
-                        ]);
-
-                        $modifiers = json_decode(json_encode($product->order_item_modifiers));
-                        foreach ($modifiers as $modifier) {
-                            $find_product = Product::find($modifier->modifier_id);
-                            if (!$find_product) {
-                                return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
-                            }
-
-                            OrderTableItems::create([
-                                'transaction_id' => $transaction->id,
-                                'modifier_id' => $modifier->modifier_id,
-                                'product_id' => $modifier->modifier_id,
-                                'parent_id' => $mainItem->id,
-                                'qyt' => $modifier->quantity,
-                                'unit_price_before_discount' => $modifier->price,
-                                'unit_price' => $modifier->price,
-                                'discount_type' => $modifier->discount_type,
-                                'discount_amount' => $modifier->discount_amount,
-                                'unit_price_inc_tax' => $modifier->price_with_tax,
-                                'tax_value' => $modifier->tax_value,
-                                'line_status' => 'inpreparation',
-
-                            ]);
-                        }
-
-                        $order_item_combos = json_decode(json_encode($product->order_item_combos));
-                        foreach ($order_item_combos as $order_item_combo) {
-                            $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                            if (!$find_product) {
-                                return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
-                            }
-
-                            OrderTableItems::create([
-                                'transaction_id' => $transaction->id,
-                                'combo_id' => $order_item_combo->option_id,
-                                'product_id' => $find_product->product_id,
-                                'parent_id' => $mainItem->id,
-                                'qyt' => $find_product->quantity,
-                                'unit_price_before_discount' => $find_product->price,
-                                'unit_price' => $find_product->price,
-                                'discount_type' => null,
-                                'discount_amount' => null,
-                                'unit_price_inc_tax' => null,
-                                'tax_value' => null,
-                                'line_status' => 'inpreparation',
-
-                            ]);
-                        }
-                    }
+                    $this->saveOrderItems($transaction, $request->items);
                 }
-            } else {
+            }
+            else {
                 $reservation = Reservation::create([
                     'table_id' => $table->id,
                     'customer_name' => $request->customer_name,
@@ -172,8 +108,6 @@ class OrderController extends Controller
                 $transaction = TableOrders::create([
                     'type' => 'sell',
                     'invoice_type' => 'cash',
-                    'due_date' => null,
-                    'local_id' => 'table_order',
                     'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                     'discount_amount' => $request->discount_value,
                     'discount_type' => $request->discount_type,
@@ -185,100 +119,31 @@ class OrderController extends Controller
                     'description' => $request->note,
                     'ref_no' => $this->generateOrdNo(),
                     'status' => 'draft',
-                    'notice' => null,
                     'establishment_id' => $table->area->establishment_id,
                     'table_id' => $table->id,
                     'order_status' => 'inpreparation',
-                    'order_type' => $request->order_type ?? 1
+                    'order_type' => $request->order_type ?? 1,
+                    'local_id' => 'table_order'
                 ]);
 
-                $products = json_decode(json_encode($request->items));
-                foreach ($products as $product) {
-                    $find_product = Product::find($product->product_id);
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
-                    }
+                $this->saveOrderItems($transaction, $request->items);
+            }
 
-                    $mainItem = OrderTableItems::create([
-                        'transaction_id' => $transaction->id,
-                        'product_id' => $product->product_id,
-                        'qyt' => $product->quantity,
-                        'unit_price_before_discount' => $product->price_after_discount,
-                        'unit_price' => $product->price,
-                        'discount_type' => $product->discount_type,
-                        'discount_amount' => $product->discount_amount,
-                        'unit_price_inc_tax' => $product->price_with_tax_after_discount,
-                        'tax_id' => $product->tax_id,
-                        'tax_value' => $product->tax_value,
-                        'line_status' => 'inpreparation',
+             if (isset($request->payments) && is_array($request->payments) && count($request->payments) > 0) {
+                $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
 
-                    ]);
-
-                    $modifiers = json_decode(json_encode($product->order_item_modifiers));
-                    foreach ($modifiers as $modifier) {
-                        $find_product = Product::find($modifier->modifier_id);
-                        if (!$find_product) {
-                            return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
-                        }
-
-                        OrderTableItems::create([
-                            'transaction_id' => $transaction->id,
-                            'modifier_id' => $modifier->modifier_id,
-                            'product_id' => $modifier->modifier_id,
-                            'parent_id' => $mainItem->id,
-                            'qyt' => $modifier->quantity,
-                            'unit_price_before_discount' => $modifier->price,
-                            'unit_price' => $modifier->price,
-                            'discount_type' => $modifier->discount_type,
-                            'discount_amount' => $modifier->discount_amount,
-                            'unit_price_inc_tax' => $modifier->price_with_tax,
-                            'tax_value' => $modifier->tax_value,
-                            'line_status' => 'inpreparation',
-                        ]);
-                    }
-
-                    $order_item_combos = json_decode(json_encode($product->order_item_combos));
-                    foreach ($order_item_combos as $order_item_combo) {
-                        $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                        if (!$find_product) {
-                            return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
-                        }
-                        // option
-                        OrderTableItems::create([
-                            'transaction_id' => $transaction->id,
-                            'combo_id' => $order_item_combo->option_id,
-                            'product_id' => $find_product->product_id,
-                            'parent_id' => $mainItem->id,
-                            'qyt' => $find_product->quantity,
-                            'unit_price_before_discount' => $find_product->price,
-                            'unit_price' => $find_product->price,
-                            'discount_type' => null,
-                            'discount_amount' => null,
-                            'unit_price_inc_tax' => null,
-                            'tax_value' => null,
-                            'line_status' => 'inpreparation',
-
-                        ]);
-                    }
-                }
+                DB::commit();
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Order completed and paid successfully',
+                    'transaction_id' => $finalTransaction->id,
+                    'ref_no' => $finalTransaction->ref_no
+                ]);
             }
 
             DB::commit();
 
-            try {
-                $tenantId = (string) tenancy()->tenant->id;
-                \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
-                    'tenant_id' => $tenantId,
-                    'event' => 'TableUpdated',
-                    'data' => [
-                        'table_id' => $table->id,
-                        'table_code' => $table->code,
-                        'transaction_ref_no' => $transaction->ref_no
-                    ]
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Socket Error: " . $e->getMessage());
-            }
+            $this->broadcastTableUpdate($table, $transaction);
 
             return response()->json([
                 'status' => true,
@@ -287,8 +152,114 @@ class OrderController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'something went wrong \n' . $e], 500);
+            Log::error("Store Error: " . $e->getMessage());
+            return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    private function saveOrderItems($transaction, $items)
+    {
+        $products = json_decode(json_encode($items));
+        foreach ($products as $product) {
+            $mainItem = OrderTableItems::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->product_id,
+                'qyt' => $product->quantity,
+                'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
+                'unit_price' => $product->price,
+                'discount_type' => $product->discount_type,
+                'discount_amount' => $product->discount_amount,
+                'unit_price_inc_tax' => $product->price_with_tax_after_discount ?? $product->price_with_tax,
+                'tax_id' => $product->tax_id,
+                'tax_value' => $product->tax_value,
+                'line_status' => 'inpreparation',
+            ]);
+
+            if (isset($product->order_item_modifiers)) {
+                foreach ($product->order_item_modifiers as $modifier) {
+                    OrderTableItems::create([
+                        'transaction_id' => $transaction->id,
+                        'modifier_id' => $modifier->modifier_id,
+                        'product_id' => $modifier->modifier_id,
+                        'parent_id' => $mainItem->id,
+                        'qyt' => $modifier->quantity,
+                        'unit_price' => $modifier->price,
+                        'unit_price_inc_tax' => $modifier->price_with_tax ?? $modifier->price,
+                        'line_status' => 'inpreparation',
+                    ]);
+                }
+            }
+
+            if (isset($product->order_item_combos)) {
+                foreach ($product->order_item_combos as $combo) {
+                    OrderTableItems::create([
+                        'transaction_id' => $transaction->id,
+                        'combo_id' => $combo->option_id,
+                        'product_id' => $combo->product_id ?? $mainItem->product_id,
+                        'parent_id' => $mainItem->id,
+                        'qyt' => $combo->quantity ?? 1,
+                        'unit_price' => $combo->price ?? 0,
+                        'line_status' => 'inpreparation',
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function finalizeOrderToTransaction($order, $request)
+    {
+        $transactionUtil = new TransactionUtils();
+        $ref_no = SalesUtile::generateReferenceNumber('sell');
+
+        $table = Table::find($order->table_id);
+        $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
+
+        $order->update(['order_status' => 'completed']);
+
+        Reservation::where('table_id', $table->id)
+            ->where('status', 'active')
+            ->update(['status' => 'completed']);
+
+        $transaction = Transaction::create([
+            'type' => 'sell',
+            'invoice_type' => 'cash',
+            'transaction_date' => $order->transaction_date,
+            'discount_amount' => $order->discount_amount,
+            'discount_type' => $order->discount_type,
+            'total_before_tax' => $order->total_before_tax,
+            'tax_amount' => $order->tax_amount,
+            'final_total' => $order->final_total,
+            'created_by' => $order->created_by,
+            'ref_no' => $ref_no,
+            'status' => 'approved',
+            'establishment_id' => $order->establishment_id,
+            'table_order_id' => $order->id
+        ]);
+
+        $orderItems = OrderTableItems::where('transaction_id', $order->id)->get();
+        foreach ($orderItems as $item) {
+            TransactionSellLine::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $item->product_id,
+                'qyt' => $item->qyt,
+                'unit_price' => $item->unit_price,
+                'unit_price_inc_tax' => $item->unit_price_inc_tax,
+                'tax_id' => $item->tax_id,
+                'tax_value' => $item->tax_value,
+                'parent_id' => null
+            ]);
+        }
+
+        if (isset($request->payments)) {
+            foreach ($request->payments as $payment) {
+                if ($payment['amount'] > 0) {
+                    $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$payment);
+                }
+            }
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        }
+
+        return $transaction;
     }
 
     public function generateOrdNo()
@@ -307,100 +278,131 @@ class OrderController extends Controller
         return $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
     }
 
+    private function broadcastTableUpdate($table, $transaction)
+    {
+        try {
+            $tenantId = (string) tenancy()->tenant->id;
+            \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
+                'tenant_id' => $tenantId,
+                'event' => 'TableUpdated',
+                'data' => [
+                    'table_id' => $table->id,
+                    'table_code' => $table->code,
+                    'transaction_ref_no' => $transaction->ref_no
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Socket Error: " . $e->getMessage());
+        }
+    }
+
     public function cancelOrder(Request $request)
     {
-        $actionUtil = new ActionUtil();
-        $contactUtils = new ContactUtils();
-        $accountUtil = new AccountingUtil();
-        $ref_no = SalesUtile::generateReferenceNumber('sell');
-        $transactionUtil = new TransactionUtils();
-
+        // تم الحفاظ على الكود القديم هنا أو استدعاء الوظيفة الجديدة finalizeOrderToTransaction
         $order = TableOrders::find($request->id);
+        if (!$order) return response()->json(['message' => 'No Order found'], 404);
 
-        if (!$order) {
-            return response()->json([
-                'message' => 'No Order with given id'
-            ], 409);
-        }
+        $this->finalizeOrderToTransaction($order, $request);
 
-        $table = Table::find($order->table_id);
-        $table->update([
-            'table_status' => 0,
-            'assigned_waiter_id' => null
-        ]);
-
-        $order->update([
-            'order_status' => 'canceled'
-        ]);
-
-        Reservation::where('table_id', $table->id)
-            ->where('status', 'active')
-            ->update(['status' => 'completed']);
-
-        $transaction = Transaction::create([
-            'type' => 'sell',
-            'invoice_type' => $order->invoice_type,
-            'due_date' => $order->due_date,
-            'transaction_date' => $order->transaction_date,
-            'contact_id' => $order->contact_id,
-            'cost_center' => $order->cost_center ?? null,
-            'discount_amount' => $order->discount_amount,
-            'discount_type' => $order->discount_type,
-            'total_before_tax' => $order->total_before_tax,
-            'totalAfterDiscount' => $order->totalAfterDiscount,
-            'tax_amount' => $order->tax_amount,
-            'final_total' => $order->final_total,
-            'created_by' => $order->created_by,
-            'description' => $order->description,
-            'ref_no' => $ref_no,
-            'status' => 'approved',
-            'notice' => $order->notice,
-            'shift_number' => $request->shift_id,
-            'establishment_id' => $order->establishment_id,
-        ]);
-
-        $order->sell_lines->map(function ($item) use ($transaction) {
-            TransactionSellLine::create([
-                'transaction_id' => $transaction->id,
-                'product_id' => $item->product_id,
-                'qyt' => $item->qyt,
-                'unit_id' => $item->unit_id,
-                'unit_price_before_discount' => $item->unit_price_before_discount,
-                'unit_price' => $item->unit_price,
-               
-                'discount_type' => $item->discount_type,
-                'discount_amount' => $item->discount_amount,
-                'unit_price_inc_tax' => $item->unit_price_inc_tax,
-                'tax_id' => $item->tax_id,
-                'tax_value' => $item->tax_value,
-                'total_before_vat' => $item->total_before_vat,
-            ]);
-        });
-
-        if (isset($request->payments) && is_array($request->payments)) {
-            $payments = json_decode(json_encode($request->payments));
-            foreach ($payments as $payment) {
-                $find_payment = PaymentMethod::find($payment->method_id);
-                if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
-                }
-
-                if ($payment->amount > 0) {
-                    $payment_data = (object) [
-                        'paid_amount'       => $payment->amount,
-                        // 'payment_on'        => $payment?->payment_on ,
-                        'payment_method_id' => $payment->method_id,
-                    ];
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $payment);
-                }
-            }
-            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-        }
-
-        return response()->json([
-            'message' => 'done'
-        ], 200);
+        return response()->json(['message' => 'Order closed and converted to transaction'], 200);
     }
+
+
+
+    // public function cancelOrder(Request $request)
+    // {
+    //     $actionUtil = new ActionUtil();
+    //     $contactUtils = new ContactUtils();
+    //     $accountUtil = new AccountingUtil();
+    //     $ref_no = SalesUtile::generateReferenceNumber('sell');
+    //     $transactionUtil = new TransactionUtils();
+
+    //     $order = TableOrders::find($request->id);
+
+    //     if (!$order) {
+    //         return response()->json([
+    //             'message' => 'No Order with given id'
+    //         ], 409);
+    //     }
+
+    //     $table = Table::find($order->table_id);
+    //     $table->update([
+    //         'table_status' => 0,
+    //         'assigned_waiter_id' => null
+    //     ]);
+
+    //     $order->update([
+    //         'order_status' => 'canceled'
+    //     ]);
+
+    //     Reservation::where('table_id', $table->id)
+    //         ->where('status', 'active')
+    //         ->update(['status' => 'completed']);
+
+    //     $transaction = Transaction::create([
+    //         'type' => 'sell',
+    //         'invoice_type' => $order->invoice_type,
+    //         'due_date' => $order->due_date,
+    //         'transaction_date' => $order->transaction_date,
+    //         'contact_id' => $order->contact_id,
+    //         'cost_center' => $order->cost_center ?? null,
+    //         'discount_amount' => $order->discount_amount,
+    //         'discount_type' => $order->discount_type,
+    //         'total_before_tax' => $order->total_before_tax,
+    //         'totalAfterDiscount' => $order->totalAfterDiscount,
+    //         'tax_amount' => $order->tax_amount,
+    //         'final_total' => $order->final_total,
+    //         'created_by' => $order->created_by,
+    //         'description' => $order->description,
+    //         'ref_no' => $ref_no,
+    //         'status' => 'approved',
+    //         'notice' => $order->notice,
+    //         'shift_number' => $request->shift_id,
+    //         'establishment_id' => $order->establishment_id,
+    //     ]);
+
+    //     $order->sell_lines->map(function ($item) use ($transaction) {
+    //         TransactionSellLine::create([
+    //             'transaction_id' => $transaction->id,
+    //             'product_id' => $item->product_id,
+    //             'qyt' => $item->qyt,
+    //             'unit_id' => $item->unit_id,
+    //             'unit_price_before_discount' => $item->unit_price_before_discount,
+    //             'unit_price' => $item->unit_price,
+
+    //             'discount_type' => $item->discount_type,
+    //             'discount_amount' => $item->discount_amount,
+    //             'unit_price_inc_tax' => $item->unit_price_inc_tax,
+    //             'tax_id' => $item->tax_id,
+    //             'tax_value' => $item->tax_value,
+    //             'total_before_vat' => $item->total_before_vat,
+    //         ]);
+    //     });
+
+    //     if (isset($request->payments) && is_array($request->payments)) {
+    //         $payments = json_decode(json_encode($request->payments));
+    //         foreach ($payments as $payment) {
+    //             $find_payment = PaymentMethod::find($payment->method_id);
+    //             if (!$find_payment) {
+    //                 return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+    //             }
+
+    //             if ($payment->amount > 0) {
+    //                 $payment_data = (object) [
+    //                     'paid_amount'       => $payment->amount,
+    //                     // 'payment_on'        => $payment?->payment_on ,
+    //                     'payment_method_id' => $payment->method_id,
+    //                 ];
+    //                 $transactionUtil->createOrUpdatePaymentLines($transaction, $payment);
+    //             }
+    //         }
+    //         $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'done'
+    //     ], 200);
+    // }
 
     public function establishmentOrders(Request $request, $id)
     {

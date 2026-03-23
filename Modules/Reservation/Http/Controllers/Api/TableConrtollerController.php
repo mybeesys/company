@@ -20,13 +20,21 @@ class TableConrtollerController extends Controller
         return TableResource::collection($tables);
     }
 
-    public function tables()
+    public function tables(Request $request)
     {
+
+        $establishmentId = $request->query('establishment_id');
         $tables = Table::with([
             'area',
             'activeOrder',
             'reservation'
-        ])->where('active', 1)->get();
+        ])->where('active', 1)
+            ->when($establishmentId, function ($query) use ($establishmentId) {
+                return $query->whereHas('area', function ($q) use ($establishmentId) {
+                    $q->where('establishment_id', $establishmentId);
+                });
+            })
+            ->get();
 
         return response()->json([
             'data' => $tables->map(function ($table) {

@@ -431,7 +431,7 @@ class AccountingUtil
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
 
-// credit         debit
+                    // credit         debit
 
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
@@ -441,6 +441,7 @@ class AccountingUtil
                     $transactionPayment->amount = $transaction->final_total;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
+                    
                     $client = Contact::find($transactionPayment->payment_for);
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
