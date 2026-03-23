@@ -134,7 +134,7 @@ class OrderController extends Controller
                 DB::commit();
                 return response()->json([
                     'status' => true,
-                    'message' => 'Order completed and paid successfully',
+                    'message' => 'Order canceled and paid successfully',
                     'transaction_id' => $finalTransaction->id,
                     'ref_no' => $finalTransaction->ref_no
                 ]);
@@ -218,11 +218,11 @@ class OrderController extends Controller
         $table = Table::find($order->table_id);
         $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
 
-        $order->update(['order_status' => 'completed']);
+        $order->update(['order_status' => 'canceled']);
 
         Reservation::where('table_id', $table->id)
             ->where('status', 'active')
-            ->update(['status' => 'completed']);
+            ->update(['status' => 'canceled']);
 
         $transaction = Transaction::create([
             'type' => 'sell',
@@ -261,7 +261,7 @@ class OrderController extends Controller
                 if ($payment['amount'] > 0) {
                     $payment['created_by'] = $order->created_by;
                     $payment['shift_id'] = "00000";
-                  
+
                     $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$payment);
                 }
             }
@@ -345,7 +345,7 @@ class OrderController extends Controller
 
     //     Reservation::where('table_id', $table->id)
     //         ->where('status', 'active')
-    //         ->update(['status' => 'completed']);
+    //         ->update(['status' => 'canceled']);
 
     //     $transaction = Transaction::create([
     //         'type' => 'sell',
