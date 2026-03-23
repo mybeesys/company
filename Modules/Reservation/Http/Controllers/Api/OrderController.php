@@ -53,7 +53,7 @@ class OrderController extends Controller
 
     public function storeApi(Request $request)
     {
-        try {
+        // try {
             $transactionUtil = new TransactionUtils();
             DB::beginTransaction();
 
@@ -149,11 +149,11 @@ class OrderController extends Controller
                 'order_id' => $transaction->id,
                 'order_no' => $transaction->ref_no
             ]);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error("Store Error: " . $e->getMessage());
-            return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
-        }
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     Log::error("Store Error: " . $e->getMessage());
+        //     return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
+        // }
     }
 
     private function saveOrderItems($transaction, $items)
