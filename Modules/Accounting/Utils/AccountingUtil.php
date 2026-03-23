@@ -235,7 +235,7 @@ class AccountingUtil
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = '';
             $acc_trans_mapping->type = 'journal_entry';
-            $acc_trans_mapping->created_by = Auth::user()->id;
+            $acc_trans_mapping->created_by = $transaction->created_by;
             $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
@@ -441,7 +441,7 @@ class AccountingUtil
                     $transactionPayment->amount = $transaction->final_total;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
-                    
+
                     $client = Contact::find($transactionPayment->payment_for);
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
