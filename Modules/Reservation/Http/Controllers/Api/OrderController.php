@@ -247,6 +247,8 @@ class OrderController extends Controller
                 'product_id' => $item->product_id,
                 'qyt' => $item->qyt,
                 'unit_price' => $item->unit_price,
+                'unit_price_before_discount' => $item->unit_price ?? 0,
+
                 'unit_price_inc_tax' => $item->unit_price_inc_tax,
                 'tax_id' => $item->tax_id,
                 'tax_value' => $item->tax_value,
@@ -302,7 +304,6 @@ class OrderController extends Controller
 
     public function cancelOrder(Request $request)
     {
-        // تم الحفاظ على الكود القديم هنا أو استدعاء الوظيفة الجديدة finalizeOrderToTransaction
         $order = TableOrders::find($request->id);
         if (!$order) return response()->json(['message' => 'No Order found'], 404);
 
