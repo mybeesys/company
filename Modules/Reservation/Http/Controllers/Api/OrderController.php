@@ -89,8 +89,7 @@ class OrderController extends Controller
 
                     $this->saveOrderItems($transaction, $request->items);
                 }
-            }
-            else {
+            } else {
                 $reservation = Reservation::create([
                     'table_id' => $table->id,
                     'customer_name' => $request->customer_name,
@@ -129,7 +128,7 @@ class OrderController extends Controller
                 $this->saveOrderItems($transaction, $request->items);
             }
 
-             if (isset($request->payments) && is_array($request->payments) && count($request->payments) > 0) {
+            if (isset($request->payments) && is_array($request->payments) && count($request->payments) > 0) {
                 $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
 
                 DB::commit();
@@ -166,6 +165,7 @@ class OrderController extends Controller
                 'product_id' => $product->product_id,
                 'qyt' => $product->quantity,
                 'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
+
                 'unit_price' => $product->price,
                 'discount_type' => $product->discount_type,
                 'discount_amount' => $product->discount_amount,
@@ -184,6 +184,8 @@ class OrderController extends Controller
                         'parent_id' => $mainItem->id,
                         'qyt' => $modifier->quantity,
                         'unit_price' => $modifier->price,
+                        'unit_price_before_discount' => $modifier->price_after_discount ?? $modifier->price,
+
                         'unit_price_inc_tax' => $modifier->price_with_tax ?? $modifier->price,
                         'line_status' => 'inpreparation',
                     ]);
@@ -199,6 +201,8 @@ class OrderController extends Controller
                         'parent_id' => $mainItem->id,
                         'qyt' => $combo->quantity ?? 1,
                         'unit_price' => $combo->price ?? 0,
+                        'unit_price_before_discount' =>  $combo->price ?? 0,
+
                         'line_status' => 'inpreparation',
                     ]);
                 }
