@@ -260,6 +260,8 @@ class OrderController extends Controller
             foreach ($request->payments as $payment) {
                 if ($payment['amount'] > 0) {
                     $payment['created_by'] = $order->created_by;
+                    $payment['shift_id'] = "00000";
+                  
                     $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$payment);
                 }
             }
