@@ -157,7 +157,7 @@ class TransactionUtils
             'is_return'         => $transaction->type == 'sell-return' ? 1 : 0,
             'note'              => $get_val('additionalNotes'),
             'paid_on'           => $payment_on,
-            'created_by'        => Auth::check() ? Auth::user()->id : $get_val('created_by'),
+            'created_by'        => $transaction->created_by,
             'payment_for'       => $transaction->contact_id,
             'payment_ref_no'    => $payment_ref_no,
             'account_id'        => $account_id,
