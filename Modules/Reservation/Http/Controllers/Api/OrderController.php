@@ -222,7 +222,7 @@ class OrderController extends Controller
 
         Reservation::where('table_id', $table->id)
             ->where('status', 'active')
-            ->update(['status' => 'canceled']);
+            ->update(['status' => 'completed']);
 
         $transaction = Transaction::create([
             'type' => 'sell',
