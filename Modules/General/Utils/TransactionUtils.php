@@ -147,7 +147,7 @@ class TransactionUtils
         if ($shift_id) {
             $account_id = null;
         }
-$userId = auth()->user() ? auth()->user()->id : $request->created_by;
+        $userId = auth()->user() ? auth()->user()->id : $request->created_by;
         $transactionPayment = TransactionPayments::create([
             'transaction_id'    => $transaction->id,
             'payment_type'      => $transaction->invoice_type,

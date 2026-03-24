@@ -206,35 +206,49 @@ class OrderController extends Controller
             if (isset($request->order_id)) {
                 $transaction = TableOrders::find($request->order_id);
                 $transaction->update([
+                     'discount_amount' => $request->discount_value,
+                    'discount_type' => $request->discount_type,
                     'total_before_tax' => $request->total_before_discount,
                     'total_after_discount' => $request->total_after_discount,
                     'tax_amount' => $request->total_tax,
                     'final_total' => $request->total_paid,
+                    'created_by' => $request->created_by,
+                    'description' => $request->note,
                 ]);
                 $this->saveOrderItems($transaction, $request->items);
             } else {
                 // إنشاء حجز وطلب جديد
                 $reservation = Reservation::create([
-                    'table_id' => $table->id,
-                    'customer_name' => $request->customer_name ?? 'Guest',
-                    'reservation_time' => now(),
-                    'guests_count' => $request->guests_count ?? 1,
-                    'status' => 'active',
+                     'table_id' => $table->id,
+                'customer_name' => $request->customer_name,
+                'customer_phone' => $request->customer_phone ?? null,
+                'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                'guests_count' => $request->guests_count,
+                'status' => 'active',
                 ]);
+
 
                 $table->update(['table_status' => 2, 'assigned_waiter_id' => $request->created_by]);
 
                 $transaction = TableOrders::create([
-                    'type' => 'sell',
-                    'invoice_type' => 'cash',
-                    'transaction_date' => now(),
-                    'final_total' => $request->total_paid,
-                    'ref_no' => $this->generateOrdNo(),
-                    'status' => 'draft',
-                    'establishment_id' => $table->area->establishment_id,
-                    'table_id' => $table->id,
-                    'order_status' => 'inpreparation',
-                    'local_id' => 'table_order'
+                  'type' => 'sell',
+                'invoice_type' => 'cash',
+                'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                'discount_amount' => $request->discount_value,
+                'discount_type' => $request->discount_type,
+                'total_before_tax' => $request->total_before_discount,
+                'total_after_discount' => $request->total_after_discount,
+                'tax_amount' => $request->total_tax,
+                'final_total' => $request->total_paid,
+                'created_by' => $request->created_by,
+                'description' => $request->note,
+                'ref_no' => $this->generateOrdNo(),
+                'status' => 'draft',
+                'establishment_id' => $table->area->establishment_id,
+                'table_id' => $table->id,
+                'order_status' => 'inpreparation',
+                'order_type' => $request->order_type ?? 1,
+                'local_id' => 'table_order'
                 ]);
                 $this->saveOrderItems($transaction, $request->items);
             }
