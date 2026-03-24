@@ -80,7 +80,7 @@ class OrderController extends Controller
                 // الحالة 1: القديم "خالص" (مدفوع أو مخدوم) والجديد قادم -> ننهي القديم ونفتح جديد
                 if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
                     // نغلق الحجز القديم والطلب القديم رسمياً
-                    $existingOrder->update(['order_status' => 'served']);
+                    $existingOrder->update(['order_status' => 'canceled']);
                     Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'completed']);
 
                     $table->update(['table_status' => 0]);
