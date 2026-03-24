@@ -157,81 +157,95 @@ class OrderController extends Controller
     // }
 
 
-    public function storeApi(Request $request)
-    {
-        try {
-            $transactionUtil = new TransactionUtils();
-            DB::beginTransaction();
+   public function storeApi(Request $request)
+{
+    try {
+        $transactionUtil = new TransactionUtils();
+        DB::beginTransaction();
 
-            $created_by = Employee::find($request->created_by);
-            if (!$created_by) return response()->json(['message' => 'Employee not found'], 404);
+        // تحديد الهوية: مسجل دخول أو من الطلب
+        $userId = auth()->user() ? auth()->user()->id : $request->created_by;
 
-            $table = Table::findOrFail($request->table_id);
+        $created_by = Employee::find($userId);
+        if (!$created_by) {
+            return response()->json(['message' => 'Employee not found'], 404);
+        }
 
-            // البحث عن طلب نشط حالي على هذه الطاولة
-            $existingOrder = TableOrders::where('table_id', $table->id)
-                ->whereNotIn('order_status', ['canceled', 'completed'])
-                ->first();
+        $table = Table::findOrFail($request->table_id);
 
-            $isNewRequestPaid = isset($request->payments) && count($request->payments) > 0;
+        // البحث عن طلب نشط حالي
+        $existingOrder = TableOrders::where('table_id', $table->id)
+            ->whereNotIn('order_status', ['canceled', 'completed'])
+            ->first();
 
-            if ($existingOrder) {
-                // الحالة 1: الطلب القديم "مدفوع" (محول لمعاملة) والجديد قادم
-                // ملاحظة: في نظامك الطلب المدفوع يتحول لـ Transaction، لكن لو لسه كـ TableOrder وحالته مدفوع:
-                if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
-                    // تحويل القديم لـ canceled كما طلبت
-                    $existingOrder->update(['order_status' => 'canceled']);
-                    // إنهاء حجز الطاولة القديم لفتح واحد جديد
-                    Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
-                    $table->update(['table_status' => 0]);
+        $isNewRequestPaid = isset($request->payments) && is_array($request->payments) && count($request->payments) > 0;
 
-                    // الآن سيكمل الكود لإنشاء طلب جديد تماماً
-                }
-                // الحالة 3: القديم غير مدفوع والجديد مدفوع -> مرفوض
-                elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
-                    DB::rollBack();
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'لا يمكن إضافة طلب مدفوع على طاولة بها طلبات سابقة غير مدفوعة. يرجى تسوية الحساب أولاً.'
-                    ], 422);
-                }
-                // الحالة 2: القديم غير مدفوع والجديد غير مدفوع -> دمج
-                else {
-                    $request->merge(['order_id' => $existingOrder->id]);
-                }
+        // --- تطبيق المنطق الخاص بالحالات ---
+        if ($existingOrder) {
+            // الحالة 1: القديم مدفوع أو مخدوم والجديد قادم -> نلغي القديم ونصفر الطاولة
+            if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
+                $existingOrder->update(['order_status' => 'canceled']);
+                Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
+                $table->update(['table_status' => 0]);
+                $existingOrder = null; // لإجبار الكود على إنشاء سجل جديد بالأسفل
+            }
+            // الحالة 3: القديم غير مدفوع والجديد مدفوع -> مرفوض
+            elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => false,
+                    'message' => 'لا يمكن إضافة طلب مدفوع على طاولة بها طلبات سابقة غير مدفوعة. يرجى تسوية الحساب أولاً.'
+                ], 422);
+            }
+            // الحالة 2: القديم والجديد غير مدفوعين -> دمج (نستخدم الـ ID الموجود)
+            else {
+                $request->merge(['order_id' => $existingOrder->id]);
+            }
+        }
+
+        $transaction = null;
+
+        // --- البدء في عملية التخزين أو التحديث ---
+        if (isset($request->order_id) && $existingOrder) {
+            $transaction = $existingOrder;
+            $transaction->update([
+                'discount_amount' => $request->discount_value,
+                'discount_type' => $request->discount_type,
+                'total_before_tax' => $request->total_before_discount,
+                'total_after_discount' => $request->total_after_discount,
+                'tax_amount' => $request->total_tax,
+                'final_total' => $request->total_paid,
+                'created_by' => $userId,
+                'description' => $request->note, // الحفاظ على الملاحظات
+            ]);
+
+            $this->saveOrderItems($transaction, $request->items);
+        } else {
+            // التأكد من توفر الطاولة في حال كان طلباً جديداً تماماً
+            if ($table->table_status != 0) {
+                 DB::rollBack();
+                 return response()->json(['message' => 'Table not available for reservation'], 409);
             }
 
-            // تنفيذ عملية التخزين (إضافة أو جديد)
-            $transaction = null;
-            if (isset($request->order_id)) {
-                $transaction = TableOrders::find($request->order_id);
-                $transaction->update([
-                     'discount_amount' => $request->discount_value,
-                    'discount_type' => $request->discount_type,
-                    'total_before_tax' => $request->total_before_discount,
-                    'total_after_discount' => $request->total_after_discount,
-                    'tax_amount' => $request->total_tax,
-                    'final_total' => $request->total_paid,
-                    'created_by' => $request->created_by,
-                    'description' => $request->note,
-                ]);
-                $this->saveOrderItems($transaction, $request->items);
-            } else {
-                // إنشاء حجز وطلب جديد
-                $reservation = Reservation::create([
-                     'table_id' => $table->id,
+            // إنشاء الحجز (مع الحفاظ على التنسيقات القديمة والـ guests_count)
+            $reservation = Reservation::create([
+                'table_id' => $table->id,
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone ?? null,
                 'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                'guests_count' => $request->guests_count,
+                'guests_count' => $request->guests_count ?? 1,
                 'status' => 'active',
-                ]);
+                'created_by' => $userId
+            ]);
 
+            $table->update([
+                'table_status' => 2,
+                'assigned_waiter_id' => $userId
+            ]);
 
-                $table->update(['table_status' => 2, 'assigned_waiter_id' => $request->created_by]);
-
-                $transaction = TableOrders::create([
-                  'type' => 'sell',
+            // إنشاء الطلب الجديد (بكامل تفاصيل الكود القديم)
+            $transaction = TableOrders::create([
+                'type' => 'sell',
                 'invoice_type' => 'cash',
                 'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                 'discount_amount' => $request->discount_value,
@@ -240,7 +254,7 @@ class OrderController extends Controller
                 'total_after_discount' => $request->total_after_discount,
                 'tax_amount' => $request->total_tax,
                 'final_total' => $request->total_paid,
-                'created_by' => $request->created_by,
+                'created_by' => $userId,
                 'description' => $request->note,
                 'ref_no' => $this->generateOrdNo(),
                 'status' => 'draft',
@@ -249,27 +263,41 @@ class OrderController extends Controller
                 'order_status' => 'inpreparation',
                 'order_type' => $request->order_type ?? 1,
                 'local_id' => 'table_order'
-                ]);
-                $this->saveOrderItems($transaction, $request->items);
-            }
+            ]);
 
-            // المعالجة النهائية إذا كان هناك دفع
-            if ($isNewRequestPaid) {
-                $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
-                DB::commit();
-                return response()->json(['status' => true, 'message' => 'Order processed and finalized', 'transaction_id' => $finalTransaction->id]);
-            }
+            $this->saveOrderItems($transaction, $request->items);
+        }
+
+        // --- المعالجة النهائية في حال الدفع ---
+        if ($isNewRequestPaid) {
+            $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
 
             DB::commit();
-            $this->broadcastTableUpdate($table, $transaction);
-
-            return response()->json(['status' => true, 'order_id' => $transaction->id]);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Error', 'error' => $e->getMessage()], 500);
+            // نفس الرسبونس القديم في حال الدفع
+            return response()->json([
+                'status' => true,
+                'message' => 'Order processed and paid successfully', // عدلت النص ليكون أشمل
+                'transaction_id' => $finalTransaction->id,
+                'ref_no' => $finalTransaction->ref_no
+            ]);
         }
-    }
 
+        DB::commit();
+        $this->broadcastTableUpdate($table, $transaction);
+
+        // نفس الرسبونس القديم في حال عدم الدفع (الدمج أو الحجز الجديد)
+        return response()->json([
+            'status' => true,
+            'order_id' => $transaction->id,
+            'order_no' => $transaction->ref_no // الحفاظ على رقم الطلب في الرسبونس
+        ]);
+
+    } catch (Exception $e) {
+        DB::rollBack();
+        Log::error("Store Error: " . $e->getMessage());
+        return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
+    }
+}
     private function saveOrderItems($transaction, $items)
     {
         $products = json_decode(json_encode($items));
@@ -281,9 +309,10 @@ class OrderController extends Controller
                 'qyt' => $product->quantity,
                 'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
                 'unit_price' => $product->price,
+
                 'discount_type' => $product->discount_type ?? null,
                 'discount_amount' => $product->discount_amount ?? 0,
-                'unit_price_inc_tax' => $product->price_with_tax_after_discount ?? $product->price_with_tax,
+                'unit_price_inc_tax' =>  $product->price_with_tax,
                 'tax_id' => $product->tax_id ?? null,
                 'tax_value' => $product->tax_value ?? 0,
                 'line_status' => 'inpreparation',
