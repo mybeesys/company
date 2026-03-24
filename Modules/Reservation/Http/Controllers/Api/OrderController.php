@@ -69,7 +69,7 @@ class OrderController extends Controller
 
             // البحث عن طلب نشط حالي (غير ملغي وغير مكتمل)
             $existingOrder = TableOrders::where('table_id', $table->id)
-                ->whereNotIn('order_status', ['canceled', 'completed'])
+                ->whereNotIn('order_status', ['canceled', 'served'])
                 ->first();
 
             // فحص هل الطلب الجديد مدفوع؟
@@ -80,7 +80,7 @@ class OrderController extends Controller
                 // الحالة 1: القديم "خالص" (مدفوع أو مخدوم) والجديد قادم -> ننهي القديم ونفتح جديد
                 if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
                     // نغلق الحجز القديم والطلب القديم رسمياً
-                    $existingOrder->update(['order_status' => 'completed']);
+                    $existingOrder->update(['order_status' => 'served']);
                     Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'completed']);
 
                     $table->update(['table_status' => 0]);
@@ -296,7 +296,7 @@ class OrderController extends Controller
         }
     }
 
-    
+
     public function establishmentOrders(Request $request, $id)
     {
         $type = $request->query('type');
