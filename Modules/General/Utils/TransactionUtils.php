@@ -147,7 +147,7 @@ class TransactionUtils
         if ($shift_id) {
             $account_id = null;
         }
-
+$userId = auth()->user() ? auth()->user()->id : $request->created_by;
         $transactionPayment = TransactionPayments::create([
             'transaction_id'    => $transaction->id,
             'payment_type'      => $transaction->invoice_type,
@@ -157,7 +157,7 @@ class TransactionUtils
             'is_return'         => $transaction->type == 'sell-return' ? 1 : 0,
             'note'              => $get_val('additionalNotes'),
             'paid_on'           => $payment_on,
-            'created_by'        => $transaction->created_by,
+            'created_by'        => $userId,
             'payment_for'       => $transaction->contact_id,
             'payment_ref_no'    => $payment_ref_no,
             'account_id'        => $account_id,
