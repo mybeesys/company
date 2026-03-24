@@ -51,490 +51,216 @@ class OrderController extends Controller
 {
 
 
-    // public function storeApi(Request $request)
-    // {
-    //     // try {
-    //     $transactionUtil = new TransactionUtils();
-    //     DB::beginTransaction();
 
-    //     $created_by = Employee::find($request->created_by);
-    //     if (!$created_by) {
-    //         return response()->json(['message' => 'Employee not found'], 404);
-    //     }
+    public function storeApi(Request $request)
+    {
+        try {
+            DB::beginTransaction();
 
-    //     $table = Table::findOrFail($request->table_id);
+            // تحديد الهوية: مسجل دخول أو من الطلب
+            $userId = auth()->user() ? auth()->user()->id : $request->created_by;
 
-    //     if (!isset($request->order_id) && $table->table_status != 0) {
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'message' => 'Table not available for reservation'
-    //         ], 409);
-    //     }
-
-    //     $transaction = null;
-
-    //     if (isset($request->order_id)) {
-    //         $transaction = TableOrders::find($request->order_id);
-    //         if ($transaction) {
-    //             $transaction->update([
-    //                 'discount_amount' => $request->discount_value,
-    //                 'discount_type' => $request->discount_type,
-    //                 'total_before_tax' => $request->total_before_discount,
-    //                 'total_after_discount' => $request->total_after_discount,
-    //                 'tax_amount' => $request->total_tax,
-    //                 'final_total' => $request->total_paid,
-    //                 'created_by' => $request->created_by,
-    //                 'description' => $request->note,
-    //             ]);
-
-    //             $this->saveOrderItems($transaction, $request->items);
-    //         }
-    //     } else {
-    //         $reservation = Reservation::create([
-    //             'table_id' => $table->id,
-    //             'customer_name' => $request->customer_name,
-    //             'customer_phone' => $request->customer_phone ?? null,
-    //             'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-    //             'guests_count' => $request->guests_count,
-    //             'status' => 'active',
-    //         ]);
-
-    //         $table->update([
-    //             'table_status' => 2,
-    //             'assigned_waiter_id' => $request->created_by
-    //         ]);
-
-    //         $transaction = TableOrders::create([
-    //             'type' => 'sell',
-    //             'invoice_type' => 'cash',
-    //             'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-    //             'discount_amount' => $request->discount_value,
-    //             'discount_type' => $request->discount_type,
-    //             'total_before_tax' => $request->total_before_discount,
-    //             'total_after_discount' => $request->total_after_discount,
-    //             'tax_amount' => $request->total_tax,
-    //             'final_total' => $request->total_paid,
-    //             'created_by' => $request->created_by,
-    //             'description' => $request->note,
-    //             'ref_no' => $this->generateOrdNo(),
-    //             'status' => 'draft',
-    //             'establishment_id' => $table->area->establishment_id,
-    //             'table_id' => $table->id,
-    //             'order_status' => 'inpreparation',
-    //             'order_type' => $request->order_type ?? 1,
-    //             'local_id' => 'table_order'
-    //         ]);
-
-    //         $this->saveOrderItems($transaction, $request->items);
-    //     }
-
-    //     if (isset($request->payments) && is_array($request->payments) && count($request->payments) > 0) {
-    //         $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
-
-    //         DB::commit();
-    //         return response()->json([
-    //             'status' => true,
-    //             'message' => 'Order canceled and paid successfully',
-    //             'transaction_id' => $finalTransaction->id,
-    //             'ref_no' => $finalTransaction->ref_no
-    //         ]);
-    //     }
-
-    //     DB::commit();
-
-    //     $this->broadcastTableUpdate($table, $transaction);
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'order_id' => $transaction->id,
-    //         'order_no' => $transaction->ref_no
-    //     ]);
-    //     // } catch (Exception $e) {
-    //     //     DB::rollBack();
-    //     //     Log::error("Store Error: " . $e->getMessage());
-    //     //     return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
-    //     // }
-    // }
-
-
-   public function storeApi(Request $request)
-{
-    try {
-        $transactionUtil = new TransactionUtils();
-        DB::beginTransaction();
-
-        // تحديد الهوية: مسجل دخول أو من الطلب
-        $userId = auth()->user() ? auth()->user()->id : $request->created_by;
-
-        $created_by = Employee::find($userId);
-        if (!$created_by) {
-            return response()->json(['message' => 'Employee not found'], 404);
-        }
-
-        $table = Table::findOrFail($request->table_id);
-
-        // البحث عن طلب نشط حالي
-        $existingOrder = TableOrders::where('table_id', $table->id)
-            ->whereNotIn('order_status', ['canceled', 'completed'])
-            ->first();
-
-        $isNewRequestPaid = isset($request->payments) && is_array($request->payments) && count($request->payments) > 0;
-
-        // --- تطبيق المنطق الخاص بالحالات ---
-        if ($existingOrder) {
-            // الحالة 1: القديم مدفوع أو مخدوم والجديد قادم -> نلغي القديم ونصفر الطاولة
-            if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
-                $existingOrder->update(['order_status' => 'canceled']);
-                Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
-                $table->update(['table_status' => 0]);
-                $existingOrder = null; // لإجبار الكود على إنشاء سجل جديد بالأسفل
-            }
-            // الحالة 3: القديم غير مدفوع والجديد مدفوع -> مرفوض
-            elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
-                DB::rollBack();
-                return response()->json([
-                    'status' => false,
-                    'message' => 'لا يمكن إضافة طلب مدفوع على طاولة بها طلبات سابقة غير مدفوعة. يرجى تسوية الحساب أولاً.'
-                ], 422);
-            }
-            // الحالة 2: القديم والجديد غير مدفوعين -> دمج (نستخدم الـ ID الموجود)
-            else {
-                $request->merge(['order_id' => $existingOrder->id]);
-            }
-        }
-
-        $transaction = null;
-
-        // --- البدء في عملية التخزين أو التحديث ---
-        if (isset($request->order_id) && $existingOrder) {
-            $transaction = $existingOrder;
-            $transaction->update([
-                'discount_amount' => $request->discount_value,
-                'discount_type' => $request->discount_type,
-                'total_before_tax' => $request->total_before_discount,
-                'total_after_discount' => $request->total_after_discount,
-                'tax_amount' => $request->total_tax,
-                'final_total' => $request->total_paid,
-                'created_by' => $userId,
-                'description' => $request->note, // الحفاظ على الملاحظات
-            ]);
-
-            $this->saveOrderItems($transaction, $request->items);
-        } else {
-            // التأكد من توفر الطاولة في حال كان طلباً جديداً تماماً
-            if ($table->table_status != 0) {
-                 DB::rollBack();
-                 return response()->json(['message' => 'Table not available for reservation'], 409);
+            $created_by = Employee::find($userId);
+            if (!$created_by) {
+                return response()->json(['message' => 'Employee not found'], 404);
             }
 
-            // إنشاء الحجز (مع الحفاظ على التنسيقات القديمة والـ guests_count)
-            $reservation = Reservation::create([
-                'table_id' => $table->id,
-                'customer_name' => $request->customer_name,
-                'customer_phone' => $request->customer_phone ?? null,
-                'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                'guests_count' => $request->guests_count ?? 1,
-                'status' => 'active',
-                'created_by' => $userId
-            ]);
+            $table = Table::findOrFail($request->table_id);
 
-            $table->update([
-                'table_status' => 2,
-                'assigned_waiter_id' => $userId
-            ]);
+            // البحث عن طلب نشط حالي (غير ملغي وغير مكتمل)
+            $existingOrder = TableOrders::where('table_id', $table->id)
+                ->whereNotIn('order_status', ['canceled', 'completed'])
+                ->first();
 
-            // إنشاء الطلب الجديد (بكامل تفاصيل الكود القديم)
-            $transaction = TableOrders::create([
-                'type' => 'sell',
-                'invoice_type' => 'cash',
-                'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                'discount_amount' => $request->discount_value,
-                'discount_type' => $request->discount_type,
-                'total_before_tax' => $request->total_before_discount,
-                'total_after_discount' => $request->total_after_discount,
-                'tax_amount' => $request->total_tax,
-                'final_total' => $request->total_paid,
-                'created_by' => $userId,
-                'description' => $request->note,
-                'ref_no' => $this->generateOrdNo(),
-                'status' => 'draft',
-                'establishment_id' => $table->area->establishment_id,
-                'table_id' => $table->id,
-                'order_status' => 'inpreparation',
-                'order_type' => $request->order_type ?? 1,
-                'local_id' => 'table_order'
-            ]);
+            // فحص هل الطلب الجديد مدفوع؟
+            $isNewRequestPaid = isset($request->payments) && is_array($request->payments) && count($request->payments) > 0;
 
-            $this->saveOrderItems($transaction, $request->items);
-        }
+            // --- تطبيق المنطق الخاص بالحالات (بدون تحويل لترانزكشن) ---
+            if ($existingOrder) {
+                // الحالة 1: القديم "خالص" (مدفوع أو مخدوم) والجديد قادم -> ننهي القديم ونفتح جديد
+                if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
+                    // نغلق الحجز القديم والطلب القديم رسمياً
+                    $existingOrder->update(['order_status' => 'completed']);
+                    Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'completed']);
 
-        // --- المعالجة النهائية في حال الدفع ---
-        if ($isNewRequestPaid) {
-            $finalTransaction = $this->finalizeOrderToTransaction($transaction, $request);
+                    $table->update(['table_status' => 0]);
+                    $existingOrder = null; // تصفير المتغير لإنشاء طلب جديد تماماً تحت
+                }
+                // الحالة 3: القديم معلق (غير مدفوع) والجديد مدفوع -> مرفوض محاسبياً
+                elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'لا يمكن دفع طلب جديد منفصل وهناك طلبات سابقة معلقة على هذه الطاولة.'
+                    ], 422);
+                }
+                // الحالة 2: دمج الطلبات (القديم والجديد غير مدفوعين)
+                else {
+                    $request->merge(['order_id' => $existingOrder->id]);
+                }
+            }
+
+            $transaction = null;
+
+            // --- تنفيذ عملية التخزين (Update or Create) ---
+            if (isset($request->order_id) && $existingOrder) {
+                $transaction = $existingOrder;
+                $transaction->update([
+                    'discount_amount'      => $request->discount_value,
+                    'discount_type'        => $request->discount_type,
+                    'total_before_tax'     => $request->total_before_discount,
+                    'total_after_discount' => $request->total_after_discount,
+                    'tax_amount'           => $request->total_tax,
+                    'final_total'          => $request->total_paid,
+                    'created_by'           => $userId,
+                    'description'          => $request->note,
+                    'payment_status'       => $isNewRequestPaid ? 'paid' : $transaction->payment_status,
+                ]);
+
+                $this->saveOrderItems($transaction, $request->items);
+            } else {
+                // إنشاء حجز وطلب جديد تماماً
+                if ($table->table_status != 0 && !$existingOrder) {
+                     // تنظيف أي حجز عالق قبل البدء
+                     Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
+                }
+
+                $reservation = Reservation::create([
+                    'table_id'         => $table->id,
+                    'customer_name'    => $request->customer_name ?? 'Guest',
+                    'customer_phone'   => $request->customer_phone ?? null,
+                    'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                    'guests_count'     => $request->guests_count ?? 1,
+                    'status'           => 'active',
+                    'created_by'       => $userId
+                ]);
+
+                $table->update(['table_status' => 2, 'assigned_waiter_id' => $userId]);
+
+                $transaction = TableOrders::create([
+                    'type'                 => 'sell',
+                    'invoice_type'         => 'cash',
+                    'transaction_date'     => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                    'discount_amount'      => $request->discount_value,
+                    'discount_type'        => $request->discount_type,
+                    'total_before_tax'     => $request->total_before_discount,
+                    'total_after_discount' => $request->total_after_discount,
+                    'tax_amount'           => $request->total_tax,
+                    'final_total'          => $request->total_paid,
+                    'created_by'           => $userId,
+                    'description'          => $request->note,
+                    'ref_no'               => $this->generateOrdNo(),
+                    'status'               => 'draft',
+                    'establishment_id'     => $table->area->establishment_id,
+                    'table_id'             => $table->id,
+                    'order_status'         => 'inpreparation',
+                    'payment_status'       => $isNewRequestPaid ? 'paid' : 'due',
+                    'order_type'           => $request->order_type ?? 1,
+                    'local_id'             => 'table_order'
+                ]);
+
+                $this->saveOrderItems($transaction, $request->items);
+            }
 
             DB::commit();
-            // نفس الرسبونس القديم في حال الدفع
+            $this->broadcastTableUpdate($table, $transaction);
+
             return response()->json([
-                'status' => true,
-                'message' => 'Order processed and paid successfully', // عدلت النص ليكون أشمل
-                'transaction_id' => $finalTransaction->id,
-                'ref_no' => $finalTransaction->ref_no
+                'status'   => true,
+                'message'  => $isNewRequestPaid ? 'Order paid successfully' : 'Order saved',
+                'order_id' => $transaction->id,
+                'order_no' => $transaction->ref_no
             ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Store Error: " . $e->getMessage());
+            return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
         }
-
-        DB::commit();
-        $this->broadcastTableUpdate($table, $transaction);
-
-        // نفس الرسبونس القديم في حال عدم الدفع (الدمج أو الحجز الجديد)
-        return response()->json([
-            'status' => true,
-            'order_id' => $transaction->id,
-            'order_no' => $transaction->ref_no // الحفاظ على رقم الطلب في الرسبونس
-        ]);
-
-    } catch (Exception $e) {
-        DB::rollBack();
-        Log::error("Store Error: " . $e->getMessage());
-        return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
     }
-}
+
+    /**
+     * إلغاء الطلب بشكل كامل (تعديل الحالة فقط)
+     */
+    public function cancelOrder(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $order = TableOrders::find($request->id);
+            if (!$order) return response()->json(['message' => 'No Order found'], 404);
+
+            // تحديث حالة الطلب للإلغاء
+            $order->update(['order_status' => 'canceled']);
+
+            // تصفير الطاولة
+            $table = Table::find($order->table_id);
+            if ($table) {
+                $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
+            }
+
+            // إغلاق الحجز
+            Reservation::where('table_id', $order->table_id)
+                ->where('status', 'active')
+                ->update(['status' => 'canceled']);
+
+            DB::commit();
+            return response()->json(['message' => 'Order canceled successfully'], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Cancel failed', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     private function saveOrderItems($transaction, $items)
     {
         $products = json_decode(json_encode($items));
         foreach ($products as $product) {
-            // تسجيل الصنف الرئيسي
             $mainItem = OrderTableItems::create([
-                'transaction_id' => $transaction->id,
-                'product_id' => $product->product_id,
-                'qyt' => $product->quantity,
+                'transaction_id'             => $transaction->id,
+                'product_id'                 => $product->product_id,
+                'qyt'                        => $product->quantity,
                 'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
-                'unit_price' => $product->price,
-
-                'discount_type' => $product->discount_type ?? null,
-                'discount_amount' => $product->discount_amount ?? 0,
-                'unit_price_inc_tax' =>  $product->price_with_tax,
-                'tax_id' => $product->tax_id ?? null,
-                'tax_value' => $product->tax_value ?? 0,
-                'line_status' => 'inpreparation',
+                'unit_price'                 => $product->price,
+                'discount_type'              => $product->discount_type ?? null,
+                'discount_amount'            => $product->discount_amount ?? 0,
+                'unit_price_inc_tax'         => $product->price_with_tax ?? $product->price,
+                'tax_id'                     => $product->tax_id ?? null,
+                'tax_value'                  => $product->tax_value ?? 0,
+                'line_status'                => 'inpreparation',
             ]);
 
-            // تسجيل الإضافات (Modifiers) إن وجدت
             if (isset($product->order_item_modifiers)) {
                 foreach ($product->order_item_modifiers as $modifier) {
                     OrderTableItems::create([
-                        'transaction_id' => $transaction->id,
-                        'modifier_id' => $modifier->modifier_id,
-                        'product_id' => $modifier->modifier_id,
-                        'parent_id' => $mainItem->id,
-                        'qyt' => $modifier->quantity,
-                        'unit_price' => $modifier->price,
+                        'transaction_id'             => $transaction->id,
+                        'modifier_id'                => $modifier->modifier_id,
+                        'product_id'                 => $modifier->modifier_id,
+                        'parent_id'                  => $mainItem->id,
+                        'qyt'                        => $modifier->quantity,
+                        'unit_price'                 => $modifier->price,
                         'unit_price_before_discount' => $modifier->price_after_discount ?? $modifier->price,
-                        'unit_price_inc_tax' => $modifier->price_with_tax ?? $modifier->price,
-                        'line_status' => 'inpreparation',
+                        'unit_price_inc_tax'         => $modifier->price_with_tax ?? $modifier->price,
+                        'line_status'                => 'inpreparation',
                     ]);
                 }
             }
 
-            // تسجيل الكومبو (Combos) إن وجدت
             if (isset($product->order_item_combos)) {
                 foreach ($product->order_item_combos as $combo) {
                     OrderTableItems::create([
-                        'transaction_id' => $transaction->id,
-                        'combo_id' => $combo->option_id,
-                        'product_id' => $combo->product_id ?? $mainItem->product_id,
-                        'parent_id' => $mainItem->id,
-                        'qyt' => $combo->quantity ?? 1,
-                        'unit_price' => $combo->price ?? 0,
+                        'transaction_id'             => $transaction->id,
+                        'combo_id'                   => $combo->option_id,
+                        'product_id'                 => $combo->product_id ?? $mainItem->product_id,
+                        'parent_id'                  => $mainItem->id,
+                        'qyt'                        => $combo->quantity ?? 1,
+                        'unit_price'                 => $combo->price ?? 0,
                         'unit_price_before_discount' => $combo->price ?? 0,
-                        'line_status' => 'inpreparation',
+                        'line_status'                => 'inpreparation',
                     ]);
                 }
             }
         }
     }
-
-    private function finalizeOrderToTransaction($order, $request)
-    {
-        $transactionUtil = new TransactionUtils();
-        $ref_no = SalesUtile::generateReferenceNumber('sell');
-
-        // تحديث حالة الطاولة والحجز
-        $table = Table::find($order->table_id);
-        if ($table) {
-            $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
-        }
-
-        $order->update(['order_status' => 'served']);
-
-        Reservation::where('table_id', $order->table_id)
-            ->where('status', 'active')
-            ->update(['status' => 'completed']);
-
-        // إنشاء المعاملة المالية (Transaction)
-        $transaction = Transaction::create([
-            'type' => 'sell',
-            'invoice_type' => 'cash',
-            'transaction_date' => $order->transaction_date,
-            'discount_amount' => $order->discount_amount,
-            'discount_type' => $order->discount_type,
-            'total_before_tax' => $order->total_before_tax,
-            'tax_amount' => $order->tax_amount,
-            'final_total' => $order->final_total,
-            'created_by' => $order->created_by,
-            'ref_no' => $ref_no,
-            'status' => 'approved',
-            'establishment_id' => $order->establishment_id,
-            'table_order_id' => $order->id
-        ]);
-
-        // نقل كافة الأصناف بما فيها الضرائب والخصومات لكل سطر
-        $orderItems = OrderTableItems::where('transaction_id', $order->id)->get();
-        foreach ($orderItems as $item) {
-            TransactionSellLine::create([
-                'transaction_id' => $transaction->id,
-                'product_id' => $item->product_id,
-                'qyt' => $item->qyt,
-                'unit_price' => $item->unit_price,
-                'unit_price_before_discount' => $item->unit_price_before_discount ?? $item->unit_price,
-                'unit_price_inc_tax' => $item->unit_price_inc_tax,
-                'tax_id' => $item->tax_id,
-                'tax_value' => $item->tax_value,
-                'parent_id' => $item->parent_id // الحفاظ على علاقة التبعية إذا كانت موجودة
-            ]);
-        }
-
-        // معالجة الدفعات
-        if (isset($request->payments)) {
-            foreach ($request->payments as $payment) {
-                if ($payment['amount'] > 0) {
-                    // دمج بيانات الدفع مع بيانات المستخدم والشفت لضمان عدم حدوث SQL Error
-                    $paymentData = array_merge($payment, [
-                        'created_by' => $order->created_by,
-                        'shift_id' => $request->shift_id ?? "00000"
-                    ]);
-
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$paymentData);
-                }
-            }
-            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-        }
-
-        return $transaction;
-    }
-    // private function saveOrderItems($transaction, $items)
-    // {
-    //     $products = json_decode(json_encode($items));
-    //     foreach ($products as $product) {
-    //         $mainItem = OrderTableItems::create([
-    //             'transaction_id' => $transaction->id,
-    //             'product_id' => $product->product_id,
-    //             'qyt' => $product->quantity,
-    //             'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
-
-    //             'unit_price' => $product->price,
-    //             'discount_type' => $product->discount_type,
-    //             'discount_amount' => $product->discount_amount,
-    //             'unit_price_inc_tax' => $product->price_with_tax_after_discount ?? $product->price_with_tax,
-    //             'tax_id' => $product->tax_id,
-    //             'tax_value' => $product->tax_value,
-    //             'line_status' => 'inpreparation',
-    //         ]);
-
-    //         if (isset($product->order_item_modifiers)) {
-    //             foreach ($product->order_item_modifiers as $modifier) {
-    //                 OrderTableItems::create([
-    //                     'transaction_id' => $transaction->id,
-    //                     'modifier_id' => $modifier->modifier_id,
-    //                     'product_id' => $modifier->modifier_id,
-    //                     'parent_id' => $mainItem->id,
-    //                     'qyt' => $modifier->quantity,
-    //                     'unit_price' => $modifier->price,
-    //                     'unit_price_before_discount' => $modifier->price_after_discount ?? $modifier->price,
-
-    //                     'unit_price_inc_tax' => $modifier->price_with_tax ?? $modifier->price,
-    //                     'line_status' => 'inpreparation',
-    //                 ]);
-    //             }
-    //         }
-
-    //         if (isset($product->order_item_combos)) {
-    //             foreach ($product->order_item_combos as $combo) {
-    //                 OrderTableItems::create([
-    //                     'transaction_id' => $transaction->id,
-    //                     'combo_id' => $combo->option_id,
-    //                     'product_id' => $combo->product_id ?? $mainItem->product_id,
-    //                     'parent_id' => $mainItem->id,
-    //                     'qyt' => $combo->quantity ?? 1,
-    //                     'unit_price' => $combo->price ?? 0,
-    //                     'unit_price_before_discount' =>  $combo->price ?? 0,
-
-    //                     'line_status' => 'inpreparation',
-    //                 ]);
-    //             }
-    //         }
-    //     }
-    // }
-
-    // private function finalizeOrderToTransaction($order, $request)
-    // {
-    //     $transactionUtil = new TransactionUtils();
-    //     $ref_no = SalesUtile::generateReferenceNumber('sell');
-
-    //     $table = Table::find($order->table_id);
-    //     $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
-
-    //     $order->update(['order_status' => 'served']);
-
-    //     Reservation::where('table_id', $table->id)
-    //         ->where('status', 'active')
-    //         ->update(['status' => 'completed']);
-
-    //     $transaction = Transaction::create([
-    //         'type' => 'sell',
-    //         'invoice_type' => 'cash',
-    //         'transaction_date' => $order->transaction_date,
-    //         'discount_amount' => $order->discount_amount,
-    //         'discount_type' => $order->discount_type,
-    //         'total_before_tax' => $order->total_before_tax,
-    //         'tax_amount' => $order->tax_amount,
-    //         'final_total' => $order->final_total,
-    //         'created_by' => $order->created_by,
-    //         'ref_no' => $ref_no,
-    //         'status' => 'approved',
-    //         'establishment_id' => $order->establishment_id,
-    //         'table_order_id' => $order->id
-    //     ]);
-
-    //     $orderItems = OrderTableItems::where('transaction_id', $order->id)->get();
-    //     foreach ($orderItems as $item) {
-    //         TransactionSellLine::create([
-    //             'transaction_id' => $transaction->id,
-    //             'product_id' => $item->product_id,
-    //             'qyt' => $item->qyt,
-    //             'unit_price' => $item->unit_price,
-    //             'unit_price_before_discount' => $item->unit_price ?? 0,
-
-    //             'unit_price_inc_tax' => $item->unit_price_inc_tax,
-    //             'tax_id' => $item->tax_id,
-    //             'tax_value' => $item->tax_value,
-    //             'parent_id' => null
-    //         ]);
-    //     }
-
-    //     if (isset($request->payments)) {
-    //         foreach ($request->payments as $payment) {
-    //             if ($payment['amount'] > 0) {
-    //                 $payment['created_by'] = $order->created_by;
-    //                 $payment['shift_id'] = "00000";
-
-    //                 $transactionUtil->createOrUpdatePaymentLines($transaction, (object)$payment);
-    //             }
-    //         }
-    //         $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-    //     }
-
-    //     return $transaction;
-    // }
 
     public function generateOrdNo()
     {
@@ -558,10 +284,10 @@ class OrderController extends Controller
             $tenantId = (string) tenancy()->tenant->id;
             \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
                 'tenant_id' => $tenantId,
-                'event' => 'TableUpdated',
-                'data' => [
-                    'table_id' => $table->id,
-                    'table_code' => $table->code,
+                'event'     => 'TableUpdated',
+                'data'      => [
+                    'table_id'           => $table->id,
+                    'table_code'         => $table->code,
                     'transaction_ref_no' => $transaction->ref_no
                 ]
             ]);
@@ -570,113 +296,7 @@ class OrderController extends Controller
         }
     }
 
-    public function cancelOrder(Request $request)
-    {
-        $order = TableOrders::find($request->id);
-        if (!$order) return response()->json(['message' => 'No Order found'], 404);
-
-        $this->finalizeOrderToTransaction($order, $request);
-
-        return response()->json(['message' => 'Order closed and converted to transaction'], 200);
-    }
-
-
-
-    // public function cancelOrder(Request $request)
-    // {
-    //     $actionUtil = new ActionUtil();
-    //     $contactUtils = new ContactUtils();
-    //     $accountUtil = new AccountingUtil();
-    //     $ref_no = SalesUtile::generateReferenceNumber('sell');
-    //     $transactionUtil = new TransactionUtils();
-
-    //     $order = TableOrders::find($request->id);
-
-    //     if (!$order) {
-    //         return response()->json([
-    //             'message' => 'No Order with given id'
-    //         ], 409);
-    //     }
-
-    //     $table = Table::find($order->table_id);
-    //     $table->update([
-    //         'table_status' => 0,
-    //         'assigned_waiter_id' => null
-    //     ]);
-
-    //     $order->update([
-    //         'order_status' => 'canceled'
-    //     ]);
-
-    //     Reservation::where('table_id', $table->id)
-    //         ->where('status', 'active')
-    //         ->update(['status' => 'canceled']);
-
-    //     $transaction = Transaction::create([
-    //         'type' => 'sell',
-    //         'invoice_type' => $order->invoice_type,
-    //         'due_date' => $order->due_date,
-    //         'transaction_date' => $order->transaction_date,
-    //         'contact_id' => $order->contact_id,
-    //         'cost_center' => $order->cost_center ?? null,
-    //         'discount_amount' => $order->discount_amount,
-    //         'discount_type' => $order->discount_type,
-    //         'total_before_tax' => $order->total_before_tax,
-    //         'totalAfterDiscount' => $order->totalAfterDiscount,
-    //         'tax_amount' => $order->tax_amount,
-    //         'final_total' => $order->final_total,
-    //         'created_by' => $order->created_by,
-    //         'description' => $order->description,
-    //         'ref_no' => $ref_no,
-    //         'status' => 'approved',
-    //         'notice' => $order->notice,
-    //         'shift_number' => $request->shift_id,
-    //         'establishment_id' => $order->establishment_id,
-    //     ]);
-
-    //     $order->sell_lines->map(function ($item) use ($transaction) {
-    //         TransactionSellLine::create([
-    //             'transaction_id' => $transaction->id,
-    //             'product_id' => $item->product_id,
-    //             'qyt' => $item->qyt,
-    //             'unit_id' => $item->unit_id,
-    //             'unit_price_before_discount' => $item->unit_price_before_discount,
-    //             'unit_price' => $item->unit_price,
-
-    //             'discount_type' => $item->discount_type,
-    //             'discount_amount' => $item->discount_amount,
-    //             'unit_price_inc_tax' => $item->unit_price_inc_tax,
-    //             'tax_id' => $item->tax_id,
-    //             'tax_value' => $item->tax_value,
-    //             'total_before_vat' => $item->total_before_vat,
-    //         ]);
-    //     });
-
-    //     if (isset($request->payments) && is_array($request->payments)) {
-    //         $payments = json_decode(json_encode($request->payments));
-    //         foreach ($payments as $payment) {
-    //             $find_payment = PaymentMethod::find($payment->method_id);
-    //             if (!$find_payment) {
-    //                 return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
-    //             }
-
-    //             if ($payment->amount > 0) {
-    //                 $payment_data = (object) [
-    //                     'paid_amount'       => $payment->amount,
-    //                     // 'payment_on'        => $payment?->payment_on ,
-    //                     'payment_method_id' => $payment->method_id,
-    //                 ];
-    //                 $transactionUtil->createOrUpdatePaymentLines($transaction, $payment);
-    //             }
-    //         }
-    //         $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-    //     }
-
-    //     return response()->json([
-    //         'message' => 'done'
-    //     ], 200);
-    // }
-
+    
     public function establishmentOrders(Request $request, $id)
     {
         $type = $request->query('type');
