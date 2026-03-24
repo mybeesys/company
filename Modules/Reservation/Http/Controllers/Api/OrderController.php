@@ -218,6 +218,7 @@ class OrderController extends Controller
                     'table_id' => $table->id,
                     'customer_name' => $request->customer_name ?? 'Guest',
                     'reservation_time' => now(),
+                    'guests_count' => $request->guests_count ?? 1,
                     'status' => 'active',
                 ]);
 
