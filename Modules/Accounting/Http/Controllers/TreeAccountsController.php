@@ -167,7 +167,7 @@ class TreeAccountsController extends Controller
         // try {
         DB::beginTransaction();
 
-      return  $input = $request->only([
+        $input = $request->only([
             'name_ar',
             'name_en',
             // 'account_category',
