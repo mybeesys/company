@@ -27,6 +27,12 @@ class TableOrders extends Model
         return $this->favorites()->where('user_id', Auth::user()->id)->exists();
     }
 
+    public function sell_lines()
+    {
+        return $this->hasMany(OrderTableItems::class, 'transaction_id')->where('is_show', 1);;
+    }
+
+
     public function favorites()
     {
         return $this->hasMany(FavoriteBills::class);
@@ -43,12 +49,8 @@ class TableOrders extends Model
         return $this->belongsTo(Establishment::class, 'establishment_id');
     }
 
-    public function sell_lines()
-    {
-        return $this->hasMany(OrderTableItems::class, 'transaction_id')->where('is_show', 1);;
-    }
 
- 
+
     public function payment()
     {
         return $this->hasMany(TransactionPayments::class, 'transaction_id');
