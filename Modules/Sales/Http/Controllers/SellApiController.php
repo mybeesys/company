@@ -85,8 +85,9 @@ class SellApiController extends Controller
                 'shift_number' => $request->shift_id,
                 'establishment_id' => $establishment_id,
                 'device_id' => $request->device_id,
+                'order_status' => 'inpreparation',
+                'order_type' => $request->device_id ?? 2,
             ]);
-
 
             $products = json_decode(json_encode($request->items));
 
