@@ -119,8 +119,12 @@
 
     <script type="text/javascript">
      function setAccountId(id, nature) {
-    $('#parent_id').val(id);
+   $('#parent_id').val(id);
 
+     $('#sub_account_id').val(id);
+
+    sessionStorage.setItem('sub_account_id', id);
+    sessionStorage.setItem('account_id', id);
     let natureText = '';
     let badgeClass = '';
 
