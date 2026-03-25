@@ -121,8 +121,8 @@ class OrderController extends Controller
             } else {
                 // إنشاء حجز وطلب جديد تماماً
                 if ($table->table_status != 0 && !$existingOrder) {
-                     // تنظيف أي حجز عالق قبل البدء
-                     Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
+                    // تنظيف أي حجز عالق قبل البدء
+                    Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
                 }
 
                 $reservation = Reservation::create([
@@ -171,7 +171,6 @@ class OrderController extends Controller
                 'order_id' => $transaction->id,
                 'order_no' => $transaction->ref_no
             ]);
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error("Store Error: " . $e->getMessage());
@@ -484,24 +483,37 @@ class OrderController extends Controller
         $category_ids = $request->input('category_ids', []);
         $establishment_id = $request->input('establishment_id');
 
-
         if (!Establishment::find($establishment_id) || !$establishment_id) {
             return response()->json(['message' => 'Establishment not found'], 404);
         }
 
-        $orders = TableOrders::where('establishment_id', $establishment_id)
-
-            // where('order_status', '<>', 'canceled')
+        $tableOrders = TableOrders::where('establishment_id', $establishment_id)
+            ->whereNotIn('order_status', ['canceled', 'served'])
             ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
                 $query->whereIn('category_id', $category_ids);
             })
             ->with(['sell_lines.product', 'createdBy'])
             ->get();
 
-        $formattedOrders = $orders->map(function ($order) use ($category_ids) {
-            $reservation = Reservation::where('table_id', $order->table_id)
-                ->where('status', 'active')
-                ->first();
+        $posTransactions = Transaction::where('establishment_id', $establishment_id)
+            ->where('type', 'sell')
+            ->where('order_status', 'inpreparation')
+            ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
+                $query->whereIn('category_id', $category_ids);
+            })
+            ->with(['sell_lines.product', 'createdBy'])
+            ->get();
+
+        $allOrders = $tableOrders->concat($posTransactions);
+
+        $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
+
+            $reservation = null;
+            if (isset($order->table_id)) {
+                $reservation = Reservation::where('table_id', $order->table_id)
+                    ->where('status', 'active')
+                    ->first();
+            }
 
             $allLines = $order->sell_lines;
 
@@ -509,17 +521,24 @@ class OrderController extends Controller
                 return $line->product && in_array($line->product->category_id, $category_ids);
             });
 
-            $service = TypesOfService::find($order->order_type);
+            $serviceName = 'محلي';
+            if (!isset($order->table_id)) {
+                $serviceName = 'سفري/كاشير';
+            } else {
+                $service = TypesOfService::find($order->order_type);
+                $serviceName = $service->name_ar ?? 'محلي';
+            }
 
             return [
                 'id' => $order->id,
-                'table_id' => $order->table_id,
+                'table_id' => $order->table_id ?? null,
+                'is_pos_order' => !isset($order->table_id), 
                 'created_by' => $order->created_by,
-                'order_type' => $service->name_ar ?? 'محلي',
+                'order_type' => $serviceName,
                 'order_status' => $order->order_status,
                 'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
-                'customer_name' => $reservation->customer_name ?? 'Guest',
-                'customer_phone' => $reservation->customer_phone ?? '',
+                'customer_name' => $reservation->customer_name ?? ($order->contact->name ?? 'Guest'),
+                'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
                 'guests_count' => $reservation->guests_count ?? 0,
                 'discount_type' => $order->discount_type,
                 'discount_value' => (float)$order->discount_amount,
@@ -548,7 +567,9 @@ class OrderController extends Controller
             ];
         });
 
-        return response()->json($formattedOrders);
+        $sortedOrders = $formattedOrders->sortByDesc('created_at')->values();
+
+        return response()->json($sortedOrders);
     }
 
 

@@ -1,51 +1,5 @@
 <?php
 
-namespace Modules\Reservation\Http\Controllers\Api;
-
-use App\Http\Controllers\Controller;
-use Carbon\Carbon;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Modules\Employee\Models\Employee;
-use Modules\Establishment\Models\Establishment;
-use Modules\Establishment\Models\EstPos;
-use Modules\General\Models\PaymentMethod;
-use Modules\General\Models\Transaction;
-use Modules\General\Models\TransactionSellLine;
-use Modules\General\Utils\TransactionUtils;
-use Modules\Product\Models\Product;
-use Modules\Product\Models\ProductCombo;
-use Modules\Reservation\Events\OrderCreated;
-use Modules\Reservation\Models\Order;
-use Modules\Reservation\Models\OrderItem;
-use Modules\Reservation\Models\OrderTableItems;
-use Modules\Reservation\Models\Reservation;
-use Modules\Reservation\Models\Table;
-use Modules\Reservation\Models\TableOrders;
-use Modules\Sales\Utils\SalesUtile;
-use Illuminate\Support\Facades\Mail;
-use Modules\Accounting\Models\AccountingAccount;
-use Modules\Accounting\Models\AccountingAccTransMapping;
-use Modules\Accounting\Models\AccountingCostCenter;
-use Modules\Accounting\Models\AccountsRoting;
-use Modules\Accounting\Utils\AccountingUtil;
-use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\ClientsAndSuppliers\utils\ContactUtils;
-use Modules\General\Models\Actions;
-use Modules\General\Models\Country;
-use Modules\General\Models\Setting;
-use Modules\General\Models\Tax;
-use Modules\General\Models\TransactionPayments;
-use Modules\General\Utils\ActionUtil;
-use Modules\Inventory\Models\Transfer;
-use Modules\Product\Http\Controllers\Api\ProductController;
-use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\TypesOfService;
-use Modules\Product\Models\Transformers\Collections\ProductCollection;
 
 // class OrderController extends Controller
 // {
