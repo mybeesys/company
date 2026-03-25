@@ -677,49 +677,82 @@ class OrderController extends Controller
                     ];
                 })->values()
             ];
-        })->filter()->values(); // تنظيف الـ null نتيحة الفلترة
+        })->filter()->values();
 
         return response()->json($formattedOrders);
     }
 
     public function updateItemStatus(Request $request)
-    {
-        $request->validate([
-            'item_id' => 'required',
-            'status' => 'required|string'
-        ]);
+{
+    $request->validate([
+        'item_id' => 'required',
+     ]);
 
-        $item = OrderTableItems::with('product')->find($request->item_id);
+    $item = OrderTableItems::with(['product'])->find($request->item_id);
 
-        if (!$item) {
-            return response()->json(['message' => 'Item not found'], 404);
+    if (!$item) {
+        return response()->json(['message' => 'Item not found'], 404);
+    }
+
+    $item->update([
+        'line_status' => 'prepared'
+    ]);
+
+     $order = TableOrders::find($item->transaction_id);
+    $allOrderPrepared = false;
+
+    if ($order) {
+        $remainingItems = OrderTableItems::where('transaction_id', $order->id)
+            ->where('line_status', 'inpreparation')
+            ->count();
+
+        if ($remainingItems == 0) {
+            $order->update([
+                'order_status' => 'prepared'
+            ]);
+            $allOrderPrepared = true;
         }
+    }
 
-        $item->update([
-            'line_status' => $request->status
+     try {
+        $tenantId = (string) tenancy()->tenant->id;
+        $broadcastUrl = "http://127.0.0.1:3001/broadcast";
+
+        \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
+            'tenant_id' => $tenantId,
+            'event' => 'ItemStatusUpdated',
+            'data' => [
+                'item_id'      => $item->id,
+                'order_id'     => $item->transaction_id,
+                'status'       => $item->line_status,
+                'product_name' => $item->product->name_ar ?? '',
+                'updated_at'   => now()->toDateTimeString()
+            ]
         ]);
 
-        try {
-            $tenantId = (string) tenancy()->tenant->id;
-            \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
+        if ($allOrderPrepared) {
+            \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
                 'tenant_id' => $tenantId,
-                'event' => 'ItemStatusUpdated',
+                'event' => 'OrderIsPrepared',
                 'data' => [
-                    'item_id' => $item->id,
-                    'order_id' => $item->transaction_id,
-                    'status' => $item->line_status,
-                    'product_name' => $item->product->name_ar ?? '',
-                    'updated_at' => now()->toDateTimeString()
+                    'order_id' => $order->id,
+                    'table_id' => $order->table_id,
+                    'ref_no'   => $order->ref_no,
+                    'message'  => "الطلب رقم {$order->ref_no} جاهز بالكامل للتسليم",
+                    'status'   => 'prepared'
                 ]
             ]);
-        } catch (\Exception $e) {
-            Log::error("Socket Error (ItemStatusUpdated): " . $e->getMessage());
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Status updated successfully',
-            'new_status' => $item->line_status
-        ]);
+    } catch (\Exception $e) {
+        Log::error("Socket Error: " . $e->getMessage());
     }
+
+    return response()->json([
+        'status'     => true,
+        'message'    => 'Status updated successfully',
+        'new_status' => $item->line_status,
+        'order_status' => $order ? $order->order_status : null
+    ]);
+}
 }
