@@ -478,100 +478,208 @@ class OrderController extends Controller
         return response()->json($formattedData);
     }
 
-    public function getFilteredOrdersByCategory(Request $request)
-    {
-        $category_ids = $request->input('category_ids', []);
-        $establishment_id = $request->input('establishment_id');
+    // public function getFilteredOrdersByCategory(Request $request)
+    // {
+    //     $category_ids = $request->input('category_ids', []);
+    //     $establishment_id = $request->input('establishment_id');
 
-        if (!Establishment::find($establishment_id) || !$establishment_id) {
-            return response()->json(['message' => 'Establishment not found'], 404);
-        }
+    //     if (!Establishment::find($establishment_id) || !$establishment_id) {
+    //         return response()->json(['message' => 'Establishment not found'], 404);
+    //     }
 
-        $tableOrders = TableOrders::where('establishment_id', $establishment_id)
-            ->whereNotIn('order_status', ['canceled', 'served'])
-            ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
-                $query->whereIn('category_id', $category_ids);
-            })
-            ->with(['sell_lines.product', 'createdBy'])
-            ->get();
+    //     $tableOrders = TableOrders::where('establishment_id', $establishment_id)
+    //         ->whereNotIn('order_status', ['canceled', 'served'])
+    //         ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
+    //             $query->whereIn('category_id', $category_ids);
+    //         })
+    //         ->with(['sell_lines.product', 'createdBy'])
+    //         ->get();
 
-        $posTransactions = Transaction::where('establishment_id', $establishment_id)
-            ->where('type', 'sell')
-            ->where('order_status', 'inpreparation')
-            ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
-                $query->whereIn('category_id', $category_ids);
-            })
-            ->with(['sell_lines.product', 'createdBy'])
-            ->get();
+    //     $posTransactions = Transaction::where('establishment_id', $establishment_id)
+    //         ->where('type', 'sell')
+    //         ->where('order_status', 'inpreparation')
+    //         ->whereHas('sell_lines.product', function ($query) use ($category_ids) {
+    //             $query->whereIn('category_id', $category_ids);
+    //         })
+    //         ->with(['sell_lines.product', 'createdBy'])
+    //         ->get();
 
-        $allOrders = $tableOrders->concat($posTransactions);
+    //     $allOrders = $tableOrders->concat($posTransactions);
 
-        $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
+    //     $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
 
-            $reservation = null;
-            if (isset($order->table_id)) {
-                $reservation = Reservation::where('table_id', $order->table_id)
-                    ->where('status', 'active')
-                    ->first();
-            }
+    //         $reservation = null;
+    //         if (isset($order->table_id)) {
+    //             $reservation = Reservation::where('table_id', $order->table_id)
+    //                 ->where('status', 'active')
+    //                 ->first();
+    //         }
 
-            $allLines = $order->sell_lines;
+    //         $allLines = $order->sell_lines;
 
-            $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
-                return $line->product && in_array($line->product->category_id, $category_ids);
-            });
+    //         $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
+    //             return $line->product && in_array($line->product->category_id, $category_ids);
+    //         });
 
-            $serviceName = 'محلي';
-            if (!isset($order->table_id)) {
-                $serviceName = 'سفري/كاشير';
-            } else {
-                $service = TypesOfService::find($order->order_type);
-                $serviceName = $service->name_ar ?? 'محلي';
-            }
+    //         $serviceName = 'محلي';
+    //         if (!isset($order->table_id)) {
+    //             $serviceName = 'سفري/كاشير';
+    //         } else {
+    //             $service = TypesOfService::find($order->order_type);
+    //             $serviceName = $service->name_ar ?? 'محلي';
+    //         }
 
-            return [
-                'id' => $order->id,
-                'table_id' => $order->table_id ?? null,
-                'is_pos_order' => !isset($order->table_id), 
-                'created_by' => $order->created_by,
-                'order_type' => $serviceName,
-                'order_status' => $order->order_status,
-                'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
-                'customer_name' => $reservation->customer_name ?? ($order->contact->name ?? 'Guest'),
-                'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
-                'guests_count' => $reservation->guests_count ?? 0,
-                'discount_type' => $order->discount_type,
-                'discount_value' => (float)$order->discount_amount,
-                'total_before_discount' => (float)$order->total_before_tax,
-                'total_after_discount' => (float)$order->total_after_discount,
-                'total_tax' => (float)$order->tax_amount,
-                'total_paid' => (float)$order->final_total,
-                'note' => $order->description,
-                'items' => $filteredLines->map(function ($mainItem) {
-                    return [
-                        'id' => $mainItem->id,
-                        'order_id' => $mainItem->transaction_id,
-                        'product_id' => $mainItem->product_id,
-                        'product_name' => $mainItem->product->name_ar ?? '',
-                        'category_id' => $mainItem->product->category_id,
-                        'quantity' => (float)$mainItem->qyt,
-                        'price' => (float)$mainItem->unit_price,
-                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
-                        'tax_id' => $mainItem->tax_id,
-                        'tax_value' => (float)$mainItem->tax_value,
-                        'discount_type' => $mainItem->discount_type,
-                        'discount_amount' => (float)$mainItem->discount_amount,
-                        'status' => $mainItem->line_status ?? 'inpreparation',
-                    ];
-                })->values()
-            ];
-        });
+    //         return [
+    //             'id' => $order->id,
+    //             'table_id' => $order->table_id ?? null,
+    //             'is_pos_order' => !isset($order->table_id),
+    //             'created_by' => $order->created_by,
+    //             'order_type' => $serviceName,
+    //             'order_status' => $order->order_status,
+    //             'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
+    //             'customer_name' => $reservation->customer_name ?? ($order->contact->name ?? 'Guest'),
+    //             'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
+    //             'guests_count' => $reservation->guests_count ?? 0,
+    //             'discount_type' => $order->discount_type,
+    //             'discount_value' => (float)$order->discount_amount,
+    //             'total_before_discount' => (float)$order->total_before_tax,
+    //             'total_after_discount' => (float)$order->total_after_discount,
+    //             'total_tax' => (float)$order->tax_amount,
+    //             'total_paid' => (float)$order->final_total,
+    //             'note' => $order->description,
+    //             'items' => $filteredLines->map(function ($mainItem) {
+    //                 return [
+    //                     'id' => $mainItem->id,
+    //                     'order_id' => $mainItem->transaction_id,
+    //                     'product_id' => $mainItem->product_id,
+    //                     'product_name' => $mainItem->product->name_ar ?? '',
+    //                     'category_id' => $mainItem->product->category_id,
+    //                     'quantity' => (float)$mainItem->qyt,
+    //                     'price' => (float)$mainItem->unit_price,
+    //                     'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+    //                     'tax_id' => $mainItem->tax_id,
+    //                     'tax_value' => (float)$mainItem->tax_value,
+    //                     'discount_type' => $mainItem->discount_type,
+    //                     'discount_amount' => (float)$mainItem->discount_amount,
+    //                     'status' => $mainItem->line_status ?? 'inpreparation',
+    //                 ];
+    //             })->values()
+    //         ];
+    //     });
 
-        $sortedOrders = $formattedOrders->sortByDesc('created_at')->values();
+    //     $sortedOrders = $formattedOrders->sortByDesc('created_at')->values();
 
-        return response()->json($sortedOrders);
+    //     return response()->json($sortedOrders);
+    // }
+public function getFilteredOrdersByCategory(Request $request)
+{
+    $category_ids = $request->input('category_ids', []);
+    $establishment_id = $request->input('establishment_id');
+
+    if (!$establishment_id || !Establishment::find($establishment_id)) {
+        return response()->json(['message' => 'Establishment not found'], 404);
     }
 
+    // 1. جلب طلبات الطاولات (المحلي)
+    $tableOrders = TableOrders::where('establishment_id', $establishment_id)
+        // إذا المصفوفة فارغة، لا يطبق شرط الـ whereHas (يجلب الكل)
+        ->when(!empty($category_ids), function ($query) use ($category_ids) {
+            return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
+                $q->whereIn('category_id', $category_ids);
+            });
+        })
+        ->with(['sell_lines.product', 'createdBy'])
+        ->get();
+
+    // 2. جلب طلبات الكاشير (السفري)
+    $posTransactions = Transaction::where('establishment_id', $establishment_id)
+        ->where('type', 'sell')
+        ->where('order_status', 'inpreparation')
+        // نفس المنطق: إذا المصفوفة فارغة يجلب كل ما هو "قيد التحضير"
+        ->when(!empty($category_ids), function ($query) use ($category_ids) {
+            return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
+                $q->whereIn('category_id', $category_ids);
+            });
+        })
+        ->with(['sell_lines.product', 'createdBy'])
+        ->get();
+
+    // دمج المجموعتين (المحلي والسفري)
+    $allOrders = $tableOrders->concat($posTransactions);
+
+    // بناء الريسبونس بنفس الحقول التي طلبتها في كودك الأصلي
+    $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
+
+        // جلب الحجز لطلبات الطاولات فقط
+        $reservation = null;
+        if (isset($order->table_id)) {
+            $reservation = Reservation::where('table_id', $order->table_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        $allLines = $order->sell_lines;
+
+        // فلترة الأصناف داخل الطلب: إذا الفلتر فارغ خذ كل الأصناف، وإلا فلترها
+        $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
+            if (empty($category_ids)) return true;
+            return $line->product && in_array($line->product->category_id, $category_ids);
+        });
+
+        // إذا كان هناك فلاتر وأصبح الطلب فارغاً بعد الفلترة، نتجاهله
+        if (!empty($category_ids) && $filteredLines->isEmpty()) {
+            return null;
+        }
+
+        // تحديد نوع الخدمة للحقل order_type
+        $serviceName = 'محلي';
+        if (!isset($order->table_id)) {
+            $serviceName = 'سفري';
+        } else {
+            $service = TypesOfService::find($order->order_type);
+            $serviceName = $service->name_ar ?? 'محلي';
+        }
+
+        // الهيكلية (Response) كما هي في كودك الأصلي دون نقصان
+        return [
+            'id' => $order->id,
+            'table_id' => $order->table_id,
+            'created_by' => $order->created_by,
+            'order_type' => $serviceName,
+            'order_status' => $order->order_status,
+            'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
+            'customer_name' => $reservation->customer_name ?? ($order->contact->name ?? 'Guest'),
+            'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
+            'guests_count' => $reservation->guests_count ?? 0,
+            'discount_type' => $order->discount_type,
+            'discount_value' => (float)$order->discount_amount,
+            'total_before_discount' => (float)$order->total_before_tax,
+            'total_after_discount' => (float)$order->total_after_discount,
+            'total_tax' => (float)$order->tax_amount,
+            'total_paid' => (float)$order->final_total,
+            'note' => $order->description,
+            'items' => $filteredLines->map(function ($mainItem) {
+                return [
+                    'id' => $mainItem->id,
+                    'order_id' => $mainItem->transaction_id,
+                    'product_id' => $mainItem->product_id,
+                    'product_name' => $mainItem->product->name_ar ?? '',
+                    'category_id' => $mainItem->product->category_id,
+                    'quantity' => (float)$mainItem->qyt,
+                    'price' => (float)$mainItem->unit_price,
+                    'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                    'tax_id' => $mainItem->tax_id,
+                    'tax_value' => (float)$mainItem->tax_value,
+                    'discount_type' => $mainItem->discount_type,
+                    'discount_amount' => (float)$mainItem->discount_amount,
+                    'status' => $mainItem->line_status ?? 'inpreparation',
+                ];
+            })->values()
+        ];
+    })->filter()->values(); // تنظيف الـ null نتيحة الفلترة
+
+    return response()->json($formattedOrders);
+}
 
     public function updateItemStatus(Request $request)
     {
