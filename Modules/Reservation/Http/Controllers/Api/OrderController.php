@@ -580,9 +580,8 @@ class OrderController extends Controller
             return response()->json(['message' => 'Establishment not found'], 404);
         }
 
-        // 1. جلب طلبات الطاولات (المحلي)
         $tableOrders = TableOrders::where('establishment_id', $establishment_id)
-            // إذا المصفوفة فارغة، لا يطبق شرط الـ whereHas (يجلب الكل)
+
             ->where('order_status', 'inpreparation')
             ->when(!empty($category_ids), function ($query) use ($category_ids) {
                 return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
@@ -592,11 +591,9 @@ class OrderController extends Controller
             ->with(['sell_lines.product', 'createdBy'])
             ->get();
 
-        // 2. جلب طلبات الكاشير (السفري)
         $posTransactions = Transaction::where('establishment_id', $establishment_id)
             ->where('type', 'sell')
             ->where('order_status', 'inpreparation')
-            // نفس المنطق: إذا المصفوفة فارغة يجلب كل ما هو "قيد التحضير"
             ->when(!empty($category_ids), function ($query) use ($category_ids) {
                 return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
                     $q->whereIn('category_id', $category_ids);
@@ -605,13 +602,10 @@ class OrderController extends Controller
             ->with(['sell_lines.product', 'createdBy'])
             ->get();
 
-        // دمج المجموعتين (المحلي والسفري)
         $allOrders = $tableOrders->concat($posTransactions);
 
-        // بناء الريسبونس بنفس الحقول التي طلبتها في كودك الأصلي
         $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
 
-            // جلب الحجز لطلبات الطاولات فقط
             $reservation = null;
             if (isset($order->table_id)) {
                 $reservation = Reservation::where('table_id', $order->table_id)
@@ -621,18 +615,15 @@ class OrderController extends Controller
 
             $allLines = $order->sell_lines;
 
-            // فلترة الأصناف داخل الطلب: إذا الفلتر فارغ خذ كل الأصناف، وإلا فلترها
             $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
                 if (empty($category_ids)) return true;
                 return $line->product && in_array($line->product->category_id, $category_ids);
             });
 
-            // إذا كان هناك فلاتر وأصبح الطلب فارغاً بعد الفلترة، نتجاهله
             if (!empty($category_ids) && $filteredLines->isEmpty()) {
                 return null;
             }
 
-            // تحديد نوع الخدمة للحقل order_type
             $serviceName = 'محلي';
             if (!isset($order->table_id)) {
                 $serviceName = 'سفري';
@@ -641,7 +632,6 @@ class OrderController extends Controller
                 $serviceName = $service->name_ar ?? 'محلي';
             }
 
-            // الهيكلية (Response) كما هي في كودك الأصلي دون نقصان
             return [
                 'id' => $order->id,
                 'table_id' => $order->table_id,
@@ -683,76 +673,85 @@ class OrderController extends Controller
     }
 
     public function updateItemStatus(Request $request)
-{
-    $request->validate([
-        'item_id' => 'required',
-     ]);
-
-    $item = OrderTableItems::with(['product'])->find($request->item_id);
-
-    if (!$item) {
-        return response()->json(['message' => 'Item not found'], 404);
-    }
-
-    $item->update([
-        'line_status' => 'prepared'
-    ]);
-
-     $order = TableOrders::find($item->transaction_id);
-    $allOrderPrepared = false;
-
-    if ($order) {
-        $remainingItems = OrderTableItems::where('transaction_id', $order->id)
-            ->where('line_status', 'inpreparation')
-            ->count();
-
-        if ($remainingItems == 0) {
-            $order->update([
-                'order_status' => 'prepared'
-            ]);
-            $allOrderPrepared = true;
-        }
-    }
-
-     try {
-        $tenantId = (string) tenancy()->tenant->id;
-        $broadcastUrl = "http://127.0.0.1:3001/broadcast";
-
-        \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
-            'tenant_id' => $tenantId,
-            'event' => 'ItemStatusUpdated',
-            'data' => [
-                'item_id'      => $item->id,
-                'order_id'     => $item->transaction_id,
-                'status'       => $item->line_status,
-                'product_name' => $item->product->name_ar ?? '',
-                'updated_at'   => now()->toDateTimeString()
-            ]
+    {
+        $request->validate([
+            'item_id'    => 'required',
+            'order_type' => 'required|in:local,pos',
         ]);
 
-        if ($allOrderPrepared) {
-            \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
-                'tenant_id' => $tenantId,
-                'event' => 'OrderIsPrepared',
-                'data' => [
-                    'order_id' => $order->id,
-                    'table_id' => $order->table_id,
-                    'ref_no'   => $order->ref_no,
-                    'message'  => "الطلب رقم {$order->ref_no} جاهز بالكامل للتسليم",
-                    'status'   => 'prepared'
-                ]
-            ]);
+        $orderType = $request->order_type;
+        $itemId = $request->item_id;
+
+        if ($orderType === 'local') {
+            $itemModel = OrderTableItems::class;
+            $orderModel = TableOrders::class;
+        } else {
+            $itemModel = TransactionSellLine::class;
+            $orderModel = Transaction::class;
         }
 
-    } catch (\Exception $e) {
-        Log::error("Socket Error: " . $e->getMessage());
-    }
+        $item = $itemModel::with(['product'])->find($itemId);
 
-    return response()->json([
-        'status'     => true,
-        'message'    => 'Status updated successfully',
-        'new_status' => $item->line_status,
-        'order_status' => $order ? $order->order_status : null
-    ]);
-}
+        if (!$item) {
+            return response()->json(['message' => 'Item not found'], 404);
+        }
+
+        $item->update(['line_status' => 'prepared']);
+
+        $order = $orderModel::find($item->transaction_id);
+        $allOrderPrepared = false;
+
+        if ($order) {
+            $remainingItems = $itemModel::where('transaction_id', $order->id)
+                ->where('line_status', 'inpreparation')
+                ->count();
+
+            if ($remainingItems == 0) {
+                $order->update(['order_status' => 'prepared']);
+                $allOrderPrepared = true;
+            }
+        }
+
+        try {
+            $tenantId = (string) tenancy()->tenant->id;
+            $broadcastUrl = "http://127.0.0.1:3001/broadcast";
+
+            \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
+                'tenant_id' => $tenantId,
+                'event'     => 'ItemStatusUpdated',
+                'data'      => [
+                    'item_id'      => $item->id,
+                    'order_id'     => $item->transaction_id,
+                    'order_type'   => $orderType,
+                    'status'       => $item->line_status,
+                    'product_name' => $item->product->name_ar ?? '',
+                    'updated_at'   => now()->toDateTimeString()
+                ]
+            ]);
+
+            if ($allOrderPrepared) {
+                \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
+                    'tenant_id' => $tenantId,
+                    'event'     => 'OrderIsPrepared',
+                    'data'      => [
+                        'order_id'   => $order->id,
+                        'order_type' => $orderType,
+                        'table_id'   => $order->table_id ?? null,
+                        'ref_no'     => $order->ref_no ?? $order->invoice_no,
+                        'message'    => "الطلب رقم " . ($order->ref_no ?? $order->invoice_no) . " جاهز بالكامل",
+                        'status'     => 'prepared'
+                    ]
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Socket Error: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'status'       => true,
+            'message'      => 'Status updated successfully',
+            'new_status'   => $item->line_status,
+            'order_status' => $order ? $order->order_status : null
+        ]);
+    }
 }
