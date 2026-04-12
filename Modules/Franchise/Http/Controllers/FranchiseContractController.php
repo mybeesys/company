@@ -16,45 +16,6 @@ use Spatie\Permission\Models\Role;
 
 class FranchiseContractController extends Controller
 {
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'franchise_id' => 'required',
-    //         'contract_duration' => 'required|integer',
-    //         'start_date' => 'required|date',
-    //         'reality_fees' => 'required|numeric',
-    //         'contract_file' => 'nullable|mimes:pdf,jpg,png|max:10240',
-    //     ]);
-    //     $exists = FranchiseContract::where('franchise_id', $request->franchise_id)
-    //         ->where('status', 'active')
-    //         ->exists();
-
-    //     if ($exists) {
-    //         return response()->json(['message' => 'لا يمكن إضافة عقد جديد وهناك عقد نشط حالياً'], 422);
-    //     }
-    //     $data = $request->only([
-    //         'franchise_id',
-    //         'contract_duration',
-    //         'start_date',
-    //         'reality_fees',
-    //         'unite_no',
-    //         'notes'
-    //     ]);
-
-    //     $data['end_date'] = \Carbon\Carbon::parse($request->start_date)
-    //         ->addMonths((int) $request->contract_duration);
-
-    //     if ($request->hasFile('contract_file')) {
-    //         $file = $request->file('contract_file');
-    //         $fileName = time() . '_' . $file->getClientOriginalName();
-    //         $data['contract_file'] = $file->storeAs('franchise_contracts', $fileName, 'public');
-    //     }
-
-    //     FranchiseContract::create($data);
-
-    //     return response()->json(['message' => __('franchise::lang.added_successfully')]);
-    //     return response()->json(['success' => true, 'message' => __('franchise::lang.success_msg')]);
-    // }
 
 
     public function store(Request $request)
@@ -174,7 +135,7 @@ class FranchiseContractController extends Controller
                         ->pluck('id')
                         ->toArray();
 
-                     $roleModel = Role::find($roleId);
+                    $roleModel = Role::find($roleId);
                     if ($roleModel && !empty($allPermissionIds)) {
                         $roleModel->permissions()->sync($allPermissionIds);
                     }
@@ -248,5 +209,47 @@ class FranchiseContractController extends Controller
         $contract->update($data);
 
         return response()->json(['message' => __('franchise::lang.updated_successfully')]);
+    }
+
+
+    public function extend(Request $request, $id)
+    {
+        $request->validate([
+            'extension_duration' => 'required|integer|min:1',
+        ]);
+
+        $contract = FranchiseContract::findOrFail($id);
+
+        DB::transaction(function () use ($request, $contract) {
+            $extensionMonths = (int) $request->extension_duration;
+            $oldEndDate = $contract->end_date;
+            $newEndDate = Carbon::parse($oldEndDate)->addMonths($extensionMonths);
+
+            DB::table('franchise_contract_extensions')->insert([
+                'contract_id' => $contract->id,
+                'added_months' => $extensionMonths,
+                'old_end_date' => $oldEndDate,
+                'new_end_date' => $newEndDate,
+                'created_by'   => auth()->user()->id ?? null,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
+            $contract->contract_duration += $extensionMonths;
+            $contract->end_date = $newEndDate;
+            $contract->save();
+        });
+
+        return response()->json(['message' => 'تم تمديد العقد وتسجيل العملية بنجاح']);
+    }
+
+    public function getExtensionHistory($id)
+    {
+        $extensions = DB::table('franchise_contract_extensions')
+            ->where('contract_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($extensions);
     }
 }

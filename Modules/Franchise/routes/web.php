@@ -18,11 +18,13 @@ Route::middleware([
 ])->group(function () {
 
 
-    Route::prefix('franchise')->name('franchise.')->group(function () {
+   Route::prefix('franchise')->name('franchise.')->group(function () {
+Route::post('contracts/{id}/extend', [FranchiseContractController::class, 'extend'])->name('franchise.contracts.extend');
+Route::get('contracts/{id}/extension-history', [FranchiseContractController::class, 'getExtensionHistory'])->name('franchise.contracts.extend-history');
 
         Route::get('branches', [FranchiseBranchController::class, 'index'])->name('branches.index');
         Route::post('branches', [FranchiseBranchController::class, 'store'])->name('branches.store');
-        Route::get('branches/{id}/edit', [FranchiseBranchController::class, 'edit'])->name('branches.edit'); // كان index وغيرناه لـ edit
+        Route::get('branches/{id}/edit', [FranchiseBranchController::class, 'edit'])->name('branches.edit');
         Route::put('branches/{id}', [FranchiseBranchController::class, 'update'])->name('branches.update'); // تغيير لـ PUT
         Route::delete('branches/{id}', [FranchiseBranchController::class, 'destroy'])->name('branches.destroy');
 

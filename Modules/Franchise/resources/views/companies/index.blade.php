@@ -121,6 +121,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="row g-9 mb-7">
+                            <div class="col-md-12 fv-row">
+                                <label class="required fs-6 fw-semibold mb-2">{{ __('franchise::lang.product_permission') }}</label>
+                                <select name="product_permission" id="product_permission" class="form-select form-select-solid"
+                                    data-control="select2" data-dropdown-parent="#kt_modal_add_company">
+                                    <option value="absolute">{{ __('franchise::lang.permission_absolute') }}</option>
+                                    <option value="request">{{ __('franchise::lang.permission_request') }}</option>
+                                    <option value="denied">{{ __('franchise::lang.permission_denied') }}</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
@@ -186,7 +197,7 @@
         function addCompanyModal() {
             $('#kt_modal_add_company_form')[0].reset();
             $('#company_id').val('');
-            $('#city, #account').val(null).trigger('change');
+            $('#city, #account, #product_permission').val(null).trigger('change');
             $('#modal_title').text("{{ __('franchise::lang.add_new') }}");
             $('#kt_modal_add_company').modal('show');
         }
@@ -204,6 +215,7 @@
                 $('#national_address').val(data.national_address);
                 $('#city').val(data.city).trigger('change');
                 $('#account').val(data.account).trigger('change');
+                $('#product_permission').val(data.product_permission).trigger('change');
                 $('#modal_title').text("{{ __('franchise::lang.edit') }}");
                 $('#kt_modal_add_company').modal('show');
             });

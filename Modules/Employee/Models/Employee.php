@@ -12,6 +12,7 @@ use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Franchisee\Models\Agreement;
 use Spatie\Permission\Models\Role;
 
@@ -120,6 +121,12 @@ class Employee extends Authenticatable
     public function ScopeActive(Builder $query)
     {
         $query->where('pos_is_active', true);
+    }
+
+    // User.php
+    public function franchise()
+    {
+        return $this->belongsTo(FranchiseCompanies::class, 'franchise_id');
     }
 
     public function hasDashboardPermission($permission)
