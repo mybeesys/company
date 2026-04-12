@@ -285,17 +285,24 @@ class ProductController extends Controller
             $this->createProduct($validated, $request);
         }
 
-        return response()->json(["message" => "Done"]);
+        $isApprovalNeeded = auth()->user()->franchise?->product_permission === 'request';
+        $msg = $isApprovalNeeded ? "تم الحفظ بنجاح، بانتظار موافقة الإدارة لتفعيل المنتج." : "Done";
+        return response()->json(["message" => $msg]);
     }
 
     protected function saveProduct($validated, $request)
     {
         $image = null;
+        $user = auth()->user();
+        $permissionType = $user->franchise?->product_permission ?? 'absolute';
         $product = Product::find($validated['id']);
         $product->fill($validated);
         $product->color = $validated['color'] ?? '#37D67A';
         $tax = Tax::where("default", 1)->first();
         $taxRate = $tax ? $tax->amount : 0;
+        if ($permissionType === 'request') {
+            $product->active = 0;
+        }
         if (isset($validated['price_with_tax'])) {
             $product->price_with_tax = $validated['price_with_tax'];
         } else {
@@ -426,6 +433,10 @@ class ProductController extends Controller
                 DB::table('franchise_product_permissions')->insert($insertData);
 
                 $product->franchise_id = $user->franchise_id;
+                $product->status = 'pending';
+                $product->active = 0;
+            } else {
+                $product->status = 'approved';
             }
 
 
@@ -568,8 +579,13 @@ class ProductController extends Controller
     protected function createProduct($validated, $request)
     {
         DB::transaction(function () use ($validated, $request) {
+            $user = auth()->user();
+            $permissionType = $user->franchise?->product_permission ?? 'absolute';
             $product = Product::create($validated);
 
+            if ($permissionType === 'request') {
+                $product->active = 0;
+            }
             $user = auth()->user();
             if ($user && $user->franchise_id) {
                 DB::table('franchise_product_permissions')->insert([
@@ -580,6 +596,10 @@ class ProductController extends Controller
                     'updated_at' => now()
                 ]);
                 $product->franchise_id = $user->franchise_id;
+                $product->status = 'pending';
+                $product->active = 0;
+            } else {
+                $product->status = 'approved';
             }
 
             $tax = Tax::where("default", 1)->first();

@@ -65,26 +65,45 @@ class Product extends Model
         'price_with_tax',
         'class_id',
         'last_counted_quantity',
+        'franchise_id',
+        'status',
+    'rejection_reason',
         'last_counted_date'
 
     ];
 
 
-    public function scopeRestrictByFranchise($query)
-    {
-        $user = auth()->user();
-        if ($user && $user->franchise_id) {
-            $allowed = DB::table('franchise_product_permissions')
-                ->where('franchise_id', $user->franchise_id)
-                // ->where('permitted_type', 'product')
-                ->pluck('permitted_id');
+    // public function scopeRestrictByFranchise($query)
+    // {
+    //     $user = auth()->user();
+    //     if ($user && $user->franchise_id) {
+    //         $allowed = DB::table('franchise_product_permissions')
+    //             ->where('franchise_id', $user->franchise_id)
+    //             // ->where('permitted_type', 'product')
+    //             ->pluck('permitted_id');
 
-            return $query->whereIn('id', $allowed);
-        }
-        return $query->where('franchise_id',null);
+    //         return $query->whereIn('id', $allowed);
+    //     }
+    //     return $query->where('franchise_id',null);
+    // }
+
+
+    public function scopeRestrictByFranchise($query)
+{
+    $user = auth()->user();
+    if ($user && $user->franchise_id) {
+        return $query->where(function($q) use ($user) {
+            $q->whereIn('id', function($sub) use ($user) {
+                $sub->select('permitted_id')
+                    ->from('franchise_product_permissions')
+                    ->where('franchise_id', $user->franchise_id);
+            })
+            ->orWhere('franchise_id', $user->franchise_id);
+        });
     }
 
-     
+    return $query->whereNull('franchise_id');
+}
 
     /*protected $appends = ['price_with_tax'];
 
