@@ -286,7 +286,7 @@ class ProductController extends Controller
         }
 
         $isApprovalNeeded = auth()->user()->franchise?->product_permission === 'request';
-        $msg = $isApprovalNeeded ? "تم الحفظ بنجاح، بانتظار موافقة الإدارة لتفعيل المنتج." : "Done";
+        $msg =  "Done";
         return response()->json(["message" => $msg]);
     }
 
