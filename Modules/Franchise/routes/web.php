@@ -18,10 +18,13 @@ Route::middleware([
 ])->group(function () {
 
 
-   Route::prefix('franchise')->name('franchise.')->group(function () {
-Route::post('contracts/{id}/extend', [FranchiseContractController::class, 'extend'])->name('franchise.contracts.extend');
-Route::get('contracts/{id}/extension-history', [FranchiseContractController::class, 'getExtensionHistory'])->name('franchise.contracts.extend-history');
+    Route::prefix('franchise')->name('franchise.')->group(function () {
+        Route::post('contracts/{id}/extend', [FranchiseContractController::class, 'extend'])->name('franchise.contracts.extend');
+        Route::get('contracts/{id}/extension-history', [FranchiseContractController::class, 'getExtensionHistory'])->name('franchise.contracts.extend-history');
 
+        Route::get('products/pending/{id}', [FranchiseProductsController::class, 'getPendingProducts']);
+
+        Route::post('products/approve-action', [FranchiseProductsController::class, 'handleApprovalAction'])->name('approve-action');
         Route::get('branches', [FranchiseBranchController::class, 'index'])->name('branches.index');
         Route::post('branches', [FranchiseBranchController::class, 'store'])->name('branches.store');
         Route::get('branches/{id}/edit', [FranchiseBranchController::class, 'edit'])->name('branches.edit');
