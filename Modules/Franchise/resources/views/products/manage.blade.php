@@ -382,12 +382,9 @@
                             $('#approval_badge').text(products.length).show();
                             $('#no_approvals_msg').hide();
                             products.forEach(p => {
-                                // التحقق من وجود الصورة أو وضع الصورة الافتراضية
-                                // ملاحظة: المسارات في الويب تستخدم / وليس \
-                                const productImage = p.image ? `/uploads/img/${p.image}` :
+                                 const productImage = p.image ? `/${p.image}` :
                                     '/images.png';
 
-                                // جلب اسم التصنيف (إذا كان موجوداً في الاستجابة) أو وضع "غير محدد"
                                 const categoryName = p.category ? (document.documentElement
                                         .lang == 'ar' ? p.category.name_ar : p.category.name_en
                                         ) : '---';
