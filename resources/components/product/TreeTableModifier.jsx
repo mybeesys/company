@@ -8,10 +8,13 @@ import { getRowName } from "../lang/Utils";
 import Swal from "sweetalert2";
 
 const defaultObjectValue = { active: 1, for_sell: 1 };
+
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(
-        rootElement.getAttribute("product-crud-url")
+        rootElement.getAttribute("product-crud-url"),
     );
+    const productPermission = rootElement.getAttribute("product-permission");
+
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState("");
@@ -26,6 +29,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         { label: "Lenient", value: "lenient" },
         { label: "Strict", value: "strict" },
     ]);
+
+    const canAdd =
+        productPermission === "absolute" || productPermission === "request";
 
     const expandAll = () => {
         const allKeys = getExpandedKeys(nodes);
@@ -64,8 +70,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         try {
             axios.get(urlList).then((response) => {
                 let result = response.data;
-                // Since the PHP backend now returns the correct structure,
-                // we can directly set the state with the received data.
                 setNodes(result);
             });
         } catch (error) {
@@ -143,7 +147,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             editedNode.data[key] = editingRow[key];
         }
         let url = JSON.parse(
-            rootElement.getAttribute(`${editedNode.data.type}-url`)
+            rootElement.getAttribute(`${editedNode.data.type}-url`),
         );
         let parentNode = getParentNode(editedNode.key);
         if (editedNode.data.parentKey !== "parent_id")
@@ -163,7 +167,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             apiUrl.searchParams.append("show_in_menu", "1");
             const response = await axios.post(
                 apiUrl.toString(),
-                editedNode.data
+                editedNode.data,
             );
             if (response.data.message !== "Done") {
                 setShowAlert(true);
@@ -183,7 +187,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         } catch (error) {
             console.error(
                 "There was an error saving the product!",
-                error.response.data
+                error.response.data,
             );
         }
         setEditingRow({});
@@ -222,7 +226,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         type1,
         parentKeyName1,
         isNew = false,
-        extraData = {}
+        extraData = {},
     ) => {
         let parentNode = findNodeByKey(nodes, key);
         let node = findNodeByKey(nodes, key);
@@ -295,7 +299,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             if (parentNode && parentNode.data.type === "variable") {
                 newType = "product";
                 newParentKey = "parent_id";
-                //addText = `${translations.Add} ${translations.product}`;
                 const parentName =
                     translations.language === "ar"
                         ? parentNode.data.name_ar
@@ -329,7 +332,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                                     calories: calories,
                                     preparation_time: preparation_time,
                                     tax_id: tax_id,
-                                }
+                                },
                             );
                         }}
                     >
@@ -342,46 +345,54 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     ? parentNode.data.id
                     : null;
                 return (
-                    <a
-                        href="javascript:void(0);"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            addInline(
-                                node.key,
-                                newType,
-                                newParentKey,
-                                node.data.type1,
-                                node.data.parentKey1,
-                                true,
-                                {
-                                    product_type: "fastProduct",
-                                    subcategory_id: subcategoryId,
-                                }
-                            );
-                        }}
-                    >
-                        {addText}
-                    </a>
+                    <>
+                        {canAdd && (
+                            <a
+                                href="javascript:void(0);"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addInline(
+                                        node.key,
+                                        newType,
+                                        newParentKey,
+                                        node.data.type1,
+                                        node.data.parentKey1,
+                                        true,
+                                        {
+                                            product_type: "fastProduct",
+                                            subcategory_id: subcategoryId,
+                                        },
+                                    );
+                                }}
+                            >
+                                {addText}
+                            </a>
+                        )}
+                    </>
                 );
             } else {
                 addText = `${translations.Add} ${translations[node.data.type]}`;
                 return (
-                    <a
-                        href="javascript:void(0);"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            addInline(
-                                node.key,
-                                newType,
-                                newParentKey,
-                                node.data.type1,
-                                node.data.parentKey1,
-                                true
-                            );
-                        }}
-                    >
-                        {addText}
-                    </a>
+                    <>
+                        {canAdd && (
+                            <a
+                                href="javascript:void(0);"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addInline(
+                                        node.key,
+                                        newType,
+                                        newParentKey,
+                                        node.data.type1,
+                                        node.data.parentKey1,
+                                        true,
+                                    );
+                                }}
+                            >
+                                {addText}
+                            </a>
+                        )}
+                    </>
                 );
             }
         } else {
@@ -418,7 +429,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             <div>
                 <input
                     type="checkbox"
-                    defaultChecked={false}
                     checked={node.data[key] === 1}
                     className="form-check-input"
                     disabled
@@ -624,13 +634,18 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 </h3>
                 <div className="card-toolbar">
                     <div className="d-flex align-items-center gap-2 gap-lg-3">
-                        <a
-                            href="javascript:void(0);"
-                            className="btn btn-primary"
-                            onClick={() => openAddCategory()}
-                        >
-                            {translations.Add}
-                        </a>
+                        {canAdd && (
+                            <a
+                                href="javascript:void(0);"
+                                className="btn btn-primary"
+                                onClick={() => openAddCategory()}
+                            >
+                                <i className="ki-outline ki-plus fs-2"></i>
+                                {productPermission === "request"
+                                    ? translations.RequestAdd
+                                    : translations.Add}
+                            </a>
+                        )}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
@@ -646,7 +661,6 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 <form
                     id="treeForm"
                     noValidate
-                    validated={true}
                     className="needs-validation"
                     onSubmit={handleSubmit}
                 >

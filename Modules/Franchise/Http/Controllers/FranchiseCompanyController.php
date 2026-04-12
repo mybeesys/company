@@ -90,6 +90,7 @@ class FranchiseCompanyController extends Controller
             'tel'     => 'nullable',
             'email'   => 'required|email|unique:franchise_companies,email',
             'account' => 'required',
+            'product_permission' => 'required|in:absolute,request,denied',
         ]);
 
 
@@ -99,13 +100,11 @@ class FranchiseCompanyController extends Controller
             'business_type' => 'customer',
             'phone_number' => $request->tel,
             'mobile_number' => $request->mobile,
-
             'email' => $request->email,
             'point_of_sale_client' =>  0,
             'tax_number' => $request->vat_no,
             'account_id' => $request->account,
             'status' => 'active',
-
         ]);
         return response()->json(['success' => true, 'message' => __('franchise::lang.save')]);
     }
@@ -128,6 +127,7 @@ class FranchiseCompanyController extends Controller
             'name_en' => 'required',
             'vat_no'  => 'required|unique:franchise_companies,vat_no,' . $id,
             'email'   => 'required|email|unique:franchise_companies,email,' . $id,
+            'product_permission' => 'required|in:absolute,request,denied',
         ]);
 
         $company->update($request->all());

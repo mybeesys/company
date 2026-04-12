@@ -284,6 +284,7 @@ class ProductController extends Controller
                 return $res;
             $this->createProduct($validated, $request);
         }
+
         return response()->json(["message" => "Done"]);
     }
 
@@ -412,6 +413,21 @@ class ProductController extends Controller
                     }
                 }
             }
+            $user = auth()->user();
+            if ($user && $user->franchise_id) {
+                $insertData[] = [
+                    'franchise_id' => $request->franchise_id,
+                    'permitted_id' => $product->id,
+                    'permitted_type' => "product",
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+
+                DB::table('franchise_product_permissions')->insert($insertData);
+
+                $product->franchise_id = $user->franchise_id;
+            }
+
 
             $oldAttributes = Product::where('parent_id', $product->id)->get();
             foreach ($oldAttributes as $oldAttribute) {
@@ -563,6 +579,7 @@ class ProductController extends Controller
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
+                $product->franchise_id = $user->franchise_id;
             }
 
             $tax = Tax::where("default", 1)->first();
@@ -592,6 +609,9 @@ class ProductController extends Controller
                     'transfer' => $unit->transfer,
                 ]);
             }
+
+
+
             if ($request->product_type && $request->product_type == "fastProduct") {
                 $defaultUnit = UnitTransfer::where('default', 1)->first();
                 UnitTransfer::create([

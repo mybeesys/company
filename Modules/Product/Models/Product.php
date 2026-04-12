@@ -81,8 +81,10 @@ class Product extends Model
 
             return $query->whereIn('id', $allowed);
         }
-        return $query;
+        return $query->where('franchise_id',null);
     }
+
+     
 
     /*protected $appends = ['price_with_tax'];
 

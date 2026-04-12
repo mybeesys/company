@@ -99,10 +99,10 @@
                         <label class="fs-6 fw-semibold mb-2 d-block text-start">{{ __('franchise::lang.contact') }}</label>
                         <input type="text" class="form-control form-control-solid" name="contact_details" id="contact_details" />
                     </div>
-                    <div class="col fv-row mt-5 mt-sm-0">
+                    {{-- <div class="col fv-row mt-5 mt-sm-0">
                         <label class="fs-6 fw-semibold mb-2 d-block text-start">{{ __('franchise::lang.logo') }}</label>
                         <input type="file" class="form-control form-control-solid" name="logo" accept="image/*" />
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
