@@ -1057,9 +1057,13 @@ class ProductController extends Controller
                 })->toArray()
             ];
         })->values()->toArray();
+
+           $product_permission = auth()->user()->franchise?->product_permission ?? 'absolute';
+        // return view('product::category.index', compact(''));
         return view('product::product.edit', [
             'product' => $product,
             'modifierGroups' => $modifierGroups,
+            'product_permission'=>$product_permission,
         ]);
     }
 

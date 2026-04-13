@@ -37,6 +37,12 @@ const ProductBasicInfo = ({
     const listSubCategoryurl = JSON.parse(
         rootElement.getAttribute("listSubCategory-url")
     );
+     const productPermission = rootElement.getAttribute("product-permission");
+ const canAdd =
+        productPermission === "absolute" ;
+
+        console.log(productPermission);
+
     let dir = rootElement.getAttribute("dir");
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [subcategoryOption, setSubCategoryOptions] = useState([]);
@@ -133,7 +139,9 @@ const ProductBasicInfo = ({
                 style={{ display: visible ? "block" : "none" }}
             >
                 <div className="d-flex align-items-center pt-3">
-                    <label
+                    {canAdd &&(
+                        <>
+                        <label
                         className="fs-6 fw-semibold mb-2 me-0"
                         style={{ width: "50px" }}
                     >
@@ -153,6 +161,8 @@ const ProductBasicInfo = ({
                             onChange={(e) => handleChange("active", e.value)}
                         />
                     </div>
+                        </>
+                    )}
                     <label
                         className="ps-10 fs-6 fw-semibold mb-2 me-3"
                         style={{ width: "150px" }}
@@ -239,7 +249,7 @@ const ProductBasicInfo = ({
                     </div>
                 </div>
 
-              
+
 
                 <div className="form-group">
                     <div className="row">
@@ -274,7 +284,7 @@ const ProductBasicInfo = ({
                                 components={animatedComponents}
                             value={(() => {
         let selectedAllergens = currentObject.allergens;
-        
+
         if (typeof selectedAllergens === 'string') {
             try {
                 selectedAllergens = JSON.parse(selectedAllergens);
@@ -287,8 +297,8 @@ const ProductBasicInfo = ({
             selectedAllergens = [];
         }
 
-        return allergensList.filter(option => 
-            selectedAllergens.some(selected => 
+        return allergensList.filter(option =>
+            selectedAllergens.some(selected =>
                (selected.value ? selected.value === option.value : selected === option.value)
             )
         );
