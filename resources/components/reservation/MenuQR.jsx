@@ -16,6 +16,15 @@ const MenuQR = ({ translations, dir }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentObject, setCurrentObject] = useState({
         selectedProducts: [],
+        menuSections: {
+            todays_menu: true,
+            location: true,
+            smart_menu: true,
+            allergy_info: true,
+            photos: true,
+            feedback: true,
+            info: true,
+        },
     });
     const [qrInfo, setQrInfo] = useState({});
     const [products, setProducts] = useState([]);
@@ -137,7 +146,6 @@ const MenuQR = ({ translations, dir }) => {
                 "products",
                 JSON.stringify(selectedProducts.map((p) => p.value))
             );
-            formData.append("cover", currentObject.cover ?? "");
 
             const response = await axios.post(
                 "/generate-menu-token",
@@ -150,10 +158,19 @@ const MenuQR = ({ translations, dir }) => {
             );
 
             const { token } = response.data;
-            // log;
+            const sectionParams = new URLSearchParams(
+                Object.entries(currentObject.menuSections || {}).reduce(
+                    (acc, [key, value]) => {
+                        acc[key] = value ? "1" : "0";
+                        return acc;
+                    },
+                    {}
+                )
+            ).toString();
+
             setQrInfo({
                 id: `qr-${getRowName(currentObject.establishment, dir)}`,
-                url: `${window.location.origin}/menuSimple/${token}`,
+                url: `${window.location.origin}/menuSimple/${token}?${sectionParams}`,
                 color: !currentObject.color ? "#000000" : currentObject.color,
                 logo: !currentObject.showLogo
                     ? {}
@@ -272,49 +289,31 @@ const MenuQR = ({ translations, dir }) => {
                             </div>
                             <div class="col-6">
                                 <div style={{ marginTop: "20px" }}>
-                                    <label
-                                        type="text"
-                                        class="form-control form-control-solid custom-height"
-                                        htmlFor="cover"
-                                        style={{
-                                            fontWeight: "bold",
-                                            display: "block",
-                                        }}
-                                    >
-                                        اختر صورة الغلاف
-                                    </label>
-                                    <input
-                                        hidden
-                                        type="file"
-                                        id="cover"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            setCurrentObject({
-                                                ...currentObject,
-                                                cover: file,
-                                            });
-                                        }}
-                                    />
-
-                                    {currentObject.cover && (
-                                        <div style={{ marginTop: "10px" }}>
-                                            <img
-                                                src={URL.createObjectURL(
-                                                    currentObject.cover
-                                                )}
-                                                alt="Cover Preview"
-                                                style={{
-                                                    width: "250px",
-                                                    height: "150px",
-                                                    objectFit: "cover",
-                                                    borderRadius: "10px",
-                                                    boxShadow:
-                                                        "0 0 5px rgba(0,0,0,0.3)",
-                                                }}
+                                    {[
+                                        ["todays_menu", dir === "rtl" ? "قائمة اليوم" : "Today's Menu"],
+                                        ["location", dir === "rtl" ? "الموقع" : "Location"],
+                                        ["smart_menu", dir === "rtl" ? "القائمة الذكية" : "Smart Menu"],
+                                        ["allergy_info", dir === "rtl" ? "مسببات الحساسية" : "Allergy Info"],
+                                        ["photos", dir === "rtl" ? "الصور" : "Photos"],
+                                        ["feedback", dir === "rtl" ? "رأيك يهمنا" : "Feedback"],
+                                        ["info", dir === "rtl" ? "معلومات" : "Information"],
+                                    ].map(([key, label]) => (
+                                        <div
+                                            key={key}
+                                            className="d-flex align-items-center justify-content-between mb-2"
+                                        >
+                                            <label className="mb-0 fw-semibold">{label}</label>
+                                            <InputSwitch
+                                                checked={!!currentObject.menuSections?.[key]}
+                                                onChange={(e) =>
+                                                    onChange("menuSections", {
+                                                        ...currentObject.menuSections,
+                                                        [key]: e.value,
+                                                    })
+                                                }
                                             />
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                         </div>

@@ -12,6 +12,7 @@ use Modules\Product\Models\Product;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
 use Illuminate\Support\Str;
+use Modules\General\Models\Setting;
 use Modules\Reservation\Models\MenuToken;
 
 class OrderController extends Controller
@@ -32,7 +33,7 @@ class OrderController extends Controller
     {
         $data = $request->all();
         $coverPath = null;
-         if ($request->hasFile('cover')) {
+        if ($request->hasFile('cover')) {
             $filePath = public_path($request->cover);
             if (File::exists($request->cover))
                 File::delete($request->cover);
@@ -72,34 +73,35 @@ class OrderController extends Controller
 
     public function menuSimple($token)
     {
-
-          $menuToken = MenuToken::where('token', $token)->first();
+        $menuToken = MenuToken::where('token', $token)->first();
 
         if (!$menuToken) {
             abort(404, 'الرابط غير صالح أو انتهت صلاحيته');
         }
 
-
         $establishment_id = $menuToken['est_id'];
         $title = $menuToken['title'];
         $subTitle = $menuToken['sub_title'];
         $product_ids = $menuToken->products ?? [];
-        // $cover = $data['cover'];
 
-        // $products = Product::whereIn('id', $product_ids)->with('category', 'subcategory')->get();
         $categories = Category::with(['products' => function ($q) use ($product_ids) {
             $q->whereIn('id', $product_ids)->where('show_in_menu', 1);
         }])->get();
-        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
 
-
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $establishment = Establishment::find($establishment_id);
+
+       $socialKeys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x', 'menu_cover_image'];
+        $socialLinks = Setting::whereIn('key', $socialKeys)->pluck('value', 'key')->toArray();
+
         $info = [
             'establishment' => $establishment,
             'title' => $title,
-            'sub_title' => $subTitle
+            'sub_title' => $subTitle,
+            'social' => $socialLinks
         ];
-        return view('reservation::order.menuSimple', compact('info',  'company', 'categories', 'establishment', 'title', 'subTitle'));
+
+        return view('reservation::order.menuSimple', compact('info', 'company', 'categories', 'establishment', 'title', 'subTitle', 'socialLinks'));
     }
 
     public function menuQR()

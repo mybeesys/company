@@ -4,6 +4,7 @@ namespace Modules\Establishment\Http\Requests;
 
 use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class UpdateCompanyRequest extends FormRequest
@@ -13,14 +14,18 @@ class UpdateCompanyRequest extends FormRequest
      */
     public function rules(): array
     {
-
         $notAjaxValidate = !str_contains(request()->url(), 'validate');
+        $companyId = $this->route('id');
+        $userId = $companyId
+            ? DB::connection('mysql')->table('companies')->where('id', $companyId)->value('user_id')
+            : null;
+
         return [
             'ceo_name' => [Rule::requiredIf($notAjaxValidate), 'string'],
             'email' => [
                 'required',
                 'email',
-                'unique:users,email'
+                Rule::unique('users', 'email')->ignore($userId)
             ],
             'phone' => ['nullable', 'digits_between:10,15'],
             'country_id' => [Rule::requiredIf($notAjaxValidate), 'exists:mysql.countries,id'],
@@ -30,7 +35,8 @@ class UpdateCompanyRequest extends FormRequest
             'national_address' => ['nullable', 'string'],
             'website' => ['nullable', 'url'],
             'tax_name' => [Rule::requiredIf($notAjaxValidate), 'string'],
-            'tax_number' => ['nullable']
+            'tax_number' => ['nullable'],
+            'menu_cover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
         ];
     }
 

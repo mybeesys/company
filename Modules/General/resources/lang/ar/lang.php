@@ -99,5 +99,12 @@ return [
     'rp_expiry_period_tooltip' => 'مدة انتهاء صلاحية نقاط الولاء.',
     'month' => 'شهر',
     'year' => 'سنة',
+    'social_media_links' => 'روابط التواصل الاجتماعي',
+    'whatsapp' => 'واتساب',
+    'facebook' => 'فيسبوك',
+    'instagram' => 'إنستغرام',
+    'snapchat' => 'سناب شات',
+    'x_twitter' => 'إكس (تويتر)',
+    'menu_cover_image' => 'صورة غلاف المنيو',
 
 ];
