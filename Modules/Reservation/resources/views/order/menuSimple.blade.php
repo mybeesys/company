@@ -187,6 +187,16 @@
             height: 20px;
         }
 
+
+      .icon-item.disabled-icon {
+        opacity: 0.3;
+        cursor: not-allowed;
+        filter: grayscale(100%);
+    }
+    .icon-list a {
+        text-decoration: none;
+    }
+
         .switch input {
             opacity: 0;
             width: 0;
@@ -1003,6 +1013,23 @@
 
 <body>
 
+    @php
+        $coverPath = $socialLinks['menu_cover_image'] ?? null;
+        $tenantPrefix = tenancy()->tenant ? ('tenant' . tenancy()->tenant->id . '/') : '';
+        $menuCoverUrl = $coverPath
+            ? asset('storage/' . $tenantPrefix . ltrim($coverPath, '/'))
+            : asset('11.jpeg');
+        $menuSectionFlags = [
+            'todays_menu' => request()->query('todays_menu', '1') === '1',
+            'location' => request()->query('location', '1') === '1',
+            'smart_menu' => request()->query('smart_menu', '1') === '1',
+            'allergy_info' => request()->query('allergy_info', '1') === '1',
+            'photos' => request()->query('photos', '1') === '1',
+            'feedback' => request()->query('feedback', '1') === '1',
+            'info' => request()->query('info', '1') === '1',
+        ];
+    @endphp
+
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 
@@ -1041,7 +1068,7 @@
     </div>
 
 
-    <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ asset('11.jpeg') }}');">
+    <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ $menuCoverUrl }}');">
         <div class="welcome-content">
             <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt=" ">
             <h1>@lang('general::lang.welcome_to') {{ $company->name }}</h1>
@@ -1053,10 +1080,19 @@
 
     <div class="content menu-content" id="menuContent">
         <div class="profile-bx">
-            <div class="contact-background-main" style="background-image: url('{{ asset('11.jpeg') }}');">
+            <div class="contact-background-main" style="background-image: url('{{ $menuCoverUrl }}');">
                 <div class="profile-content"></div>
             </div>
 
+            {{-- @php --}}
+    // $cover = $socialLinks['menu_cover_image'] ?? null;
+// {{-- @endphp
+
+// @if($cover)
+//     <div class="menu-header-cover">
+//         <img src="{{ asset('storage/' . $cover) }}" alt="Cover" style="width: 100%; height: 200px; object-fit: cover;">
+//     </div>
+// @endif --}}
             <div class="center-info-outer">
                 <div class="author">
                     <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt="{{ $company->name }}">
@@ -1072,21 +1108,65 @@
                         <h1 class="restaurant-name">{{ $title }}</h1>
                         <p class="restaurant-description">{{ $subTitle }}</p>
                         <div class="icon-list">
-                            <div class="icon-item" style="width: 55px;">
-                                <i class="fab fa-whatsapp" style="color: #25D366;"></i>
-                            </div>
-                            <div class="icon-item" style="width: 55px;">
-                                <i class="fab fa-instagram" style="color: #E1306C;"></i>
-                            </div>
-                            <div class="icon-item" style="width: 55px;">
-                                <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
-                            </div>
-                            <div class="icon-item" style="width: 55px;">
-                                <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
-                            </div>
-                            <div class="icon-item" style="width: 55px;">
-                                <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
-                            </div>
+                            {{-- WhatsApp --}}
+                            @if (!empty($socialLinks['social_whatsapp']))
+                                <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" class="icon-item"
+                                    style="width: 55px;">
+                                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                                </a>
+                            @else
+                                <div class="icon-item disabled-icon" style="width: 55px;">
+                                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                                </div>
+                            @endif
+
+                            {{-- Instagram --}}
+                            @if (!empty($socialLinks['social_instagram']))
+                                <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" class="icon-item"
+                                    style="width: 55px;">
+                                    <i class="fab fa-instagram" style="color: #E1306C;"></i>
+                                </a>
+                            @else
+                                <div class="icon-item disabled-icon" style="width: 55px;">
+                                    <i class="fab fa-instagram" style="color: #E1306C;"></i>
+                                </div>
+                            @endif
+
+                            {{-- Snapchat --}}
+                            @if (!empty($socialLinks['social_snapchat']))
+                                <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" class="icon-item"
+                                    style="width: 55px;">
+                                    <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
+                                </a>
+                            @else
+                                <div class="icon-item disabled-icon" style="width: 55px;">
+                                    <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
+                                </div>
+                            @endif
+
+                            {{-- X (Twitter) --}}
+                            @if (!empty($socialLinks['social_x']))
+                                <a href="{{ $socialLinks['social_x'] }}" target="_blank" class="icon-item"
+                                    style="width: 55px;">
+                                    <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                                </a>
+                            @else
+                                <div class="icon-item disabled-icon" style="width: 55px;">
+                                    <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                                </div>
+                            @endif
+
+                            {{-- Facebook --}}
+                            @if (!empty($socialLinks['social_facebook']))
+                                <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" class="icon-item"
+                                    style="width: 55px;">
+                                    <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
+                                </a>
+                            @else
+                                <div class="icon-item disabled-icon" style="width: 55px;">
+                                    <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="col-sm-4 col-md-2">
@@ -1095,26 +1175,41 @@
                         <div class="icon-menu-container d-flex flex-wrap justify-content-center">
                             @php
                                 $items = [
-                                    ['icon' => 'fa-solid fa-utensils', 'title' => __('general::lang.todays_menu')],
-                                    ['icon' => 'fa-solid fa-location-dot', 'title' => __('general::lang.location')],
-                                    ['icon' => 'fa-solid fa-book-open', 'title' => __('general::lang.smart_menu')],
                                     [
+                                        'key' => 'todays_menu',
+                                        'icon' => 'fa-solid fa-utensils',
+                                        'title' => __('general::lang.todays_menu'),
+                                    ],
+                                    [
+                                        'key' => 'location',
+                                        'icon' => 'fa-solid fa-location-dot',
+                                        'title' => __('general::lang.location'),
+                                    ],
+                                    [
+                                        'key' => 'smart_menu',
+                                        'icon' => 'fa-solid fa-book-open',
+                                        'title' => __('general::lang.smart_menu'),
+                                    ],
+                                    [
+                                        'key' => 'allergy_info',
                                         'icon' => 'fa-solid fa-drumstick-bite',
                                         'title' => __('general::lang.allergy_info'),
                                     ],
-                                    ['icon' => 'fa-solid fa-image', 'title' => __('general::lang.photos')],
-                                    ['icon' => 'fa-solid fa-comment-dots', 'title' => __('general::lang.feedback')],
-                                    ['icon' => 'fa-solid fa-circle-info', 'title' => __('general::lang.info')],
+                                    ['key' => 'photos', 'icon' => 'fa-solid fa-image', 'title' => __('general::lang.photos')],
+                                    ['key' => 'feedback', 'icon' => 'fa-solid fa-comment-dots', 'title' => __('general::lang.feedback')],
+                                    ['key' => 'info', 'icon' => 'fa-solid fa-circle-info', 'title' => __('general::lang.info')],
                                 ];
                             @endphp
 
                             @foreach ($items as $item)
-                                <div class="icon-item text-center">
-                                    <div class="icon-circle">
-                                        <i class="{{ $item['icon'] }}"></i>
+                                @if ($menuSectionFlags[$item['key']] ?? true)
+                                    <div class="icon-item text-center">
+                                        <div class="icon-circle">
+                                            <i class="{{ $item['icon'] }}"></i>
+                                        </div>
+                                        <p class="icon-title">{{ $item['title'] }}</p>
                                     </div>
-                                    <p class="icon-title">{{ $item['title'] }}</p>
-                                </div>
+                                @endif
                             @endforeach
                         </div>
 

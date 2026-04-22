@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\Establishment\Http\Requests\UpdateCompanyRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Modules\General\Models\Setting;
 
 class CompanyController extends Controller
 {
@@ -37,6 +39,32 @@ class CompanyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // public function update(UpdateCompanyRequest $request, $id)
+    // {
+    //     if (request()->ajax()) {
+    //         try {
+    //             $company = DB::connection('mysql')->table('companies')->where('id', $id)->first();
+    //             if (!$company) {
+    //                 return response()->json(['error' => 'Company not found'], 404);
+    //             }
+    //             $dataToUpdate = $request->safe()->except('email');
+    //             DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
+    //             $userId = $company->user_id;
+    //             if ($request->has('email') && $request->input('email')) {
+    //                 DB::connection('mysql')->table('users')->where('id', $userId)->update(['email' => $request->input('email')]);
+    //             }
+
+    //             return response()->json(['message' => __('employee::responses.operation_success')]);
+    //         } catch (\Throwable $e) {
+    //             Log::error('company update failed', [
+    //                 'error' => $e->getMessage(),
+    //                 'trace' => $e->getTraceAsString()
+    //             ]);
+    //             return response()->json(['error' => __('establishment::responses.something_wrong_happened')], 500);
+    //         }
+    //     }
+    // }
+
     public function update(UpdateCompanyRequest $request, $id)
     {
         if (request()->ajax()) {
@@ -45,19 +73,50 @@ class CompanyController extends Controller
                 if (!$company) {
                     return response()->json(['error' => 'Company not found'], 404);
                 }
-                $dataToUpdate = $request->safe()->except('email');
+
+                $socialKeys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x'];
+                $validated = $request->validated();
+                $dataToUpdate = collect($validated)->except(['menu_cover_image', 'email'])->toArray();
+
                 DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
-                $userId = $company->user_id;
-                if ($request->has('email') && $request->input('email')) {
-                    DB::connection('mysql')->table('users')->where('id', $userId)->update(['email' => $request->input('email')]);
+
+                if ($request->filled('email')) {
+                    DB::connection('mysql')->table('users')->where('id', $company->user_id)->update(['email' => $request->input('email')]);
+                }
+
+                foreach ($socialKeys as $key) {
+                    if ($request->has($key)) {
+                        Setting::updateOrCreate(
+                            ['key' => $key],
+                            ['value' => $request->input($key) ?? '']
+                        );
+                    }
+                }
+
+                if ($request->hasFile('menu_cover_image')) {
+                    $file = $request->file('menu_cover_image');
+                    $oldCoverPath = Setting::where('key', 'menu_cover_image')->value('value');
+
+                    $fileName = 'company-' . $id . '-' . time() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('menu-covers', $fileName, 'public');
+
+                    if ($oldCoverPath && Storage::disk('public')->exists($oldCoverPath)) {
+                        Storage::disk('public')->delete($oldCoverPath);
+                    }
+
+                    Setting::updateOrCreate(
+                        ['key' => 'menu_cover_image'],
+                        ['value' => $path]
+                    );
                 }
 
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             } catch (\Throwable $e) {
                 Log::error('company update failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
                 return response()->json(['error' => __('establishment::responses.something_wrong_happened')], 500);
             }
         }

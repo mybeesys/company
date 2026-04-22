@@ -96,5 +96,13 @@ return [
     'month' => 'Month',
     'year' => 'Year',
 
+    'social_media_links' => 'Social Media Links',
+    'whatsapp' => 'WhatsApp',
+    'facebook' => 'Facebook',
+    'instagram' => 'Instagram',
+    'snapchat' => 'Snapchat',
+    'x_twitter' => 'X (Twitter)',
+    'menu_cover_image' => 'Menu Cover Image',
+
 
 ];

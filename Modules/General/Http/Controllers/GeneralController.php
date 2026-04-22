@@ -70,7 +70,7 @@ class GeneralController extends Controller
         $currencies = Country::all();
         $setting_currency = Setting::getCurrency();
 
-         $accounts =AccountingAccount::all();
+        $accounts = AccountingAccount::all();
         $enabledModules = json_decode(Setting::where('key', 'enabled_modules')->value('value'), true) ?? [];
         $reward_points_settings = json_decode(Setting::where('key', 'reward_points_settings')->value('value'), true) ?? [];
         $modules = [
@@ -112,7 +112,15 @@ class GeneralController extends Controller
         // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
         $unit = UnitTransfer::where("default", 1)->first();
-        return view('general::settings.index', compact('cards','accounts','reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
+
+         $settings = Setting::getNotesAndTermsConditions();
+
+       $social_keys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x','menu_cover_image'];
+        $social_settings = Setting::whereIn('key', $social_keys)->get();
+
+        $settings = $settings->merge($social_settings);
+
+        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription()

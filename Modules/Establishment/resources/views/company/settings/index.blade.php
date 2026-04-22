@@ -30,8 +30,10 @@
             </ul>
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="company_details_tab" role="tabpanel">
-                    <x-establishment::company.details-form :company=$company :countries=$countries />
+                    <x-establishment::company.details-form :company=$company :countries=$countries  />
+
                 </div>
+
                 <div class="tab-pane fade show" id="company_settings_tab" role="tabpanel">
                 </div>
             </div>
