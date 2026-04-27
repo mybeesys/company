@@ -10,7 +10,6 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
-        "itsgoingd/clockwork": "^5.2",
         "khaled.alshamaa/ar-php": "^7.0",
         "laravel/framework": "^11.9",
         "laravel/reverb": "^1.6",
@@ -33,6 +32,7 @@
         "yajra/laravel-datatables": "^11.0"
     },
     "require-dev": {
+        "itsgoingd/clockwork": "^5.2",
         "fakerphp/faker": "^1.23",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",

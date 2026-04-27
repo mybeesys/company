@@ -15,7 +15,6 @@ use Modules\Employee\Models\PayrollGroup;
 use Modules\Establishment\Policies\CompanyPolicy;
 use Modules\General\Models\NotificationSettingParameter;
 use Spatie\TranslationLoader\TranslationLoaderManager;
-use Stancl\Tenancy\Events\TenancyBootstrapped;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,8 +51,11 @@ class AppServiceProvider extends ServiceProvider
                 $user->can('viewAny', PayrollGroup::class);
         });
 
-        Event::listen(TenancyBootstrapped::class, function (TenancyBootstrapped $event) {
-            $this->configureMailTransport();
+        // One listener only: TenancyBootstrapped used to stack a new MessageSending listener on every tenant init.
+        Event::listen(MessageSending::class, function () {
+            if (function_exists('tenancy') && tenancy()->tenant) {
+                self::configureTenantMail();
+            }
         });
 
         Gate::policy(Company::class, CompanyPolicy::class);
@@ -124,13 +126,6 @@ class AppServiceProvider extends ServiceProvider
             $translator->setFallback($app->getFallbackLocale());
 
             return $translator;
-        });
-    }
-
-    protected function configureMailTransport()
-    {
-        Event::listen(MessageSending::class, function (MessageSending $event) {
-            self::configureTenantMail();
         });
     }
 
