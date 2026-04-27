@@ -22,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Force app lang directory (avoids wrong path on Linux / cached config when
+        // resources/lang is not the default detected path).
+        $this->app->useLangPath(base_path('resources/lang'));
     }
 
     /**
