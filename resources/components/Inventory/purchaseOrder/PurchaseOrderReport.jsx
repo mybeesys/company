@@ -65,8 +65,8 @@ export  const generatePDF = () => {
                 'water',
                 '100.0000',
                 'u1',
-                'SAR 500.0000',
-                'SAR 50000.0000'
+                '\u20C1 500.0000',
+                '\u20C1 50000.0000'
               ]
             ]
           }
@@ -79,19 +79,19 @@ export  const generatePDF = () => {
               width: 'auto',
               text: [
                 { text: 'Sub total: ', bold: true },
-                'SAR 50000.00',
+                '\u20C1 50000.00',
                 '\n',
                 { text: 'Tax: ', bold: true },
-                'SAR 0.00',
+                '\u20C1 0.00',
                 '\n',
                 { text: 'Shipping & Handling: ', bold: true },
-                'SAR 0.00',
+                '\u20C1 0.00',
                 '\n',
                 { text: 'Misc. Charges: ', bold: true },
-                'SAR 0.00',
+                '\u20C1 0.00',
                 '\n',
                 { text: 'Grand Total: ', bold: true },
-                'SAR 50000.00'
+                '\u20C1 50000.00'
               ]
             },
             {

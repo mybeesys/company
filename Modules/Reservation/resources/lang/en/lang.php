@@ -16,7 +16,7 @@ return [
     'grid_view_2' => 'Grid View (2)',
     'grid_view_4' => 'Grid View (4)',
     'calories' => 'calories',
-    'currency' => 'SAR',
+    'currency' => "\u{20C1}",
     'side_menu_opening' => 'Side menu will open',
 
     'feedback_menu_title' => 'Menu title',
@@ -47,5 +47,11 @@ return [
     'menu_empty_hint' => 'Regenerate the menu link with products selected, or add items to the linked custom menu.',
     'allergy_download' => 'Download / view file',
     'map_pick_hint' => 'Location was set when the menu link was created.',
+
+    'menu_allergen_avoid_hint' => 'Hide products containing:',
+    'menu_allergen_clear' => 'Clear filters',
+    'menu_allergen_avoid_a11y' => 'Filter by allergens to avoid',
+    'menu_allergen_filter_toggle' => 'Allergen filter',
+    'menu_allergen_filter_toggle_aria' => 'Show or hide allergen filter',
 ];
 

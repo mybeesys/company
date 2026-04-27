@@ -58,7 +58,7 @@ return [
     'previous_subscriptions' => 'الإشتراكات السابقة',
     'change_the_plan' => 'تبديل الخطة',
     'subscription_price' => 'سعر الإشتراك',
-    'sar' => 'ر/س',
+    'sar' => "\u{20C1}",
     'summary' => 'ملخص',
     'payment_details' => 'تفاصيل الدفع',
     'subscription_id' => 'رقم الإشتراك',

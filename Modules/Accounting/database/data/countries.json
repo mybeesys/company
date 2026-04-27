@@ -23266,7 +23266,7 @@
         "currencies": {
             "SAR": {
                 "name": "Saudi riyal",
-                "symbol": "ر.س"
+                "symbol": "\u20c1"
             }
         },
         "idd": {

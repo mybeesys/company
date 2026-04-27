@@ -16,6 +16,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $establishment->name }} - @lang('general::lang.menu')</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/emran-alhaddad/Saudi-Riyal-Font@v1.1.1/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @if ($dir === 'rtl')
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -82,6 +83,11 @@
             --product-card-bg: #2d3748;
             --product-title: #e0e0e0;
             --product-price: #68d391;
+        }
+
+        .sar-currency {
+            font-family: 'saudi_riyal', 'Tajawal', sans-serif;
+            font-variant-numeric: tabular-nums;
         }
 
         body {
@@ -1612,6 +1618,210 @@
             font-size: 0.85rem;
         }
 
+        .product-allergen-icons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            align-items: center;
+            margin: 0.15rem 0 0.4rem;
+            min-height: 0;
+        }
+
+        .product-allergen-icons-row--sm {
+            gap: 0.25rem;
+            margin: 0.1rem 0 0.25rem;
+        }
+
+        .product-allergen-icon-btn {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(254, 243, 199, 0.95), rgba(251, 191, 36, 0.35));
+            color: #92400e;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .product-allergen-icons-row--sm .product-allergen-icon-btn {
+            width: 1.65rem;
+            height: 1.65rem;
+            border-radius: 8px;
+        }
+
+        .product-allergen-icons-row--sm .product-allergen-icon-btn i {
+            font-size: 0.72rem;
+        }
+
+        .product-allergen-icon-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+        }
+
+        .product-allergen-icon-btn:focus-visible {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        .product-card-cal {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .menu-allergen-filter-label {
+            color: var(--muted-text) !important;
+        }
+
+        .menu-allergen-filter {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .menu-allergen-filter-toggle {
+            border: 1px solid var(--category-border);
+            background: var(--search-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .menu-allergen-filter-toggle:hover {
+            border-color: #4a6fa5;
+            color: var(--text-color);
+        }
+
+        .menu-allergen-filter-toggle:not(.collapsed) {
+            border-color: #4a6fa5;
+            box-shadow: 0 2px 10px rgba(74, 111, 165, 0.12);
+        }
+
+        .menu-allergen-filter-toggle .fa-filter {
+            color: #4a6fa5;
+            opacity: 0.9;
+        }
+
+        .menu-allergen-filter-chevron {
+            transition: transform 0.25s ease;
+            font-size: 1rem;
+            color: var(--muted-text);
+        }
+
+        .menu-allergen-filter-toggle.collapsed .menu-allergen-filter-chevron {
+            transform: rotate(0deg);
+        }
+
+        .menu-allergen-filter-toggle:not(.collapsed) .menu-allergen-filter-chevron {
+            transform: rotate(-180deg);
+        }
+
+        .menu-allergen-filter-badge {
+            font-size: 0.65rem;
+            min-width: 1.15rem;
+        }
+
+        body.dark-mode .menu-allergen-filter-toggle {
+            background: var(--search-bg);
+            border-color: var(--search-border);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .menu-allergen-filter-toggle:not(.collapsed) {
+            border-color: #63b3ed;
+        }
+
+        body.dark-mode .menu-allergen-filter-toggle .fa-filter {
+            color: #63b3ed;
+        }
+
+        .menu-allergen-filter-chips {
+            width: 100%;
+            max-width: 100%;
+            flex-wrap: wrap;
+            row-gap: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .allergen-filter-chip {
+            border-radius: 999px;
+            border: 1px solid var(--category-border);
+            background: var(--search-bg);
+            color: var(--text-color);
+            font-weight: 600;
+            line-height: 1.2;
+            max-width: 100%;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .allergen-filter-chip:hover {
+            border-color: #4a6fa5;
+            box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
+        }
+
+        .allergen-filter-chip.active {
+            background: #4a6fa5;
+            color: #fff;
+            border-color: #4a6fa5;
+            box-shadow: 0 2px 10px rgba(74, 111, 165, 0.35);
+        }
+
+        .allergen-filter-chip.active i {
+            color: #fff;
+        }
+
+        .allergen-filter-chip-label {
+            max-width: 9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 575.98px) {
+            .allergen-filter-chip-label {
+                max-width: 5.5rem;
+                font-size: 0.65rem;
+            }
+
+            .allergen-filter-chip {
+                padding-inline: 0.45rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        body.dark-mode .allergen-filter-chip {
+            background: var(--search-bg);
+            border-color: var(--search-border);
+        }
+
+        body.dark-mode .allergen-filter-chip.active {
+            background: #63b3ed;
+            color: #1a202c;
+            border-color: #63b3ed;
+        }
+
+        body.dark-mode .allergen-filter-chip.active i {
+            color: #1a202c;
+        }
+
+        .menu-allergen-filter-clear {
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+
+        .menu-allergen-filter-clear:hover {
+            text-decoration: underline;
+        }
+
         #modalProductAllergens .product-allergens {
             margin-top: 0;
         }
@@ -1627,9 +1837,8 @@
 
     @php
         $coverPath = $socialLinks['menu_cover_image'] ?? null;
-        $tenantPrefix = tenancy()->tenant ? ('tenant' . tenancy()->tenant->id . '/') : '';
         $menuCoverUrl = $coverPath
-            ? asset('storage/' . $tenantPrefix . ltrim($coverPath, '/'))
+            ? tenant_public_storage_url_for_db_path((string) $coverPath)
             : asset('11.jpeg');
         $mapEmbedUrl = null;
         if (!empty($mapLat) && !empty($mapLng)) {
@@ -1826,6 +2035,8 @@
                                 </button>
                             </div>
                         </div>
+
+                        @include('reservation::order.partials.menu-allergen-filter')
                     </div>
 
                     <div class="no-results" id="noResults">
@@ -1843,26 +2054,31 @@
 
                                 <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
                                     @foreach ($category->products as $product)
-                                        <div class="product-card card border-0 p-2">
+                                        <div class="product-card card border-0 p-2" @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])>
                                             <div class="product-card-image-wrap rounded-top overflow-hidden">
                                                 <img src="{{ asset($product->image) }}" class="w-100"
                                                     alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
-                                                @include('reservation::order.partials.product-allergen-trigger', ['product' => $product, 'allergenTplSuffix' => 'main'])
                                             </div>
                                             <div class="card-body p-2">
 
                                                 <h6 class="card-title mb-1 fw-bold">
                                                     {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
                                                 </h6>
+                                                @include('reservation::order.partials.product-allergen-icons-row', ['product' => $product, 'allergenTplSuffix' => 'main'])
                                                 <p class="text-muted mb-2 product-card-desc">
                                                     {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
-                                                    @if (!empty($product->calories) && is_numeric($product->calories))
-                                                        (@lang('general::lang.calories') {{ (int) $product->calories }})
-                                                    @endif
                                                 </p>
 
-                                                <div class="fw-bold text-success" style="font-size: 16px;">
-                                                    {{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')
+                                                <div class="d-flex justify-content-between align-items-baseline gap-2 mt-1 flex-wrap">
+                                                    @if (!empty($product->calories) && is_numeric($product->calories))
+                                                        <span class="product-card-cal text-muted">CAL {{ (int) $product->calories }}</span>
+                                                    @else
+                                                        <span aria-hidden="true"></span>
+                                                    @endif
+                                                    <span class="fw-bold text-success ms-auto" style="font-size: 16px;">
+                                                        {{ number_format($product->price_with_tax, 2) }}
+                                                        <span class="sar-currency">@lang('general::lang.currency')</span>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1910,15 +2126,25 @@
                             <h6 class="fw-bold mt-3 mb-2">{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}</h6>
                             <div class="row g-3">
                                 @foreach ($category->products as $product)
-                                    <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="col-6 col-md-4 col-lg-3 todays-product-card" @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])>
                                         <div class="card h-100 border-0 shadow-sm" style="border-radius: 14px; overflow: hidden;">
                                             <div class="product-card-image-wrap">
                                                 <img src="{{ asset($product->image) }}" class="w-100" style="height: 120px; object-fit: cover;" alt="">
-                                                @include('reservation::order.partials.product-allergen-trigger', ['product' => $product, 'allergenTplSuffix' => 'todays', 'size' => 'sm'])
                                             </div>
                                             <div class="p-2">
                                                 <div class="fw-semibold small">{{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}</div>
-                                                <div class="text-success fw-bold small">{{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')</div>
+                                                @include('reservation::order.partials.product-allergen-icons-row', ['product' => $product, 'allergenTplSuffix' => 'todays', 'iconsSize' => 'sm'])
+                                                <div class="d-flex justify-content-between align-items-baseline gap-2 mt-1">
+                                                    @if (!empty($product->calories) && is_numeric($product->calories))
+                                                        <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;">CAL {{ (int) $product->calories }}</span>
+                                                    @else
+                                                        <span aria-hidden="true"></span>
+                                                    @endif
+                                                    <span class="text-success fw-bold small ms-auto">
+                                                        {{ number_format($product->price_with_tax, 2) }}
+                                                        <span class="sar-currency">@lang('general::lang.currency')</span>
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -2304,43 +2530,133 @@
     <script>
         $(document).ready(function() {
             const $search = $('#searchInput');
-            if ($search.length) {
-                $search.on('keyup', function() {
-                    let value = $(this).val().toLowerCase().trim();
-                    let hasVisibleResults = false;
-                    $('.product-card').addClass('hidden');
 
-                    if (value === '') {
-                        $('.product-card').removeClass('hidden');
-                        $('.category-section').removeClass('hidden');
-                        $('#noResults').hide();
-                        return;
+            function normAllergenKey(k) {
+                return String(k == null ? '' : k)
+                    .toLowerCase()
+                    .trim();
+            }
+
+            function productAllergenKeysFromCard($card) {
+                let parsed = $card.data('allergenKeys');
+                if (parsed === undefined || parsed === '') {
+                    const raw = $card.attr('data-allergen-keys');
+                    if (!raw || raw === '[]') {
+                        return [];
                     }
-
-                    $('.product-card').each(function() {
-                        const productTitle = $(this).find('.card-title').text().toLowerCase();
-                        if (productTitle.includes(value)) {
-                            $(this).removeClass('hidden');
-                            hasVisibleResults = true;
-                        }
-                    });
-
-                    $('.category-section').each(function() {
-                        const hasVisibleProducts = $(this).find('.product-card:not(.hidden)').length > 0;
-                        if (hasVisibleProducts) {
-                            $(this).removeClass('hidden');
-                        } else {
-                            $(this).addClass('hidden');
-                        }
-                    });
-
-                    if (hasVisibleResults) {
-                        $('#noResults').hide();
-                    } else {
-                        $('#noResults').show();
+                    try {
+                        parsed = JSON.parse(raw);
+                    } catch (e) {
+                        return [];
+                    }
+                }
+                if (!Array.isArray(parsed)) {
+                    return [];
+                }
+                const out = [];
+                parsed.forEach(function(item) {
+                    const n = normAllergenKey(item);
+                    if (n && out.indexOf(n) === -1) {
+                        out.push(n);
                     }
                 });
+                return out;
             }
+
+            function getAvoidedAllergenKeys() {
+                const out = [];
+                $('.allergen-filter-chip.active').each(function() {
+                    const k = normAllergenKey($(this).attr('data-allergen-filter'));
+                    if (k) {
+                        out.push(k);
+                    }
+                });
+                return out;
+            }
+
+            function updateAllergenFilterIndicators() {
+                const n = $('.allergen-filter-chip.active').length;
+                $('#allergenFilterClear').toggleClass('d-none', n === 0);
+                const $badge = $('#allergenFilterActiveBadge');
+                if (n === 0) {
+                    $badge.addClass('d-none').text('0');
+                } else {
+                    $badge.removeClass('d-none').text(String(n));
+                }
+            }
+
+            function expandAllergenFilterOnDesktop() {
+                const collapseEl = document.getElementById('menuAllergenFilterCollapse');
+                const toggleBtn = document.querySelector('.menu-allergen-filter-toggle');
+                if (!collapseEl || !toggleBtn || typeof bootstrap === 'undefined' || !bootstrap.Collapse) {
+                    return;
+                }
+                if (window.matchMedia('(min-width: 768px)').matches) {
+                    bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false }).show();
+                    toggleBtn.classList.remove('collapsed');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                }
+            }
+
+            function applyMenuFilters() {
+                const searchVal = ($search.val() || '').toLowerCase().trim();
+                const avoided = getAvoidedAllergenKeys();
+                let anyVisible = false;
+
+                $('.product-card').each(function() {
+                    const $c = $(this);
+                    const keys = productAllergenKeysFromCard($c);
+                    const blockedByAllergen = avoided.some(function(a) {
+                        return keys.indexOf(a) !== -1;
+                    });
+                    const matchesSearch =
+                        searchVal === '' ||
+                        $c.find('.card-title').text().toLowerCase().includes(searchVal);
+                    const show = !blockedByAllergen && matchesSearch;
+                    $c.toggleClass('hidden', !show);
+                    if (show) {
+                        anyVisible = true;
+                    }
+                });
+
+                $('.category-section').each(function() {
+                    const hasVisibleProducts = $(this).find('.product-card:not(.hidden)').length > 0;
+                    $(this).toggleClass('hidden', !hasVisibleProducts);
+                });
+
+                const totalMainCards = $('.product-card').length;
+                $('#noResults').toggle(!anyVisible && totalMainCards > 0);
+
+                $('.todays-product-card').each(function() {
+                    const $c = $(this);
+                    const keys = productAllergenKeysFromCard($c);
+                    const blockedByAllergen = avoided.some(function(a) {
+                        return keys.indexOf(a) !== -1;
+                    });
+                    $c.toggleClass('hidden', blockedByAllergen);
+                });
+
+                updateAllergenFilterIndicators();
+            }
+
+            if ($search.length) {
+                $search.on('keyup', function() {
+                    applyMenuFilters();
+                });
+            }
+
+            $(document).on('click', '.allergen-filter-chip', function() {
+                const $btn = $(this);
+                const on = !$btn.hasClass('active');
+                $btn.toggleClass('active', on);
+                $btn.attr('aria-pressed', on ? 'true' : 'false');
+                applyMenuFilters();
+            });
+
+            $('#allergenFilterClear').on('click', function() {
+                $('.allergen-filter-chip').removeClass('active').attr('aria-pressed', 'false');
+                applyMenuFilters();
+            });
 
             $('.btn-group button').on('click', function() {
                 let view = $(this).data('view');
@@ -2348,6 +2664,9 @@
                 $('.btn-group button').removeClass('active');
                 $(this).addClass('active');
             });
+
+            expandAllergenFilterOnDesktop();
+            applyMenuFilters();
         });
     </script>
 </body>

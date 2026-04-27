@@ -16,7 +16,7 @@ return [
     'grid_view_2' => 'عرض شبكي (2)',
     'grid_view_4' => 'عرض شبكي (4)',
     'calories' => 'سعرات حرارية',
-    'currency' => 'ر.س',
+    'currency' => "\u{20C1}",
     'side_menu_opening' => 'سيتم فتح القائمة الجانبية',
 
     'feedback_menu_title' => 'عنوان المنيو',
@@ -47,5 +47,11 @@ return [
     'menu_empty_hint' => 'جرّب إعادة إنشاء رابط المنيو مع اختيار منتجات، أو ربط قائمة اليوم بأصناف فعلية داخل القائمة المخصصة.',
     'allergy_download' => 'تحميل / عرض الملف',
     'map_pick_hint' => 'تم تثبيت الموقع عند إنشاء رابط المنيو.',
+
+    'menu_allergen_avoid_hint' => 'إخفاء الأصناف التي تحتوي على:',
+    'menu_allergen_clear' => 'مسح التصفية',
+    'menu_allergen_avoid_a11y' => 'تصفية حسب مسببات الحساسية المراد تجنبها',
+    'menu_allergen_filter_toggle' => 'تصفية مسببات الحساسية',
+    'menu_allergen_filter_toggle_aria' => 'إظهار أو إخفاء تصفية مسببات الحساسية',
 ];
 

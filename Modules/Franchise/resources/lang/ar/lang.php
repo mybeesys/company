@@ -31,7 +31,7 @@ return [
     'status' => 'الحالة',
     'fees' => 'الرسوم',
     'months' => 'أشهر',
-    'sar' => 'ر.س',
+    'sar' => "\u{20C1}",
     'add_new_contract' => 'إضافة عقد جديد',
     'contract_duration' => 'مدة العقد (أشهر)',
     'reality_fees' => 'رسوم الامتياز (الواقعية)',

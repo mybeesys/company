@@ -481,7 +481,7 @@
                 },
                 yaxis: {
                     title: {
-                        text: lang === 'ar' ? 'المبلغ (ر.س)' : 'Amount (SAR)',
+                        text: lang === 'ar' ? 'المبلغ (\u20C1)' : 'Amount (\u20C1)',
                         offsetX: lang === 'ar' ? -40 : 0,
                         offsetY: 0
 
@@ -492,7 +492,7 @@
                 },
                 tooltip: {
                     y: {
-                        formatter: val => val.toLocaleString() + (lang === 'ar' ? ' ر.س' : ' SAR')
+                        formatter: val => val.toLocaleString() + ' \u20C1'
                     }
                 },
                 legend: {

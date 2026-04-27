@@ -52,7 +52,7 @@
                     { data: 'end_date', name: 'end_date' },
                     { 
                         data: 'reality_fees', 
-                        render: function(data) { return `<span class="badge badge-light-success fw-bold">${data} SAR</span>`; }
+                        render: function(data) { return `<span class="badge badge-light-success fw-bold">${data} \u20C1</span>`; }
                     },
                     { 
                         data: 'status',

@@ -32,7 +32,7 @@ return [
     'status' => 'Status',
     'fees' => 'Fees',
     'months' => 'Months',
-    'sar' => 'SAR',
+    'sar' => "\u{20C1}",
     'add_new_contract' => 'Add New Contract',
     'contract_duration' => 'Contract Duration (Months)',
     'reality_fees' => 'Franchise Fees (Actual)',
