@@ -11,8 +11,12 @@ if (!function_exists('get_company_id')) {
 
 if (!function_exists('tenant_public_storage_url_for_db_path')) {
     /**
-     * Build URL for a file under public/storage using the current request host (tenant subdomain),
-     * so images work when APP_URL differs from the tenant domain. Prepends tenant{id}/ when missing.
+     * Build URL for a file on the public disk under /storage using the current request host,
+     * so images work when APP_URL differs from the tenant domain.
+     *
+     * Uses Storage::disk('public')->url() so Stancl tenancy (suffix on storage_path / disk root)
+     * matches the real file layout. Avoids manually prepending tenant{id}/ which often breaks
+     * paths like companies/logos/… when the disk is already tenant-scoped.
      */
     function tenant_public_storage_url_for_db_path(string $path): string
     {
@@ -29,23 +33,28 @@ if (!function_exists('tenant_public_storage_url_for_db_path')) {
             $path = ltrim(substr($path, 8), '/');
         }
         $path = ltrim($path, '/');
-        $tenant = function_exists('tenancy') ? tenancy()->tenant : null;
-        if ($tenant) {
-            $folder = 'tenant' . $tenant->id;
-            if (! str_starts_with($path, $folder . '/')) {
-                $path = $folder . '/' . $path;
-            }
-        }
+
         $host = '';
         if (function_exists('request') && request()) {
-            $host = (string) request()->getSchemeAndHttpHost();
-        }
-        $host = rtrim($host, '/');
-        if ($host === '') {
-            return asset('storage/' . $path);
+            $host = rtrim((string) request()->getSchemeAndHttpHost(), '/');
         }
 
-        return $host . '/storage/' . $path;
+        try {
+            $generated = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+        } catch (\Throwable $e) {
+            $generated = '/storage/' . $path;
+        }
+
+        $urlPath = parse_url($generated, PHP_URL_PATH);
+        if (! is_string($urlPath) || $urlPath === '') {
+            $urlPath = '/storage/' . $path;
+        }
+
+        if ($host === '') {
+            return asset($urlPath);
+        }
+
+        return $host . $urlPath;
     }
 }
 
