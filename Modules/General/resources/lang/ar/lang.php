@@ -107,4 +107,23 @@ return [
     'x_twitter' => 'إكس (تويتر)',
     'menu_cover_image' => 'صورة غلاف المنيو',
 
+    'product_allergens_title' => 'مسببات حساسية',
+    'product_allergens_hint' => 'يحتوي هذا الصنف على المواد التالية وفق الإفصاح الغذائي.',
+    'product_allergens_a11y' => 'مسببات حساسية لهذا المنتج',
+    'product_allergens_open' => 'عرض مسببات الحساسية',
+    'allergen_eggs' => 'بيض',
+    'allergen_milk' => 'حليب',
+    'allergen_fish' => 'سمك',
+    'allergen_crustaceans' => 'قشريات',
+    'allergen_tree_nuts' => 'مكسرات شجرية',
+    'allergen_peanuts' => 'فول سوداني',
+    'allergen_wheat' => 'قمح',
+    'allergen_soybeans' => 'صويا',
+    'allergen_sesame' => 'سمسم',
+    'allergen_mustard' => 'خردل',
+    'allergen_celery' => 'كرفس',
+    'allergen_lupin' => 'ترمس',
+    'allergen_molluscs' => 'رخويات',
+    'allergen_sulphites' => 'كبريتات',
+
 ];

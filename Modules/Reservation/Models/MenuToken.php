@@ -12,14 +12,25 @@ class MenuToken extends Model
 
     protected $fillable = [
         'est_id',
+        'est_ids',
         'title',
         'sub_title',
         'products',
+        'custom_menu_id',
+        'map_lat',
+        'map_lng',
+        'map_label',
+        'allergy_document_path',
+        'section_flags',
         'cover',
-        'token'
+        'token',
     ];
 
     protected $casts = [
         'products' => 'array',
+        'est_ids' => 'array',
+        'section_flags' => 'array',
+        'map_lat' => 'float',
+        'map_lng' => 'float',
     ];
 }

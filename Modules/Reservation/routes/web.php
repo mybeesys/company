@@ -35,9 +35,12 @@ Route::middleware([
         Route::get('/areaQR', [AreaController::class, 'areaQR'])->name('reservation.areaQR');
         Route::get('searchAreas', [AreaController::class, 'searchAreas'])->name('searchAreas');
         Route::get('/menuQR', [OrderController::class, 'menuQR'])->name('reservation.menuQR');
+        Route::get('/menu-qr/custom-menus', [OrderController::class, 'customMenusForQr'])->name('reservation.menuQr.customMenus');
+        Route::get('/menu-feedback', [OrderController::class, 'menuFeedbackIndex'])->name('reservation.menuFeedback.index');
     });
     Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');
     Route::get('/menuSimple/{token}', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
+    Route::post('/menuSimple/{token}/feedback', [OrderController::class, 'storeMenuFeedback'])->name('reservation.menuSimple.feedback');
     Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
 
 

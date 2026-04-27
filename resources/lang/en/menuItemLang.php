@@ -110,6 +110,7 @@ return [
     'accounts-routing' => 'Accounts Routing',
 
     'menu_qr' => 'Menu QR',
+    'menu_feedback' => 'Menu ratings',
     'purchase' => 'Supplier Vouchers',
     'sell' => 'Customer Vouchers',
     'receipt_vouchers' => 'Receipt Vouchers',

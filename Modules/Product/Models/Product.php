@@ -125,6 +125,10 @@ class Product extends Model
     protected $attributes = [
         'type' => 'product'
     ];
+
+    protected $casts = [
+        'allergens' => 'array',
+    ];
     public $parentKey = 'subcategory_id';
 
     public function category()

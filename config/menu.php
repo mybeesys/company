@@ -537,6 +537,11 @@ return [
                         'url' => 'menuQR',
                         'permission' => 'setting.menu_qr.show',
                     ],
+                    [
+                        'name' => 'menu_feedback',
+                        'url' => 'menu-feedback',
+                        'permission' => 'setting.menu_qr.show',
+                    ],
                 ],
 
             ],

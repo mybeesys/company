@@ -104,5 +104,23 @@ return [
     'x_twitter' => 'X (Twitter)',
     'menu_cover_image' => 'Menu Cover Image',
 
+    'product_allergens_title' => 'Allergens',
+    'product_allergens_hint' => 'This item contains the following ingredients (food allergen declaration).',
+    'product_allergens_a11y' => 'Allergens for this product',
+    'product_allergens_open' => 'View allergens',
+    'allergen_eggs' => 'Eggs',
+    'allergen_milk' => 'Milk',
+    'allergen_fish' => 'Fish',
+    'allergen_crustaceans' => 'Crustaceans',
+    'allergen_tree_nuts' => 'Tree nuts',
+    'allergen_peanuts' => 'Peanuts',
+    'allergen_wheat' => 'Wheat',
+    'allergen_soybeans' => 'Soybeans',
+    'allergen_sesame' => 'Sesame',
+    'allergen_mustard' => 'Mustard',
+    'allergen_celery' => 'Celery',
+    'allergen_lupin' => 'Lupin',
+    'allergen_molluscs' => 'Molluscs',
+    'allergen_sulphites' => 'Sulphites',
 
 ];
