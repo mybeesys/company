@@ -46,6 +46,17 @@ if (!function_exists('tenant_public_storage_url_for_db_path')) {
             $urlPath = '/storage/' . $path;
         }
 
+        // Stancl: files live under storage/{suffix_base}{tenant_id}/…; URLs must include that segment
+        // or nginx returns 403 (e.g. /storage/menu-covers/… instead of /storage/tenanttest1/menu-covers/…).
+        if (function_exists('tenancy') && tenancy()->tenant) {
+            $suffixBase = (string) config('tenancy.filesystem.suffix_base', 'tenant');
+            $tenantKey = (string) tenant('id');
+            $tenantSeg = $suffixBase . $tenantKey;
+            if ($tenantSeg !== '' && preg_match('#^/storage/(?!' . preg_quote($tenantSeg, '#') . '/)(.+)$#', $urlPath, $m)) {
+                $urlPath = '/storage/' . $tenantSeg . '/' . $m[1];
+            }
+        }
+
         if ($host === '') {
             return asset($urlPath);
         }
