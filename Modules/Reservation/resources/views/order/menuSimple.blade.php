@@ -13,11 +13,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $establishment->name }} - @lang('general::lang.menu')</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @if ($dir === 'rtl')
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @else
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @endif
     <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -87,6 +91,20 @@
             padding: 0;
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
+        }
+
+        .menu-simple-body {
+            text-align: start;
+        }
+
+        /* —— RTL layout fixes (Bootstrap RTL + dir on body) —— */
+        [dir="rtl"] .slider:before {
+            left: auto;
+            right: 3px;
+        }
+
+        [dir="rtl"] .switch input:checked+.slider:before {
+            transform: translateX(-20px);
         }
 
         .main_page_nav_and_event_image {
@@ -364,7 +382,7 @@
             cursor: pointer;
             position: relative;
             transition: all 0.4s ease;
-            margin-right: 10px;
+            margin-inline-end: 10px;
         }
 
         .theme-toggle:hover {
@@ -904,7 +922,10 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            background: url('cover.jpg') center/cover no-repeat;
+            background-color: #1a1a2e;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1007,11 +1028,602 @@
                 transform: translateY(0);
             }
         }
+
+        /* —— Hero: full cover + content below image —— */
+        .menu-hero-wrap {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .menu-hero-cover {
+            width: 100%;
+            min-height: clamp(240px, 46vh, 520px);
+            border-radius: 0 0 24px 24px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: var(--shadow);
+        }
+
+        .menu-hero-band {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 16px 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .menu-hero-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: -52px;
+            margin-bottom: 0.35rem;
+        }
+
+        .menu-hero-logo-wrap .author {
+            width: 104px;
+            height: 104px;
+            border-width: 5px;
+        }
+
+        .menu-hero-text {
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        [dir="rtl"] .menu-hero-text {
+            direction: rtl;
+        }
+
+        .menu-hero-text .restaurant-name {
+            font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+            line-height: 1.25;
+            margin-bottom: 0.35rem;
+        }
+
+        .menu-hero-text .restaurant-description {
+            font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+            margin-bottom: 0;
+            color: var(--restaurant-desc);
+            line-height: 1.45;
+        }
+
+        .menu-hero-social-band {
+            padding: 0.65rem 0 0.15rem;
+        }
+
+        .menu-hero-social-band .icon-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px 14px;
+        }
+
+        .menu-quick-actions {
+            margin-top: 1.1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px 14px;
+            padding-bottom: 0.25rem;
+        }
+
+        .menu-action-btn {
+            border: none;
+            background: linear-gradient(145deg, #f7fbff, #eef4ff);
+            border-radius: 16px;
+            padding: 12px 14px 8px;
+            min-width: 82px;
+            box-shadow: 0 6px 18px rgba(74, 111, 165, 0.16);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: var(--text-color);
+        }
+
+        .menu-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 26px rgba(74, 111, 165, 0.26);
+        }
+
+        .menu-action-btn .icon-circle {
+            margin-bottom: 4px;
+        }
+
+        .menu-action-btn .icon-title {
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 767.98px) {
+            .menu-action-btn {
+                background: var(--card-bg);
+                border-radius: 14px;
+                padding: 10px 12px 6px;
+                min-width: 74px;
+                box-shadow: var(--shadow);
+            }
+
+            .menu-hero-logo-wrap .author {
+                width: 92px;
+                height: 92px;
+            }
+        }
+
+        body.dark-mode .menu-action-btn {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+        }
+
+        /* Search: icon respects RTL */
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-input-wrap .search-input-icon {
+            position: absolute;
+            inset-inline-end: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #4a6fa5;
+            pointer-events: none;
+        }
+
+        body.dark-mode .search-input-wrap .search-input-icon {
+            color: #63b3ed;
+        }
+
+        .search-input-wrap .form-control {
+            padding-inline-start: 15px;
+            padding-inline-end: 44px;
+        }
+
+        /* Feedback stars + hints */
+        .feedback-star {
+            transition: transform 0.15s ease, filter 0.15s ease;
+            line-height: 1;
+                text-decoration-line: none
+        }
+
+        .feedback-star:hover {
+            transform: scale(1.15);
+            filter: drop-shadow(0 2px 6px rgba(255, 193, 7, 0.45));
+        }
+
+        .feedback-hint {
+            min-height: 1.25rem;
+            font-size: 0.875rem;
+        }
+
+        .feedback-hint.is-invalid {
+            color: #dc3545;
+        }
+
+        .feedback-hint.is-ok {
+            color: var(--success-color);
+        }
+
+        /* Thank-you celebration modal */
+        .menu-thanks-modal {
+            border-radius: 24px !important;
+            overflow: hidden;
+            background: linear-gradient(160deg, #fff9f0 0%, #ffffff 45%, #f0f7ff 100%);
+            box-shadow: 0 24px 60px rgba(0, 87, 128, 0.18);
+        }
+
+        body.dark-mode .menu-thanks-modal {
+            background: linear-gradient(160deg, #2d3748 0%, #1a202c 50%, #234e52 100%);
+        }
+
+        .menu-thanks-icon {
+            width: 88px;
+            height: 88px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.25rem;
+            color: #e85d75;
+            animation: thanksPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        body.dark-mode .menu-thanks-icon {
+            background: linear-gradient(135deg, #4fd1c5 0%, #319795 100%);
+            color: #fff;
+        }
+
+        @keyframes thanksPop {
+            from {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .menu-thanks-sparkle {
+            font-size: 1.5rem;
+            animation: sparkle 1.2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: rotate(-6deg) scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: rotate(6deg) scale(1.08);
+            }
+        }
+
+        .menu-thanks-btn {
+            background: linear-gradient(135deg, #00a7d3, #0077b6);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 8px 22px rgba(0, 119, 182, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .menu-thanks-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 119, 182, 0.4);
+            color: #fff;
+        }
+
+        .menu-empty-state {
+            max-width: 420px;
+            margin: 2rem auto;
+            padding: 2rem 1.5rem;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #f8fafc, #eef2ff);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .menu-empty-state {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border-color: var(--border-color);
+        }
+
+        .menu-empty-state .empty-icon {
+            font-size: 3rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        /* Company info modal — polished card UI */
+        .company-info-modal {
+            border-radius: 22px !important;
+            overflow: hidden;
+            border: none !important;
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.2) !important;
+        }
+
+        body.dark-mode .company-info-modal {
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        .company-info-hero {
+            position: relative;
+            padding: 2rem 1.5rem 1.25rem;
+            text-align: center;
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 38%, #0369a1 100%);
+            color: #fff;
+        }
+
+        .company-info-hero::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 28px;
+            background: linear-gradient(to bottom, transparent, var(--card-bg));
+            pointer-events: none;
+        }
+
+        .company-info-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .company-info-hero h4 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.35rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .company-info-hero p {
+            margin: 0.35rem 0 0;
+            opacity: 0.92;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .company-info-body {
+            padding: 1.25rem 1.25rem 1.5rem;
+            margin-top: -8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .company-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+        }
+
+        .company-info-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .company-info-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(14, 116, 144, 0.12);
+        }
+
+        .company-info-item .ci-icon {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #e0f2fe, #cffafe);
+            color: #0e7490;
+            font-size: 1.1rem;
+        }
+
+        body.dark-mode .company-info-item .ci-icon {
+            background: linear-gradient(145deg, #1e3a5f, #134e4a);
+            color: #5eead4;
+        }
+
+        .company-info-item .ci-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .company-info-item .ci-value {
+            font-weight: 600;
+            font-size: 0.98rem;
+            color: var(--text-color);
+            word-break: break-word;
+        }
+
+        .company-info-item .ci-value a {
+            color: #0e7490;
+            text-decoration: none;
+        }
+
+        .company-info-item .ci-value a:hover {
+            text-decoration: underline;
+        }
+
+        body.dark-mode .company-info-item .ci-value a {
+            color: #5eead4;
+        }
+
+        .company-info-wide {
+            grid-column: 1 / -1;
+        }
+
+        .product-card-desc {
+            margin: 0;
+            font-weight: 400;
+            min-height: 2.6em;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        /* Product allergens (EU-style disclosure strip) */
+        .product-allergens {
+            margin-top: 0.65rem;
+            padding: 0.7rem 0.8rem 0.75rem;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.45), rgba(255, 247, 237, 0.65));
+            border: 1px solid rgba(245, 158, 11, 0.32);
+            border-inline-start: 4px solid #f59e0b;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.08);
+        }
+
+        body.dark-mode .product-allergens {
+            background: linear-gradient(135deg, rgba(120, 53, 15, 0.35), rgba(30, 27, 19, 0.55));
+            border-color: rgba(251, 191, 36, 0.28);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-allergens-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .product-allergens-badge {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(245, 158, 11, 0.2);
+            color: #b45309;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        body.dark-mode .product-allergens-badge {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fcd34d;
+        }
+
+        .product-allergens-head-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            min-width: 0;
+        }
+
+        .product-allergens-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #b45309;
+            line-height: 1.2;
+        }
+
+        body.dark-mode .product-allergens-title {
+            color: #fcd34d;
+        }
+
+        .product-allergens-hint {
+            font-size: 0.68rem;
+            line-height: 1.35;
+            color: #92400e;
+            opacity: 0.92;
+        }
+
+        body.dark-mode .product-allergens-hint {
+            color: #fde68a;
+            opacity: 0.88;
+        }
+
+        .product-allergen-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .product-allergen-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.6rem 0.28rem 0.5rem;
+            font-size: 0.74rem;
+            font-weight: 600;
+            line-height: 1.2;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            color: #78350f;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        body.dark-mode .product-allergen-chip {
+            background: rgba(15, 23, 42, 0.75);
+            border-color: rgba(251, 191, 36, 0.22);
+            color: #fef3c7;
+        }
+
+        .product-allergen-chip-icon {
+            font-size: 0.72rem;
+            opacity: 0.9;
+            color: #d97706;
+        }
+
+        body.dark-mode .product-allergen-chip-icon {
+            color: #fbbf24;
+        }
+
+        .product-card-image-wrap {
+            position: relative;
+            display: block;
+        }
+
+        .product-card-image-wrap > img {
+            display: block;
+            width: 100%;
+        }
+
+        .product-allergen-float-btn {
+            position: absolute;
+            inset-block-start: 8px;
+            inset-inline-end: 8px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(254, 243, 199, 0.98), rgba(251, 191, 36, 0.98));
+            color: #92400e;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .product-allergen-float-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 22px rgba(245, 158, 11, 0.45);
+            color: #78350f;
+        }
+
+        .product-allergen-float-btn:focus-visible {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        .product-allergen-float-btn--sm {
+            width: 32px;
+            height: 32px;
+            inset-block-start: 6px;
+            inset-inline-end: 6px;
+            font-size: 0.85rem;
+        }
+
+        #modalProductAllergens .product-allergens {
+            margin-top: 0;
+        }
+
+        #modalProductAllergens .modal-body {
+            padding-top: 0.5rem;
+        }
     </style>
 
 </head>
 
-<body>
+<body class="menu-simple-body" dir="{{ $dir }}">
 
     @php
         $coverPath = $socialLinks['menu_cover_image'] ?? null;
@@ -1019,15 +1631,23 @@
         $menuCoverUrl = $coverPath
             ? asset('storage/' . $tenantPrefix . ltrim($coverPath, '/'))
             : asset('11.jpeg');
-        $menuSectionFlags = [
-            'todays_menu' => request()->query('todays_menu', '1') === '1',
-            'location' => request()->query('location', '1') === '1',
-            'smart_menu' => request()->query('smart_menu', '1') === '1',
-            'allergy_info' => request()->query('allergy_info', '1') === '1',
-            'photos' => request()->query('photos', '1') === '1',
-            'feedback' => request()->query('feedback', '1') === '1',
-            'info' => request()->query('info', '1') === '1',
-        ];
+        $mapEmbedUrl = null;
+        if (!empty($mapLat) && !empty($mapLng)) {
+            $d = 0.02;
+            $mapEmbedUrl =
+                'https://www.openstreetmap.org/export/embed.html?bbox=' .
+                ($mapLng - $d) .
+                ',' .
+                ($mapLat - $d) .
+                ',' .
+                ($mapLng + $d) .
+                ',' .
+                ($mapLat + $d) .
+                '&layer=mapnik&marker=' .
+                $mapLat .
+                ',' .
+                $mapLng;
+        }
     @endphp
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1070,254 +1690,188 @@
 
     <div class="welcome-screen" id="welcomeScreen" style="background-image: url('{{ $menuCoverUrl }}');">
         <div class="welcome-content">
-            <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt=" ">
+            <img src="{{ $companyLogoUrl }}" alt=" ">
             <h1>@lang('general::lang.welcome_to') {{ $company->name }}</h1>
             <p>@lang('general::lang.get_ready_for_experience')</p>
             <button class="start-btn" id="startBtn">@lang('general::lang.start_now')</button>
         </div>
     </div>
 
+    @php
+        $menuQuickItems = [
+            ['key' => 'todays_menu', 'icon' => 'fa-solid fa-utensils', 'title' => __('general::lang.todays_menu'), 'modal' => 'modalTodaysMenu'],
+            ['key' => 'location', 'icon' => 'fa-solid fa-location-dot', 'title' => __('general::lang.location'), 'modal' => 'modalLocation'],
+            ['key' => 'smart_menu', 'icon' => 'fa-solid fa-book-open', 'title' => __('general::lang.smart_menu'), 'modal' => 'modalSmartMenu'],
+            ['key' => 'allergy_info', 'icon' => 'fa-solid fa-drumstick-bite', 'title' => __('general::lang.allergy_info'), 'modal' => 'modalAllergy'],
+            ['key' => 'photos', 'icon' => 'fa-solid fa-image', 'title' => __('general::lang.photos'), 'modal' => 'modalPhotos'],
+            ['key' => 'feedback', 'icon' => 'fa-solid fa-comment-dots', 'title' => __('general::lang.feedback'), 'modal' => 'modalFeedback'],
+            ['key' => 'info', 'icon' => 'fa-solid fa-circle-info', 'title' => __('general::lang.info'), 'modal' => 'modalCompanyInfo'],
+        ];
+    @endphp
 
     <div class="content menu-content" id="menuContent">
-        <div class="profile-bx">
-            <div class="contact-background-main" style="background-image: url('{{ $menuCoverUrl }}');">
-                <div class="profile-content"></div>
-            </div>
-
-            {{-- @php --}}
-    // $cover = $socialLinks['menu_cover_image'] ?? null;
-// {{-- @endphp
-
-// @if($cover)
-//     <div class="menu-header-cover">
-//         <img src="{{ asset('storage/' . $cover) }}" alt="Cover" style="width: 100%; height: 200px; object-fit: cover;">
-//     </div>
-// @endif --}}
-            <div class="center-info-outer">
-                <div class="author">
-                    <img src="{{ config('app.domain') . '/storage/' . $company->logo }}" alt="{{ $company->name }}">
+        <div class="menu-hero-wrap">
+            <div class="menu-hero-cover" style="background-image: url('{{ $menuCoverUrl }}');"></div>
+            <div class="menu-hero-band">
+                <div class="menu-hero-logo-wrap">
+                    <div class="author">
+                        <img src="{{ $companyLogoUrl }}" alt="{{ $company->name }}">
+                    </div>
+                </div>
+                <div class="menu-hero-text px-2">
+                    <h1 class="restaurant-name">{{ $title }}</h1>
+                    <p class="restaurant-description">{{ $subTitle }}</p>
+                </div>
+                <div class="menu-hero-social-band">
+                    <div class="icon-list">
+                        @if (!empty($socialLinks['social_whatsapp']))
+                            <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="WhatsApp"><i class="fab fa-whatsapp" style="color: #25D366;"></i></a>
+                        @else
+                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-whatsapp" style="color: #25D366;"></i></div>
+                        @endif
+                        @if (!empty($socialLinks['social_instagram']))
+                            <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Instagram"><i class="fab fa-instagram" style="color: #E1306C;"></i></a>
+                        @else
+                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-instagram" style="color: #E1306C;"></i></div>
+                        @endif
+                        @if (!empty($socialLinks['social_snapchat']))
+                            <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Snapchat"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></a>
+                        @else
+                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></div>
+                        @endif
+                        @if (!empty($socialLinks['social_x']))
+                            <a href="{{ $socialLinks['social_x'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="X"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></a>
+                        @else
+                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></div>
+                        @endif
+                        @if (!empty($socialLinks['social_facebook']))
+                            <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></a>
+                        @else
+                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></div>
+                        @endif
+                    </div>
+                </div>
+                <div class="menu-quick-actions">
+                    @foreach ($menuQuickItems as $item)
+                        @if ($menuSectionFlags[$item['key']] ?? true)
+                            <button type="button" class="menu-action-btn text-center" data-bs-toggle="modal" data-bs-target="#{{ $item['modal'] }}">
+                                <div class="icon-circle mx-auto"><i class="{{ $item['icon'] }}"></i></div>
+                                <p class="icon-title mb-0">{{ $item['title'] }}</p>
+                            </button>
+                        @endif
+                    @endforeach
                 </div>
             </div>
         </div>
 
-        <div class="restaurant-info " style="margin-top: 60px">
-
-            <div class="">
-                <div class="row">
-                    <div class="col-sm-4 col-md-4">
-                        <h1 class="restaurant-name">{{ $title }}</h1>
-                        <p class="restaurant-description">{{ $subTitle }}</p>
-                        <div class="icon-list">
-                            {{-- WhatsApp --}}
-                            @if (!empty($socialLinks['social_whatsapp']))
-                                <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" class="icon-item"
-                                    style="width: 55px;">
-                                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
-                                </a>
-                            @else
-                                <div class="icon-item disabled-icon" style="width: 55px;">
-                                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
-                                </div>
-                            @endif
-
-                            {{-- Instagram --}}
-                            @if (!empty($socialLinks['social_instagram']))
-                                <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" class="icon-item"
-                                    style="width: 55px;">
-                                    <i class="fab fa-instagram" style="color: #E1306C;"></i>
-                                </a>
-                            @else
-                                <div class="icon-item disabled-icon" style="width: 55px;">
-                                    <i class="fab fa-instagram" style="color: #E1306C;"></i>
-                                </div>
-                            @endif
-
-                            {{-- Snapchat --}}
-                            @if (!empty($socialLinks['social_snapchat']))
-                                <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" class="icon-item"
-                                    style="width: 55px;">
-                                    <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
-                                </a>
-                            @else
-                                <div class="icon-item disabled-icon" style="width: 55px;">
-                                    <i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i>
-                                </div>
-                            @endif
-
-                            {{-- X (Twitter) --}}
-                            @if (!empty($socialLinks['social_x']))
-                                <a href="{{ $socialLinks['social_x'] }}" target="_blank" class="icon-item"
-                                    style="width: 55px;">
-                                    <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
-                                </a>
-                            @else
-                                <div class="icon-item disabled-icon" style="width: 55px;">
-                                    <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
-                                </div>
-                            @endif
-
-                            {{-- Facebook --}}
-                            @if (!empty($socialLinks['social_facebook']))
-                                <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" class="icon-item"
-                                    style="width: 55px;">
-                                    <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
-                                </a>
-                            @else
-                                <div class="icon-item disabled-icon" style="width: 55px;">
-                                    <i class="fab fa-facebook-f" style="color: #3b5998;"></i>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="col-sm-4 col-md-2">
-                    </div>
-                    <div class="col-sm-4 col-md-6">
-                        <div class="icon-menu-container d-flex flex-wrap justify-content-center">
-                            @php
-                                $items = [
-                                    [
-                                        'key' => 'todays_menu',
-                                        'icon' => 'fa-solid fa-utensils',
-                                        'title' => __('general::lang.todays_menu'),
-                                    ],
-                                    [
-                                        'key' => 'location',
-                                        'icon' => 'fa-solid fa-location-dot',
-                                        'title' => __('general::lang.location'),
-                                    ],
-                                    [
-                                        'key' => 'smart_menu',
-                                        'icon' => 'fa-solid fa-book-open',
-                                        'title' => __('general::lang.smart_menu'),
-                                    ],
-                                    [
-                                        'key' => 'allergy_info',
-                                        'icon' => 'fa-solid fa-drumstick-bite',
-                                        'title' => __('general::lang.allergy_info'),
-                                    ],
-                                    ['key' => 'photos', 'icon' => 'fa-solid fa-image', 'title' => __('general::lang.photos')],
-                                    ['key' => 'feedback', 'icon' => 'fa-solid fa-comment-dots', 'title' => __('general::lang.feedback')],
-                                    ['key' => 'info', 'icon' => 'fa-solid fa-circle-info', 'title' => __('general::lang.info')],
-                                ];
-                            @endphp
-
-                            @foreach ($items as $item)
-                                @if ($menuSectionFlags[$item['key']] ?? true)
-                                    <div class="icon-item text-center">
-                                        <div class="icon-circle">
-                                            <i class="{{ $item['icon'] }}"></i>
-                                        </div>
-                                        <p class="icon-title">{{ $item['title'] }}</p>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-
-        <div class="categories-container" style="margin-top: 40px;">
+        <div class="categories-container" style="margin-top: 28px;">
 
             <div class="container-fluid my-15" style="">
 
-                <div class="categories-bar sticky-top pt-1" style="z-index: 1050;">
-
-                    <div class="d-flex flex-nowrap overflow-auto custom-scroll py-1" style="gap: 12px;">
-                        @foreach ($categories as $category)
-                            @php
-                                $firstProduct = $category->products->first();
-                                $imageUrl =
-                                    $firstProduct && $firstProduct->image
-                                        ? asset($firstProduct->image)
-                                        : asset('menuplacholder.jpg');
-                            @endphp
-
-                            <a href="#category-{{ $category->id }}" class="category-card">
-                                <div class="image-wrapper">
-                                    <img src="{{ $imageUrl }}"
-                                        alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
-                                    <div class="overlay"></div>
-                                    <h5 class="category-title">
-                                        {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-                                    </h5>
-                                </div>
-                            </a>
-                        @endforeach
+                @if ($categories->isEmpty())
+                    <div class="menu-empty-state text-center" role="status">
+                        <div class="empty-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+                        <h5 class="fw-bold mb-2" style="color: var(--restaurant-name);">@lang('reservation::lang.menu_empty_title')</h5>
+                        <p class="text-muted small mb-0">@lang('reservation::lang.menu_empty_hint')</p>
                     </div>
+                @else
+                    <div class="categories-bar sticky-top pt-1" style="z-index: 1050;">
 
-                    <div class="d-flex justify-content-between align-items-center my-1 flex-wrap" style="gap: 10px;">
+                        <div class="d-flex flex-nowrap overflow-auto custom-scroll py-1 categories-strip" style="gap: 12px;">
+                            @foreach ($categories as $category)
+                                @php
+                                    $firstProduct = $category->products->first();
+                                    $imageUrl =
+                                        $firstProduct && $firstProduct->image
+                                            ? asset($firstProduct->image)
+                                            : asset('menuplacholder.jpg');
+                                @endphp
 
-                        <div class="flex-grow-1 position-relative" style="max-width: 85%;">
-                            <input type="text" id="searchInput" class="form-control search-input"
-                                placeholder="@lang('general::lang.search_placeholder')"
-                                style="
-                    border-radius: 10px;
-                    padding: 5px 45px 5px 15px;
-                    font-size: 15px;
-                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-                ">
-                            <i class="bi bi-search position-absolute"
-                                style="right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #4a6fa5;"></i>
-                        </div>
-
-                        <div class="btn-group shadow-sm rounded-pill my-1" role="group" style="overflow: hidden;">
-                            <button type="button" class="btn view-btn" data-view="grid-2"
-                                title="@lang('general::lang.grid_view_2')">
-                                <i class="bi bi-grid-3x3-gap-fill"></i>
-                            </button>
-                            <button type="button" class="btn view-btn" data-view="grid-4"
-                                title="@lang('general::lang.grid_view_4')">
-                                <i class="bi bi-grid-fill"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="no-results" id="noResults">
-                    <i class="fas fa-search"></i>
-                    <h4>@lang('general::lang.no_results')</h4>
-                    <p>@lang('general::lang.try_different_keywords')</p>
-                </div>
-
-                @foreach ($categories as $category)
-                    @if ($category->products->count() > 0)
-                        <div id="category-{{ $category->id }}" class="my-5 px-2 category-section">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-utensils"></i>
-                                {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-                            </h5>
-
-                            <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
-                                @foreach ($category->products as $product)
-                                    <div class="product-card card border-0 p-2">
-                                        <img src="{{ asset($product->image) }}" class="card-img-top rounded"
-                                            alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
-                                        <div class="card-body p-2">
-
-                                            <h6 class="card-title mb-1 fw-bold">
-                                                {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
-                                            </h6>
-                                            <p class="text-muted mb-2"
-                                                style="margin: 0;font-weight: 400;min-height: 25px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
-                                                {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
-                                                @if (!empty($product->calories) && is_numeric($product->calories))
-                                                    (@lang('general::lang.calories') {{ (int) $product->calories }})
-                                                @endif
-                                            </p>
-
-                                            <div class="fw-bold text-success" style="font-size: 16px;">
-                                                {{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')
-                                            </div>
-                                        </div>
+                                <a href="#category-{{ $category->id }}" class="category-card">
+                                    <div class="image-wrapper">
+                                        <img src="{{ $imageUrl }}"
+                                            alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
+                                        <div class="overlay"></div>
+                                        <h5 class="category-title">
+                                            {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
+                                        </h5>
                                     </div>
-                                @endforeach
+                                </a>
+                            @endforeach
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center my-1 flex-wrap" style="gap: 10px;">
+
+                            <div class="flex-grow-1 search-input-wrap" style="max-width: 85%;">
+                                <input type="text" id="searchInput" class="form-control search-input"
+                                    placeholder="@lang('general::lang.search_placeholder')"
+                                    style="
+                        border-radius: 10px;
+                        padding-top: 5px;
+                        padding-bottom: 5px;
+                        font-size: 15px;
+                        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+                    ">
+                                    <i class="bi bi-search search-input-icon" aria-hidden="true"></i>
+                            </div>
+
+                            <div class="btn-group shadow-sm rounded-pill my-1" role="group" style="overflow: hidden;">
+                                <button type="button" class="btn view-btn" data-view="grid-2"
+                                    title="@lang('general::lang.grid_view_2')">
+                                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                                </button>
+                                <button type="button" class="btn view-btn" data-view="grid-4"
+                                    title="@lang('general::lang.grid_view_4')">
+                                    <i class="bi bi-grid-fill"></i>
+                                </button>
                             </div>
                         </div>
-                    @endif
-                @endforeach
+                    </div>
+
+                    <div class="no-results" id="noResults">
+                        <i class="fas fa-search"></i>
+                        <h4>@lang('general::lang.no_results')</h4>
+                        <p>@lang('general::lang.try_different_keywords')</p>
+                    </div>
+
+                    @foreach ($categories as $category)
+                        @if ($category->products->count() > 0)
+                            <div id="category-{{ $category->id }}" class="my-5 px-2 category-section">
+                                <h5 class="fw-bold mb-3"><i class="fa-solid fa-utensils"></i>
+                                    {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
+                                </h5>
+
+                                <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
+                                    @foreach ($category->products as $product)
+                                        <div class="product-card card border-0 p-2">
+                                            <div class="product-card-image-wrap rounded-top overflow-hidden">
+                                                <img src="{{ asset($product->image) }}" class="w-100"
+                                                    alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
+                                                @include('reservation::order.partials.product-allergen-trigger', ['product' => $product, 'allergenTplSuffix' => 'main'])
+                                            </div>
+                                            <div class="card-body p-2">
+
+                                                <h6 class="card-title mb-1 fw-bold">
+                                                    {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
+                                                </h6>
+                                                <p class="text-muted mb-2 product-card-desc">
+                                                    {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
+                                                    @if (!empty($product->calories) && is_numeric($product->calories))
+                                                        (@lang('general::lang.calories') {{ (int) $product->calories }})
+                                                    @endif
+                                                </p>
+
+                                                <div class="fw-bold text-success" style="font-size: 16px;">
+                                                    {{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                @endif
             </div>
         </div>
 
@@ -1325,9 +1879,275 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- Modals --}}
+    <div class="modal fade" id="modalProductAllergens" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="modalProductAllergensTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalProductAllergensBody"></div>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="modal fade" id="modalTodaysMenu" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_todays_title')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    @if ($customMenu)
+                        <p class="text-muted small mb-3">
+                            {{ app()->currentLocale() == 'ar' ? $customMenu->name_ar : $customMenu->name_en }}
+                        </p>
+                    @endif
+                    @forelse ($categories as $category)
+                        @if ($category->products->count() > 0)
+                            <h6 class="fw-bold mt-3 mb-2">{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}</h6>
+                            <div class="row g-3">
+                                @foreach ($category->products as $product)
+                                    <div class="col-6 col-md-4 col-lg-3">
+                                        <div class="card h-100 border-0 shadow-sm" style="border-radius: 14px; overflow: hidden;">
+                                            <div class="product-card-image-wrap">
+                                                <img src="{{ asset($product->image) }}" class="w-100" style="height: 120px; object-fit: cover;" alt="">
+                                                @include('reservation::order.partials.product-allergen-trigger', ['product' => $product, 'allergenTplSuffix' => 'todays', 'size' => 'sm'])
+                                            </div>
+                                            <div class="p-2">
+                                                <div class="fw-semibold small">{{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}</div>
+                                                <div class="text-success fw-bold small">{{ number_format($product->price_with_tax, 2) }} @lang('general::lang.currency')</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    @empty
+                        <p class="text-muted text-center py-5">@lang('general::lang.no_results')</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalLocation" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_location_title')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">@lang('reservation::lang.map_pick_hint')</p>
+                    @if ($mapEmbedUrl)
+                        <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm mb-3">
+                            <iframe src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                        <a class="btn btn-primary w-100" target="_blank" rel="noopener"
+                            href="https://www.google.com/maps?q={{ $mapLat }},{{ $mapLng }}">@lang('reservation::lang.modal_open_maps')</a>
+                    @else
+                        <p class="text-muted">@lang('general::lang.no_results')</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalSmartMenu" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_smart_title')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">@lang('reservation::lang.modal_smart_body')</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAllergy" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">@lang('general::lang.allergy_info')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($allergyDocumentUrl)
+                        @php $ext = strtolower(pathinfo($menuToken->allergy_document_path ?? '', PATHINFO_EXTENSION)); @endphp
+                        @if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp']))
+                            <img src="{{ $allergyDocumentUrl }}" class="img-fluid rounded shadow-sm" alt="">
+                        @else
+                            <iframe src="{{ $allergyDocumentUrl }}" class="w-100 rounded shadow-sm" style="min-height: 420px;"></iframe>
+                        @endif
+                        <a href="{{ $allergyDocumentUrl }}" target="_blank" class="btn btn-outline-primary w-100 mt-3">@lang('reservation::lang.allergy_download')</a>
+                    @else
+                        <p class="text-muted mb-0">@lang('general::lang.no_results')</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPhotos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_photos_title')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@lang('reservation::lang.modal_photos_body')</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalFeedback" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_feedback_title')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2 text-center" id="feedbackStars">
+                        @for ($s = 1; $s <= 5; $s++)
+                            <button type="button" class="btn btn-link p-1 feedback-star fs-2 text-warning" data-star="{{ $s }}" aria-label="star {{ $s }}">☆</button>
+                        @endfor
+                    </div>
+                    <input type="hidden" id="feedbackStarsValue" value="0">
+                    <div id="feedbackHint" class="feedback-hint text-center mb-2" role="alert"></div>
+                    <textarea id="feedbackComment" class="form-control" rows="3" placeholder="@lang('reservation::lang.modal_feedback_comment')"></textarea>
+                    <button type="button" class="btn btn-primary w-100 mt-3" id="feedbackSubmitBtn">@lang('reservation::lang.modal_feedback_send')</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalFeedbackThanks" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content menu-thanks-modal border-0">
+                <div class="modal-body text-center py-4 px-4">
+                    <div class="menu-thanks-icon mb-2">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="menu-thanks-sparkle mb-1" aria-hidden="true">✦ ✦ ✦</div>
+                    <h4 class="fw-bold mb-2" style="color: var(--restaurant-name);">@lang('reservation::lang.modal_feedback_thanks_title')</h4>
+                    <p class="text-muted mb-1" style="font-size: 1.05rem;">@lang('reservation::lang.modal_feedback_thanks')</p>
+                    <p class="small text-muted mb-4">@lang('reservation::lang.modal_feedback_thanks_sub')</p>
+                    <button type="button" class="btn menu-thanks-btn rounded-pill px-5 py-2" data-bs-dismiss="modal">@lang('reservation::lang.modal_feedback_ok')</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $companyWebsiteRaw = trim((string) ($company->website ?? ''));
+        $companyWebsiteHref =
+            $companyWebsiteRaw !== ''
+                ? (preg_match('#^https?://#i', $companyWebsiteRaw) ? $companyWebsiteRaw : 'https://' . ltrim($companyWebsiteRaw, '/'))
+                : '';
+        $companyPhoneRaw = trim((string) ($company->phone ?? ''));
+        $companyPhoneHref = $companyPhoneRaw !== '' ? preg_replace('/\s+/', '', 'tel:' . $companyPhoneRaw) : '';
+    @endphp
+
+    <div class="modal fade" id="modalCompanyInfo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content company-info-modal">
+                <div class="company-info-hero">
+                    <img src="{{ $companyLogoUrl }}" alt="" class="company-info-logo">
+                    <h4>{{ $company->name ?? '—' }}</h4>
+                    <p>@lang('reservation::lang.modal_info_subtitle')</p>
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body company-info-body pt-0">
+                    <div class="company-info-grid">
+                        <div class="company-info-item">
+                            <div class="ci-icon"><i class="fa-solid fa-phone"></i></div>
+                            <div>
+                                <div class="ci-label">@lang('establishment::fields.phone')</div>
+                                <div class="ci-value">
+                                    @if ($companyPhoneHref !== '')
+                                        <a href="{{ $companyPhoneHref }}">{{ $company->phone }}</a>
+                                    @else
+                                        —
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="company-info-item">
+                            <div class="ci-icon"><i class="fa-solid fa-globe"></i></div>
+                            <div>
+                                <div class="ci-label">@lang('establishment::fields.website')</div>
+                                <div class="ci-value">
+                                    @if ($companyWebsiteHref !== '')
+                                        <a href="{{ $companyWebsiteHref }}" target="_blank" rel="noopener noreferrer">{{ $companyWebsiteRaw }}</a>
+                                    @else
+                                        —
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="company-info-item">
+                            <div class="ci-icon"><i class="fa-solid fa-file-invoice"></i></div>
+                            <div>
+                                <div class="ci-label">@lang('establishment::fields.tax_name')</div>
+                                <div class="ci-value">{{ $company->tax_name ?? '—' }}</div>
+                            </div>
+                        </div>
+                        <div class="company-info-item">
+                            <div class="ci-icon"><i class="fa-solid fa-hashtag"></i></div>
+                            <div>
+                                <div class="ci-label">@lang('establishment::fields.tax_number')</div>
+                                <div class="ci-value">{{ $company->tax_number ?? '—' }}</div>
+                            </div>
+                        </div>
+                        <div class="company-info-item company-info-wide">
+                            <div class="ci-icon"><i class="fa-solid fa-location-dot"></i></div>
+                            <div>
+                                <div class="ci-label">@lang('establishment::fields.national_address')</div>
+                                <div class="ci-value">{{ $company->national_address ?? '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const allergenModalEl = document.getElementById('modalProductAllergens');
+            if (!allergenModalEl) return;
+            allergenModalEl.addEventListener('show.bs.modal', function(e) {
+                const btn = e.relatedTarget;
+                if (!btn || !btn.getAttribute('data-allergen-template')) return;
+                const tplId = btn.getAttribute('data-allergen-template');
+                const tpl = document.getElementById(tplId);
+                const body = document.getElementById('modalProductAllergensBody');
+                const title = document.getElementById('modalProductAllergensTitle');
+                if (title) {
+                    title.textContent = btn.getAttribute('data-product-name') || '';
+                }
+                if (!body) return;
+                body.replaceChildren();
+                if (tpl && tpl.content) {
+                    body.appendChild(document.importNode(tpl.content, true));
+                }
+            });
+            allergenModalEl.addEventListener('hidden.bs.modal', function() {
+                const body = document.getElementById('modalProductAllergensBody');
+                if (body) body.replaceChildren();
+            });
+        })();
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
         integrity="sha512-fKcyo0o+5m6fypWn+0n0n0x5f+7l7z+J0Uitc5Y+JyzE5pytXGlA5nyp5jQ17p9pQ1vKaA8kqk0/1LD4GfpJYQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1366,85 +2186,165 @@
         });
 
 
-        function updateLanguageButton(lang) {
-            const languageText = document.getElementById('languageText');
-            const languageButton = document.getElementById('languageButton');
-            const welcomeScreen = document.getElementById('welcomeScreen');
-            if (lang === 'ar') {
-                languageText.textContent = 'English';
-                languageButton.setAttribute('data-id', 'en');
-            } else {
-                languageText.textContent = 'العربية';
-                languageButton.setAttribute('data-id', 'ar');
-            }
+        const languageButton = document.getElementById('languageButton');
+        if (languageButton) {
+            languageButton.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                const currentLang = localStorage.getItem('language') || 'ar';
+                const newLang = currentLang === 'ar' ? 'en' : 'ar';
+                localStorage.setItem('language', newLang);
+                setTimeout(() => window.location.reload(), 200);
+            });
         }
 
-        const languageButton = document.getElementById('languageButton');
-        languageButton.addEventListener('click', function() {
-            this.style.transform = 'scale(0.95)';
-
-            const currentLang = localStorage.getItem('language') || 'ar';
-            const newLang = currentLang === 'ar' ? 'en' : 'ar';
-
-            localStorage.setItem('language', newLang);
-
-            setTimeout(() => {
-                window.location.reload();
-            }, 200);
-        });
-
         const menuToggle = document.querySelector('.menu-toggle');
-        menuToggle.addEventListener('click', function() {
-            alert('@lang('general::lang.side_menu_opening')');
-        });
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function() {
+                alert('@lang('general::lang.side_menu_opening')');
+            });
+        }
+    </script>
+
+    <script>
+        (function() {
+            const feedbackUrl = @json(route('reservation.menuSimple.feedback', ['token' => $feedbackToken]));
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const msgPickStars = @json(__('reservation::lang.modal_feedback_pick_stars'));
+            const msgErrGeneric = @json(__('reservation::lang.modal_feedback_error_generic'));
+            const elFeedback = document.getElementById('modalFeedback');
+            const elThanks = document.getElementById('modalFeedbackThanks');
+            const hintEl = document.getElementById('feedbackHint');
+
+            function setFeedbackHint(text, kind) {
+                if (!hintEl) return;
+                hintEl.textContent = text || '';
+                hintEl.classList.remove('is-invalid', 'is-ok');
+                if (kind === 'error') hintEl.classList.add('is-invalid');
+                if (kind === 'ok') hintEl.classList.add('is-ok');
+            }
+
+            if (elFeedback) {
+                elFeedback.addEventListener('shown.bs.modal', () => setFeedbackHint('', null));
+            }
+
+            let selectedStar = 0;
+            document.querySelectorAll('.feedback-star').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    selectedStar = parseInt(btn.getAttribute('data-star'), 10);
+                    document.getElementById('feedbackStarsValue').value = String(selectedStar);
+                    document.querySelectorAll('.feedback-star').forEach((b, i) => {
+                        b.textContent = i < selectedStar ? '★' : '☆';
+                    });
+                    setFeedbackHint('', null);
+                });
+            });
+
+            const submitBtn = document.getElementById('feedbackSubmitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', async () => {
+                    const stars = parseInt(document.getElementById('feedbackStarsValue').value, 10);
+                    if (!stars) {
+                        setFeedbackHint(msgPickStars, 'error');
+                        return;
+                    }
+                    setFeedbackHint('', null);
+                    const comment = document.getElementById('feedbackComment').value;
+                    submitBtn.disabled = true;
+                    try {
+                        const res = await fetch(feedbackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrf,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ stars, comment }),
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            setFeedbackHint(data.message || msgErrGeneric, 'error');
+                            return;
+                        }
+                        const fbModal = bootstrap.Modal.getInstance(elFeedback);
+                        const resetFeedbackForm = () => {
+                            document.getElementById('feedbackComment').value = '';
+                            document.getElementById('feedbackStarsValue').value = '0';
+                            selectedStar = 0;
+                            document.querySelectorAll('.feedback-star').forEach((b) => {
+                                b.textContent = '☆';
+                            });
+                            setFeedbackHint('', null);
+                        };
+                        if (fbModal) {
+                            elFeedback.addEventListener(
+                                'hidden.bs.modal',
+                                function onFeedbackClosed() {
+                                    elFeedback.removeEventListener('hidden.bs.modal', onFeedbackClosed);
+                                    resetFeedbackForm();
+                                    bootstrap.Modal.getOrCreateInstance(elThanks).show();
+                                },
+                                { once: true }
+                            );
+                            fbModal.hide();
+                        } else {
+                            resetFeedbackForm();
+                            bootstrap.Modal.getOrCreateInstance(elThanks).show();
+                        }
+                    } catch (e) {
+                        setFeedbackHint(msgErrGeneric, 'error');
+                    } finally {
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        })();
     </script>
 
 
     <script>
         $(document).ready(function() {
-            $('#searchInput').on('keyup', function() {
-                let value = $(this).val().toLowerCase().trim();
-                let hasVisibleResults = false;
-                $('.product-card').addClass('hidden');
+            const $search = $('#searchInput');
+            if ($search.length) {
+                $search.on('keyup', function() {
+                    let value = $(this).val().toLowerCase().trim();
+                    let hasVisibleResults = false;
+                    $('.product-card').addClass('hidden');
 
-                if (value === '') {
-                    $('.product-card').removeClass('hidden');
-                    $('.category-section').removeClass('hidden');
-                    $('#noResults').hide();
-                    return;
-                }
-
-                $('.product-card').each(function() {
-                    const productTitle = $(this).find('.card-title').text().toLowerCase();
-                    if (productTitle.includes(value)) {
-                        $(this).removeClass('hidden');
-                        hasVisibleResults = true;
+                    if (value === '') {
+                        $('.product-card').removeClass('hidden');
+                        $('.category-section').removeClass('hidden');
+                        $('#noResults').hide();
+                        return;
                     }
-                });
 
-                $('.category-section').each(function() {
-                    const categoryId = $(this).attr('id').replace('category-', '');
-                    const hasVisibleProducts = $(this).find('.product-card:not(.hidden)').length >
-                        0;
+                    $('.product-card').each(function() {
+                        const productTitle = $(this).find('.card-title').text().toLowerCase();
+                        if (productTitle.includes(value)) {
+                            $(this).removeClass('hidden');
+                            hasVisibleResults = true;
+                        }
+                    });
 
-                    if (hasVisibleProducts) {
-                        $(this).removeClass('hidden');
+                    $('.category-section').each(function() {
+                        const hasVisibleProducts = $(this).find('.product-card:not(.hidden)').length > 0;
+                        if (hasVisibleProducts) {
+                            $(this).removeClass('hidden');
+                        } else {
+                            $(this).addClass('hidden');
+                        }
+                    });
+
+                    if (hasVisibleResults) {
+                        $('#noResults').hide();
                     } else {
-                        $(this).addClass('hidden');
+                        $('#noResults').show();
                     }
                 });
-
-                if (hasVisibleResults) {
-                    $('#noResults').hide();
-                } else {
-                    $('#noResults').show();
-                }
-            });
+            }
 
             $('.btn-group button').on('click', function() {
                 let view = $(this).data('view');
                 $('.products-wrapper').removeClass('grid-1 grid-2 grid-4').addClass(view);
-
                 $('.btn-group button').removeClass('active');
                 $(this).addClass('active');
             });

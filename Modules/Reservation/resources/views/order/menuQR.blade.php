@@ -34,6 +34,7 @@
    						
       <div id="root" type="menuQR" 
       list-url="{{json_encode(route('order.products'))}}"
+      custom-menus-url="{{ json_encode(route('reservation.menuQr.customMenus')) }}"
       logo-url ='/assets/media/logos/1-01.png'
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>

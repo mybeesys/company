@@ -106,6 +106,7 @@ return [
     'accounts-routing' => 'توجيه الحسابات',
 
     'menu_qr' => 'القائمة QR',
+    'menu_feedback' => 'تقييمات المنيو',
     'purchase' => 'سندات الموردين',
     'sell' => 'سندات العملاء',
     'receipt_vouchers' => 'سندات القبض',
