@@ -11,13 +11,8 @@ if (!function_exists('get_company_id')) {
 
 if (!function_exists('tenant_public_storage_url_for_db_path')) {
     /**
-     * Build a root-relative URL for a file on the public disk (/storage/...).
-     *
-     * Always returns a path starting with /storage/ so the browser uses the **current** host
-     * (tenant subdomain, etc.) and never embeds APP_URL from env / filesystems config.
-     *
-     * Uses Storage::disk('public')->url() only to resolve the correct path segment under tenancy;
-     * any scheme+host from that call is stripped.
+     * URL for a tenant public-disk file (cover, allergy PDF, etc.) using the **current** request host
+     * so assets load from the same subdomain as the menu (e.g. test1.my-bee.info).
      */
     function tenant_public_storage_url_for_db_path(string $path): string
     {
@@ -35,23 +30,54 @@ if (!function_exists('tenant_public_storage_url_for_db_path')) {
         }
         $path = ltrim($path, '/');
 
+        $host = '';
+        if (function_exists('request') && request()) {
+            $host = rtrim((string) request()->getSchemeAndHttpHost(), '/');
+        }
+
         try {
             $generated = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
         } catch (\Throwable $e) {
             $generated = '/storage/' . $path;
         }
 
-        if (preg_match('#^https?://#i', (string) $generated)) {
-            $urlPath = parse_url((string) $generated, PHP_URL_PATH);
-        } else {
-            $urlPath = '/' . ltrim((string) $generated, '/');
-        }
-
-        if (! is_string($urlPath) || $urlPath === '' || $urlPath === '/') {
+        $urlPath = parse_url((string) $generated, PHP_URL_PATH);
+        if (! is_string($urlPath) || $urlPath === '') {
             $urlPath = '/storage/' . $path;
         }
 
-        return '/' . ltrim($urlPath, '/');
+        if ($host === '') {
+            return asset($urlPath);
+        }
+
+        return $host . $urlPath;
+    }
+}
+
+if (!function_exists('central_public_storage_url_for_path')) {
+    /**
+     * Absolute URL on the central application (APP_URL) for shared storage paths such as
+     * company logos (companies/logos/...) served from the main domain while the menu opens on a tenant host.
+     */
+    function central_public_storage_url_for_path(string $path): string
+    {
+        $path = str_replace('\\', '/', trim($path));
+        if ($path === '') {
+            return '';
+        }
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+        if (str_starts_with($path, '/storage/')) {
+            $path = ltrim(substr($path, 9), '/');
+        } elseif (str_starts_with($path, 'storage/')) {
+            $path = ltrim(substr($path, 8), '/');
+        }
+        $path = ltrim($path, '/');
+
+        $base = rtrim((string) config('app.url'), '/');
+
+        return $base . '/storage/' . $path;
     }
 }
 
