@@ -27,7 +27,6 @@ class ReservationServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
-        $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'reservation');
     }
 
     /**
@@ -63,14 +62,27 @@ class ReservationServiceProvider extends ServiceProvider
      */
     public function registerTranslations(): void
     {
-        $langPath = resource_path('lang/modules/'.$this->nameLower);
+        $published = resource_path('lang/modules/'.$this->nameLower);
 
-        if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, $this->nameLower);
-            $this->loadJsonTranslationsFrom($langPath);
-        } else {
-            $this->loadTranslationsFrom(module_path($this->name, 'lang'), $this->nameLower);
-            $this->loadJsonTranslationsFrom(module_path($this->name, 'lang'));
+        if (is_dir($published)) {
+            $this->loadTranslationsFrom($published, $this->nameLower);
+            $this->loadJsonTranslationsFrom($published);
+
+            return;
+        }
+
+        $moduleResourcesLang = module_path($this->name, 'resources/lang');
+        if (is_dir($moduleResourcesLang)) {
+            $this->loadTranslationsFrom($moduleResourcesLang, $this->nameLower);
+            $this->loadJsonTranslationsFrom($moduleResourcesLang);
+
+            return;
+        }
+
+        $moduleLegacyLang = module_path($this->name, 'lang');
+        if (is_dir($moduleLegacyLang)) {
+            $this->loadTranslationsFrom($moduleLegacyLang, $this->nameLower);
+            $this->loadJsonTranslationsFrom($moduleLegacyLang);
         }
     }
 
