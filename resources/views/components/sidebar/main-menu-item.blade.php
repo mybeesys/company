@@ -1,4 +1,12 @@
 @props(['url', 'name', 'icon'])
+@php
+    $menuLabelKey = 'menuItemLang.' . $name;
+    $menuLabelFallbackKey = 'lang.' . $name;
+    $menuLabel = __($menuLabelKey);
+    if ($menuLabel === $menuLabelKey && \Illuminate\Support\Facades\Lang::has($menuLabelFallbackKey)) {
+        $menuLabel = __($menuLabelFallbackKey);
+    }
+@endphp
 
 <span class="menu-item">
     <a @class([
@@ -15,6 +23,6 @@
                 <i style="color: #99a1b7" class='{{ $icon }}'></i>
             </span>
         @endif
-        <span class="menu-title fs-6">{{ __('menuItemLang.' . $name) }}</span>
+        <span class="menu-title fs-6">{{ $menuLabel }}</span>
     </a>
 </span>
