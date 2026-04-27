@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getRowName } from "../lang/Utils";
 
+const SAR_SIGN = "\u20C1";
+
 const MenuSimple = ({ translations, dir }) => {
     const rootElement = document.getElementById("root");
     const info = JSON.parse(rootElement.getAttribute("info"));
@@ -15,6 +17,15 @@ const MenuSimple = ({ translations, dir }) => {
     const selectedProductsParam = urlParams.get("products");
 
     useEffect(() => {
+        const id = "saudi-riyal-font-menu-simple";
+        if (!document.getElementById(id)) {
+            const link = document.createElement("link");
+            link.id = id;
+            link.rel = "stylesheet";
+            link.href =
+                "https://cdn.jsdelivr.net/gh/emran-alhaddad/Saudi-Riyal-Font@v1.1.1/index.css";
+            document.head.appendChild(link);
+        }
         refreshMenu();
     }, []);
 
@@ -291,14 +302,33 @@ const ProductCard = ({ product, dir, translations, blankurl }) => {
                                 product.preparation_time ?? ""
                             } ${translations.minutes}`}
                         </p>
-                        <p class="text-muted mb-1">
-                            {`${translations.calories}: ${
-                                product.calories ?? ""
-                            }`}
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <h5 class="text-primary mb-0">
-                                {`${product.price_with_tax} $`}
+                        <div class="d-flex justify-content-between align-items-baseline gap-2 mt-3 flex-wrap">
+                            {product.calories != null &&
+                            product.calories !== "" &&
+                            !Number.isNaN(Number(product.calories)) ? (
+                                <span class="text-muted small fw-semibold">
+                                    CAL {parseInt(product.calories, 10)}
+                                </span>
+                            ) : (
+                                <span aria-hidden="true" />
+                            )}
+                            <h5 class="text-primary mb-0 ms-auto">
+                                {Number(product.price_with_tax).toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    }
+                                )}{" "}
+                                <span
+                                    class="sar-currency"
+                                    style={{
+                                        fontFamily:
+                                            "'saudi_riyal', sans-serif",
+                                    }}
+                                >
+                                    {SAR_SIGN}
+                                </span>
                             </h5>
                         </div>
                     </div>

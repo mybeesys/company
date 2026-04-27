@@ -59,7 +59,7 @@ return [
     'previous_subscriptions' => 'Previous subscription',
     'change_the_plan' => 'Change the plan',
     'subscription_price' => 'Subscription price',
-    'sar' => 'SAR',
+    'sar' => "\u{20C1}",
     'summary' => 'Summary',
     'payment_details' => 'Payment details',
     'subscription_id' => 'Subscription id',

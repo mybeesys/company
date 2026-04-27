@@ -55,7 +55,7 @@ return [
     'grid_view_2' => 'Grid View (2)',
     'grid_view_4' => 'Grid View (4)',
     'calories' => 'calories',
-    'currency' => 'SAR',
+    'currency' => "\u{20C1}",
     'side_menu_opening' => 'Side menu will open',
 
     'no_results' => 'No results found',

@@ -241,16 +241,15 @@ class OrderController extends Controller
         $socialKeys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x', 'menu_cover_image'];
         $socialLinks = Setting::whereIn('key', $socialKeys)->pluck('value', 'key')->toArray();
 
-        $tenantPrefix = tenancy()->tenant ? ('tenant' . tenancy()->tenant->id . '/') : '';
-        $companyLogoUrl = ($company && !empty($company->logo))
-            ? asset('storage/' . $tenantPrefix . ltrim($company->logo, '/'))
+        $companyLogoUrl = ($company && ! empty($company->logo))
+            ? tenant_public_storage_url_for_db_path((string) $company->logo)
             : asset('assets/media/avatars/blank.png');
 
         $mapLat = $menuToken->map_lat;
         $mapLng = $menuToken->map_lng;
         $mapLabel = $menuToken->map_label;
         $allergyDocumentUrl = $menuToken->allergy_document_path
-            ? asset('storage/' . $tenantPrefix . ltrim($menuToken->allergy_document_path, '/'))
+            ? tenant_public_storage_url_for_db_path((string) $menuToken->allergy_document_path)
             : null;
 
         $customMenu = $menuToken->custom_menu_id
