@@ -20,12 +20,15 @@ class EnsureHasSubscription
             'login',
             'logout',
             'register',
+            // Public menu / QR: no subscription DB round-trip on every guest page load
+            'reservation.menu',
+            'reservation.menuSimple',
+            'reservation.menuSimple.feedback',
+            'order.products',
         ];
 
-        foreach ($excludedRoutes as $route) {
-            if ($request->routeIs($route)) {
-                return $next($request);
-            }
+        if ($request->routeIs(...$excludedRoutes)) {
+            return $next($request);
         }
 
         $company = Company::find(get_company_id());
