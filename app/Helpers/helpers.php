@@ -11,12 +11,13 @@ if (!function_exists('get_company_id')) {
 
 if (!function_exists('tenant_public_storage_url_for_db_path')) {
     /**
-     * Build URL for a file on the public disk under /storage using the current request host,
-     * so images work when APP_URL differs from the tenant domain.
+     * Build a root-relative URL for a file on the public disk (/storage/...).
      *
-     * Uses Storage::disk('public')->url() so Stancl tenancy (suffix on storage_path / disk root)
-     * matches the real file layout. Avoids manually prepending tenant{id}/ which often breaks
-     * paths like companies/logos/… when the disk is already tenant-scoped.
+     * Always returns a path starting with /storage/ so the browser uses the **current** host
+     * (tenant subdomain, etc.) and never embeds APP_URL from env / filesystems config.
+     *
+     * Uses Storage::disk('public')->url() only to resolve the correct path segment under tenancy;
+     * any scheme+host from that call is stripped.
      */
     function tenant_public_storage_url_for_db_path(string $path): string
     {
@@ -34,27 +35,23 @@ if (!function_exists('tenant_public_storage_url_for_db_path')) {
         }
         $path = ltrim($path, '/');
 
-        $host = '';
-        if (function_exists('request') && request()) {
-            $host = rtrim((string) request()->getSchemeAndHttpHost(), '/');
-        }
-
         try {
             $generated = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
         } catch (\Throwable $e) {
             $generated = '/storage/' . $path;
         }
 
-        $urlPath = parse_url($generated, PHP_URL_PATH);
-        if (! is_string($urlPath) || $urlPath === '') {
+        if (preg_match('#^https?://#i', (string) $generated)) {
+            $urlPath = parse_url((string) $generated, PHP_URL_PATH);
+        } else {
+            $urlPath = '/' . ltrim((string) $generated, '/');
+        }
+
+        if (! is_string($urlPath) || $urlPath === '' || $urlPath === '/') {
             $urlPath = '/storage/' . $path;
         }
 
-        if ($host === '') {
-            return asset($urlPath);
-        }
-
-        return $host . $urlPath;
+        return '/' . ltrim($urlPath, '/');
     }
 }
 
