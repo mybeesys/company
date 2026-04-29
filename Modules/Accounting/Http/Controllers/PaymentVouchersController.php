@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 
@@ -48,43 +49,50 @@ class PaymentVouchersController extends Controller
      */
     public function store(Request $request)
     {
-        // return $request;
-        // try {
+        $validated = $request->validate([
+            'account_id' => ['required', 'integer', 'min:1'],
+            'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'pament_on' => ['required', 'date'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
             DB::beginTransaction();
-            $account_id = $request->input('account_id');
-            $note = $request->input('additionalNotes');
-            if (!empty($request->input('paid_amount'))) {
-                $credit_data = [
-                    'amount' => $request->input('paid_amount'),
-                    'accounting_account_id' => $account_id,
-                    'type' => 'credit',
-                    'sub_type' => 'payment_voucher',
-                    'operation_date' => $request->input('pament_on'),
-                    'created_by' => Auth::user()->id,
-                    'note' => $note,
-                ];
-                $credit = AccountingAccountsTransaction::query()->create($credit_data);
 
-                $from_account = $request->input('from_account');
-                if (!empty($from_account)) {
-                    $debit_data = $credit_data;
-                    $debit_data['type'] = 'debit';
-                    $debit_data['accounting_account_id'] = $from_account;
-                    $debit_data['transaction_id'] = $credit->id;
+            $note = $validated['additionalNotes'] ?? null;
+            $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
 
-                    $debit = AccountingAccountsTransaction::query()->create($debit_data);
+            $credit_data = [
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['account_id'],
+                'type' => 'credit',
+                'sub_type' => 'payment_voucher',
+                'operation_date' => $validated['pament_on'],
+                'created_by' => Auth::user()->id,
+                'note' => $note,
+            ];
 
-                    $credit->transaction_id = $debit->id;
+            $credit = AccountingAccountsTransaction::query()->create($credit_data);
 
-                    $credit->save();
-                }
-            }
+            $debit_data = $credit_data;
+            $debit_data['type'] = 'debit';
+            $debit_data['accounting_account_id'] = (int) $validated['from_account'];
+            $debit_data['transaction_id'] = $credit->id;
+
+            $debit = AccountingAccountsTransaction::query()->create($debit_data);
+
+            $credit->transaction_id = $debit->id;
+            $credit->save();
+
             DB::commit();
+
             return redirect()->route('payment-vouchers')->with('success', __('messages.add_successfully'));
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->route('payment-vouchers')->with('error', __('messages.something_went_wrong'));
-        // }
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->route('payment-vouchers')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     /**

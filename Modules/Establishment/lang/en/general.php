@@ -17,6 +17,7 @@ return [
     'deleted_records' => 'Deleted records',
     'company_settings' => 'Company settings',
     'company_details' => 'Company details',
+    'company_details_subtitle' => 'Update company legal and contact information',
     'establishments_table' => 'Establishments table',
     'establishments_tree' => 'Establishment tree',
     'devices' => 'Devices',

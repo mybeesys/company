@@ -37,6 +37,8 @@ return [
     'transaction_ref_no' => 'Invoice ٌRef No',
     'select_supplier' => 'Select supplier',
 
+    'add_payment' => 'Payment voucher',
+
 
 
 ];

@@ -65,7 +65,6 @@
                                 value="{{ request()->end_date ?? now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-md-3">
-
                             <div class="form-group">
                                 <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}:</label>
                                 <select name="choose_cost_center_select[]" id="choose_cost_center_select"
@@ -85,12 +84,65 @@
                             </div>
                         </div>
 
-                        <div class="col-md-3 d-flex align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('accounting::lang.movement_type') }}</label>
+                            <select name="entry_type" id="entry_type_filter" class="form-select select-2">
+                                <option value="">@lang('messages.select')</option>
+                                <option value="debit" @selected(($entry_type ?? '') === 'debit')>@lang('accounting::lang.debit')</option>
+                                <option value="credit" @selected(($entry_type ?? '') === 'credit')>@lang('accounting::lang.credit')</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('accounting::lang.balance') }}</label>
+                            <select name="balance_side" id="balance_side_filter" class="form-select select-2">
+                                <option value="" @selected(empty($balance_side))>الكل</option>
+                                <option value="debit" @selected(($balance_side ?? '') === 'debit')>حركات مدينة فقط</option>
+                                <option value="credit" @selected(($balance_side ?? '') === 'credit')>حركات دائنة فقط</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('accounting::lang.transaction_type') }}</label>
+                            <select name="sub_type" id="sub_type_filter" class="form-select select-2">
+                                <option value="">@lang('messages.select')</option>
+                                @foreach ($available_sub_types as $availableSubType)
+                                    <option value="{{ $availableSubType }}" @selected(($sub_type ?? '') === $availableSubType)>
+                                        {{ Lang::has('accounting::lang.' . $availableSubType) ? __('accounting::lang.' . $availableSubType) : $availableSubType }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('accounting::lang.transaction_number') }}</label>
+                            <input type="text" name="ref_no" id="ref_no_filter" class="form-control"
+                                value="{{ $ref_no ?? '' }}" placeholder="{{ __('accounting::lang.transaction_number') }}">
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
+                            <button type="button" id="statementExportPdf" class="btn btn-light-primary">PDF</button>
+                            <button type="button" id="statementExportExcel" class="btn btn-light-success">Excel</button>
                         </div>
 
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="alert alert-light-primary mb-0">
+                    <strong>@lang('accounting::lang.debit'):</strong> @format_currency($period_debit ?? 0)
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-light-success mb-0">
+                    <strong>@lang('accounting::lang.credit'):</strong> @format_currency($period_credit ?? 0)
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="alert {{ ($net_movement ?? 0) >= 0 ? 'alert-light-info' : 'alert-light-warning' }} mb-0">
+                    <strong>@lang('accounting::lang.difference'):</strong> @format_currency($net_movement ?? 0)
+                </div>
             </div>
         </div>
 
@@ -114,7 +166,7 @@
                         </thead>
                         <tfoot>
                             <tr class="text-start text-gray-600 fw-bold  text-uppercase gs-0 w-100">
-                                <td colspan="6">@lang('sales::lang.total_before_vat')</td>
+                                <td colspan="6">@lang('report::general.filter')</td>
                                 <td class="footer_total_debit min-w-75px text-start align-middle"></td>
                                 <td class="footer_total_credit min-w-75px text-start align-middle"></td>
                             </tr>
@@ -140,12 +192,42 @@
     <script>
         "use strict";
 
+        const statementExportPdfUrl = '{{ route('customers-suppliers-statement-export-pdf') }}';
+        const statementExportExcelUrl = '{{ route('customers-suppliers-statement-export-excel') }}';
+
+        function buildStatementQuery() {
+            const params = new URLSearchParams();
+            const startDate = $('#start_date_filter').val();
+            const endDate = $('#end_date_filter').val();
+            const contactId = $('#contact_filter').val();
+            const costCenters = $('#choose_cost_center_select').val() || [];
+            const entryType = $('#entry_type_filter').val();
+            const balanceSide = $('#balance_side_filter').val();
+            const subType = $('#sub_type_filter').val();
+            const refNo = $('#ref_no_filter').val();
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (contactId) params.append('id', contactId);
+            if (entryType) params.append('entry_type', entryType);
+            if (balanceSide) params.append('balance_side', balanceSide);
+            if (subType) params.append('sub_type', subType);
+            if (refNo) params.append('ref_no', refNo);
+            costCenters.forEach(function(value) {
+                params.append('choose_cost_center_select[]', value);
+            });
+            return params.toString();
+        }
+
 
 
         $(document).ready(function() {
             $('#choose_cost_center_select').select2();
 
             $('#contact_filter').select2();
+            $('#entry_type_filter').select2();
+            $('#balance_side_filter').select2();
+            $('#sub_type_filter').select2();
             let ledger;
 
             $('#contact_filter').change(function() {
@@ -165,6 +247,10 @@
                         d.end_date = $('#end_date_filter').val();
                         d.id = $('#contact_filter').val();
                         d.choose_cost_center_select = $('#choose_cost_center_select').val();
+                        d.entry_type = $('#entry_type_filter').val();
+                        d.balance_side = $('#balance_side_filter').val();
+                        d.sub_type = $('#sub_type_filter').val();
+                        d.ref_no = $('#ref_no_filter').val();
                     }
                 },
                 columns: [{
@@ -222,9 +308,20 @@
                     });
                     $('.footer_total_debit').html((totalDebit));
                     $('.footer_total_credit').html((totalCredit));
-                    $('.footer_final_total_debit').html({{ $total_debit_bal }});
-                    $('.footer_final_total_credit').html({{ $total_credit_bal }});
+                    const response = this.api().ajax.json() || {};
+                    $('.footer_final_total_debit').html(response.period_debit ?? {{ (float) $total_debit_bal }});
+                    $('.footer_final_total_credit').html(response.period_credit ?? {{ (float) $total_credit_bal }});
                 }
+            });
+
+            $('#statementExportPdf').on('click', function() {
+                const query = buildStatementQuery();
+                window.open(statementExportPdfUrl + '?' + query, '_blank');
+            });
+
+            $('#statementExportExcel').on('click', function() {
+                const query = buildStatementQuery();
+                window.location.href = statementExportExcelUrl + '?' + query;
             });
 
         });

@@ -206,6 +206,11 @@ return [
                 'permission' => 'sales.Sell invoices.show',
             ],
             [
+                'name' => 'sales_favorites',
+                'url' => 'sales-favorites',
+                'permission' => 'sales.Sell invoices.show',
+            ],
+            [
                 'name' => 'sell-return',
                 'url' => 'sell-return',
                 'permission' => 'sales.Sell returns.show',
@@ -246,6 +251,11 @@ return [
             [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
+                'permission' => 'purchases.Purchase invoices.show',
+            ],
+            [
+                'name' => 'purchases_favorites',
+                'url' => 'purchases-favorites',
                 'permission' => 'purchases.Purchase invoices.show',
             ],
             [

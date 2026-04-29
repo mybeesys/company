@@ -85,6 +85,8 @@
                 </div>
             </div>
 
+            @include('clientsandsuppliers::Client.show.dashboard-summary')
+
             <div class="separator d-flex flex-center my-10">
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>

@@ -20,6 +20,7 @@ return [
     'amount' => 'الإجمالي شامل الضريبة',
     'totalAfterDiscount' => 'الإجمالي بعد الخصم',
     'invoice_discount' => 'الخصم على الفاتورة',
+    'coupon_code' => 'كود الكوبون',
     'tax_vat' => [
         'S' => 'ضريبة القيمة المضافة (S 15.0%)',
         'Z' => 'الضريبة الصفرية (Z 0.0%)',
@@ -88,6 +89,7 @@ return [
     'Payment vouchers' => 'سندات الدفع',
     'toggleDelegates' => 'تفعيل المندوبين',
     'toggleStorehouse' => 'تفعيل المستودعات',
+    'toggleCoupon' => 'تفعيل الكوبون',
     'Delegates' => 'المندوبين',
     'payment_account_note' => 'الحساب الذي تم التحصيل عليه',
     'payment_account_select' => 'اختر الحساب الذي تم فيه التحصيل',

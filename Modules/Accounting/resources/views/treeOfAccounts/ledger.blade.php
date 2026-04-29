@@ -14,6 +14,14 @@
             gap: 11px;
             padding-bottom: 37px;
         }
+
+        .ledger-stat-card {
+            border: 1px solid #eef0f4;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #fcfcfd;
+            min-height: 86px;
+        }
     </style>
 @stop
 @section('content')
@@ -111,8 +119,25 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-3 d-flex align-items-end">
+            <div class="col-md-3">
+                <label>{{ __('accounting::lang.transaction') }}</label>
+                <select name="sub_type" class="form-select form-select-solid select-2">
+                    <option value="">{{ __('messages.view_all') }}</option>
+                    @foreach ($subTypes as $subType)
+                        <option value="{{ $subType }}" @selected(request('sub_type') === $subType)>
+                            {{ __('accounting::lang.' . $subType) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 mt-4">
+                <label>{{ __('accounting::lang.transaction_number') }}</label>
+                <input type="text" name="ref_no" class="form-control" value="{{ request('ref_no') }}"
+                    placeholder="{{ __('accounting::lang.transaction_number') }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end mt-4">
                 <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
+                <a href="{{ route('ledger', ['account_id' => $account->id]) }}" class="btn btn-light ms-2">@lang('sales::lang.Remove filter')</a>
             </div>
         </div>
     </form>
@@ -286,6 +311,39 @@
             </div>
         @else
             <div class="card-body py-3">
+                @php
+                    $periodDebit = (float) $account_transactions->where('type', 'debit')->sum('amount');
+                    $periodCredit = (float) $account_transactions->where('type', 'credit')->sum('amount');
+                    $closingBalance = (float) $current_bal;
+                    $openingNatureLabel = $opening_balance >= 0 ? __('accounting::lang.debit') : __('accounting::lang.credit');
+                    $closingNatureLabel = $closingBalance >= 0 ? __('accounting::lang.debit') : __('accounting::lang.credit');
+                @endphp
+                <div class="row g-3 mb-5">
+                    <div class="col-md-3">
+                        <div class="ledger-stat-card">
+                            <div class="text-muted fs-7">@lang('accounting::lang.opening_balance')</div>
+                            <div class="fw-bold fs-4">{{ number_format(abs($opening_balance), 2) }} <span class="fs-7 text-muted">({{ $openingNatureLabel }})</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="ledger-stat-card">
+                            <div class="text-muted fs-7">@lang('accounting::lang.total_debit')</div>
+                            <div class="fw-bold fs-4">{{ number_format($periodDebit, 2) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="ledger-stat-card">
+                            <div class="text-muted fs-7">@lang('accounting::lang.total_credit')</div>
+                            <div class="fw-bold fs-4">{{ number_format($periodCredit, 2) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="ledger-stat-card">
+                            <div class="text-muted fs-7">@lang('accounting::lang.Closing balance')</div>
+                            <div class="fw-bold fs-4">{{ number_format(abs($closingBalance), 2) }} <span class="fs-7 text-muted">({{ $closingNatureLabel }})</span></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle gs-0 gy-4">
                         <thead>
@@ -366,7 +424,7 @@
                                     </td>
                                     <td>
                                         <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
-                                            {{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}
+                                            {{ \Carbon\Carbon::parse($transactions->operation_date)->format('d/m/Y h:i A') }}
                                         </a>
                                     </td>
                                     <td>
@@ -429,11 +487,8 @@
                                             >
 
 
-                                            @if ($balance < 0)
-                                                ({{ number_format(abs($balance), 2) }})
-                                            @else
-                                                {{ number_format($balance, 2) }}
-                                            @endif
+                                            {{ number_format(abs($balance), 2) }}
+                                            <span class="fs-8 text-muted">({{ $balance < 0 ? __('accounting::lang.credit') : __('accounting::lang.debit') }})</span>
 
                                         </a>
                                     </td>
@@ -454,7 +509,8 @@
                                     @format_currency($total_credit)
                                 </td>
                                 <td colspan="2" class=" fw-bold fs-5">
-                                    @format_currency($balance)
+                                    @format_currency(abs($balance))
+                                    <span class="fs-8 text-muted">({{ $balance < 0 ? __('accounting::lang.credit') : __('accounting::lang.debit') }})</span>
                                 </td>
                             </tr>
                         </tfoot>

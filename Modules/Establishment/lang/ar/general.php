@@ -17,6 +17,7 @@ return [
     'deleted_records' => 'السجلات المحذوفة',
     'company_settings' => 'إعدادات الشركة',
     'company_details' => 'تفاصيل الشركة',
+    'company_details_subtitle' => 'تحديث المعلومات القانونية وبيانات التواصل الخاصة بالشركة',
     'establishments_table' => 'جدول الأفرع',
     'establishments_tree' => 'شجرة الأفرع',
     'devices' => 'الأجهزة',

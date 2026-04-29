@@ -38,6 +38,7 @@ return [
     'yes' => 'نعم',
     'no' => 'لا',
     'required_fields_warning' => 'يرجى تعبئة الحقول الإلزامية قبل المتابعة.',
+    'no_data_found' => 'لا توجد بيانات',
 
     "Added successfully, but the customer exceeded" => "تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.",
     'print' => 'طباعة',

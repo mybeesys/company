@@ -44,6 +44,9 @@
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>
+                        <a href="{{ route('purchases-favorites') }}" class="btn btn-light-primary">
+                            <i class="bi bi-star-fill fs-3 me-1"></i>@lang('menuItemLang.purchases_favorites')
+                        </a>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
                             <i class="bi bi-funnel fs-2"></i>
                         </button>

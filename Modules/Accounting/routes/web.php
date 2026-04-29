@@ -82,18 +82,38 @@ Route::middleware([
 
         Route::get('accounting-reports', [AccountingReportsController::class, 'index'])->name('accounting-reports');
         Route::get('income-statement', [AccountingReportsController::class, 'incomeStatement'])->name('income-statement');
+        Route::get('income-statement-export-pdf', [AccountingReportsController::class, 'incomeStatementExportPdf'])->name('income-statement-export-pdf');
+        Route::get('income-statement-export-excel', [AccountingReportsController::class, 'incomeStatementExportExcel'])->name('income-statement-export-excel');
         Route::get('trial-balance', [AccountingReportsController::class, 'trialBalance'])->name('trial-balance');
+        Route::get('trial-balance-export-pdf', [AccountingReportsController::class, 'trialBalanceExportPdf'])->name('trial-balance-export-pdf');
+        Route::get('trial-balance-export-excel', [AccountingReportsController::class, 'trialBalanceExportExcel'])->name('trial-balance-export-excel');
         Route::get('balance-sheet', [AccountingReportsController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('balance-sheet-export-pdf', [AccountingReportsController::class, 'balanceSheetExportPdf'])->name('balance-sheet-export-pdf');
+        Route::get('balance-sheet-export-excel', [AccountingReportsController::class, 'balanceSheetExportExcel'])->name('balance-sheet-export-excel');
         Route::get('journal-report', [AccountingReportsController::class, 'JournalReport'])->name('journal-report');
+        Route::get('journal-report-export-pdf', [AccountingReportsController::class, 'journalReportExportPdf'])->name('journal-report-export-pdf');
+        Route::get('journal-report-export-excel', [AccountingReportsController::class, 'journalReportExportExcel'])->name('journal-report-export-excel');
 
         Route::get('cash-flow', [AccountingReportsController::class, 'cash_flow'])->name('cash-flow');
+        Route::get('cash-flow-export-pdf', [AccountingReportsController::class, 'cashFlowExportPdf'])->name('cash-flow-export-pdf');
+        Route::get('cash-flow-export-excel', [AccountingReportsController::class, 'cashFlowExportExcel'])->name('cash-flow-export-excel');
         Route::get('customers-suppliers-statement', [AccountingReportsController::class, 'customersSuppliersStatement'])->name('customers-suppliers-statement');
+        Route::get('customers-suppliers-statement-export-pdf', [AccountingReportsController::class, 'customersSuppliersStatementExportPdf'])->name('customers-suppliers-statement-export-pdf');
+        Route::get('customers-suppliers-statement-export-excel', [AccountingReportsController::class, 'customersSuppliersStatementExportExcel'])->name('customers-suppliers-statement-export-excel');
 
         Route::get('account-receivable-ageing-report', [AccountingReportsController::class, 'accountReceivableAgeingReport'])->name('account-receivable-ageing-report');
         Route::get('account-receivable-ageing-details', [AccountingReportsController::class, 'accountReceivableAgeingDetails'])->name('account-receivable-ageing-details');
+        Route::get('account-receivable-ageing-report-export-pdf', [AccountingReportsController::class, 'accountReceivableAgeingReportExportPdf'])->name('account-receivable-ageing-report-export-pdf');
+        Route::get('account-receivable-ageing-report-export-excel', [AccountingReportsController::class, 'accountReceivableAgeingReportExportExcel'])->name('account-receivable-ageing-report-export-excel');
+        Route::get('account-receivable-ageing-details-export-pdf', [AccountingReportsController::class, 'accountReceivableAgeingDetailsExportPdf'])->name('account-receivable-ageing-details-export-pdf');
+        Route::get('account-receivable-ageing-details-export-excel', [AccountingReportsController::class, 'accountReceivableAgeingDetailsExportExcel'])->name('account-receivable-ageing-details-export-excel');
 
         Route::get('account-payable-ageing-report', [AccountingReportsController::class, 'accountPayableAgeingReport'])->name('account-payable-ageing-report');
         Route::get('account-payable-ageing-details', [AccountingReportsController::class, 'accountPayableAgeingDetails'])->name('account-payable-ageing-details');
+        Route::get('account-payable-ageing-report-export-pdf', [AccountingReportsController::class, 'accountPayableAgeingReportExportPdf'])->name('account-payable-ageing-report-export-pdf');
+        Route::get('account-payable-ageing-report-export-excel', [AccountingReportsController::class, 'accountPayableAgeingReportExportExcel'])->name('account-payable-ageing-report-export-excel');
+        Route::get('account-payable-ageing-details-export-pdf', [AccountingReportsController::class, 'accountPayableAgeingDetailsExportPdf'])->name('account-payable-ageing-details-export-pdf');
+        Route::get('account-payable-ageing-details-export-excel', [AccountingReportsController::class, 'accountPayableAgeingDetailsExportExcel'])->name('account-payable-ageing-details-export-excel');
 
         Route::post('/track-action', [AccountingReportsController::class, 'track'])->name('track.action');
 

@@ -29,6 +29,16 @@
     <meta property="og:site_name" content="Metronic by Keenthemes" />
     @include('layouts.css-references')
     @yield('css')
+    <style>
+        /* Match menuSimple symbol styling across admin/app pages */
+        .currency-symbol {
+            font-family: 'saudi_riyal', 'Tajawal', 'Cairo', 'Segoe UI Symbol', 'Arial Unicode MS', sans-serif !important;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            display: inline-block;
+            margin-inline-start: 0.1rem;
+        }
+    </style>
 
 </head>
 <!--end::Head-->

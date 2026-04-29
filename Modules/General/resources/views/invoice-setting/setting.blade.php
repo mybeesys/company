@@ -33,6 +33,13 @@
                     <label class="form-check-label ml-4" for="toggleDelegates">@lang('sales::lang.toggleDelegates')</label>
                 </div>
             </li>
+            {{-- <li>
+                <div class="form-check form-switch mt-5"
+                    style="display: flex; justify-content: space-between; gap: 37px;">
+                    <input class="form-check-input" type="checkbox" id="toggleCoupon">
+                    <label class="form-check-label ml-4" for="toggleCoupon">@lang('sales::lang.toggleCoupon')</label>
+                </div>
+            </li> --}}
         </ul>
     </div>
 
@@ -48,10 +55,12 @@
                 $('#toggleCost_center').prop('checked', response.data.cost_center);
                 $('#toggleStorehouse').prop('checked', response.data.storehouse);
                 $('#toggleDelegates').prop('checked', response.data.delegates);
+                $('#toggleCoupon').prop('checked', response.data.coupon);
 
                 toggleVisibility("#toggleCost_center", "#dev-costCenter");
                 toggleVisibility("#toggleStorehouse", "#div-storehouse");
                 toggleVisibility("#toggleDelegates", "#div-Delegates");
+                toggleVisibility("#toggleCoupon", "#div-coupon");
             }
         }
     });
@@ -94,6 +103,8 @@
                 return "#div-storehouse";
             case "toggleDelegates":
                 return "#div-Delegates";
+            case "toggleCoupon":
+                return "#div-coupon";
             default:
                 return "";
         }

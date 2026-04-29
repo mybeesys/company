@@ -18,6 +18,7 @@ return [
     'amount' => 'Total including VAT',
     'totalAfterDiscount' => 'Total After Disccount',
     'invoice_discount' => 'Discount on invoice',
+    'coupon_code' => 'Coupon code',
 
     'tax_vat' => [
         'S' => 'VAT (S 15.0%)',
@@ -89,6 +90,7 @@ return [
     'Payment vouchers' => 'Payment vouchers',
     'toggleDelegates' => 'Enable Delegates',
     'toggleStorehouse' => 'Enable Storehouse',
+    'toggleCoupon' => 'Enable Coupon',
     'Delegates' => 'Delegates',
     'payment_account_note' => 'The account to which the payment was credited',
     'payment_account_select' => 'Select account to which the payment was credited',

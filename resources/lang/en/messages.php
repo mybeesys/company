@@ -37,6 +37,7 @@ return [
     'yes' => 'Yes',
     'no' => 'No',
     'required_fields_warning' => 'Please fill in all required fields before proceeding.',
+    'no_data_found' => 'No data found',
 
     "Added successfully, but the customer exceeded"=> "Added successfully, but the customer exceeded the credit limit.",
 'print' =>'Print',

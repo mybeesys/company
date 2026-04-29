@@ -13,6 +13,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -214,6 +215,43 @@ class PurchasesController extends Controller
         return view('purchases::purchases.index', compact('columns', 'page', 'clients', 'Latest_event', 'poes', 'transaction'));
     }
 
+    public function favorites(Request $request)
+    {
+        $transactionsQuery = Transaction::whereIn('type', ['purchases', 'purchases-return', 'purchases-order'])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+
+        if ($request->ajax()) {
+            $transactionsQuery
+                ->when($request->filled('transaction_type'), fn($query) => $query->where('type', $request->transaction_type))
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
+                });
+
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            return Transaction::getSellsTable($transactions);
+        }
+
+        $transaction = $transactionsQuery->get();
+        $columns = Transaction::getsPurchasesColumns();
+        $clients = Contact::where('business_type', 'supplier')->get();
+        $page = 'purchases';
+
+        return view('purchases::purchases.favorites', compact('columns', 'clients', 'transaction', 'page'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -341,10 +379,11 @@ class PurchasesController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping();
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مشتريات رقم {$transaction->ref_no}.";
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
-            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->is_manual = 0;
+            $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
 
@@ -392,6 +431,8 @@ class PurchasesController extends Controller
                 $acc_trans_mapping_id,
                 $request
             );
+
+            AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
 

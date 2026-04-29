@@ -58,6 +58,9 @@ return [
 
     'balance_sheet' => 'Balance sheet',
     'income_list' => 'Income list',
+    'income_before_tax' => 'Income Before Tax',
+    'tax_amount' => 'Estimated Tax',
+    'net_profit' => 'Net Profit',
     'Boxes' => 'Boxes',
     'Banks' => 'Banks',
     'Cheques' => 'Cheques',
@@ -237,6 +240,7 @@ return [
     'transaction_type' => 'Transaction Type',
     'amount' => 'Amount',
     'movement_type' => 'Movement Type',
+    'activity_section' => 'Activity Section',
     'debit' => 'Debit',
     'credit' => 'Credit',
 
@@ -244,6 +248,7 @@ return [
     'cash_inflows' => ' Cash Inflows',
     'cash_outflows' => ' Cash Outflows',
     'net_cash_flows' => ' Net Cash Flows',
+    'current_or_overdue' => 'Status',
 
     'sell' => 'Sales',
     'sell_cash' => 'Cash Sales',
@@ -313,6 +318,8 @@ return [
     'physical_quantity' => 'Physical Quantity',
     'cost_price' => 'Cost Price',
     'difference' => 'Difference',
+    'balanced' => 'Balanced',
+    'unbalanced' => 'Unbalanced',
     'save_inventory' => 'Save Inventory',
     'loading' => '  Loading...  ',
     'no_products' => 'No products in this establishment',

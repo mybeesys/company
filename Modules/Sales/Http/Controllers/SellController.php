@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -14,6 +15,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
@@ -31,6 +33,7 @@ use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
+use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Utils\SalesUtile;
 
 //use Illuminate\Support\Facades\Log;
@@ -228,6 +231,42 @@ class SellController extends Controller
         return view('sales::sell.index', compact('columns', 'clients', 'Latest_event', 'transaction', 'quotations'));
     }
 
+    public function favorites(Request $request)
+    {
+        $transactionsQuery = Transaction::whereIn('type', ['sell', 'sell-return', 'quotation'])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+
+        if ($request->ajax()) {
+            $transactionsQuery
+                ->when($request->filled('transaction_type'), fn($query) => $query->where('type', $request->transaction_type))
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
+                });
+
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            return Transaction::getSellsTable($transactions);
+        }
+
+        $transaction = $transactionsQuery->get();
+        $columns = Transaction::getsSellsColumns();
+        $clients = Contact::where('business_type', 'customer')->get();
+
+        return view('sales::sell.favorites', compact('columns', 'clients', 'transaction'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -292,10 +331,36 @@ class SellController extends Controller
         $ref_no =  SalesUtile::generateReferenceNumber('sell');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
+        $toggleCostCenter = Setting::where('key', 'toggleCost_center')->value('value') == 1;
+        $toggleStorehouse = Setting::where('key', 'toggleStorehouse')->value('value') == 1;
+        $toggleDelegates = Setting::where('key', 'toggleDelegates')->value('value') == 1;
+
+        if (! $toggleCostCenter) {
+            $request->merge(['cost_center' => null]);
+        }
+        if (! $toggleDelegates) {
+            $request->merge(['Delegates' => null]);
+        }
+
         $main_establishment = Establishment::notMain()->active()->first();
-        $establishment_id = $request->storehouse;
-        if ($request->storehouse == $main_establishment->id) {
-            $establishment_id = $main_establishment->id;
+        if ($toggleStorehouse) {
+            if (! $request->filled('storehouse')) {
+                throw ValidationException::withMessages([
+                    'storehouse' => __('messages.field_is_required', ['field' => __('sales::fields.storehouse')]),
+                ]);
+            }
+            $establishment_id = (int) $request->storehouse;
+        } else {
+            $establishment_id = (int) ($main_establishment?->id ?? 0);
+            $request->merge(['storehouse' => $establishment_id]);
+        }
+        if ($establishment_id <= 0) {
+            throw ValidationException::withMessages([
+                'storehouse' => __('messages.field_is_required', ['field' => __('sales::fields.storehouse')]),
+            ]);
+        }
+        if ($main_establishment && (int) $request->storehouse === (int) $main_establishment->id) {
+            $establishment_id = (int) $main_establishment->id;
         }
         $termsNotesData = null;
         if (isset($request->toggle_terms_notes)) {
@@ -305,6 +370,45 @@ class SellController extends Controller
                 'note_en' => request('note_en'),
                 'note_ar' => request('note_ar'),
             ]);
+        }
+
+        $products = json_decode(json_encode($request->products ?? []));
+        $couponUsage = null;
+        $couponCode = trim((string) $request->input('coupon_code', ''));
+        if ($couponCode !== '') {
+            try {
+                $couponService = app(ApplyCouponService::class);
+                $taxableBefore = (float) ($request->totalAfterDiscount ?? $request->totalBeforeVat ?? 0);
+                $currentTax = (float) ($request->totalVat ?? 0);
+                $couponUsage = $couponService->applyForSale(
+                    $couponCode,
+                    (int) $request->client_id,
+                    (int) $establishment_id,
+                    $products,
+                    $taxableBefore,
+                    $currentTax
+                );
+
+                $request->merge([
+                    'invoiced_discount_type' => 'fixed',
+                    'invoice_discount' => (float) ($request->invoice_discount ?? 0) + (float) $couponUsage['discount_amount'],
+                    'totalAfterDiscount' => $couponUsage['taxable_after'],
+                    'totalVat' => $couponUsage['tax_amount'],
+                    'totalAfterVat' => $couponUsage['final_total'],
+                ]);
+                if ((float) ($request->paid_amount ?? 0) > (float) $couponUsage['final_total']) {
+                    $request->merge(['paid_amount' => $couponUsage['final_total']]);
+                }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', $e->getMessage());
+            }
+        }
+
+        $resolvedAccountId = (int) ($request->input('account_id') ?: $request->input('cash_account'));
+        if ($resolvedAccountId > 0) {
+            $request->merge(['account_id' => $resolvedAccountId]);
         }
 
         $quotation_id = null;
@@ -336,8 +440,6 @@ class SellController extends Controller
 
         ]);
 
-
-        $products = json_decode(json_encode($request->products));
 
         foreach ($products as $product) {
             $discount_type = $product->discount ? $product->discount_type : null;
@@ -409,6 +511,20 @@ class SellController extends Controller
             }
         }
 
+        if ($couponUsage && $transaction->status !== 'draft') {
+            try {
+                app(ApplyCouponService::class)->registerUsage(
+                    (int) $couponUsage['coupon']->id,
+                    (int) $transaction->contact_id,
+                    (int) $transaction->id
+                );
+            } catch (\Throwable $e) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', $e->getMessage());
+            }
+        }
+
 
         if ($quotation_id) {
             $this->updatePurchaseOrderStatus(
@@ -428,10 +544,11 @@ class SellController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping();
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مبيعات رقم {$transaction->ref_no}.";
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
-            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->is_manual = 0;
+            $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
 
@@ -459,7 +576,7 @@ class SellController extends Controller
             );
 
             $transactionPayment->account_id = $sales_sales->account_id;
-            $transactionPayment->amount = $transaction->total_before_tax;
+            $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
 
             $accountUtil->saveAccountRouteTransaction(
                 'credit',
@@ -479,6 +596,8 @@ class SellController extends Controller
                 $acc_trans_mapping_id,
                 $request
             );
+
+            AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
@@ -516,13 +635,19 @@ class SellController extends Controller
         $acc_trans_mapping = new AccountingAccTransMapping();
 
         $accountUtil = new AccountingUtil();
-        $cash_account_id = $request->account_id;
+        $cash_account_id = (int) ($request->input('account_id') ?: $request->input('cash_account'));
+        if ($cash_account_id <= 0) {
+            throw ValidationException::withMessages([
+                'account_id' => __('messages.field_is_required', ['field' => __('accounting::lang.account')]),
+            ]);
+        }
         $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $acc_trans_mapping->note = '';
+        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من سند قبض/تحصيل لعملية مبيعات رقم {$transaction->ref_no}.";
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
-        $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->is_manual = 0;
+        $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
         $acc_trans_mapping->save();
         $acc_trans_mapping_id = $acc_trans_mapping->id;
 
@@ -531,10 +656,11 @@ class SellController extends Controller
 
         $payment_method_id = null;
 
-        if (!$request->has('payment_method_id')) {
+        if ($request->has('payment_method_id')) {
             $payment_method_id = $request->payment_method_id;
         }
-        $date = Carbon::parse($request->payment_on);
+        $paymentOnInput = $request->input('payment_on') ?: $request->input('pament_on');
+        $date = Carbon::parse($paymentOnInput ?? now());
         $payment_on = $date->format('Y-m-d H:i:s');
         $transactionUtil = new TransactionUtils();
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
@@ -576,7 +702,7 @@ class SellController extends Controller
 
 
         $transactionPayment->account_id = $sales_sales->account_id;
-        $transactionPayment->amount = $transaction->total_before_tax;
+        $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
 
         $accountUtil->saveAccountRouteTransaction(
             'credit',
@@ -625,6 +751,8 @@ class SellController extends Controller
             $acc_trans_mapping_id,
             $request
         );
+
+        AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
     }
 
     public function validateInvoiceRequest($request)

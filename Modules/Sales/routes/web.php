@@ -33,6 +33,7 @@ Route::middleware([
 
         Route::get('sales-dashbord', [SellController::class, 'salesDashbord'])->name('sales-dashbord');
         Route::get('invoices', [SellController::class, 'index'])->name('invoices');
+        Route::get('sales-favorites', [SellController::class, 'favorites'])->name('sales-favorites');
         Route::get('create-invoice', [SellController::class, 'create'])->name('create-invoice');
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');

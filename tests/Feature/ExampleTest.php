@@ -12,7 +12,8 @@ class ExampleTest extends TestCase
      */
     public function test_the_application_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        // This app doesn't necessarily serve '/' (multi-tenant + auth). Laravel 11 health route is always present.
+        $response = $this->get('/up');
 
         $response->assertStatus(200);
     }
