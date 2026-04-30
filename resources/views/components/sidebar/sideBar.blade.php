@@ -76,9 +76,9 @@
                                     <span class="bullet bullet-dot"></span>
                                 </span>
                                 <span class="menu-title fs-7">{{ __('menuItemLang.periodic') }}</span>
-                                <span class="badge badge-light-warning text-warning-emphasis ms-2">@lang('general.policy_locked')</span>
+                                <span class="ms-2 text-warning"><i class="ki-outline ki-lock-2 fs-6"></i></span>
                             </div>
-                            <a href="{{ url('/general-setting') }}" class="btn btn-sm btn-light-primary py-1 px-2 periodic-policy-open-settings">
+                            <a href="{{ url('/general-setting#inventory_policy_tab') }}" class="btn btn-sm btn-light-primary py-1 px-2 periodic-policy-open-settings">
                                 @lang('general.open')
                             </a>
                         </div>
