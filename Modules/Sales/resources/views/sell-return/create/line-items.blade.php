@@ -46,7 +46,7 @@
 
                         @foreach ($lines as $index => $line)
                             @if ($line->line_status != 'completed')
-                                <tr>
+                                <tr class="sales-line-row" draggable="true">
                                     <td>
                                         <input type="hidden" class="form-control"
                                             name="products[{{ $index }}][product_id]" style="padding: 7px"
@@ -120,7 +120,7 @@
                             @endif
                         @endforeach
                     @else
-                        <tr>
+                        <tr class="sales-line-row" draggable="true">
                             <td>
                                 <select id="products" required class="form-select form-select-solid select-2"
                                     name="products[0][products_id]" style="padding: 7px">
