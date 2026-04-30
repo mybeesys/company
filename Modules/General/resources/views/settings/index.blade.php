@@ -604,6 +604,15 @@
 
             $('#inventory_tracking_policy').on('change', toggleSettings);
             toggleSettings();
+
+            if (window.location.hash) {
+                const targetHash = window.location.hash;
+                const tabTrigger = document.querySelector(`[data-bs-toggle="tab"][href="${targetHash}"]`);
+                if (tabTrigger && window.bootstrap?.Tab) {
+                    const tab = new bootstrap.Tab(tabTrigger);
+                    tab.show();
+                }
+            }
         });
     </script>
 @endsection
