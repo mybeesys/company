@@ -44,6 +44,7 @@ return [
     'night_mode' => 'Night',
     'place' => 'Place',
     'open' => 'Open',
+    'closed' => 'Closed',
     'todays_menu' => "Today's Menu",
     'location' => 'Location',
     'smart_menu' => 'Smart Menu',
