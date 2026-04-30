@@ -18,14 +18,31 @@ use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
+use Modules\General\Models\Setting;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Product\Models\Product;
 use Modules\Sales\Utils\SalesUtile;
 
 class PeriodicInventoryController extends Controller
 {
+    private function ensurePeriodicInventoryEnabled()
+    {
+        if (!Setting::isPeriodicInventory()) {
+            return redirect('/productInventory')
+                ->with('error', app()->getLocale() === 'ar'
+                    ? 'ميزة الجرد الدوري غير متاحة لأن سياسة الجرد الحالية هي الجرد المستمر.'
+                    : 'Periodic inventory is disabled because the current inventory policy is perpetual.');
+        }
+
+        return null;
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
         $query = PeriodicInventory::with(['items', 'adjustmentEntry', 'establishment', 'creator'])->latest();
 
         if ($request->filled('from_date')) {
@@ -79,6 +96,10 @@ class PeriodicInventoryController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
         $lastInventory = PeriodicInventory::latest()->first();
         $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
         $first_establishment = Establishment::first();
@@ -101,6 +122,9 @@ class PeriodicInventoryController extends Controller
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
 
         $establishment_id = $request->establishment;
         $data = $this->calculateInventoryValues($request);
@@ -311,6 +335,10 @@ class PeriodicInventoryController extends Controller
 
     public function getProductsByEstablishment($establishmentId)
     {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
             ->join('product_inventories', function ($join) use ($establishmentId) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
@@ -324,6 +352,10 @@ class PeriodicInventoryController extends Controller
 
     public function exportPdf($id)
     {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
         $inventory = PeriodicInventory::with(['items.product', 'establishment', 'creator', 'adjustmentEntry'])->findOrFail($id);
         $html = view('accounting::inventory.periodic.export_pdf', compact('inventory'))->render();
 
