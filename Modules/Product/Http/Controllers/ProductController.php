@@ -971,6 +971,7 @@ class ProductController extends Controller
     {
         $product = Product::with([
             'tax',
+            'unitTransfers',
             'establishments.establishment',
             'priceTiers.priceTier',
             'recipe.unitTransfer',
@@ -1273,35 +1274,30 @@ class ProductController extends Controller
     public function productsForSale(Request $request)
     {
         $search = $request->input('search');
-        $user = auth()->user();
-        $query = DB::table('product_products')
-            ->where('active', 1)
+        $products = Product::where('active', 1)
             ->where('for_sell', 1)
             ->whereIn('type', ['product', 'variable'])
-            ->whereNull('deleted_at');
-        if ($user && $user->franchise_id) {
-            $query->whereExists(function ($q) use ($user) {
-                $q->select(DB::raw(1))
-                    ->from('franchise_product_permissions')
-                    ->whereColumn('franchise_product_permissions.permitted_id', 'product_products.id')
-                    ->where('franchise_product_permissions.permitted_type', 'product')
-                    ->where('franchise_product_permissions.franchise_id', $user->franchise_id);
-            });
-        }
-        $products = $query->when($search, function ($q) use ($search) {
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name_ar', 'like', "%{$search}%")
-                    ->orWhere('name_en', 'like', "%{$search}%")
-                    ->orWhere('SKU', 'like', "%{$search}%");
-            });
-        })->get();
-        $products->transform(function ($product) {
-            $inventoryQty = DB::table('product_inventories')
-                ->where('product_id', $product->id)
-                ->sum('qty');
-            $product->inventory_qty = $inventoryQty;
+            ->restrictByFranchise()
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name_ar', 'like', "%{$search}%")
+                        ->orWhere('name_en', 'like', "%{$search}%")
+                        ->orWhere('SKU', 'like', "%{$search}%");
+                });
+            })
+            ->with(['unitTransfers'])
+            ->get();
+
+        $inventoryMap = DB::table('product_inventories')
+            ->select('product_id', DB::raw('COALESCE(SUM(qty),0) as qty_sum'))
+            ->groupBy('product_id')
+            ->pluck('qty_sum', 'product_id');
+
+        $products->transform(function ($product) use ($inventoryMap) {
+            $product->inventory_qty = (float) ($inventoryMap[$product->id] ?? 0);
             return $product;
         });
+
         return response()->json(['success' => true, 'data' => $products]);
     }
 
