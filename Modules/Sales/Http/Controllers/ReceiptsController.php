@@ -74,13 +74,31 @@ class ReceiptsController extends Controller
      */
     public function store(Request $request)
     {
-        // return $request;
-        // try {
-            $contact = Contact::find($request->client_id);
+        $validated = $request->validate([
+            'client_id' => ['required', 'integer', 'min:1'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'payment_on' => ['required', 'date'],
+            // Account where money is received (cash/bank)
+            'account_id' => ['required', 'integer', 'min:1'],
+            'allocation_option' => ['required', 'in:specified_invoices,auto_allocate'],
+            'transactions' => ['nullable', 'array'],
+            'transactions.*' => ['integer', 'min:1'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'cost_center' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $contact = Contact::find($validated['client_id']);
+        if (! $contact) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
 
             DB::beginTransaction();
-            if ($request->allocation_option == 'specified_invoices') {
-                $transactions = Transaction::whereIn('id', $request->transactions)->get();
+            if ($validated['allocation_option'] == 'specified_invoices') {
+                $ids = $validated['transactions'] ?? [];
+                if (count($ids) === 0) {
+                    return redirect()->back()->with('error', __('messages.something_went_wrong'));
+                }
+                $transactions = Transaction::whereIn('id', $ids)->get();
                 $this->settleTransactions($transactions, $request);
             } else {
                 if ($contact->business_type == 'customer') {
@@ -152,12 +170,16 @@ class ReceiptsController extends Controller
                 $paid_amount = 0;
             }
 
-            if ($paid_amount > 0) {
+            $settledTransactions[] = $transaction;
+        }
+
+        // Any extra amount beyond open invoices becomes customer balance (once).
+        if ($paid_amount > 0) {
+            if ($contact->business_type === 'supplier') {
+                $contactUtils->addRemainingAmountToSupplierAccount($request->client_id, $paid_amount);
+            } else {
                 $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $paid_amount);
             }
-
-
-            $settledTransactions[] = $transaction;
         }
 
 

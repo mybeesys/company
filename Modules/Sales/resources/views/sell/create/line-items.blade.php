@@ -256,6 +256,11 @@
     {{-- invoice ditales --}}
 
     <div class="card-body p-0 mt-5 d-flex flex-column">
+        <div class="d-flex align-items-center mb-3 mx-10" id="div-coupon" style="display: none;">
+            <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 100px;">@lang('sales::lang.coupon_code')</label>
+            <input class="form-control form-control-solid no-spin" style="width: 260px;" name="coupon_code"
+                value="" placeholder="@lang('sales::lang.coupon_code')">
+        </div>
         <div class="d-flex align-items-center mb-5 mx-10">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 100px;">@lang('sales::lang.invoice_discount')</label>
             <input class="form-control form-control-solid  no-spin" style="width: 150px;" name="invoice_discount"

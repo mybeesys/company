@@ -38,6 +38,8 @@ return [
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
 
+    'add_payment' => 'سند صرف',
+
 
 
 

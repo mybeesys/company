@@ -62,7 +62,7 @@ class ContactUtils
     {
         $customer = Contact::find($customerId);
 
-        if ($customer) {
+        if ($customer && $customer->account) {
             $ref_number = AccountingUtil::generateReferenceNumber('contact_balance');
             $acc_trans_mapping = new AccountingAccTransMapping();
 
@@ -85,6 +85,38 @@ class ContactUtils
                 'accounting_account_id' => $customer->account->id,
             ]);
         }
+        return true;
+    }
+
+    public function addRemainingAmountToSupplierAccount($supplierId, $amount, $transaction = null)
+    {
+        $supplier = Contact::find($supplierId);
+
+        if ($supplier && $supplier->account) {
+            $ref_number = AccountingUtil::generateReferenceNumber('contact_balance');
+            $acc_trans_mapping = new AccountingAccTransMapping();
+
+            $type = $transaction->type ?? '';
+            $acc_trans_mapping->ref_no = $ref_number;
+            $acc_trans_mapping->note = "رصيد متبقي للمورد";
+            $acc_trans_mapping->type = $type;
+            $acc_trans_mapping->created_by = Auth::user()->id;
+            $acc_trans_mapping->operation_date = now()->format('Y-m-d H:i:s');
+            $acc_trans_mapping->save();
+
+            // Supplier overpayment typically becomes a debit balance (advance) on supplier account.
+            AccountingAccountsTransaction::create([
+                'amount' => $amount,
+                'acc_trans_mapping_id' => $acc_trans_mapping->id,
+                'type' => 'debit',
+                'sub_type' => $type,
+                'note' => "رصيد متبقي للمورد",
+                'operation_date' => now()->format('Y-m-d'),
+                'created_by' => Auth::user()->id,
+                'accounting_account_id' => $supplier->account->id,
+            ]);
+        }
+
         return true;
     }
 }

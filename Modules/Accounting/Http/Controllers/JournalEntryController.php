@@ -10,6 +10,8 @@ use I18N_Arabic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\AccountingAccTransMappingTable;
 use Modules\Accounting\classes\JournalExport;
@@ -18,6 +20,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\JournalEntryValidator;
 use Modules\Employee\Models\Employee;
 use Mpdf\Mpdf;
 use Yajra\DataTables\Facades\DataTables;
@@ -80,10 +83,26 @@ class JournalEntryController extends Controller
     public function store(Request $request)
     {
 
-        $journalEntriesJson = $request->input('JournalEntries');
+        $request->validate([
+            'ref_number' => ['nullable', 'string', 'max:191'],
+            'journalEntry_date' => ['required', 'date'],
+            'JournalEntries' => ['required', 'string'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'attachment' => ['nullable', 'file', 'max:10240'],
+            'submit_type' => ['nullable', 'in:add,save,print'],
+        ]);
 
-
+        $journalEntriesJson = (string) $request->input('JournalEntries');
         $journalEntries = json_decode($journalEntriesJson, true);
+        if (! is_array($journalEntries)) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
+
+        try {
+            $journalEntries = JournalEntryValidator::validateAndNormalize($journalEntries);
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        }
         try {
             DB::beginTransaction();
 
@@ -91,7 +110,7 @@ class JournalEntryController extends Controller
 
             $ref_number = $request->get('ref_number');
 
-            if (AccountingAccTransMapping::where('ref_no', $ref_number)->first()) {
+            if (! empty($ref_number) && AccountingAccTransMapping::where('ref_no', $ref_number)->exists()) {
                 return redirect()->back()->with('error', __('messages.ref_number already exists'));
             }
             if (empty($ref_number)) {
@@ -116,36 +135,22 @@ class JournalEntryController extends Controller
             $acc_trans_mapping->save();
 
 
-            foreach ($journalEntries as $JournalEntry) {
+            foreach ($journalEntries as $entry) {
+                $transaction_row = [
+                    'accounting_account_id' => $entry['account_id'],
+                    'amount' => $entry['amount'],
+                    'type' => $entry['type'],
+                    'cost_center_id' => $entry['cost_center_id'],
+                    'additional_notes' => $entry['notes'],
+                    'created_by' => $user_id,
+                    'operation_date' => $acc_trans_mapping->operation_date,
+                    'sub_type' => 'journal_entry',
+                    'acc_trans_mapping_id' => $acc_trans_mapping->id,
+                ];
 
-                if (!empty($JournalEntry['account_id']) && (!empty($JournalEntry['debit']) || !empty($JournalEntry['credit']))) {
-
-                    $transaction_row = [];
-                    $transaction_row['accounting_account_id'] = $JournalEntry['account_id'];
-
-                    if (!empty($JournalEntry['credit'])) {
-                        $transaction_row['amount'] = $JournalEntry['credit'];
-                        $transaction_row['type'] = 'credit';
-                    }
-
-                    if (!empty($JournalEntry['debit'])) {
-                        $transaction_row['amount'] = $JournalEntry['debit'];
-                        $transaction_row['type'] = 'debit';
-                    }
-
-
-
-                    $transaction_row['cost_center_id'] = $JournalEntry['cost_center'] == '' ? null : $JournalEntry['cost_center'];
-                    $transaction_row['additional_notes'] = $JournalEntry['notes'];
-                    $transaction_row['created_by'] = $user_id;
-                    $transaction_row['operation_date'] = $acc_trans_mapping->operation_date;
-                    $transaction_row['sub_type'] = 'journal_entry';
-                    $transaction_row['acc_trans_mapping_id'] = $acc_trans_mapping->id;
-
-                    $accounts_transactions = new AccountingAccountsTransaction();
-                    $accounts_transactions->fill($transaction_row);
-                    $accounts_transactions->save();
-                }
+                $accounts_transactions = new AccountingAccountsTransaction();
+                $accounts_transactions->fill($transaction_row);
+                $accounts_transactions->save();
             }
 
             DB::commit();
@@ -273,10 +278,26 @@ class JournalEntryController extends Controller
     {
 
 
-        $journalEntriesJson = $request->input('JournalEntries');
+        $request->validate([
+            'ref_number' => ['nullable', 'string', 'max:191'],
+            'journalEntry_date' => ['required', 'date'],
+            'JournalEntries' => ['required', 'string'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'attachment' => ['nullable', 'file', 'max:10240'],
+            'submit_type' => ['nullable', 'in:save,print'],
+        ]);
 
-
+        $journalEntriesJson = (string) $request->input('JournalEntries');
         $journalEntries = json_decode($journalEntriesJson, true);
+        if (! is_array($journalEntries)) {
+            return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
+        }
+
+        try {
+            $journalEntries = JournalEntryValidator::validateAndNormalize($journalEntries);
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        }
         try {
             DB::beginTransaction();
 
@@ -289,6 +310,12 @@ class JournalEntryController extends Controller
             }
 
             $acc_trans_mapping =  AccountingAccTransMapping::find($id);
+            if (! $acc_trans_mapping) {
+                return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
+            }
+            if (! empty($ref_number) && AccountingAccTransMapping::where('ref_no', $ref_number)->where('id', '<>', $acc_trans_mapping->id)->exists()) {
+                return redirect()->back()->with('error', __('messages.ref_number already exists'));
+            }
             if ($request->hasFile('attachment')) {
                 $attachment = $request->file('attachment');
                 $attachment_name = $attachment->store('/journal_entry');
@@ -313,36 +340,22 @@ class JournalEntryController extends Controller
             if ($acc_trans_mapping->transactions) {
                 AccountingAccountsTransaction::where('acc_trans_mapping_id', $acc_trans_mapping->id)->delete();
             }
-            foreach ($journalEntries as $JournalEntry) {
+            foreach ($journalEntries as $entry) {
+                $transaction_row = [
+                    'accounting_account_id' => $entry['account_id'],
+                    'amount' => $entry['amount'],
+                    'type' => $entry['type'],
+                    'cost_center_id' => $entry['cost_center_id'],
+                    'additional_notes' => $entry['notes'],
+                    'created_by' => $user_id,
+                    'operation_date' => $acc_trans_mapping->operation_date,
+                    'sub_type' => 'journal_entry',
+                    'acc_trans_mapping_id' => $acc_trans_mapping->id,
+                ];
 
-                if (!empty($JournalEntry['account_id']) && (!empty($JournalEntry['debit']) || !empty($JournalEntry['credit']))) {
-
-                    $transaction_row = [];
-                    $transaction_row['accounting_account_id'] = $JournalEntry['account_id'];
-
-                    if (!empty($JournalEntry['credit'])) {
-                        $transaction_row['amount'] = $JournalEntry['credit'];
-                        $transaction_row['type'] = 'credit';
-                    }
-
-                    if (!empty($JournalEntry['debit'])) {
-                        $transaction_row['amount'] = $JournalEntry['debit'];
-                        $transaction_row['type'] = 'debit';
-                    }
-
-
-
-                    $transaction_row['cost_center_id'] = $JournalEntry['cost_center'] == '' ? null : $JournalEntry['cost_center'];
-                    $transaction_row['additional_notes'] = $JournalEntry['notes'];
-                    $transaction_row['created_by'] = $user_id;
-                    $transaction_row['operation_date'] = $acc_trans_mapping->operation_date;
-                    $transaction_row['sub_type'] = 'journal_entry';
-                    $transaction_row['acc_trans_mapping_id'] = $acc_trans_mapping->id;
-
-                    $accounts_transactions = new AccountingAccountsTransaction();
-                    $accounts_transactions->fill($transaction_row);
-                    $accounts_transactions->save();
-                }
+                $accounts_transactions = new AccountingAccountsTransaction();
+                $accounts_transactions->fill($transaction_row);
+                $accounts_transactions->save();
             }
 
             DB::commit();

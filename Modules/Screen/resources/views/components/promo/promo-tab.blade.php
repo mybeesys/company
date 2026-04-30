@@ -1,10 +1,16 @@
-<div class="tab-pane fade show active" id="promos_tab" role="tabpanel">
-    <x-cards.card class="shadow-sm pb-5 px-5">
-        <div class="p-5">
-            <a href="#" id="add_promo_button"
-                class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">@lang('screen::general.add_promo')
-            </a>
-            <table id="promo_table">
+<div class="tab-pane fade show active screen-tab-pane" id="promos_tab" role="tabpanel">
+    <div class="screen-tab-header">
+        <div>
+            <h2>@lang('screen::general.tab_materials_title')</h2>
+            <p class="screen-tab-desc">@lang('screen::general.tab_materials_desc')</p>
+        </div>
+        <a href="#" id="add_promo_button" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>@lang('screen::general.add_promo')
+        </a>
+    </div>
+    <div class="screen-table-card">
+        <div class="table-responsive rounded-3 bg-white">
+            <table class="table align-middle table-row-dashed fs-6 gy-5 mb-0" id="promo_table">
                 <thead>
                     <tr class="not-hover"></tr>
                 </thead>
@@ -12,7 +18,7 @@
                 </tbody>
             </table>
         </div>
-    </x-cards.card>
+    </div>
 </div>
 
 <script>
@@ -91,6 +97,9 @@
             serverSide: true,
             ajax: promoDataUrl,
             info: false,
+            language: {
+                emptyTable: "{{ app()->getLocale() === 'ar' ? 'لا توجد مواد إعلانية بعد' : 'No ad materials yet' }}"
+            },
             columns: [{
                 data: 'main',
                 name: 'main',

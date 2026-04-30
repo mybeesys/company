@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'summary' => 'الملخص',
+    'total' => 'الإجمالي',
+    'paid' => 'المدفوع',
+    'remaining' => 'المتبقي',
+    'open_invoices' => 'الفواتير المفتوحة',
+    'invoices' => 'فواتير',
+    'ageing' => 'أعمار الديون',
+    'ageing_note' => 'الحساب يتم بناءً على تاريخ الاستحقاق (أو تاريخ العملية إذا لم يوجد).',
+    'latest_invoices' => 'آخر الفواتير',
+    'latest_payments' => 'آخر السندات',
+    'date' => 'التاريخ',
+    'status' => 'الحالة',
+    'amount' => 'المبلغ',
+    'transaction' => 'العملية',
+    'payment_method' => 'الطريقة',
+    'account' => 'الحساب',
+    'notes' => 'ملاحظات',
+    'no_data' => 'لا يوجد بيانات',
+    'view_all' => 'عرض الكل',
+    'add_receipt' => 'سند قبض',
+    'add_payment' => 'سند صرف',
+];
+

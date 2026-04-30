@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
@@ -109,7 +110,7 @@ class TransactionUtils
             return true;
         }
 
-        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+        $prefix_type = in_array($transaction->type, ['purchases', 'purchase'], true) ? 'purchase_payment' : 'sell_payment';
 
         $get_val = function ($key) use ($request) {
             if (is_array($request)) {
@@ -154,7 +155,7 @@ class TransactionUtils
             'amount'            => $get_val('amount'),
             'method'            => $payment_method,
             'payment_method_id' => $payment_method_id,
-            'is_return'         => $transaction->type == 'sell-return' ? 1 : 0,
+            'is_return'         => in_array($transaction->type, ['sell-return', 'purchases-return'], true) ? 1 : 0,
             'note'              => $get_val('additionalNotes'),
             'paid_on'           => $payment_on,
             'created_by'        => $userId,
@@ -200,7 +201,7 @@ class TransactionUtils
             return true;
         }
 
-        $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
+        $prefix_type = in_array($transaction->type, ['purchases', 'purchase'], true) ? 'purchase_payment' : 'sell_payment';
         $date = Carbon::parse($request->payment_on);
         $payment_on = $date->format('Y-m-d H:i:s');
         $account_id = $request->account_id;
@@ -231,10 +232,12 @@ class TransactionUtils
 
         $ref_number = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $acc_trans_mapping->note = '';
+        $sourceTypeAr = $transaction->type === 'purchases' ? 'مشتريات' : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
+        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية دفع/تحصيل ({$sourceTypeAr}) رقم {$transaction->ref_no} - سند {$payment_ref_no}.";
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
-        $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->is_manual = 0;
+        $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
         $acc_trans_mapping->save();
         $acc_trans_mapping_id = $acc_trans_mapping->id;
 
@@ -263,6 +266,8 @@ class TransactionUtils
             $transactionPayment->amount = $request->paid_amount;
             $accountUtil->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
         }
+
+        AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
 
         return true;
     }

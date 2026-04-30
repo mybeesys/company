@@ -10,6 +10,7 @@
 
 
     <section class="content">
+        @include('accounting::reports.partials.inventory_policy_notice')
         <div class="row">
             <!-- Date Range Filter -->
             <div class="col-md-12 mt-12">
@@ -44,11 +45,28 @@
                             </div>
                         </div>
                         <div class="col-md-3">
+                            <label for="with_zero_balances" class="form-label">@lang('accounting::lang.balance')</label>
+                            <select name="with_zero_balances" id="with_zero_balances" class="form-control">
+                                <option value="0" @selected(($with_zero_balances ?? 0) == 0)>@lang('accounting::lang.without_zero_balances')</option>
+                                <option value="1" @selected(($with_zero_balances ?? 0) == 1)>@lang('accounting::lang.with_zero_balances')</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
+                            <button type="button" id="balanceSheetExportPdf" class="btn btn-light-primary">PDF</button>
+                            <button type="button" id="balanceSheetExportExcel" class="btn btn-light-success">Excel</button>
                         </div>
                     </div>
                 </form>
 
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <div class="alert {{ ($difference ?? 0) < 0.005 ? 'alert-success' : 'alert-warning' }} py-2 mb-2">
+                    <strong>@lang('accounting::lang.balance'):</strong> {{ $balance_status ?? '-' }}
+                    <span class="mx-2">|</span>
+                    <strong>@lang('accounting::lang.difference'):</strong> @format_currency($difference ?? 0)
+                </div>
             </div>
 
             <div class="col-md-12 my-4">
@@ -69,11 +87,9 @@
                                         <td class="align-top pe-4" style="border-right: 1px solid #eee;">
                                             <div class="d-flex flex-column h-100">
                                                 <table class="table table-hover table-borderless mb-0">
-                                                    @php $total_assets = 0; @endphp
                                                     @foreach ($assets as $asset)
-                                                        @php $total_assets += $asset->balance; @endphp
                                                         <tr class="border-bottom">
-                                                            <td class="ps-3 py-2 fw-semibold">{{ $asset->name_ar }}</td>
+                                                            <td class="ps-3 py-2 fw-semibold">{{ app()->getLocale() == 'ar' ? $asset->name_ar : $asset->name_en }}</td>
                                                             <td class="text-end pe-3 py-2">@format_currency($asset->balance)</td>
                                                         </tr>
                                                     @endforeach
@@ -84,18 +100,15 @@
                                         <td class="align-top ps-4">
                                             <div class="d-flex flex-column h-100">
                                                 <table class="table table-hover table-borderless mb-0">
-                                                    @php $total_liab_owners = 0; @endphp
                                                     @foreach ($liabilities as $liability)
-                                                        @php $total_liab_owners += $liability->balance; @endphp
                                                         <tr class="border-bottom">
-                                                            <td class="ps-3 py-2 fw-semibold">{{ $liability->name_ar }}</td>
+                                                            <td class="ps-3 py-2 fw-semibold">{{ app()->getLocale() == 'ar' ? $liability->name_ar : $liability->name_en }}</td>
                                                             <td class="text-end pe-3 py-2">@format_currency($liability->balance)</td>
                                                         </tr>
                                                     @endforeach
                                                     @foreach ($equities as $equity)
-                                                        @php $total_liab_owners += $equity->balance; @endphp
                                                         <tr class="border-bottom">
-                                                            <td class="ps-3 py-2 fw-semibold">{{ $equity->name_ar }}</td>
+                                                            <td class="ps-3 py-2 fw-semibold">{{ app()->getLocale() == 'ar' ? $equity->name_ar : $equity->name_en }}</td>
                                                             <td class="text-end pe-3 py-2">@format_currency($equity->balance)</td>
                                                         </tr>
                                                     @endforeach
@@ -131,46 +144,39 @@
 @section('script')
 
     <script>
+        const balanceSheetExportPdfUrl = '{{ route('balance-sheet-export-pdf') }}';
+        const balanceSheetExportExcelUrl = '{{ route('balance-sheet-export-excel') }}';
+
+        function buildBalanceSheetQuery() {
+            const params = new URLSearchParams();
+            const startDate = $('input[name="start_date"]').val();
+            const endDate = $('input[name="end_date"]').val();
+            const withZeroBalances = $('#with_zero_balances').val();
+            const costCenters = $('#choose_cost_center_select').val() || [];
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (withZeroBalances !== null) params.append('with_zero_balances', withZeroBalances);
+            costCenters.forEach(function(value) {
+                params.append('choose_cost_center_select[]', value);
+            });
+            return params.toString();
+        }
+
         $(document).ready(function() {
             $('#choose_cost_center_select').select2();
+            $('#with_zero_balances').select2();
 
-        });
-        $(document).ready(function() {
-
-            dateRangeSettings.startDate = moment('{{ $start_date }}');
-            dateRangeSettings.endDate = moment('{{ $end_date }}');
-
-            $('#date_range_filter').daterangepicker(
-                dateRangeSettings,
-                function(start, end) {
-                    $('#date_range_filter').val(start.format(moment_date_format) + ' ~ ' + end.format(
-                        moment_date_format));
-                    apply_filter();
-                }
-            );
-            $('#date_range_filter').on('cancel.daterangepicker', function(ev, picker) {
-                $('#date_range_filter').val('');
-                apply_filter();
+            $('#balanceSheetExportPdf').on('click', function() {
+                const query = buildBalanceSheetQuery();
+                window.open(balanceSheetExportPdfUrl + '?' + query, '_blank');
             });
 
-            function apply_filter() {
-                var start = '';
-                var end = '';
+            $('#balanceSheetExportExcel').on('click', function() {
+                const query = buildBalanceSheetQuery();
+                window.location.href = balanceSheetExportExcelUrl + '?' + query;
+            });
 
-                if ($('#date_range_filter').val()) {
-                    start = $('input#date_range_filter')
-                        .data('daterangepicker')
-                        .startDate.format('YYYY-MM-DD');
-                    end = $('input#date_range_filter')
-                        .data('daterangepicker')
-                        .endDate.format('YYYY-MM-DD');
-                }
-
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.set('start_date', start);
-                urlParams.set('end_date', end);
-                window.location.search = urlParams;
-            }
         });
     </script>
 

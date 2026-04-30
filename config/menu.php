@@ -206,6 +206,11 @@ return [
                 'permission' => 'sales.Sell invoices.show',
             ],
             [
+                'name' => 'sales_favorites',
+                'url' => 'sales-favorites',
+                'permission' => 'sales.Sell invoices.show',
+            ],
+            [
                 'name' => 'sell-return',
                 'url' => 'sell-return',
                 'permission' => 'sales.Sell returns.show',
@@ -246,6 +251,11 @@ return [
             [
                 'name' => 'purchase_invoices',
                 'url' => 'purchase-invoices',
+                'permission' => 'purchases.Purchase invoices.show',
+            ],
+            [
+                'name' => 'purchases_favorites',
+                'url' => 'purchases-favorites',
                 'permission' => 'purchases.Purchase invoices.show',
             ],
             [
@@ -429,16 +439,10 @@ return [
     ],
     [
         'name' => 'screen_module',
-        'url' => '/',
+        'url' => 'main',
         'icon' => 'fas fa-desktop',
         'permission' => 'screen_module.all.show',
-        'subMenu' => [
-            [
-                'name' => 'main',
-                'url' => 'main',
-                'permission' => 'screen_module.all.show',
-            ],
-        ]
+        'subMenu' => []
     ],
     [
         'name' => 'reports_module',

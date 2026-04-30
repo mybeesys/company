@@ -69,6 +69,8 @@ return [
 
     'po_status' => 'حالة الطالب',
 
+    'add_receipt' => 'سند قبض',
+
 
 
 

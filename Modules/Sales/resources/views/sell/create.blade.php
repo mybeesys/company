@@ -218,6 +218,9 @@
 @stop
 
 @section('script')
+    <script>
+        window.invoicePrecheckConfig = @json($invoicePrecheckConfig ?? []);
+    </script>
     <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
@@ -226,7 +229,7 @@
 
     <script>
         let salesRowIndex = 1;
-        const allowSaleWithoutStock = @json(auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create'));
+        const allowSaleWithoutStock = @json($allowSaleWithoutStock ?? false);
 
       $("#addSalesRow").on("click", function() {
     salesRowIndex++;

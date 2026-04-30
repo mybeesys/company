@@ -65,6 +65,7 @@ return [
     'sales' => 'المبيعات',
     'clients' => 'العملاء',
     'invoices' => 'فواتيير المبيعات',
+    'sales_favorites' => 'مفضلة المبيعات',
     'purchases' => 'المشتريات',
     'suppliers' => 'الموردين',
 
@@ -77,6 +78,7 @@ return [
     'transfer' => 'تحويل المخزون',
 
     'purchase_invoices' => 'فواتير الشراء',
+    'purchases_favorites' => 'مفضلة المشتريات',
     'general_setting' => 'الإعدادات العامة',
     'setting' => 'إعدادات',
     'taxes' => 'الضرائب',

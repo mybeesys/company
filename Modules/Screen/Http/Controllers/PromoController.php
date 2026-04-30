@@ -30,7 +30,7 @@ class PromoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'promo' => ['required', 'mimes:jpeg,png,mp4', 'max:120000'],
+            'promo' => ['required', 'mimes:jpeg,jpg,png,mp4,mov,avi,webm,mkv', 'max:120000'],
         ]);
         try {
             $action = new PromoActions();

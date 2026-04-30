@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CentralAppAuthenticate;
+use App\Http\Middleware\CleanJsonNoiseMiddleware;
 use App\Http\Middleware\EnsureHasSubscription;
 use App\Http\Middleware\LocalizationMiddleware;
 use App\Http\Middleware\SetApiLocale;
@@ -22,11 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->web(append: [
             LocalizationMiddleware::class,
-            EnsureHasSubscription::class
+            EnsureHasSubscription::class,
+            CleanJsonNoiseMiddleware::class,
         ]);
         $middleware->api(append: [
             SetApiLocale::class,
-            EnsureHasSubscription::class
+            EnsureHasSubscription::class,
+            CleanJsonNoiseMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

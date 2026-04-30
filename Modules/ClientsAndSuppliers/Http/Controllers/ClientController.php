@@ -12,6 +12,8 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Country;
+use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionPayments;
 use Modules\Sales\Utils\SalesUtile;
 
 class ClientController extends Controller
@@ -287,6 +289,52 @@ class ClientController extends Controller
         if (!$contact) {
             return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
         }
+
+        $isSupplier = $contact->business_type !== 'customer';
+        $invoiceTypes = $isSupplier ? ['purchases', 'purchases-return'] : ['sell', 'sell-return'];
+
+        $invoicesQuery = Transaction::query()
+            ->where('contact_id', $contact->id)
+            ->whereIn('type', $invoiceTypes)
+            ->where('status', 'approved');
+
+        $totals = (clone $invoicesQuery)
+            ->selectRaw('COUNT(*) as invoices_count')
+            ->selectRaw("SUM(CASE WHEN payment_status IN ('due','partial') THEN 1 ELSE 0 END) as open_invoices_count")
+            ->selectRaw('COALESCE(SUM(final_total),0) as invoices_total')
+            ->first();
+
+        $paidTotal = TransactionPayments::query()
+            ->whereIn('transaction_id', (clone $invoicesQuery)->select('id'))
+            ->sum('amount');
+
+        $paidTotal = (float) $paidTotal;
+        $invoicesTotal = (float) ($totals->invoices_total ?? 0);
+        $outstandingTotal = max(0, $invoicesTotal - $paidTotal);
+
+        $ageingBase = "COALESCE(due_date, transaction_date)";
+        $ageing = (clone $invoicesQuery)
+            ->whereIn('payment_status', ['due', 'partial'])
+            ->selectRaw("COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), $ageingBase) BETWEEN 0 AND 30 THEN final_total ELSE 0 END),0) as b0_30")
+            ->selectRaw("COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), $ageingBase) BETWEEN 31 AND 60 THEN final_total ELSE 0 END),0) as b31_60")
+            ->selectRaw("COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), $ageingBase) BETWEEN 61 AND 90 THEN final_total ELSE 0 END),0) as b61_90")
+            ->selectRaw("COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), $ageingBase) > 90 THEN final_total ELSE 0 END),0) as b90_plus")
+            ->first();
+
+        $recentInvoices = (clone $invoicesQuery)
+            ->orderByDesc('transaction_date')
+            ->limit(5)
+            ->get(['id', 'ref_no', 'type', 'transaction_date', 'due_date', 'payment_status', 'final_total']);
+
+        $recentPayments = TransactionPayments::query()
+            ->with(['transaction', 'account'])
+            ->where('payment_for', $contact->id)
+            ->orderByDesc('paid_on')
+            ->limit(5)
+            ->get();
+
+        $viewAllInvoicesUrl = $isSupplier ? route('purchase-invoices') : route('invoices');
+        $viewAllPaymentsUrl = $isSupplier ? route('suppliers-receipts') : route('receipts');
         $country_bank = null;
         $country_billingAddress = null;
         $country_shippingAddress = null;
@@ -308,7 +356,24 @@ class ClientController extends Controller
         $next = Contact::where('id', '>', $id)->where('business_type', $contact->business_type)->orderBy('id', 'asc')->first();
         $clients = Contact::where('business_type', $contact->business_type)->get();
 
-        return view('clientsandsuppliers::Client.show.show', compact('contact', 'clients', 'previous', 'next', 'country_bank', 'country_billingAddress', 'country_shippingAddress'));
+        return view('clientsandsuppliers::Client.show.show', compact(
+            'contact',
+            'clients',
+            'previous',
+            'next',
+            'country_bank',
+            'country_billingAddress',
+            'country_shippingAddress',
+            'isSupplier',
+            'totals',
+            'paidTotal',
+            'outstandingTotal',
+            'ageing',
+            'recentInvoices',
+            'recentPayments',
+            'viewAllInvoicesUrl',
+            'viewAllPaymentsUrl'
+        ));
     }
 
 

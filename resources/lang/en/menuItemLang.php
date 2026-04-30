@@ -68,6 +68,7 @@ return [
     'sales' => 'Sales',
     'clients' => 'Clients',
     'invoices' => 'Invoices',
+    'sales_favorites' => 'Sales Favorites',
     'purchases' => 'Purchases',
     'suppliers' => 'Suppliers',
 
@@ -80,6 +81,7 @@ return [
     'waste' => 'Destroying items',
     'transfer' => 'Stock Transfer',
     'purchase_invoices' => 'Purchase Invoices',
+    'purchases_favorites' => 'Purchases Favorites',
     'general_setting' => 'General Settings',
     'setting' => 'Settings',
     'taxes' => 'Taxes',

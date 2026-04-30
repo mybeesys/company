@@ -2,14 +2,8 @@
     <!--begin::Tab nav-->
     <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold" role="tablist">
         <li class="nav-item" role="presentation">
-            <a id="account_tab" class="nav-link justify-content-center fs-3  text-active-gray-800 active"
-                data-bs-toggle="tab" role="tab" href="#account" aria-selected="true">
-                @lang('clientsandsuppliers::fields.1')
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a id="Billing_tab" class="nav-link justify-content-center fs-3 text-active-gray-800" data-bs-toggle="tab"
-                role="tab" href="#Billing" aria-selected="false" tabindex="-1">
+            <a id="Billing_tab" class="nav-link justify-content-center fs-3 text-active-gray-800 active" data-bs-toggle="tab"
+                role="tab" href="#Billing" aria-selected="true">
                 @lang('clientsandsuppliers::fields.2')
 
             </a>
@@ -40,14 +34,7 @@
 </div>
 
 <div class="tab-content">
-    <div id="account" class="card-body p-0 tab-pane fade show active" role="tabpanel"
-        aria-labelledby="account_tab">
-        @include('clientsandsuppliers::Client.empty-data')
-    </div>
-</div>
-
-<div class="tab-content">
-    <div id="Billing" class="card-body p-0 tab-pane fade show" role="tabpanel" aria-labelledby="Billing_tab">
+    <div id="Billing" class="card-body p-0 tab-pane fade show active" role="tabpanel" aria-labelledby="Billing_tab">
 
         @if ($contact->sales->isEmpty())
         @include('clientsandsuppliers::Client.empty-data')

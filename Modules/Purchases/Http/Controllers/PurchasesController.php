@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Mpdf\Mpdf;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -25,6 +28,7 @@ use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Sales\Utils\SalesUtile;
 
 class PurchasesController extends Controller
@@ -34,140 +38,297 @@ class PurchasesController extends Controller
      */
 
 
-    public function purchaseDashbord()
+    public function purchaseDashbord(Request $request)
     {
-        $today = \Carbon\Carbon::today();
-        $yesterday = \Carbon\Carbon::yesterday();
+        $data = $this->buildPurchaseDashboardData($request);
+        return view('purchases::purchases.dashboard', $data);
+    }
 
-        $todaySales = Transaction::where('type', 'purchases')
-            ->whereDate('transaction_date', $today)
-            ->sum('final_total');
-
-        $yesterdaySales = Transaction::where('type', 'purchases')
-            ->whereDate('transaction_date', $yesterday)
-            ->sum('final_total');
-
-        $dailyChangePercent =
-            $yesterdaySales != 0 ? round((($todaySales - $yesterdaySales) / $yesterdaySales) * 100, 2) : 0;
-
-        $formattedTodaySales = number_format($todaySales);
-
-        $salesTypes = Transaction::select('type', DB::raw('SUM(final_total) as total'))
-            ->groupBy('type')
-            ->get();
-        $monthlyTrend = Transaction::selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
-            ->whereYear('transaction_date', date('Y'))
-            ->groupBy('month')
-            ->get();
-
-        $stats = Transaction::where('type', 'sell')->selectRaw('COUNT(*) as total_invoices')
-            ->selectRaw('SUM(final_total) / COUNT(*) as average_invoice')
-            ->selectRaw('COUNT(DISTINCT contact_id) as active_customers')
-            ->whereBetween('transaction_date', [now()->startOfMonth(), now()])
-            ->first();
-
-
-        $monthlySales = Transaction::where('type', 'purchases')
-            ->selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
-            ->whereYear('transaction_date', date('Y'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        $salesData = [];
-        $months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $monthSales = $monthlySales->firstWhere('month', $i);
-            $salesData[] = $monthSales ? $monthSales->total : 0;
-
-            $months[] = __(date('F', mktime(0, 0, 0, $i, 1)));
+    public function purchaseDashboardExportCsv(Request $request)
+    {
+        $data = $this->buildPurchaseDashboardData($request);
+        $rows = [];
+        $rows[] = ['KPI', 'Value'];
+        $rows[] = ['Period Purchases', (string) $data['periodPurchases']];
+        $rows[] = ['Purchases Growth %', (string) $data['purchasesGrowth']];
+        $rows[] = ['Invoices Count', (string) $data['periodInvoices']];
+        $rows[] = ['Average Invoice', (string) $data['avgInvoice']];
+        $rows[] = ['Active Suppliers', (string) $data['activeSuppliers']];
+        $rows[] = ['Total Due', (string) $data['dueAmount']];
+        $rows[] = ['Overdue Amount', (string) $data['overdueAmount']];
+        $rows[] = ['Total Paid', (string) ($data['paymentsStats']->total_paid ?? 0)];
+        $rows[] = ['Payment Vouchers', (string) ($data['paymentsStats']->total_payments ?? 0)];
+        $rows[] = ['Purchase Returns Count', (string) ($data['purchaseReturnStats']->total_count ?? 0)];
+        $rows[] = ['Purchase Returns Amount', (string) ($data['purchaseReturnStats']->total_amount ?? 0)];
+        $rows[] = ['Purchase Orders Count', (string) ($data['purchaseOrderStats']->total_count ?? 0)];
+        $rows[] = ['Purchase Orders Amount', (string) ($data['purchaseOrderStats']->total_amount ?? 0)];
+        $rows[] = ['Favorites Count', (string) ($data['favoritesStats']->total_count ?? 0)];
+        $rows[] = ['Favorites Amount', (string) ($data['favoritesStats']->total_amount ?? 0)];
+        $rows[] = [];
+        $rows[] = ['Payment Methods'];
+        $rows[] = ['Method', 'Total'];
+        foreach ($data['paymentMethods'] as $methodRow) {
+            $rows[] = [
+                $this->localizedPaymentMethod((string) ($methodRow->method ?? '')),
+                (string) ($methodRow->total ?? 0),
+            ];
+        }
+        $rows[] = [];
+        $rows[] = ['Top Purchased Products'];
+        $rows[] = ['Name AR', 'Name EN', 'Qty', 'Amount'];
+        foreach ($data['topProducts'] as $p) {
+            $rows[] = [$p->name_ar ?? '', $p->name_en ?? '', (string) $p->total_qty, (string) $p->total_amount];
+        }
+        $rows[] = [];
+        $rows[] = ['Recent Transactions'];
+        $rows[] = ['Ref', 'Supplier', 'Type', 'Payment Status', 'Approval Status', 'Date', 'Total', 'Paid', 'Remaining'];
+        foreach ($data['transactions'] as $t) {
+            $rows[] = [
+                $t->ref_no ?? '',
+                $t->supplier_name ?? '',
+                $t->type ?? '',
+                $this->localizedPaymentStatus((string) ($t->payment_status ?? '')),
+                $this->localizedApprovalStatus((string) ($t->status ?? '')),
+                $t->transaction_date ?? '',
+                (string) $t->final_total,
+                (string) $t->paid_amount,
+                (string) $t->remaining_amount
+            ];
         }
 
-        $transactions = Transaction::whereIn('type', ['purchases', 'purchases-order', 'purchases-return'])->latest()
-            ->take(10)
-            ->get();
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        }, 'purchase-dashboard-report.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
 
+    public function purchaseDashboardExportPdf(Request $request)
+    {
+        $data = $this->buildPurchaseDashboardData($request);
+        $html = view('purchases::purchases.dashboard_export_pdf', $data)->render();
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 8,
+            'margin_right' => 8,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf')
+        ]);
+        $mpdf->WriteHTML($html);
 
+        return $mpdf->Output('purchase-dashboard-report.pdf', 'D');
+    }
 
-        $receiptsStats = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['purchases']);
-            });
-        })
+    private function buildPurchaseDashboardData(Request $request): array
+    {
+        $validStatuses = ['approved', 'final'];
+        $startDate = $request->filled('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : now()->startOfMonth()->startOfDay();
+        $endDate = $request->filled('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : now()->endOfDay();
+        if ($endDate->lt($startDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+        $periodDays = max(1, $startDate->diffInDays($endDate) + 1);
+        $prevStart = $startDate->copy()->subDays($periodDays)->startOfDay();
+        $prevEnd = $startDate->copy()->subDay()->endOfDay();
 
-            ->selectRaw(
-                '
-    COUNT(*) as total_receipts,
-    SUM(amount) as total_collected,
-    SUM(CASE WHEN MONTH(paid_on) = MONTH(CURRENT_DATE()) THEN amount ELSE 0 END) as monthly_collected,
-    SUM(CASE WHEN is_return = 1 THEN amount ELSE 0 END) as returned_amount
-',
-            )
+        $paymentsSub = DB::table('transaction_payments')
+            ->selectRaw('transaction_id, SUM(IF(is_return = 1, -1 * amount, amount)) as paid_total')
+            ->groupBy('transaction_id');
+        $purchaseBase = Transaction::query()->where('type', 'purchases')->whereIn('status', $validStatuses);
+
+        $periodPurchases = (clone $purchaseBase)->whereBetween('transaction_date', [$startDate, $endDate])->sum('final_total');
+        $prevPurchases = (clone $purchaseBase)->whereBetween('transaction_date', [$prevStart, $prevEnd])->sum('final_total');
+        $purchasesGrowth = $prevPurchases > 0 ? round((($periodPurchases - $prevPurchases) / $prevPurchases) * 100, 2) : ($periodPurchases > 0 ? 100 : 0);
+        $periodInvoices = (clone $purchaseBase)->whereBetween('transaction_date', [$startDate, $endDate])->count();
+        $avgInvoice = $periodInvoices > 0 ? $periodPurchases / $periodInvoices : 0;
+        $activeSuppliers = (clone $purchaseBase)->whereBetween('transaction_date', [$startDate, $endDate])->distinct('contact_id')->count('contact_id');
+
+        $periodPurchaseQuery = DB::table('transactions as t')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->where('t.type', 'purchases')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate]);
+        $overdueAmount = (clone $periodPurchaseQuery)->whereDate('t.due_date', '<', now()->toDateString())->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as overdue')->value('overdue') ?? 0;
+        $dueAmount = (clone $periodPurchaseQuery)->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as due')->value('due') ?? 0;
+
+        $paymentsStats = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
+            ->selectRaw('COUNT(*) as total_payments, SUM(amount) as total_paid')
+            ->first();
+        $purchaseReturnStats = Transaction::query()
+            ->where('type', 'purchases-return')
+            ->whereIn('status', $validStatuses)
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $purchaseOrderStats = Transaction::query()
+            ->where('type', 'purchases-order')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $favoritesStats = Transaction::query()
+            ->whereIn('type', ['purchases', 'purchases-return', 'purchases-order'])
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
             ->first();
 
-        $recentReceipts = TransactionPayments::with(['transaction', 'account'])
-            ->where(function ($q) {
-                $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                    $q->whereIn('type', ['purchases']);
-                });
-            })
+        $months = collect(range(5, 0))
+            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->push(now()->format('Y-m'))
+            ->values();
+        $purchaseMonthly = (clone $purchaseBase)
+            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as month_key, SUM(final_total) as total")
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+        $paymentsMonthly = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->selectRaw("DATE_FORMAT(paid_on, '%Y-%m') as month_key, SUM(amount) as total")
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+        $monthLabels = [];
+        $purchaseData = [];
+        $paymentData = [];
+        foreach ($months as $month) {
+            $monthLabels[] = Carbon::createFromFormat('Y-m', $month)->translatedFormat('M Y');
+            $purchaseData[] = (float) ($purchaseMonthly[$month] ?? 0);
+            $paymentData[] = (float) ($paymentsMonthly[$month] ?? 0);
+        }
 
-            ->where('payment_type', '!=', 'is_return')
-            ->orderBy('paid_on', 'desc')
-            ->take(10)
-            ->get();
-
-        $monthlyCollections = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['purchases']);
-            });
-        })
-            ->selectRaw(
-                '
-    MONTH(paid_on) as month,
-    SUM(amount) as total
-',
-            )
-            ->where('payment_type', '!=', 'is_return')
-            ->whereYear('paid_on', date('Y'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        $paymentMethods = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['sell']);
-            });
-        })
-            ->selectRaw(
-                '
-    method,
-    SUM(amount) as total
-',
-            )
-            ->where('payment_type', '!=', 'is_return')
+        $paymentMethods = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->selectRaw('method, SUM(amount) as total')
             ->groupBy('method')
+            ->orderByDesc('total')
             ->get();
 
-        $monthNames = $monthlyCollections->map(function ($item) {
-            return __(date('F', mktime(0, 0, 0, $item->month, 1)));
-        });
+        $topProducts = TransactionePurchasesLine::query()
+            ->join('transactions as t', 't.id', '=', 'transactione_purchases_lines.transaction_id')
+            ->join('product_products as p', 'p.id', '=', 'transactione_purchases_lines.product_id')
+            ->where('t.type', 'purchases')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->groupBy('transactione_purchases_lines.product_id', 'p.name_ar', 'p.name_en')
+            ->selectRaw('p.name_ar, p.name_en, SUM(transactione_purchases_lines.qyt) as total_qty, SUM(transactione_purchases_lines.total_before_vat) as total_amount')
+            ->orderByDesc('total_amount')
+            ->limit(10)
+            ->get();
 
+        $transactions = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->whereIn('t.type', ['purchases', 'purchases-order', 'purchases-return'])
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as supplier_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
+            ->orderByDesc('t.id')
+            ->limit(10)
+            ->get();
 
-        return view('purchases::purchases.dashboard', compact(
-            'months',
-            'monthNames',
+        $recentPayments = TransactionPayments::with(['transaction', 'client'])
+            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->orderByDesc('paid_on')
+            ->limit(10)
+            ->get();
+        $recentPurchaseReturns = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->where('t.type', 'purchases-return')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as supplier_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
+        $recentPurchaseOrders = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->where('t.type', 'purchases-order')
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as supplier_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
+        $recentFavoritePurchases = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->whereIn('t.type', ['purchases', 'purchases-return', 'purchases-order'])
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('favorite_bills as f')
+                    ->whereColumn('f.transaction_id', 't.id')
+                    ->where('f.user_id', Auth::id());
+            })
+            ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as supplier_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
+
+        return compact(
+            'startDate',
+            'endDate',
+            'periodPurchases',
+            'purchasesGrowth',
+            'periodInvoices',
+            'avgInvoice',
+            'activeSuppliers',
+            'overdueAmount',
+            'dueAmount',
+            'paymentsStats',
+            'purchaseReturnStats',
+            'purchaseOrderStats',
+            'favoritesStats',
+            'monthLabels',
+            'purchaseData',
+            'paymentData',
             'paymentMethods',
-            'monthlyCollections',
-            'recentReceipts',
-            'receiptsStats',
+            'topProducts',
             'transactions',
-            'salesData',
-            'stats',
-            'dailyChangePercent',
-            'yesterdaySales',
-            'formattedTodaySales'
-        ));
+            'recentPayments',
+            'recentPurchaseReturns',
+            'recentPurchaseOrders',
+            'recentFavoritePurchases'
+        );
+    }
+
+    private function localizedPaymentMethod(string $method): string
+    {
+        if (app()->getLocale() !== 'ar') {
+            return $method ?: '--';
+        }
+        $map = [
+            'cash' => 'نقدي',
+            'card' => 'بطاقة',
+            'bank_transfer' => 'تحويل بنكي',
+            'bank' => 'بنك',
+            'cheque' => 'شيك',
+            'check' => 'شيك',
+            'credit' => 'آجل',
+            'due' => 'آجل',
+            'wallet' => 'محفظة',
+        ];
+        $key = strtolower(trim($method));
+        return $map[$key] ?? ($method ?: '--');
+    }
+
+    private function localizedPaymentStatus(string $status): string
+    {
+        $key = strtolower(trim($status));
+        if ($key === 'paid') return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
+        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        return app()->getLocale() === 'ar' ? 'غير مدفوع' : 'Unpaid';
+    }
+
+    private function localizedApprovalStatus(string $status): string
+    {
+        $key = strtolower(trim($status));
+        if (in_array($key, ['approved', 'final'], true)) return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        return app()->getLocale() === 'ar' ? 'مسودة' : 'Draft';
     }
 
     public function index(Request $request)
@@ -214,6 +375,43 @@ class PurchasesController extends Controller
         return view('purchases::purchases.index', compact('columns', 'page', 'clients', 'Latest_event', 'poes', 'transaction'));
     }
 
+    public function favorites(Request $request)
+    {
+        $transactionsQuery = Transaction::whereIn('type', ['purchases', 'purchases-return', 'purchases-order'])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+
+        if ($request->ajax()) {
+            $transactionsQuery
+                ->when($request->filled('transaction_type'), fn($query) => $query->where('type', $request->transaction_type))
+                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('due_date_range'), function ($query) use ($request) {
+                    $dueDateRange = trim($request->due_date_range);
+                    $dates = explode(' إلى ', $dueDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('due_date', [$dates[0], $dates[1]]);
+                    }
+                })
+                ->when($request->filled('sale_date_range'), function ($query) use ($request) {
+                    $saleDateRange = trim($request->sale_date_range);
+                    $dates = explode(' إلى ', $saleDateRange);
+                    if (count($dates) == 2) {
+                        $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
+                    }
+                });
+
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            return Transaction::getSellsTable($transactions);
+        }
+
+        $transaction = $transactionsQuery->get();
+        $columns = Transaction::getsPurchasesColumns();
+        $clients = Contact::where('business_type', 'supplier')->get();
+        $page = 'purchases';
+
+        return view('purchases::purchases.favorites', compact('columns', 'clients', 'transaction', 'page'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -239,6 +437,7 @@ class PurchasesController extends Controller
         $transaction = Transaction::find($po_id);
 
         $settings = Setting::getNotesAndTermsConditions();
+        $invoicePrecheckConfig = $this->buildPurchasesInvoicePrecheckConfig();
 
         $products = Product::where('active', 1)->take(25)->get();
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_purchases')->first();
@@ -246,7 +445,40 @@ class PurchasesController extends Controller
             $actionUtil = new ActionUtil();
             $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
         }
-        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
+    }
+
+    private function buildPurchasesInvoicePrecheckConfig(): array
+    {
+        $missing = [];
+        $purchasesAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
+        if (!$purchasesAccountId && !Setting::isPerpetualInventory()) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب المشتريات' : 'Purchases account';
+        }
+        if (!AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';
+        }
+        if (Setting::isPerpetualInventory()) {
+            $inventoryAccountId = AccountingAccount::query()
+                ->where('gl_code', '11105')
+                ->orWhere('account_category', 'inventory')
+                ->value('id');
+            if (!$inventoryAccountId && !$purchasesAccountId) {
+                $missing[] = app()->getLocale() === 'ar' ? 'حساب المخزون' : 'Inventory account';
+            }
+        }
+
+        return [
+            'missingAccounts' => $missing,
+            'messages' => [
+                'missingAccountsHeader' => app()->getLocale() === 'ar'
+                    ? 'إعدادات الحسابات غير مكتملة، يرجى مراجعة توجيه الحسابات:'
+                    : 'Accounting setup is incomplete, please review Accounts Routing:',
+                'missingUnit' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
+                    : 'Please select unit for each product before saving.',
+            ],
+        ];
     }
 
     /**
@@ -313,11 +545,12 @@ class PurchasesController extends Controller
 
         foreach ($products as $product) {
             $discount_type = $product->discount  ? $product->discount_type : null;
+            $resolvedUnitId = $this->resolvePurchaseUnitId((int) $product->products_id, $product->unit ?? null);
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
                 'qyt' => $product->qty,
-                'unit_id' => $product->unit,
+                'unit_id' => $resolvedUnitId,
                 'unit_price_before_discount' => $product->unit_price,
                 'unit_price' => $product->unit_price,
                 'discount_type' => $discount_type,
@@ -341,15 +574,36 @@ class PurchasesController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping();
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = '';
+            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مشتريات رقم {$transaction->ref_no}.";
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
-            $acc_trans_mapping->operation_date = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $acc_trans_mapping->is_manual = 0;
+            $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
 
             $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
             $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
+            $inventoryAssetAccount = AccountingAccount::where('gl_code', '11105')
+                ->orWhere('account_category', 'inventory')
+                ->first();
+            $purchasesTargetAccountId = Setting::isPerpetualInventory()
+                ? ($inventoryAssetAccount?->id ?? $purchases_purchase?->account_id)
+                : ($purchases_purchase?->account_id);
+            if (!$purchasesTargetAccountId) {
+                throw ValidationException::withMessages([
+                    'accounting' => app()->getLocale() === 'ar'
+                        ? 'مسار حساب المشتريات/المخزون غير مضبوط. يرجى ضبط توجيه الحسابات للمشتريات.'
+                        : 'Purchases/Inventory account routing is not configured. Please configure Accounts Routing.',
+                ]);
+            }
+            if (!$purchases_vat_calculation || !$purchases_vat_calculation->account_id) {
+                throw ValidationException::withMessages([
+                    'accounting' => app()->getLocale() === 'ar'
+                        ? 'حساب ضريبة المشتريات غير مضبوط في توجيه الحسابات.'
+                        : 'Purchases VAT account routing is not configured.',
+                ]);
+            }
 
             $client = Contact::find($request->client_id);
             $transactionPayment = new \stdClass();
@@ -371,7 +625,7 @@ class PurchasesController extends Controller
                 $request
             );
 
-            $transactionPayment->account_id = $purchases_purchase->account_id;
+            $transactionPayment->account_id = $purchasesTargetAccountId;
             $transactionPayment->amount = $transaction->total_before_tax;
 
             $accountUtil->saveAccountRouteTransaction(
@@ -392,6 +646,8 @@ class PurchasesController extends Controller
                 $acc_trans_mapping_id,
                 $request
             );
+
+            AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
 
@@ -501,5 +757,47 @@ class PurchasesController extends Controller
             'po_status' => $overallStatus,
             'products' => $productsStatus,
         ];
+    }
+
+    private function resolvePurchaseUnitId(int $productId, $rawUnit): ?int
+    {
+        if (is_null($rawUnit) || $rawUnit === '') {
+            $defaultTransferId = UnitTransfer::query()
+                ->where('product_id', $productId)
+                ->orderByDesc('default')
+                ->value('id');
+            if ($defaultTransferId) {
+                return (int) $defaultTransferId;
+            }
+
+            throw ValidationException::withMessages([
+                'products' => app()->getLocale() === 'ar'
+                    ? "لم يتم اختيار وحدة للصنف #{$productId} ولا يوجد وحدة افتراضية معرفة له."
+                    : "Unit is missing for product #{$productId} and no default unit is configured.",
+            ]);
+        }
+
+        if (is_numeric($rawUnit)) {
+            return (int) $rawUnit;
+        }
+
+        $rawUnit = trim((string) $rawUnit);
+        $unitTransferId = UnitTransfer::query()
+            ->where('product_id', $productId)
+            ->where(function ($q) use ($rawUnit) {
+                $q->where('unit1', $rawUnit)->orWhere('unit2', $rawUnit);
+            })
+            ->orderByDesc('default')
+            ->value('id');
+
+        if ($unitTransferId) {
+            return (int) $unitTransferId;
+        }
+
+        throw ValidationException::withMessages([
+            'products' => app()->getLocale() === 'ar'
+                ? "تعذر تحديد وحدة الصنف #{$productId}. يرجى اختيار وحدة صحيحة من القائمة."
+                : "Unable to resolve unit for product #{$productId}. Please choose a valid unit from list.",
+        ]);
     }
 }

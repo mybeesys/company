@@ -4,6 +4,8 @@ namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Employee\Models\Employee;
+use Modules\Establishment\Models\Establishment;
 // use Modules\Accounting\Database\Factories\PeriodicInventoryFactory;
 
 class PeriodicInventory extends Model
@@ -29,5 +31,15 @@ class PeriodicInventory extends Model
     public function adjustmentEntry()
     {
         return $this->belongsTo(AccountingAccTransMapping::class, 'adjustment_entry_id');
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class, 'establishment_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
     }
 }

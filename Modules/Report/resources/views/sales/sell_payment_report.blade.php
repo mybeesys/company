@@ -17,19 +17,48 @@
     .select2-container .select2-selection--multiple .select2-selection__rendered {
         white-space: normal !important;
     }
+
+    .report-page-shell .card {
+        border-radius: 14px;
+    }
+
+    .report-title-wrap h3 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .report-title-wrap .report-subtitle {
+        color: #99a1b7;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .report-filter-card {
+        border: 1px solid #eef1f5;
+        border-radius: 14px;
+        background: #fafcff;
+    }
+
+    .report-table-card {
+        border: 1px solid #eef1f5;
+        border-radius: 14px;
+        padding: 10px;
+        background: #fff;
+    }
 </style>
 @stop
 
 @section('content')
 
-<div class="tab-content" id="myTabContent">
+<div class="tab-content report-page-shell" id="myTabContent">
     <div class="tab-pane fade show active" id="kt_tab_pane_1" role="tabpanel">
 
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
                 <div class="card-title">
-                    <div class="d-flex align-items-center position-relative my-1">
+                    <div class="d-flex align-items-center position-relative my-1 report-title-wrap">
                         <h3>@lang('menuItemLang.sell-payment-report')</h3>
+                        <div class="report-subtitle">@lang('report::purchase.sell_payment_report_details')</div>
                     </div>
                 </div>
 
@@ -43,7 +72,7 @@
             </x-cards.card-header>
 
             {{-- Inline Filters --}}
-            <div class="card-body border-top p-5">
+            <div class="card-body border-top p-5 report-filter-card">
                 <form id="reportFilterForm">
                     <div class="row g-5">
                         <div class="col-md-6">
@@ -106,7 +135,7 @@
                 </form>
             </div>
 
-            <x-cards.card-body class="table-responsive">
+            <x-cards.card-body class="table-responsive report-table-card">
                 <x-tables.table :columns="$columns" model="ProductSales" module="report" :idColumn="false" />
             </x-cards.card-body>
         </div>

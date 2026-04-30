@@ -9,11 +9,15 @@ class PromoTable
 {
     public static function commonHtml($promo, $width = '')
     {
-        $html = '<div class="d-flex ' . $width . ' ' . 'gap-3 m-5 border border-gray-300 rounded px-5 py-3">
+        $thumbnailUrl = $promo->thumbnail
+            ? asset('storage/tenant' . tenancy()->tenant->id . '/' . $promo->thumbnail)
+            : asset('assets/media/icons/duotune/files/fil004.svg');
+
+        $html = '<div class="d-flex ' . $width . ' gap-3 m-5 border border-gray-300 rounded px-5 py-3">
                 <div style="width: 300px;">
                     <div class="my-auto">';
         $html .= '<div class="rounded" style="position: relative; width: 300px; aspect-ratio: 16 / 9; background-color: black; overflow: hidden;">
-                            <img src="' . asset('storage/tenant' . tenancy()->tenant->id . '/' . $promo->thumbnail) . '"
+                            <img src="' . $thumbnailUrl . '"
                                  alt="' . $promo->name . '"
                                  style="width: 100%; height: 100%; object-fit: contain; background-color: black;">
                         </div>';

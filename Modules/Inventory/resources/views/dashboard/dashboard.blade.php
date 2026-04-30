@@ -2,450 +2,256 @@
 @section('title', __('menuItemLang.inventory_dashboard'))
 
 @section('css')
-<style>
-
-    :root {
-        --primary-color: #a7b7ff;
-        --secondary-color: #4cc9f0;
-        --success-color: #92ffde;
-        --danger-color: #ff9595;
-        --warning-color: #ffc278;
-        --info-color: #7caeff;
-        --purple-color: #d493ff;
-        --indigo-color: #be95ff;
-        --text-dark: #212529;
-        --text-muted: #6c757d;
-        --bg-light: #f8f9fa;
-        --card-bg: #ffffff;
-        --border-color: #e9ecef;
-    }
-
-    body {
-        background-color: var(--bg-light);
-        color: var(--text-dark);
-        /* font-family: 'Tajawal', sans-serif; */
-        direction: rtl;
-        text-align: right;
-        overflow-x: hidden;
-    }
-
-    .container-fluid {
-        padding-top: 3rem;
-        padding-bottom: 3rem;
-    }
-
-    .card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    .card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-    }
-
-    .summary-card-v2 {
-        background-color: var(--card-bg);
-        border-radius: 16px;
-        padding: 30px;
-        display: flex;
-        align-items: center;
-        gap: 25px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .summary-card-v2 .icon-wrapper {
-        width: 70px;
-        height: 70px;
-        min-width: 70px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .summary-card-v2 .content {
-        flex-grow: 1;
-    }
-
-    .summary-card-v2 .title {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-    }
-
-    .summary-card-v2 .value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--text-dark);
-    }
-
-    .bg-primary-v2 {
-        background-color: var(--primary-color);
-    }
-
-    .bg-info-v2 {
-        background-color: var(--info-color);
-    }
-
-    .bg-success-v2 {
-        background-color: var(--success-color);
-    }
-
-    .bg-danger-v2 {
-        background-color: var(--danger-color);
-    }
-
-    .quick-actions-container {
-        padding: 40px;
-        background-color: var(--card-bg);
-        border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-        margin-bottom: 3rem;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-    }
-
-    .quick-action-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        color: white;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        padding: 20px;
-        border-radius: 12px;
-        min-width: 160px;
-        height: 120px;
-        position: relative;
-        overflow: hidden;
-        font-size: 1rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, var(--primary-color), var(--indigo-color));
-    }
-
-    .quick-action-btn:hover {
-        transform: translateY(-6px) scale(1.03);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    }
-
-    .bg-info-gradient {
-        background: linear-gradient(135deg, var(--info-color), #6acb9e);
-    }
-
-    .bg-danger-gradient {
-        background: linear-gradient(135deg, var(--danger-color), #cf878d);
-    }
-
-    .bg-success-gradient {
-        background: linear-gradient(135deg, var(--success-color), #78bda7);
-    }
-
-    .bg-primary-gradient {
-        background: linear-gradient(135deg, var(--primary-color), #997dc7);
-    }
-
-    .quick-action-btn .btn-icon {
-        font-size: 2.2rem;
-        margin-bottom: 12px;
-        opacity: 0.9;
-        color: white;
-    }
-
-    /* New and improved Inventory Stats Style */
-    .inventory-stats-list {
-        display: flex;
-        flex-wrap: wrap;
-        /* New: Allows items to wrap on smaller screens */
-        justify-content: space-between;
-        /* New: Spaces items out */
-        gap: 1rem;
-        padding: 0;
-        list-style: none;
-        margin: 0;
-    }
-
-    .inventory-item {
-        display: flex;
-        flex-direction: column;
-        /* New: changed to column for side-by-side layout */
-        flex-basis: 48%;
-        /* New: makes items sit next to each other */
-        align-items: flex-start;
-        gap: 15px;
-        padding: 1.25rem;
-        border-radius: 12px;
-        background-color: var(--bg-light);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    .inventory-item:hover {
-        transform: translateY(-3px);
-        background-color: #eef1f5;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .inventory-item::before {
-        content: '';
-        position: absolute;
-        right: 0;
-        top: 0;
-        height: 100%;
-        width: 6px;
-        border-radius: 0 12px 12px 0;
-        background-color: transparent;
-        transition: background-color 0.3s ease;
-    }
-
-    .inventory-item.highest-item::before {
-        background-color: var(--success-color);
-    }
-
-    .inventory-item.lowest-item::before {
-        background-color: var(--danger-color);
-    }
-
-    .inventory-item .icon {
-        font-size: 1.8rem;
-        min-width: 40px;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        /* New: added margin to separate icon from text */
-    }
-
-    .inventory-item.highest-item .icon {
-        color: var(--success-color);
-    }
-
-    .inventory-item.lowest-item .icon {
-        color: var(--danger-color);
-    }
-
-    .inventory-item .details {
-        flex-grow: 1;
-        text-align: right;
-    }
-
-    .inventory-item .details h6 {
-        margin-bottom: 0.25rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-    }
-
-    .inventory-item .details .quantity {
-        font-size: 0.95rem;
-        color: var(--text-muted);
-    }
-
-    .card-body h5.card-title {
-        font-weight: 700;
-        font-size: 1.5rem;
-    }
- .bg-primary {
-                background: linear-gradient(135deg, #decce2, #decce2);
-            }
-
-            .bg-success {
-                background: linear-gradient(135deg, #c8eddc, #6acb9e);
-            }
-
-            .bg-info {
-                background: linear-gradient(135deg, #cef3fb, #76c9db);
-            }
-
-            .bg-purple {
-                background: linear-gradient(135deg, #fff8cc, #e1d277);
-            }
-
-            .bg-indigo {
-                background: linear-gradient(135deg, #dfd2ff, #dfd2ff);
-            }
-
-            .bg-warning {
-                background: linear-gradient(135deg, #f7ccdd, #f7ccdd);
-            }
-    @media (max-width: 767px) {
-        .inventory-item {
-            flex-basis: 100%;
-            /* On small screens, items take up full width */
+    <style>
+        .inv-card { border: 0; border-radius: 14px; box-shadow: 0 6px 22px rgba(62,57,107,.08); }
+        .inv-kpi { border-radius: 14px; padding: 18px; border: 1px solid #edf1f6; height: 100%; background: #fff; }
+        .inv-kpi-title { color: #7e8299; font-size: 12px; margin-bottom: 8px; }
+        .inv-kpi-value { font-size: 28px; font-weight: 700; line-height: 1; color: #181c32; }
+        .inv-soft-blue { background: #f0f7ff; border-color: #d9e9fb; }
+        .inv-soft-purple { background: #f8f5ff; border-color: #e8dcff; }
+        .inv-soft-green { background: #f1faf6; border-color: #d7f3e8; }
+        .inv-soft-orange { background: #fff8f5; border-color: #ffe1d7; }
+        .inv-action {
+            display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;
+            min-height:95px; border:1px solid #eceff5; border-radius:12px; text-decoration:none; color:#181c32 !important;
+            background:#fff; transition:all .2s ease;
         }
-    }
-</style>
+        .inv-action:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(26,39,89,.1); }
+        .inv-alert { border-radius: 12px; border: 1px solid #ffd8d8; background: #fff6f6; padding: 14px 16px; }
+        .inv-filter { background: #f8f9fc; border: 1px solid #eceff5; border-radius: 12px; padding: 12px; }
+    </style>
 @endsection
 
 @section('content')
-
-<div class="container-fluid py-4">
-    <!-- Row to contain the cards -->
-    <div class="row g-4 mb-5">
-
-        <!-- Card for Warehouses -->
-        <div class="col-md-4 col-lg-3">
-            <div class="summary-card-v2">
-                <div class="icon-wrapper bg-primary-v2">
-                    <i class="fas fa-warehouse"></i>
+    <div class="container-fluid py-4">
+        <div class="card inv-card mb-6">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h3 class="mb-1">{{ app()->getLocale() === 'ar' ? 'لوحة تحكم المخزون' : 'Inventory Control Dashboard' }}</h3>
+                    <div class="text-muted">{{ app()->getLocale() === 'ar' ? 'مؤشرات رقابية للمخزون وحركات المستودعات مع تنبيهات المخاطر.' : 'Operational inventory KPIs with warehouse movement and risk alerts.' }}</div>
                 </div>
-                <div class="content">
-                    <h6 class="title">@lang('product::dashboard.warehouses_count')</h6>
-                    <h3 class="value text-primary">{{ $warehousesCount ?? 0  }}</h3>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('productInventory.index') }}" class="btn btn-primary">
+                        <i class="fas fa-box me-1"></i> {{ app()->getLocale() === 'ar' ? 'فتح شاشة المخزون' : 'Open Inventory Screen' }}
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Card for Transfers -->
-        <div class="col-md-4 col-lg-3">
-            <div class="summary-card-v2">
-                <div class="icon-wrapper bg-primary-v2">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <div class="content">
-                    <h6 class="title">@lang('product::dashboard.transfers_count')</h6>
-                    <h3 class="value text-primary">{{ $transferCount ?? 0 }}</h3>
-                </div>
+        <div class="card inv-card mb-6">
+            <div class="card-body">
+                <form method="GET" action="{{ route('inventory.dashboard') }}" class="inv-filter d-flex flex-wrap align-items-end gap-3">
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'المستودع' : 'Warehouse' }}</label>
+                        <select name="warehouse_id" class="form-select form-select-solid">
+                            <option value="">{{ app()->getLocale() === 'ar' ? 'الكل' : 'All' }}</option>
+                            @foreach($warehouses as $warehouse)
+                                <option value="{{ $warehouse->id }}" {{ (int) $selectedWarehouseId === (int) $warehouse->id ? 'selected' : '' }}>{{ $warehouse->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'من تاريخ' : 'From Date' }}</label>
+                        <input type="date" name="start_date" class="form-control form-control-solid" value="{{ $startDate->toDateString() }}">
+                    </div>
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'إلى تاريخ' : 'To Date' }}</label>
+                        <input type="date" name="end_date" class="form-control form-control-solid" value="{{ $endDate->toDateString() }}">
+                    </div>
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'نوع الحركة بالمخطط' : 'Chart Movement Type' }}</label>
+                        <select name="movement_type" class="form-select form-select-solid">
+                            <option value="all" {{ $movementType === 'all' ? 'selected' : '' }}>{{ app()->getLocale() === 'ar' ? 'الكل' : 'All' }}</option>
+                            <option value="prep" {{ $movementType === 'prep' ? 'selected' : '' }}>PREP</option>
+                            <option value="transfer" {{ $movementType === 'transfer' ? 'selected' : '' }}>TRANSFER</option>
+                            <option value="waste" {{ $movementType === 'waste' ? 'selected' : '' }}>WASTE</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
+                    <a href="{{ route('inventory.dashboard') }}" class="btn btn-light">{{ app()->getLocale() === 'ar' ? 'إعادة ضبط' : 'Reset' }}</a>
+                </form>
             </div>
         </div>
 
-        <!-- Card for Preparations -->
-        <div class="col-md-4 col-lg-3">
-            <div class="summary-card-v2">
-                <div class="icon-wrapper bg-primary-v2">
-                    <i class="fas fa-box-open"></i>
-                </div>
-                <div class="content">
-                    <h6 class="title">@lang('product::dashboard.preparations_count')</h6>
-                    <h3 class="value text-primary">{{ $prepCount ?? 0 }}</h3>
-                </div>
-            </div>
+        <div class="row g-4 mb-6">
+            <div class="col-md-6 col-xl-3"><div class="inv-kpi inv-soft-blue"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'عدد المستودعات' : 'Warehouses Count' }}</div><div class="inv-kpi-value">{{ $warehousesCount }}</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="inv-kpi inv-soft-purple"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'إجمالي كمية المخزون' : 'Total Stock Quantity' }}</div><div class="inv-kpi-value">{{ number_format($totalStockQuantity, 2) }}</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="inv-kpi inv-soft-green"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'تحويلات معتمدة' : 'Approved Transfers' }}</div><div class="inv-kpi-value">{{ $transferCount }}</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="inv-kpi inv-soft-orange"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'عمليات تجهيز معتمدة' : 'Approved Prep Ops' }}</div><div class="inv-kpi-value">{{ $prepCount }}</div></div></div>
         </div>
 
-        <!-- Card for Waste -->
-        <div class="col-md-4 col-lg-3">
-            <div class="summary-card-v2">
-                <div class="icon-wrapper bg-primary-v2">
-                    <i class="fas fa-dumpster"></i>
+        <div class="card inv-card mb-6">
+            <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'اتجاه الحركة الشهرية (Inbound / Outbound)' : 'Monthly Movement Trend (Inbound / Outbound)' }}</h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('inventory.dashboard.export.movement-csv', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'movement_type' => $movementType]) }}" class="btn btn-sm btn-light-primary">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </a>
+                    <a href="{{ route('inventory.dashboard.export.movement-pdf', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'movement_type' => $movementType]) }}" class="btn btn-sm btn-light-danger">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
                 </div>
-                <div class="content">
-                    <h6 class="title">@lang('product::dashboard.waste_count')</h6>
-                    <h3 class="value text-primary">{{ $wasteCount ?? 0 }}</h3>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-<div class="row g-4">
-    <div class="col-12">
-        <div class="quick-actions-container d-flex flex-wrap justify-content-center">
-            <a href="productInventory" class="quick-action-btn bg-info-gradient">
-                <div class="icon-wrapper">
-                    <i class="fas fa-box btn-icon"></i>
-                </div>
-                <span class="btn-label">@lang('product::dashboard.view_products')</span>
-            </a>
-            <a href="waste" class="quick-action-btn bg-danger-gradient">
-                <div class="icon-wrapper">
-                    <i class="fas fa-exclamation-circle btn-icon"></i>
-                </div>
-                <span class="btn-label">@lang('product::dashboard.damaged_products')</span>
-            </a>
-            <a href="transfer" class="quick-action-btn bg-primary-gradient">
-                <div class="icon-wrapper">
-                    <i class="fas fa-exchange-alt btn-icon"></i>
-                </div>
-                <span class="btn-label">@lang('product::dashboard.transfer_product')</span>
-            </a>
-            <a href="prep" class="quick-action-btn bg-success-gradient">
-                <div class="icon-wrapper">
-                    <i class="fas fa-mortar-pestle btn-icon"></i>
-                </div>
-                <span class="btn-label">@lang('product::dashboard.prepare_recipe')</span>
-            </a>
-        </div>
-    </div>
-</div>
-<div class="row g-4 mb-5">
-    <div class="col-12">
-        <div class="card h-100">
-            <div class="card-header bg-transparent py-4">
-                <h5 class="card-title mb-0">@lang('product::dashboard.inventory_overview')</h5>
             </div>
             <div class="card-body">
-                <div class="row g-4">
-                    @forelse($warehouses as $warehouse)
-                    <div class="col-lg-6">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5 class="card-title text-center text-primary mb-4">{{ $warehouse->name }}</h5>
+                <div id="inventory-movement-chart" style="height: 320px;"></div>
+            </div>
+        </div>
 
-                                <div class="inventory-stats-list">
-                                    <div class="inventory-item highest-item">
-                                        <div class="icon">
-                                            <i class="fas fa-arrow-up"></i>
-                                        </div>
-                                        <div class="details">
-                                            @if($warehouse->mostStockedProduct)
-                                            <h6 class="text-success">@lang('product::dashboard.highest_quantity')</h6>
-                                            <div class="product-name">
-                                                <strong>{{ $warehouse->mostStockedProduct->name_ar }}</strong>
-                                            </div>
-                                            <div class="quantity">
-                                                @lang('product::dashboard.quantity'): {{ $warehouse->mostStockedQuantity }}
-                                            </div>
-                                            @else
-                                            <p class="text-muted mb-0">@lang('product::dashboard.no_products')</p>
-                                            @endif
-                                        </div>
-                                    </div>
+        <div class="row g-4 mb-6">
+            <div class="col-md-4"><div class="inv-kpi"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'عمليات إتلاف معتمدة' : 'Approved Waste Ops' }}</div><div class="inv-kpi-value fs-2">{{ $wasteCount }}</div></div></div>
+            <div class="col-md-4"><div class="inv-kpi"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'منتجات برصيد سالب' : 'Negative Stock Items' }}</div><div class="inv-kpi-value fs-2 text-danger">{{ $negativeStockItemsCount }}</div></div></div>
+            <div class="col-md-4"><div class="inv-kpi"><div class="inv-kpi-title">{{ app()->getLocale() === 'ar' ? 'منتجات برصيد صفر' : 'Zero Stock Items' }}</div><div class="inv-kpi-value fs-2 text-warning">{{ $zeroStockItemsCount }}</div></div></div>
+        </div>
 
-                                    <div class="inventory-item lowest-item">
-                                        <div class="icon">
-                                            <i class="fas fa-arrow-down"></i>
-                                        </div>
-                                        <div class="details">
-                                            @if($warehouse->leastStockedProduct)
-                                            <h6 class="text-danger">@lang('product::dashboard.lowest_quantity')</h6>
-                                            <div class="product-name">
-                                                <strong>{{ $warehouse->leastStockedProduct->name_ar }}</strong>
-                                            </div>
-                                            <div class="quantity">
-                                                @lang('product::dashboard.quantity'): {{ $warehouse->leastStockedQuantity }}
-                                            </div>
+        <div class="inv-alert mb-6 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <div class="fw-bold">{{ app()->getLocale() === 'ar' ? 'تنبيه مخزون منخفض' : 'Low Stock Alert' }}</div>
+                <div class="text-muted">
+                    {{ app()->getLocale() === 'ar'
+                        ? "يوجد {$lowStockCount} عنصر أقل من حد التنبيه (Threshold)."
+                        : "{$lowStockCount} items are currently below threshold level." }}
+                </div>
+            </div>
+            <span class="badge {{ $lowStockCount > 0 ? 'badge-light-danger text-danger' : 'badge-light-success text-success' }}">
+                {{ $lowStockCount > 0 ? (app()->getLocale() === 'ar' ? 'يتطلب إجراء' : 'Action Required') : (app()->getLocale() === 'ar' ? 'سليم' : 'Healthy') }}
+            </span>
+        </div>
+
+        <div class="card inv-card mb-6">
+            <div class="card-header border-0 pt-5"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'إجراءات سريعة' : 'Quick Actions' }}</h5></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3"><a href="{{ route('productInventory.index') }}" class="inv-action"><i class="fas fa-box text-primary"></i><span>{{ app()->getLocale() === 'ar' ? 'عرض المخزون' : 'View Inventory' }}</span></a></div>
+                    <div class="col-6 col-md-3"><a href="{{ route('waste.index') }}" class="inv-action"><i class="fas fa-dumpster text-danger"></i><span>{{ app()->getLocale() === 'ar' ? 'إدارة الإتلاف' : 'Manage Waste' }}</span></a></div>
+                    <div class="col-6 col-md-3"><a href="{{ route('transfer.index') }}" class="inv-action"><i class="fas fa-exchange-alt text-info"></i><span>{{ app()->getLocale() === 'ar' ? 'إدارة التحويلات' : 'Manage Transfers' }}</span></a></div>
+                    <div class="col-6 col-md-3"><a href="{{ route('prep.index') }}" class="inv-action"><i class="fas fa-mortar-pestle text-success"></i><span>{{ app()->getLocale() === 'ar' ? 'عمليات التجهيز' : 'Prep Operations' }}</span></a></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-6">
+            <div class="col-lg-6">
+                <div class="card inv-card h-100">
+                    <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'أعلى/أقل رصيد لكل مستودع' : 'Top/Bottom Stock per Warehouse' }}</h5></div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead>
+                                <tr>
+                                    <th>{{ app()->getLocale() === 'ar' ? 'المستودع' : 'Warehouse' }}</th>
+                                    <th>{{ app()->getLocale() === 'ar' ? 'أعلى رصيد' : 'Highest' }}</th>
+                                    <th>{{ app()->getLocale() === 'ar' ? 'أقل رصيد' : 'Lowest' }}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($warehouses as $warehouse)
+                                    <tr>
+                                        <td class="fw-bold">{{ $warehouse->name }}</td>
+                                        <td>
+                                            @if($warehouse->mostStockedProductName)
+                                                <div>{{ $warehouse->mostStockedProductName }}</div>
+                                                <small class="text-success">{{ number_format($warehouse->mostStockedQuantity, 2) }}</small>
                                             @else
-                                            <p class="text-muted mb-0">@lang('product::dashboard.no_products')</p>
+                                                <span class="text-muted">--</span>
                                             @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        </td>
+                                        <td>
+                                            @if($warehouse->leastStockedProductName)
+                                                <div>{{ $warehouse->leastStockedProductName }}</div>
+                                                <small class="{{ $warehouse->leastStockedQuantity < 0 ? 'text-danger' : 'text-warning' }}">{{ number_format($warehouse->leastStockedQuantity, 2) }}</small>
+                                            @else
+                                                <span class="text-muted">--</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد مستودعات' : 'No warehouses found' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    @empty
-                    <div class="col-12">
-                        <div class="alert alert-info text-center">
-                            @lang('product::dashboard.no_warehouses')
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card inv-card h-100">
+                    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'أهم العناصر الحرجة (رصيد <= 0)' : 'Top Critical Items (Qty <= 0)' }}</h5>
+                        <a href="{{ route('inventory.dashboard.export.critical-items-csv', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-sm btn-light-primary">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead>
+                                <tr>
+                                    <th>{{ app()->getLocale() === 'ar' ? 'الصنف' : 'Item' }}</th>
+                                    <th>{{ app()->getLocale() === 'ar' ? 'المستودع' : 'Warehouse' }}</th>
+                                    <th class="text-center">{{ app()->getLocale() === 'ar' ? 'الرصيد' : 'Qty' }}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($topCriticalItems as $item)
+                                    <tr>
+                                        <td>{{ $item->name_ar ?: $item->name_en ?: '--' }}</td>
+                                        <td>{{ $item->warehouse_name }}</td>
+                                        <td class="text-center {{ $item->qty < 0 ? 'text-danger fw-bold' : 'text-warning fw-bold' }}">{{ number_format((float) $item->qty, 2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد عناصر حرجة حاليًا' : 'No critical items currently' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    @endforelse
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-</div>
 @endsection
 
 @section('script')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
+    <script>
+        const selectedMovementType = @json($movementType);
+        const monthLabels = @json($monthLabels);
+        const monthlyInbound = @json($monthlyInbound);
+        const monthlyOutbound = @json($monthlyOutbound);
+        const monthlyPrep = @json($monthlyPrep);
+        const monthlyTransfer = @json($monthlyTransfer);
+        const monthlyWaste = @json($monthlyWaste);
+
+        let chartSeries = [];
+        let chartColors = [];
+        if (selectedMovementType === 'prep') {
+            chartSeries = [{ name: "PREP", data: monthlyPrep }];
+            chartColors = ['#50CD89'];
+        } else if (selectedMovementType === 'transfer') {
+            chartSeries = [{ name: "TRANSFER", data: monthlyTransfer }];
+            chartColors = ['#009EF7'];
+        } else if (selectedMovementType === 'waste') {
+            chartSeries = [{ name: "WASTE", data: monthlyWaste }];
+            chartColors = ['#F1416C'];
+        } else {
+            chartSeries = [
+                { name: "{{ app()->getLocale() === 'ar' ? 'Inbound (PREP)' : 'Inbound (PREP)' }}", data: monthlyInbound },
+                { name: "{{ app()->getLocale() === 'ar' ? 'Outbound (TRANSFER + WASTE)' : 'Outbound (TRANSFER + WASTE)' }}", data: monthlyOutbound }
+            ];
+            chartColors = ['#50CD89', '#F1416C'];
+        }
+
+        const movementChart = new ApexCharts(document.querySelector('#inventory-movement-chart'), {
+            series: chartSeries,
+            chart: { type: 'line', height: 320, toolbar: { show: false }, fontFamily: 'Tajawal, sans-serif' },
+            stroke: { curve: 'smooth', width: [3, 3] },
+            markers: { size: 4 },
+            xaxis: { categories: monthLabels },
+            yaxis: { labels: { formatter: function(v){ return Math.round(v); } } },
+            tooltip: { y: { formatter: function(v){ return Math.round(v); } } },
+            colors: chartColors,
+            legend: { position: 'top', horizontalAlign: 'right' }
+        });
+        movementChart.render();
+    </script>
 @endsection

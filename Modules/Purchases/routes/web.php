@@ -31,7 +31,10 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
 
         Route::get('purchase-invoices', [PurchasesController::class, 'index'])->name('purchase-invoices');
+        Route::get('purchases-favorites', [PurchasesController::class, 'favorites'])->name('purchases-favorites');
         Route::get('purchase-dashbord', [PurchasesController::class, 'purchaseDashbord'])->name('purchase-dashbord');
+        Route::get('purchase-dashbord/export-csv', [PurchasesController::class, 'purchaseDashboardExportCsv'])->name('purchase-dashbord-export-csv');
+        Route::get('purchase-dashbord/export-pdf', [PurchasesController::class, 'purchaseDashboardExportPdf'])->name('purchase-dashbord-export-pdf');
         Route::get('create-purchases-invoice', [PurchasesController::class, 'create'])->name('create-purchases-invoice');
         Route::post('store-purchases-invoice', [PurchasesController::class, 'store'])->name('store-purchases-invoice');
 

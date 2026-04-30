@@ -35,6 +35,9 @@
       <div id="root" type="menuQR" 
       list-url="{{json_encode(route('order.products'))}}"
       custom-menus-url="{{ json_encode(route('reservation.menuQr.customMenus')) }}"
+      custom-menu-schedule-url-template="{{ json_encode(url('/menu-qr/custom-menus/__ID__/schedule')) }}"
+      menu-tokens-url="{{ json_encode(route('reservation.menuQr.tokens')) }}"
+      menu-token-update-url-template="{{ json_encode(url('/menu-qr/tokens/__ID__')) }}"
       logo-url ='/assets/media/logos/1-01.png'
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>

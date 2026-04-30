@@ -8,6 +8,14 @@
                 display: none !important;
             }
         }
+
+        .income-kpi {
+            border: 1px solid #eef0f4;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #fcfcfd;
+            min-height: 86px;
+        }
     </style>
 @stop
 
@@ -19,6 +27,7 @@
     </section>
 
     <div class="container-fluid" id="income-report">
+        @include('accounting::reports.partials.inventory_policy_notice')
         <div class="row">
             <div class="col-md-12">
                 <form method="GET" class="mb-4 no-print">
@@ -50,8 +59,10 @@
                         </div>
                     </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
+                            <button type="button" id="incomeStatementExportPdf" class="btn btn-light-primary">PDF</button>
+                            <button type="button" id="incomeStatementExportExcel" class="btn btn-light-success">Excel</button>
                         </div>
                     </div>
                 </form>
@@ -62,6 +73,33 @@
                     {{ \Carbon\Carbon::parse($end_date)->format('Y-m-d') }}
                 </div> --}}
 
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('accounting::lang.Revenues')</div>
+                            <div class="fw-bold fs-4">@format_currency($data['revenue_net'] ?? 0)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('accounting::lang.account_types.expenses')</div>
+                            <div class="fw-bold fs-4">@format_currency($data['total_expense'] ?? 0)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('report::general.gross_profit')</div>
+                            <div class="fw-bold fs-4">@format_currency($data['gross_profit'] ?? 0)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('accounting::lang.net_profit')</div>
+                            <div class="fw-bold fs-4">@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</div>
+                        </div>
+                    </div>
+                </div>
+
                 <table class="table table-bordered">
                     <thead class="text-white" style="background-color: #e4e9f1b7">
                         <tr>
@@ -70,21 +108,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $total_revenues = 0; @endphp
-                        @foreach ($accounts as $account)
-                            @if ($account->acc_type == 'income')
-                                @php $total_revenues += $account->credit_balance - $account->debit_balance; @endphp
-                                <tr>
-                                    <td>{{ $account->name_ar }}</td>
-                                    <td>@format_currency($total_revenues)</td>
-                                </tr>
-                            @endif
-                        @endforeach
+                        @forelse ($revenueAccounts as $account)
+                            <tr>
+                                <td>{{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}</td>
+                                <td>@format_currency($account->amount)</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">@lang('messages.no_data_found')</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                     <tfoot>
                         <tr class="bg-light">
                             <td><strong>@lang('accounting::lang.total')</strong></td>
-                            <td><strong>@format_currency($total_revenues)</strong></td>
+                            <td><strong>@format_currency($data['revenue_net'] ?? 0)</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -97,30 +135,41 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $total_operating_expenses = 0; @endphp
-                        @foreach ($accounts as $account)
-                            @if ($account->acc_type == 'expenses')
-                                @php $total_operating_expenses += $account->debit_balance - $account->credit_balance; @endphp
-                                <tr>
-                                    <td>{{ $account->name_ar }}</td>
-                                    <td>@format_currency($account->debit_balance - $account->credit_balance)</td>
-                                </tr>
-                            @endif
-                        @endforeach
+                        @forelse ($expenseAccounts as $account)
+                            <tr>
+                                <td>{{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}</td>
+                                <td>@format_currency($account->amount)</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">@lang('messages.no_data_found')</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                     <tfoot>
                         <tr class="bg-light">
                             <td><strong>@lang('accounting::lang.total')</strong></td>
-                            <td><strong>@format_currency($total_operating_expenses)</strong></td>
+                            <td><strong>@format_currency($data['total_expense'] ?? 0)</strong></td>
                         </tr>
-                        @php $gross_profit = $total_revenues - $total_operating_expenses; @endphp
                         <tr style="background-color: #e4e9f1b7">
                             <td>
                                 <h3>@lang('report::general.gross_profit')</h3>
                             </td>
                             <td>
-                                <h3>@format_currency($gross_profit)</h3>
+                                <h3>@format_currency($data['gross_profit'] ?? 0)</h3>
                             </td>
+                        </tr>
+                        <tr style="background-color: #f6f8fb">
+                            <td><strong>@lang('accounting::lang.income_before_tax')</strong></td>
+                            <td><strong>@format_currency($data['income_before_tax'] ?? 0)</strong></td>
+                        </tr>
+                        <tr style="background-color: #f6f8fb">
+                            <td><strong>@lang('accounting::lang.tax_amount')</strong></td>
+                            <td><strong>@format_currency($data['tax_amount'] ?? 0)</strong></td>
+                        </tr>
+                        <tr style="background-color: #e4e9f1b7">
+                            <td><h3>@lang('accounting::lang.net_profit')</h3></td>
+                            <td><h3>@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</h3></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -138,9 +187,36 @@
 
 @section('script')
     <script type="text/javascript">
+        const incomeExportPdfUrl = '{{ route('income-statement-export-pdf') }}';
+        const incomeExportExcelUrl = '{{ route('income-statement-export-excel') }}';
+
+        function buildIncomeQuery() {
+            const params = new URLSearchParams();
+            const startDate = $('input[name="start_date"]').val();
+            const endDate = $('input[name="end_date"]').val();
+            const costCenters = $('#choose_cost_center_select').val() || [];
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            costCenters.forEach(function(value) {
+                params.append('choose_cost_center_select[]', value);
+            });
+
+            return params.toString();
+        }
 
        $(document).ready(function() {
             $('#choose_cost_center_select').select2();
+
+            $('#incomeStatementExportPdf').on('click', function() {
+                const query = buildIncomeQuery();
+                window.open(incomeExportPdfUrl + '?' + query, '_blank');
+            });
+
+            $('#incomeStatementExportExcel').on('click', function() {
+                const query = buildIncomeQuery();
+                window.location.href = incomeExportExcelUrl + '?' + query;
+            });
 
        });
         function printIncomeReport() {

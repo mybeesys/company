@@ -46,8 +46,13 @@ Route::middleware([
         Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');;
         Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
         Route::get('inventory-dashboard', [InventoryDashboardController::class, 'index'])->name('inventory.dashboard');
+        Route::get('inventory-dashboard/export/critical-items-csv', [InventoryDashboardController::class, 'exportCriticalItemsCsv'])->name('inventory.dashboard.export.critical-items-csv');
+        Route::get('inventory-dashboard/export/movement-csv', [InventoryDashboardController::class, 'exportMovementCsv'])->name('inventory.dashboard.export.movement-csv');
+        Route::get('inventory-dashboard/export/movement-pdf', [InventoryDashboardController::class, 'exportMovementPdf'])->name('inventory.dashboard.export.movement-pdf');
 
         Route::get('productInventoryList', [ProductInventoryController::class, 'getProductInventories'])->name('productInventoryList');
+        Route::get('productInventorySummary', [ProductInventoryController::class, 'summary'])->name('productInventorySummary');
+        Route::get('productInventoryCriticalCsv', [ProductInventoryController::class, 'exportCriticalCsv'])->name('productInventoryCriticalCsv');
         Route::get('getProductInventory/{id}', [ProductInventoryController::class, 'getProductInventory']);
         Route::get('listTransactions', [ProductInventoryController::class, 'listTransactions']);
         Route::resource('ingredientInventory', IngredientInventoryController::class)->names('ingredientInventory');

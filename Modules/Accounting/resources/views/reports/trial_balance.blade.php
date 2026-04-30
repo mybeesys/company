@@ -5,12 +5,39 @@
 @section('content')
 
 
+    <style>
+        .trial-balance-status {
+            border: 1px solid #e9edf3;
+            border-radius: 10px;
+            background: #f8fafc;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+        }
+
+        .trial-balance-status.is-balanced {
+            border-color: #d1f2df;
+            background: #f0fff6;
+        }
+
+        .trial-balance-status.is-unbalanced {
+            border-color: #ffd4d4;
+            background: #fff5f5;
+        }
+
+        .tb-cell-unbalanced {
+            background: #fff0f0 !important;
+            color: #b42318 !important;
+            font-weight: 700;
+        }
+    </style>
+
 
     <section class="content-header py-3">
         <h1>@lang('accounting::lang.trial_balance')</h1>
     </section>
 
     <section class="content">
+        @include('accounting::reports.partials.inventory_policy_notice')
 
         <div class="row">
             <div class="col-md-12">
@@ -90,7 +117,7 @@
                 </div>
 
                 <div class="row my-3">
-                    <div class="col-md-11">
+                    <div class="col-md-9">
                         <div class="form-group">
                             <label for="choose_accounts_select">{{ __('accounting::lang.account') }}:</label>
                             <select name="choose_accounts_select[]" id="choose_accounts_select"
@@ -102,9 +129,11 @@
                         </div>
                     </div>
 
-                    <div class="col-md-1">
+                    <div class="col-md-3 d-flex align-items-end gap-2">
                         <button class="btn btn-info btn-xs pull-right btn-flat" onclick="dataTable.ajax.reload();"
-                            style="margin-top: 24px; width: 70px; height: 40px; border-radius: 8px;padding: 0;">تطبيق</button>
+                            style="margin-top: 24px; width: 70px; height: 40px; border-radius: 8px;padding: 0;">@lang('report::general.filter')</button>
+                        <button type="button" id="trialBalanceExportPdf" class="btn btn-light-primary btn-sm">PDF</button>
+                        <button type="button" id="trialBalanceExportExcel" class="btn btn-light-success btn-sm">Excel</button>
                     </div>
                 </div>
             </div>
@@ -117,6 +146,11 @@
             </div>
 
             <div class="box-body">
+                <div id="trial-balance-status" class="trial-balance-status">
+                    <strong id="trial-balance-status-label">-</strong>
+                    <span class="mx-2">|</span>
+                    <span id="trial-balance-diff-label">-</span>
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle  table-row-bordered fs-6 gy-5" id="kt_accounts_table">
                         <thead>
@@ -188,6 +222,55 @@
         let dataTable;
         const table = $('#kt_accounts_table');
         const dataUrl = '{{ route('trial-balance') }}';
+        const exportPdfUrl = '{{ route('trial-balance-export-pdf') }}';
+        const exportExcelUrl = '{{ route('trial-balance-export-excel') }}';
+        const statusBox = $('#trial-balance-status');
+        const statusLabel = $('#trial-balance-status-label');
+        const diffLabel = $('#trial-balance-diff-label');
+
+        function formatAmount(value) {
+            return Number(value || 0).toFixed(2);
+        }
+
+        function renderBalanceStatus(debitTotal, creditTotal) {
+            const diff = Math.abs((Number(debitTotal) || 0) - (Number(creditTotal) || 0));
+            const isBalanced = diff < 0.005;
+
+            statusBox.removeClass('is-balanced is-unbalanced');
+
+            if (isBalanced) {
+                statusBox.addClass('is-balanced');
+                statusLabel.text("{{ __('accounting::lang.balance') }}: {{ __('accounting::lang.balanced') }}");
+                diffLabel.text("{{ __('accounting::lang.difference') }}: " + formatAmount(0));
+            } else {
+                statusBox.addClass('is-unbalanced');
+                statusLabel.text("{{ __('accounting::lang.balance') }}: {{ __('accounting::lang.unbalanced') }}");
+                diffLabel.text("{{ __('accounting::lang.difference') }}: " + formatAmount(diff));
+            }
+
+            $('#allpagesclosingDebitTotal, #allpagesclosingCreditTotal').toggleClass('tb-cell-unbalanced', !isBalanced);
+            $('#closingDebitTotal, #closingCreditTotal').toggleClass('tb-cell-unbalanced', !isBalanced);
+        }
+
+        function buildReportQuery() {
+            const params = new URLSearchParams();
+
+            if ($('#start_date_filter').val()) params.append('start_date', $('#start_date_filter').val());
+            if ($('#end_date_filter').val()) params.append('end_date', $('#end_date_filter').val());
+            if ($('#classification').val()) params.append('aggregated', $('#classification').val());
+            if ($('#level_filter').val()) params.append('level_filter', $('#level_filter').val());
+            if ($('#with_zero_balances').val()) params.append('with_zero_balances', $('#with_zero_balances').val());
+
+            ($('#choose_accounts_select').val() || []).forEach(function(value) {
+                params.append('choose_accounts_select[]', value);
+            });
+
+            ($('#choose_cost_center_select').val() || []).forEach(function(value) {
+                params.append('choose_cost_center_select[]', value);
+            });
+
+            return params.toString();
+        }
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -201,13 +284,23 @@
 
 
 
-            $('#level_filter,#end_date_filter,#start_date_filter,#with_zero_balances,#classification,#account_filter')
+            $('#level_filter,#end_date_filter,#start_date_filter,#with_zero_balances,#classification')
                 .on('change',
                     function() {
                         dataTable.ajax.reload();
                     });
 
             $('#start_date_filter, #end_date_filter').trigger('change');
+
+            $('#trialBalanceExportPdf').on('click', function() {
+                const query = buildReportQuery();
+                window.open(exportPdfUrl + '?' + query, '_blank');
+            });
+
+            $('#trialBalanceExportExcel').on('click', function() {
+                const query = buildReportQuery();
+                window.location.href = exportExcelUrl + '?' + query;
+            });
 
         });
 
@@ -226,9 +319,6 @@
                         }
                         if ($('#classification').val()) {
                             d.aggregated = $('#classification').val();
-                        }
-                        if ($('#account_filter').val()) {
-                            d.type = $('#account_filter').val();
                         }
                         if ($('#level_filter').val()) {
                             d.level_filter = $('#level_filter').val();
@@ -349,6 +439,8 @@
                     $('.all_pages_credit_total').html(credit_total_all.toFixed(2));
                     $('.all_pages_closing_debit_total').html(closing_debit_total_all.toFixed(2));
                     $('.all_pages_closing_credit_total').html(closing_credit_total_all.toFixed(2));
+
+                    renderBalanceStatus(closing_debit_total_all, closing_credit_total_all);
                 },
 
                 drawCallback: function() {

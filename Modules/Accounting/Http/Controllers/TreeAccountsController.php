@@ -325,6 +325,19 @@ class TreeAccountsController extends Controller
         ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
             return $query->whereIn('cost_center_id', $choose_cost_center_select);
         })
+        ->when($request->filled('sub_type'), function ($query) use ($request) {
+            return $query->where('sub_type', $request->sub_type);
+        })
+        ->when($request->filled('ref_no'), function ($query) use ($request) {
+            $refNo = trim((string) $request->ref_no);
+            return $query->where(function ($subQuery) use ($refNo) {
+                $subQuery->whereHas('accTransMapping', function ($q) use ($refNo) {
+                    $q->where('ref_no', 'like', '%' . $refNo . '%');
+                })->orWhereHas('transaction', function ($q) use ($refNo) {
+                    $q->where('ref_no', 'like', '%' . $refNo . '%');
+                });
+            });
+        })
 
         ->paginate(10);
 
@@ -342,6 +355,13 @@ class TreeAccountsController extends Controller
     $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
     $costCenters = AccountingCostCenter::where('is_main', 0)->get();
     $accountingAccount = AccountingAccount::forDropdown();
+    $subTypes = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
+        ->select('sub_type')
+        ->whereNotNull('sub_type')
+        ->distinct()
+        ->pluck('sub_type')
+        ->filter(fn ($type) => filled($type))
+        ->values();
 
     return view('accounting::treeOfAccounts.ledger', compact(
         'account',
@@ -352,6 +372,7 @@ class TreeAccountsController extends Controller
         'end_date',
         'choose_cost_center_select',
         'costCenters',
+        'subTypes',
         'previous',
         'next',
         'accountingAccount',

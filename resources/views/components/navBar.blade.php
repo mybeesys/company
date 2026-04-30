@@ -1,4 +1,59 @@
 <!--begin::Navbar-->
+@php
+    $hasQuickPermission = function ($permission) {
+        if (!isset($permission) || $permission === '' || $permission === null) {
+            return true;
+        }
+        return is_array($permission)
+            ? collect($permission)->contains(fn($perm) => auth()->user()->hasDashboardPermission($perm))
+            : auth()->user()->hasDashboardPermission($permission);
+    };
+
+    $quickLinks = collect([
+        [
+            'url' => '/dashboard',
+            'label' => __('general.dashboard'),
+            'icon' => 'ki-outline ki-home-2',
+            'permission' => null,
+        ],
+        [
+            'url' => '/payment-reports',
+            'label' => __('general.payment_reports'),
+            'icon' => 'ki-outline ki-chart-simple',
+            'permission' => 'reports_module.all.show',
+        ],
+        [
+            'url' => '/income-statement',
+            'label' => __('general.accounting_reports'),
+            'icon' => 'ki-outline ki-chart-line-up',
+            'permission' => 'accountingReports.all.show',
+        ],
+        [
+            'url' => '/inventory-dashboard',
+            'label' => __('general.inventory_dashboard'),
+            'icon' => 'ki-outline ki-package',
+            'permission' => 'inventory.dashboard.show',
+        ],
+        [
+            'url' => '/sales-dashbord',
+            'label' => __('general.sales_dashboard'),
+            'icon' => 'ki-outline ki-dollar',
+            'permission' => 'sales.all.show',
+        ],
+        [
+            'url' => '/main',
+            'label' => __('general.screens'),
+            'icon' => 'ki-outline ki-screen',
+            'permission' => 'screen_module.all.show',
+        ],
+        [
+            'url' => '/general-setting',
+            'label' => __('menuItemLang.general_setting'),
+            'icon' => 'ki-outline ki-setting-2',
+            'permission' => 'setting.General setting.show',
+        ],
+    ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
+@endphp
 <div class="app-navbar flex-grow-1 justify-content-end" id="kt_app_header_navbar">
     {{-- <div class="app-navbar-item d-flex align-items-stretch flex-lg-grow-1">
         <div id="kt_header_search" class="header-search d-flex align-items-center w-lg-350px"
@@ -165,7 +220,7 @@
                 alt="user" />
         </div>
         <!--begin::User account menu-->
-        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px"
+        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-350px user-quick-menu"
             data-kt-menu="true">
             <!--begin::Menu item-->
             <div class="menu-item px-3">
@@ -184,6 +239,32 @@
                 </div>
             </div>
             <div class="separator my-2"></div>
+            <div class="menu-item px-3">
+                <div class="menu-content px-3 pb-2">
+                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.quick_access')</div>
+                </div>
+            </div>
+            @if ($quickLinks->isNotEmpty())
+                <div class="menu-item px-3">
+                    <div class="menu-content px-3">
+                        <div class="user-shortcuts-grid">
+                            @foreach ($quickLinks as $link)
+                                <a href="{{ url($link['url']) }}" class="user-shortcut-item"
+                                    data-quick-link-key="{{ md5($link['url']) }}">
+                                    <i class="{{ $link['icon'] }} fs-3"></i>
+                                    <span>{{ $link['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <div class="separator my-2"></div>
+            <div class="menu-item px-3">
+                <div class="menu-content px-3 pb-2">
+                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.workspace')</div>
+                </div>
+            </div>
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                 data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
                 <a href="{{ url('/subscription') }}" class="menu-link px-5">
@@ -194,6 +275,11 @@
             <!--begin::Menu separator-->
             <div class="separator my-2"></div>
             <!--end::Menu separator-->
+            <div class="menu-item px-3">
+                <div class="menu-content px-3 pb-2">
+                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.preferences')</div>
+                </div>
+            </div>
             <!--begin::Menu item-->
             <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                 data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
@@ -283,7 +369,9 @@
             <!--end::Menu item-->
             <!--begin::Menu item-->
             <div class="menu-item px-5">
-                <a href="{{ route('logout') }}" class="menu-link px-5">@lang('general.sign_out')</a>
+                <a href="{{ route('logout') }}" class="menu-link px-5">
+                    <i class="ki-outline ki-exit-right fs-2 me-2"></i>@lang('general.sign_out')
+                </a>
             </div>
             <!--end::Menu item-->
         </div>
@@ -314,10 +402,103 @@
     .notification-body {
         transition: background-color 0.5s ease-out;
     }
+
+    .user-quick-menu {
+        border-radius: 16px;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+        overflow: hidden;
+        border: 1px solid #edf1f7;
+        background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+    }
+
+    .user-shortcuts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .user-shortcut-item {
+        border: 1px solid #edf0f4;
+        border-radius: 10px;
+        padding: 9px 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #3f4254;
+        background: #f9fbff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all .2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .user-shortcut-item:hover {
+        transform: translateY(-1px);
+        border-color: #d6e4ff;
+        background: #eef4ff;
+        color: #0d6efd;
+    }
+
+    .user-shortcut-item::after {
+        content: '';
+        position: absolute;
+        inset-inline-start: -120%;
+        top: 0;
+        width: 70%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+        transition: inset-inline-start .45s ease;
+    }
+
+    .user-shortcut-item:hover::after {
+        inset-inline-start: 140%;
+    }
+
+    .user-quick-menu .menu-content .text-muted {
+        letter-spacing: .04em;
+    }
 </style>
 <script>
     let unreadNotificationCount = "{{ auth()->user()->notifications->count() }}";
     $(document).ready(function() {
+        const quickLinksContainer = document.querySelector('.user-shortcuts-grid');
+        if (quickLinksContainer) {
+            const userId = "{{ auth()->id() }}";
+            const storageKey = `user_quick_links_order_${userId}`;
+            let clicksMap = {};
+
+            try {
+                clicksMap = JSON.parse(localStorage.getItem(storageKey) || '{}') || {};
+            } catch (e) {
+                clicksMap = {};
+            }
+
+            const sortQuickLinks = () => {
+                const cards = Array.from(quickLinksContainer.querySelectorAll('.user-shortcut-item[data-quick-link-key]'));
+                cards.sort((a, b) => {
+                    const aKey = a.getAttribute('data-quick-link-key');
+                    const bKey = b.getAttribute('data-quick-link-key');
+                    const aCount = Number(clicksMap[aKey] || 0);
+                    const bCount = Number(clicksMap[bKey] || 0);
+                    if (bCount !== aCount) return bCount - aCount;
+                    return 0;
+                });
+                cards.forEach((card) => quickLinksContainer.appendChild(card));
+            };
+
+            sortQuickLinks();
+
+            quickLinksContainer.querySelectorAll('.user-shortcut-item[data-quick-link-key]').forEach((item) => {
+                item.addEventListener('click', function() {
+                    const key = this.getAttribute('data-quick-link-key');
+                    clicksMap[key] = Number(clicksMap[key] || 0) + 1;
+                    localStorage.setItem(storageKey, JSON.stringify(clicksMap));
+                });
+            });
+        }
+
         setInterval(fetchNotifications, 120000);
         $('.notification_btn').on('click', function(e) {
             if (unreadNotificationCount > 0) {

@@ -32,7 +32,10 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
 
         Route::get('sales-dashbord', [SellController::class, 'salesDashbord'])->name('sales-dashbord');
+        Route::get('sales-dashbord/export-csv', [SellController::class, 'salesDashboardExportCsv'])->name('sales-dashbord-export-csv');
+        Route::get('sales-dashbord/export-pdf', [SellController::class, 'salesDashboardExportPdf'])->name('sales-dashbord-export-pdf');
         Route::get('invoices', [SellController::class, 'index'])->name('invoices');
+        Route::get('sales-favorites', [SellController::class, 'favorites'])->name('sales-favorites');
         Route::get('create-invoice', [SellController::class, 'create'])->name('create-invoice');
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');

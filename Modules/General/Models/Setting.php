@@ -31,10 +31,40 @@ class Setting extends Model
 
     }
 
+    public static function getInventoryTrackingPolicy(): string
+    {
+        $policy = (string) (Setting::where('key', 'inventory_tracking_policy')->value('value') ?? 'perpetual');
+        return in_array($policy, ['perpetual', 'periodic'], true) ? $policy : 'perpetual';
+    }
+
+    public static function isPerpetualInventory(): bool
+    {
+        return self::getInventoryTrackingPolicy() === 'perpetual';
+    }
+
+    public static function isPeriodicInventory(): bool
+    {
+        return self::getInventoryTrackingPolicy() === 'periodic';
+    }
+
+    public static function isAllowSaleWithoutStockEnabled(): bool
+    {
+        if (!self::isPerpetualInventory()) {
+            return true;
+        }
+
+        return (string) (Setting::where('key', 'allow_sale_without_stock')->value('value') ?? 'false') === 'true';
+    }
+
     public static function getCurrency()
     {
+        $currency = Setting::where('key', 'currency')->value('value');
+        if (!empty($currency)) {
+            return $currency;
+        }
 
-        return Setting::where('key', 'currency')->value('value');
+        $sarCurrency = Country::where('iso_code', 'SA')->value('currency_symbol_en');
+        return $sarCurrency ?: 'SAR';
 
     }
 

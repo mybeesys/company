@@ -10,10 +10,20 @@ class StorePlaylistRequest extends FormRequest
 
     public function prepareForValidation()
     {
+        $parseToArray = function ($value) {
+            if (is_array($value)) {
+                return $value;
+            }
+            if (is_null($value) || $value === '') {
+                return [];
+            }
+            return array_values(array_filter(explode(',', (string) $value), fn($v) => $v !== ''));
+        };
+
         $this->merge([
-            'establishments_ids' => is_array(explode(',', $this->establishments_ids)) ? explode(',', $this->establishments_ids) : [explode(',', $this->establishments_ids)],
-            'devices' => is_array(explode(',', $this->devices)) ? explode(',', $this->devices) : [explode(',', $this->devices)],
-            'days_of_the_weak' => is_array(explode(',', $this->days_of_the_weak)) ? explode(',', $this->days_of_the_weak) : [explode(',', $this->days_of_the_weak)],
+            'establishments_ids' => $parseToArray($this->establishments_ids),
+            'devices' => $parseToArray($this->devices),
+            'days_of_the_weak' => $parseToArray($this->days_of_the_weak),
         ]);
     }
     /**
@@ -28,6 +38,7 @@ class StorePlaylistRequest extends FormRequest
             'days_of_the_weak' => ['required_if:days_settings,days_of_the_weak', 'array'],
             'days_of_the_weak.*' => ['in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
             'start_date_time' => ['required_if:days_settings,custom_date_time', 'nullable', 'date_format:Y-m-d H:i'],
+            'transition_seconds' => ['required', 'integer', 'min:1', 'max:300'],
             'devices' => ['required', 'array'],
             'devices.*' => ['required', 'exists:screen_devices,id', 'integer'],
             'establishments_ids' => ['required', 'array'],

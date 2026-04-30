@@ -49,37 +49,41 @@ class ReceiptVouchersController extends Controller
      */
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'account_id' => ['required', 'integer', 'min:1'],
+            'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'pament_on' => ['required', 'date'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
         try {
             DB::beginTransaction();
 
-            $account_id = $request->input('account_id');
-            $note = $request->input('additionalNotes');
+            $note = $validated['additionalNotes'] ?? null;
+            $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
 
-            if (!empty($request->input('paid_amount'))) {
-                $debit_data = [
-                    'amount' => $request->input('paid_amount'),
-                    'accounting_account_id' => $account_id,
-                    'type' => 'debit',
-                    'sub_type' => 'receipt_voucher',
-                    'operation_date' => $request->input('pament_on'),
-                    'created_by' => Auth::user()->id,
-                    'note' => $note,
-                ];
-                $debit = AccountingAccountsTransaction::query()->create($debit_data);
+            $debit_data = [
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['account_id'],
+                'type' => 'debit',
+                'sub_type' => 'receipt_voucher',
+                'operation_date' => $validated['pament_on'],
+                'created_by' => Auth::user()->id,
+                'note' => $note,
+            ];
 
-                $from_account = $request->input('from_account');
-                if (!empty($from_account)) {
-                    $credit_data = $debit_data;
-                    $credit_data['type'] = 'credit';
-                    $credit_data['accounting_account_id'] = $from_account;
-                    $credit_data['transaction_id'] = $debit->id;
+            $debit = AccountingAccountsTransaction::query()->create($debit_data);
 
-                    $credit = AccountingAccountsTransaction::query()->create($credit_data);
+            $credit_data = $debit_data;
+            $credit_data['type'] = 'credit';
+            $credit_data['accounting_account_id'] = (int) $validated['from_account'];
+            $credit_data['transaction_id'] = $debit->id;
 
-                    $debit->transaction_id = $credit->id;
-                    $debit->save();
-                }
-            }
+            $credit = AccountingAccountsTransaction::query()->create($credit_data);
+
+            $debit->transaction_id = $credit->id;
+            $debit->save();
 
             DB::commit();
             return redirect()->route('receipt-vouchers')->with('success', __('messages.add_successfully'));

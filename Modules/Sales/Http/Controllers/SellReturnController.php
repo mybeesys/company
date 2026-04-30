@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Models\AccountsRoting;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -80,7 +81,8 @@ class SellReturnController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-        return view('sales::sell-return.create', compact('transaction', 'products', 'taxes'));
+        $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+        return view('sales::sell-return.create', compact('transaction', 'products', 'taxes', 'invoicePrecheckConfig'));
     }
     public function createSellReturn(Request $request)
     {
@@ -117,7 +119,34 @@ class SellReturnController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell-return.create-return', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+        return view('sales::sell-return.create-return', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
+    }
+
+    private function buildSellReturnPrecheckConfig(): array
+    {
+        $missing = [];
+        if (!AccountsRoting::where('type', 'sales_sell_return')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب مردود المبيعات' : 'Sales return account';
+        }
+        if (!AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب المبيعات' : 'Sales account';
+        }
+        if (!AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المبيعات' : 'Sales VAT account';
+        }
+
+        return [
+            'missingAccounts' => $missing,
+            'messages' => [
+                'missingAccountsHeader' => app()->getLocale() === 'ar'
+                    ? 'إعدادات الحسابات غير مكتملة، يرجى مراجعة توجيه الحسابات:'
+                    : 'Accounting setup is incomplete, please review Accounts Routing:',
+                'missingUnit' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
+                    : 'Please select unit for each product before saving.',
+            ],
+        ];
     }
 
     /**

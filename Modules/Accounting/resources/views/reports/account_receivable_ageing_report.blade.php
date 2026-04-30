@@ -25,6 +25,34 @@
                     </button>
                 </div>
                 <div class="card-body">
+                    <form method="GET" action="{{ route('account-receivable-ageing-report') }}" class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label>{{ __('accounting::lang.to_date') }}</label>
+                            <input type="date" class="form-control" name="as_of_date" value="{{ $filters['as_of_date'] ?? now()->toDateString() }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label>{{ __('accounting::lang.from_date') }}</label>
+                            <input type="date" class="form-control" name="start_date" value="{{ $filters['start_date'] ?? '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label>{{ __('accounting::lang.to_date') }}</label>
+                            <input type="date" class="form-control" name="end_date" value="{{ $filters['end_date'] ?? '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label>{{ __('report::general.customer') }}</label>
+                            <select name="contact_id" id="contact_id" class="form-select">
+                                <option value="">@lang('messages.select')</option>
+                                @foreach($contacts as $contact)
+                                    <option value="{{ $contact->id }}" @selected(($filters['contact_id'] ?? null) == $contact->id)>{{ $contact->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-flex gap-2">
+                            <button class="btn btn-primary" type="submit">@lang('report::general.filter')</button>
+                            <a class="btn btn-light-primary" href="{{ route('account-receivable-ageing-report-export-pdf', request()->query()) }}">PDF</a>
+                            <a class="btn btn-light-success" href="{{ route('account-receivable-ageing-report-export-excel', request()->query()) }}">Excel</a>
+                        </div>
+                    </form>
                     <div class="box box-warning mt-4">
                         <div class="box-body">
                             <table class="table table-striped table-bordered table-hover" id="report-table">
@@ -117,6 +145,9 @@
 
 @section('script')
     <script>
+        $(document).ready(function() {
+            $('#contact_id').select2();
+        });
         function printReport() {
             var printContents = document.querySelector('.card').outerHTML;
             var originalContents = document.body.innerHTML;

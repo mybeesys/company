@@ -65,6 +65,8 @@ return [
 
     'po_status' => 'Order Status',
 
+    'add_receipt' => 'Receipt voucher',
+
 
 
 
