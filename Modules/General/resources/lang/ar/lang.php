@@ -48,6 +48,7 @@ return [
     'night_mode' => 'ليلي',
     'place' => 'المكان',
     'open' => 'مفتوح',
+    'closed' => 'مغلق',
     'todays_menu' => 'قائمة اليوم',
     'location' => 'الموقع',
     'smart_menu' => 'القائمة الذكية',
