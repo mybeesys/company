@@ -568,21 +568,26 @@
                 const selectedOption = $(this).find('option:selected');
                 const selectedProductId = selectedOption.val();
                 const price = parseFloat(selectedOption.data('price')) || 0;
-                const units = selectedOption.data('units') || [];
+                let units = selectedOption.data('units') || [];
+                if (typeof units === 'string') {
+                    try {
+                        units = JSON.parse(units);
+                    } catch (e) {
+                        units = [];
+                    }
+                }
                 const currentRow = $(this).closest('tr');
-                const rowIndex = currentRow.index();
-                console.log('rowIndex  ' + rowIndex);
 
                 let productFound = false;
 
-                const unitSelect = currentRow.find(`[name="products[${rowIndex}][unit]"]`);
+                const unitSelect = currentRow.find('.unit');
                 unitSelect.empty();
                 unitSelect.append(`<option value="">@lang('sales::lang.unit')</option>`);
                 units.forEach(unit => {
 
                     unitSelect.append(
                         `<option value="${unit.id}" ${unit.primary ? "selected" : ""}>
-                        ${unit.name_ar || unit.unit1}
+                        ${unit.name_ar || unit.name_en || unit.unit1}
                         </option>`
                     );
 
@@ -609,11 +614,8 @@
 
                 if (!productFound) {
                     resetRowIndexes();
-
-                    console.log('price  ' + price);
-
-                    currentRow.find(`[name="products[${rowIndex}][unit_price]"]`).val(price.toFixed(2));
-                    currentRow.find(`[name="products[${rowIndex}][qty]"]`).val(1);
+                    currentRow.find('.unit_price-field').val(price.toFixed(2));
+                    currentRow.find('.qty-field').val(1);
 
                     updateSalesTotals();
                 }
