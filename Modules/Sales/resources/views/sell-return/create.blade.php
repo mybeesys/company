@@ -42,6 +42,22 @@
         #unit+.select2-container {
             width: max-content !important;
         }
+
+        #salesTable tbody tr.sales-line-row {
+            cursor: grab;
+        }
+
+        #salesTable tbody tr.sales-line-row.dragging-row {
+            opacity: 0.55;
+            cursor: grabbing;
+            background: #f6faff;
+        }
+
+        #salesTable tbody tr.sales-line-row.drop-target {
+            outline: 2px dashed #3699ff;
+            outline-offset: -2px;
+        }
+
     </style>
 
 
@@ -165,7 +181,7 @@
             salesRowIndex++;
 
             const newSalesRow = `
-        <tr>
+        <tr class="sales-line-row" draggable="true">
               <td>
                 <select id="products-${salesRowIndex}" required
                         class="form-select form-select-solid select-2 product-select"
@@ -379,6 +395,48 @@
 
 
         $(document).ready(function() {
+            let draggedRow = null;
+            let isRowDragging = false;
+
+            function bindSalesRowsDragAndDrop() {
+                $('#salesTable tbody tr').addClass('sales-line-row').attr('draggable', true);
+            }
+
+            $('#salesTable tbody').on('mousedown', 'tr.sales-line-row', function(e) {
+                if (e.which !== 1) {
+                    return;
+                }
+                if ($(e.target).closest('input, select, textarea, button, a, .select2-container, .select2-selection').length) {
+                    return;
+                }
+                e.preventDefault();
+                draggedRow = this;
+                isRowDragging = true;
+                $('body').css('user-select', 'none');
+                $(draggedRow).addClass('dragging-row');
+            });
+
+            $(document).on('mouseup', function() {
+                if (!isRowDragging) return;
+                isRowDragging = false;
+                $('body').css('user-select', '');
+                $('#salesTable tbody tr.sales-line-row').removeClass('dragging-row drop-target');
+                draggedRow = null;
+            });
+
+            $(document).on('mousemove', function(e) {
+                if (!isRowDragging || !draggedRow) return;
+                const hoveredRow = $(e.target).closest('#salesTable tbody tr.sales-line-row')[0];
+                if (!hoveredRow || draggedRow === hoveredRow) return;
+
+                $('#salesTable tbody tr.sales-line-row').removeClass('drop-target');
+                $(hoveredRow).addClass('drop-target');
+                $(draggedRow).insertBefore(hoveredRow);
+                resetRowIndexes();
+                updateSalesTotals();
+            });
+
+            bindSalesRowsDragAndDrop();
             $('.select-2-products-id').select2({
                 placeholder: "Select a product",
                 allowClear: true,
@@ -631,6 +689,7 @@
                         }
                     });
                 });
+                bindSalesRowsDragAndDrop();
             }
 
             $('#invoice_discount, #invoiced_discount_type').on('input change', function() {

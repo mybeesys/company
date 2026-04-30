@@ -60,7 +60,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <tr>
+                    <tr class="sales-line-row" draggable="true">
                         <td>
                             <select id="products" required class="form-select form-select-solid select-2"
                                 name="products[0][products_id]" style="padding: 7px">

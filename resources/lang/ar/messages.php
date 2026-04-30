@@ -42,6 +42,7 @@ return [
     'reports' => 'تقارير',
     'last_used' => 'آخر مرة استخدام',
     'never_used' => 'لم يستخدم بعد',
+    'move' => 'تحريك',
 
     "Added successfully, but the customer exceeded" => "تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.",
     'print' => 'طباعة',
