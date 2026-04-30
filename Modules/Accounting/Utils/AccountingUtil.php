@@ -13,7 +13,9 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\View\Components\AccountRouting;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionSellLine;
 
 class AccountingUtil
 {
@@ -302,17 +304,34 @@ class AccountingUtil
                 //     $transactionPayment->amount = $transaction->tax_amount;
                 //     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 // }
+
+                $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } else if ($transaction->type == 'purchases') {
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
+                $inventoryAssetAccountId = AccountingAccount::where('gl_code', '11105')
+                    ->orWhere('account_category', 'inventory')
+                    ->value('id');
+                $purchasesTargetAccountId = Setting::isPerpetualInventory()
+                    ? ($inventoryAssetAccountId ?: $purchases_purchase?->account_id)
+                    : ($purchases_purchase?->account_id);
+                if (! $purchasesTargetAccountId) {
+                    throw new RuntimeException('Accounting routing missing for purchases. Please configure purchases_purchase route or Inventory account (gl_code 11105).');
+                }
+                if (! $purchases_vat_calculation || ! $purchases_vat_calculation->account_id) {
+                    throw new RuntimeException('Accounting routing missing for purchases VAT. Please configure purchases_vat_calculation route.');
+                }
+                if ($transaction->invoice_type == 'cash' && ! $cash_account_id) {
+                    throw new RuntimeException('Cash account is missing for purchases cash invoice. Please configure cash account.');
+                }
 
                 if ($transaction->invoice_type == 'cash') {
                     if (!$transactionPayment->payment_for) {
                         $transactionPayment->account_id = $cash_account_id;
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        $transactionPayment->account_id = $purchases_purchase->account_id;
+                        $transactionPayment->account_id = $purchasesTargetAccountId;
                         $transactionPayment->amount = $netTotalBeforeTax;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
@@ -320,12 +339,15 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $client = Contact::find($transactionPayment->payment_for);
+                        if (! $client || ! $client->account_id) {
+                            throw new RuntimeException('Supplier account is missing for purchases. Please ensure the supplier has an accounting account linked.');
+                        }
                         $transactionPayment->account_id = $client->account_id;
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
 
-                        $transactionPayment->account_id = $purchases_purchase->account_id;
+                        $transactionPayment->account_id = $purchasesTargetAccountId;
                         $transactionPayment->amount = $netTotalBeforeTax;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
@@ -523,6 +545,42 @@ class AccountingUtil
         }
 
         return true;
+    }
+
+    private function appendPerpetualCogsEntries($transactionPayment, $transaction, int $accTransMappingId, $request): void
+    {
+        if (!Setting::isPerpetualInventory() || $transaction->type !== 'sell') {
+            return;
+        }
+
+        $inventoryAccountId = AccountingAccount::where('gl_code', '11105')
+            ->orWhere('account_category', 'inventory')
+            ->value('id');
+        $cogsAccountId = AccountingAccount::where('gl_code', '50101')
+            ->orWhere('account_category', 'COGS')
+            ->orWhere('account_category', 'cost_of_goods_sold')
+            ->value('id');
+
+        if (!$inventoryAccountId || !$cogsAccountId) {
+            return;
+        }
+
+        $cogsAmount = (float) TransactionSellLine::query()
+            ->join('product_products as p', 'p.id', '=', 'transaction_sell_lines.product_id')
+            ->where('transaction_sell_lines.transaction_id', $transaction->id)
+            ->sum(DB::raw('COALESCE(transaction_sell_lines.qyt,0) * COALESCE(p.cost,0)'));
+
+        if ($cogsAmount <= 0) {
+            return;
+        }
+
+        $transactionPayment->account_id = $cogsAccountId;
+        $transactionPayment->amount = $cogsAmount;
+        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
+        $transactionPayment->account_id = $inventoryAccountId;
+        $transactionPayment->amount = $cogsAmount;
+        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $accTransMappingId, $request);
     }
 
     protected function determineAmountAndType($routeType, $transaction)

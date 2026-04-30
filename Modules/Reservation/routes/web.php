@@ -36,6 +36,12 @@ Route::middleware([
         Route::get('searchAreas', [AreaController::class, 'searchAreas'])->name('searchAreas');
         Route::get('/menuQR', [OrderController::class, 'menuQR'])->name('reservation.menuQR');
         Route::get('/menu-qr/custom-menus', [OrderController::class, 'customMenusForQr'])->name('reservation.menuQr.customMenus');
+        Route::get('/menu-qr/custom-menus/{id}/schedule', [OrderController::class, 'customMenuSchedule'])->name('reservation.menuQr.customMenus.schedule');
+        Route::put('/menu-qr/custom-menus/{id}/schedule', [OrderController::class, 'updateCustomMenuSchedule'])->name('reservation.menuQr.customMenus.schedule.update');
+        Route::post('/menu-qr/custom-menus/{id}/schedule', [OrderController::class, 'updateCustomMenuSchedule']);
+        Route::get('/menu-qr/tokens', [OrderController::class, 'menuQrTokens'])->name('reservation.menuQr.tokens');
+        Route::put('/menu-qr/tokens/{id}', [OrderController::class, 'updateMenuQrToken'])->name('reservation.menuQr.tokens.update');
+        Route::delete('/menu-qr/tokens/{id}', [OrderController::class, 'deleteMenuQrToken'])->name('reservation.menuQr.tokens.delete');
         Route::get('/menu-feedback', [OrderController::class, 'menuFeedbackIndex'])->name('reservation.menuFeedback.index');
     });
     Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');

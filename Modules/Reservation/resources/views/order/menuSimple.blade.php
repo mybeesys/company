@@ -119,13 +119,16 @@
         }
 
         .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(246, 250, 255, 0.9));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: var(--text-color);
-            height: var(--navbar-height);
-            box-shadow: var(--shadow);
-            border-radius: 0 0 8px 8px;
+            min-height: 46px;
+            box-shadow: 0 8px 26px rgba(15, 23, 42, 0.08);
+            border-radius: 0 0 14px 14px;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
         }
 
         .navbar-inner {
@@ -161,7 +164,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             height: 100%;
         }
 
@@ -173,14 +176,40 @@
         }
 
         .merchant_opening_status {
-            background-color: var(--success-color);
-            padding: 2px 10px;
-            border-radius: 15px;
-            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-weight: 700;
             font-size: 13px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            animation: pulse 2s infinite;
             color: white;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+            animation: pillFloat 2.8s ease-in-out infinite;
+            letter-spacing: .2px;
+        }
+
+        .merchant_opening_status.is-open {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .merchant_opening_status.is-closed {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+
+        .merchant_opening_status.is-unknown {
+            background: linear-gradient(135deg, #64748b, #94a3b8);
+        }
+
+        .opening-hours-hint {
+            font-size: 11px;
+            color: var(--muted-text);
+            white-space: nowrap;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes pillFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
         }
 
         @keyframes pulse {
@@ -379,9 +408,9 @@
         .theme-toggle {
             width: 30px;
             height: 30px;
-            background-color: var(--primary-bg);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+            border-radius: 12px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -392,8 +421,8 @@
         }
 
         .theme-toggle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
         }
 
         .theme-toggle i {
@@ -868,28 +897,39 @@
         }
 
         .language-switch {
-            width: 30px;
-            height: 30px;
-            background-color: var(--primary-bg);
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
             border-radius: 12px;
-            /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             cursor: pointer;
             margin-left: 10px;
         }
 
         .language-switch:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
         }
 
         .language-switch img {
-            width: 26px;
-            height: 26px;
-            border-radius: 5px;
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+        }
+
+        body.dark-mode .navbar {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.9));
+            border-bottom-color: rgba(148, 163, 184, 0.25);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+        }
+
+        body.dark-mode .theme-toggle,
+        body.dark-mode .language-switch {
+            background: linear-gradient(145deg, #334155, #1e293b);
         }
 
         .no-results {
@@ -1865,6 +1905,17 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 
+    @php
+        $openStatus = data_get($openingState, 'status', 'unknown');
+        $openLabel =
+            $openStatus === 'open'
+                ? __('general::lang.open')
+                : ($openStatus === 'closed'
+                    ? __('general::lang.closed')
+                    : (app()->currentLocale() === 'ar' ? 'غير محدد' : 'N/A'));
+        $openClass = $openStatus === 'open' ? 'is-open' : ($openStatus === 'closed' ? 'is-closed' : 'is-unknown');
+        $openHours = data_get($openingState, 'hours_text');
+    @endphp
     <div class="main_page_nav_and_event_image ">
         <div class="navbar navbar-style-1 px-3">
             <div class="navbar-inner">
@@ -1880,9 +1931,10 @@
                 <div class="title with-shadow withStatuses">
                     <div class="delivery-status">
                         <h5>@lang('general::lang.place'):</h5>
-                        <h4>
-                            <span class="label label-success merchant_opening_status">@lang('general::lang.open')</span>
-                        </h4>
+                        <span class="merchant_opening_status {{ $openClass }}">{{ $openLabel }}</span>
+                        @if (!empty($openHours))
+                            <span class="opening-hours-hint" title="{{ $openHours }}">{{ $openHours }}</span>
+                        @endif
                     </div>
                 </div>
 

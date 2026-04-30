@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Mpdf\Mpdf;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
@@ -34,6 +35,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\Transformers\Collections\ProductCollection;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Models\Coupon;
 use Modules\Sales\Utils\SalesUtile;
 
 //use Illuminate\Support\Facades\Log;
@@ -45,140 +47,433 @@ class SellController extends Controller
      */
 
 
-    public function salesDashbord()
+    public function salesDashbord(Request $request)
     {
-        $today = \Carbon\Carbon::today();
-        $yesterday = \Carbon\Carbon::yesterday();
-
-        $todaySales = Transaction::where('type', 'sell')
-            ->whereDate('transaction_date', $today)
-            ->sum('final_total');
-
-        $yesterdaySales = Transaction::where('type', 'sell')
-            ->whereDate('transaction_date', $yesterday)
-            ->sum('final_total');
-
-        $dailyChangePercent =
-            $yesterdaySales != 0 ? round((($todaySales - $yesterdaySales) / $yesterdaySales) * 100, 2) : 0;
-
-        $formattedTodaySales = number_format($todaySales);
-
-        $salesTypes = Transaction::select('type', DB::raw('SUM(final_total) as total'))
-            ->groupBy('type')
-            ->get();
-        $monthlyTrend = Transaction::selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
-            ->whereYear('transaction_date', date('Y'))
-            ->groupBy('month')
-            ->get();
-
-        $stats = Transaction::where('type', 'sell')->selectRaw('COUNT(*) as total_invoices')
-            ->selectRaw('SUM(final_total) / COUNT(*) as average_invoice')
-            ->selectRaw('COUNT(DISTINCT contact_id) as active_customers')
-            ->whereBetween('transaction_date', [now()->startOfMonth(), now()])
-            ->first();
-
-
-        $monthlySales = Transaction::where('type', 'sell')
-            ->selectRaw('MONTH(transaction_date) as month, SUM(final_total) as total')
-            ->whereYear('transaction_date', date('Y'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        $salesData = [];
-        $months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $monthSales = $monthlySales->firstWhere('month', $i);
-            $salesData[] = $monthSales ? $monthSales->total : 0;
-
-            $months[] = __(date('F', mktime(0, 0, 0, $i, 1)));
+        $validStatuses = ['approved', 'final'];
+        $startDate = $request->filled('start_date')
+            ? Carbon::parse($request->input('start_date'))->startOfDay()
+            : now()->startOfMonth()->startOfDay();
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->input('end_date'))->endOfDay()
+            : now()->endOfDay();
+        if ($endDate->lt($startDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
         }
 
-        $transactions = Transaction::whereIn('type', ['sell', 'quotation', 'sell-return'])->latest()
-            ->take(10)
-            ->get();
+        $periodDays = max(1, $startDate->diffInDays($endDate) + 1);
+        $prevStart = $startDate->copy()->subDays($periodDays)->startOfDay();
+        $prevEnd = $startDate->copy()->subDay()->endOfDay();
 
+        $paymentsSub = DB::table('transaction_payments')
+            ->selectRaw('transaction_id, SUM(IF(is_return = 1, -1 * amount, amount)) as paid_total')
+            ->groupBy('transaction_id');
 
+        $salesBase = Transaction::query()
+            ->where('type', 'sell')
+            ->whereIn('status', $validStatuses);
 
-        $receiptsStats = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['sell']);
-            });
-        })
+        $periodSales = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->sum('final_total');
+        $prevSales = (clone $salesBase)->whereBetween('transaction_date', [$prevStart, $prevEnd])->sum('final_total');
+        $salesGrowth = $prevSales > 0 ? round((($periodSales - $prevSales) / $prevSales) * 100, 2) : ($periodSales > 0 ? 100 : 0);
+        $periodInvoices = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->count();
+        $avgInvoice = $periodInvoices > 0 ? $periodSales / $periodInvoices : 0;
+        $activeCustomers = (clone $salesBase)
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->distinct('contact_id')
+            ->count('contact_id');
 
-            ->selectRaw(
-                '
-    COUNT(*) as total_receipts,
-    SUM(amount) as total_collected,
-    SUM(CASE WHEN MONTH(paid_on) = MONTH(CURRENT_DATE()) THEN amount ELSE 0 END) as monthly_collected,
-    SUM(CASE WHEN is_return = 1 THEN amount ELSE 0 END) as returned_amount
-',
-            )
+        $periodSalesQuery = DB::table('transactions as t')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->where('t.type', 'sell')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate]);
+        $overdueAmount = (clone $periodSalesQuery)
+            ->whereDate('t.due_date', '<', now()->toDateString())
+            ->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as overdue')
+            ->value('overdue') ?? 0;
+        $dueAmount = (clone $periodSalesQuery)
+            ->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as due')
+            ->value('due') ?? 0;
+
+        $receiptsStats = TransactionPayments::query()
+            ->whereHas('transaction', function ($q) use ($validStatuses, $startDate, $endDate) {
+                $q->where('type', 'sell')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]);
+            })
+            ->selectRaw('COUNT(*) as total_receipts, SUM(amount) as total_collected')
             ->first();
 
-        $recentReceipts = TransactionPayments::with(['transaction', 'account'])
-            ->where(function ($q) {
-                $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                    $q->whereIn('type', ['sell']);
-                });
-            })
+        $couponStats = Coupon::query()
+            ->leftJoin('sales_coupons_clients as scc', 'sales_coupons.id', '=', 'scc.coupon_id')
+            ->leftJoin('transactions as t', 't.id', '=', 'scc.transaction_id')
+            ->whereBetween(DB::raw('COALESCE(t.transaction_date, scc.created_at)'), [$startDate, $endDate])
+            ->selectRaw('COUNT(DISTINCT sales_coupons.id) as active_coupons, COUNT(scc.transaction_id) as coupon_usages, SUM(COALESCE(t.discount_amount,0)) as total_coupon_discount')
+            ->first();
+        $salesReturnStats = Transaction::query()
+            ->where('type', 'sell-return')
+            ->whereIn('status', $validStatuses)
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $quotationStats = Transaction::query()
+            ->where('type', 'quotation')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $favoritesStats = Transaction::query()
+            ->whereIn('type', ['sell', 'sell-return', 'quotation'])
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
 
-            ->where('payment_type', '!=', 'is_return')
-            ->orderBy('paid_on', 'desc')
-            ->take(10)
-            ->get();
+        $months = collect(range(5, 0))
+            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->push(now()->format('Y-m'))
+            ->values();
+        $salesMonthly = (clone $salesBase)
+            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as month_key, SUM(final_total) as total")
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+        $collectionsMonthly = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->selectRaw("DATE_FORMAT(paid_on, '%Y-%m') as month_key, SUM(amount) as total")
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+        $monthLabels = [];
+        $salesData = [];
+        $collectionData = [];
+        foreach ($months as $month) {
+            $monthLabels[] = Carbon::createFromFormat('Y-m', $month)->translatedFormat('M Y');
+            $salesData[] = (float) ($salesMonthly[$month] ?? 0);
+            $collectionData[] = (float) ($collectionsMonthly[$month] ?? 0);
+        }
 
-        $monthlyCollections = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['sell']);
-            });
-        })
-            ->selectRaw(
-                '
-    MONTH(paid_on) as month,
-    SUM(amount) as total
-',
-            )
-            ->where('payment_type', '!=', 'is_return')
-            ->whereYear('paid_on', date('Y'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        $paymentMethods = TransactionPayments::where(function ($q) {
-            $q->where('payment_type', 'debit')->orWhereHas('transaction', function ($q) {
-                $q->whereIn('type', ['sell']);
-            });
-        })
-            ->selectRaw(
-                '
-    method,
-    SUM(amount) as total
-',
-            )
-            ->where('payment_type', '!=', 'is_return')
+        $paymentMethods = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->selectRaw('method, SUM(amount) as total')
             ->groupBy('method')
+            ->orderByDesc('total')
             ->get();
 
-        $monthNames = $monthlyCollections->map(function ($item) {
-            return __(date('F', mktime(0, 0, 0, $item->month, 1)));
-        });
+        $topProducts = TransactionSellLine::query()
+            ->join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+            ->join('product_products as p', 'p.id', '=', 'transaction_sell_lines.product_id')
+            ->where('t.type', 'sell')
+            ->whereIn('t.status', $validStatuses)
+            ->where('transaction_sell_lines.is_show', 1)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->groupBy('transaction_sell_lines.product_id', 'p.name_ar', 'p.name_en')
+            ->selectRaw('p.name_ar, p.name_en, SUM(transaction_sell_lines.qyt) as total_qty, SUM(transaction_sell_lines.total_before_vat) as total_sales')
+            ->orderByDesc('total_sales')
+            ->limit(10)
+            ->get();
 
+        $transactions = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->whereIn('t.type', ['sell', 'quotation', 'sell-return'])
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.payment_status, t.final_total, c.name as client_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
+            ->orderByDesc('t.id')
+            ->limit(10)
+            ->get();
+
+        $recentReceipts = TransactionPayments::with(['transaction', 'client'])
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->orderByDesc('paid_on')
+            ->limit(10)
+            ->get();
+        $recentSalesReturns = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->where('t.type', 'sell-return')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as client_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
+        $recentQuotations = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->where('t.type', 'quotation')
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as client_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
+        $recentFavoriteSales = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->whereIn('t.type', ['sell', 'sell-return', 'quotation'])
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('favorite_bills as f')
+                    ->whereColumn('f.transaction_id', 't.id')
+                    ->where('f.user_id', Auth::id());
+            })
+            ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as client_name')
+            ->orderByDesc('t.id')
+            ->limit(8)
+            ->get();
 
         return view('sales::sell.dashboard', compact(
-            'months',
-            'monthNames',
-            'paymentMethods',
-            'monthlyCollections',
-            'recentReceipts',
+            'startDate',
+            'endDate',
+            'periodSales',
+            'salesGrowth',
+            'periodInvoices',
+            'avgInvoice',
+            'activeCustomers',
+            'overdueAmount',
+            'dueAmount',
             'receiptsStats',
-            'transactions',
+            'couponStats',
+            'salesReturnStats',
+            'quotationStats',
+            'favoritesStats',
+            'monthLabels',
             'salesData',
-            'stats',
-            'dailyChangePercent',
-            'yesterdaySales',
-            'formattedTodaySales'
+            'collectionData',
+            'paymentMethods',
+            'topProducts',
+            'transactions',
+            'recentReceipts',
+            'recentSalesReturns',
+            'recentQuotations',
+            'recentFavoriteSales'
         ));
+    }
+
+    public function salesDashboardExportCsv(Request $request)
+    {
+        $data = $this->buildSalesDashboardExportData($request);
+        $rows = [];
+        $rows[] = ['KPI', 'Value'];
+        $rows[] = ['Period Sales', (string) $data['periodSales']];
+        $rows[] = ['Sales Growth %', (string) $data['salesGrowth']];
+        $rows[] = ['Invoices Count', (string) $data['periodInvoices']];
+        $rows[] = ['Average Invoice', (string) $data['avgInvoice']];
+        $rows[] = ['Active Customers', (string) $data['activeCustomers']];
+        $rows[] = ['Total Due', (string) $data['dueAmount']];
+        $rows[] = ['Overdue Amount', (string) $data['overdueAmount']];
+        $rows[] = ['Total Collected', (string) ($data['receiptsStats']->total_collected ?? 0)];
+        $rows[] = ['Receipt Count', (string) ($data['receiptsStats']->total_receipts ?? 0)];
+        $rows[] = ['Coupon Usages', (string) ($data['couponStats']->coupon_usages ?? 0)];
+        $rows[] = ['Coupon Discount Total', (string) ($data['couponStats']->total_coupon_discount ?? 0)];
+        $rows[] = ['Sales Returns Count', (string) ($data['salesReturnStats']->total_count ?? 0)];
+        $rows[] = ['Sales Returns Amount', (string) ($data['salesReturnStats']->total_amount ?? 0)];
+        $rows[] = ['Quotations Count', (string) ($data['quotationStats']->total_count ?? 0)];
+        $rows[] = ['Quotations Amount', (string) ($data['quotationStats']->total_amount ?? 0)];
+        $rows[] = ['Favorites Count', (string) ($data['favoritesStats']->total_count ?? 0)];
+        $rows[] = ['Favorites Amount', (string) ($data['favoritesStats']->total_amount ?? 0)];
+        $rows[] = [];
+        $rows[] = ['Payment Methods'];
+        $rows[] = ['Method', 'Total'];
+        foreach ($data['paymentMethods'] as $methodRow) {
+            $rows[] = [
+                $this->localizedPaymentMethod((string) ($methodRow->method ?? '')),
+                (string) ($methodRow->total ?? 0),
+            ];
+        }
+        $rows[] = [];
+        $rows[] = ['Top Products'];
+        $rows[] = ['Name AR', 'Name EN', 'Qty', 'Sales'];
+        foreach ($data['topProducts'] as $p) {
+            $rows[] = [$p->name_ar ?? '', $p->name_en ?? '', (string) $p->total_qty, (string) $p->total_sales];
+        }
+        $rows[] = [];
+        $rows[] = ['Recent Transactions'];
+        $rows[] = ['Ref', 'Client', 'Type', 'Payment Status', 'Approval Status', 'Date', 'Total', 'Paid', 'Remaining'];
+        foreach ($data['transactions'] as $t) {
+            $rows[] = [
+                $t->ref_no ?? '',
+                $t->client_name ?? '',
+                $t->type ?? '',
+                $this->localizedPaymentStatus((string) ($t->payment_status ?? '')),
+                $this->localizedApprovalStatus((string) ($t->status ?? '')),
+                $t->transaction_date ?? '',
+                (string) $t->final_total,
+                (string) $t->paid_amount,
+                (string) $t->remaining_amount
+            ];
+        }
+        $rows[] = [];
+        $rows[] = ['Recent Receipts'];
+        $rows[] = ['Receipt Ref', 'Client', 'Invoice', 'Amount', 'Paid On'];
+        foreach ($data['recentReceipts'] as $r) {
+            $rows[] = [$r->payment_ref_no ?? '', $r->client->name ?? '', $r->transaction->ref_no ?? '', (string) $r->amount, (string) $r->paid_on];
+        }
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        }, 'sales-dashboard-report.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function salesDashboardExportPdf(Request $request)
+    {
+        $data = $this->buildSalesDashboardExportData($request);
+        $html = view('sales::sell.dashboard_export_pdf', $data)->render();
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 8,
+            'margin_right' => 8,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf')
+        ]);
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('sales-dashboard-report.pdf', 'D');
+    }
+
+    private function buildSalesDashboardExportData(Request $request): array
+    {
+        $validStatuses = ['approved', 'final'];
+        $startDate = $request->filled('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : now()->startOfMonth()->startOfDay();
+        $endDate = $request->filled('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : now()->endOfDay();
+        if ($endDate->lt($startDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+        $periodDays = max(1, $startDate->diffInDays($endDate) + 1);
+        $prevStart = $startDate->copy()->subDays($periodDays)->startOfDay();
+        $prevEnd = $startDate->copy()->subDay()->endOfDay();
+
+        $paymentsSub = DB::table('transaction_payments')
+            ->selectRaw('transaction_id, SUM(IF(is_return = 1, -1 * amount, amount)) as paid_total')
+            ->groupBy('transaction_id');
+        $salesBase = Transaction::query()->where('type', 'sell')->whereIn('status', $validStatuses);
+        $periodSales = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->sum('final_total');
+        $prevSales = (clone $salesBase)->whereBetween('transaction_date', [$prevStart, $prevEnd])->sum('final_total');
+        $salesGrowth = $prevSales > 0 ? round((($periodSales - $prevSales) / $prevSales) * 100, 2) : ($periodSales > 0 ? 100 : 0);
+        $periodInvoices = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->count();
+        $avgInvoice = $periodInvoices > 0 ? $periodSales / $periodInvoices : 0;
+        $activeCustomers = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->distinct('contact_id')->count('contact_id');
+
+        $periodSalesQuery = DB::table('transactions as t')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->where('t.type', 'sell')
+            ->whereIn('t.status', $validStatuses)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate]);
+        $overdueAmount = (clone $periodSalesQuery)->whereDate('t.due_date', '<', now()->toDateString())->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as overdue')->value('overdue') ?? 0;
+        $dueAmount = (clone $periodSalesQuery)->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as due')->value('due') ?? 0;
+
+        $receiptsStats = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
+            ->selectRaw('COUNT(*) as total_receipts, SUM(amount) as total_collected')
+            ->first();
+        $couponStats = Coupon::query()
+            ->leftJoin('sales_coupons_clients as scc', 'sales_coupons.id', '=', 'scc.coupon_id')
+            ->leftJoin('transactions as t', 't.id', '=', 'scc.transaction_id')
+            ->whereBetween(DB::raw('COALESCE(t.transaction_date, scc.created_at)'), [$startDate, $endDate])
+            ->selectRaw('COUNT(DISTINCT sales_coupons.id) as active_coupons, COUNT(scc.transaction_id) as coupon_usages, SUM(COALESCE(t.discount_amount,0)) as total_coupon_discount')
+            ->first();
+        $salesReturnStats = Transaction::query()
+            ->where('type', 'sell-return')
+            ->whereIn('status', $validStatuses)
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $quotationStats = Transaction::query()
+            ->where('type', 'quotation')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $favoritesStats = Transaction::query()
+            ->whereIn('type', ['sell', 'sell-return', 'quotation'])
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
+            ->first();
+        $topProducts = TransactionSellLine::query()
+            ->join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+            ->join('product_products as p', 'p.id', '=', 'transaction_sell_lines.product_id')
+            ->where('t.type', 'sell')->whereIn('t.status', $validStatuses)->where('transaction_sell_lines.is_show', 1)
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->groupBy('transaction_sell_lines.product_id', 'p.name_ar', 'p.name_en')
+            ->selectRaw('p.name_ar, p.name_en, SUM(transaction_sell_lines.qyt) as total_qty, SUM(transaction_sell_lines.total_before_vat) as total_sales')
+            ->orderByDesc('total_sales')->limit(10)->get();
+        $paymentMethods = TransactionPayments::query()
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])
+            ->selectRaw('method, SUM(amount) as total')
+            ->groupBy('method')
+            ->orderByDesc('total')
+            ->get();
+        $transactions = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
+            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->whereIn('t.type', ['sell', 'quotation', 'sell-return'])
+            ->whereBetween('t.transaction_date', [$startDate, $endDate])
+            ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as client_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
+            ->orderByDesc('t.id')->limit(10)->get();
+        $recentReceipts = TransactionPayments::with(['transaction', 'client'])
+            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereBetween('paid_on', [$startDate, $endDate])->orderByDesc('paid_on')->limit(10)->get();
+
+        return compact(
+            'startDate',
+            'endDate',
+            'periodSales',
+            'salesGrowth',
+            'periodInvoices',
+            'avgInvoice',
+            'activeCustomers',
+            'overdueAmount',
+            'dueAmount',
+            'receiptsStats',
+            'couponStats',
+            'paymentMethods',
+            'salesReturnStats',
+            'quotationStats',
+            'favoritesStats',
+            'paymentMethods',
+            'topProducts',
+            'transactions',
+            'recentReceipts'
+        );
+    }
+
+    private function localizedPaymentMethod(string $method): string
+    {
+        if (app()->getLocale() !== 'ar') {
+            return $method ?: '--';
+        }
+        $map = [
+            'cash' => 'نقدي',
+            'card' => 'بطاقة',
+            'bank_transfer' => 'تحويل بنكي',
+            'bank' => 'بنك',
+            'cheque' => 'شيك',
+            'check' => 'شيك',
+            'credit' => 'آجل',
+            'due' => 'آجل',
+            'wallet' => 'محفظة',
+        ];
+        $key = strtolower(trim($method));
+        return $map[$key] ?? ($method ?: '--');
+    }
+
+    private function localizedPaymentStatus(string $status): string
+    {
+        $key = strtolower(trim($status));
+        if ($key === 'paid') return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
+        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        return app()->getLocale() === 'ar' ? 'غير مدفوع' : 'Unpaid';
+    }
+
+    private function localizedApprovalStatus(string $status): string
+    {
+        $key = strtolower(trim($status));
+        if (in_array($key, ['approved', 'final'], true)) return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        return app()->getLocale() === 'ar' ? 'مسودة' : 'Draft';
     }
 
     public function index(Request $request)
@@ -293,6 +588,8 @@ class SellController extends Controller
 
 
         $settings = Setting::getNotesAndTermsConditions();
+        $allowSaleWithoutStock = Setting::isAllowSaleWithoutStockEnabled();
+        $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
@@ -307,7 +604,47 @@ class SellController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig'));
+    }
+
+    private function buildSalesInvoicePrecheckConfig(): array
+    {
+        $missing = [];
+        if (!AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
+            $missing[] = __('accounting::lang.sales');
+        }
+        if (!AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
+            $missing[] = __('accounting::lang.vat');
+        }
+        if (Setting::isPerpetualInventory()) {
+            $inventoryAccountId = AccountingAccount::query()
+                ->where('gl_code', '11105')
+                ->orWhere('account_category', 'inventory')
+                ->value('id');
+            $cogsAccountId = AccountingAccount::query()
+                ->where('gl_code', '50101')
+                ->orWhere('account_category', 'COGS')
+                ->orWhere('account_category', 'cost_of_goods_sold')
+                ->value('id');
+            if (!$inventoryAccountId) {
+                $missing[] = __('accounting::lang.inventory');
+            }
+            if (!$cogsAccountId) {
+                $missing[] = __('accounting::lang.cost of goods sold');
+            }
+        }
+
+        return [
+            'missingAccounts' => $missing,
+            'messages' => [
+                'missingAccountsHeader' => app()->getLocale() === 'ar'
+                    ? 'إعدادات الحسابات غير مكتملة، يرجى مراجعة توجيه الحسابات:'
+                    : 'Accounting setup is incomplete, please review Accounts Routing:',
+                'missingUnit' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
+                    : 'Please select unit for each product before saving.',
+            ],
+        ];
     }
 
 
@@ -441,11 +778,13 @@ class SellController extends Controller
         ]);
 
 
+        $mustValidateStock = Setting::isPerpetualInventory()
+            && !Setting::isAllowSaleWithoutStockEnabled();
+
         foreach ($products as $product) {
             $discount_type = $product->discount ? $product->discount_type : null;
 
-
-            if (!auth()->user()->hasDashboardPermission('sales.Allow Sale Without Stock.create')) {
+            if ($mustValidateStock) {
                 $product_inventorie = DB::table('product_products')
                     ->select(
                         'product_products.id',
@@ -453,12 +792,19 @@ class SellController extends Controller
                     )
                     ->leftJoin('product_inventories', 'product_products.id', '=', 'product_inventories.product_id')
                     ->where('product_products.id', $product->products_id)
+                    ->where('product_inventories.establishment_id', $establishment_id)
                     ->groupBy('product_products.id')
                     ->first();
                 $inventory_qty = $product_inventorie->inventory_qty ?? 0;
 
                 if ($inventory_qty < $product->qty) {
-                    continue;
+                    DB::rollBack();
+                    $productModel = Product::select('name_ar', 'name_en')->find($product->products_id);
+                    $productName = $productModel?->name_ar ?: ($productModel?->name_en ?: ('#' . $product->products_id));
+                    $message = app()->getLocale() === 'ar'
+                        ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$productName}"
+                        : "Sale cannot be completed due to insufficient stock for product: {$productName}";
+                    return redirect()->back()->withInput()->with('error', $message);
                 }
             }
 
@@ -597,6 +943,8 @@ class SellController extends Controller
                 $request
             );
 
+            $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
+
             AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
@@ -725,6 +1073,8 @@ class SellController extends Controller
             $request
         );
 
+        $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
+
 
 
         $transactionPayment->account_id = $client->account_id;
@@ -753,6 +1103,56 @@ class SellController extends Controller
         );
 
         AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
+    }
+
+    private function appendPerpetualInventoryImpactEntries(Transaction $transaction, int $accTransMappingId, Request $request): void
+    {
+        if (!Setting::isPerpetualInventory()) {
+            return;
+        }
+
+        $inventoryAccountId = AccountingAccount::query()
+            ->where('gl_code', '11105')
+            ->orWhere('account_category', 'inventory')
+            ->value('id');
+
+        $cogsAccountId = AccountingAccount::query()
+            ->where('gl_code', '50101')
+            ->orWhere('account_category', 'COGS')
+            ->orWhere('account_category', 'cost_of_goods_sold')
+            ->value('id');
+
+        if (!$inventoryAccountId || !$cogsAccountId) {
+            throw ValidationException::withMessages([
+                'inventory_policy' => app()->getLocale() === 'ar'
+                    ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى التأكد من وجود حسابي المخزون وتكلفة البضاعة المباعة.'
+                    : 'Perpetual inventory accounting impact cannot be posted. Please configure Inventory and COGS accounts.',
+            ]);
+        }
+
+        $cogsAmount = (float) (DB::table('transaction_sell_lines as tsl')
+            ->join('product_products as p', 'p.id', '=', 'tsl.product_id')
+            ->where('tsl.transaction_id', $transaction->id)
+            ->sum(DB::raw('COALESCE(tsl.qyt,0) * COALESCE(p.cost,0)')));
+
+        if ($cogsAmount <= 0) {
+            return;
+        }
+
+        $accountUtil = new AccountingUtil();
+        $movement = new \stdClass();
+        $movement->paid_on = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+        $movement->created_by = Auth::id();
+        $movement->transaction_id = $transaction->id;
+        $movement->id = null;
+
+        $movement->account_id = $cogsAccountId;
+        $movement->amount = $cogsAmount;
+        $accountUtil->saveAccountRouteTransaction('debit', $movement, $transaction, $accTransMappingId, $request);
+
+        $movement->account_id = $inventoryAccountId;
+        $movement->amount = $cogsAmount;
+        $accountUtil->saveAccountRouteTransaction('credit', $movement, $transaction, $accTransMappingId, $request);
     }
 
     public function validateInvoiceRequest($request)

@@ -2,18 +2,32 @@
     class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-0 mb-5">
     @foreach (config('menu') as $menuItem)
     @php
-    $visibleSubmenuItems = collect($menuItem['subMenu'])->filter(function ($submenuItem) {
-    if (!array_key_exists('subMenu', $submenuItem)) {
-    if (!array_key_exists('permission', $submenuItem)) {
+    $hasMenuPermission = function ($permission) {
+    if (!isset($permission) || $permission === '' || $permission === null) {
     return true;
     }
 
-    return is_array($submenuItem['permission'])
-    ? collect($submenuItem['permission'])->contains(fn($permission) => auth()->user()->hasDashboardPermission($permission))
-    : auth()->user()->hasDashboardPermission($submenuItem['permission']);
+    return is_array($permission)
+    ? collect($permission)->contains(fn($perm) => auth()->user()->hasDashboardPermission($perm))
+    : auth()->user()->hasDashboardPermission($permission);
+    };
+
+    $visibleSubmenuItems = collect($menuItem['subMenu'])->filter(function ($submenuItem) {
+    $hasMenuPermission = function ($permission) {
+    if (!isset($permission) || $permission === '' || $permission === null) {
+    return true;
+    }
+
+    return is_array($permission)
+    ? collect($permission)->contains(fn($perm) => auth()->user()->hasDashboardPermission($perm))
+    : auth()->user()->hasDashboardPermission($permission);
+    };
+
+    if (!array_key_exists('subMenu', $submenuItem)) {
+    return $hasMenuPermission($submenuItem['permission'] ?? null);
     } else {
     return collect($submenuItem['subMenu'])->contains(function ($item) {
-    if (!array_key_exists('permission', $item)) {
+    if (!array_key_exists('permission', $item) || $item['permission'] === '' || $item['permission'] === null) {
     return true;
     }
 
@@ -29,7 +43,7 @@
     );
     @endphp
 
-    @if ($visibleSubmenuItems->isNotEmpty() || (array_key_exists('permission', $menuItem) && auth()->user()->hasDashboardPermission($menuItem['permission'])))
+    @if ($visibleSubmenuItems->isNotEmpty() || $hasMenuPermission($menuItem['permission'] ?? null))
     <x-sidebar.main-menu :isSubmenuActive="$isSubmenuActive">
         @if ($visibleSubmenuItems->isNotEmpty())
         <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="1" />
@@ -38,9 +52,11 @@
             @if (!array_key_exists('subMenu', $submenuItem))
             @if (array_key_exists('permission', $submenuItem))
             @php
-            $hasPermission = is_array($submenuItem['permission'])
+            $hasPermission = (!isset($submenuItem['permission']) || $submenuItem['permission'] === '' || $submenuItem['permission'] === null)
+            ? true
+            : (is_array($submenuItem['permission'])
             ? collect($submenuItem['permission'])->contains(fn($permission) => auth()->user()->hasDashboardPermission($permission))
-            : auth()->user()->hasDashboardPermission($submenuItem['permission']);
+            : auth()->user()->hasDashboardPermission($submenuItem['permission']));
             @endphp
 
             @if ($hasPermission)
@@ -71,9 +87,11 @@
                     @foreach ($submenuItem['subMenu'] as $item)
                     @if (array_key_exists('permission', $item))
                     @php
-                    $hasPermission = is_array($item['permission'])
+                    $hasPermission = (!isset($item['permission']) || $item['permission'] === '' || $item['permission'] === null)
+                    ? true
+                    : (is_array($item['permission'])
                     ? collect($item['permission'])->contains(fn($permission) => auth()->user()->hasDashboardPermission($permission))
-                    : auth()->user()->hasDashboardPermission($item['permission']);
+                    : auth()->user()->hasDashboardPermission($item['permission']));
                     @endphp
 
                     @if ($hasPermission)

@@ -1,4 +1,26 @@
 <x-general.modal module="screen" id='add_promo_modal' title='add_promo' class='mw-800px'>
+    <style>
+        #add_promo_modal .modal-content {
+            border-radius: 16px;
+        }
+
+        #add_promo_modal .dropzone {
+            border: 2px dashed #d1d3e0 !important;
+            border-radius: 16px !important;
+            padding: 1.75rem 1.25rem !important;
+            background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 55%, #ffffff 100%) !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #add_promo_modal .dropzone:hover {
+            border-color: #3699ff !important;
+            box-shadow: 0 14px 34px rgba(54, 153, 255, 0.14);
+        }
+
+        #add_promo_modal .dz-message {
+            cursor: pointer;
+        }
+    </style>
     <div class="upload-container">
         <div class="fv-row">
             <div class="dropzone">
@@ -95,9 +117,7 @@
         });
         $('#promo_upload').on('change', function() {
             const file = this.files[0];
-            const allowedTypes = ['image/jpeg', 'image/png',
-                'video/mp4'
-            ];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'];
             const maxSize = 120 * 1024 * 1024;
 
             if (file) {
@@ -107,7 +127,7 @@
 
                 // Check file type (MIME type)
                 if (!allowedTypes.includes(file.type)) {
-                    alert('Invalid file type. Please upload a JPG, PNG, or MP4 file.');
+                    alert('Invalid file type. Please upload a JPG, PNG, MP4, MOV, AVI, WEBM, or MKV file.');
                     $(this).val('');
                     return;
                 }

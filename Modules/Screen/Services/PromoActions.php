@@ -19,16 +19,21 @@ class PromoActions
         $promoName = $this->storePromoMedia($file, null, 'promos');
 
         $thumbnailPath = null;
-        if ($file->getClientOriginalExtension() === 'mp4') {
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (in_array($extension, ['mp4', 'mov', 'avi', 'webm', 'mkv'], true)) {
 
             $videoPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $promoName);
 
             $thumbnailName = 'thumbnails/' . time() . '.jpg';
 
             $thumbnailPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $thumbnailName);
-
-            $this->generateVideoThumbnail($videoPath, $thumbnailPath);
-            $thumbnailPath = $thumbnailName;
+            try {
+                $this->generateVideoThumbnail($videoPath, $thumbnailPath);
+                $thumbnailPath = $thumbnailName;
+            } catch (\Throwable $e) {
+                \Log::warning('video thumbnail generation failed', ['error' => $e->getMessage()]);
+                $thumbnailPath = null;
+            }
         } else {
             $thumbnailPath = $this->storePromoMedia($file, null, 'thumbnails');
         }

@@ -16,6 +16,8 @@ use Modules\Product\Models\UnitTransfer;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\PeriodicInventory;
+use Modules\General\Models\Setting;
 
 class ProductInventoryController extends Controller
 {
@@ -90,13 +92,13 @@ class ProductInventoryController extends Controller
 
         return $establishment;
     }
-    protected function fillProducts($establishment, $key)
+    protected function fillProducts($establishment, $key, array $periodicQtyMap = [], bool $usePeriodicSnapshot = false, ?string $statusFilter = null)
     {
 
         if ($establishment["is_main"] == 1) {
             $children = [];
             foreach ($establishment["children"] as $childEstablishment) {
-                $est = $this->fillProducts($childEstablishment, $key);
+                $est = $this->fillProducts($childEstablishment, $key, $periodicQtyMap, $usePeriodicSnapshot, $statusFilter);
                 $children[] = $est;
             }
             $establishment["children"] = $children;
@@ -139,6 +141,14 @@ class ProductInventoryController extends Controller
             $pp = $productInventory->toArray();
             $pp["type"] = "product";
             $pp["establishment_id"] = $establishment["id"];
+            $effectiveQty = (float) $productInventory->qty;
+            if ($usePeriodicSnapshot) {
+                $periodicKey = $establishment["id"] . '-' . $productInventory->id;
+                if (array_key_exists($periodicKey, $periodicQtyMap)) {
+                    $effectiveQty = (float) $periodicQtyMap[$periodicKey];
+                }
+            }
+
             $units = UnitTransfer::where('product_id', $productInventory->product_id)
                 ->whereNotNull('unit2')
                 ->get();
@@ -146,7 +156,7 @@ class ProductInventoryController extends Controller
             if (count($units) > 0) {
                 $quantities = [];
                 foreach ($units as $unit) {
-                    $quantityInStock = round($productInventory->qty * $unit->transfer);
+                    $quantityInStock = round($effectiveQty * $unit->transfer);
 
                     $quantities[] = "{$quantityInStock} {$unit->unit1}";
                 }
@@ -155,15 +165,26 @@ class ProductInventoryController extends Controller
                 $unit = UnitTransfer::where('product_id', $productInventory->product_id)
                     ->where('unit2', null)
                     ->first();
-                $qty = $productInventory->qty;
+                $qty = $effectiveQty;
 
                 if (floor($qty) == $qty) {
                     $formattedQty = number_format($qty, 0, '.', '');
                 } else {
                     $formattedQty = number_format($qty, 2, '.', '');
                 }
-                $pp["qty"] = $formattedQty . ' ' . $unit->unit1;
+                $unitName = $unit?->unit1 ?? '';
+                $pp["qty"] = trim($formattedQty . ' ' . $unitName);
             }
+            $threshold = (float) ($productInventory->threshold ?? data_get($productInventory, 'inventory.threshold', 0));
+            $stockStatus = $effectiveQty <= 0
+                ? 'out_of_stock'
+                : (($threshold > 0 && $effectiveQty <= $threshold) ? 'low_stock' : 'normal');
+            if (!empty($statusFilter) && $statusFilter !== 'all' && $stockStatus !== $statusFilter) {
+                continue;
+            }
+            $pp['qty_raw'] = $effectiveQty;
+            $pp['threshold'] = $threshold;
+            $pp['stock_status'] = $stockStatus;
             $children[] = $pp;
         }
 
@@ -286,23 +307,13 @@ class ProductInventoryController extends Controller
         $by = $request->query('by');
         $key = $request->query('key', '');
         $useTree = $request->query('t', '');
+        $status = $request->query('status', 'all');
         $establishments = [];
+        $usePeriodicSnapshot = Setting::isPeriodicInventory();
+        $periodicQtyMap = $this->getPeriodicQtyMap($usePeriodicSnapshot);
         $TreeBuilder = new TreeBuilder();
 
-        if (empty($key)) {
-            if ($by == 0) {
-                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-            } elseif ($by == -1) {
-                $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-            } else {
-                $establishments = Establishment::select('est_establishments.id', 'est_establishments.name')
-                    ->join('product_inventories', 'est_establishments.id', '=', 'product_inventories.establishment_id')
-                    ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-                    ->get();
-            }
-        } else {
-            $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-        }
+        $establishments = Establishment::whereNull('parent_id')->with('children')->get();
 
 
         $establishmentArray = $establishments->toArray();
@@ -313,7 +324,7 @@ class ProductInventoryController extends Controller
             if (!in_array($establishment['id'], $processedIds)) {
                 $processedIds[] = $establishment['id'];
 
-                $products = $this->fillProducts($establishment, $key);
+                $products = $this->fillProducts($establishment, $key, $periodicQtyMap, $usePeriodicSnapshot, $status);
 
                 if ($establishment['is_main'] == 0 && empty($products)) {
                     continue;
@@ -365,7 +376,140 @@ class ProductInventoryController extends Controller
      */
     public function index()
     {
-        return view('inventory::productInventory.index');
+        $inventoryPolicy = Setting::getInventoryTrackingPolicy();
+        $lastPeriodicSnapshot = null;
+        if ($inventoryPolicy === 'periodic') {
+            $lastPeriodicSnapshot = PeriodicInventory::query()->orderByDesc('end_date')->value('end_date');
+        }
+
+        return view('inventory::productInventory.index', compact('inventoryPolicy', 'lastPeriodicSnapshot'));
+    }
+
+    public function summary()
+    {
+        [$items, $lastSnapshotDate] = $this->buildInventorySummaryData();
+
+        $kpis = [
+            'total_items' => count($items),
+            'out_of_stock' => collect($items)->where('stock_status', 'out_of_stock')->count(),
+            'low_stock' => collect($items)->where('stock_status', 'low_stock')->count(),
+            'normal' => collect($items)->where('stock_status', 'normal')->count(),
+            'total_cost_value' => round((float) collect($items)->sum(fn($i) => max(0, (float) $i['qty']) * (float) $i['cost']), 2),
+        ];
+
+        $criticalItems = collect($items)
+            ->whereIn('stock_status', ['out_of_stock', 'low_stock'])
+            ->sortBy('qty')
+            ->take(10)
+            ->values()
+            ->all();
+
+        return response()->json([
+            'kpis' => $kpis,
+            'critical_items' => $criticalItems,
+            'last_snapshot_date' => $lastSnapshotDate,
+            'policy' => Setting::getInventoryTrackingPolicy(),
+        ]);
+    }
+
+    public function exportCriticalCsv()
+    {
+        [$items] = $this->buildInventorySummaryData();
+        $criticalItems = collect($items)
+            ->whereIn('stock_status', ['out_of_stock', 'low_stock'])
+            ->sortBy('qty')
+            ->values();
+
+        $fileName = 'product-inventory-critical-items-' . now()->format('Ymd-His') . '.csv';
+        return response()->streamDownload(function () use ($criticalItems) {
+            $stream = fopen('php://output', 'w');
+            fputcsv($stream, ['Establishment', 'Product', 'Qty', 'Threshold', 'Status', 'Cost']);
+            foreach ($criticalItems as $item) {
+                fputcsv($stream, [
+                    $item['establishment_name'],
+                    $item['product_name'],
+                    number_format((float) $item['qty'], 2, '.', ''),
+                    number_format((float) $item['threshold'], 2, '.', ''),
+                    $item['stock_status'],
+                    number_format((float) $item['cost'], 2, '.', ''),
+                ]);
+            }
+            fclose($stream);
+        }, $fileName, ['Content-Type' => 'text/csv']);
+    }
+
+    private function getPeriodicQtyMap(bool $usePeriodicSnapshot): array
+    {
+        if (!$usePeriodicSnapshot) {
+            return [];
+        }
+
+        $latestPerEstablishment = DB::table('periodic_inventories')
+            ->selectRaw('establishment_id, MAX(id) as latest_id')
+            ->groupBy('establishment_id');
+
+        $periodicItems = DB::table('periodic_inventory_items as pii')
+            ->join('periodic_inventories as pi', 'pi.id', '=', 'pii.periodic_inventory_id')
+            ->joinSub($latestPerEstablishment, 'lp', function ($join) {
+                $join->on('lp.latest_id', '=', 'pi.id');
+            })
+            ->select('pi.establishment_id', 'pii.product_id', 'pii.physical_quantity')
+            ->get();
+
+        $periodicQtyMap = [];
+        foreach ($periodicItems as $item) {
+            $periodicQtyMap[$item->establishment_id . '-' . $item->product_id] = (float) $item->physical_quantity;
+        }
+
+        return $periodicQtyMap;
+    }
+
+    private function buildInventorySummaryData(): array
+    {
+        $usePeriodicSnapshot = Setting::isPeriodicInventory();
+        $periodicQtyMap = $this->getPeriodicQtyMap($usePeriodicSnapshot);
+        $lastSnapshotDate = $usePeriodicSnapshot
+            ? DB::table('periodic_inventories')->max('end_date')
+            : null;
+
+        $rows = DB::table('product_inventories as pi')
+            ->join('product_products as p', 'p.id', '=', 'pi.product_id')
+            ->join('est_establishments as e', 'e.id', '=', 'pi.establishment_id')
+            ->leftJoin('inventory_product_inventories as ipi', 'ipi.product_id', '=', 'p.id')
+            ->select(
+                'pi.establishment_id',
+                'e.name as establishment_name',
+                'p.id as product_id',
+                'p.name_ar',
+                'p.name_en',
+                'p.cost',
+                'pi.qty',
+                'ipi.threshold'
+            )
+            ->get();
+
+        $items = [];
+        foreach ($rows as $row) {
+            $qty = (float) $row->qty;
+            if ($usePeriodicSnapshot) {
+                $key = $row->establishment_id . '-' . $row->product_id;
+                if (array_key_exists($key, $periodicQtyMap)) {
+                    $qty = (float) $periodicQtyMap[$key];
+                }
+            }
+            $threshold = (float) ($row->threshold ?? 0);
+            $status = $qty <= 0 ? 'out_of_stock' : (($threshold > 0 && $qty <= $threshold) ? 'low_stock' : 'normal');
+            $items[] = [
+                'establishment_name' => $row->establishment_name,
+                'product_name' => app()->getLocale() === 'ar' ? ($row->name_ar ?: $row->name_en) : ($row->name_en ?: $row->name_ar),
+                'qty' => $qty,
+                'threshold' => $threshold,
+                'stock_status' => $status,
+                'cost' => (float) ($row->cost ?? 0),
+            ];
+        }
+
+        return [$items, $lastSnapshotDate];
     }
 
     /**

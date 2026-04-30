@@ -439,16 +439,10 @@ return [
     ],
     [
         'name' => 'screen_module',
-        'url' => '/',
+        'url' => 'main',
         'icon' => 'fas fa-desktop',
         'permission' => 'screen_module.all.show',
-        'subMenu' => [
-            [
-                'name' => 'main',
-                'url' => 'main',
-                'permission' => 'screen_module.all.show',
-            ],
-        ]
+        'subMenu' => []
     ],
     [
         'name' => 'reports_module',

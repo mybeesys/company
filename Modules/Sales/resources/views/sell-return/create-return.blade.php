@@ -171,6 +171,9 @@
 @stop
 
 @section('script')
+    <script>
+        window.invoicePrecheckConfig = @json($invoicePrecheckConfig ?? []);
+    </script>
     <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>

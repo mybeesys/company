@@ -1,5 +1,94 @@
 @props(['establishments', 'devices'])
 <x-general.modal module="screen" id='add_playlist_modal' title='add_playlist' class='mw-900px' :submitButton="false">
+    <style>
+        #add_playlist_stepper .stepper-nav {
+            padding: 0.5rem 0.25rem 1rem;
+            border-bottom: 1px solid #e4e6ef;
+            margin-bottom: 1.25rem !important;
+        }
+
+        #add_playlist_stepper .stepper-item.current .stepper-number {
+            background: linear-gradient(135deg, #3699ff, #187de4);
+            color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(54, 153, 255, 0.35);
+        }
+
+        #add_playlist_stepper .stepper-item.completed .stepper-number {
+            background: linear-gradient(135deg, #50cd89, #2fb37a);
+            color: #fff;
+            border-radius: 12px;
+        }
+
+        #add_playlist_stepper .stepper-item .stepper-number {
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        #add_playlist_stepper .stepper-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #181c32;
+            margin-bottom: 0.15rem;
+        }
+
+        #add_playlist_stepper .stepper-desc {
+            font-size: 0.78rem;
+            color: #7e8299;
+            font-weight: 500;
+        }
+
+        .playlist-step-card {
+            border: 1px solid #e4e6ef;
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            background: linear-gradient(180deg, #fafbff 0%, #ffffff 100%);
+            margin-bottom: 1rem;
+            border-left: 4px solid #3699ff;
+            box-shadow: 0 6px 22px rgba(82, 63, 105, 0.06);
+        }
+
+        .playlist-step-card .fw-bold {
+            font-size: 0.92rem;
+            color: #181c32;
+        }
+
+        .screen-playlist-table-wrap {
+            border: 1px solid #e4e6ef;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #f5f8fa;
+            padding: 0.35rem;
+        }
+
+        .screen-playlist-table-wrap .dataTables_wrapper {
+            background: #fff;
+            border-radius: 12px;
+            padding: 0.75rem 0.75rem 0.5rem;
+        }
+
+        .screen-stepper-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #e4e6ef;
+        }
+
+        .screen-stepper-footer .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.6rem 1.15rem;
+        }
+
+        .screen-stepper-footer .btn-primary {
+            box-shadow: 0 8px 20px rgba(54, 153, 255, 0.28);
+        }
+
+        #add_playlist_modal .modal-content {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+    </style>
+    <input type="hidden" name="playlist_id" value="">
     <div class="stepper stepper-pills" id="add_playlist_stepper">
         <div class="stepper-nav flex-center flex-wrap mb-10">
             <div class="stepper-item mx-8 my-4 current" data-kt-stepper-element="nav">
@@ -12,6 +101,7 @@
                         <h3 class="stepper-title">
                             @lang('screen::general.step') 1
                         </h3>
+                        <div class="stepper-desc">@lang('screen::general.step_1_hint')</div>
                     </div>
                 </div>
                 <div class="stepper-line h-40px"></div>
@@ -26,6 +116,7 @@
                         <h3 class="stepper-title">
                             @lang('screen::general.step') 2
                         </h3>
+                        <div class="stepper-desc">@lang('screen::general.step_2_hint')</div>
                     </div>
 
                 </div>
@@ -34,6 +125,10 @@
         </div>
         <div class="mb-5">
             <div class="flex-column current" data-kt-stepper-element="content">
+                <div class="playlist-step-card">
+                    <div class="fw-bold">@lang('screen::general.playlist_step_setup_title')</div>
+                    <div class="text-muted fs-7 mt-1">@lang('screen::general.playlist_step_setup_desc')</div>
+                </div>
                 <div class="d-flex flex-wrap gap-4">
                     <x-form.input-div class="mb-10 w-100 px-2">
                         <x-form.input required :errors=$errors placeholder="{{ __('sales::fields.name') }}"
@@ -85,16 +180,6 @@
                     </x-form.input-div>
 
                     <x-form.input-div class="mb-10 w-100">
-                        <x-form.select name="devices" :label="__('screen::general.devices')" :options="$devices" optionName="code" :errors="$errors"
-                            data_allow_clear="false" attribute="multiple" no_default required>
-                            <button type="button" id="device-select-all-btn"
-                                class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>
-                            <button type="button" id="device-deselect-all-btn"
-                                class="btn btn-secondary px-4 py-1 fs-7 mb-1">{{ __('employee::general.deselect_all') }}</button>
-                        </x-form.select>
-                    </x-form.input-div>
-
-                    <x-form.input-div class="mb-10 w-100">
                         <x-form.select name="establishments_ids" :label="__('employee::fields.establishment')" :options=$establishments
                             :errors="$errors" data_allow_clear="false" required
                             placeholder="{{ __('employee::fields.establishment') }}" attribute="multiple" no_default>
@@ -104,11 +189,35 @@
                                 class="btn btn-secondary px-4 py-1 fs-7 mb-1">{{ __('employee::general.deselect_all') }}</button>
                         </x-form.select>
                     </x-form.input-div>
+
+                    <x-form.input-div class="mb-10 w-100">
+                        <x-form.select name="devices" :label="__('screen::general.devices')" :options="[]" optionName="code" :errors="$errors"
+                            data_allow_clear="false" attribute="multiple" no_default required>
+                            <button type="button" id="device-select-all-btn"
+                                class="btn btn-primary px-4 py-1 fs-7 ms-2 mb-1">{{ __('employee::general.select_all') }}</button>
+                            <button type="button" id="device-deselect-all-btn"
+                                class="btn btn-secondary px-4 py-1 fs-7 mb-1">{{ __('employee::general.deselect_all') }}</button>
+                        </x-form.select>
+                        <div class="form-text">{{ __('screen::general.select_branch_first') }}</div>
+                    </x-form.input-div>
                 </div>
             </div>
             <div class="flex-column" data-kt-stepper-element="content">
-                <div class="mx-auto">
-                    <table id="promo_Playlist_table">
+                <div class="playlist-step-card">
+                    <div class="fw-bold">@lang('screen::general.playlist_step_materials_title')</div>
+                    <div class="text-muted fs-7 mt-1">@lang('screen::general.playlist_step_materials_desc')</div>
+                </div>
+                <div class="mb-5">
+                    <x-form.input-div class="w-100">
+                        <x-form.input type="number" min="1" max="300" name="transition_seconds" value="5" :label="__('screen::general.transition_speed_seconds')" />
+                    </x-form.input-div>
+                </div>
+                <div class="mb-2">
+                    <div class="fw-semibold text-gray-800 fs-6">@lang('screen::general.promo_table_section_title')</div>
+                    <div class="text-muted fs-7 mb-3">@lang('screen::general.promo_table_section_desc')</div>
+                </div>
+                <div class="screen-playlist-table-wrap mx-auto w-100">
+                    <table class="table align-middle table-row-dashed fs-6 gy-3 w-100 mb-0" id="promo_Playlist_table">
                         <thead>
                             <tr class="not-hover"></tr>
                         </thead>
@@ -118,20 +227,20 @@
                 </div>
             </div>
         </div>
-        <div class="d-flex flex-stack">
+        <div class="d-flex flex-stack flex-wrap gap-3 screen-stepper-footer">
             <div class="me-2">
                 <button type="button" class="btn btn-light btn-active-light-primary" data-kt-stepper-action="previous">
-                    @lang('screen::general.back')
+                    <i class="fas fa-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }} me-2"></i>@lang('screen::general.back')
                 </button>
             </div>
-            <div>
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
                 <button type="button" class="btn btn-primary" data-kt-stepper-action="submit">
                     <span class="indicator-label">
-                        @lang('general.save')
+                        <i class="fas fa-check me-2"></i>@lang('general.save')
                     </span>
                 </button>
                 <button type="button" class="btn btn-primary" data-kt-stepper-action="next">
-                    @lang('screen::general.next')
+                    @lang('screen::general.next')<i class="fas fa-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} ms-2"></i>
                 </button>
             </div>
         </div>
@@ -139,19 +248,66 @@
 </x-general.modal>
 
 <script>
+    let playlistStepperInstance = null;
+
+    function updateStepperActionButtons() {
+        const $nextBtn = $('#add_playlist_stepper [data-kt-stepper-action="next"]');
+        const $submitBtn = $('#add_playlist_stepper [data-kt-stepper-action="submit"]');
+        const currentStep = $('#add_playlist_stepper [data-kt-stepper-element="nav"].current').index() + 1;
+
+        $nextBtn.prop('disabled', false).removeClass('disabled');
+
+        if (currentStep <= 1) {
+            $nextBtn.removeClass('d-none');
+            $submitBtn.addClass('d-none');
+        } else {
+            $nextBtn.addClass('d-none');
+            $submitBtn.removeClass('d-none');
+        }
+    }
+
+    function isPlaylistStepOneValid() {
+        const name = ($('#add_playlist_modal input[name="name"]').val() || '').trim();
+        const daysSettings = $('#add_playlist_modal select[name="days_settings"]').val();
+        const orientation = $('#add_playlist_modal select[name="screen_orientation"]').val();
+        const establishments = $('#add_playlist_modal select[name="establishments_ids"]').val() || [];
+        const devices = $('#add_playlist_modal select[name="devices"]').val() || [];
+        const startTime = ($('#add_playlist_modal input[name="start_time"]').val() || '').trim();
+        const startDateTime = ($('#add_playlist_modal input[name="start_date_time"]').val() || '').trim();
+        const weekDays = $('#add_playlist_modal select[name="days_of_the_weak"]').val() || [];
+
+        let isValid = !!name && !!daysSettings && !!orientation && establishments.length > 0 && devices.length > 0;
+
+        if (daysSettings === 'every_day') {
+            isValid = isValid && !!startTime;
+        } else if (daysSettings === 'days_of_the_weak') {
+            isValid = isValid && !!startTime && weekDays.length > 0;
+        } else if (daysSettings === 'custom_date_time') {
+            isValid = isValid && !!startDateTime;
+        }
+
+        return isValid;
+    }
+
     function addPlaylistModal() {
         var element = document.querySelector("#add_playlist_stepper");
-        var stepper = new KTStepper(element);
-        stepper.on("kt.stepper.next", function(stepper) {
+        playlistStepperInstance = new KTStepper(element);
+        playlistStepperInstance.on("kt.stepper.next", function(stepper) {
+            if (stepper.getCurrentStepIndex() === 1 && !isPlaylistStepOneValid()) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning(@json(__('screen::general.playlist_step1_incomplete')));
+                }
+                return;
+            }
             stepper.goNext();
+            setTimeout(updateStepperActionButtons, 0);
         });
-        stepper.on("kt.stepper.previous", function(stepper) {
+        playlistStepperInstance.on("kt.stepper.previous", function(stepper) {
             stepper.goPrevious();
+            setTimeout(updateStepperActionButtons, 0);
         });
         $('select[name="days_settings"], select[name="days_of_the_weak"], select[name="screen_orientation"], select[name="devices"], select[name="establishments_ids"]')
-            .select2({
-                minimumResultsForSearch: -1,
-            });
+            .select2();
         Inputmask({
             regex: "([0-1][0-9]|2[0-3]):([0-5][0-9])",
             placeholder: "__:__"
@@ -164,6 +320,9 @@
 
         selectDeselectAll($('#device-select-all-btn'), $('#device-deselect-all-btn'), 'select[name="devices"]');
         selectDeselectAll($('#est-select-all-btn'), $('#est-deselect-all-btn'), 'select[name="establishments_ids"]');
+        $('select[name="establishments_ids"]').on('change', function() {
+            syncDevicesByEstablishments();
+        });
 
         $('select[name="days_settings"]').on('change', function() {
             const selectedValue = $(this).val();
@@ -206,10 +365,17 @@
             resetValues();
         });
         $('#add_playlist_modal').on('shown.bs.modal', function() {
+            if (playlistStepperInstance && typeof playlistStepperInstance.goTo === 'function') {
+                playlistStepperInstance.goTo(1);
+            }
             if ($.fn.dataTable.isDataTable(promoPlaylistTable)) {
                 promoPlaylistDataTable.destroy();
             }
+            $(promoPlaylistTable).empty().append(
+                '<thead><tr class="not-hover"></tr></thead><tbody></tbody>'
+            );
             addPlaylistModalPromosTable();
+            updateStepperActionButtons();
         });
     }
 
@@ -248,6 +414,15 @@
             drawCallback: function() {
                 KTMenu.createInstances();
                 initializeSelectionHandlers();
+                if (selectedInOrder.length) {
+                    promoPlaylistDataTable.rows().every(function() {
+                        const rowData = this.data();
+                        if (selectedInOrder.includes(String(rowData.DT_RowId)) || selectedInOrder.includes(Number(rowData.DT_RowId))) {
+                            this.select();
+                        }
+                    });
+                    updateOrderIndicators();
+                }
 
                 // Adjust DataTable layout
                 $(window).trigger('resize');
@@ -271,9 +446,21 @@
 
     function initializeModal() {
         $('#add_playlist_modal').on('shown.bs.modal', function() {
+            if (playlistStepperInstance && typeof playlistStepperInstance.goTo === 'function') {
+                playlistStepperInstance.goTo(1);
+            }
             if ($.fn.DataTable.isDataTable(promoPlaylistTable)) {
                 $(promoPlaylistTable).DataTable().destroy();
-                $(promoPlaylistTable).empty();
+            }
+            $(promoPlaylistTable).empty().append(
+                '<thead><tr class="not-hover"></tr></thead><tbody></tbody>'
+            );
+
+            const isEdit = !!$('#add_playlist_modal_form [name="playlist_id"]').val();
+            if (isEdit) {
+                addPlaylistModalPromosTable();
+                updateStepperActionButtons();
+                return;
             }
 
             $('#add_playlist_modal_form input, select').each(function() {
@@ -285,7 +472,10 @@
                     $(this).val(null);
                 }
             });
+            $('#add_playlist_modal_form [name="playlist_id"]').val('');
+            $('#add_playlist_modal_form [name="transition_seconds"]').val(5);
             addPlaylistModalPromosTable();
+            updateStepperActionButtons();
         });
     }
 
@@ -317,7 +507,15 @@
                 value: window.csrfToken
             });
 
-            ajaxRequest("{{ route('playlists.store') }}", "POST", data)
+            const playlistId = $('#add_playlist_modal_form [name="playlist_id"]').val();
+            const isEdit = !!playlistId;
+            if (isEdit) {
+                data.push({
+                    name: "_method",
+                    value: "PATCH"
+                });
+            }
+            ajaxRequest(isEdit ? `{{ url('/playlist') }}/${playlistId}` : "{{ route('playlists.store') }}", "POST", data)
                 .fail(function(data) {
                     $.each(data.responseJSON.errors, function(key, value) {
                         $(`[name='${key}']`).addClass('is-invalid');
@@ -334,6 +532,7 @@
 
         $('#add_playlist_modal').on('hidden.bs.modal', function() {
             resetPlaylistForm();
+            updateStepperActionButtons();
         });
 
         $('[data-kt-stepper-action="submit"]').off('click').on('click', function(e) {
@@ -350,6 +549,32 @@
             });
 
             $form.submit();
+        });
+
+        updateStepperActionButtons();
+    }
+
+    function syncDevicesByEstablishments(selectedDevices = []) {
+        const establishments = $('select[name="establishments_ids"]').val() || [];
+        const $devices = $('select[name="devices"]');
+        $devices.empty().trigger('change');
+
+        if (!establishments.length) {
+            return;
+        }
+
+        ajaxRequest("{{ route('devices.by-establishments') }}", "GET", {
+            establishments_ids: establishments
+        }, false, false, false).done(function(response) {
+            const list = response?.data || [];
+            list.forEach(device => {
+                const selected = selectedDevices.includes(String(device.id)) || selectedDevices.includes(Number(device.id));
+                const option = new Option(device.name, device.id, selected, selected);
+                $devices.append(option);
+            });
+            $devices.trigger('change');
+        }).fail(function() {
+            $devices.trigger('change');
         });
     }
 
@@ -394,11 +619,14 @@
     }
 
     function initializeStyles() {
-        if (!$('#playlist-custom-styles').length) {
-            $('<style id="playlist-custom-styles">')
+        if (!$('#playlist-custom-styles-v4').length) {
+            $('<style id="playlist-custom-styles-v4">')
                 .text(`
                 #promo_Playlist_table tbody tr.selected {
-                    background-color: #eee !important;
+                    background-color: transparent !important;
+                }
+                #promo_Playlist_table tbody tr.selected > td {
+                    background-color: transparent !important;
                 }
                 .cursor-pointer {
                     cursor: pointer;
@@ -407,16 +635,16 @@
                     content: ' ';
                     margin-top: 0;
                     margin-left: 0;
-                    border: 1px solid #000;
-                    border-radius: 3px;
+                    border: 2px solid #c9cbda;
+                    border-radius: 6px;
                     width: 18px;
                     height: 18px;
                     display: block;
                     box-sizing: border-box;
                 }
                 table.dataTable tr.selected td.select-checkbox:before {
-                    background: #1e1e2d;
-                    border-color: #1e1e2d;
+                    background: #e4e8ee;
+                    border-color: #b5bcc9;
                 }
                 table.dataTable tr.selected td.select-checkbox:after {
                     content: '✓';
@@ -424,18 +652,26 @@
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    color: white;
-                    font-size: 12px;
+                    color: #3f4254;
+                    font-size: 11px;
+                    font-weight: 700;
                 }
                 .selection-order {
-                    display: inline-block;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    font-weight: bold;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 22px;
+                    height: 22px;
+                    padding: 0 6px;
+                    border-radius: 999px;
+                    font-weight: 700;
                     text-align: center;
-                    line-height: 20px;
-                    font-size: 15px;
+                    font-size: 12px;
+                    margin-inline-start: 8px;
+                    background: #e4e6ef;
+                    color: #3f4254;
+                    box-shadow: none;
+                    border: 1px solid #d8dce6;
                 }
             `).appendTo('head');
         }

@@ -107,8 +107,8 @@ class GeneralController extends Controller
             ];
         });
 
-        $policy = Setting::where('key', 'inventory_tracking_policy')->value('value') ?? 'perpetual';
-        $allowSaleWithoutStock = Setting::where('key', 'allow_sale_without_stock')->value('value');
+        $policy = Setting::getInventoryTrackingPolicy();
+        $allowSaleWithoutStock = Setting::isAllowSaleWithoutStockEnabled() ? 'true' : 'false';
         // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
         $unit = UnitTransfer::where("default", 1)->first();
@@ -302,12 +302,13 @@ class GeneralController extends Controller
 
     public function updateInventorySettings(Request $request)
     {
-        // return $request;
         try {
-            $trackingPolicy = $request->input('inventory_tracking_policy');
+            $request->validate([
+                'inventory_tracking_policy' => 'required|in:periodic,perpetual',
+            ]);
+
+            $trackingPolicy = $request->input('inventory_tracking_policy', 'perpetual');
             $allowSaleWithoutStock = $request->input('allow_sale_without_stock', false);
-            // return  $allowSaleWithoutStock ? 'true' : 'false';
-            // $inventoryCountFrequency = $request->input('inventory_count_frequency');
 
             Setting::updateOrCreate(
                 ['key' => 'inventory_tracking_policy'],
@@ -319,14 +320,7 @@ class GeneralController extends Controller
                     ['key' => 'allow_sale_without_stock'],
                     ['value' => $allowSaleWithoutStock ? 'true' : 'false']
                 );
-
-                // Setting::where('key', 'inventory_count_frequency')->delete();
             } elseif ($trackingPolicy === 'periodic') {
-                // Setting::updateOrCreate(
-                //     ['key' => 'inventory_count_frequency'],
-                //     ['value' => $inventoryCountFrequency]
-                // );
-
                 Setting::where('key', 'allow_sale_without_stock')->delete();
             }
 

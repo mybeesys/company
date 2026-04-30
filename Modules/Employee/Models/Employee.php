@@ -131,6 +131,11 @@ class Employee extends Authenticatable
 
     public function hasDashboardPermission($permission)
     {
+        // If permission is empty/null in config('menu'), treat it as public item.
+        if (empty($permission)) {
+            return true;
+        }
+
         if ($permission) {
             $permission_sections = explode('.', $permission);
             $module = $permission_sections[0];

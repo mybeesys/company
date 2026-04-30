@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Mpdf\Mpdf;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\PeriodicInventory;
+use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
@@ -24,7 +26,7 @@ class PeriodicInventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PeriodicInventory::with(['items'])->latest();
+        $query = PeriodicInventory::with(['items', 'adjustmentEntry', 'establishment', 'creator'])->latest();
 
         if ($request->filled('from_date')) {
             $query->where('end_date', '>=', $request->from_date);
@@ -37,11 +39,42 @@ class PeriodicInventoryController extends Controller
         if ($request->filled('establishment')) {
             $query->where('establishment_id', $request->establishment);
         }
+        if ($request->filled('status')) {
+            if ($request->status === 'with_adjustment') {
+                $query->whereNotNull('adjustment_entry_id');
+            } elseif ($request->status === 'without_adjustment') {
+                $query->whereNull('adjustment_entry_id');
+            }
+        }
 
         $inventories = $query->paginate(10);
         $establishments = Establishment::all();
 
-        return view('accounting::inventory.periodic.index', compact('inventories', 'establishments'));
+        $summaryQuery = PeriodicInventory::query();
+        if ($request->filled('from_date')) {
+            $summaryQuery->where('end_date', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $summaryQuery->where('start_date', '<=', $request->to_date);
+        }
+        if ($request->filled('establishment')) {
+            $summaryQuery->where('establishment_id', $request->establishment);
+        }
+        if ($request->filled('status')) {
+            if ($request->status === 'with_adjustment') {
+                $summaryQuery->whereNotNull('adjustment_entry_id');
+            } elseif ($request->status === 'without_adjustment') {
+                $summaryQuery->whereNull('adjustment_entry_id');
+            }
+        }
+        $summary = [
+            'periods_count' => (clone $summaryQuery)->count(),
+            'posted_count' => (clone $summaryQuery)->whereNotNull('adjustment_entry_id')->count(),
+            'no_adjustment_count' => (clone $summaryQuery)->whereNull('adjustment_entry_id')->count(),
+            'total_cogs' => (float) ((clone $summaryQuery)->sum('cogs') ?? 0),
+        ];
+
+        return view('accounting::inventory.periodic.index', compact('inventories', 'establishments', 'summary'));
     }
 
     public function create()
@@ -124,7 +157,16 @@ class PeriodicInventoryController extends Controller
             ]);
         }
 
-        $this->postInventoryAdjustments($inventory);
+        $adjustmentEntry = $this->postInventoryAdjustments($inventory);
+        if ($adjustmentEntry) {
+            $inventory->update([
+                'notes' => 'تم اعتماد الجرد مع قيد تسوية رقم ' . ($adjustmentEntry->ref_no ?? $adjustmentEntry->id),
+            ]);
+        } else {
+            $inventory->update([
+                'notes' => 'تم اعتماد الجرد بدون قيد تسوية (فرق الجرد يساوي صفر).',
+            ]);
+        }
 
         return redirect()->route('periodic-inventory.index')
             ->with('success', 'تم تنفيذ الجرد بنجاح');
@@ -150,9 +192,11 @@ class PeriodicInventoryController extends Controller
 
     protected function postInventoryAdjustments($inventory)
     {
-
-        $variance = $inventory->closing_stock_value -
-            ($inventory->opening_stock_value + $inventory->purchases_value - $inventory->cogs);
+        // Use actual counted variance from items (qty variance * unit cost),
+        // not the derived COGS formula, to determine if adjustment is needed.
+        $variance = (float) $inventory->items->sum(function ($item) {
+            return ((float) $item->physical_quantity - (float) $item->system_quantity) * (float) $item->unit_cost;
+        });
 
         if ($variance != 0) {
             try {
@@ -170,21 +214,41 @@ class PeriodicInventoryController extends Controller
 
                 $acc_trans_mapping = AccountingAccTransMapping::create($journalEntry);
 
-                $journalEntries = [];
+                $inventoryAccountId = AccountingAccount::query()
+                    ->where('account_category', 'inventory')
+                    ->orWhere('gl_code', '11105')
+                    ->value('id');
 
+                $inventoryAdjustmentAccountId = AccountingAccount::query()
+                    ->where('account_category', 'inventory_adjustment')
+                    ->orWhere('account_category', 'COGS')
+                    ->orWhere('account_category', 'cost_of_goods_sold')
+                    ->orWhere('gl_code', '50101')
+                    ->value('id');
+
+                // Fallback to configured purchases account when dedicated adjustment account does not exist.
+                if (!$inventoryAdjustmentAccountId) {
+                    $inventoryAdjustmentAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
+                }
+
+                $journalEntries = [];
                 $journalEntries[] = [
-                    'account_id' => AccountingAccount::where('account_category', 'inventory')->first()->id,
+                    'account_id' => $inventoryAccountId,
                     'amount' => abs($variance),
                     'type' => $variance > 0 ? 'debit' : 'credit',
                     'notes' => 'تسوية مخزون'
                 ];
 
                 $journalEntries[] = [
-                    'account_id' => AccountingAccount::where('account_category', 'inventory_adjustment')->first()->id,
+                    'account_id' => $inventoryAdjustmentAccountId,
                     'amount' => abs($variance),
                     'type' => $variance > 0 ? 'credit' : 'debit',
                     'notes' => 'تسوية مخزون'
                 ];
+
+                if (!$journalEntries[0]['account_id'] || !$journalEntries[1]['account_id']) {
+                    throw new \RuntimeException('Required accounts for periodic inventory adjustment are not configured (inventory / inventory_adjustment).');
+                }
 
                 foreach ($journalEntries as $entry) {
                     AccountingAccountsTransaction::create([
@@ -256,5 +320,24 @@ class PeriodicInventoryController extends Controller
             ->get();
 
         return response()->json($products);
+    }
+
+    public function exportPdf($id)
+    {
+        $inventory = PeriodicInventory::with(['items.product', 'establishment', 'creator', 'adjustmentEntry'])->findOrFail($id);
+        $html = view('accounting::inventory.periodic.export_pdf', compact('inventory'))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 8,
+            'margin_right' => 8,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf')
+        ]);
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('periodic-inventory-' . $inventory->id . '.pdf', 'D');
     }
 }

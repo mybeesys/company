@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="mb-4">{{ __('accounting::lang.cash_flow_statement') }}</h2>
+        @include('accounting::reports.partials.inventory_policy_notice')
 
         <form action="{{ route('cash-flow') }}" method="GET">
             <div class="row">

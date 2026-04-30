@@ -11,6 +11,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\General\Models\PaymentMethod;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
@@ -90,11 +91,24 @@ class SellApiController extends Controller
             ]);
 
             $products = json_decode(json_encode($request->items));
+            $mustValidateStock = Setting::isPerpetualInventory() && !Setting::isAllowSaleWithoutStockEnabled();
 
             foreach ($products as $product) {
                 $find_product = Product::find($product->product_id);
                 if (!$find_product) {
                     return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                }
+
+                if ($mustValidateStock) {
+                    $availableQty = $this->getAvailableProductQty((int) $product->product_id, (int) $establishment_id);
+                    if ($availableQty < (float) $product->quantity) {
+                        DB::rollBack();
+                        return response()->json([
+                            'message' => app()->getLocale() === 'ar'
+                                ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$find_product->name_ar}"
+                                : "Sale cannot be completed due to insufficient stock for product: {$find_product->name_en}",
+                        ], 422);
+                    }
                 }
 
                 TransactionSellLine::create([
@@ -118,6 +132,18 @@ class SellApiController extends Controller
                         return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
                     }
 
+                    if ($mustValidateStock) {
+                        $availableQty = $this->getAvailableProductQty((int) $modifier->modifier_id, (int) $establishment_id);
+                        if ($availableQty < (float) $modifier->quantity) {
+                            DB::rollBack();
+                            return response()->json([
+                                'message' => app()->getLocale() === 'ar'
+                                    ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$find_product->name_ar}"
+                                    : "Sale cannot be completed due to insufficient stock for product: {$find_product->name_en}",
+                            ], 422);
+                        }
+                    }
+
                     TransactionSellLine::create([
                         'transaction_id' => $transaction->id,
                         'product_id' => $modifier->modifier_id,
@@ -138,6 +164,20 @@ class SellApiController extends Controller
                     $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
                     if (!$find_product) {
                         return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                    }
+
+                    if ($mustValidateStock) {
+                        $availableQty = $this->getAvailableProductQty((int) $find_product->product_id, (int) $establishment_id);
+                        if ($availableQty < (float) $find_product->quantity) {
+                            DB::rollBack();
+                            $comboProduct = Product::find($find_product->product_id);
+                            return response()->json([
+                                'message' => app()->getLocale() === 'ar'
+                                    ? 'لا يمكن إتمام البيع لأن الكمية غير كافية لأحد منتجات الكومبو.'
+                                    : 'Sale cannot be completed due to insufficient stock for a combo product.',
+                                'product' => $comboProduct?->name_ar ?? $comboProduct?->name_en ?? null,
+                            ], 422);
+                        }
                     }
 
                     TransactionSellLine::create([
@@ -182,6 +222,14 @@ class SellApiController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'something went wrong \n' . $e], 500);
         }
+    }
+
+    private function getAvailableProductQty(int $productId, int $establishmentId): float
+    {
+        return (float) (DB::table('product_inventories')
+            ->where('product_id', $productId)
+            ->where('establishment_id', $establishmentId)
+            ->sum('qty'));
     }
 
 

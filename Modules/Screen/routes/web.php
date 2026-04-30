@@ -40,6 +40,8 @@ Route::middleware([
     Route::controller(PlaylistController::class)->prefix('playlist')->name('playlists.')->group(function(){
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
+        Route::get('/{playlist}', 'show')->name('show');
+        Route::patch('/{playlist}', 'update')->name('update');
 
         Route::delete('/{playlist}', 'destroy')->name('delete');
 
@@ -49,6 +51,8 @@ Route::middleware([
     Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function(){
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
+        Route::patch('/{device}', 'update')->name('update');
         Route::delete('/{device}', 'destroy')->name('delete');
+        Route::get('/by-establishments', 'byEstablishments')->name('by-establishments');
     });
 });

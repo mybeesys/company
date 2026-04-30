@@ -12,6 +12,14 @@
 @section('content')
     <form id="accounts-routing" method="POST" action="{{ route('accounts-routing-store') }}">
         @csrf
+        <div class="alert alert-light-warning border border-warning border-dashed mb-5">
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+            @if (app()->getLocale() === 'ar')
+                عند عدم توفر حساب مخصص لتسوية المخزون، سيستخدم النظام حسابًا بديلًا (مثل تكلفة المبيعات/المشتريات) لضمان عدم توقف القيود.
+            @else
+                If a dedicated inventory adjustment account is unavailable, the system uses a fallback account (e.g. COGS/Purchases) to prevent posting failures.
+            @endif
+        </div>
         <div class="d-flex flex-row-fluid gap-5">
             <ul
                 class="nav nav-tabs nav-pills rounded shadow-sm p-5 flex-row flex-md-column me-5 mb-3 mb-md-0 fs-6 min-h-450px">

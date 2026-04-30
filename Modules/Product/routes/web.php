@@ -66,6 +66,8 @@ Route::middleware([
         Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
         Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
         Route::get('product-dashboard', [ProductDashboardController::class, 'index'])->name('product.dashboard');
+        Route::get('product-dashboard/export/latest-products-csv', [ProductDashboardController::class, 'exportLatestProductsCsv'])->name('product.dashboard.export.latest-products-csv');
+        Route::get('product-dashboard/export/latest-menus-csv', [ProductDashboardController::class, 'exportLatestMenusCsv'])->name('product.dashboard.export.latest-menus-csv');
 
         Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
         Route::get('categories/subcategories/{id?}', [CategoryController::class, 'getminisubcategorylist'])->name('minisubcategorylist');

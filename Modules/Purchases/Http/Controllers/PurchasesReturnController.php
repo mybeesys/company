@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Models\AccountsRoting;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -78,7 +79,8 @@ class PurchasesReturnController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-        return view('purchases::purchases-return.create', compact('transaction', 'products', 'taxes'));
+        $invoicePrecheckConfig = $this->buildPurchasesReturnPrecheckConfig();
+        return view('purchases::purchases-return.create', compact('transaction', 'products', 'taxes', 'invoicePrecheckConfig'));
     }
 
     public function createReturnInvoice()
@@ -106,7 +108,34 @@ class PurchasesReturnController extends Controller
             $actionUtil = new ActionUtil();
             $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
         }
-        return view('purchases::purchases-return.create-return', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        $invoicePrecheckConfig = $this->buildPurchasesReturnPrecheckConfig();
+        return view('purchases::purchases-return.create-return', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
+    }
+
+    private function buildPurchasesReturnPrecheckConfig(): array
+    {
+        $missing = [];
+        if (!AccountsRoting::where('type', 'purchases_purchase')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب المشتريات' : 'Purchases account';
+        }
+        if (!AccountsRoting::where('type', 'purchases_purchase_return')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب مردود المشتريات' : 'Purchases return account';
+        }
+        if (!AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
+            $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';
+        }
+
+        return [
+            'missingAccounts' => $missing,
+            'messages' => [
+                'missingAccountsHeader' => app()->getLocale() === 'ar'
+                    ? 'إعدادات الحسابات غير مكتملة، يرجى مراجعة توجيه الحسابات:'
+                    : 'Accounting setup is incomplete, please review Accounts Routing:',
+                'missingUnit' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
+                    : 'Please select unit for each product before saving.',
+            ],
+        ];
     }
     public function storeReturnInvoice(Request $request)
     {

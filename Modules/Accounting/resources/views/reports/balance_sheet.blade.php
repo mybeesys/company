@@ -10,6 +10,7 @@
 
 
     <section class="content">
+        @include('accounting::reports.partials.inventory_policy_notice')
         <div class="row">
             <!-- Date Range Filter -->
             <div class="col-md-12 mt-12">

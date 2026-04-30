@@ -128,6 +128,8 @@ Route::middleware([
                     'store' => 'periodic-inventory.store',
                     'show' => 'periodic-inventory.show'
                 ]);
+            Route::get('periodic-inventory-export-pdf/{id}', [PeriodicInventoryController::class, 'exportPdf'])
+                ->name('periodic-inventory-export-pdf');
         });
         //
 

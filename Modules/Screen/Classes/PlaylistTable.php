@@ -31,11 +31,13 @@ class PlaylistTable
                     <div class="px-5 py-3 d-flex flex-column gap-2" style="width: 275px;">
                         <span class="text-gray-700 fw-bold">' . $playlist->name . '</span>
                         <span class="text-gray-700 fw-bolder">' . __('screen::general.' . $playlist->days_settings['days_settings_option']) . '</span>
+                        <span class="text-gray-600">' . __('screen::general.transition_speed_seconds') . ': ' . (int) ($playlist->days_settings['transition_seconds'] ?? 5) . '</span>
                     </div>
                      <div class="d-flex flex-column gap-5 py-5 justify-content-center" style="width: 150px;">
                                     <a href="#" 
                                         class="btn btn-primary px-6 py-2 rounded playlist-preview-btn" 
                                         data-id="' . $playlist->id . '">' . __('screen::general.preview') . '</a>
+                                <a href="#" class="btn btn-secondary px-6 py-2 rounded playlist-edit-btn" data-id="' . $playlist->id . '">' . __('screen::general.edit') . '</a>
                                 <a href="#" class="btn btn-danger px-6 py-2 rounded playlist-delete-btn" data-id="' . $playlist->id . '">' . __('screen::general.delete') . '</a>
                     </div>
                 </div>';

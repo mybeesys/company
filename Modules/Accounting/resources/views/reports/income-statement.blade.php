@@ -27,6 +27,7 @@
     </section>
 
     <div class="container-fluid" id="income-report">
+        @include('accounting::reports.partials.inventory_policy_notice')
         <div class="row">
             <div class="col-md-12">
                 <form method="GET" class="mb-4 no-print">

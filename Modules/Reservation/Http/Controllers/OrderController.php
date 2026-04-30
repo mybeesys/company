@@ -5,18 +5,22 @@ namespace Modules\Reservation\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 use Modules\Establishment\Models\Establishment;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\CustomMenu;
 use Modules\Product\Models\CustomMenuItem;
+use Modules\Product\Models\CustomMenuTime;
+use Modules\Product\Models\CustomMenuTimeDetail;
 use Modules\Reservation\Models\MenuFeedback;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
 use Illuminate\Support\Str;
 use Modules\General\Models\Setting;
 use Modules\Reservation\Models\MenuToken;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -142,6 +146,118 @@ class OrderController extends Controller
         return response()->json($menus);
     }
 
+    public function customMenuSchedule(int $id)
+    {
+        $customMenu = CustomMenu::query()->findOrFail($id);
+        $date = CustomMenuTime::query()
+            ->where('custommenu_id', $customMenu->id)
+            ->orderByDesc('id')
+            ->with('times')
+            ->first();
+
+        $defaultTimes = collect(range(1, 7))->map(function ($dayNo) {
+            return [
+                'day_no' => $dayNo,
+                'from_time' => '00:00:00',
+                'to_time' => '23:59:59',
+                'active' => 0,
+            ];
+        });
+
+        if ($date) {
+            $times = $defaultTimes->map(function ($row) use ($date) {
+                $existing = $date->times->firstWhere('day_no', $row['day_no']);
+                if ($existing) {
+                    return [
+                        'day_no' => (int) $existing->day_no,
+                        'from_time' => $existing->from_time ?: '00:00:00',
+                        'to_time' => $existing->to_time ?: '23:59:59',
+                        'active' => (int) $existing->active,
+                    ];
+                }
+                return $row;
+            })->values();
+
+            return response()->json([
+                'id' => $date->id,
+                'from_date' => $date->from_date,
+                'to_date' => $date->to_date,
+                'times' => $times,
+            ]);
+        }
+
+        return response()->json([
+            'id' => null,
+            'from_date' => now()->toDateString(),
+            'to_date' => now()->toDateString(),
+            'times' => $defaultTimes->values(),
+        ]);
+    }
+
+    public function updateCustomMenuSchedule(Request $request, int $id)
+    {
+        $customMenu = CustomMenu::query()->findOrFail($id);
+        $validated = $request->validate([
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+            'times' => 'required|array|min:1',
+            'times.*.day_no' => 'required|integer|min:1|max:7',
+            'times.*.from_time' => 'required|date_format:H:i:s',
+            'times.*.to_time' => 'required|date_format:H:i:s',
+            'times.*.active' => 'required|boolean',
+        ]);
+
+        foreach ($validated['times'] as $row) {
+            if (($row['from_time'] ?? null) >= ($row['to_time'] ?? null)) {
+                return response()->json([
+                    'message' => app()->getLocale() === 'ar'
+                        ? 'وقت البداية يجب أن يكون قبل وقت النهاية.'
+                        : 'From time must be earlier than to time.',
+                ], 422);
+            }
+        }
+
+        DB::transaction(function () use ($customMenu, $validated) {
+            $menuTime = CustomMenuTime::query()
+                ->where('custommenu_id', $customMenu->id)
+                ->orderByDesc('id')
+                ->first();
+
+            if (!$menuTime) {
+                $menuTime = CustomMenuTime::create([
+                    'custommenu_id' => $customMenu->id,
+                    'from_date' => $validated['from_date'],
+                    'to_date' => $validated['to_date'],
+                    'active' => 1,
+                ]);
+            } else {
+                $menuTime->from_date = $validated['from_date'];
+                $menuTime->to_date = $validated['to_date'];
+                $menuTime->active = 1;
+                $menuTime->save();
+            }
+
+            foreach ($validated['times'] as $row) {
+                $detail = CustomMenuTimeDetail::query()
+                    ->where('custommenu_time_id', $menuTime->id)
+                    ->where('day_no', $row['day_no'])
+                    ->first();
+
+                if (!$detail) {
+                    $detail = new CustomMenuTimeDetail();
+                    $detail->custommenu_time_id = $menuTime->id;
+                    $detail->day_no = $row['day_no'];
+                }
+                $detail->from_time = $row['from_time'];
+                $detail->to_time = $row['to_time'];
+                $detail->active = (int) $row['active'];
+                $detail->save();
+            }
+        });
+
+        return response()->json(['status' => true]);
+    }
+
     public function storeMenuFeedback(Request $request, string $token)
     {
         if (!MenuToken::where('token', $token)->exists()) {
@@ -257,6 +373,7 @@ class OrderController extends Controller
             : null;
 
         $feedbackToken = $token;
+        $openingState = $this->resolveMenuOpeningStatus($menuToken->custom_menu_id);
 
         $info = [
             'establishment' => $establishment,
@@ -264,6 +381,7 @@ class OrderController extends Controller
             'sub_title' => $subTitle,
             'social' => $socialLinks,
             'sections' => $menuSectionFlags,
+            'opening' => $openingState,
         ];
 
         return view('reservation::order.menuSimple', compact(
@@ -282,13 +400,174 @@ class OrderController extends Controller
             'allergyDocumentUrl',
             'customMenu',
             'feedbackToken',
-            'menuToken'
+            'menuToken',
+            'openingState'
         ));
     }
 
     public function menuQR()
     {
         return view('reservation::order.menuQR');
+    }
+
+    public function menuQrTokens()
+    {
+        $tokens = MenuToken::query()
+            ->leftJoin('product_custom_menus as pcm', 'pcm.id', '=', 'menu_tokens.custom_menu_id')
+            ->select('menu_tokens.*', 'pcm.name_ar as custom_menu_name_ar', 'pcm.name_en as custom_menu_name_en')
+            ->orderByDesc('menu_tokens.id')
+            ->limit(100)
+            ->get();
+
+        $allEstIds = collect($tokens)->flatMap(function ($t) {
+            return is_array($t->est_ids) ? $t->est_ids : [];
+        })->filter()->unique()->values();
+        $estMap = Establishment::whereIn('id', $allEstIds)->pluck('name', 'id');
+
+        $rows = $tokens->map(function ($t) use ($estMap) {
+            $estIds = is_array($t->est_ids) ? $t->est_ids : [];
+            $estNames = collect($estIds)->map(fn($id) => $estMap[$id] ?? "#{$id}")->values()->all();
+            $opening = $this->resolveMenuOpeningStatus($t->custom_menu_id);
+            return [
+                'id' => $t->id,
+                'token' => $t->token,
+                'title' => $t->title,
+                'sub_title' => $t->sub_title,
+                'products' => is_array($t->products) ? $t->products : [],
+                'est_ids' => $estIds,
+                'est_names' => $estNames,
+                'custom_menu_id' => $t->custom_menu_id,
+                'custom_menu_name_ar' => $t->custom_menu_name_ar,
+                'custom_menu_name_en' => $t->custom_menu_name_en,
+                'map_lat' => $t->map_lat,
+                'map_lng' => $t->map_lng,
+                'map_label' => $t->map_label,
+                'section_flags' => is_array($t->section_flags) ? $t->section_flags : [],
+                'allergy_document_path' => $t->allergy_document_path,
+                'opening_status' => $opening['status'],
+                'opening_hours_text' => $opening['hours_text'],
+                'opening_source' => $opening['source'],
+                'created_at' => optional($t->created_at)->format('Y-m-d H:i:s'),
+            ];
+        })->values();
+
+        return response()->json($rows);
+    }
+
+    private function resolveMenuOpeningStatus($customMenuId): array
+    {
+        if (!$customMenuId) {
+            return ['status' => 'unknown', 'hours_text' => null, 'source' => 'none'];
+        }
+
+        $today = Carbon::today()->toDateString();
+        $dayNo = Carbon::now()->dayOfWeek; // 0..6
+        $altDayNo = $dayNo === 0 ? 7 : $dayNo; // fallback for systems using 1..7
+        $nowTime = Carbon::now()->format('H:i:s');
+
+        $menuTime = CustomMenuTime::query()
+            ->where('custommenu_id', $customMenuId)
+            ->where('active', 1)
+            ->whereDate('from_date', '<=', $today)
+            ->whereDate('to_date', '>=', $today)
+            ->with(['times' => function ($q) use ($dayNo, $altDayNo) {
+                $q->whereIn('day_no', [$dayNo, $altDayNo])->where('active', 1);
+            }])
+            ->first();
+
+        if (!$menuTime || $menuTime->times->isEmpty()) {
+            return ['status' => 'closed', 'hours_text' => null, 'source' => 'custom_menu_no_schedule'];
+        }
+
+        $periods = $menuTime->times
+            ->map(function ($t) {
+                $from = $t->from_time ? substr((string) $t->from_time, 0, 5) : '--:--';
+                $to = $t->to_time ? substr((string) $t->to_time, 0, 5) : '--:--';
+                return ['from' => $from, 'to' => $to, 'open_now' => ($t->from_time <= now()->format('H:i:s') && now()->format('H:i:s') <= $t->to_time)];
+            })
+            ->values();
+
+        $isOpen = $periods->contains(fn($p) => $p['open_now']);
+        $hoursText = $periods->map(fn($p) => "{$p['from']} - {$p['to']}")->implode(' , ');
+
+        return [
+            'status' => $isOpen ? 'open' : 'closed',
+            'hours_text' => $hoursText,
+            'source' => 'custom_menu',
+        ];
+    }
+
+    public function updateMenuQrToken(Request $request, int $id)
+    {
+        $token = MenuToken::findOrFail($id);
+        $data = $request->all();
+
+        $estIds = is_string($data['est_ids'] ?? null) ? json_decode($data['est_ids'], true) : ($data['est_ids'] ?? []);
+        $productIds = is_string($data['products'] ?? null) ? json_decode($data['products'], true) : ($data['products'] ?? []);
+        $sectionFlags = is_string($data['section_flags'] ?? null)
+            ? (json_decode($data['section_flags'], true) ?: [])
+            : ((array) ($data['section_flags'] ?? []));
+
+        $rules = [
+            'title' => 'nullable|string|max:255',
+            'sub_title' => 'nullable|string|max:255',
+            'custom_menu_id' => 'nullable|integer|exists:product_custom_menus,id',
+            'map_lat' => 'nullable|numeric',
+            'map_lng' => 'nullable|numeric',
+            'map_label' => 'nullable|string|max:500',
+            'allergy_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ];
+        if (!empty($sectionFlags['todays_menu'])) {
+            $rules['custom_menu_id'] = 'required|integer|exists:product_custom_menus,id';
+        }
+        if (!empty($sectionFlags['location'])) {
+            $rules['map_lat'] = 'required|numeric';
+            $rules['map_lng'] = 'required|numeric';
+        }
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first(), 'errors' => $validator->errors()], 422);
+        }
+        if (!is_array($estIds) || count($estIds) === 0) {
+            return response()->json(['message' => 'est_ids required'], 422);
+        }
+        if (!is_array($productIds)) {
+            $productIds = [];
+        }
+
+        $allergyPath = $token->allergy_document_path;
+        if ($request->hasFile('allergy_document')) {
+            if ($allergyPath) {
+                Storage::disk('public')->delete($allergyPath);
+            }
+            $allergyPath = $request->file('allergy_document')->store('menu-allergy', 'public');
+        }
+
+        $token->update([
+            'est_id' => (int) $estIds[0],
+            'est_ids' => $estIds,
+            'title' => $data['title'] ?? '',
+            'sub_title' => $data['sub_title'] ?? '',
+            'products' => $productIds,
+            'custom_menu_id' => $request->input('custom_menu_id') ?: null,
+            'map_lat' => $request->input('map_lat'),
+            'map_lng' => $request->input('map_lng'),
+            'map_label' => $request->input('map_label'),
+            'allergy_document_path' => $allergyPath,
+            'section_flags' => $sectionFlags,
+        ]);
+
+        return response()->json(['status' => true, 'token' => $token->token, 'id' => $token->id]);
+    }
+
+    public function deleteMenuQrToken(int $id)
+    {
+        $token = MenuToken::findOrFail($id);
+        if ($token->allergy_document_path) {
+            Storage::disk('public')->delete($token->allergy_document_path);
+        }
+        $token->delete();
+        return response()->json(['status' => true]);
     }
 
     public function products(Request $request)

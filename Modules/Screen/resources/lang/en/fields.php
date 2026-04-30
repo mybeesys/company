@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'promo' => 'promo',
+    'promo' => 'Ad material',
     'days_settings' => 'Days settings',
     'device' => 'device',
 ];

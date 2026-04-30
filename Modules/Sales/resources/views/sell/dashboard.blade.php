@@ -3,416 +3,313 @@
 
 @section('css')
     <link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css" rel="stylesheet" type="text/css">
-
     <style>
-        .sales-dashboard {
-            /* padding: 20px; */
-            background-color: #f8f9fa;
-        }
-
-        .summary-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .metric-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-radius: 8px;
-            height: 100%;
-        }
-
-        .metric-card i {
-            font-size: 2rem;
-            margin-right: 15px;
-        }
-
-        .metric-content h3 {
-            margin-bottom: 5px;
-            font-weight: 700;
-        }
-
-        .metric-content p {
-            margin-bottom: 5px;
-            color: #6c757d;
-        }
-
-        .bg-primary-light {
-            background-color: #e3f2fd;
-        }
-
-        .bg-info-light {
-            background-color: #e1f5fe;
-        }
-
-        .bg-warning-light {
-            background-color: #fff8e1;
-        }
-
-        .bg-success-light {
-            background-color: #e8f5e9;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            height: 100%;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .table-responsive {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .table th {
-            border-top: none;
-            font-weight: 600;
-        }
-
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        .bg-success {
-            background-color: #4caf50;
-        }
-
-        .bg-warning {
-            background-color: #ff9800;
-        }
-
-        .bg-primary {
-            background-color: #2196f3;
-        }
-
-        .bg-danger {
-            background-color: #f44336;
-        }
-
-        .bg-info {
-            background-color: #00bcd4;
-        }
-
-        .bg-secondary {
-            background-color: #9e9e9e;
-        }
+        .s-card { border: 0; border-radius: 14px; box-shadow: 0 6px 22px rgba(62,57,107,.08); }
+        .s-kpi { border-radius: 14px; padding: 18px; border: 1px solid #edf1f6; background: #fff; height: 100%; }
+        .s-kpi-title { color: #7e8299; font-size: 12px; margin-bottom: 8px; }
+        .s-kpi-value { font-size: 24px; font-weight: 700; line-height: 1.2; color: #181c32; }
+        .s-soft-blue { background: #f0f7ff; border-color: #d9e9fb; }
+        .s-soft-purple { background: #f8f5ff; border-color: #e8dcff; }
+        .s-soft-green { background: #f1faf6; border-color: #d7f3e8; }
+        .s-soft-orange { background: #fff8f5; border-color: #ffe1d7; }
+        .s-filter { background: #f8f9fc; border: 1px solid #eceff5; border-radius: 12px; padding: 12px; }
     </style>
 @endsection
 
 @section('content')
-    <div class="">
-        <div class="summary-card sales-summary">
-            <div class="row">
-
-
-                <div class="col-md-3">
-                    <div class="metric-card bg-primary-light">
-                        <i class="fas fa-shopping-bag text-primary px-2"></i>
-                        <div class="metric-content">
-                            <h3>{{ $formattedTodaySales }} @get_format_currency()</h3>
-                            <p>@lang('employee::main.daily_sales')</p>
-                            @if ($yesterdaySales == 0)
-                                <small class="text-muted">@lang('employee::main.no_yesterday_data')</small>
-                            @else
-                                <small class="{{ $dailyChangePercent >= 0 ? 'text-success' : 'text-danger' }}">
-                                    {{ $dailyChangePercent >= 0 ? '+' : '' }}{{ $dailyChangePercent }}% @lang('employee::main.from_yesterday')
-                                </small>
-                            @endif
-
-                        </div>
-                    </div>
+    <div class="container-fluid py-4">
+        @php
+            $translatePaymentMethod = function ($method) {
+                $method = (string) $method;
+                if (app()->getLocale() !== 'ar') return $method ?: '--';
+                $map = ['cash' => 'نقدي', 'card' => 'بطاقة', 'bank_transfer' => 'تحويل بنكي', 'bank' => 'بنك', 'cheque' => 'شيك', 'check' => 'شيك', 'credit' => 'آجل', 'due' => 'آجل', 'wallet' => 'محفظة'];
+                return $map[strtolower(trim($method))] ?? ($method ?: '--');
+            };
+            $paymentStatusBadge = function ($status) {
+                $key = strtolower(trim((string) $status));
+                $isAr = app()->getLocale() === 'ar';
+                if ($key === 'paid') return ['class' => 'badge badge-light-success', 'label' => $isAr ? 'مدفوع' : 'Paid'];
+                if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) return ['class' => 'badge badge-light-warning', 'label' => $isAr ? 'جزئي' : 'Partial'];
+                return ['class' => 'badge badge-light-danger', 'label' => $isAr ? 'غير مدفوع' : 'Unpaid'];
+            };
+            $approvalStatusBadge = function ($status) {
+                $key = strtolower(trim((string) $status));
+                $isAr = app()->getLocale() === 'ar';
+                if (in_array($key, ['approved', 'final'], true)) return ['class' => 'badge badge-light-success', 'label' => $isAr ? 'معتمد' : 'Approved'];
+                return ['class' => 'badge badge-light-secondary', 'label' => $isAr ? 'مسودة' : 'Draft'];
+            };
+        @endphp
+        <div class="card s-card mb-6">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h3 class="mb-1">{{ app()->getLocale() === 'ar' ? 'لوحة تحكم المبيعات والتحصيل والكوبونات' : 'Sales, Collections & Coupons Dashboard' }}</h3>
+                    <div class="text-muted">{{ app()->getLocale() === 'ar' ? 'مؤشرات تنفيذية دقيقة من العميل حتى التحصيل والكوبون.' : 'Executive sales indicators from customer invoicing through collections and coupon impact.' }}</div>
                 </div>
-
-                <div class="col-md-3">
-                    <div class="metric-card bg-info-light">
-                        <i class="fas fa-file-invoice text-info px-2"></i>
-                        <div class="metric-content">
-                            <h3>{{ $stats->total_invoices }} </h3>
-                            <p>@lang('sales::lang.total_invoices')</p>
-                            <span class="text-active-primary">@lang('sales::lang.this_month')</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="metric-card bg-warning-light">
-                        <i class="fas fa-calculator text-warning px-2"></i>
-                        <div class="metric-content">
-                            <h3>{{ $stats->average_invoice }} @get_format_currency()</h3>
-                            <p>@lang('sales::lang.average_invoice')</p>
-                            <span class="text-active-primary">@lang('sales::lang.this_month')</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="metric-card bg-success-light">
-                        <i class="fas fa-users text-success px-2"></i>
-                        <div class="metric-content">
-                            <h3>{{ $stats->active_customers }}</h3>
-                            <p>@lang('sales::lang.active_customers')</p>
-                            <span class="text-active-primary">@lang('sales::lang.this_month')</span>
-                        </div>
-                    </div>
-                </div>
+                <a href="{{ route('create-invoice') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>{{ app()->getLocale() === 'ar' ? 'فاتورة مبيعات جديدة' : 'New Sales Invoice' }}</a>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h4>@lang('sales::lang.monthly_sales_stats')</h4>
+        <div class="card s-card mb-6">
+            <div class="card-body">
+                <form method="GET" action="{{ route('sales-dashbord') }}" class="s-filter d-flex flex-wrap align-items-end gap-3">
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'من تاريخ' : 'From Date' }}</label>
+                        <input type="date" name="start_date" class="form-control form-control-solid" value="{{ $startDate->toDateString() }}">
                     </div>
-                    <div id="salesTrendChart" style="height: 200px;"></div>
-                </div>
+                    <div>
+                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'إلى تاريخ' : 'To Date' }}</label>
+                        <input type="date" name="end_date" class="form-control form-control-solid" value="{{ $endDate->toDateString() }}">
+                    </div>
+                    <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
+                    <a href="{{ route('sales-dashbord') }}" class="btn btn-light">{{ app()->getLocale() === 'ar' ? 'إعادة ضبط' : 'Reset' }}</a>
+                    <a href="{{ route('sales-dashbord-export-csv', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-primary">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </a>
+                    <a href="{{ route('sales-dashbord-export-pdf', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-danger">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                </form>
             </div>
         </div>
 
-        <div class="recent-transactions mt-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">@lang('sales::lang.recent_sales_transactions')</h4>
-                    <div class="card-actions">
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>@lang('sales::lang.client')</th>
-                                    <th>@lang('report::fields.transaction_date')</th>
-                                    <th>@lang('report::fields.type')</th>
-                                    <th>@lang('sales::fields.payment_status')</th>
-                                    <th>@lang('sales::fields.invoice_amount')</th>
-                                    <th>@lang('sales::fields.piad_amount')</th>
-                                    <th>@lang('sales::fields.remaining_amount')</th>
+        <div class="row g-4 mb-6">
+            <div class="col-md-6 col-xl-3"><div class="s-kpi s-soft-blue"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'إجمالي المبيعات للفترة' : 'Period Sales' }}</div><div class="s-kpi-value">{{ number_format($periodSales, 2) }} @get_format_currency()</div><small class="{{ $salesGrowth >= 0 ? 'text-success' : 'text-danger' }}">{{ $salesGrowth >= 0 ? '+' : '' }}{{ $salesGrowth }}%</small></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi s-soft-purple"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'عدد الفواتير' : 'Invoices Count' }}</div><div class="s-kpi-value">{{ $periodInvoices }}</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi s-soft-green"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'متوسط الفاتورة' : 'Average Invoice' }}</div><div class="s-kpi-value">{{ number_format($avgInvoice, 2) }} @get_format_currency()</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi s-soft-orange"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'العملاء النشطون' : 'Active Customers' }}</div><div class="s-kpi-value">{{ $activeCustomers }}</div></div></div>
+        </div>
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    use Modules\General\Utils\TransactionUtils;
-                                @endphp
-                                @foreach ($transactions as $transaction)
+        <div class="row g-4 mb-6">
+            <div class="col-md-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'إجمالي المتبقي' : 'Total Due' }}</div><div class="s-kpi-value text-warning">{{ number_format($dueAmount, 2) }} @get_format_currency()</div></div></div>
+            <div class="col-md-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'المبالغ المتأخرة' : 'Overdue Amount' }}</div><div class="s-kpi-value text-danger">{{ number_format($overdueAmount, 2) }} @get_format_currency()</div></div></div>
+            <div class="col-md-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'إجمالي التحصيل' : 'Total Collected' }}</div><div class="s-kpi-value text-success">{{ number_format((float)($receiptsStats->total_collected ?? 0), 2) }} @get_format_currency()</div></div></div>
+            <div class="col-md-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'عدد سندات التحصيل' : 'Receipt Vouchers' }}</div><div class="s-kpi-value">{{ (int)($receiptsStats->total_receipts ?? 0) }}</div></div></div>
+        </div>
+
+        <div class="row g-4 mb-6">
+            <div class="col-md-4"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'الكوبونات المستخدمة' : 'Coupon Usages' }}</div><div class="s-kpi-value">{{ (int)($couponStats->coupon_usages ?? 0) }}</div></div></div>
+            <div class="col-md-4"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'الكوبونات النشطة بالفترة' : 'Active Coupons in Period' }}</div><div class="s-kpi-value">{{ (int)($couponStats->active_coupons ?? 0) }}</div></div></div>
+            <div class="col-md-4"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'إجمالي خصومات الكوبونات' : 'Coupon Discount Total' }}</div><div class="s-kpi-value">{{ number_format((float)($couponStats->total_coupon_discount ?? 0), 2) }} @get_format_currency()</div></div></div>
+        </div>
+
+        <div class="row g-4 mb-6">
+            <div class="col-md-6 col-xl-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'عدد مردود المبيعات' : 'Sales Returns Count' }}</div><div class="s-kpi-value">{{ (int)($salesReturnStats->total_count ?? 0) }}</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'قيمة مردود المبيعات' : 'Sales Returns Amount' }}</div><div class="s-kpi-value text-danger">{{ number_format((float)($salesReturnStats->total_amount ?? 0), 2) }} @get_format_currency()</div></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'عروض الأسعار (العدد/القيمة)' : 'Quotations (Count/Amount)' }}</div><div class="s-kpi-value">{{ (int)($quotationStats->total_count ?? 0) }}</div><small class="text-muted">{{ number_format((float)($quotationStats->total_amount ?? 0), 2) }} @get_format_currency()</small></div></div>
+            <div class="col-md-6 col-xl-3"><div class="s-kpi"><div class="s-kpi-title">{{ app()->getLocale() === 'ar' ? 'المفضلة (العدد/القيمة)' : 'Favorites (Count/Amount)' }}</div><div class="s-kpi-value">{{ (int)($favoritesStats->total_count ?? 0) }}</div><small class="text-muted">{{ number_format((float)($favoritesStats->total_amount ?? 0), 2) }} @get_format_currency()</small></div></div>
+        </div>
+
+        <div class="row g-4 mb-6">
+            <div class="col-lg-4">
+                <div class="card s-card h-100">
+                    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'آخر مردود المبيعات' : 'Recent Sales Returns' }}</h5>
+                        <a href="{{ route('sell-return') }}" class="btn btn-sm btn-light-primary">{{ app()->getLocale() === 'ar' ? 'عرض الكل' : 'View All' }}</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>#</th><th>{{ app()->getLocale() === 'ar' ? 'العميل' : 'Client' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'الاعتماد' : 'Approval' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'القيمة' : 'Amount' }}</th></tr></thead>
+                                <tbody>
+                                @forelse($recentSalesReturns as $item)
+                                    @php($approvalBadge = $approvalStatusBadge($item->status ?? null))
                                     <tr>
-                                        <td>{{ $transaction->ref_no }}</td>
-                                        <td>{{ $transaction->client->name ?? 'N/A' }}</td>
-                                        <td>{{ $transaction->transaction_date ?? 'N/A' }}</td>
-                                        <td><span
-                                                class="badge badge-light-success px-3 py-3 fs-base">@lang('general::lang.' . $transaction->type)</span>
-                                        </td>
+                                        <td>{{ $item->ref_no }}</td>
+                                        <td>{{ $item->client_name ?: '--' }}</td>
+                                        <td class="text-center"><span class="{{ $approvalBadge['class'] }}">{{ $approvalBadge['label'] }}</span></td>
+                                        <td class="text-center text-danger">{{ number_format((float)$item->final_total,2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد بيانات' : 'No data' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card s-card h-100">
+                    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'آخر عروض الأسعار' : 'Recent Quotations' }}</h5>
+                        <a href="{{ route('quotations') }}" class="btn btn-sm btn-light-primary">{{ app()->getLocale() === 'ar' ? 'عرض الكل' : 'View All' }}</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>#</th><th>{{ app()->getLocale() === 'ar' ? 'العميل' : 'Client' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'الاعتماد' : 'Approval' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'القيمة' : 'Amount' }}</th></tr></thead>
+                                <tbody>
+                                @forelse($recentQuotations as $item)
+                                    @php($approvalBadge = $approvalStatusBadge($item->status ?? null))
+                                    <tr>
+                                        <td>{{ $item->ref_no }}</td>
+                                        <td>{{ $item->client_name ?: '--' }}</td>
+                                        <td class="text-center"><span class="{{ $approvalBadge['class'] }}">{{ $approvalBadge['label'] }}</span></td>
+                                        <td class="text-center">{{ number_format((float)$item->final_total,2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد بيانات' : 'No data' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card s-card h-100">
+                    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'آخر العناصر المفضلة' : 'Recent Favorite Items' }}</h5>
+                        <a href="{{ route('sales-favorites') }}" class="btn btn-sm btn-light-primary">{{ app()->getLocale() === 'ar' ? 'عرض الكل' : 'View All' }}</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>#</th><th>{{ app()->getLocale() === 'ar' ? 'النوع' : 'Type' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'حالة الدفع' : 'Payment' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'الاعتماد' : 'Approval' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'القيمة' : 'Amount' }}</th></tr></thead>
+                                <tbody>
+                                @forelse($recentFavoriteSales as $item)
+                                    @php($paymentBadge = $paymentStatusBadge($item->payment_status ?? null))
+                                    @php($approvalBadge = $approvalStatusBadge($item->status ?? null))
+                                    <tr>
+                                        <td>{{ $item->ref_no }}</td>
                                         <td>
-                                            @if ($transaction->payment_status == 'paid')
-                                                <span class="badge badge-light-info px-3 py-3 fs-base">
-
-                                                    @lang('general::lang.paid') </span>
-                                            @elseif ($transaction->payment_status == 'due')
-                                                <span class="badge badge-light-danger px-3 py-3 fs-base">
-
-                                                    @lang('general::lang.due') </span>
-                                            @elseif ($transaction->payment_status == 'partial')
-                                                <span class="badge badge-light-success px-3 py-3 fs-base">
-
-                                                    @lang('general::lang.partial') </span>
+                                            @if($item->type === 'sell')
+                                                {{ app()->getLocale() === 'ar' ? 'مبيعات' : 'Sales' }}
+                                            @elseif($item->type === 'sell-return')
+                                                {{ app()->getLocale() === 'ar' ? 'مردود مبيعات' : 'Sales Return' }}
                                             @else
-                                                N/A
+                                                {{ app()->getLocale() === 'ar' ? 'عرض سعر' : 'Quotation' }}
                                             @endif
                                         </td>
-                                        <td>{{ $transaction->final_total ?? '0.00' }} @get_format_currency()
-                                        </td>
-                                        <td>
-                                            @php
-                                                $transactionUtil = new TransactionUtils();
-
-                                                $paid_amount = $transactionUtil->getTotalPaid($transaction->id);
-                                                $amount = $transaction->final_total - $paid_amount;
-                                                if ($amount < 0) {
-                                                    $amount = 0;
-                                                }
-                                                $amount = number_format($amount, 2);
-
-                                                $paid_amount = number_format($paid_amount, 2);
-                                            @endphp
-                                            {{ $paid_amount ?? ' 0.00 ' }} @get_format_currency()
-                                        </td>
-
-                                        <td>
-                                            {{ $amount }} @get_format_currency()
-                                        </td>
-
-
+                                        <td class="text-center"><span class="{{ $paymentBadge['class'] }}">{{ $paymentBadge['label'] }}</span></td>
+                                        <td class="text-center"><span class="{{ $approvalBadge['class'] }}">{{ $approvalBadge['label'] }}</span></td>
+                                        <td class="text-center">{{ number_format((float)$item->final_total,2) }}</td>
                                     </tr>
-                                @endforeach
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="customer-receipts-dashboard mt-8">
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="summary-card bg-primary-light">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-receipt text-primary fs-2 me-3"></i>
-                        <div>
-                            <h6 class="text-muted mb-1">@lang('sales::lang.total_receipts')</h6>
-                            <h3 class="mb-0">{{ $receiptsStats->total_receipts }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="summary-card bg-success-light">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-money-bill-wave text-success fs-2 me-3"></i>
-                        <div>
-                            <h6 class="text-muted mb-1">@lang('sales::lang.total_collected')</h6>
-                            <h3 class="mb-0">{{ number_format($receiptsStats->total_collected) }} @get_format_currency()</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="summary-card bg-warning-light">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar-check text-warning fs-2 me-3"></i>
-                        <div>
-                            <h6 class="text-muted mb-1">@lang('sales::lang.this_month')</h6>
-                            <h3 class="mb-0">{{ number_format($receiptsStats->monthly_collected) }} @get_format_currency()
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="summary-card bg-danger-light">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-triangle text-danger fs-2 me-3"></i>
-                        <div>
-                            <h6 class="text-muted mb-1">@lang('sales::lang.overdue')</h6>
-                            <h3 class="mb-0">{{ number_format($receiptsStats->overdue_amount) }} @get_format_currency()</h3>
+                                @empty
+                                    <tr><td colspan="5" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد بيانات' : 'No data' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">@lang('sales::lang.recent_receipts')</h4>
-                <div class="card-toolbar">
-                    <a href="{{ url('/receipts') }}" class="btn btn-sm btn-light-primary">
-                        @lang('sales::lang.view_all')
-                    </a>
+        <div class="row g-4 mb-6">
+            <div class="col-lg-8">
+                <div class="card s-card">
+                    <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'اتجاه المبيعات والتحصيل الشهري' : 'Monthly Sales vs Collections Trend' }}</h5></div>
+                    <div class="card-body"><div id="salesTrendChart" style="height: 320px;"></div></div>
                 </div>
             </div>
-            <div class="card-body py-0">
+            <div class="col-lg-4">
+                <div class="card s-card h-100">
+                    <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'طرق الدفع' : 'Payment Methods' }}</h5></div>
+                    <div class="card-body">
+                        @forelse($paymentMethods as $m)
+                            <div class="d-flex justify-content-between mb-3"><span>{{ $translatePaymentMethod($m->method) }}</span><strong>{{ number_format((float)$m->total,2) }}</strong></div>
+                        @empty
+                            <div class="text-muted">{{ app()->getLocale() === 'ar' ? 'لا توجد بيانات' : 'No data' }}</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-6">
+            <div class="col-lg-6">
+                <div class="card s-card">
+                    <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'أفضل 10 أصناف مبيعاً' : 'Top 10 Sold Products' }}</h5></div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>{{ app()->getLocale() === 'ar' ? 'الصنف' : 'Product' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'الكمية' : 'Qty' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'المبيعات' : 'Sales' }}</th></tr></thead>
+                                <tbody>
+                                @forelse($topProducts as $p)
+                                    <tr>
+                                        <td>{{ $p->name_ar ?: $p->name_en ?: '--' }}</td>
+                                        <td class="text-center">{{ number_format((float)$p->total_qty,2) }}</td>
+                                        <td class="text-center">{{ number_format((float)$p->total_sales,2) }} @get_format_currency()</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد بيانات' : 'No data' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card s-card">
+                    <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'آخر العمليات' : 'Recent Transactions' }}</h5></div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed align-middle">
+                                <thead><tr><th>#</th><th>{{ app()->getLocale() === 'ar' ? 'العميل' : 'Client' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'الإجمالي' : 'Total' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'المدفوع' : 'Paid' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'المتبقي' : 'Remaining' }}</th></tr></thead>
+                                <tbody>
+                                @forelse($transactions as $t)
+                                    <tr>
+                                        <td>{{ $t->ref_no }}</td>
+                                        <td>{{ $t->client_name ?: '--' }}</td>
+                                        <td class="text-center">{{ number_format((float)$t->final_total,2) }}</td>
+                                        <td class="text-center">{{ number_format((float)$t->paid_amount,2) }}</td>
+                                        <td class="text-center {{ (float)$t->remaining_amount > 0 ? 'text-danger fw-bold' : 'text-success fw-bold' }}">{{ number_format((float)$t->remaining_amount,2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد عمليات' : 'No transactions' }}</td></tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card s-card">
+            <div class="card-header border-0"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'آخر سندات التحصيل' : 'Recent Receipts' }}</h5></div>
+            <div class="card-body pt-0">
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-3">
-                        <thead>
-                            <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                                <th>@lang('sales::lang.receipt_no')</th>
-                                <th>@lang('sales::lang.client')</th>
-                                <th>@lang('sales::lang.invoice')</th>
-                                <th>@lang('sales::lang.amount')</th>
-                                <th>@lang('sales::lang.date')</th>
-                                <th>@lang('sales::lang.method')</th>
-                                <th>@lang('sales::lang.actions')</th>
+                    <table class="table table-row-dashed align-middle">
+                        <thead><tr><th>{{ app()->getLocale() === 'ar' ? 'رقم السند' : 'Ref' }}</th><th>{{ app()->getLocale() === 'ar' ? 'العميل' : 'Client' }}</th><th>{{ app()->getLocale() === 'ar' ? 'الفاتورة' : 'Invoice' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'المبلغ' : 'Amount' }}</th><th class="text-center">{{ app()->getLocale() === 'ar' ? 'التاريخ' : 'Date' }}</th></tr></thead>
+                        <tbody>
+                        @forelse($recentReceipts as $r)
+                            <tr>
+                                <td>{{ $r->payment_ref_no }}</td>
+                                <td>{{ $r->client->name ?? '--' }}</td>
+                                <td>{{ $r->transaction->ref_no ?? '--' }}</td>
+                                <td class="text-center">{{ number_format((float)$r->amount,2) }} @get_format_currency()</td>
+                                <td class="text-center">{{ $r->paid_on }}</td>
                             </tr>
-                        </thead>
-                        <tbody class="fw-semibold text-gray-600">
-                            @foreach ($recentReceipts as $receipt)
-                                <tr>
-                                    <td>
-                                        <span class="badge badge-light-info">{{ $receipt->payment_ref_no }}</span>
-                                    </td>
-                                    <td>{{ $receipt->client->name ?? 'N/A' }}</td>
-                                    <td>
-                                        <a href="{{ url('/transaction-show/' . $receipt->transaction->id) }}"
-                                            class="text-primary">
-                                            {{ $receipt->transaction->ref_no }}
-                                        </a>
-                                    </td>
-                                    <td>{{ number_format($receipt->amount) }} @get_format_currency()</td>
-                                    <td>{{ $receipt->paid_on ? $receipt->paid_on : 'N/A' }}</td>
-                                    <td>
-                                        <span
-                                            class="badge badge-light-{{ $receipt->method == 'cash' ? 'success' : 'primary' }}">
-                                            {{ __('sales::lang.' . $receipt->method) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ url('/show-receipts-payments/' . $receipt->id) }}"
-                                            class="btn btn-sm btn-icon btn-light-primary" title="@lang('general.print')">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
+                        @empty
+                            <tr><td colspan="5" class="text-center text-muted py-5">{{ app()->getLocale() === 'ar' ? 'لا توجد سندات' : 'No receipts' }}</td></tr>
+                        @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-
-
 @endsection
+
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
     <script>
-        var salesTrend = new ApexCharts(document.querySelector('#salesTrendChart'), {
-            series: [{
-                name: '@lang('sales::lang.sales')',
-                data: @json($salesData)
-            }],
-            chart: {
-                type: 'line',
-                height: '100%',
-                toolbar: {
-                    show: false
-                }
-            },
-            colors: ['#2196F3'],
-            stroke: {
-                width: 3,
-                curve: 'smooth'
-            },
-            markers: {
-                size: 5
-            },
-            xaxis: {
-                categories: @json($months)
-            },
-            tooltip: {
-                y: {
-                    formatter: function(val) {
-                        return val.toLocaleString() + ' @get_format_currency()';
-                    }
-                }
-            }
+        const salesTrend = new ApexCharts(document.querySelector('#salesTrendChart'), {
+            series: [
+                { name: "{{ app()->getLocale() === 'ar' ? 'المبيعات' : 'Sales' }}", data: @json($salesData) },
+                { name: "{{ app()->getLocale() === 'ar' ? 'التحصيل' : 'Collections' }}", data: @json($collectionData) }
+            ],
+            chart: { type: 'line', height: 320, toolbar: { show: false }, fontFamily: 'Tajawal, sans-serif' },
+            stroke: { curve: 'smooth', width: [3, 3] },
+            markers: { size: 4 },
+            xaxis: { categories: @json($monthLabels) },
+            yaxis: { labels: { formatter: function(v){ return Number(v || 0).toLocaleString(undefined, {maximumFractionDigits: 2}); } } },
+            tooltip: { y: { formatter: function(v){ return Number(v || 0).toLocaleString(undefined, {maximumFractionDigits: 2}); } } },
+            colors: ['#3699FF', '#50CD89'],
+            legend: { position: 'top', horizontalAlign: 'right' }
         });
         salesTrend.render();
     </script>

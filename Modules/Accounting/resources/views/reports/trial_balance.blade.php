@@ -37,6 +37,7 @@
     </section>
 
     <section class="content">
+        @include('accounting::reports.partials.inventory_policy_notice')
 
         <div class="row">
             <div class="col-md-12">
