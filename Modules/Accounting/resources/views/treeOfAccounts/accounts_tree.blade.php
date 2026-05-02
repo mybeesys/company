@@ -128,7 +128,7 @@
                                                             @if (app()->getLocale() == 'ar') dir="rtl" @endif
                                                             role="menu" style="padding: 8px 15px;">
                                                             <li><a class="ledger-link"
-                                                                    onclick="setAccountId({{ $sub_type->id }}, '{{ $sub_type->account_primary_type }}')"
+                                                                    onclick="setAccountId({{ $account->id }}, '{{ $account->account_primary_type }}')"
                                                                     href="{{ action('Modules\Accounting\Http\Controllers\TreeAccountsController@ledger', ['account_id' => $account->id]) }}"
                                                                     style="margin: 2px;">
                                                                     <i class="fas fa-file-alt"></i><span
@@ -147,7 +147,7 @@
                                                             </li>
                                                             <li><a class="btn-xs btn-default text-primary"
                                                                     style="margin: 2px;" data-bs-toggle="modal"
-                                                                    onclick="setAccountId({{ $sub_type->id }}, '{{ $sub_type->account_primary_type }}')"
+                                                                    onclick="setAccountId({{ $account->id }}, '{{ $account->account_primary_type }}')"
                                                                     data-bs-target="#kt_modal_create_account">
                                                                     <i class="fas fa-plus"></i><span
                                                                         style="margin-left: 5px;">@lang('accounting::lang.add_account')

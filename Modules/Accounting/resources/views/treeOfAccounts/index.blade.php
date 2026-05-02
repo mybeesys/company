@@ -72,6 +72,24 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="container"><div class="alert alert-success mt-3">{{ session('success') }}</div></div>
+    @endif
+    @if (session('error'))
+        <div class="container"><div class="alert alert-danger mt-3">{{ session('error') }}</div></div>
+    @endif
+    @if ($errors->any())
+        <div class="container">
+            <div class="alert alert-danger mt-3">
+                <ul class="mb-0 ps-4">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
     @if (!$account_exist)
         <div class="card h-md-100 my-5" dir="ltr">
             <div class="card-body d-flex flex-column flex-center">
@@ -189,38 +207,14 @@ $('#account_nature_display_1').text(natureText)
         $(document).ready(function() {
 
             $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
-                $(this).find('.kt_ecommerce_select2_account_type_').select2({
-                    dropdownParent: $('#kt_modal_create_account')
-                });
-                $(this).find('.kt_ecommerce_select2_account_category_').select2({
-                    dropdownParent: $('#kt_modal_create_account')
-                });
-
                 var value = sessionStorage.getItem('account_id');
                 $('#account_id_').val(value);
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_edit_account', function() {
-                $(this).find('.kt_ecommerce_select2_account_type_').select2({
-                    dropdownParent: $('#kt_modal_edit_account')
-                });
-                $(this).find('.kt_ecommerce_select2_account_category_').select2({
-                    dropdownParent: $('#kt_modal_edit_account')
-                });
-
                 $('#gl_code').val(sessionStorage.getItem('gl_code'));
                 $('#name_ar').val(sessionStorage.getItem('name_ar'));
                 $('#name_en').val(sessionStorage.getItem('name_en'));
-
-                var selectedType = sessionStorage.getItem('account_type');
-                if (selectedType) {
-                    $('#kt_ecommerce_select2_account_type').val(selectedType).trigger('change');
-                }
-
-                var selectedCat = sessionStorage.getItem('account_category');
-                if (selectedCat) {
-                    $('#kt_ecommerce_select2_account_category').val(selectedCat).trigger('change');
-                }
 
                 $('#account_id').val(sessionStorage.getItem('account_id'));
             });
