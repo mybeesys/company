@@ -164,42 +164,43 @@ class TreeAccountsController extends Controller
      */
     public function store(Request $request)
     {
-        // try {
-        DB::beginTransaction();
-
-        $input = $request->only([
-            'name_ar',
-            'name_en',
-            // 'account_category',
-            'account_id',
-            'account_type'
+        $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'account_id' => 'required|exists:accounting_accounts,id',
         ]);
 
+        DB::beginTransaction();
 
+        try {
+            $input = $request->only([
+                'name_ar',
+                'name_en',
+                'account_id',
+            ]);
 
-        $account_account = AccountingAccount::find($input['account_id']);
+            $parent = AccountingAccount::find($input['account_id']);
 
+            $input['account_primary_type'] = $parent->account_primary_type;
+            $input['account_sub_type_id'] = $parent->account_sub_type_id;
+            $input['detail_type_id'] = $parent->detail_type_id;
+            $input['parent_account_id'] = $parent->id;
+            $input['account_type'] = $parent->account_type ?? $parent->account_primary_type;
+            $input['created_by'] = Auth::user()->id;
+            $input['status'] = 'active';
+            $input['gl_code'] = AccountingUtil::next_GLC($parent->id);
 
-        $input['account_primary_type'] = $account_account->account_primary_type;
-        $input['account_sub_type_id'] = $account_account->account_sub_type_id;
-        $input['detail_type_id'] = $account_account->detail_type_id;
-        $input['parent_account_id'] = $input['account_id'];
-        $input['created_by'] = Auth::user()->id;
+            AccountingAccount::create($input);
 
-        $input['status'] = 'active';
-        $input['gl_code'] = AccountingUtil::next_GLC($input['account_id']);
-        $account_type = AccountingAccountTypes::find($input['account_sub_type_id'] ?? $input['account_id']);
-        $account = AccountingAccount::create($input);
+            DB::commit();
 
+            return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
 
-        DB::commit();
-        return redirect()->back();
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->back();
-        // }
-
-        return redirect()->back();
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     public function storeSubAccount(Request $request)
@@ -273,7 +274,6 @@ class TreeAccountsController extends Controller
                 'name_ar',
                 'name_en',
                 'gl_code',
-                'account_type'
             ]);
 
             $account = AccountingAccount::find($request->account_id);
