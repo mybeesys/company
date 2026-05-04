@@ -14,6 +14,7 @@
 </head>
 <body>
     <h2>{{ __('accounting::lang.journal_report') }}</h2>
+    <div style="font-size: 11px; color: #4b5563; margin-bottom: 6px;">{{ __('accounting::lang.journal_report_manual_only') }}</div>
     <div>{{ __('accounting::lang.from_date') }}: {{ $startDate }} | {{ __('accounting::lang.to_date') }}: {{ $endDate }}</div>
     <div class="summary">
         <strong>{{ __('accounting::lang.debit') }}:</strong> {{ number_format((float) $totalDebit, 2) }}

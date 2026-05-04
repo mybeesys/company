@@ -33,12 +33,18 @@ class PlaylistTable
                         <span class="text-gray-700 fw-bolder">' . __('screen::general.' . $playlist->days_settings['days_settings_option']) . '</span>
                         <span class="text-gray-600">' . __('screen::general.transition_speed_seconds') . ': ' . (int) ($playlist->days_settings['transition_seconds'] ?? 5) . '</span>
                     </div>
-                     <div class="d-flex flex-column gap-5 py-5 justify-content-center" style="width: 150px;">
-                                    <a href="#" 
-                                        class="btn btn-primary px-6 py-2 rounded playlist-preview-btn" 
-                                        data-id="' . $playlist->id . '">' . __('screen::general.preview') . '</a>
-                                <a href="#" class="btn btn-secondary px-6 py-2 rounded playlist-edit-btn" data-id="' . $playlist->id . '">' . __('screen::general.edit') . '</a>
-                                <a href="#" class="btn btn-danger px-6 py-2 rounded playlist-delete-btn" data-id="' . $playlist->id . '">' . __('screen::general.delete') . '</a>
+                     <div class="d-flex flex-row flex-wrap gap-2 align-items-center justify-content-center py-4 px-2" style="min-width: 7.5rem;">
+                                    <a href="#"
+                                        class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light-primary playlist-preview-btn"
+                                        data-id="' . $playlist->id . '"
+                                        title="' . e(__('screen::general.preview')) . '"
+                                        aria-label="' . e(__('screen::general.preview')) . '"><i class="fas fa-eye fs-6 text-gray-600"></i></a>
+                                <a href="#" class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light-primary playlist-edit-btn" data-id="' . $playlist->id . '"
+                                        title="' . e(__('screen::general.edit')) . '"
+                                        aria-label="' . e(__('screen::general.edit')) . '"><i class="fas fa-pen-to-square fs-6 text-gray-600"></i></a>
+                                <a href="#" class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light-danger playlist-delete-btn" data-id="' . $playlist->id . '"
+                                        title="' . e(__('screen::general.delete')) . '"
+                                        aria-label="' . e(__('screen::general.delete')) . '"><i class="fas fa-trash-alt fs-6 text-gray-600"></i></a>
                     </div>
                 </div>';
                 return $html;

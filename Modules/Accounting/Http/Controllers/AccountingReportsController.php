@@ -936,6 +936,7 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
         $journals = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
             ->when($startDate, fn($query) => $query->whereDate('operation_date', '>=', $startDate))
             ->when($endDate, fn($query) => $query->whereDate('operation_date', '<=', $endDate))
             ->when($refNo, fn($query) => $query->where('ref_no', 'like', '%' . $refNo . '%'))
@@ -1037,6 +1038,7 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
         $journals = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
             ->when($startDate, fn($query) => $query->whereDate('operation_date', '>=', $startDate))
             ->when($endDate, fn($query) => $query->whereDate('operation_date', '<=', $endDate))
             ->when($refNo, fn($query) => $query->where('ref_no', 'like', '%' . $refNo . '%'))

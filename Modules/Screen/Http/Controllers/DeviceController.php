@@ -25,12 +25,14 @@ class DeviceController extends Controller
                         $actions = '<div class="justify-content-center d-flex">';
                         $establishmentId = (int) ($row->establishment_id ?? 0);
                         $actions .= '
-                            <a class="btn btn-icon btn-bg-light btn-active-color-warning w-35px h-35px device-edit-btn me-1" data-id="' . $row->id . '" data-code="' . e($row->code) . '" data-establishment-id="' . $establishmentId . '">
-                                <i class="ki-outline ki-pencil fs-3"></i>
+                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="' . $row->id . '" data-code="' . e($row->code) . '" data-establishment-id="' . $establishmentId . '"
+                                title="' . e(__('screen::general.edit')) . '" aria-label="' . e(__('screen::general.edit')) . '">
+                                <i class="fas fa-pen fs-6 text-gray-600"></i>
                             </a>';
                         $actions .= '
-                            <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px device-delete-btn me-1" data-id="' . $row->id . '">
-                                <i class="ki-outline ki-trash fs-3"></i>
+                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-danger w-35px h-35px device-delete-btn me-1" data-id="' . $row->id . '"
+                                title="' . e(__('screen::general.delete')) . '" aria-label="' . e(__('screen::general.delete')) . '">
+                                <i class="fas fa-trash-alt fs-6 text-gray-600"></i>
                             </a>';
 
                         $actions .= '</div>';

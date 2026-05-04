@@ -687,7 +687,7 @@ const MenuQR = ({ translations, dir }) => {
                             </div>
 
                             <div className="row g-3 mb-3">
-                                <div className="col-md-4">
+                                <div className="col-md-6">
                                     <label className="form-label">{translations.subTitle || "العنوان الفرعي"}</label>
                                     <input
                                         type="text"
@@ -696,33 +696,11 @@ const MenuQR = ({ translations, dir }) => {
                                         onChange={(e) => onChange("subTitle", e.target.value)}
                                     />
                                 </div>
-                                <div className="col-md-4">
+                                <div className="col-md-6">
                                     <label className="form-label d-block mb-2 fw-bold">{translations.color || "لون الـ QR"}</label>
                                     <div className="menuqr-color-picker border rounded p-2 bg-light d-flex justify-content-center">
                                         <BlockPicker color={currentObject.color} onChange={(color) => onChange("color", color.hex)} />
                                     </div>
-                                </div>
-                                <div className="col-md-4 d-flex flex-column justify-content-end">
-                                    {currentObject.menuSections.todays_menu ? (
-                                        <>
-                                            <label className="form-label fw-bold text-danger">
-                                                * {dir === "rtl" ? "قائمة مخصصة" : "Custom menu"}
-                                            </label>
-                                            <Select
-                                                options={customMenus}
-                                                value={currentObject.customMenu}
-                                                onChange={(v) => onChange("customMenu", v)}
-                                                placeholder={dir === "rtl" ? "اختر القائمة..." : "Select custom menu..."}
-                                                classNamePrefix="select"
-                                            />
-                                        </>
-                                    ) : (
-                                        <div className="text-muted small pt-2">
-                                            {dir === "rtl"
-                                                ? "فعّل «قائمة اليوم» من الأقسام أدناه لاختيار قائمة مخصصة."
-                                                : "Enable «Today's menu» in sections below to pick a custom menu."}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
@@ -746,6 +724,27 @@ const MenuQR = ({ translations, dir }) => {
                                     ))}
                                 </div>
                             </div>
+
+                            {currentObject.menuSections.todays_menu ? (
+                                <div className="border rounded p-3 mb-3 bg-white">
+                                    <label className="form-label fw-bold text-danger mb-2 d-block">
+                                        * {dir === "rtl" ? "قائمة مخصصة" : "Custom menu"}
+                                    </label>
+                                    <Select
+                                        options={customMenus}
+                                        value={currentObject.customMenu}
+                                        onChange={(v) => onChange("customMenu", v)}
+                                        placeholder={dir === "rtl" ? "اختر القائمة..." : "Select custom menu..."}
+                                        classNamePrefix="select"
+                                    />
+                                </div>
+                            ) : (
+                                <p className="text-muted small mb-3">
+                                    {dir === "rtl"
+                                        ? "فعّل «قائمة اليوم» من الأقسام أعلاه لاختيار قائمة مخصصة."
+                                        : "Enable «Today's menu» in the sections above to pick a custom menu."}
+                                </p>
+                            )}
 
                             {currentObject.menuSections.todays_menu && (
                                 <div className="border rounded p-3 mb-3 bg-white">
@@ -829,7 +828,15 @@ const MenuQR = ({ translations, dir }) => {
                 </div>
 
                 <div className="col-12 col-xl-4">
-                    <div className="card border-0 shadow-sm sticky-top" style={{ top: "1rem" }}>
+                    <div
+                        className="card border-0 shadow-sm"
+                        style={{
+                            position: "sticky",
+                            top: "calc(var(--bs-app-header-height, 90px) + 0.75rem)",
+                            zIndex: 9,
+                            alignSelf: "flex-start",
+                        }}
+                    >
                         <div className="card-body text-center">
                             <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                                 <span className="fw-semibold small">{translations.showLogo || (dir === "rtl" ? "الشعار على الـ QR" : "Logo on QR")}</span>
