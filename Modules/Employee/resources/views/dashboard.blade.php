@@ -29,11 +29,9 @@
         <div class="card dash-card mb-6">
             <div class="card-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
-                    <div>
-                        <h3 class="mb-1">{{ app()->getLocale() === 'ar' ? 'لوحة تحكم الإدارة المالية' : 'Finance Control Dashboard' }}</h3>
-                        <div class="text-muted">
-                            {{ app()->getLocale() === 'ar' ? 'مؤشرات تشغيلية ومالية لحظية مع مقارنة أداء الفترات.' : 'Live operational and financial KPIs with period-over-period comparison.' }}
-                        </div>
+                    <div class="flex-grow-1" style="max-width: 920px;">
+                        <h3 class="mb-2">@lang('employee::main.dashboard')</h3>
+                        <div class="text-muted fs-6 lh-lg">@lang('employee::main.dashboard_page_subtitle')</div>
                     </div>
                     <form method="GET" action="{{ route('dashboard') }}" class="filter-box d-flex flex-wrap align-items-end gap-3">
                         <div>
