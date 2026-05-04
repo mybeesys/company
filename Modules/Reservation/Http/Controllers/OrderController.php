@@ -182,6 +182,7 @@ class OrderController extends Controller
                 'id' => $date->id,
                 'from_date' => $date->from_date,
                 'to_date' => $date->to_date,
+                'no_date_limit' => (bool) ($date->no_date_limit ?? false),
                 'times' => $times,
             ]);
         }
@@ -190,6 +191,7 @@ class OrderController extends Controller
             'id' => null,
             'from_date' => now()->toDateString(),
             'to_date' => now()->toDateString(),
+            'no_date_limit' => false,
             'times' => $defaultTimes->values(),
         ]);
     }
@@ -197,15 +199,29 @@ class OrderController extends Controller
     public function updateCustomMenuSchedule(Request $request, int $id)
     {
         $customMenu = CustomMenu::query()->findOrFail($id);
-        $validated = $request->validate([
-            'from_date' => 'required|date',
-            'to_date' => 'required|date|after_or_equal:from_date',
+        $noDateLimit = filter_var($request->input('no_date_limit'), FILTER_VALIDATE_BOOLEAN);
+
+        $dateRules = $noDateLimit
+            ? [
+                'from_date' => 'nullable|date',
+                'to_date' => 'nullable|date',
+            ]
+            : [
+                'from_date' => 'required|date',
+                'to_date' => 'required|date|after_or_equal:from_date',
+            ];
+
+        $validated = $request->validate(array_merge($dateRules, [
+            'no_date_limit' => 'sometimes|boolean',
             'times' => 'required|array|min:1',
             'times.*.day_no' => 'required|integer|min:1|max:7',
             'times.*.from_time' => 'required|date_format:H:i:s',
             'times.*.to_time' => 'required|date_format:H:i:s',
             'times.*.active' => 'required|boolean',
-        ]);
+        ]));
+
+        $fromDate = $noDateLimit ? '2000-01-01' : $validated['from_date'];
+        $toDate = $noDateLimit ? '2099-12-31' : $validated['to_date'];
 
         foreach ($validated['times'] as $row) {
             if (($row['from_time'] ?? null) >= ($row['to_time'] ?? null)) {
@@ -217,7 +233,7 @@ class OrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($customMenu, $validated) {
+        DB::transaction(function () use ($customMenu, $validated, $fromDate, $toDate, $noDateLimit) {
             $menuTime = CustomMenuTime::query()
                 ->where('custommenu_id', $customMenu->id)
                 ->orderByDesc('id')
@@ -226,13 +242,15 @@ class OrderController extends Controller
             if (!$menuTime) {
                 $menuTime = CustomMenuTime::create([
                     'custommenu_id' => $customMenu->id,
-                    'from_date' => $validated['from_date'],
-                    'to_date' => $validated['to_date'],
+                    'from_date' => $fromDate,
+                    'to_date' => $toDate,
+                    'no_date_limit' => $noDateLimit,
                     'active' => 1,
                 ]);
             } else {
-                $menuTime->from_date = $validated['from_date'];
-                $menuTime->to_date = $validated['to_date'];
+                $menuTime->from_date = $fromDate;
+                $menuTime->to_date = $toDate;
+                $menuTime->no_date_limit = $noDateLimit;
                 $menuTime->active = 1;
                 $menuTime->save();
             }
@@ -468,8 +486,13 @@ class OrderController extends Controller
         $menuTime = CustomMenuTime::query()
             ->where('custommenu_id', $customMenuId)
             ->where('active', 1)
-            ->whereDate('from_date', '<=', $today)
-            ->whereDate('to_date', '>=', $today)
+            ->where(function ($q) use ($today) {
+                $q->where('no_date_limit', 1)
+                    ->orWhere(function ($q2) use ($today) {
+                        $q2->whereDate('from_date', '<=', $today)
+                            ->whereDate('to_date', '>=', $today);
+                    });
+            })
             ->with(['times' => function ($q) use ($dayNo, $altDayNo) {
                 $q->whereIn('day_no', [$dayNo, $altDayNo])->where('active', 1);
             }])

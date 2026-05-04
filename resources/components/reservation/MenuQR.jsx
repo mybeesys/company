@@ -8,6 +8,9 @@ import axios from "axios";
 
 const animatedComponents = makeAnimated();
 
+/** أقسام المنيو التي تُعرض في البطاقة الرئيسية؛ «معلومات الحساسية» في العمود الجانبي مع الملف. */
+const MENU_SECTION_KEYS_MAIN = ["todays_menu", "location", "smart_menu", "photos", "feedback", "info"];
+
 /** When PHP emits notices before JSON, axios may leave the body as a string; pull the token from the trailing JSON object. */
 function extractMenuTokenFromResponse(data) {
     if (data && typeof data === "object" && typeof data.token === "string") {
@@ -57,6 +60,7 @@ const MenuQR = ({ translations, dir }) => {
     const [scheduleForm, setScheduleForm] = useState({
         from_date: "",
         to_date: "",
+        no_date_limit: false,
         times: [],
     });
 
@@ -449,6 +453,7 @@ const MenuQR = ({ translations, dir }) => {
             setScheduleForm({
                 from_date: payload.from_date || "",
                 to_date: payload.to_date || "",
+                no_date_limit: !!payload.no_date_limit,
                 times: payload.times || [],
             });
         } catch (e) {
@@ -518,8 +523,9 @@ const MenuQR = ({ translations, dir }) => {
         try {
             const url = customMenuScheduleUrlTemplate.replace("__ID__", String(scheduleMenuId));
             const payload = {
-                from_date: scheduleForm.from_date,
-                to_date: scheduleForm.to_date,
+                no_date_limit: !!scheduleForm.no_date_limit,
+                from_date: scheduleForm.no_date_limit ? null : scheduleForm.from_date,
+                to_date: scheduleForm.no_date_limit ? null : scheduleForm.to_date,
                 times: (scheduleForm.times || []).map((row) => ({
                     day_no: Number(row.day_no),
                     from_time: toApiTimeValue(toTimeInputValue(row.from_time)),
@@ -556,323 +562,381 @@ const MenuQR = ({ translations, dir }) => {
     );
 
     return (
-        <div className="row">
-            <div className="col-md-5">
-                <div className="card-body" dir={dir}>
-                    <div className="d-flex align-items-center mb-4 pt-3 border-bottom pb-3">
-                        <label className="fs-6 fw-semibold me-3" style={{ width: "150px" }}>
-                            {translations.showLogo || "إظهار اللوجو"}
-                        </label>
-                        <InputSwitch checked={currentObject.showLogo} onChange={(e) => onChange("showLogo", e.value)} />
-                    </div>
+        <div className="container-fluid py-3" dir={dir}>
+            <div className={`row g-4 align-items-start ${dir === "rtl" ? "flex-xl-row-reverse" : ""}`}>
+                <div className="col-12 col-xl-8">
+                    <div className="card border-0 shadow-sm h-100">
+                        <div className="card-body">
+                            <h5 className="mb-4 fw-bold text-gray-800 border-bottom pb-3">
+                                {dir === "rtl" ? "إعدادات القائمة" : "Menu settings"}
+                            </h5>
 
-                    <div className="form-group mb-4">
-                        <label className="col-form-label fw-bold">{translations.establishment || "الأفرع"}</label>
-                        <Select
-                            options={establishmentOptions}
-                            isMulti
-                            value={currentObject.selectedEstablishments}
-                            onChange={(val) =>
-                                handleSelectChange("selectedEstablishments", val, establishmentOptions, establishments)
-                            }
-                            components={animatedComponents}
-                            className="basic-multi-select"
-                            placeholder={dir === "rtl" ? "اختر الأفرع..." : "Select establishments..."}
-                        />
-                    </div>
+                            <div className="row g-3 mb-3">
+                                <div className="col-md-4">
+                                    <label className="form-label fw-bold">{translations.establishment || "الأفرع"}</label>
+                                    <Select
+                                        options={establishmentOptions}
+                                        isMulti
+                                        value={currentObject.selectedEstablishments}
+                                        onChange={(val) =>
+                                            handleSelectChange("selectedEstablishments", val, establishmentOptions, establishments)
+                                        }
+                                        components={animatedComponents}
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                        placeholder={dir === "rtl" ? "اختر الأفرع..." : "Select establishments..."}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <label className="form-label fw-bold">{translations.products || "المنتجات"}</label>
+                                    <Select
+                                        options={productOptions}
+                                        isMulti
+                                        value={currentObject.selectedProducts}
+                                        onChange={(val) => handleSelectChange("selectedProducts", val, productOptions, products)}
+                                        components={animatedComponents}
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                        placeholder={dir === "rtl" ? "اختر المنتجات..." : "Select products..."}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <label className="form-label">{translations.title || "العنوان الرئيسي"}</label>
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-solid"
+                                        value={currentObject.title}
+                                        onChange={(e) => onChange("title", e.target.value)}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-group mb-4">
-                        <label className="col-form-label fw-bold">{translations.products || "المنتجات"}</label>
-                        <Select
-                            options={productOptions}
-                            isMulti
-                            value={currentObject.selectedProducts}
-                            onChange={(val) => handleSelectChange("selectedProducts", val, productOptions, products)}
-                            components={animatedComponents}
-                            className="basic-multi-select"
-                            placeholder={dir === "rtl" ? "اختر المنتجات..." : "Select products..."}
-                        />
-                    </div>
+                            <div className="row g-3 mb-3">
+                                <div className="col-md-4">
+                                    <label className="form-label">{translations.subTitle || "العنوان الفرعي"}</label>
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-solid"
+                                        value={currentObject.subTitle}
+                                        onChange={(e) => onChange("subTitle", e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <label className="form-label d-block mb-2 fw-bold">{translations.color || "لون الـ QR"}</label>
+                                    <div className="menuqr-color-picker border rounded p-2 bg-light d-flex justify-content-center">
+                                        <BlockPicker color={currentObject.color} onChange={(color) => onChange("color", color.hex)} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 d-flex flex-column justify-content-end">
+                                    {currentObject.menuSections.todays_menu ? (
+                                        <>
+                                            <label className="form-label fw-bold text-danger">
+                                                * {dir === "rtl" ? "قائمة مخصصة" : "Custom menu"}
+                                            </label>
+                                            <Select
+                                                options={customMenus}
+                                                value={currentObject.customMenu}
+                                                onChange={(v) => onChange("customMenu", v)}
+                                                placeholder={dir === "rtl" ? "اختر القائمة..." : "Select custom menu..."}
+                                                classNamePrefix="select"
+                                            />
+                                        </>
+                                    ) : (
+                                        <div className="text-muted small pt-2">
+                                            {dir === "rtl"
+                                                ? "فعّل «قائمة اليوم» من الأقسام أدناه لاختيار قائمة مخصصة."
+                                                : "Enable «Today's menu» in sections below to pick a custom menu."}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                    <div className="row mb-4">
-                        <div className="col-6">
-                            <label className="col-form-label">{translations.title || "العنوان الرئيسي"}</label>
-                            <input
-                                type="text"
-                                className="form-control form-control-solid"
-                                value={currentObject.title}
-                                onChange={(e) => onChange("title", e.target.value)}
-                            />
+                            <div className="border rounded p-3 mb-3 bg-light">
+                                <h6 className="mb-3 fw-bold text-primary">
+                                    {dir === "rtl" ? "أقسام المنيو الظاهرة" : "Visible menu sections"}
+                                </h6>
+                                <div className="row g-2">
+                                    {MENU_SECTION_KEYS_MAIN.map((key) => (
+                                        <div key={key} className="col-md-4">
+                                            <div className="d-flex align-items-center justify-content-between p-2 border rounded bg-white h-100">
+                                                <label className="mb-0 fw-semibold small">{getTranslatedLabel(key)}</label>
+                                                <InputSwitch
+                                                    checked={currentObject.menuSections[key]}
+                                                    onChange={(e) =>
+                                                        onChange("menuSections", { ...currentObject.menuSections, [key]: e.value })
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {currentObject.menuSections.todays_menu && (
+                                <div className="border rounded p-3 mb-3 bg-white">
+                                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                        <small className="text-muted mb-0">
+                                            {dir === "rtl"
+                                                ? "أوقات الفتح/الإغلاق تُدار من القائمة المخصصة."
+                                                : "Opening hours follow the custom menu schedule."}
+                                        </small>
+                                        {currentObject.customMenu && (
+                                            <button
+                                                type="button"
+                                                onClick={() => openScheduleModal(currentObject.customMenu.value)}
+                                                className="btn btn-sm btn-light-primary"
+                                            >
+                                                {dir === "rtl" ? "ضبط الأوقات" : "Set hours"}
+                                            </button>
+                                        )}
+                                    </div>
+                                    {!currentObject.customMenu && (
+                                        <small className="text-warning d-block mt-2">
+                                            {dir === "rtl"
+                                                ? "اختر قائمة مخصصة أو عطّل قسم قائمة اليوم."
+                                                : "Select a custom menu or disable Today's menu."}
+                                        </small>
+                                    )}
+                                </div>
+                            )}
+
+                            {currentObject.menuSections.location && (
+                                <div className="border rounded p-3 mb-3 bg-white">
+                                    <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                        <h6 className="fw-bold mb-0">{dir === "rtl" ? "موقع الخريطة" : "Map location"}</h6>
+                                        <button type="button" className="btn btn-sm btn-light-primary" onClick={fillLocationFromBrowser}>
+                                            {dir === "rtl" ? "موقعي الحالي" : "My location"}
+                                        </button>
+                                    </div>
+                                    <div className="row g-2">
+                                        <div className="col-md-4">
+                                            <label className="form-label fs-7">Latitude</label>
+                                            <input
+                                                className="form-control form-control-sm form-control-solid"
+                                                value={currentObject.map_lat}
+                                                onChange={(e) => onChange("map_lat", e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <label className="form-label fs-7">Longitude</label>
+                                            <input
+                                                className="form-control form-control-sm form-control-solid"
+                                                value={currentObject.map_lng}
+                                                onChange={(e) => onChange("map_lng", e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <label className="form-label fs-7">{dir === "rtl" ? "وصف الموقع" : "Place label"}</label>
+                                            <input
+                                                className="form-control form-control-sm form-control-solid"
+                                                value={currentObject.map_label}
+                                                onChange={(e) => onChange("map_label", e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="d-grid gap-2 d-md-flex">
+                                <button onClick={generateQR} className="btn btn-primary btn-lg flex-grow-1 shadow-sm" disabled={isSaving}>
+                                    {isSaving
+                                        ? (dir === "rtl" ? "جاري الحفظ..." : "Saving...")
+                                        : (editingId
+                                            ? (dir === "rtl" ? "حفظ التعديلات" : "Save changes")
+                                            : (translations.generateQr || "إنشاء كود QR"))}
+                                </button>
+                                <button type="button" onClick={resetForm} className="btn btn-light btn-lg">
+                                    {dir === "rtl" ? "قائمة جديدة" : "New menu"}
+                                </button>
+                            </div>
                         </div>
-                        <div className="col-6">
-                            <label className="col-form-label">{translations.subTitle || "العنوان الفرعي"}</label>
-                            <input
-                                type="text"
-                                className="form-control form-control-solid"
-                                value={currentObject.subTitle}
-                                onChange={(e) => onChange("subTitle", e.target.value)}
-                            />
-                        </div>
                     </div>
+                </div>
 
-                    <div className="col-12 mt-4 border p-3 rounded bg-light">
-                        <h6 className="mb-3 fw-bold border-bottom pb-2 text-primary">
-                            {dir === "rtl" ? "أقسام المنيو الظاهرة" : "Visible Menu Sections"}
-                        </h6>
-                        {Object.keys(currentObject.menuSections).map((key) => (
-                            <div
-                                key={key}
-                                className="d-flex align-items-center justify-content-between mb-2 p-2 border-bottom"
-                            >
-                                <label className="mb-0 fw-semibold">{getTranslatedLabel(key)}</label>
-                                <InputSwitch
-                                    checked={currentObject.menuSections[key]}
-                                    onChange={(e) =>
-                                        onChange("menuSections", { ...currentObject.menuSections, [key]: e.value })
-                                    }
+                <div className="col-12 col-xl-4">
+                    <div className="card border-0 shadow-sm sticky-top" style={{ top: "1rem" }}>
+                        <div className="card-body text-center">
+                            <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                <span className="fw-semibold small">{translations.showLogo || (dir === "rtl" ? "الشعار على الـ QR" : "Logo on QR")}</span>
+                                <InputSwitch checked={currentObject.showLogo} onChange={(e) => onChange("showLogo", e.value)} />
+                            </div>
+                            <div className="p-3 rounded-3 bg-light border menuqr-qr-wrap d-inline-block">
+                                <QRCodeCanvas
+                                    id={qrInfo.id}
+                                    value={qrInfo.url || " "}
+                                    size={240}
+                                    fgColor={qrInfo.color || "#000000"}
+                                    imageSettings={qrInfo.logo}
+                                    level="H"
                                 />
                             </div>
-                        ))}
-                    </div>
-
-                    {currentObject.menuSections.todays_menu && (
-                        <div className="form-group mb-4 mt-3">
-                            <label className="col-form-label fw-bold text-danger">
-                                * {dir === "rtl" ? "قائمة مخصصة (Custom Menu)" : "Custom menu"}
-                            </label>
-                            <Select
-                                options={customMenus}
-                                value={currentObject.customMenu}
-                                onChange={(v) => onChange("customMenu", v)}
-                                placeholder={dir === "rtl" ? "اختر القائمة المخصصة..." : "Select custom menu..."}
-                            />
-                            <div className="d-flex justify-content-between align-items-center mt-2">
-                                <small className="text-muted">
-                                    {dir === "rtl"
-                                        ? "أوقات الفتح/الإغلاق تُدار من إعدادات القائمة المخصصة."
-                                        : "Opening/closing hours are managed from custom menu settings."}
-                                </small>
-                                {currentObject.customMenu && (
+                            {qrInfo.url && (
+                                <div className="mt-3 d-flex flex-wrap justify-content-center gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => openScheduleModal(currentObject.customMenu.value)}
-                                        className="btn btn-sm btn-light-primary"
+                                        className="btn btn-sm btn-secondary"
+                                        onClick={() => {
+                                            const canvas = document.getElementById(qrInfo.id);
+                                            const link = document.createElement("a");
+                                            link.download = "qr-menu.png";
+                                            link.href = canvas.toDataURL();
+                                            link.click();
+                                        }}
                                     >
-                                        {dir === "rtl" ? "ضبط الأوقات" : "Set Hours"}
+                                        {dir === "rtl" ? "تحميل PNG" : "Download PNG"}
                                     </button>
+                                    <a href={qrInfo.url} target="_blank" rel="noreferrer" className="btn btn-sm btn-primary">
+                                        {dir === "rtl" ? "معاينة" : "Preview"}
+                                    </a>
+                                </div>
+                            )}
+                            {!qrInfo.url && (
+                                <p className="text-muted small mt-3 mb-0">
+                                    {dir === "rtl" ? "أنشئ الرابط لعرض معاينة الـ QR." : "Generate the link to preview the QR code."}
+                                </p>
+                            )}
+
+                            <div className="mt-4 pt-3 border-top text-start">
+                                <div className="d-flex align-items-center justify-content-between mb-2">
+                                    <label className="fw-semibold small mb-0">{getTranslatedLabel("allergy_info")}</label>
+                                    <InputSwitch
+                                        checked={currentObject.menuSections.allergy_info}
+                                        onChange={(e) =>
+                                            onChange("menuSections", { ...currentObject.menuSections, allergy_info: e.value })
+                                        }
+                                    />
+                                </div>
+                                <label className="form-label small text-muted mb-1">
+                                    {dir === "rtl" ? "ملف مسببات الحساسية (PDF / صورة)" : "Allergy document (PDF / image)"}
+                                </label>
+                                <input
+                                    type="file"
+                                    className="form-control form-control-sm"
+                                    accept=".pdf,image/png,image/jpeg"
+                                    disabled={!currentObject.menuSections.allergy_info}
+                                    onChange={(e) => onChange("allergyFile", e.target.files?.[0] || null)}
+                                />
+                                {currentObject.menuSections.allergy_info && (
+                                    <small className="text-muted d-block mt-2">
+                                        {dir === "rtl"
+                                            ? "عند التفعيل، يجب رفع ملف قبل إنشاء الرابط."
+                                            : "When enabled, upload a file before generating."}
+                                    </small>
                                 )}
                             </div>
-                            {!currentObject.customMenu && (
-                                <small className="text-warning d-block mt-2">
-                                    {dir === "rtl"
-                                        ? "يمكنك ترك القائمة المخصصة فارغة إذا عطلت قسم (قائمة اليوم)."
-                                        : "You can leave custom menu empty if Today's Menu section is disabled."}
-                                </small>
-                            )}
                         </div>
-                    )}
-
-                    {currentObject.menuSections.location && (
-                        <div className="border rounded p-3 mb-3 bg-white">
-                            <h6 className="fw-bold mb-3">{dir === "rtl" ? "موقع الخريطة" : "Map location"}</h6>
-                            <button type="button" className="btn btn-sm btn-light-primary mb-3" onClick={fillLocationFromBrowser}>
-                                {dir === "rtl" ? "استخدام موقعي الحالي" : "Use my current location"}
-                            </button>
-                            <div className="row g-2">
-                                <div className="col-6">
-                                    <label className="form-label fs-7">Latitude</label>
-                                    <input
-                                        className="form-control form-control-sm"
-                                        value={currentObject.map_lat}
-                                        onChange={(e) => onChange("map_lat", e.target.value)}
-                                    />
-                                </div>
-                                <div className="col-6">
-                                    <label className="form-label fs-7">Longitude</label>
-                                    <input
-                                        className="form-control form-control-sm"
-                                        value={currentObject.map_lng}
-                                        onChange={(e) => onChange("map_lng", e.target.value)}
-                                    />
-                                </div>
-                                <div className="col-12">
-                                    <label className="form-label fs-7">{dir === "rtl" ? "وصف الموقع" : "Place label"}</label>
-                                    <input
-                                        className="form-control form-control-sm"
-                                        value={currentObject.map_label}
-                                        onChange={(e) => onChange("map_label", e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {currentObject.menuSections.allergy_info && (
-                        <div className="border rounded p-3 mb-3 bg-white">
-                            <label className="form-label fw-bold">{dir === "rtl" ? "ملف مسببات الحساسية" : "Allergy document"}</label>
-                            <input
-                                type="file"
-                                className="form-control"
-                                accept=".pdf,image/png,image/jpeg"
-                                onChange={(e) => onChange("allergyFile", e.target.files?.[0] || null)}
-                            />
-                        </div>
-                    )}
-
-                    <div className="mt-5 border-top pt-3">
-                        <label className="col-form-label d-block mb-2 fw-bold">{translations.color || "لون الـ QR"}</label>
-                        <BlockPicker color={currentObject.color} onChange={(color) => onChange("color", color.hex)} />
                     </div>
-
-                    <button onClick={generateQR} className="btn btn-primary btn-lg w-100 mt-4 shadow-sm">
-                        {isSaving
-                            ? (dir === "rtl" ? "جاري الحفظ..." : "Saving...")
-                            : (editingId
-                                ? (dir === "rtl" ? "حفظ التعديلات" : "Save changes")
-                                : (translations.generateQr || "إنشاء كود QR"))}
-                    </button>
-                    <button type="button" onClick={resetForm} className="btn btn-light w-100 mt-2">
-                        {dir === "rtl" ? "إنشاء قائمة جديدة" : "Create New Menu"}
-                    </button>
                 </div>
             </div>
 
-            <div className="col-md-7 pt-5">
-                <div className="p-4 border rounded shadow bg-white text-center mb-4">
-                    <QRCodeCanvas
-                        id={qrInfo.id}
-                        value={qrInfo.url || " "}
-                        size={280}
-                        fgColor={qrInfo.color}
-                        imageSettings={qrInfo.logo}
-                        level="H"
-                    />
-                    {qrInfo.url && (
-                        <div className="mt-4 d-flex justify-content-center gap-3">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    const canvas = document.getElementById(qrInfo.id);
-                                    const link = document.createElement("a");
-                                    link.download = "qr-menu.png";
-                                    link.href = canvas.toDataURL();
-                                    link.click();
-                                }}
-                            >
-                                📥 {dir === "rtl" ? "تحميل" : "Download"}
-                            </button>
-                            <a href={qrInfo.url} target="_blank" rel="noreferrer" className="btn btn-primary">
-                                🔗 {dir === "rtl" ? "معاينة" : "Preview"}
-                            </a>
+            <div className="row mt-4">
+                <div className="col-12">
+                    <div className="card border-0 shadow-sm">
+                        <div className="card-header">
+                            <h3 className="card-title mb-0">{dir === "rtl" ? "القوائم المحفوظة" : "Saved menus"}</h3>
                         </div>
-                    )}
-                </div>
-
-                <div className="card border-0 shadow-sm">
-                    <div className="card-header">
-                        <h3 className="card-title">{dir === "rtl" ? "القوائم المحفوظة" : "Saved Menus"}</h3>
-                    </div>
-                    <div className="card-body">
-                        <div className="mb-3">
-                            <input
-                                className="form-control form-control-solid"
-                                placeholder={dir === "rtl" ? "بحث بالعنوان أو الفرع..." : "Search by title or branch..."}
-                                value={menuSearch}
-                                onChange={(e) => {
-                                    setMenuSearch(e.target.value);
-                                    setMenuPage(1);
-                                }}
-                            />
-                        </div>
-                        <div className="table-responsive">
-                            <table className="table table-striped align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>{dir === "rtl" ? "العنوان" : "Title"}</th>
-                                        <th>{dir === "rtl" ? "الأفرع" : "Branches"}</th>
-                                        <th>{dir === "rtl" ? "الحالة الآن" : "Current Status"}</th>
-                                        <th>{dir === "rtl" ? "مصدر الحالة" : "Status Source"}</th>
-                                        <th>{dir === "rtl" ? "أوقات الفتح اليوم" : "Today's Opening Hours"}</th>
-                                        <th>{dir === "rtl" ? "التاريخ" : "Created At"}</th>
-                                        <th>{dir === "rtl" ? "الإجراءات" : "Actions"}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {pagedMenuRecords.map((row) => (
-                                        <tr key={row.id}>
-                                            <td>{row.id}</td>
-                                            <td>{ellipsisCell(row.title || "-", 180)}</td>
-                                            <td>{ellipsisCell((row.est_names || []).join("، "), 220)}</td>
-                                            <td>{openingBadge(row)}</td>
-                                            <td>
-                                                <div className="d-flex flex-column gap-1">
-                                                    {openingSourceBadge(row)}
-                                                    {row.custom_menu_id && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openScheduleModal(row.custom_menu_id)}
-                                                            className="btn btn-sm btn-light-primary py-1 px-2"
-                                                        >
-                                                            {dir === "rtl" ? "تعديل أوقات القائمة" : "Edit menu hours"}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td>{ellipsisCell(row.opening_hours_text || "-", 190)}</td>
-                                            <td>{row.created_at || "-"}</td>
-                                            <td className="d-flex gap-2">
-                                                <button type="button" className="btn btn-sm btn-light-primary" onClick={() => startEdit(row)}>
-                                                    {dir === "rtl" ? "تعديل" : "Edit"}
-                                                </button>
-                                                <a
-                                                    href={`${window.location.origin}/menuSimple/${row.token}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="btn btn-sm btn-light-info"
-                                                >
-                                                    {dir === "rtl" ? "عرض" : "View"}
-                                                </a>
-                                                <button type="button" className="btn btn-sm btn-light-danger" onClick={() => deleteRecord(row.id)}>
-                                                    {dir === "rtl" ? "حذف" : "Delete"}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {pagedMenuRecords.length === 0 && (
-                                        <tr>
-                                            <td colSpan={8} className="text-center text-muted">-</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                            <div className="text-muted fs-7">
-                                {dir === "rtl"
-                                    ? `عدد النتائج: ${filteredMenuRecords.length}`
-                                    : `Results: ${filteredMenuRecords.length}`}
+                        <div className="card-body">
+                            <div className="mb-3">
+                                <input
+                                    className="form-control form-control-solid"
+                                    placeholder={dir === "rtl" ? "بحث بالعنوان أو الفرع..." : "Search by title or branch..."}
+                                    value={menuSearch}
+                                    onChange={(e) => {
+                                        setMenuSearch(e.target.value);
+                                        setMenuPage(1);
+                                    }}
+                                />
                             </div>
-                            <div className="d-flex gap-2">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-light"
-                                    disabled={menuPage <= 1}
-                                    onClick={() => setMenuPage((p) => Math.max(1, p - 1))}
-                                >
-                                    {dir === "rtl" ? "السابق" : "Prev"}
-                                </button>
-                                <span className="px-2 py-1 text-muted fs-7">
-                                    {menuPage} / {totalPages}
-                                </span>
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-light"
-                                    disabled={menuPage >= totalPages}
-                                    onClick={() => setMenuPage((p) => Math.min(totalPages, p + 1))}
-                                >
-                                    {dir === "rtl" ? "التالي" : "Next"}
-                                </button>
+                            <div className="table-responsive">
+                                <table className="table table-striped align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>{dir === "rtl" ? "العنوان" : "Title"}</th>
+                                            <th>{dir === "rtl" ? "الأفرع" : "Branches"}</th>
+                                            <th>{dir === "rtl" ? "الحالة الآن" : "Current status"}</th>
+                                            <th>{dir === "rtl" ? "مصدر الحالة" : "Status source"}</th>
+                                            <th>{dir === "rtl" ? "أوقات الفتح اليوم" : "Today's hours"}</th>
+                                            <th>{dir === "rtl" ? "التاريخ" : "Created"}</th>
+                                            <th>{dir === "rtl" ? "الإجراءات" : "Actions"}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pagedMenuRecords.map((row) => (
+                                            <tr key={row.id}>
+                                                <td>{row.id}</td>
+                                                <td>{ellipsisCell(row.title || "-", 180)}</td>
+                                                <td>{ellipsisCell((row.est_names || []).join("، "), 220)}</td>
+                                                <td>{openingBadge(row)}</td>
+                                                <td>
+                                                    <div className="d-flex flex-column gap-1">
+                                                        {openingSourceBadge(row)}
+                                                        {row.custom_menu_id && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openScheduleModal(row.custom_menu_id)}
+                                                                className="btn btn-sm btn-light-primary py-1 px-2"
+                                                            >
+                                                                {dir === "rtl" ? "تعديل أوقات القائمة" : "Edit menu hours"}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td>{ellipsisCell(row.opening_hours_text || "-", 190)}</td>
+                                                <td>{row.created_at || "-"}</td>
+                                                <td className="d-flex flex-wrap gap-2">
+                                                    <button type="button" className="btn btn-sm btn-light-primary" onClick={() => startEdit(row)}>
+                                                        {dir === "rtl" ? "تعديل" : "Edit"}
+                                                    </button>
+                                                    <a
+                                                        href={`${window.location.origin}/menuSimple/${row.token}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="btn btn-sm btn-light-info"
+                                                    >
+                                                        {dir === "rtl" ? "عرض" : "View"}
+                                                    </a>
+                                                    <button type="button" className="btn btn-sm btn-light-danger" onClick={() => deleteRecord(row.id)}>
+                                                        {dir === "rtl" ? "حذف" : "Delete"}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {pagedMenuRecords.length === 0 && (
+                                            <tr>
+                                                <td colSpan={8} className="text-center text-muted">-</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                <div className="text-muted fs-7">
+                                    {dir === "rtl"
+                                        ? `عدد النتائج: ${filteredMenuRecords.length}`
+                                        : `Results: ${filteredMenuRecords.length}`}
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-light"
+                                        disabled={menuPage <= 1}
+                                        onClick={() => setMenuPage((p) => Math.max(1, p - 1))}
+                                    >
+                                        {dir === "rtl" ? "السابق" : "Prev"}
+                                    </button>
+                                    <span className="px-2 py-1 text-muted fs-7">
+                                        {menuPage} / {totalPages}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-light"
+                                        disabled={menuPage >= totalPages}
+                                        onClick={() => setMenuPage((p) => Math.min(totalPages, p + 1))}
+                                    >
+                                        {dir === "rtl" ? "التالي" : "Next"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -892,12 +956,29 @@ const MenuQR = ({ translations, dir }) => {
                                     <div className="text-center text-muted py-4">{dir === "rtl" ? "جاري التحميل..." : "Loading..."}</div>
                                 ) : (
                                     <>
+                                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-3 rounded border bg-light">
+                                            <div>
+                                                <div className="fw-semibold">
+                                                    {dir === "rtl" ? "غير مقيد بفترة التواريخ" : "No date range limit"}
+                                                </div>
+                                                <small className="text-muted">
+                                                    {dir === "rtl"
+                                                        ? "عند التفعيل تبقى القائمة ضمن نطاق تقويمي واسع؛ يبقى الاعتماد على أوقات الأيام فقط."
+                                                        : "When on, the menu stays valid across a wide calendar window; day times still apply."}
+                                                </small>
+                                            </div>
+                                            <InputSwitch
+                                                checked={!!scheduleForm.no_date_limit}
+                                                onChange={(e) => setScheduleForm((p) => ({ ...p, no_date_limit: e.value }))}
+                                            />
+                                        </div>
                                         <div className="row g-3 mb-3">
                                             <div className="col-md-6">
                                                 <label className="form-label">{dir === "rtl" ? "من تاريخ" : "From date"}</label>
                                                 <input
                                                     type="date"
                                                     className="form-control"
+                                                    disabled={!!scheduleForm.no_date_limit}
                                                     value={scheduleForm.from_date || ""}
                                                     onChange={(e) => setScheduleForm((p) => ({ ...p, from_date: e.target.value }))}
                                                 />
@@ -907,6 +988,7 @@ const MenuQR = ({ translations, dir }) => {
                                                 <input
                                                     type="date"
                                                     className="form-control"
+                                                    disabled={!!scheduleForm.no_date_limit}
                                                     value={scheduleForm.to_date || ""}
                                                     onChange={(e) => setScheduleForm((p) => ({ ...p, to_date: e.target.value }))}
                                                 />

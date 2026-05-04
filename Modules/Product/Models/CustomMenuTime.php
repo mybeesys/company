@@ -23,8 +23,12 @@ class CustomMenuTime extends Model
         'custommenu_id',
         'from_date',
         'to_date',
-        'active'
-        // add more fields as needed
+        'no_date_limit',
+        'active',
+    ];
+
+    protected $casts = [
+        'no_date_limit' => 'boolean',
     ];
 
     public function getFillable(){
