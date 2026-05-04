@@ -20,10 +20,25 @@ use Modules\Reservation\Models\OrderItem;
 use Illuminate\Support\Str;
 use Modules\General\Models\Setting;
 use Modules\Reservation\Models\MenuToken;
+use Modules\Reservation\Support\MenuAllergenDefinitions;
 use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    private function parseAllergenVisibleKeysFromRequest(Request $request): ?array
+    {
+        $raw = $request->input('allergen_visible_keys');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        $arr = is_string($raw) ? json_decode($raw, true) : $raw;
+        if (! is_array($arr)) {
+            return null;
+        }
+
+        return MenuAllergenDefinitions::normalizeStoredKeys($arr);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -117,6 +132,7 @@ class OrderController extends Controller
                 'map_label' => $request->input('map_label'),
                 'allergy_document_path' => $allergyPath,
                 'section_flags' => $sectionFlags,
+                'allergen_visible_keys' => $this->parseAllergenVisibleKeysFromRequest($request),
                 'cover' => $coverPath,
                 'token' => $token,
             ]);
@@ -393,6 +409,9 @@ class OrderController extends Controller
         $feedbackToken = $token;
         $openingState = $this->resolveMenuOpeningStatus($menuToken->custom_menu_id);
 
+        $storedAllergenKeys = is_array($menuToken->allergen_visible_keys) ? $menuToken->allergen_visible_keys : null;
+        $allergenFilterKeyIcons = MenuAllergenDefinitions::filterMapForDisplay($storedAllergenKeys);
+
         $info = [
             'establishment' => $establishment,
             'title' => $title,
@@ -462,6 +481,7 @@ class OrderController extends Controller
                 'map_label' => $t->map_label,
                 'section_flags' => is_array($t->section_flags) ? $t->section_flags : [],
                 'allergy_document_path' => $t->allergy_document_path,
+                'allergen_visible_keys' => is_array($t->allergen_visible_keys ?? null) ? $t->allergen_visible_keys : null,
                 'opening_status' => $opening['status'],
                 'opening_hours_text' => $opening['hours_text'],
                 'opening_source' => $opening['source'],
@@ -566,7 +586,7 @@ class OrderController extends Controller
             $allergyPath = $request->file('allergy_document')->store('menu-allergy', 'public');
         }
 
-        $token->update([
+        $payload = [
             'est_id' => (int) $estIds[0],
             'est_ids' => $estIds,
             'title' => $data['title'] ?? '',
@@ -578,7 +598,11 @@ class OrderController extends Controller
             'map_label' => $request->input('map_label'),
             'allergy_document_path' => $allergyPath,
             'section_flags' => $sectionFlags,
-        ]);
+        ];
+        if ($request->has('allergen_visible_keys')) {
+            $payload['allergen_visible_keys'] = $this->parseAllergenVisibleKeysFromRequest($request);
+        }
+        $token->update($payload);
 
         return response()->json(['status' => true, 'token' => $token->token, 'id' => $token->id]);
     }

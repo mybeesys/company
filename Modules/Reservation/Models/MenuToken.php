@@ -22,6 +22,7 @@ class MenuToken extends Model
         'map_label',
         'allergy_document_path',
         'section_flags',
+        'allergen_visible_keys',
         'cover',
         'token',
     ];
@@ -30,6 +31,7 @@ class MenuToken extends Model
         'products' => 'array',
         'est_ids' => 'array',
         'section_flags' => 'array',
+        'allergen_visible_keys' => 'array',
         'map_lat' => 'float',
         'map_lng' => 'float',
     ];

@@ -11,6 +11,38 @@ const animatedComponents = makeAnimated();
 /** أقسام المنيو التي تُعرض في البطاقة الرئيسية؛ «معلومات الحساسية» في العمود الجانبي مع الملف. */
 const MENU_SECTION_KEYS_MAIN = ["todays_menu", "location", "smart_menu", "photos", "feedback", "info"];
 
+const ALLERGEN_FILTER_KEYS = [
+    "eggs",
+    "milk",
+    "fish",
+    "crustaceans",
+    "tree_nuts",
+    "peanuts",
+    "wheat",
+    "soybeans",
+    "sesame",
+    "mustard",
+    "celery",
+    "lupin",
+    "molluscs",
+    "sulphites",
+];
+
+function defaultAllergenVisible() {
+    return Object.fromEntries(ALLERGEN_FILTER_KEYS.map((k) => [k, true]));
+}
+
+function allergenVisibleFromRecord(record) {
+    const raw = record?.allergen_visible_keys;
+    if (raw == null) {
+        return defaultAllergenVisible();
+    }
+    if (Array.isArray(raw)) {
+        return Object.fromEntries(ALLERGEN_FILTER_KEYS.map((k) => [k, raw.includes(k)]));
+    }
+    return defaultAllergenVisible();
+}
+
 /** When PHP emits notices before JSON, axios may leave the body as a string; pull the token from the trailing JSON object. */
 function extractMenuTokenFromResponse(data) {
     if (data && typeof data === "object" && typeof data.token === "string") {
@@ -85,6 +117,7 @@ const MenuQR = ({ translations, dir }) => {
         map_lng: "",
         map_label: "",
         allergyFile: null,
+        allergenVisible: defaultAllergenVisible(),
     });
 
     const [qrInfo, setQrInfo] = useState({});
@@ -115,6 +148,44 @@ const MenuQR = ({ translations, dir }) => {
         };
 
         return translations[key] || fallbackLabels[key] || key;
+    };
+
+    const getAllergenLabel = (key) => {
+        const t = translations[`allergen_${key}`];
+        if (t) return t;
+        const ar = {
+            eggs: "بيض",
+            milk: "حليب",
+            fish: "سمك",
+            crustaceans: "قشريات",
+            tree_nuts: "مكسرات شجرية",
+            peanuts: "فول سوداني",
+            wheat: "قمح",
+            soybeans: "صويا",
+            sesame: "سمسم",
+            mustard: "خردل",
+            celery: "كرفس",
+            lupin: "ترمس",
+            molluscs: "رخويات",
+            sulphites: "كبريتات",
+        };
+        const en = {
+            eggs: "Eggs",
+            milk: "Milk",
+            fish: "Fish",
+            crustaceans: "Crustaceans",
+            tree_nuts: "Tree nuts",
+            peanuts: "Peanuts",
+            wheat: "Wheat",
+            soybeans: "Soybeans",
+            sesame: "Sesame",
+            mustard: "Mustard",
+            celery: "Celery",
+            lupin: "Lupin",
+            molluscs: "Molluscs",
+            sulphites: "Sulphites",
+        };
+        return dir === "rtl" ? ar[key] || key : en[key] || key;
     };
 
     useEffect(() => {
@@ -292,6 +363,8 @@ const MenuQR = ({ translations, dir }) => {
             if (currentObject.allergyFile) {
                 formData.append("allergy_document", currentObject.allergyFile);
             }
+            const visibleAllergenKeys = ALLERGEN_FILTER_KEYS.filter((k) => currentObject.allergenVisible[k]);
+            formData.append("allergen_visible_keys", JSON.stringify(visibleAllergenKeys));
 
             const updateUrl = editingId
                 ? menuTokenUpdateUrlTemplate.replace("__ID__", String(editingId))
@@ -356,6 +429,7 @@ const MenuQR = ({ translations, dir }) => {
             map_lng: "",
             map_label: "",
             allergyFile: null,
+            allergenVisible: defaultAllergenVisible(),
         });
     };
 
@@ -383,6 +457,7 @@ const MenuQR = ({ translations, dir }) => {
                 ...prev.menuSections,
                 ...(record.section_flags || {}),
             },
+            allergenVisible: allergenVisibleFromRecord(record),
         }));
     };
 
@@ -822,6 +897,42 @@ const MenuQR = ({ translations, dir }) => {
                                             ? "عند التفعيل، يجب رفع ملف قبل إنشاء الرابط."
                                             : "When enabled, upload a file before generating."}
                                     </small>
+                                )}
+
+                                {currentObject.menuSections.allergy_info && (
+                                    <div className="mt-3 pt-3 border-top text-start">
+                                        <div className="small fw-bold mb-2">
+                                            {dir === "rtl"
+                                                ? "عناصر الفلتر في منيو الزبائن (إظهار / إخفاء)"
+                                                : "Customer menu filter items (show / hide)"}
+                                        </div>
+                                        <div className="row g-2">
+                                            {ALLERGEN_FILTER_KEYS.map((akey) => (
+                                                <div key={akey} className="col-12 col-md-6">
+                                                    <div className="d-flex align-items-center justify-content-between gap-2 rounded border px-2 py-2 bg-light">
+                                                        <span className="small text-break">{getAllergenLabel(akey)}</span>
+                                                        <InputSwitch
+                                                            checked={!!currentObject.allergenVisible[akey]}
+                                                            onChange={(e) =>
+                                                                setCurrentObject((prev) => ({
+                                                                    ...prev,
+                                                                    allergenVisible: {
+                                                                        ...prev.allergenVisible,
+                                                                        [akey]: e.value,
+                                                                    },
+                                                                }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <small className="text-muted d-block mt-2">
+                                            {dir === "rtl"
+                                                ? "المعطّل لا يظهر في نافذة مسببات الحساسية عند الزبون."
+                                                : "Disabled allergens won’t appear in the allergy popup filter."}
+                                        </small>
+                                    </div>
                                 )}
                             </div>
                         </div>

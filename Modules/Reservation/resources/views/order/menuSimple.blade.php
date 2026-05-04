@@ -2091,7 +2091,6 @@
                         </div>
                     </div>
 
-                        @include('reservation::order.partials.menu-allergen-filter')
                 </div>
 
                 <div class="no-results" id="noResults">
@@ -2252,7 +2251,7 @@
     </div>
 
     <div class="modal fade" id="modalAllergy" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold">@lang('general::lang.allergy_info')</h5>
@@ -2270,6 +2269,11 @@
                     @else
                         <p class="text-muted mb-0">@lang('general::lang.no_results')</p>
                     @endif
+
+                    <hr class="my-4 opacity-25">
+                    <h6 class="fw-bold mb-1">@lang('reservation::lang.menu_allergen_modal_section_title')</h6>
+                    <p class="small text-muted mb-3">@lang('reservation::lang.menu_allergen_modal_section_intro')</p>
+                    @include('reservation::order.partials.menu-allergen-filter')
                 </div>
             </div>
         </div>
@@ -2641,16 +2645,7 @@
             }
 
             function expandAllergenFilterOnDesktop() {
-                const collapseEl = document.getElementById('menuAllergenFilterCollapse');
-                const toggleBtn = document.querySelector('.menu-allergen-filter-toggle');
-                if (!collapseEl || !toggleBtn || typeof bootstrap === 'undefined' || !bootstrap.Collapse) {
-                    return;
-                }
-                if (window.matchMedia('(min-width: 768px)').matches) {
-                    bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false }).show();
-                    toggleBtn.classList.remove('collapsed');
-                    toggleBtn.setAttribute('aria-expanded', 'true');
-                }
+                /* Allergen filter is only inside the allergy modal (no collapsible strip). */
             }
 
             function applyMenuFilters() {
