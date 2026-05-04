@@ -42,7 +42,7 @@
                     </div>
                     <div class="d-flex justify-content-end gap-4 py-5 px-10">
                         <button type="reset" class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6"
-                            data-kt-menu-dismiss="true" data-kt-filter="reset">@lang('general.reset')</button>
+                            data-kt-menu-dismiss="true" data-kt-filter="reset">@lang('general.clear_filters')</button>
                         <button type="submit" class="btn btn-primary fw-semibold px-6" data-kt-menu-dismiss="true"
                             data-kt-filter="filter">@lang('general.apply')</button>
                     </div>

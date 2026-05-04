@@ -13,6 +13,7 @@ class PeriodicInventoryItem extends Model
      protected $fillable = [
         'periodic_inventory_id',
         'product_id',
+        'unit_label',
         'system_quantity',
         'physical_quantity',
         'unit_cost',

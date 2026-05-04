@@ -43,7 +43,7 @@
                             <input type="date" name="end_date" class="form-control form-control-solid" value="{{ $endDate->toDateString() }}">
                         </div>
                         <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
-                        <a href="{{ route('dashboard') }}" class="btn btn-light">{{ app()->getLocale() === 'ar' ? 'إعادة ضبط' : 'Reset' }}</a>
+                        <a href="{{ route('dashboard') }}" class="btn btn-light">@lang('general.clear_filters')</a>
                     </form>
                 </div>
             </div>

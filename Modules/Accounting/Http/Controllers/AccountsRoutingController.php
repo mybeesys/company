@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountsRoting;
+use Modules\General\Models\Setting;
 
 class AccountsRoutingController extends Controller
 {
@@ -28,8 +29,9 @@ class AccountsRoutingController extends Controller
             // 'assign_to_each' => 'تعيين لكل منها',
         ];
         $accountsRoting = AccountsRoting::all();
+        $isPeriodicInventoryPolicy = Setting::isPeriodicInventory();
 
-        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options'));
+        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy'));
     }
 
     /**
@@ -63,30 +65,33 @@ class AccountsRoutingController extends Controller
             // 'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
+            'periodic_inventory_adjustment' => 'expense',
         ];
 
-
         foreach ($data as $key => $value) {
-            if ($value !== null && str_contains($key, '_account')) {
-                $type = str_replace('_account', '', $key);
-                $accountId = $value;
-
-                $directionType = $mapping[$type] ?? null;
-                if (!$directionType) {
-                    continue;
-                }
-
-                $isSales = strpos($key, 'sales_') !== false;
-                $isPurchases = strpos($key, 'purchases_') !== false;
-
-                $directions[$type] = [
-                    'type' => $type,
-                    'routing_type' => $directionType,
-                    'direction' => 'auto_assign',
-                    'section' => $isSales ? 'sales' : 'purchases',
-                    'account_id' => $accountId,
-                ];
+            if ($value === null || ! str_contains((string) $key, '_account')) {
+                continue;
             }
+            $type = str_replace('_account', '', (string) $key);
+            $directionType = $mapping[$type] ?? null;
+            if (! $directionType) {
+                continue;
+            }
+            $accountId = $value;
+            $section = 'sales';
+            if (str_starts_with((string) $key, 'purchases_')) {
+                $section = 'purchases';
+            } elseif (str_starts_with((string) $key, 'periodic_inventory_')) {
+                $section = 'periodic_inventory';
+            }
+
+            $directions[$type] = [
+                'type' => $type,
+                'routing_type' => $directionType,
+                'direction' => 'auto_assign',
+                'section' => $section,
+                'account_id' => $accountId,
+            ];
         }
 
 

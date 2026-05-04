@@ -10,6 +10,9 @@ class Setting extends Model
 {
     use HasFactory;
 
+    /** صلاحية EMS: السماح بالبيع رغم عدم كفاية الرصيد (الجرد المستمر فقط). */
+    public const PERMISSION_ALLOW_SALE_WITHOUT_STOCK = 'sales.Allow Sale Without Stock.create';
+
     protected $guarded = ['id'];
 
     public static function getNotesAndTermsConditions()
@@ -47,13 +50,28 @@ class Setting extends Model
         return self::getInventoryTrackingPolicy() === 'periodic';
     }
 
-    public static function isAllowSaleWithoutStockEnabled(): bool
+    /**
+     * في الجرد المستمر: هل يجب رفض البيع عند عدم كفاية الكمية؟
+     * يُستثنى من التحقق المستخدم الحالي إن وُجدت له صلاحية {@see PERMISSION_ALLOW_SALE_WITHOUT_STOCK}.
+     */
+    public static function mustValidatePerpetualStock(?\Illuminate\Contracts\Auth\Authenticatable $user = null): bool
     {
-        if (!self::isPerpetualInventory()) {
-            return true;
+        if (! self::isPerpetualInventory()) {
+            return false;
         }
 
-        return (string) (Setting::where('key', 'allow_sale_without_stock')->value('value') ?? 'false') === 'true';
+        $user = $user ?? auth()->user();
+        if ($user && method_exists($user, 'can') && $user->can(self::PERMISSION_ALLOW_SALE_WITHOUT_STOCK)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @deprecated لم يعد يُقرأ من الإعدادات؛ يُحدد عبر صلاحيات الموظف. */
+    public static function isAllowSaleWithoutStockEnabled(): bool
+    {
+        return false;
     }
 
     public static function getCurrency()

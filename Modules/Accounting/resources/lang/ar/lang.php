@@ -321,6 +321,7 @@ return [
     'from_date' => 'من تاريخ',
     'to_date' => 'إلى تاريخ',
     'inventory_type' => 'نوع الجرد',
+    'inventory_adjustment' => 'تسوية المخزون',
     'all_types' => 'جميع الأنواع',
     'monthly' => 'شهري',
     'quarterly' => 'ربع سنوي',
@@ -398,5 +399,12 @@ return [
     'inventory_policy_perpetual' => 'جرد مستمر',
     'inventory_policy_periodic_report_note' => 'ملاحظة: نتائج القوائم المالية تصبح أكثر دقة بعد اعتماد جرد الفترة وترحيل قيد التسوية.',
     'inventory_policy_perpetual_report_note' => 'ملاحظة: نتائج القوائم المالية تتحدث لحظيًا مع كل حركة بيع/شراء وترحيل القيود الآلية.',
+    'periodic_inventory_routing_tab' => 'جرد دوري',
+    'periodic_inventory_adjustment_account' => 'حساب تسوية فرق الجرد (الحساب المقابل للمخزون)',
+    'periodic_inventory_routing_locked' => 'فعّل سياسة الجرد «دوري» من الإعدادات العامة لتتمكن من ضبط هذه الحسابات.',
+    'periodic_inventory_count_date' => 'تاريخ الجرد',
+    'periodic_inventory_count_date_help' => 'يُسجَّل العد الفعلي اعتبارًا من هذا التاريخ (لحظة واحدة). بداية الفترة للمشتريات/التكلفة تُحسب تلقائيًا من آخر جرد مرحّل.',
+    'periodic_inventory_last_count_hint' => 'بداية الفترة (من آخر جرد معتمد)',
+    'unit' => 'الوحدة',
 
 ];

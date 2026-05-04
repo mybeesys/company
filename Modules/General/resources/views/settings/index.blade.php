@@ -593,12 +593,11 @@
         $(document).ready(function() {
             function toggleSettings() {
                 var value = $('#inventory_tracking_policy').val();
-                if (value === 'periodic') {
-                    $('#periodic_settings').css('display', 'flex');
-                    $('#perpetual_settings').css('display', 'none');
-                } else if (value === 'perpetual') {
-                    $('#periodic_settings').css('display', 'none');
-                    $('#perpetual_settings').css('display', 'flex');
+                if ($('#periodic_settings').length) {
+                    $('#periodic_settings').css('display', value === 'periodic' ? 'flex' : 'none');
+                }
+                if ($('#perpetual_permission_note').length) {
+                    $('#perpetual_permission_note').css('display', value === 'perpetual' ? 'block' : 'none');
                 }
             }
 

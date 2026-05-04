@@ -27,12 +27,13 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">@lang('accounting::lang.start_date')</label>
-                            <input type="date" class="form-control" value="{{ $start_date }}" readonly>
+                            <label class="form-label">@lang('accounting::lang.periodic_inventory_count_date')</label>
+                            <input type="date" name="count_date" class="form-control" value="{{ $count_date_default ?? now()->format('Y-m-d') }}" required>
+                            <div class="form-text">@lang('accounting::lang.periodic_inventory_count_date_help')</div>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">@lang('accounting::lang.end_date')</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ $end_date->format('Y-m-d') }}" required>
+                            <label class="form-label">@lang('accounting::lang.periodic_inventory_last_count_hint')</label>
+                            <input type="text" class="form-control" value="{{ $start_date }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -78,6 +79,7 @@
                             <thead>
                                 <tr>
                                     <th>@lang('accounting::lang.product')</th>
+                                    <th>@lang('accounting::lang.unit')</th>
                                     <th>@lang('accounting::lang.system_quantity')</th>
                                     <th>@lang('accounting::lang.physical_quantity')</th>
                                     <th>@lang('accounting::lang.cost_price')</th>
@@ -88,7 +90,7 @@
                             <tbody>
                                 @if (count($products) == 0)
                                     <tr>
-                                        <td colspan="6" class="text-center">@lang('accounting::lang.no_products')</td>
+                                        <td colspan="7" class="text-center">@lang('accounting::lang.no_products')</td>
                                     </tr>
                                 @endif
                                 @foreach ($products as $product)
@@ -98,6 +100,7 @@
                                     @endphp
                                     <tr>
                                         <td>{{ $product->SKU . ' - ' . $product->name_ar . ' - ' . $product->name_en }}</td>
+                                        <td class="text-muted small">{{ $product->inventory_unit_label ?? '—' }}</td>
                                         <td class="system-qty">{{ number_format($systemQty, 2) }}
                                             <input type="hidden" name="items[{{ $product->id }}][system_quantity]" value="{{ $systemQty }}">
                                         </td>
@@ -207,7 +210,7 @@
                 tbody.empty();
 
                 if (products.length === 0) {
-                    tbody.append('<tr><td colspan="6" class="text-center">@lang('accounting::lang.no_products')</td></tr>');
+                    tbody.append('<tr><td colspan="7" class="text-center">@lang('accounting::lang.no_products')</td></tr>');
                     recalcSummary();
                     return;
                 }
@@ -215,9 +218,11 @@
                 products.forEach(product => {
                     const systemQty = parseFloat(product.qty || 0);
                     const unitCost = parseFloat(product.cost || 0);
+                    const unitLabel = product.inventory_unit_label || '—';
                     const row = `
                 <tr>
                     <td>${product.SKU} - ${product.name_ar} - ${product.name_en}</td>
+                    <td class="text-muted small">${unitLabel}</td>
                     <td class="system-qty">${systemQty.toFixed(2)}
                         <input type="hidden" name="items[${product.id}][system_quantity]" value="${systemQty}">
                     </td>
@@ -245,7 +250,7 @@
 
             $('.establishment').change(function() {
                 $('table tbody').html(
-                    '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i>@lang('accounting::lang.loading')</td></tr>'
+                    '<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i>@lang('accounting::lang.loading')</td></tr>'
                 );
             });
         });

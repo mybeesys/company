@@ -53,24 +53,32 @@
         <thead>
             <tr>
                 <th>{{ __('accounting::lang.product') }}</th>
+                <th>{{ __('accounting::lang.unit') }}</th>
                 <th>{{ __('accounting::lang.system_quantity') }}</th>
                 <th>{{ __('accounting::lang.physical_quantity') }}</th>
                 <th>{{ __('accounting::lang.cost_price') }}</th>
                 <th>{{ __('accounting::lang.difference') }}</th>
+                <th>{{ __('accounting::lang.total_variance_value') }}</th>
             </tr>
         </thead>
         <tbody>
             @forelse($inventory->items as $item)
+                @php
+                    $v = (float) $item->variance;
+                    $vv = $v * (float) $item->unit_cost;
+                @endphp
                 <tr>
                     <td>{{ $item->product?->name_ar ?? $item->product?->name_en ?? ('#'.$item->product_id) }}</td>
+                    <td>{{ $item->unit_label ?? '—' }}</td>
                     <td>{{ number_format((float) $item->system_quantity, 2) }}</td>
                     <td>{{ number_format((float) $item->physical_quantity, 2) }}</td>
                     <td>{{ number_format((float) $item->unit_cost, 2) }}</td>
-                    <td>{{ number_format((float) $item->variance, 2) }}</td>
+                    <td>{{ number_format($v, 2) }}</td>
+                    <td>{{ number_format($vv, 2) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">{{ __('accounting::lang.no_products') }}</td>
+                    <td colspan="7">{{ __('accounting::lang.no_products') }}</td>
                 </tr>
             @endforelse
         </tbody>
