@@ -53,5 +53,8 @@ return [
     'menu_allergen_avoid_a11y' => 'Filter by allergens to avoid',
     'menu_allergen_filter_toggle' => 'Allergen filter',
     'menu_allergen_filter_toggle_aria' => 'Show or hide allergen filter',
+    'menu_allergen_modal_section_title' => 'Filter the menu by allergens',
+    'menu_allergen_modal_section_intro' => 'Tap an allergen to hide products that contain it; tap again to show them. Use «Clear filters» to reset.',
+    'menu_allergen_filter_empty' => 'No allergens were enabled for filtering in the menu link settings.',
 ];
 

@@ -20,10 +20,25 @@ use Modules\Reservation\Models\OrderItem;
 use Illuminate\Support\Str;
 use Modules\General\Models\Setting;
 use Modules\Reservation\Models\MenuToken;
+use Modules\Reservation\Support\MenuAllergenDefinitions;
 use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    private function parseAllergenVisibleKeysFromRequest(Request $request): ?array
+    {
+        $raw = $request->input('allergen_visible_keys');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        $arr = is_string($raw) ? json_decode($raw, true) : $raw;
+        if (! is_array($arr)) {
+            return null;
+        }
+
+        return MenuAllergenDefinitions::normalizeStoredKeys($arr);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -117,6 +132,7 @@ class OrderController extends Controller
                 'map_label' => $request->input('map_label'),
                 'allergy_document_path' => $allergyPath,
                 'section_flags' => $sectionFlags,
+                'allergen_visible_keys' => $this->parseAllergenVisibleKeysFromRequest($request),
                 'cover' => $coverPath,
                 'token' => $token,
             ]);
@@ -182,6 +198,7 @@ class OrderController extends Controller
                 'id' => $date->id,
                 'from_date' => $date->from_date,
                 'to_date' => $date->to_date,
+                'no_date_limit' => (bool) ($date->no_date_limit ?? false),
                 'times' => $times,
             ]);
         }
@@ -190,6 +207,7 @@ class OrderController extends Controller
             'id' => null,
             'from_date' => now()->toDateString(),
             'to_date' => now()->toDateString(),
+            'no_date_limit' => false,
             'times' => $defaultTimes->values(),
         ]);
     }
@@ -197,15 +215,29 @@ class OrderController extends Controller
     public function updateCustomMenuSchedule(Request $request, int $id)
     {
         $customMenu = CustomMenu::query()->findOrFail($id);
-        $validated = $request->validate([
-            'from_date' => 'required|date',
-            'to_date' => 'required|date|after_or_equal:from_date',
+        $noDateLimit = filter_var($request->input('no_date_limit'), FILTER_VALIDATE_BOOLEAN);
+
+        $dateRules = $noDateLimit
+            ? [
+                'from_date' => 'nullable|date',
+                'to_date' => 'nullable|date',
+            ]
+            : [
+                'from_date' => 'required|date',
+                'to_date' => 'required|date|after_or_equal:from_date',
+            ];
+
+        $validated = $request->validate(array_merge($dateRules, [
+            'no_date_limit' => 'sometimes|boolean',
             'times' => 'required|array|min:1',
             'times.*.day_no' => 'required|integer|min:1|max:7',
             'times.*.from_time' => 'required|date_format:H:i:s',
             'times.*.to_time' => 'required|date_format:H:i:s',
             'times.*.active' => 'required|boolean',
-        ]);
+        ]));
+
+        $fromDate = $noDateLimit ? '2000-01-01' : $validated['from_date'];
+        $toDate = $noDateLimit ? '2099-12-31' : $validated['to_date'];
 
         foreach ($validated['times'] as $row) {
             if (($row['from_time'] ?? null) >= ($row['to_time'] ?? null)) {
@@ -217,7 +249,7 @@ class OrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($customMenu, $validated) {
+        DB::transaction(function () use ($customMenu, $validated, $fromDate, $toDate, $noDateLimit) {
             $menuTime = CustomMenuTime::query()
                 ->where('custommenu_id', $customMenu->id)
                 ->orderByDesc('id')
@@ -226,13 +258,15 @@ class OrderController extends Controller
             if (!$menuTime) {
                 $menuTime = CustomMenuTime::create([
                     'custommenu_id' => $customMenu->id,
-                    'from_date' => $validated['from_date'],
-                    'to_date' => $validated['to_date'],
+                    'from_date' => $fromDate,
+                    'to_date' => $toDate,
+                    'no_date_limit' => $noDateLimit,
                     'active' => 1,
                 ]);
             } else {
-                $menuTime->from_date = $validated['from_date'];
-                $menuTime->to_date = $validated['to_date'];
+                $menuTime->from_date = $fromDate;
+                $menuTime->to_date = $toDate;
+                $menuTime->no_date_limit = $noDateLimit;
                 $menuTime->active = 1;
                 $menuTime->save();
             }
@@ -375,6 +409,9 @@ class OrderController extends Controller
         $feedbackToken = $token;
         $openingState = $this->resolveMenuOpeningStatus($menuToken->custom_menu_id);
 
+        $storedAllergenKeys = is_array($menuToken->allergen_visible_keys) ? $menuToken->allergen_visible_keys : null;
+        $allergenFilterKeyIcons = MenuAllergenDefinitions::filterMapForDisplay($storedAllergenKeys);
+
         $info = [
             'establishment' => $establishment,
             'title' => $title,
@@ -444,6 +481,7 @@ class OrderController extends Controller
                 'map_label' => $t->map_label,
                 'section_flags' => is_array($t->section_flags) ? $t->section_flags : [],
                 'allergy_document_path' => $t->allergy_document_path,
+                'allergen_visible_keys' => is_array($t->allergen_visible_keys ?? null) ? $t->allergen_visible_keys : null,
                 'opening_status' => $opening['status'],
                 'opening_hours_text' => $opening['hours_text'],
                 'opening_source' => $opening['source'],
@@ -468,8 +506,13 @@ class OrderController extends Controller
         $menuTime = CustomMenuTime::query()
             ->where('custommenu_id', $customMenuId)
             ->where('active', 1)
-            ->whereDate('from_date', '<=', $today)
-            ->whereDate('to_date', '>=', $today)
+            ->where(function ($q) use ($today) {
+                $q->where('no_date_limit', 1)
+                    ->orWhere(function ($q2) use ($today) {
+                        $q2->whereDate('from_date', '<=', $today)
+                            ->whereDate('to_date', '>=', $today);
+                    });
+            })
             ->with(['times' => function ($q) use ($dayNo, $altDayNo) {
                 $q->whereIn('day_no', [$dayNo, $altDayNo])->where('active', 1);
             }])
@@ -543,7 +586,7 @@ class OrderController extends Controller
             $allergyPath = $request->file('allergy_document')->store('menu-allergy', 'public');
         }
 
-        $token->update([
+        $payload = [
             'est_id' => (int) $estIds[0],
             'est_ids' => $estIds,
             'title' => $data['title'] ?? '',
@@ -555,7 +598,11 @@ class OrderController extends Controller
             'map_label' => $request->input('map_label'),
             'allergy_document_path' => $allergyPath,
             'section_flags' => $sectionFlags,
-        ]);
+        ];
+        if ($request->has('allergen_visible_keys')) {
+            $payload['allergen_visible_keys'] = $this->parseAllergenVisibleKeysFromRequest($request);
+        }
+        $token->update($payload);
 
         return response()->json(['status' => true, 'token' => $token->token, 'id' => $token->id]);
     }
