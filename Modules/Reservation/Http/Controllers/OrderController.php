@@ -409,7 +409,7 @@ class OrderController extends Controller
         $feedbackToken = $token;
         $openingState = $this->resolveMenuOpeningStatus($menuToken->custom_menu_id);
 
-        $storedAllergenKeys = is_array($menuToken->allergen_visible_keys) ? $menuToken->allergen_visible_keys : null;
+        $storedAllergenKeys = $this->resolveMenuTokenAllergenVisibleKeys($menuToken);
         $allergenFilterKeyIcons = MenuAllergenDefinitions::filterMapForDisplay($storedAllergenKeys);
 
         $info = [
@@ -438,8 +438,30 @@ class OrderController extends Controller
             'customMenu',
             'feedbackToken',
             'menuToken',
-            'openingState'
+            'openingState',
+            'allergenFilterKeyIcons'
         ));
+    }
+
+    /**
+     * Keys allowed in the customer allergy filter UI; supports JSON string / legacy rows.
+     *
+     * @return list<string>|null
+     */
+    private function resolveMenuTokenAllergenVisibleKeys(MenuToken $menuToken): ?array
+    {
+        $raw = $menuToken->allergen_visible_keys;
+        if (is_array($raw)) {
+            return empty($raw) ? [] : MenuAllergenDefinitions::normalizeStoredKeys($raw);
+        }
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return empty($decoded) ? [] : MenuAllergenDefinitions::normalizeStoredKeys($decoded);
+            }
+        }
+
+        return null;
     }
 
     public function menuQR()

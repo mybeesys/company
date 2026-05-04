@@ -2258,6 +2258,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <h6 class="fw-bold mb-1">@lang('reservation::lang.menu_allergen_modal_section_title')</h6>
+                    <p class="small text-muted mb-3">@lang('reservation::lang.menu_allergen_modal_section_intro')</p>
+                    @include('reservation::order.partials.menu-allergen-filter')
+
+                    <hr class="my-4 opacity-25">
                     @if ($allergyDocumentUrl)
                         @php $ext = strtolower(pathinfo($menuToken->allergy_document_path ?? '', PATHINFO_EXTENSION)); @endphp
                         @if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp']))
@@ -2269,11 +2274,6 @@
                     @else
                         <p class="text-muted mb-0">@lang('general::lang.no_results')</p>
                     @endif
-
-                    <hr class="my-4 opacity-25">
-                    <h6 class="fw-bold mb-1">@lang('reservation::lang.menu_allergen_modal_section_title')</h6>
-                    <p class="small text-muted mb-3">@lang('reservation::lang.menu_allergen_modal_section_intro')</p>
-                    @include('reservation::order.partials.menu-allergen-filter')
                 </div>
             </div>
         </div>
