@@ -1,3 +1,10 @@
+(function () {
+    if (typeof window.currentLang === 'undefined') {
+        var docLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+        window.currentLang = docLang.indexOf('ar') === 0 ? 'ar' : 'en';
+    }
+})();
+
 $(document).ready(function () {
 
 

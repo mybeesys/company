@@ -19,6 +19,7 @@
             <table class="table align-middle gs-0 gy-4 text-center" id="salesTable">
                 <thead>
                     <tr class="fw-bold  text-muted bg-light">
+                        <th class="min-w-35px w-35px p-2" aria-hidden="true"></th>
                         <th class="min-w-280px ">@lang('sales::lang.product')</th>
                         <th class="min-w-150px product-description" style="display:none">@lang('sales::lang.description')
                         </th>
@@ -47,6 +48,20 @@
                         @foreach ($lines as $index => $line)
                             @if ($line->line_status != 'completed')
                                 <tr class="sales-line-row" draggable="true">
+                                    <td class="sales-line-reorder-cell align-middle p-1 text-center">
+                                        <div class="d-flex flex-column gap-0 align-items-center sales-line-reorder">
+                                            <button type="button"
+                                                class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-up"
+                                                title="@lang('sales::lang.move_line_up')">
+                                                <i class="ki-outline ki-arrow-up fs-6"></i>
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-down"
+                                                title="@lang('sales::lang.move_line_down')">
+                                                <i class="ki-outline ki-arrow-down fs-6"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td>
                                         <input type="hidden" class="form-control"
                                             name="products[{{ $index }}][product_id]" style="padding: 7px"
@@ -116,11 +131,30 @@
                                             class="form-control total_after_vat-field"
                                             name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
                                             style="width: 107px;border: 0;"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-icon btn-danger delete-sales-row">
+                                            <i class="ki-outline ki-trash fs-2"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             @endif
                         @endforeach
                     @else
                         <tr class="sales-line-row" draggable="true">
+                            <td class="sales-line-reorder-cell align-middle p-1 text-center">
+                                <div class="d-flex flex-column gap-0 align-items-center sales-line-reorder">
+                                    <button type="button"
+                                        class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-up"
+                                        title="@lang('sales::lang.move_line_up')">
+                                        <i class="ki-outline ki-arrow-up fs-6"></i>
+                                    </button>
+                                    <button type="button"
+                                        class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-down"
+                                        title="@lang('sales::lang.move_line_down')">
+                                        <i class="ki-outline ki-arrow-down fs-6"></i>
+                                    </button>
+                                </div>
+                            </td>
                             <td>
                                 <select id="products" required class="form-select form-select-solid select-2"
                                     name="products[0][products_id]" style="padding: 7px">
@@ -204,6 +238,11 @@
                             <td><input type="number" step="any" readonly
                                     class="form-control total_after_vat-field" name="products[0][total_after_vat]"
                                     placeholder="0.00" style="width: 107px;"></td>
+                            <td>
+                                <button type="button" class="btn btn-icon btn-danger delete-sales-row">
+                                    <i class="ki-outline ki-trash fs-2"></i>
+                                </button>
+                            </td>
                         </tr>
                     @endif
 

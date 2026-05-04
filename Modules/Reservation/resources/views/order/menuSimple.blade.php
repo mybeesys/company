@@ -21,7 +21,7 @@
     @if ($dir === 'rtl')
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     @else
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     @endif
     <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
 
@@ -1978,43 +1978,43 @@
             <div class="menu-hero-cover" style="background-image: url('{{ $menuCoverUrl }}');"></div>
             <div class="menu-hero-band">
                 <div class="menu-hero-logo-wrap">
-                    <div class="author">
+                <div class="author">
                         <img src="{{ $companyLogoUrl }}" alt="{{ $company->name }}">
-                    </div>
                 </div>
+            </div>
                 <div class="menu-hero-text px-2">
-                    <h1 class="restaurant-name">{{ $title }}</h1>
-                    <p class="restaurant-description">{{ $subTitle }}</p>
+                        <h1 class="restaurant-name">{{ $title }}</h1>
+                        <p class="restaurant-description">{{ $subTitle }}</p>
                 </div>
                 <div class="menu-hero-social-band">
-                    <div class="icon-list">
-                        @if (!empty($socialLinks['social_whatsapp']))
+                        <div class="icon-list">
+                            @if (!empty($socialLinks['social_whatsapp']))
                             <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="WhatsApp"><i class="fab fa-whatsapp" style="color: #25D366;"></i></a>
-                        @else
+                            @else
                             <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-whatsapp" style="color: #25D366;"></i></div>
-                        @endif
-                        @if (!empty($socialLinks['social_instagram']))
+                            @endif
+                            @if (!empty($socialLinks['social_instagram']))
                             <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Instagram"><i class="fab fa-instagram" style="color: #E1306C;"></i></a>
-                        @else
+                            @else
                             <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-instagram" style="color: #E1306C;"></i></div>
-                        @endif
-                        @if (!empty($socialLinks['social_snapchat']))
+                            @endif
+                            @if (!empty($socialLinks['social_snapchat']))
                             <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Snapchat"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></a>
-                        @else
+                            @else
                             <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></div>
-                        @endif
-                        @if (!empty($socialLinks['social_x']))
+                            @endif
+                            @if (!empty($socialLinks['social_x']))
                             <a href="{{ $socialLinks['social_x'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="X"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></a>
-                        @else
+                            @else
                             <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></div>
-                        @endif
-                        @if (!empty($socialLinks['social_facebook']))
+                            @endif
+                            @if (!empty($socialLinks['social_facebook']))
                             <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></a>
-                        @else
+                            @else
                             <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
-                </div>
                 <div class="menu-quick-actions">
                     @foreach ($menuQuickItems as $item)
                         @if ($menuSectionFlags[$item['key']] ?? true)
@@ -2023,10 +2023,10 @@
                                 <p class="icon-title mb-0">{{ $item['title'] }}</p>
                             </button>
                         @endif
-                    @endforeach
+                            @endforeach
+                    </div>
                 </div>
             </div>
-        </div>
 
         <div class="categories-container" style="margin-top: 28px;">
 
@@ -2039,89 +2039,89 @@
                         <p class="text-muted small mb-0">@lang('reservation::lang.menu_empty_hint')</p>
                     </div>
                 @else
-                    <div class="categories-bar sticky-top pt-1" style="z-index: 1050;">
+                <div class="categories-bar sticky-top pt-1" style="z-index: 1050;">
 
                         <div class="d-flex flex-nowrap overflow-auto custom-scroll py-1 categories-strip" style="gap: 12px;">
-                            @foreach ($categories as $category)
-                                @php
-                                    $firstProduct = $category->products->first();
-                                    $imageUrl =
-                                        $firstProduct && $firstProduct->image
-                                            ? asset($firstProduct->image)
-                                            : asset('menuplacholder.jpg');
-                                @endphp
+                        @foreach ($categories as $category)
+                            @php
+                                $firstProduct = $category->products->first();
+                                $imageUrl =
+                                    $firstProduct && $firstProduct->image
+                                        ? asset($firstProduct->image)
+                                        : asset('menuplacholder.jpg');
+                            @endphp
 
-                                <a href="#category-{{ $category->id }}" class="category-card">
-                                    <div class="image-wrapper">
-                                        <img src="{{ $imageUrl }}"
-                                            alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
-                                        <div class="overlay"></div>
-                                        <h5 class="category-title">
-                                            {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-                                        </h5>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
+                            <a href="#category-{{ $category->id }}" class="category-card">
+                                <div class="image-wrapper">
+                                    <img src="{{ $imageUrl }}"
+                                        alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
+                                    <div class="overlay"></div>
+                                    <h5 class="category-title">
+                                        {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
+                                    </h5>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
 
-                        <div class="d-flex justify-content-between align-items-center my-1 flex-wrap" style="gap: 10px;">
+                    <div class="d-flex justify-content-between align-items-center my-1 flex-wrap" style="gap: 10px;">
 
                             <div class="flex-grow-1 search-input-wrap" style="max-width: 85%;">
-                                <input type="text" id="searchInput" class="form-control search-input"
-                                    placeholder="@lang('general::lang.search_placeholder')"
-                                    style="
-                        border-radius: 10px;
+                            <input type="text" id="searchInput" class="form-control search-input"
+                                placeholder="@lang('general::lang.search_placeholder')"
+                                style="
+                    border-radius: 10px;
                         padding-top: 5px;
                         padding-bottom: 5px;
-                        font-size: 15px;
-                        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-                    ">
+                    font-size: 15px;
+                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+                ">
                                     <i class="bi bi-search search-input-icon" aria-hidden="true"></i>
-                            </div>
-
-                            <div class="btn-group shadow-sm rounded-pill my-1" role="group" style="overflow: hidden;">
-                                <button type="button" class="btn view-btn" data-view="grid-2"
-                                    title="@lang('general::lang.grid_view_2')">
-                                    <i class="bi bi-grid-3x3-gap-fill"></i>
-                                </button>
-                                <button type="button" class="btn view-btn" data-view="grid-4"
-                                    title="@lang('general::lang.grid_view_4')">
-                                    <i class="bi bi-grid-fill"></i>
-                                </button>
-                            </div>
                         </div>
 
+                        <div class="btn-group shadow-sm rounded-pill my-1" role="group" style="overflow: hidden;">
+                            <button type="button" class="btn view-btn" data-view="grid-2"
+                                title="@lang('general::lang.grid_view_2')">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                            </button>
+                            <button type="button" class="btn view-btn" data-view="grid-4"
+                                title="@lang('general::lang.grid_view_4')">
+                                <i class="bi bi-grid-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
                         @include('reservation::order.partials.menu-allergen-filter')
-                    </div>
+                </div>
 
-                    <div class="no-results" id="noResults">
-                        <i class="fas fa-search"></i>
-                        <h4>@lang('general::lang.no_results')</h4>
-                        <p>@lang('general::lang.try_different_keywords')</p>
-                    </div>
+                <div class="no-results" id="noResults">
+                    <i class="fas fa-search"></i>
+                    <h4>@lang('general::lang.no_results')</h4>
+                    <p>@lang('general::lang.try_different_keywords')</p>
+                </div>
 
-                    @foreach ($categories as $category)
-                        @if ($category->products->count() > 0)
-                            <div id="category-{{ $category->id }}" class="my-5 px-2 category-section">
-                                <h5 class="fw-bold mb-3"><i class="fa-solid fa-utensils"></i>
-                                    {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
-                                </h5>
+                @foreach ($categories as $category)
+                    @if ($category->products->count() > 0)
+                        <div id="category-{{ $category->id }}" class="my-5 px-2 category-section">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-utensils"></i>
+                                {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
+                            </h5>
 
-                                <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
-                                    @foreach ($category->products as $product)
+                            <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
+                                @foreach ($category->products as $product)
                                         <div class="product-card card border-0 p-2" @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])>
                                             <div class="product-card-image-wrap rounded-top overflow-hidden">
                                                 <img src="{{ asset($product->image) }}" class="w-100"
-                                                    alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
+                                            alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
                                             </div>
-                                            <div class="card-body p-2">
+                                        <div class="card-body p-2">
 
-                                                <h6 class="card-title mb-1 fw-bold">
-                                                    {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
-                                                </h6>
+                                            <h6 class="card-title mb-1 fw-bold">
+                                                {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
+                                            </h6>
                                                 @include('reservation::order.partials.product-allergen-icons-row', ['product' => $product, 'allergenTplSuffix' => 'main'])
                                                 <p class="text-muted mb-2 product-card-desc">
-                                                    {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
+                                                {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
                                                 </p>
 
                                                 <div class="d-flex justify-content-between align-items-baseline gap-2 mt-1 flex-wrap">
@@ -2134,14 +2134,14 @@
                                                         {{ number_format($product->price_with_tax, 2) }}
                                                         <span class="sar-currency">@lang('general::lang.currency')</span>
                                                     </span>
-                                                </div>
                                             </div>
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endif
-                    @endforeach
+                        </div>
+                    @endif
+                @endforeach
                 @endif
             </div>
         </div>
@@ -2467,22 +2467,22 @@
         });
 
 
-        const languageButton = document.getElementById('languageButton');
+            const languageButton = document.getElementById('languageButton');
         if (languageButton) {
-            languageButton.addEventListener('click', function() {
-                this.style.transform = 'scale(0.95)';
-                const currentLang = localStorage.getItem('language') || 'ar';
-                const newLang = currentLang === 'ar' ? 'en' : 'ar';
-                localStorage.setItem('language', newLang);
+        languageButton.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            const currentLang = localStorage.getItem('language') || 'ar';
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('language', newLang);
                 setTimeout(() => window.location.reload(), 200);
-            });
+        });
         }
 
         const menuToggle = document.querySelector('.menu-toggle');
         if (menuToggle) {
-            menuToggle.addEventListener('click', function() {
-                alert('@lang('general::lang.side_menu_opening')');
-            });
+        menuToggle.addEventListener('click', function() {
+            alert('@lang('general::lang.side_menu_opening')');
+        });
         }
     </script>
 

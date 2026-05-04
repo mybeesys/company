@@ -158,6 +158,7 @@ return [
     'collected_amount' => 'المبلغ المحصل',
     'active_suppliers' => 'موردين نشطين',
 
-
+    'move_line_up' => 'نقل السطر لأعلى',
+    'move_line_down' => 'نقل السطر لأسفل',
 
 ];

@@ -42,6 +42,37 @@
         #unit+.select2-container {
             width: max-content !important;
         }
+
+        #salesTable tbody tr.sales-line-row {
+            cursor: grab;
+        }
+
+        #salesTable tbody tr.sales-line-row.dragging-row {
+            opacity: 0.92;
+            cursor: grabbing;
+            background: #fafbfc;
+        }
+
+        #salesTable tbody tr.sales-line-row.drop-target {
+            outline: 1px dashed #c5c8d0;
+            outline-offset: -1px;
+        }
+
+        #salesTable .sales-line-reorder .btn {
+            min-width: 1.75rem;
+            min-height: 1.5rem;
+            padding: 0.1rem 0.25rem;
+            border: 0;
+            box-shadow: none;
+        }
+
+        #salesTable .sales-line-reorder .btn:hover {
+            background-color: #eff0f3;
+        }
+
+        #salesTable .sales-line-reorder .btn:focus-visible {
+            box-shadow: 0 0 0 1px #b5b8c0;
+        }
     </style>
 
 
@@ -162,7 +193,17 @@
     salesRowIndex++;
 
     const newSalesRow = `
-        <tr>
+        <tr class="sales-line-row" draggable="true">
+            <td class="sales-line-reorder-cell align-middle p-1 text-center">
+                <div class="d-flex flex-column gap-0 align-items-center sales-line-reorder">
+                    <button type="button" class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-up" title="@lang('sales::lang.move_line_up')">
+                        <i class="ki-outline ki-arrow-up fs-6"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light btn-color-gray-600 sales-line-move-down" title="@lang('sales::lang.move_line_down')">
+                        <i class="ki-outline ki-arrow-down fs-6"></i>
+                    </button>
+                </div>
+            </td>
               <td>
                 <select id="products-${salesRowIndex}" required
                         class="form-select form-select-solid select-2 product-select"
@@ -316,11 +357,6 @@
     updateSalesTotals();
     console.log("salesRowIndex " + salesRowIndex);
 });
-        $(document).on("click", ".delete-sales-row", function() {
-            $(this).closest("tr").remove();
-            updateSalesTotals();
-        });
-
         $('#addNewAccountBtn').on('click', function() {
             $('#addClientModal').modal('show');
         });
@@ -352,6 +388,73 @@
 
 
         $(document).ready(function() {
+            let draggedRow = null;
+            let isRowDragging = false;
+
+            function bindSalesRowsDragAndDrop() {
+                $('#salesTable tbody tr.sales-line-row').attr('draggable', true);
+            }
+
+            $('#salesTable tbody').on('click', '.sales-line-move-up', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const $row = $(this).closest('tr.sales-line-row');
+                const $prev = $row.prev('.sales-line-row');
+                if ($prev.length) {
+                    $row.insertBefore($prev);
+                    resetRowIndexes();
+                    updateSalesTotals();
+                }
+            });
+
+            $('#salesTable tbody').on('click', '.sales-line-move-down', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const $row = $(this).closest('tr.sales-line-row');
+                const $next = $row.next('.sales-line-row');
+                if ($next.length) {
+                    $row.insertAfter($next);
+                    resetRowIndexes();
+                    updateSalesTotals();
+                }
+            });
+
+            $('#salesTable tbody').on('mousedown', 'tr.sales-line-row', function(e) {
+                if (e.which !== 1) {
+                    return;
+                }
+                if ($(e.target).closest('input, select, textarea, button, a, .select2-container, .select2-selection').length) {
+                    return;
+                }
+                e.preventDefault();
+                draggedRow = this;
+                isRowDragging = true;
+                $('body').css('user-select', 'none');
+                $(draggedRow).addClass('dragging-row');
+            });
+
+            $(document).on('mouseup', function() {
+                if (!isRowDragging) return;
+                isRowDragging = false;
+                $('body').css('user-select', '');
+                $('#salesTable tbody tr.sales-line-row').removeClass('dragging-row drop-target');
+                draggedRow = null;
+            });
+
+            $(document).on('mousemove', function(e) {
+                if (!isRowDragging || !draggedRow) return;
+                const hoveredRow = $(e.target).closest('#salesTable tbody tr.sales-line-row')[0];
+                if (!hoveredRow || draggedRow === hoveredRow) return;
+
+                $('#salesTable tbody tr.sales-line-row').removeClass('drop-target');
+                $(hoveredRow).addClass('drop-target');
+                $(draggedRow).insertBefore(hoveredRow);
+                resetRowIndexes();
+                updateSalesTotals();
+            });
+
+            bindSalesRowsDragAndDrop();
+
             updateSalesTotals();
             $('#products').select2({
                 tags: true,
@@ -435,7 +538,14 @@
                         }
                     });
                 });
+                bindSalesRowsDragAndDrop();
             }
+
+            $(document).on('click', '.delete-sales-row', function() {
+                $(this).closest('tr').remove();
+                resetRowIndexes();
+                updateSalesTotals();
+            });
 
             $('#invoice_discount, #invoiced_discount_type').on('input change', function() {
                 updateSalesTotals();

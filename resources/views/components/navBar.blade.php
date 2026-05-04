@@ -18,7 +18,7 @@
         ],
         [
             'url' => '/payment-reports',
-            'label' => __('general.payment_reports'),
+            'label' => __('menuItemLang.reports_module'),
             'icon' => 'ki-outline ki-chart-simple',
             'permission' => 'reports_module.all.show',
         ],

@@ -25,7 +25,8 @@ function exportButtons(
     pageDataTable = null,
     activePdf = true,
     activeExcel = true,
-    activePrint = true
+    activePrint = true,
+    maxDataColumnIndexForVisibleExport = null
 ) {
     if (pageDataTable) {
         dataTable = pageDataTable;
@@ -34,12 +35,40 @@ function exportButtons(
         table = PageTable;
     }
 
+    const tableJq = PageTable && PageTable.length ? PageTable : $(id);
+
+    const exportColumnSelector =
+        maxDataColumnIndexForVisibleExport !== null &&
+        maxDataColumnIndexForVisibleExport !== undefined
+            ? function (idx, data, node) {
+                  if (typeof idx !== "number") {
+                      return false;
+                  }
+                  if (idx > maxDataColumnIndexForVisibleExport) {
+                      return false;
+                  }
+                  try {
+                      return tableJq.DataTable().column(idx).visible();
+                  } catch (e) {
+                      return false;
+                  }
+              }
+            : null;
+
+    const excelColumns = exportColumnSelector || columns;
+    const pdfColumns =
+        exportColumnSelector ||
+        (Array.isArray(columns) ? [...columns].reverse() : columns);
+    const printColumns =
+        exportColumnSelector ||
+        (Array.isArray(columns) ? [...columns].reverse() : columns);
+
     new $.fn.dataTable.Buttons(table, {
         buttons: [
             {
                 extend: "excelHtml5",
                 exportOptions: {
-                    columns: columns,
+                    columns: excelColumns,
                 },
             },
             {
@@ -50,7 +79,7 @@ function exportButtons(
                 text: "PDF",
                 exportOptions: {
                     orthogonal: "PDF",
-                    columns: columns.reverse(),
+                    columns: pdfColumns,
                 },
 
                 customize: function (doc) {
@@ -179,7 +208,7 @@ function exportButtons(
             {
                 extend: "print",
                 exportOptions: {
-                    columns: columns.reverse(),
+                    columns: printColumns,
                 },
                 customize: function (win) {
                     var headers = $(win.document.body).find("thead tr");

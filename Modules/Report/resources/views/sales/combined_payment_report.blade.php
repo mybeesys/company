@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.reports_list'))
+@section('title', __('menuItemLang.reports_module'))
 
 @section('content')
     @php
@@ -21,6 +21,12 @@
                         'route' => route('product-sales-report'),
                         'hint' => __('report::purchase.product_sales_report_details'),
                         'icon' => 'bi bi-basket2-fill',
+                    ],
+                    [
+                        'title' => __('menuItemLang.sales-comparison-report'),
+                        'route' => route('sales-comparison-report'),
+                        'hint' => __('report::general.sales_comparison_hub_card_hint'),
+                        'icon' => 'bi bi-bar-chart-steps',
                     ],
                 ],
             ],
@@ -100,8 +106,8 @@
     <div class="card card-flush h-md-100 report-hub-wrap">
         <div class="card-header border-0 pb-2">
             <div class="card-title flex-column align-items-start">
-                <h2 class="mb-1">@lang('menuItemLang.reports_list')</h2>
-                <span class="text-muted fs-7">{{ app()->getLocale() === 'ar' ? 'لوحة تقارير الدفع والتحصيل' : 'Payment and collection reports hub' }}</span>
+                <h2 class="mb-1">@lang('menuItemLang.reports_module')</h2>
+                <span class="text-muted fs-7">@lang('menuItemLang.reports_list')</span>
             </div>
             <div class="card-toolbar">
                 <span class="badge badge-light-primary fs-7 fw-bold">{{ $totalReports }} {{ __('messages.reports') ?? 'Reports' }}</span>

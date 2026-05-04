@@ -6,13 +6,15 @@
     if ($menuLabel === $menuLabelKey && \Illuminate\Support\Facades\Lang::has($menuLabelFallbackKey)) {
         $menuLabel = __($menuLabelFallbackKey);
     }
+    $path = ($url !== null && $url !== '') ? ltrim($url, '/') : '';
+    $href = $path !== '' ? '/'.$path : '#';
 @endphp
 
 <span class="menu-item">
     <a @class([
         'menu-link',
-        'active' => request()->is($url) || request()->is($url . '/*'),
-    ]) href='{{ $url }}'>
+        'active' => $path !== '' && (request()->is($path) || request()->is($path.'/*')),
+    ]) href="{{ $href }}">
 
         @if (!$icon)
             <span class="menu-bullet">
