@@ -2,8 +2,9 @@
 @php
     $local = session()->get('locale');
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
-    $rtl_files = $local == 'ar' ? '.rtl' : '';
-
+    $ledgerCol = fn(string $k): bool => in_array($k, $ledger_visible_columns, true);
+    $ledgerPrefixKeys = ['ref_no', 'operation_date', 'transaction', 'cost_center', 'added_by'];
+    $ledgerFootLabelSpan = max(1, count(array_intersect($ledgerPrefixKeys, $ledger_visible_columns)));
 @endphp
 <html dir="{{ $dir }}">
 
@@ -21,17 +22,9 @@
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
             padding: 10px;
             margin: 10px;
-
-            color: #777;
-        }
-
-
-        body {
             color: #777;
             text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
         }
-
-
 
         .table_component {
             overflow: auto;
@@ -39,17 +32,13 @@
 
         .table_component table {
             border: 1px solid #dededf;
-            /* height: 99%; */
             table-layout: auto;
             border-collapse: collapse;
             border-spacing: 1px;
-            /* text-align: right; */
             page-break-before: avoid;
             page-break-after: avoid;
-            direction: ltr;
             width: 100%;
             text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
-            /* border: 1px solid; */
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
         }
 
@@ -92,11 +81,9 @@
 
         window.onafterprint = function() {
             window.location.href = "{{ url('ledger') }}" + "?account_id=" + {{ $account->id }};
-
         };
     </script>
 </head>
-
 
 <body>
 
@@ -138,16 +125,31 @@
             <table class="table table-bordered table-striped hide-footer" id="journal_table">
                 <thead>
                     <tr>
-                        <th class="min-w-125px ">@lang('accounting::lang.transaction_number')</th>
-                                <th class="min-w-80px">@lang('accounting::lang.operation_date')</th>
-                                <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
-                                <th class="min-w-125px">@lang('accounting::lang.cost_center')</th>
-                                <th class="min-w-200px">@lang('accounting::lang.added_by')</th>
-                                <th class="min-w-150px">@lang('accounting::lang.debit')</th>
-                                <th class="min-w-150px">@lang('accounting::lang.credit')</th>
-                                <th class="min-w-150px">@lang('accounting::lang.balance')</th>
-
-                            </tr>
+                        @if ($ledgerCol('ref_no'))
+                            <th class="min-w-125px ">@lang('accounting::lang.transaction_number')</th>
+                        @endif
+                        @if ($ledgerCol('operation_date'))
+                            <th class="min-w-80px">@lang('accounting::lang.operation_date')</th>
+                        @endif
+                        @if ($ledgerCol('transaction'))
+                            <th class="min-w-125px">@lang('accounting::lang.transaction')</th>
+                        @endif
+                        @if ($ledgerCol('cost_center'))
+                            <th class="min-w-125px">@lang('accounting::lang.cost_center')</th>
+                        @endif
+                        @if ($ledgerCol('added_by'))
+                            <th class="min-w-200px">@lang('accounting::lang.added_by')</th>
+                        @endif
+                        @if ($ledgerCol('debit'))
+                            <th class="min-w-150px">@lang('accounting::lang.debit')</th>
+                        @endif
+                        @if ($ledgerCol('credit'))
+                            <th class="min-w-150px">@lang('accounting::lang.credit')</th>
+                        @endif
+                        @if ($ledgerCol('balance'))
+                            <th class="min-w-150px">@lang('accounting::lang.balance')</th>
+                        @endif
+                    </tr>
                 </thead>
 
                 <tbody>
@@ -167,96 +169,125 @@
                             }
                         @endphp
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="d-flex justify-content-start flex-column">
-                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
-                                            @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
-                                            @if (isset($transactions->accTransMapping))
-                                                {{ $transactions->accTransMapping->ref_no }}
-                                            @elseif (isset($transactions->transaction))
-                                                {{ $transactions->transaction->ref_no }}
-                                            @else
-                                                --
-                                            @endif
-                                        </a>
+                            @if ($ledgerCol('ref_no'))
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="d-flex justify-content-start flex-column">
+                                            <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
+                                                @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
+                                                @if (isset($transactions->accTransMapping))
+                                                    {{ $transactions->accTransMapping->ref_no }}
+                                                @elseif (isset($transactions->transaction))
+                                                    {{ $transactions->transaction->ref_no }}
+                                                @else
+                                                    --
+                                                @endif
+                                            </a>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td>
-                                <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
-                                    {{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}
-                                </a>
-                            </td>
-                            <td>
-                                <span class="badge badge-light-primary fs-7">@lang('accounting::lang.' . $transactions->sub_type)</span>
-                            </td>
-                            <td>
-                                <span class="text-muted fw-semibold text-muted d-block fs-7">
-                                    @if ($transactions->costCenter)
-                                        {{ $transactions?->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $transactions->costCenter->name_ar : $transactions->costCenter->name_en) }}
+                                </td>
+                            @endif
+                            @if ($ledgerCol('operation_date'))
+                                <td>
+                                    <a class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-7">
+                                        {{ \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A') }}
+                                    </a>
+                                </td>
+                            @endif
+                            @if ($ledgerCol('transaction'))
+                                <td>
+                                    <span class="badge badge-light-primary fs-7">
+                                        @if ($transactions->sub_type == 'sell')
+                                            @lang('accounting::lang.sell')
+                                        @elseif ($transactions->sub_type == 'sell_cash')
+                                            @lang('accounting::lang.receipt_voucher')
+                                        @elseif ($transactions->sub_type == 'sales_revenue')
+                                            @lang('accounting::lang.payment_voucher')
+                                        @else
+                                            @lang('accounting::lang.' . $transactions->sub_type)
+                                        @endif
+                                    </span>
+                                </td>
+                            @endif
+                            @if ($ledgerCol('cost_center'))
+                                <td>
+                                    <span class="text-muted fw-semibold text-muted d-block fs-7">
+                                        @if ($transactions->costCenter)
+                                            {{ $transactions?->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $transactions->costCenter->name_ar : $transactions->costCenter->name_en) }}
+                                        @else
+                                            --
+                                        @endif
+                                    </span>
+                                </td>
+                            @endif
+                            @if ($ledgerCol('added_by'))
+                                <td>
+                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                        {{ $transactions->createdBy->name }}
+                                    </a>
+                                </td>
+                            @endif
+                            @if ($ledgerCol('debit'))
+                                <td>
+                                    @if ($transactions->type == 'debit')
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ number_format($transactions->amount, 2) }}
+                                        </a>
                                     @else
-                                        --
+                                        <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
+                                            --
+                                        </span>
                                     @endif
-                                </span>
-                            </td>
-                            <td>
-                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                    {{ $transactions->createdBy->name }}
-                                </a>
-                            </td>
-                            <td>
-                                @if ($transactions->type == 'debit')
+                                </td>
+                            @endif
+                            @if ($ledgerCol('credit'))
+                                <td>
+                                    @if ($transactions->type == 'credit')
+                                        <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                            {{ number_format($transactions->amount, 2) }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
+                                            --
+                                        </span>
+                                    @endif
+                                </td>
+                            @endif
+                            @if ($ledgerCol('balance'))
+                                <td>
                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ number_format($transactions->amount, 2) }}
+                                        {{ number_format($balance, 2) }}
                                     </a>
-                                @else
-                                    <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                        --
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($transactions->type == 'credit')
-                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                        {{ number_format($transactions->amount, 2) }}
-                                    </a>
-                                @else
-                                    <span class="text-muted fw-semibold text-muted d-block fs-4 mt-1">
-                                        --
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                    {{ number_format($balance, 2) }}
-                                </a>
-                            </td>
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="5" class=" text-center fw-bold fs-4">صافي الحركة</td>
-                        <td colspan="1" class=" fw-bold fs-5">
-                         @format_currency($total_debit)
-                        </td>
-                        <td  class=" fw-bold fs-5">
-                            @format_currency( $total_credit)
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="7" class="text-center fw-bold fs-4">الرصيد الختامي</td>
-                        <td colspan="2" class=" fw-bold fs-5">
-                            @format_currency($balance)
-                        </td>
+                        <td colspan="{{ $ledgerFootLabelSpan }}" class="text-center fw-bold fs-4">
+                            @lang('accounting::lang.Closing balance')</td>
+                        @if ($ledgerCol('debit'))
+                            <td class="fw-bold fs-5">
+                                @format_currency($total_debit)
+                            </td>
+                        @endif
+                        @if ($ledgerCol('credit'))
+                            <td class="fw-bold fs-5">
+                                @format_currency($total_credit)
+                            </td>
+                        @endif
+                        @if ($ledgerCol('balance'))
+                            <td class="fw-bold fs-5">
+                                @format_currency($balance)
+                            </td>
+                        @endif
                     </tr>
                 </tfoot>
 
             </table>
 
             <hr style="width:100%;text-align:left;margin-left:0">
-
 
         </div>
     </div>

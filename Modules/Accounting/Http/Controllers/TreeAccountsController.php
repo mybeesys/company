@@ -26,6 +26,41 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 class TreeAccountsController extends Controller
 {
+    /** @var list<string> */
+    public const LEDGER_COLUMN_ORDER = [
+        'ref_no',
+        'operation_date',
+        'transaction',
+        'cost_center',
+        'added_by',
+        'debit',
+        'credit',
+        'balance',
+    ];
+
+    /**
+     * Visible ledger table columns from ?ledger_cols= ref_no,operation_date,...
+     * Default: all columns except "transaction" (movement). "balance" is always included.
+     *
+     * @return list<string>
+     */
+    protected function parseLedgerVisibleColumns(Request $request): array
+    {
+        $order = self::LEDGER_COLUMN_ORDER;
+        $raw = $request->query('ledger_cols');
+        if (is_string($raw) && $raw !== '') {
+            $cols = array_values(array_filter(array_map('trim', explode(',', $raw))));
+            $cols = array_values(array_intersect($order, $cols));
+        } else {
+            $cols = array_values(array_diff($order, ['transaction']));
+        }
+        if (! in_array('balance', $cols, true)) {
+            $cols[] = 'balance';
+        }
+
+        return array_values(array_intersect($order, $cols));
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -363,6 +398,8 @@ class TreeAccountsController extends Controller
         ->filter(fn ($type) => filled($type))
         ->values();
 
+    $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+
     return view('accounting::treeOfAccounts.ledger', compact(
         'account',
         'account_type',
@@ -377,7 +414,8 @@ class TreeAccountsController extends Controller
         'next',
         'accountingAccount',
         'current_bal',
-        'account_transactions'
+        'account_transactions',
+        'ledger_visible_columns'
     ));
 }
 
@@ -390,7 +428,9 @@ class TreeAccountsController extends Controller
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
             ->findorFail($account_id);
 
-        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'costCenter'])
             ->where('accounting_account_id', $account->id)->get();
 
         $current_bal = AccountingAccount::leftjoin(
@@ -403,18 +443,20 @@ class TreeAccountsController extends Controller
             ->where('accounting_accounts.id', $account->id)
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
-        return view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions'));
+        return view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions', 'ledger_visible_columns'));
     }
 
 
-    public function ledgerExportPdf($id)
+    public function ledgerExportPdf(Request $request, $id)
     {
         $account_id = $id;
 
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
             ->findorFail($account_id);
 
-        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'costCenter'])
             ->where('accounting_account_id', $account->id)->get();
 
         $current_bal = AccountingAccount::leftjoin(
@@ -426,7 +468,7 @@ class TreeAccountsController extends Controller
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
 
-        $html = view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions'))->render();
+        $html = view('accounting::treeOfAccounts.print-ledger', compact('account', 'current_bal', 'account_transactions', 'ledger_visible_columns'))->render();
 
 
         $mpdf = new Mpdf([
@@ -445,14 +487,16 @@ class TreeAccountsController extends Controller
         return $mpdf->Output($filename, 'D');
     }
 
-    public function ledgerExportExcel($id)
+    public function ledgerExportExcel(Request $request, $id)
     {
         $account_id = $id;
 
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
             ->findorFail($account_id);
 
-        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping',  'createdBy'])
+        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+
+        $account_transactions = AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'costCenter'])
             ->where('accounting_account_id', $account->id)->get();
 
         $current_bal = AccountingAccount::leftjoin(
@@ -469,7 +513,7 @@ class TreeAccountsController extends Controller
 
         $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.xlsx';
 
-        return Excel::download(new LedgerExport($account), $filename);
+        return Excel::download(new LedgerExport($account, $ledger_visible_columns), $filename);
     }
 
     public function activateDeactivate(Request $request)

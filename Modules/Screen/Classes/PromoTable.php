@@ -43,14 +43,20 @@ class PromoTable
                                 <span class="text-gray-700 fw-bold">' . $promo->name . '</span>
                                 <span class="text-gray-700 fw-bolder">' . $type . '</span>
                             </div>
-                            <div class="d-flex flex-column gap-5 py-5 justify-content-center" style="width: 150px;">
-                                    <a href="#" 
-                                        class="btn btn-primary px-6 py-2 rounded promo-preview-btn" 
+                            <div class="d-flex flex-row flex-wrap gap-2 align-items-center justify-content-center py-4 px-2" style="min-width: 7.5rem;">
+                                    <a href="#"
+                                        class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light-primary promo-preview-btn"
                                         data-id="' . $promo->id . '"
                                         data-type="' . $type . '"
-                                        data-path="' . asset('storage/tenant' . tenancy()->tenant->id . '/' . $promo->path) . '">' . __('screen::general.preview') . '</a>
-                                <a href="#" class="btn btn-danger px-6 py-2 rounded promo-delete-btn" data-id="' . $promo->id . '">' . __('screen::general.delete') . '</a>
-                                <a href="#" class="btn btn-secondary px-6 py-2 rounded promo-rename-btn" data-id="' . $promo->id . '" data-name="' . $promo->name . '" >' . __('screen::general.rename') . '</a>
+                                        data-path="' . asset('storage/tenant' . tenancy()->tenant->id . '/' . $promo->path) . '"
+                                        title="' . e(__('screen::general.preview')) . '"
+                                        aria-label="' . e(__('screen::general.preview')) . '"><i class="fas fa-eye fs-6 text-gray-600"></i></a>
+                                <a href="#" class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light-danger promo-delete-btn" data-id="' . $promo->id . '"
+                                        title="' . e(__('screen::general.delete')) . '"
+                                        aria-label="' . e(__('screen::general.delete')) . '"><i class="fas fa-trash-alt fs-6 text-gray-600"></i></a>
+                                <a href="#" class="btn btn-icon btn-sm btn-light border border-gray-300 rounded btn-active-light promo-rename-btn" data-id="' . $promo->id . '" data-name="' . e($promo->name) . '"
+                                        title="' . e(__('screen::general.rename')) . '"
+                                        aria-label="' . e(__('screen::general.rename')) . '"><i class="fas fa-pen fs-6 text-gray-600"></i></a>
                             </div>
                         </div>';
                 return $html;

@@ -19,6 +19,7 @@
     </style>
     <div class="container mt-4">
         <h2>{{ __('accounting::lang.journal_report') }}</h2>
+        <p class="text-muted small mb-0">{{ __('accounting::lang.journal_report_manual_only') }}</p>
 
         <form method="GET" action="{{ route('journal-report') }}" class="my-6">
             <div class="row">
