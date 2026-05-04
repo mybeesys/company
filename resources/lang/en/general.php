@@ -10,6 +10,7 @@ return [
     'filters' => 'Filters',
     'apply' => 'Apply',
     'reset' => 'Reset',
+    'clear_filters' => 'Clear filters',
     'sign_out' => 'Sign out',
     'mode' => 'Mode',
     'light' => 'Light',

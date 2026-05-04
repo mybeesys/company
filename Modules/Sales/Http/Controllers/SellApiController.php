@@ -91,7 +91,7 @@ class SellApiController extends Controller
             ]);
 
             $products = json_decode(json_encode($request->items));
-            $mustValidateStock = Setting::isPerpetualInventory() && !Setting::isAllowSaleWithoutStockEnabled();
+            $mustValidateStock = Setting::mustValidatePerpetualStock($created_by);
 
             foreach ($products as $product) {
                 $find_product = Product::find($product->product_id);

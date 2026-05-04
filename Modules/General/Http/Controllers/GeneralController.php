@@ -108,8 +108,6 @@ class GeneralController extends Controller
         });
 
         $policy = Setting::getInventoryTrackingPolicy();
-        $allowSaleWithoutStock = Setting::isAllowSaleWithoutStockEnabled() ? 'true' : 'false';
-        // dd($allowSaleWithoutStock);
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
         $unit = UnitTransfer::where("default", 1)->first();
 
@@ -120,7 +118,7 @@ class GeneralController extends Controller
 
         $settings = $settings->merge($social_settings);
 
-        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'allowSaleWithoutStock', 'inventoryCountFrequency', 'unit'));
+        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription()
@@ -308,21 +306,11 @@ class GeneralController extends Controller
             ]);
 
             $trackingPolicy = $request->input('inventory_tracking_policy', 'perpetual');
-            $allowSaleWithoutStock = $request->input('allow_sale_without_stock', false);
 
             Setting::updateOrCreate(
                 ['key' => 'inventory_tracking_policy'],
                 ['value' => $trackingPolicy]
             );
-
-            if ($trackingPolicy === 'perpetual') {
-                Setting::updateOrCreate(
-                    ['key' => 'allow_sale_without_stock'],
-                    ['value' => $allowSaleWithoutStock ? 'true' : 'false']
-                );
-            } elseif ($trackingPolicy === 'periodic') {
-                Setting::where('key', 'allow_sale_without_stock')->delete();
-            }
 
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (\Exception $e) {

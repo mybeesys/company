@@ -120,6 +120,13 @@ Route::middleware([
         // routes/web.php
         Route::get('/get-products-by-establishment/{establishmentId}', [PeriodicInventoryController::class, 'getProductsByEstablishment']);
         Route::prefix('inventory')->group(function () {
+            Route::get('periodic-inventory/export/list-excel', [PeriodicInventoryController::class, 'exportListExcel'])
+                ->name('periodic-inventory-list-export-excel');
+            Route::get('periodic-inventory/{id}/export-excel', [PeriodicInventoryController::class, 'exportDetailExcel'])
+                ->whereNumber('id')
+                ->name('periodic-inventory-detail-export-excel');
+            Route::get('periodic-inventory-export-pdf/{id}', [PeriodicInventoryController::class, 'exportPdf'])
+                ->name('periodic-inventory-export-pdf');
             Route::resource('periodic-inventory', PeriodicInventoryController::class)
                 ->except(['edit', 'update', 'destroy'])
                 ->names([
@@ -128,8 +135,6 @@ Route::middleware([
                     'store' => 'periodic-inventory.store',
                     'show' => 'periodic-inventory.show'
                 ]);
-            Route::get('periodic-inventory-export-pdf/{id}', [PeriodicInventoryController::class, 'exportPdf'])
-                ->name('periodic-inventory-export-pdf');
         });
         //
 

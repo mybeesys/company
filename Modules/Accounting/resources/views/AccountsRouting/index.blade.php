@@ -15,9 +15,9 @@
         <div class="alert alert-light-warning border border-warning border-dashed mb-5">
             <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
             @if (app()->getLocale() === 'ar')
-                عند عدم توفر حساب مخصص لتسوية المخزون، سيستخدم النظام حسابًا بديلًا (مثل تكلفة المبيعات/المشتريات) لضمان عدم توقف القيود.
+                عند عدم توفر حساب في تبويب «جرد دوري» أو حسابات بديلة في الشجرة، قد يُستخدم حساب المشتريات/تكلفة المبيعات كملاذ أخير حتى لا تتوقف القيود.
             @else
-                If a dedicated inventory adjustment account is unavailable, the system uses a fallback account (e.g. COGS/Purchases) to prevent posting failures.
+                If no account is set under the «Periodic inventory» tab (and no fallback exists in the chart), the system may still use Purchases/COGS as a last resort so posting does not fail.
             @endif
         </div>
         <div class="d-flex flex-row-fluid gap-5">
@@ -33,6 +33,11 @@
                         @lang('menuItemLang.purchases')
                     </a>
                 </li>
+                <li class="nav-item w-md-200px me-0 py-1">
+                    <a class="nav-link py-3" data-bs-toggle="tab" href="#periodic-inventory-tab">
+                        @lang('accounting::lang.periodic_inventory_routing_tab')
+                    </a>
+                </li>
             </ul>
 
             <div class="tab-content w-100" id="mySubTabContent">
@@ -42,6 +47,9 @@
                 </div>
                 <div class="tab-pane fade" id="purchases-tab" role="tabpanel">
                     @include('accounting::AccountsRouting.purchases.purchases-tab')
+                </div>
+                <div class="tab-pane fade" id="periodic-inventory-tab" role="tabpanel">
+                    @include('accounting::AccountsRouting.periodic-inventory.periodic-inventory-tab')
                 </div>
             </div>
         </div>
@@ -108,8 +116,10 @@
             $("#sales_amount_before_vat_account").select2();
 
             $("#sales_discount_calculation_type_route").select2();
-            $("#sales_discount_calculation_account").select2()
+            $("#sales_discount_calculation_account").select2();
 
+            $("#periodic_inventory_adjustment_type_route").select2();
+            $("#periodic_inventory_adjustment_account").select2();
 
         });
     </script>

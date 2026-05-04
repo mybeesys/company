@@ -588,7 +588,7 @@ class SellController extends Controller
 
 
         $settings = Setting::getNotesAndTermsConditions();
-        $allowSaleWithoutStock = Setting::isAllowSaleWithoutStockEnabled();
+        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
         $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
 
         $products = Product::with(['unitTransfers' => function ($query) {
@@ -778,8 +778,7 @@ class SellController extends Controller
         ]);
 
 
-        $mustValidateStock = Setting::isPerpetualInventory()
-            && !Setting::isAllowSaleWithoutStockEnabled();
+        $mustValidateStock = Setting::mustValidatePerpetualStock(Auth::user());
 
         foreach ($products as $product) {
             $discount_type = $product->discount ? $product->discount_type : null;

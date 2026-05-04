@@ -337,6 +337,7 @@ return [
     'from_date' => 'From Date',
     'to_date' => 'To Date',
     'inventory_type' => 'Inventory Type',
+    'inventory_adjustment' => 'Inventory adjustment',
     'all_types' => 'All Types',
     'monthly' => 'Monthly',
     'quarterly' => 'Quarterly',
@@ -414,6 +415,13 @@ return [
     'inventory_policy_perpetual' => 'Perpetual Inventory',
     'inventory_policy_periodic_report_note' => 'Note: financial reports become more accurate after period count approval and posting the adjustment entry.',
     'inventory_policy_perpetual_report_note' => 'Note: financial reports are updated in near real-time with each sale/purchase movement and auto-posting.',
+    'periodic_inventory_routing_tab' => 'Periodic inventory',
+    'periodic_inventory_adjustment_account' => 'Inventory count adjustment (offset account)',
+    'periodic_inventory_routing_locked' => 'Configure the inventory policy to «Periodic» in General Settings to enable these routing fields.',
+    'periodic_inventory_count_date' => 'Count date',
+    'periodic_inventory_count_date_help' => 'Physical count is recorded as-of this date (one moment in time). The period start for purchases/COGS still runs from the previous count automatically.',
+    'periodic_inventory_last_count_hint' => 'Period start (from last posted count)',
+    'unit' => 'Unit',
 
 
 

@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use Mpdf\Mpdf;
+use Modules\Accounting\Exports\PeriodicInventoryExport;
+use Modules\Accounting\Exports\PeriodicInventoryListExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
@@ -37,14 +40,8 @@ class PeriodicInventoryController extends Controller
         return null;
     }
 
-    public function index(Request $request)
+    private function applyPeriodicInventoryListFilters($query, Request $request): void
     {
-        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
-            return $guard;
-        }
-
-        $query = PeriodicInventory::with(['items', 'adjustmentEntry', 'establishment', 'creator'])->latest();
-
         if ($request->filled('from_date')) {
             $query->where('end_date', '>=', $request->from_date);
         }
@@ -63,27 +60,81 @@ class PeriodicInventoryController extends Controller
                 $query->whereNull('adjustment_entry_id');
             }
         }
+    }
+
+    private function periodicInventoryFilterNote(Request $request): string
+    {
+        $parts = [];
+        if ($request->filled('from_date')) {
+            $parts[] = __('accounting::lang.from_date') . ': ' . $request->from_date;
+        }
+        if ($request->filled('to_date')) {
+            $parts[] = __('accounting::lang.to_date') . ': ' . $request->to_date;
+        }
+        if ($request->filled('establishment')) {
+            $est = Establishment::find($request->establishment);
+            $parts[] = __('accounting::lang.establishment_name') . ': ' . ($est?->name ?? $request->establishment);
+        }
+        if ($request->filled('status')) {
+            $label = match ($request->status) {
+                'with_adjustment' => __('accounting::lang.with_adjustment'),
+                'without_adjustment' => __('accounting::lang.without_adjustment'),
+                default => (string) $request->status,
+            };
+            $parts[] = __('accounting::lang.period_status') . ': ' . $label;
+        }
+
+        return $parts === []
+            ? (string) __('accounting::lang.periodic_inventory_excel_no_filters')
+            : implode(' | ', $parts);
+    }
+
+    public function exportListExcel(Request $request)
+    {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $query = PeriodicInventory::with(['establishment', 'creator'])->latest();
+        $this->applyPeriodicInventoryListFilters($query, $request);
+        $rows = $query->limit(10000)->get();
+
+        $meta = [
+            'generated_at' => now()->format('Y-m-d H:i'),
+            'filter_note' => $this->periodicInventoryFilterNote($request),
+        ];
+
+        $filename = 'periodic-inventory-list-' . now()->format('Y-m-d-His') . '.xlsx';
+
+        return Excel::download(new PeriodicInventoryListExport($rows, $meta), $filename);
+    }
+
+    public function exportDetailExcel(int $id)
+    {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $inventory = PeriodicInventory::with(['items.product', 'establishment', 'creator', 'adjustmentEntry'])->findOrFail($id);
+        $filename = 'periodic-inventory-' . $inventory->id . '-' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(new PeriodicInventoryExport($inventory), $filename);
+    }
+
+    public function index(Request $request)
+    {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $query = PeriodicInventory::with(['items', 'adjustmentEntry', 'establishment', 'creator'])->latest();
+        $this->applyPeriodicInventoryListFilters($query, $request);
 
         $inventories = $query->paginate(10);
         $establishments = Establishment::all();
 
         $summaryQuery = PeriodicInventory::query();
-        if ($request->filled('from_date')) {
-            $summaryQuery->where('end_date', '>=', $request->from_date);
-        }
-        if ($request->filled('to_date')) {
-            $summaryQuery->where('start_date', '<=', $request->to_date);
-        }
-        if ($request->filled('establishment')) {
-            $summaryQuery->where('establishment_id', $request->establishment);
-        }
-        if ($request->filled('status')) {
-            if ($request->status === 'with_adjustment') {
-                $summaryQuery->whereNotNull('adjustment_entry_id');
-            } elseif ($request->status === 'without_adjustment') {
-                $summaryQuery->whereNull('adjustment_entry_id');
-            }
-        }
+        $this->applyPeriodicInventoryListFilters($summaryQuery, $request);
         $summary = [
             'periods_count' => (clone $summaryQuery)->count(),
             'posted_count' => (clone $summaryQuery)->whereNotNull('adjustment_entry_id')->count(),
@@ -105,16 +156,22 @@ class PeriodicInventoryController extends Controller
         $first_establishment = Establishment::first();
 
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
+            ->with(['unitTransfers' => function ($q) {
+                $q->whereNull('unit2')->with('units1');
+            }])
             ->join('product_inventories', function ($join) use ($first_establishment) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('product_inventories.establishment_id', $first_establishment->id)
                     ->whereNotNull('product_inventories.qty');
             })
             ->get();
+        $products->each(function (Product $p) {
+            $p->setAttribute('inventory_unit_label', $this->resolveProductInventoryUnitLabel($p));
+        });
         $establishments = Establishment::all();
         return view('accounting::inventory.periodic.create', [
             'start_date' => $start_date,
-            'end_date' => now(),
+            'count_date_default' => now()->format('Y-m-d'),
             'products' => $products,
             'establishments' => $establishments
         ]);
@@ -126,12 +183,20 @@ class PeriodicInventoryController extends Controller
             return $guard;
         }
 
+        $request->validate([
+            'establishment' => 'required',
+            'count_date' => 'required|date',
+            'items' => 'required|array',
+        ]);
+
+        $countDate = (string) $request->input('count_date', $request->input('end_date'));
+
         $establishment_id = $request->establishment;
-        $data = $this->calculateInventoryValues($request);
+        $data = $this->calculateInventoryValues($request, $countDate);
 
         $inventory = PeriodicInventory::create([
             'start_date' => $data['start_date'],
-            'end_date' => $request->end_date,
+            'end_date' => $countDate,
             'opening_stock_value' => $data['opening_value'],
             'purchases_value' => $data['purchases_value'],
             'closing_stock_value' => $data['closing_value'],
@@ -148,7 +213,9 @@ class PeriodicInventoryController extends Controller
             'created_by' => Auth::user()->id,
             'ref_no' => $ref_no,
             'status' => 'approved',
-            'notice' => 'تسوية جرد مخزون للفترة من ' . $inventory->start_date . ' إلى ' . $inventory->end_date,
+            'notice' => app()->getLocale() === 'ar'
+                ? ('تسوية جرد مخزون بتاريخ ' . $inventory->end_date . ' (من ' . $inventory->start_date . ')')
+                : ('Inventory count settlement as of ' . $inventory->end_date . ' (period from ' . $inventory->start_date . ')'),
             'establishment_id' => $establishment_id,
 
         ]);
@@ -157,6 +224,14 @@ class PeriodicInventoryController extends Controller
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('establishment_id', '=', $establishment_id);
             })->first();
+
+            if (! $product) {
+                continue;
+            }
+
+            $productModel = Product::with(['unitTransfers' => function ($q) {
+                $q->whereNull('unit2')->with('units1');
+            }])->find($item['product_id']);
 
             $product->update([
                 'last_counted_quantity' => $item['physical_quantity'],
@@ -174,6 +249,7 @@ class PeriodicInventoryController extends Controller
 
             $inventory->items()->create([
                 'product_id' => $item['product_id'],
+                'unit_label' => $this->resolveProductInventoryUnitLabel($productModel),
                 'system_quantity' => $product->qty,
                 'physical_quantity' => $item['physical_quantity'],
                 'unit_cost' => $product->cost,
@@ -196,22 +272,43 @@ class PeriodicInventoryController extends Controller
             ->with('success', 'تم تنفيذ الجرد بنجاح');
     }
 
-    protected function calculateInventoryValues($request)
+    protected function calculateInventoryValues(Request $request, string $countDate)
     {
         $lastInventory = PeriodicInventory::latest()->first();
-        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear();
+        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
+        $purchases = $this->getPurchasesBetween($start_date, $countDate);
 
         return [
             'start_date' => $start_date,
             'opening_value' => $lastInventory ? $lastInventory->closing_stock_value : 0,
-            'purchases_value' => $this->getPurchasesBetween($start_date, $request->end_date),
+            'purchases_value' => $purchases,
             'closing_value' => $this->calculateClosingValue($request->items),
             'cogs' => $this->calculateCOGS(
                 $lastInventory ? $lastInventory->closing_stock_value : 0,
-                $this->getPurchasesBetween($start_date, $request->end_date),
+                $purchases,
                 $this->calculateClosingValue($request->items)
             )
         ];
+    }
+
+    protected function resolveProductInventoryUnitLabel(?Product $product): ?string
+    {
+        if (! $product) {
+            return null;
+        }
+        $product->loadMissing(['unitTransfers' => function ($q) {
+            $q->whereNull('unit2')->with('units1');
+        }]);
+        $ut = $product->unitTransfers->firstWhere('unit2', null) ?? $product->unitTransfers->first();
+        if (! $ut || ! $ut->units1) {
+            return '—';
+        }
+        $u = $ut->units1;
+        if (app()->getLocale() === 'ar') {
+            return (string) ($u->name_ar ?: $u->name_en ?: '—');
+        }
+
+        return (string) ($u->name_en ?: $u->name_ar ?: '—');
     }
 
     protected function postInventoryAdjustments($inventory)
@@ -243,15 +340,27 @@ class PeriodicInventoryController extends Controller
                     ->orWhere('gl_code', '11105')
                     ->value('id');
 
-                $inventoryAdjustmentAccountId = AccountingAccount::query()
-                    ->where('account_category', 'inventory_adjustment')
-                    ->orWhere('account_category', 'COGS')
-                    ->orWhere('account_category', 'cost_of_goods_sold')
-                    ->orWhere('gl_code', '50101')
-                    ->value('id');
+                $inventoryAdjustmentAccountId = AccountsRoting::query()
+                    ->where('type', 'periodic_inventory_adjustment')
+                    ->where('section', 'periodic_inventory')
+                    ->value('account_id');
 
-                // Fallback to configured purchases account when dedicated adjustment account does not exist.
-                if (!$inventoryAdjustmentAccountId) {
+                if (! $inventoryAdjustmentAccountId) {
+                    $inventoryAdjustmentAccountId = AccountingAccount::query()
+                        ->where('account_category', 'inventory_adjustment')
+                        ->value('id');
+                }
+                if (! $inventoryAdjustmentAccountId) {
+                    $inventoryAdjustmentAccountId = AccountingAccount::query()
+                        ->where(function ($q) {
+                            $q->where('account_category', 'COGS')
+                                ->orWhere('account_category', 'cost_of_goods_sold')
+                                ->orWhere('gl_code', '50101');
+                        })
+                        ->value('id');
+                }
+
+                if (! $inventoryAdjustmentAccountId) {
                     $inventoryAdjustmentAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
                 }
 
@@ -340,12 +449,18 @@ class PeriodicInventoryController extends Controller
         }
 
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
+            ->with(['unitTransfers' => function ($q) {
+                $q->whereNull('unit2')->with('units1');
+            }])
             ->join('product_inventories', function ($join) use ($establishmentId) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('product_inventories.establishment_id', $establishmentId)
                     ->whereNotNull('product_inventories.qty');
             })
             ->get();
+        $products->each(function (Product $p) {
+            $p->setAttribute('inventory_unit_label', $this->resolveProductInventoryUnitLabel($p));
+        });
 
         return response()->json($products);
     }

@@ -68,7 +68,7 @@
                         </select>
                     </div>
                     <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
-                    <a href="{{ route('inventory.dashboard') }}" class="btn btn-light">{{ app()->getLocale() === 'ar' ? 'إعادة ضبط' : 'Reset' }}</a>
+                    <a href="{{ route('inventory.dashboard') }}" class="btn btn-light">@lang('general.clear_filters')</a>
                 </form>
             </div>
         </div>
