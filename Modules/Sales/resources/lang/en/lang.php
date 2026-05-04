@@ -158,5 +158,7 @@ return [
     'purchase_types_ratio' => 'Purchase Types Ratio',
     'recent_purchase_transactions' => 'Recent Purchase Transactions',
 
+    'move_line_up' => 'Move line up',
+    'move_line_down' => 'Move line down',
 
 ];

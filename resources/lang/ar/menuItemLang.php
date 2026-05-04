@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     'accounting_module' => 'المحاسبة',
@@ -12,13 +13,13 @@ return [
     'users' => 'المستخدمون',
     'branches_mgmt' => 'إدارة فروع الفرنشايز',
     'franchise_product_mgmt' => 'إدارة منتجات الفرنشايز',
-    "custom_menus_mgmt" => 'صلاحيات القوائم المخصصة',
+    'custom_menus_mgmt' => 'صلاحيات القوائم المخصصة',
 
     'franchise' => 'الامتياز التجاري',
     'franchise_com' => ' شركات الامتياز التجاري',
     'roles' => 'الأدوار',
     'crm' => 'إدارة علاقات العملاء',
-    'reports_module' => 'التقارير',
+    'reports_module' => 'تقارير عامة',
     'products' => 'المنتجات',
     'inventory' => 'المخزن',
     'accounting' => 'المحاسبة',
@@ -49,7 +50,6 @@ return [
     'clients_suppliers_settings' => 'إعدادات العملاء والموردين',
     'coupons' => 'الكوبونات',
 
-
     'customMenu' => 'القوائم المخصصة',
     'serviceFee' => 'رسوم الخدمات',
     'discount' => 'حسومات',
@@ -68,7 +68,6 @@ return [
     'sales_favorites' => 'مفضلة المبيعات',
     'purchases' => 'المشتريات',
     'suppliers' => 'الموردين',
-
 
     'po' => 'طلبات الشراء',
     'prep' => 'الإنتاج',
@@ -121,8 +120,10 @@ return [
     'product-purchase-report' => 'تقرير مشتريات الأصناف',
     'purchase-payment-report' => 'تقرير المشتريات',
     'sell-payment-report' => 'تقرير المبيعات',
-    'payment-reports' => 'التقارير المتعددة',
+    'payment-reports' => 'لوحة التقارير',
+    'Register-Report' => 'تقرير السجل النقدي',
     'product-inventory-report' => 'تقرير عمليات المخزون',
+    'sales-comparison-report' => 'تقرير مقارنة المبيعات',
     'type-service' => 'انواع الخدمات',
     'Profit-Loss' => 'الربح والخسارة',
     'purchase-sell' => 'المشتريات والمبيعات',
@@ -146,10 +147,8 @@ return [
     'reports_list' => 'قائمة التقارير',
     'product_dashboard' => 'لوحة تحكم المنتجات',
     'inventory_dashboard' => 'لوحة تحكم المخزون',
-    'product-inventory-summary' => "تقرير رصيد المخزون",
-    'product-inventory-record' => "سجل مخزون الصنف",
-    "product-inventory" => "تقرير مخزون الصنف",
-
-
+    'product-inventory-summary' => 'تقرير رصيد المخزون',
+    'product-inventory-record' => 'سجل مخزون الصنف',
+    'product-inventory' => 'تقرير مخزون الصنف',
 
 ];

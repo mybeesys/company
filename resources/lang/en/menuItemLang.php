@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     'accounting_module' => 'Accounting',
@@ -14,7 +15,7 @@ return [
 
     'roles' => 'Roles',
     'crm' => 'CRM',
-    'reports_module' => 'Reports',
+    'reports_module' => 'General reports',
     'products' => 'Stock Product',
     'inventory' => 'Inventory',
     'accounting' => 'Accounting',
@@ -23,7 +24,7 @@ return [
     'schedules' => 'Schedules',
     'branches_mgmt' => 'Franchise Branches Management',
     'franchise_product_mgmt' => 'Franchise Products Management',
-    "custom_menus_mgmt" => 'Custom Menus Management',
+    'custom_menus_mgmt' => 'Custom Menus Management',
     'franchise_com' => ' Franchise Companies',
 
     'accounting_dashboard' => 'Accounting Dashboard',
@@ -72,8 +73,6 @@ return [
     'purchases' => 'Purchases',
     'suppliers' => 'Suppliers',
 
-
-
     'po' => 'PO',
     'prep' => 'Production',
     'rma' => 'RMA',
@@ -100,7 +99,6 @@ return [
     'screen_module' => 'Screens',
     'main' => 'Main',
 
-
     'supplier_receipts' => 'Supplier Receipts',
     'importProduct' => 'Import',
     'sell-return' => 'Sell Return',
@@ -122,9 +120,11 @@ return [
     'product-sales-report' => 'Product sales report',
     'product-purchase-report' => 'Product purchases report',
     'purchase-payment-report' => 'Purchase report',
-    "payment-reports" => "Multi-Reports",
+    'payment-reports' => 'Reports hub',
+    'Register-Report' => 'Cash register report',
     'sell-payment-report' => 'Sell report',
     'product-inventory-report' => 'Inventory operations report',
+    'sales-comparison-report' => 'Sales comparison report',
     'Profit-Loss' => 'Profit and Loss',
 
     'type-service' => 'Type of services',
@@ -144,13 +144,8 @@ return [
     'reports_list' => 'Reports List',
     'product_dashboard' => 'Product Dashboard',
     'inventory_dashboard' => 'Stock Dashboard',
-    'product-inventory-summary' => "Product inventory summary",
-    'product-inventory-record' => "Product inventory record",
-    "product-inventory" => "Item Inventory Report",
-
-
-
-
-
+    'product-inventory-summary' => 'Product inventory summary',
+    'product-inventory-record' => 'Product inventory record',
+    'product-inventory' => 'Item Inventory Report',
 
 ];

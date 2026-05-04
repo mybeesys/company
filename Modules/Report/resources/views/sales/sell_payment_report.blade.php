@@ -45,6 +45,37 @@
         padding: 10px;
         background: #fff;
     }
+
+    #spayColumnPickerMenu {
+        min-width: 280px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .spay-table-toolbar .spay-gear-btn {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .spay-table-toolbar .spay-gear-btn i {
+        color: #ebb81e;
+    }
+
+    .spay-table-toolbar .spay-gear-btn:hover,
+    .spay-table-toolbar .spay-gear-btn:focus,
+    .spay-table-toolbar .spay-gear-btn:active,
+    .spay-table-toolbar .spay-gear-btn.show {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .spay-table-toolbar .spay-gear-btn:hover i,
+    .spay-table-toolbar .spay-gear-btn:focus i,
+    .spay-table-toolbar .spay-gear-btn:active i {
+        color: #ebb81e;
+    }
 </style>
 @stop
 
@@ -55,19 +86,13 @@
 
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <div class="card-title">
+                <div class="card-title w-100">
                     <div class="d-flex align-items-center position-relative my-1 report-title-wrap">
-                        <h3>@lang('menuItemLang.sell-payment-report')</h3>
-                        <div class="report-subtitle">@lang('report::purchase.sell_payment_report_details')</div>
+                        <div>
+                            <h3 class="mb-0">@lang('menuItemLang.sell-payment-report')</h3>
+                            <div class="report-subtitle">@lang('report::purchase.sell_payment_report_details')</div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
-                    <x-tables.table-header model="ProductSales" url="create-purchases-invoice" :addButton="false" module="report">
-                        <x-slot:export>
-                            <x-tables.export-menu id="purchases" />
-                        </x-slot:export>
-                    </x-tables.table-header>
                 </div>
             </x-cards.card-header>
 
@@ -135,8 +160,54 @@
                 </form>
             </div>
 
-            <x-cards.card-body class="table-responsive report-table-card">
-                <x-tables.table :columns="$columns" model="ProductSales" module="report" :idColumn="false" />
+            <x-cards.card-body class="table-responsive report-table-card border-top">
+                <div class="spay-table-toolbar d-flex flex-wrap align-items-center gap-3 py-5 px-1 px-lg-0">
+                    <div class="d-flex align-items-center position-relative flex-grow-1 min-w-200px">
+                        <i class="ki-outline ki-magnifier fs-3 position-absolute ms-4 z-index-1"></i>
+                        <input type="text" data-kt-filter="search" class="form-control form-control-solid ps-12"
+                            placeholder="@lang('report::general.ProductSales_search')" />
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap ms-sm-auto">
+                        <button type="button" class="btn btn-sm btn-light-success" id="sellPaymentExportExcelBtn"
+                            title="@lang('report::general.sell_payment_export_full_hint')">
+                            <i class="bi bi-file-earmark-excel fs-5"></i>
+                            @lang('report::general.export_excel_btn')
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light-danger" id="sellPaymentExportPdfBtn"
+                            title="@lang('report::general.sell_payment_export_full_hint')">
+                            <i class="bi bi-file-earmark-pdf fs-5"></i>
+                            @lang('report::general.export_pdf_btn')
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-icon spay-gear-btn" type="button"
+                                id="spayColumnPickerToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false"
+                                title="@lang('report::general.sell_payment_table_columns_hint')">
+                                <i class="bi bi-gear-fill fs-4"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg" id="spayColumnPickerMenu"
+                                aria-labelledby="spayColumnPickerToggle">
+                                <div class="fw-bold mb-3">@lang('report::general.sell_payment_table_columns')</div>
+                                <div class="text-muted fs-8 mb-3">@lang('report::general.sell_payment_table_columns_hint')</div>
+                                @foreach ($sellPaymentColumnPicker as $meta)
+                                    <div class="form-check form-check-custom form-check-solid mb-2">
+                                        <input class="form-check-input spay-col-toggle" type="checkbox"
+                                            id="spay_col_{{ $meta['key'] }}"
+                                            data-spay-idx="{{ $loop->index }}"
+                                            data-spay-key="{{ $meta['key'] }}"
+                                            checked />
+                                        <label class="form-check-label fw-semibold text-gray-700 cursor-pointer" for="spay_col_{{ $meta['key'] }}">
+                                            @lang('report::fields.' . $meta['field'])
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pb-5 px-1 px-lg-0">
+                    <x-tables.table :columns="$columns" model="ProductSales" module="report" :idColumn="false" :actionColumn="false" />
+                </div>
             </x-cards.card-body>
         </div>
 
@@ -151,14 +222,16 @@
 <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script>
-<script type="text/javascript" src="/vfs_fonts.js"></script>
 
 <script>
     "use strict";
     let dataTable;
     const table = $('#kt_ProductSales_table');
-    let currentLang = "{{ app()->getLocale() }}";
     let apiUrl = "{{ route('sell-payment-report') }}";
+    const sellPaymentExportExcelUrl = "{{ route('sell-payment-export-excel') }}";
+    const sellPaymentExportPdfUrl = "{{ route('sell-payment-export-pdf') }}";
+    const SPAY_COLUMN_KEYS = @json($sellPaymentExportColumnKeys);
+    const SPAY_COLUMN_VISIBILITY_STORAGE = 'sell_payment_column_visibility_v1';
 
     function getFilterParams() {
         const branchId = $('#branchFilter').val() || [];
@@ -168,7 +241,7 @@
         const paymentStatus = $('#paymentStatusFilter').val() || [];
         const dateRange = $('#paymentDateRange').val();
 
-        const queryParams = {
+        return {
             branch_id: branchId,
             device_id: deviceId,
             customer_id: customerId,
@@ -176,7 +249,64 @@
             payment_status: paymentStatus,
             payment_date_range: dateRange
         };
-        return queryParams;
+    }
+
+    function getSellPaymentVisibleColumnKeys() {
+        const keys = [];
+        SPAY_COLUMN_KEYS.forEach(function(key, idx) {
+            if (dataTable.column(idx).visible()) {
+                keys.push(key);
+            }
+        });
+        return keys.length ? keys : [SPAY_COLUMN_KEYS[0]];
+    }
+
+    function sellPaymentFullExportUrl(base) {
+        const params = $.extend({}, getFilterParams(), {
+            export_columns: getSellPaymentVisibleColumnKeys()
+        });
+        // false: arrays as branch_id[]=1&export_columns[]=x for Laravel; true collapses duplicate keys.
+        const q = $.param(params, false);
+        return q ? (base + '?' + q) : base;
+    }
+
+    function spayLoadColumnVisibility() {
+        try {
+            return JSON.parse(localStorage.getItem(SPAY_COLUMN_VISIBILITY_STORAGE) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function spaySaveColumnVisibility() {
+        const state = {};
+        SPAY_COLUMN_KEYS.forEach(function(key, idx) {
+            state[key] = dataTable.column(idx).visible();
+        });
+        try {
+            localStorage.setItem(SPAY_COLUMN_VISIBILITY_STORAGE, JSON.stringify(state));
+        } catch (e) {}
+    }
+
+    function applySpayColumnVisibilityFromStorage() {
+        const state = spayLoadColumnVisibility();
+        let visibleCount = 0;
+        SPAY_COLUMN_KEYS.forEach(function(key, idx) {
+            if (state[key] !== false) visibleCount++;
+        });
+        if (visibleCount === 0) {
+            SPAY_COLUMN_KEYS.forEach(function(key, idx) {
+                dataTable.column(idx).visible(true, false);
+                $('#spay_col_' + key).prop('checked', true);
+            });
+            spaySaveColumnVisibility();
+            return;
+        }
+        SPAY_COLUMN_KEYS.forEach(function(key, idx) {
+            const visible = state[key] !== false;
+            dataTable.column(idx).visible(visible, false);
+            $('#spay_col_' + key).prop('checked', visible);
+        });
     }
 
     function populateBranches() {
@@ -248,8 +378,27 @@
         populateCustomers();
         populateDevices();
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], '#kt_ProductSales_table');
+        applySpayColumnVisibilityFromStorage();
+        dataTable.columns.adjust().draw(false);
         handleSearchDatatable();
+
+        $('#spayColumnPickerMenu').on('change', '.spay-col-toggle', function() {
+            const idx = parseInt($(this).data('spay-idx'), 10);
+            const visible = $(this).is(':checked');
+            if (!visible) {
+                let n = 0;
+                SPAY_COLUMN_KEYS.forEach(function(_, i) {
+                    if (dataTable.column(i).visible()) n++;
+                });
+                if (n <= 1) {
+                    $(this).prop('checked', true);
+                    return;
+                }
+            }
+            dataTable.column(idx).visible(visible, true);
+            spaySaveColumnVisibility();
+            dataTable.columns.adjust().draw(false);
+        });
 
         $('.form-select').select2();
 
@@ -280,6 +429,12 @@
             dataTable.ajax.url(apiUrl).load();
         });
 
+        $('#sellPaymentExportExcelBtn').on('click', function() {
+            window.location.href = sellPaymentFullExportUrl(sellPaymentExportExcelUrl);
+        });
+        $('#sellPaymentExportPdfBtn').on('click', function() {
+            window.location.href = sellPaymentFullExportUrl(sellPaymentExportPdfUrl);
+        });
     });
 
     function initDatatable() {
@@ -336,12 +491,6 @@
                 {
                     data: 'ref_no',
                     name: 'ref_no'
-                },
-                {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
                 }
             ],
             order: [],
@@ -351,6 +500,7 @@
                 KTMenu.createInstances();
             }
         });
+        window.dataTable = dataTable;
     };
 </script>
 @endsection

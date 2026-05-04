@@ -5,24 +5,34 @@ namespace Modules\Report\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Models\EstPos;
 use Modules\General\Http\Controllers\TransactionController;
+use Modules\General\Models\CashRegister;
+use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
-use Modules\Report\Utils\ReportTransactionsUtile;
-use Modules\Report\Utils\TransactionUtile;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Log;
-use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\Employee\Models\Employee;
-use Modules\Establishment\Models\EstPos;
-use Modules\General\Models\CashRegister;
-use Modules\General\Models\PaymentMethod;
+use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\Subcategory;
+use Modules\Report\Exports\ProductSalesExcelExport;
+use Modules\Report\Exports\SellPaymentExcelExport;
+use Modules\Report\Exports\SalesComparisonExcelExport;
+use Modules\Report\Utils\ReportTransactionsUtile;
+use Modules\Report\Utils\SalesComparisonPeriodResolver;
+use Modules\Report\Utils\TransactionUtile;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
+use Yajra\DataTables\Facades\DataTables;
 
 class SalesReportController extends Controller
 {
@@ -32,15 +42,18 @@ class SalesReportController extends Controller
     public function index()
     {
 
-        $transactionUtile = new ReportTransactionsUtile();
+        $transactionUtile = new ReportTransactionsUtile;
         $salesSummary = $transactionUtile->getSalesSummary();
+
         // return view('reports.sales_summary', compact('salesSummary'));
         return view('report::sales.index', compact('salesSummary'));
     }
+
     public function combinedPaymentReport()
     {
         return view('report::sales.combined_payment_report');
     }
+
     public function getBranches(Request $request)
     {
         try {
@@ -53,10 +66,11 @@ class SalesReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching branches: ' . $e->getMessage(),
+                'message' => 'Error fetching branches: '.$e->getMessage(),
             ], 500);
         }
     }
+
     public function getSupplier(Request $request)
     {
         try {
@@ -69,10 +83,11 @@ class SalesReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching suppliers: ' . $e->getMessage(),
+                'message' => 'Error fetching suppliers: '.$e->getMessage(),
             ], 500);
         }
     }
+
     public function getCustomers(Request $request)
     {
         try {
@@ -85,10 +100,11 @@ class SalesReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching suppliers: ' . $e->getMessage(),
+                'message' => 'Error fetching suppliers: '.$e->getMessage(),
             ], 500);
         }
     }
+
     public function getDevices(Request $request)
     {
         try {
@@ -101,7 +117,7 @@ class SalesReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching devices: ' . $e->getMessage(),
+                'message' => 'Error fetching devices: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -127,11 +143,10 @@ class SalesReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching products: ' . $e->getMessage(),
+                'message' => 'Error fetching products: '.$e->getMessage(),
             ], 500);
         }
     }
-
 
     public function getSalesData(Request $request)
     {
@@ -155,199 +170,1450 @@ class SalesReportController extends Controller
         return response()->json([
             'data' => [
                 'labels' => $labels,
-                'sales_count' => $counts
-            ]
+                'sales_count' => $counts,
+            ],
         ]);
     }
 
     public function getproductSellReport(Request $request)
     {
-        $transactionUtile = new ReportTransactionsUtile();
-
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
-            $query = TransactionSellLine::join(
-                'transactions as t',
-                'transaction_sell_lines.transaction_id',
-                '=',
-                't.id'
-            )->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
-                ->join('product_products as p', 'transaction_sell_lines.product_id', '=', 'p.id')
-                ->leftjoin('taxes', 'transaction_sell_lines.tax_id', '=', 'taxes.id')
-                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftjoin('product_unit_transfer as u', 'transaction_sell_lines.unit_id', '=', 'u.id')
-                ->where('t.type', 'sell')
-                ->where('t.status', 'approved')
-                ->select(
-                    'p.name_ar as product_name_ar',
-                    'p.name_en as product_name_en',
-                    'p.category_id  as product_category_id ',
-                    'p.subcategory_id  as product_subcategory_id ',
-                    'p.price as product_price',
-                    'p.SKU as product_SKU',
-                    'c.name as customer',
-                    't.id as transaction_id',
-                    't.ref_no',
-                    't.created_at',
-                    't.transaction_date as transaction_date',
-                    'transaction_sell_lines.unit_price_before_discount as unit_price',
-                    'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
-                    DB::raw('(transaction_sell_lines.qyt) as sell_qty'),
-                    'transaction_sell_lines.discount_type as discount_type',
-                    'transaction_sell_lines.discount_amount as discount_amount',
-                    'transaction_sell_lines.tax_value',
-                    'taxes.name as tax',
-                    'u.unit1  as unit',
-                    DB::raw('((transaction_sell_lines.qyt) * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
-                    DB::raw("CASE
-                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en
-              END as establishment_name"),
-                );
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
+            $mode = $request->input('report_mode', 'detail');
+            if ($mode === 'summary') {
+                $query = $this->buildProductSellReportSummaryQuery($request);
+
+                return ReportTransactionsUtile::getProductSalesReportSummary($query);
             }
 
-            if ($request->has('customer_id')) {
-                $supplierIds = collect($request->input('customer_id'))->filter()->values()->toArray();
-                if (!empty($supplierIds)) {
-                    $query->whereIn('t.contact_id', $supplierIds);
-                }
-            }
+            $query = $this->buildProductSellReportDetailQuery($request);
 
-            if ($request->has('product_id')) {
-                $paymentMethods = collect($request->input('product_id'))->filter()->values()->toArray();
-                if (!empty($paymentMethods)) {
-                    $query->whereIn('p.id', $paymentMethods);
-                }
-            }
-
-            if (!empty($request->input('sale_date_range'))) {
-                $dateRange = explode(' - ', $request->input('sale_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('t.transaction_date', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('created_at', 'desc')->get();
-
-            return  $transactionUtile->getProductSalesReport($results);
+            return ReportTransactionsUtile::getProductSalesReport($query);
         }
 
         $columns = $transactionUtile->getsProductSalesColumns();
+
         return view('report::sales.indexProductSalesReport')
             ->with(compact(
                 'columns'
             ));
     }
 
-    public function getproductPurchaseReport(Request $request)
+    public function productSalesExportExcel(Request $request)
     {
+        $isSummary = $request->input('report_mode', 'detail') === 'summary';
+        $exportKeys = $this->resolveProductSalesExportColumnKeys($request);
+        $query = $isSummary
+            ? $this->buildProductSellReportSummaryQuery($request)
+            : $this->buildProductSellReportDetailQuery($request);
+        $rows = $query->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapProductSalesRowForExport($r, $isSummary, $exportKeys));
+        $meta = $this->buildProductSalesExportMeta($request, $mapped->count(), $exportKeys);
 
-        $transactionUtile = new ReportTransactionsUtile();
+        $filename = 'product-sales-'.now()->format('Y-m-d-His').'.xlsx';
 
+        return Excel::download(new ProductSalesExcelExport($mapped, $meta), $filename);
+    }
+
+    public function productSalesExportPdf(Request $request)
+    {
+        $isSummary = $request->input('report_mode', 'detail') === 'summary';
+        $exportKeys = $this->resolveProductSalesExportColumnKeys($request);
+        $query = $isSummary
+            ? $this->buildProductSellReportSummaryQuery($request)
+            : $this->buildProductSellReportDetailQuery($request);
+        $rows = $query->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapProductSalesRowForExport($r, $isSummary, $exportKeys));
+        $meta = $this->buildProductSalesExportMeta($request, $mapped->count(), $exportKeys);
+        $headers = ReportTransactionsUtile::getProductSalesExportHeaderLabels($exportKeys);
+        $textStartColIndexes = ReportTransactionsUtile::productSalesExportPdfTextStartIndexes($exportKeys);
+
+        $html = view('report::sales.product_sales_export_pdf', [
+            'meta' => $meta,
+            'headers' => $headers,
+            'rows' => $mapped->all(),
+            'textStartColIndexes' => $textStartColIndexes,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'product-sales-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $exportKeys
+     * @return array{title: string, generated_at: string, filters: string, row_count: int, headers: array}
+     */
+    private function buildProductSalesExportMeta(Request $request, int $rowCount, array $exportKeys): array
+    {
+        return [
+            'title' => __('menuItemLang.product-sales-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'filters' => $this->productSellReportFilterSummary($request),
+            'row_count' => $rowCount,
+            'headers' => ReportTransactionsUtile::getProductSalesExportHeaderLabels($exportKeys),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveProductSalesExportColumnKeys(Request $request): array
+    {
+        $all = ReportTransactionsUtile::getProductSalesExportColumnKeys();
+        $raw = $request->input('export_columns', []);
+        $requested = collect(\Illuminate\Support\Arr::wrap($raw))
+            ->flatten()
+            ->filter(fn ($k) => is_string($k) && $k !== '')
+            ->values()
+            ->all();
+        if ($requested === []) {
+            return $all;
+        }
+        $picked = array_values(array_intersect($all, $requested));
+
+        return $picked === [] ? $all : $picked;
+    }
+
+    private function productSellReportFilterSummary(Request $request): string
+    {
+        $lines = [];
+        $mode = $request->input('report_mode', 'detail');
+        $lines[] = __('report::general.product_sales_report_mode').': '.($mode === 'summary'
+            ? __('report::general.product_sales_report_mode_summary')
+            : __('report::general.product_sales_report_mode_detail'));
+        $dateRange = trim((string) $request->input('sale_date_range', ''));
+        if ($dateRange !== '') {
+            $lines[] = __('report::purchase.Sale Date Range').': '.$dateRange;
+        }
+        $lines = array_merge($lines, $this->sellLineReportFilterSummaryLines($request));
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Shared filter narrative (branches, customers, products, categories, …) for sell-line style reports.
+     *
+     * @return list<string>
+     */
+    private function sellLineReportFilterSummaryLines(Request $request): array
+    {
+        $locale = app()->getLocale();
+        $sep = $locale === 'ar' ? '، ' : ', ';
+        $lines = [];
+
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+        if ($branchIds->isNotEmpty()) {
+            $names = Establishment::whereIn('id', $branchIds)->get()->map(function ($e) use ($locale) {
+                return $locale === 'ar' ? ($e->name ?? '') : ($e->name_en ?? $e->name ?? '');
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_branch').': '.$names;
+            }
+        }
+
+        $customerIds = collect($request->input('customer_id'))->filter()->values();
+        if ($customerIds->isNotEmpty()) {
+            $names = Contact::whereIn('id', $customerIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_customer').': '.$names;
+            }
+        }
+
+        $productIds = collect($request->input('product_id'))->filter()->values();
+        if ($productIds->isNotEmpty()) {
+            $names = Product::whereIn('id', $productIds)->get()->map(function ($p) use ($locale) {
+                return $locale === 'ar' ? ($p->name_ar ?: $p->name_en) : ($p->name_en ?: $p->name_ar);
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_product').': '.$names;
+            }
+        }
+
+        $categoryIds = collect($request->input('category_id'))->filter()->values();
+        if ($categoryIds->isNotEmpty()) {
+            $names = Category::restrictByFranchise()->whereIn('id', $categoryIds)->get()->map(function ($c) use ($locale) {
+                return $locale === 'ar' ? $c->name_ar : $c->name_en;
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_category').': '.$names;
+            }
+        }
+
+        $subcategoryIds = collect($request->input('subcategory_id'))->filter()->values();
+        if ($subcategoryIds->isNotEmpty()) {
+            $allowedCategoryIds = Category::restrictByFranchise()->pluck('id');
+            $names = Subcategory::whereIn('id', $subcategoryIds)
+                ->whereIn('category_id', $allowedCategoryIds)
+                ->get()
+                ->map(fn ($s) => $locale === 'ar' ? $s->name_ar : $s->name_en)
+                ->filter()
+                ->unique()
+                ->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_subcategory').': '.$names;
+            }
+        }
+
+        $unitIds = collect($request->input('unit_id'))->filter()->values();
+        if ($unitIds->isNotEmpty()) {
+            $names = DB::table('product_unit_transfer')
+                ->whereIn('id', $unitIds)
+                ->pluck('unit1')
+                ->map(fn ($u) => (string) ($u ?? ''))
+                ->filter()
+                ->unique()
+                ->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_unit').': '.$names;
+            }
+        }
+
+        $payMethods = collect($request->input('payment_method'))->filter()->values();
+        if ($payMethods->isNotEmpty()) {
+            $labels = $payMethods->map(fn ($m) => $this->salesComparisonPaymentMethodLabel((string) $m))->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::general.filter_panel_payment').': '.$labels;
+            }
+        }
+
+        return $lines;
+    }
+
+    private function applyProductSellReportFilters($query, Request $request): void
+    {
+        if ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $query->whereIn('t.establishment_id', $branchIds);
+            }
+        }
+
+        if ($request->has('customer_id')) {
+            $customerIds = collect($request->input('customer_id'))->filter()->values()->toArray();
+            if (! empty($customerIds)) {
+                $query->whereIn('t.contact_id', $customerIds);
+            }
+        }
+
+        if ($request->has('product_id')) {
+            $productIds = collect($request->input('product_id'))->filter()->values()->toArray();
+            if (! empty($productIds)) {
+                $query->whereIn('p.id', $productIds);
+            }
+        }
+
+        if ($request->has('category_id')) {
+            $categoryIds = collect($request->input('category_id'))->filter()->values()->toArray();
+            if (! empty($categoryIds)) {
+                $query->whereIn('p.category_id', $categoryIds);
+            }
+        }
+
+        if ($request->has('subcategory_id')) {
+            $subcategoryIds = collect($request->input('subcategory_id'))->filter()->values()->toArray();
+            if (! empty($subcategoryIds)) {
+                $query->whereIn('p.subcategory_id', $subcategoryIds);
+            }
+        }
+
+        if ($request->has('unit_id')) {
+            $unitIds = collect($request->input('unit_id'))->filter()->values()->toArray();
+            if (! empty($unitIds)) {
+                $query->whereIn('transaction_sell_lines.unit_id', $unitIds);
+            }
+        }
+
+        if ($request->has('payment_method')) {
+            $methods = collect($request->input('payment_method'))->filter()->values()->toArray();
+            if (! empty($methods)) {
+                $query->whereExists(function ($q) use ($methods) {
+                    $q->select(DB::raw(1))
+                        ->from('transaction_payments as tpf')
+                        ->whereColumn('tpf.transaction_id', 't.id')
+                        ->whereIn('tpf.method', $methods);
+                });
+            }
+        }
+
+        if (! empty($request->input('sale_date_range'))) {
+            $dateRange = explode(' - ', $request->input('sale_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('t.transaction_date', [$from, $to]);
+            }
+        }
+    }
+
+    private function buildProductSellReportDetailQuery(Request $request)
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+        $catName = $locale === 'ar' ? 'cat.name_ar' : 'cat.name_en';
+        $subName = $locale === 'ar' ? 'sub.name_ar' : 'sub.name_en';
+
+        $query = TransactionSellLine::query()
+            ->join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->join('product_products as p', 'transaction_sell_lines.product_id', '=', 'p.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as u', 'transaction_sell_lines.unit_id', '=', 'u.id')
+            ->leftJoin('product_categories as cat', 'p.category_id', '=', 'cat.id')
+            ->leftJoin('product_subcategories as sub', 'p.subcategory_id', '=', 'sub.id')
+            ->where('t.type', 'sell')
+            ->where('t.status', 'approved')
+            ->select([
+                'transaction_sell_lines.id as sell_line_id',
+                'p.name_ar as product_name_ar',
+                'p.name_en as product_name_en',
+                'p.price as product_price',
+                'p.SKU as product_SKU',
+                'c.name as customer',
+                't.id as transaction_id',
+                't.ref_no',
+                't.transaction_date as transaction_date',
+                'transaction_sell_lines.unit_price_before_discount as unit_price',
+                'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
+                DB::raw('transaction_sell_lines.qyt as sell_qty'),
+                'transaction_sell_lines.discount_amount as discount_amount',
+                'transaction_sell_lines.tax_value as tax_value',
+                DB::raw("{$catName} as category"),
+                DB::raw("{$subName} as subcategory"),
+                DB::raw("CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END as establishment_name"),
+                'u.unit1 as line_unit',
+                DB::raw('(transaction_sell_lines.qyt * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
+                DB::raw('(SELECT GROUP_CONCAT(DISTINCT tpx.method ORDER BY tpx.method SEPARATOR ",") FROM transaction_payments tpx WHERE tpx.transaction_id = t.id) as invoice_payment_methods'),
+            ]);
+
+        $this->applyProductSellReportFilters($query, $request);
+        $query->orderBy('transaction_sell_lines.id', 'desc');
+
+        return $query;
+    }
+
+    private function buildProductSellReportSummaryQuery(Request $request)
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+        $catName = $locale === 'ar' ? 'cat.name_ar' : 'cat.name_en';
+        $subName = $locale === 'ar' ? 'sub.name_ar' : 'sub.name_en';
+        $estCol = $locale === 'ar' ? 'e.name' : 'e.name_en';
+
+        $query = TransactionSellLine::query()
+            ->join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->join('product_products as p', 'transaction_sell_lines.product_id', '=', 'p.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as u', 'transaction_sell_lines.unit_id', '=', 'u.id')
+            ->leftJoin('product_categories as cat', 'p.category_id', '=', 'cat.id')
+            ->leftJoin('product_subcategories as sub', 'p.subcategory_id', '=', 'sub.id')
+            ->where('t.type', 'sell')
+            ->where('t.status', 'approved')
+            ->select([
+                DB::raw('MIN(transaction_sell_lines.id) as sell_line_id'),
+                'p.name_ar as product_name_ar',
+                'p.name_en as product_name_en',
+                'p.price as product_price',
+                'p.SKU as product_SKU',
+                DB::raw('NULL as customer'),
+                DB::raw('MIN(t.id) as transaction_id'),
+                DB::raw('MIN(t.ref_no) as ref_no'),
+                DB::raw('MIN(t.transaction_date) as transaction_date'),
+                DB::raw('SUM(transaction_sell_lines.qyt * transaction_sell_lines.unit_price_before_discount) / NULLIF(SUM(transaction_sell_lines.qyt), 0) as unit_price'),
+                DB::raw('SUM(transaction_sell_lines.qyt * transaction_sell_lines.unit_price_inc_tax) / NULLIF(SUM(transaction_sell_lines.qyt), 0) as unit_sale_price'),
+                DB::raw('SUM(transaction_sell_lines.qyt) as sell_qty'),
+                DB::raw('SUM(transaction_sell_lines.discount_amount) as discount_amount'),
+                DB::raw('SUM(transaction_sell_lines.tax_value) as tax_value'),
+                DB::raw("MAX({$catName}) as category"),
+                DB::raw("MAX({$subName}) as subcategory"),
+                DB::raw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name"),
+                DB::raw('GROUP_CONCAT(DISTINCT NULLIF(u.unit1, \'\') ORDER BY u.unit1 SEPARATOR \', \') as line_unit'),
+                DB::raw('SUM(transaction_sell_lines.qyt * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
+                DB::raw('NULL as invoice_payment_methods'),
+            ])
+            ->groupBy('p.id', 'p.name_ar', 'p.name_en', 'p.price', 'p.SKU', 't.establishment_id');
+
+        $this->applyProductSellReportFilters($query, $request);
+        $query->orderByRaw("MAX({$estCol}) ASC")
+            ->orderByRaw('SUM(transaction_sell_lines.qyt) DESC');
+
+        return $query;
+    }
+
+    public function salesComparisonReport(Request $request)
+    {
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
+            $merged = $this->buildSalesComparisonMergedCollection($request);
+            $footer = $this->computeSalesComparisonFooterTotals($merged ?? collect());
 
-            $query = TransactionePurchasesLine::join(
-                'transactions as t',
-                'transactione_purchases_lines.transaction_id',
-                '=',
-                't.id'
-            )
+            if ($merged === null) {
+                return ReportTransactionsUtile::getSalesComparisonReport(collect(), $footer);
+            }
 
-                ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
-                ->join('product_products as p', 'transactione_purchases_lines.product_id', '=', 'p.id')
-                ->leftjoin('taxes', 'transactione_purchases_lines.tax_id', '=', 'taxes.id')
-                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftjoin('product_unit_transfer as u', 'transactione_purchases_lines.unit_id', '=', 'u.id')
+            return ReportTransactionsUtile::getSalesComparisonReport($merged, $footer);
+        }
+
+        return view('report::sales.sales_comparison_report');
+    }
+
+    public function salesComparisonExportExcel(Request $request)
+    {
+        $merged = $this->buildSalesComparisonMergedCollection($request);
+        if ($merged === null) {
+            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        }
+
+        $meta = $this->salesComparisonExportMeta($request, $merged);
+        $filename = 'sales-comparison-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new SalesComparisonExcelExport($merged, $meta), $filename);
+    }
+
+    public function salesComparisonExportPdf(Request $request)
+    {
+        $merged = $this->buildSalesComparisonMergedCollection($request);
+        if ($merged === null) {
+            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        }
+
+        $meta = $this->salesComparisonExportMeta($request, $merged);
+        $rows = $merged->map(fn ($r) => $this->mapSalesComparisonRowForPdf($r))->all();
+
+        $html = view('report::sales.sales_comparison_export_pdf', [
+            'meta' => $meta,
+            'rows' => $rows,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'sales-comparison-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function salesComparisonChartData(Request $request)
+    {
+        $periodA = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_a_preset'),
+            $request->input('period_a_range')
+        );
+        $periodB = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_b_preset'),
+            $request->input('period_b_range')
+        );
+
+        if (! $periodA || ! $periodB) {
+            return response()->json([
+                'success' => false,
+                'message' => 'invalid_periods',
+            ], 422);
+        }
+
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $totA = $this->salesComparisonPeriodTotals($request, $aFrom, $aTo);
+        $totB = $this->salesComparisonPeriodTotals($request, $bFrom, $bTo);
+        $topProducts = $this->salesComparisonTopProducts($request, $aFrom, $aTo, $bFrom, $bTo, 10);
+
+        return response()->json([
+            'success' => true,
+            'period_a' => ['from' => $aFrom, 'to' => $aTo],
+            'period_b' => ['from' => $bFrom, 'to' => $bTo],
+            'totals' => [
+                'a' => [
+                    'qty' => (float) $totA->qty,
+                    'discount' => (float) $totA->discount,
+                    'tax' => (float) $totA->tax,
+                    'subtotal' => (float) $totA->subtotal,
+                    'line_count' => (int) $totA->line_count,
+                ],
+                'b' => [
+                    'qty' => (float) $totB->qty,
+                    'discount' => (float) $totB->discount,
+                    'tax' => (float) $totB->tax,
+                    'subtotal' => (float) $totB->subtotal,
+                    'line_count' => (int) $totB->line_count,
+                ],
+            ],
+            'top_products' => $topProducts,
+        ]);
+    }
+
+    /**
+     * Base query for sales comparison (sell lines + same filters). Optionally include joins needed for grouped dimensions.
+     */
+    private function buildSalesComparisonLinesQuery(Request $request, bool $withDisplayJoins = false): \Illuminate\Database\Query\Builder
+    {
+        $q = DB::table('transaction_sell_lines as tsl')
+            ->join('transactions as t', 'tsl.transaction_id', '=', 't.id')
+            ->join('product_products as p', 'tsl.product_id', '=', 'p.id')
+            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id');
+
+        if ($withDisplayJoins) {
+            $q->leftJoin('product_categories as cat', 'p.category_id', '=', 'cat.id')
+                ->leftJoin('product_subcategories as sub', 'p.subcategory_id', '=', 'sub.id')
+                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id');
+        }
+
+        $q->where('t.type', 'sell')
+            ->where('t.status', 'approved');
+
+        if ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $q->whereIn('t.establishment_id', $branchIds);
+            }
+        }
+
+        if ($request->has('customer_id')) {
+            $customerIds = collect($request->input('customer_id'))->filter()->values()->toArray();
+            if (! empty($customerIds)) {
+                $q->whereIn('t.contact_id', $customerIds);
+            }
+        }
+
+        if ($request->has('product_id')) {
+            $productIds = collect($request->input('product_id'))->filter()->values()->toArray();
+            if (! empty($productIds)) {
+                $q->whereIn('p.id', $productIds);
+            }
+        }
+
+        if ($request->has('category_id')) {
+            $categoryIds = collect($request->input('category_id'))->filter()->values()->toArray();
+            if (! empty($categoryIds)) {
+                $q->whereIn('p.category_id', $categoryIds);
+            }
+        }
+
+        if ($request->has('subcategory_id')) {
+            $subcategoryIds = collect($request->input('subcategory_id'))->filter()->values()->toArray();
+            if (! empty($subcategoryIds)) {
+                $q->whereIn('p.subcategory_id', $subcategoryIds);
+            }
+        }
+
+        if ($request->has('unit_id')) {
+            $unitIds = collect($request->input('unit_id'))->filter()->values()->toArray();
+            if (! empty($unitIds)) {
+                $q->whereIn('tsl.unit_id', $unitIds);
+            }
+        }
+
+        if ($request->has('payment_method')) {
+            $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
+            if (! empty($paymentMethods)) {
+                $q->whereExists(function ($sub) use ($paymentMethods) {
+                    $sub->from('transaction_payments as tp')
+                        ->whereColumn('tp.transaction_id', 't.id')
+                        ->whereIn('tp.method', $paymentMethods);
+                });
+            }
+        }
+
+        return $q;
+    }
+
+    public function getComparisonCategories(Request $request)
+    {
+        try {
+            $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+            $rows = Category::restrictByFranchise()
+                ->select('id', 'name_ar', 'name_en')
+                ->orderBy('name_'.$locale)
+                ->get()
+                ->map(function ($c) use ($locale) {
+                    return [
+                        'id' => $c->id,
+                        'name' => $locale === 'ar' ? $c->name_ar : $c->name_en,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getComparisonSubcategories(Request $request)
+    {
+        try {
+            $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+            $allowedCategoryIds = Category::restrictByFranchise()->pluck('id');
+            if ($allowedCategoryIds->isEmpty()) {
+                return response()->json(['success' => true, 'data' => []], 200);
+            }
+
+            $q = Subcategory::query()
+                ->whereIn('category_id', $allowedCategoryIds)
+                ->whereHas('productsForSale')
+                ->select('id', 'name_ar', 'name_en', 'category_id');
+
+            $filterCategoryIds = collect($request->input('category_id'))->filter()->values()->toArray();
+            if (! empty($filterCategoryIds)) {
+                $q->whereIn('category_id', $filterCategoryIds);
+            }
+
+            $rows = $q->orderBy('name_'.$locale)
+                ->get()
+                ->map(function ($s) use ($locale) {
+                    return [
+                        'id' => $s->id,
+                        'name' => $locale === 'ar' ? $s->name_ar : $s->name_en,
+                        'category_id' => $s->category_id,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getComparisonUnits(Request $request)
+    {
+        try {
+            $rows = DB::table('product_unit_transfer as u')
+                ->join('transaction_sell_lines as tsl', 'tsl.unit_id', '=', 'u.id')
+                ->join('transactions as t', 'tsl.transaction_id', '=', 't.id')
+                ->where('t.type', 'sell')
+                ->where('t.status', 'approved')
+                ->whereNull('u.deleted_at')
+                ->select('u.id', 'u.unit1')
+                ->distinct()
+                ->orderBy('u.unit1')
+                ->get()
+                ->map(function ($r) {
+                    $label = $r->unit1 ?? '';
+                    if ($label === '' || $label === null) {
+                        $label = '#'.$r->id;
+                    }
+
+                    return [
+                        'id' => $r->id,
+                        'name' => $label,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getComparisonPaymentMethods(Request $request)
+    {
+        try {
+            $methods = DB::table('transaction_payments as tp')
+                ->join('transactions as t', 'tp.transaction_id', '=', 't.id')
+                ->where('t.type', 'sell')
+                ->where('t.status', 'approved')
+                ->whereNotNull('tp.method')
+                ->where('tp.method', '!=', '')
+                ->distinct()
+                ->orderBy('tp.method')
+                ->pluck('tp.method');
+
+            $data = $methods->map(function ($m) {
+                $method = (string) $m;
+
+                return [
+                    'id' => $method,
+                    'name' => $this->salesComparisonPaymentMethodLabel($method),
+                ];
+            });
+
+            return response()->json(['success' => true, 'data' => $data], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPurchaseReportSubcategories(Request $request)
+    {
+        try {
+            $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+            $allowedCategoryIds = Category::restrictByFranchise()->pluck('id');
+            if ($allowedCategoryIds->isEmpty()) {
+                return response()->json(['success' => true, 'data' => []], 200);
+            }
+
+            $q = Subcategory::query()
+                ->whereIn('category_id', $allowedCategoryIds)
+                ->select('id', 'name_ar', 'name_en', 'category_id');
+
+            $filterCategoryIds = collect($request->input('category_id'))->filter()->values()->toArray();
+            if (! empty($filterCategoryIds)) {
+                $q->whereIn('category_id', $filterCategoryIds);
+            }
+
+            $rows = $q->orderBy('name_'.$locale)
+                ->get()
+                ->map(function ($s) use ($locale) {
+                    return [
+                        'id' => $s->id,
+                        'name' => $locale === 'ar' ? $s->name_ar : $s->name_en,
+                        'category_id' => $s->category_id,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPurchaseReportUnits(Request $request)
+    {
+        try {
+            $rows = DB::table('product_unit_transfer as u')
+                ->join('transactione_purchases_lines as tpl', 'tpl.unit_id', '=', 'u.id')
+                ->join('transactions as t', 'tpl.transaction_id', '=', 't.id')
                 ->where('t.type', 'purchases')
-                ->select(
-                    'p.name_ar as product_name_ar',
-                    'p.name_en as product_name_en',
-                    'p.category_id  as product_category_id ',
-                    'p.subcategory_id  as product_subcategory_id ',
-                    'p.price as product_price',
-                    'p.SKU as product_SKU',
-                    'c.name as customer',
-                    't.id as transaction_id',
-                    't.ref_no',
-                    't.created_at',
-                    't.transaction_date as transaction_date',
-                    'transactione_purchases_lines.unit_price_before_discount as unit_price',
-                    'transactione_purchases_lines.unit_price_inc_tax as unit_sale_price',
-                    DB::raw('(transactione_purchases_lines.qyt) as sell_qty'),
-                    'transactione_purchases_lines.discount_type as discount_type',
-                    'transactione_purchases_lines.discount_amount as discount_amount',
-                    'transactione_purchases_lines.tax_value',
-                    'taxes.name as tax',
-                    'u.unit1  as unit',
-                    DB::raw('((transactione_purchases_lines.qyt) * transactione_purchases_lines.unit_price_inc_tax) as subtotal'),
-                    DB::raw("CASE
-                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
-                ELSE e.name_en
-              END as establishment_name"),
-                );
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
+                ->where('t.status', 'approved')
+                ->whereNull('u.deleted_at')
+                ->select('u.id', 'u.unit1')
+                ->distinct()
+                ->orderBy('u.unit1')
+                ->get()
+                ->map(function ($r) {
+                    $label = $r->unit1 ?? '';
+                    if ($label === '' || $label === null) {
+                        $label = '#'.$r->id;
+                    }
+
+                    return [
+                        'id' => $r->id,
+                        'name' => $label,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $rows], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPurchaseReportPaymentMethods(Request $request)
+    {
+        try {
+            $methods = DB::table('transaction_payments as tp')
+                ->join('transactions as t', 'tp.transaction_id', '=', 't.id')
+                ->where('t.type', 'purchases')
+                ->where('t.status', 'approved')
+                ->whereNotNull('tp.method')
+                ->where('tp.method', '!=', '')
+                ->distinct()
+                ->orderBy('tp.method')
+                ->pluck('tp.method');
+
+            $data = $methods->map(function ($m) {
+                $method = (string) $m;
+
+                return [
+                    'id' => $method,
+                    'name' => $this->salesComparisonPaymentMethodLabel($method),
+                ];
+            });
+
+            return response()->json(['success' => true, 'data' => $data], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function salesComparisonPeriodTotals(Request $request, string $from, string $to): object
+    {
+        return $this->buildSalesComparisonLinesQuery($request, false)
+            ->whereBetween('t.transaction_date', [$from, $to])
+            ->selectRaw('COALESCE(SUM(tsl.qyt), 0) as qty')
+            ->selectRaw('COALESCE(SUM(tsl.discount_amount), 0) as discount')
+            ->selectRaw('COALESCE(SUM(tsl.tax_value), 0) as tax')
+            ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+            ->selectRaw('COUNT(*) as line_count')
+            ->first();
+    }
+
+    /**
+     * @return list<array{name: string, subtotal_a: float, subtotal_b: float}>
+     */
+    private function salesComparisonTopProducts(Request $request, string $aFrom, string $aTo, string $bFrom, string $bTo, int $limit = 10): array
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+        $fetchByProduct = function (string $from, string $to) use ($request) {
+            return $this->buildSalesComparisonLinesQuery($request, false)
+                ->whereBetween('t.transaction_date', [$from, $to])
+                ->groupBy('tsl.product_id')
+                ->selectRaw('tsl.product_id as product_id')
+                ->selectRaw('MAX(p.name_ar) as name_ar')
+                ->selectRaw('MAX(p.name_en) as name_en')
+                ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+                ->get()
+                ->keyBy('product_id');
+        };
+
+        $rowsA = $fetchByProduct($aFrom, $aTo);
+        $rowsB = $fetchByProduct($bFrom, $bTo);
+        $allIds = $rowsA->keys()->merge($rowsB->keys())->unique();
+
+        $out = [];
+        foreach ($allIds as $id) {
+            $a = $rowsA->get($id);
+            $b = $rowsB->get($id);
+            $sa = (float) (optional($a)->subtotal ?? 0);
+            $sb = (float) (optional($b)->subtotal ?? 0);
+            $nameAr = optional($a)->name_ar ?? optional($b)->name_ar ?? '';
+            $nameEn = optional($a)->name_en ?? optional($b)->name_en ?? '';
+            $name = $locale === 'ar' ? ($nameAr ?: $nameEn) : ($nameEn ?: $nameAr);
+            $out[] = [
+                'name' => $name !== '' ? $name : ('#'.$id),
+                'subtotal_a' => $sa,
+                'subtotal_b' => $sb,
+                '_score' => $sa + $sb,
+            ];
+        }
+
+        usort($out, fn ($x, $y) => $y['_score'] <=> $x['_score']);
+        $out = array_slice($out, 0, $limit);
+
+        return array_map(function ($row) {
+            unset($row['_score']);
+
+            return $row;
+        }, $out);
+    }
+
+    /**
+     * Aggregated sell lines per product, branch, and customer for one date range.
+     */
+    private function aggregateSalesComparisonPeriod(Request $request, string $from, string $to): \Illuminate\Support\Collection
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+        $q = $this->buildSalesComparisonLinesQuery($request, true)
+            ->whereBetween('t.transaction_date', [$from, $to]);
+
+        $rows = $q->groupBy('tsl.product_id', 't.establishment_id', 't.contact_id')
+            ->selectRaw('tsl.product_id as product_id')
+            ->selectRaw('t.establishment_id as establishment_id')
+            ->selectRaw('t.contact_id as contact_id')
+            ->selectRaw('MAX(p.name_ar) as product_name_ar')
+            ->selectRaw('MAX(p.name_en) as product_name_en')
+            ->selectRaw('MAX(p.SKU) as sku')
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
+            ->selectRaw('MAX(c.name) as customer')
+            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw('COUNT(*) as line_count')
+            ->get();
+
+        return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id.'|'.$r->contact_id);
+    }
+
+    private function applyProductPurchaseReportFilters($query, Request $request): void
+    {
+        if ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $query->whereIn('t.establishment_id', $branchIds);
+            }
+        }
+
+        if ($request->has('supplier_id')) {
+            $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
+            if (! empty($supplierIds)) {
+                $query->whereIn('t.contact_id', $supplierIds);
+            }
+        }
+
+        if ($request->has('product_id')) {
+            $productIds = collect($request->input('product_id'))->filter()->values()->toArray();
+            if (! empty($productIds)) {
+                $query->whereIn('p.id', $productIds);
+            }
+        }
+
+        if ($request->has('category_id')) {
+            $categoryIds = collect($request->input('category_id'))->filter()->values()->toArray();
+            if (! empty($categoryIds)) {
+                $query->whereIn('p.category_id', $categoryIds);
+            }
+        }
+
+        if ($request->has('subcategory_id')) {
+            $subcategoryIds = collect($request->input('subcategory_id'))->filter()->values()->toArray();
+            if (! empty($subcategoryIds)) {
+                $query->whereIn('p.subcategory_id', $subcategoryIds);
+            }
+        }
+
+        if ($request->has('unit_id')) {
+            $unitIds = collect($request->input('unit_id'))->filter()->values()->toArray();
+            if (! empty($unitIds)) {
+                $query->whereIn('transactione_purchases_lines.unit_id', $unitIds);
+            }
+        }
+
+        if ($request->has('payment_method')) {
+            $methods = collect($request->input('payment_method'))->filter()->values()->toArray();
+            if (! empty($methods)) {
+                $query->whereExists(function ($q) use ($methods) {
+                    $q->select(DB::raw(1))
+                        ->from('transaction_payments as tpf')
+                        ->whereColumn('tpf.transaction_id', 't.id')
+                        ->whereIn('tpf.method', $methods);
+                });
+            }
+        }
+
+        if (! empty($request->input('sale_date_range'))) {
+            $dateRange = explode(' - ', $request->input('sale_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('t.transaction_date', [$from, $to]);
+            }
+        }
+    }
+
+    private function buildProductPurchaseReportDetailQuery(Request $request)
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+        $catName = $locale === 'ar' ? 'cat.name_ar' : 'cat.name_en';
+        $subName = $locale === 'ar' ? 'sub.name_ar' : 'sub.name_en';
+
+        $query = TransactionePurchasesLine::query()
+            ->join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
+            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->join('product_products as p', 'transactione_purchases_lines.product_id', '=', 'p.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as u', 'transactione_purchases_lines.unit_id', '=', 'u.id')
+            ->leftJoin('product_categories as cat', 'p.category_id', '=', 'cat.id')
+            ->leftJoin('product_subcategories as sub', 'p.subcategory_id', '=', 'sub.id')
+            ->where('t.type', 'purchases')
+            ->where('t.status', 'approved')
+            ->select([
+                'transactione_purchases_lines.id as purchase_line_id',
+                'p.name_ar as product_name_ar',
+                'p.name_en as product_name_en',
+                'p.price as product_price',
+                'p.SKU as product_SKU',
+                'c.name as supplier',
+                't.id as transaction_id',
+                't.ref_no',
+                't.transaction_date as transaction_date',
+                'transactione_purchases_lines.unit_price_before_discount as unit_price',
+                'transactione_purchases_lines.unit_price_inc_tax as unit_sale_price',
+                DB::raw('transactione_purchases_lines.qyt as purchased_quantity'),
+                'transactione_purchases_lines.discount_amount as discount_amount',
+                'transactione_purchases_lines.tax_value as tax_value',
+                DB::raw("{$catName} as category"),
+                DB::raw("{$subName} as subcategory"),
+                DB::raw("CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END as establishment_name"),
+                'u.unit1 as line_unit',
+                DB::raw('(transactione_purchases_lines.qyt * transactione_purchases_lines.unit_price_inc_tax) as subtotal'),
+                DB::raw('(SELECT GROUP_CONCAT(DISTINCT tpx.method ORDER BY tpx.method SEPARATOR ",") FROM transaction_payments tpx WHERE tpx.transaction_id = t.id) as invoice_payment_methods'),
+            ]);
+
+        $this->applyProductPurchaseReportFilters($query, $request);
+        $query->orderBy('transactione_purchases_lines.id', 'desc');
+
+        return $query;
+    }
+
+    private function buildProductPurchaseReportSummaryQuery(Request $request)
+    {
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+        $catName = $locale === 'ar' ? 'cat.name_ar' : 'cat.name_en';
+        $subName = $locale === 'ar' ? 'sub.name_ar' : 'sub.name_en';
+        $estCol = $locale === 'ar' ? 'e.name' : 'e.name_en';
+
+        $query = TransactionePurchasesLine::query()
+            ->join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
+            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->join('product_products as p', 'transactione_purchases_lines.product_id', '=', 'p.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as u', 'transactione_purchases_lines.unit_id', '=', 'u.id')
+            ->leftJoin('product_categories as cat', 'p.category_id', '=', 'cat.id')
+            ->leftJoin('product_subcategories as sub', 'p.subcategory_id', '=', 'sub.id')
+            ->where('t.type', 'purchases')
+            ->where('t.status', 'approved')
+            ->select([
+                DB::raw('MIN(transactione_purchases_lines.id) as purchase_line_id'),
+                'p.name_ar as product_name_ar',
+                'p.name_en as product_name_en',
+                'p.price as product_price',
+                'p.SKU as product_SKU',
+                DB::raw('NULL as supplier'),
+                DB::raw('MIN(t.id) as transaction_id'),
+                DB::raw('MIN(t.ref_no) as ref_no'),
+                DB::raw('MIN(t.transaction_date) as transaction_date'),
+                DB::raw('SUM(transactione_purchases_lines.qyt * transactione_purchases_lines.unit_price_before_discount) / NULLIF(SUM(transactione_purchases_lines.qyt), 0) as unit_price'),
+                DB::raw('SUM(transactione_purchases_lines.qyt * transactione_purchases_lines.unit_price_inc_tax) / NULLIF(SUM(transactione_purchases_lines.qyt), 0) as unit_sale_price'),
+                DB::raw('SUM(transactione_purchases_lines.qyt) as purchased_quantity'),
+                DB::raw('SUM(transactione_purchases_lines.discount_amount) as discount_amount'),
+                DB::raw('SUM(transactione_purchases_lines.tax_value) as tax_value'),
+                DB::raw("MAX({$catName}) as category"),
+                DB::raw("MAX({$subName}) as subcategory"),
+                DB::raw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name"),
+                DB::raw('GROUP_CONCAT(DISTINCT NULLIF(u.unit1, \'\') ORDER BY u.unit1 SEPARATOR \', \') as line_unit'),
+                DB::raw('SUM(transactione_purchases_lines.qyt * transactione_purchases_lines.unit_price_inc_tax) as subtotal'),
+                DB::raw('NULL as invoice_payment_methods'),
+            ])
+            ->groupBy('p.id', 'p.name_ar', 'p.name_en', 'p.price', 'p.SKU', 't.establishment_id');
+
+        $this->applyProductPurchaseReportFilters($query, $request);
+        $query->orderByRaw("MAX({$estCol}) ASC")
+            ->orderByRaw('SUM(transactione_purchases_lines.qyt) DESC');
+
+        return $query;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function purchaseLineReportFilterSummaryLines(Request $request): array
+    {
+        $locale = app()->getLocale();
+        $sep = $locale === 'ar' ? '، ' : ', ';
+        $lines = [];
+
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+        if ($branchIds->isNotEmpty()) {
+            $names = Establishment::whereIn('id', $branchIds)->get()->map(function ($e) use ($locale) {
+                return $locale === 'ar' ? ($e->name ?? '') : ($e->name_en ?? $e->name ?? '');
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_branch').': '.$names;
+            }
+        }
+
+        $supplierIds = collect($request->input('supplier_id'))->filter()->values();
+        if ($supplierIds->isNotEmpty()) {
+            $names = Contact::whereIn('id', $supplierIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::purchase.Supplier').': '.$names;
+            }
+        }
+
+        $productIds = collect($request->input('product_id'))->filter()->values();
+        if ($productIds->isNotEmpty()) {
+            $names = Product::whereIn('id', $productIds)->get()->map(function ($p) use ($locale) {
+                return $locale === 'ar' ? ($p->name_ar ?: $p->name_en) : ($p->name_en ?: $p->name_ar);
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_product').': '.$names;
+            }
+        }
+
+        $categoryIds = collect($request->input('category_id'))->filter()->values();
+        if ($categoryIds->isNotEmpty()) {
+            $names = Category::restrictByFranchise()->whereIn('id', $categoryIds)->get()->map(function ($c) use ($locale) {
+                return $locale === 'ar' ? $c->name_ar : $c->name_en;
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_category').': '.$names;
+            }
+        }
+
+        $subcategoryIds = collect($request->input('subcategory_id'))->filter()->values();
+        if ($subcategoryIds->isNotEmpty()) {
+            $allowedCategoryIds = Category::restrictByFranchise()->pluck('id');
+            $names = Subcategory::whereIn('id', $subcategoryIds)
+                ->whereIn('category_id', $allowedCategoryIds)
+                ->get()
+                ->map(fn ($s) => $locale === 'ar' ? $s->name_ar : $s->name_en)
+                ->filter()
+                ->unique()
+                ->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_subcategory').': '.$names;
+            }
+        }
+
+        $unitIds = collect($request->input('unit_id'))->filter()->values();
+        if ($unitIds->isNotEmpty()) {
+            $names = DB::table('product_unit_transfer')
+                ->whereIn('id', $unitIds)
+                ->pluck('unit1')
+                ->map(fn ($u) => (string) ($u ?? ''))
+                ->filter()
+                ->unique()
+                ->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_unit').': '.$names;
+            }
+        }
+
+        $payMethods = collect($request->input('payment_method'))->filter()->values();
+        if ($payMethods->isNotEmpty()) {
+            $labels = $payMethods->map(fn ($m) => $this->salesComparisonPaymentMethodLabel((string) $m))->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::general.filter_panel_payment').': '.$labels;
+            }
+        }
+
+        return $lines;
+    }
+
+    private function productPurchaseReportFilterSummary(Request $request): string
+    {
+        $lines = [];
+        $mode = $request->input('report_mode', 'detail');
+        $lines[] = __('report::general.product_purchase_report_mode').': '.($mode === 'summary'
+            ? __('report::general.product_purchase_report_mode_summary')
+            : __('report::general.product_purchase_report_mode_detail'));
+        $dateRange = trim((string) $request->input('sale_date_range', ''));
+        if ($dateRange !== '') {
+            $lines[] = __('report::purchase.Sale Date Range').': '.$dateRange;
+        }
+        $lines = array_merge($lines, $this->purchaseLineReportFilterSummaryLines($request));
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @param  list<string>  $exportKeys
+     * @return array{title: string, generated_at: string, filters: string, row_count: int, headers: array}
+     */
+    private function buildProductPurchasesExportMeta(Request $request, int $rowCount, array $exportKeys): array
+    {
+        return [
+            'title' => __('menuItemLang.product-purchase-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'filters' => $this->productPurchaseReportFilterSummary($request),
+            'row_count' => $rowCount,
+            'headers' => ReportTransactionsUtile::getProductPurchasesExportHeaderLabels($exportKeys),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveProductPurchasesExportColumnKeys(Request $request): array
+    {
+        $all = ReportTransactionsUtile::getProductPurchasesExportColumnKeys();
+        $raw = $request->input('export_columns', []);
+        $requested = collect(\Illuminate\Support\Arr::wrap($raw))
+            ->flatten()
+            ->filter(fn ($k) => is_string($k) && $k !== '')
+            ->values()
+            ->all();
+        if ($requested === []) {
+            return $all;
+        }
+        $picked = array_values(array_intersect($all, $requested));
+
+        return $picked === [] ? $all : $picked;
+    }
+
+    public function productPurchasesExportExcel(Request $request)
+    {
+        $isSummary = $request->input('report_mode', 'detail') === 'summary';
+        $exportKeys = $this->resolveProductPurchasesExportColumnKeys($request);
+        $query = $isSummary
+            ? $this->buildProductPurchaseReportSummaryQuery($request)
+            : $this->buildProductPurchaseReportDetailQuery($request);
+        $rows = $query->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapProductPurchasesRowForExport($r, $isSummary, $exportKeys));
+        $meta = $this->buildProductPurchasesExportMeta($request, $mapped->count(), $exportKeys);
+        $filename = 'product-purchase-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new ProductSalesExcelExport($mapped, $meta), $filename);
+    }
+
+    public function productPurchasesExportPdf(Request $request)
+    {
+        $isSummary = $request->input('report_mode', 'detail') === 'summary';
+        $exportKeys = $this->resolveProductPurchasesExportColumnKeys($request);
+        $query = $isSummary
+            ? $this->buildProductPurchaseReportSummaryQuery($request)
+            : $this->buildProductPurchaseReportDetailQuery($request);
+        $rows = $query->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapProductPurchasesRowForExport($r, $isSummary, $exportKeys));
+        $meta = $this->buildProductPurchasesExportMeta($request, $mapped->count(), $exportKeys);
+        $headers = ReportTransactionsUtile::getProductPurchasesExportHeaderLabels($exportKeys);
+        $textStartColIndexes = ReportTransactionsUtile::productPurchasesExportPdfTextStartIndexes($exportKeys);
+
+        $html = view('report::sales.product_sales_export_pdf', [
+            'meta' => $meta,
+            'headers' => $headers,
+            'rows' => $mapped->all(),
+            'textStartColIndexes' => $textStartColIndexes,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'product-purchase-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function getproductPurchaseReport(Request $request)
+    {
+        $transactionUtile = new ReportTransactionsUtile;
+
+        if ($request->ajax()) {
+            $mode = $request->input('report_mode', 'detail');
+            if ($mode === 'summary') {
+                $query = $this->buildProductPurchaseReportSummaryQuery($request);
+
+                return ReportTransactionsUtile::getProductPurchasesReportSummary($query);
             }
 
-            if ($request->has('supplier_id')) {
-                $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
-                if (!empty($supplierIds)) {
-                    $query->whereIn('t.contact_id', $supplierIds);
-                }
-            }
+            $query = $this->buildProductPurchaseReportDetailQuery($request);
 
-            if ($request->has('product_id')) {
-                $paymentMethods = collect($request->input('product_id'))->filter()->values()->toArray();
-                if (!empty($paymentMethods)) {
-                    $query->whereIn('p.id', $paymentMethods);
-                }
-            }
-
-            if (!empty($request->input('sale_date_range'))) {
-                $dateRange = explode(' - ', $request->input('sale_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('t.transaction_date', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('created_at', 'desc')->get();
-            return  $transactionUtile->getProductPurchasesReport($results);
+            return ReportTransactionsUtile::getProductPurchasesReport($query);
         }
 
         $columns = $transactionUtile->getsProductPurchasesColumns();
-        return view('report::sales.product-purchase-report')
-            ->with(compact(
-                'columns'
-            ));
-    }
 
+        return view('report::sales.product-purchase-report')
+            ->with(compact('columns'));
+    }
 
     public function purchasePaymentReport(Request $request)
     {
-        $transactionUtile = new ReportTransactionsUtile();
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
+            $query = $this->buildPurchasePaymentReportQuery($request);
 
-            $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            return $transactionUtile->purchasePaymentReportTable($query);
+        }
 
-                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftjoin('est_pos as d', 't.device_id', '=', 'd.id')
-                ->whereIn('t.type', ['purchases'])
-                ->select(
-                    DB::raw("IF(transaction_payments.transaction_id IS NULL,
+        $columns = $transactionUtile->purchasePaymentReportColumns();
+        $purchasePaymentColumnPicker = ReportTransactionsUtile::getPurchasePaymentColumnPickerMeta();
+        $purchasePaymentExportColumnKeys = ReportTransactionsUtile::getPurchasePaymentExportColumnKeys();
+
+        return view('report::sales.purchase_payment_report')
+            ->with(compact('columns', 'purchasePaymentColumnPicker', 'purchasePaymentExportColumnKeys'));
+    }
+
+    public function purchasePaymentExportExcel(Request $request)
+    {
+        $exportKeys = $this->resolvePurchasePaymentExportColumnKeys($request);
+        $rows = $this->buildPurchasePaymentReportQuery($request)->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapSellPaymentRowForExport($r, $exportKeys));
+        $meta = $this->buildPurchasePaymentExportMeta($request, $mapped->count(), $exportKeys);
+        $filename = 'purchase-payment-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new SellPaymentExcelExport($mapped, $meta), $filename);
+    }
+
+    public function purchasePaymentExportPdf(Request $request)
+    {
+        $exportKeys = $this->resolvePurchasePaymentExportColumnKeys($request);
+        $rows = $this->buildPurchasePaymentReportQuery($request)->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapSellPaymentRowForExport($r, $exportKeys));
+        $meta = $this->buildPurchasePaymentExportMeta($request, $mapped->count(), $exportKeys);
+        $headers = ReportTransactionsUtile::getPurchasePaymentExportHeaderLabels($exportKeys);
+        $textStartColIndexes = ReportTransactionsUtile::sellPaymentExportPdfTextStartIndexes($exportKeys);
+
+        $html = view('report::sales.sell_payment_export_pdf', [
+            'meta' => $meta,
+            'headers' => $headers,
+            'rows' => $mapped->all(),
+            'textStartColIndexes' => $textStartColIndexes,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'purchase-payment-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $exportKeys
+     * @return array{title: string, generated_at: string, filters: string, row_count: int, headers: array}
+     */
+    private function buildPurchasePaymentExportMeta(Request $request, int $rowCount, array $exportKeys): array
+    {
+        return [
+            'title' => __('menuItemLang.purchase-payment-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'filters' => $this->purchasePaymentExportFilterSummary($request),
+            'row_count' => $rowCount,
+            'headers' => ReportTransactionsUtile::getPurchasePaymentExportHeaderLabels($exportKeys),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolvePurchasePaymentExportColumnKeys(Request $request): array
+    {
+        $all = ReportTransactionsUtile::getPurchasePaymentExportColumnKeys();
+        $raw = $request->input('export_columns', []);
+        $requested = collect(\Illuminate\Support\Arr::wrap($raw))
+            ->flatten()
+            ->filter(fn ($k) => is_string($k) && $k !== '')
+            ->values()
+            ->all();
+        if ($requested === []) {
+            return $all;
+        }
+        $picked = array_values(array_intersect($all, $requested));
+
+        return $picked === [] ? $all : $picked;
+    }
+
+    private function purchasePaymentExportFilterSummary(Request $request): string
+    {
+        $locale = app()->getLocale();
+        $sep = $locale === 'ar' ? '، ' : ', ';
+        $lines = [];
+        $dr = trim((string) $request->input('payment_date_range', ''));
+        if ($dr !== '') {
+            $lines[] = __('report::purchase.Payment Date Range').': '.$dr;
+        }
+
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+        if ($branchIds->isNotEmpty()) {
+            $names = Establishment::whereIn('id', $branchIds)->get()->map(function ($e) use ($locale) {
+                return $locale === 'ar' ? ($e->name ?? '') : ($e->name_en ?? $e->name ?? '');
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_branch').': '.$names;
+            }
+        }
+
+        $deviceIds = collect($request->input('device_id'))->filter()->values();
+        if ($deviceIds->isNotEmpty()) {
+            $names = EstPos::whereIn('id', $deviceIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::purchase.Device').': '.$names;
+            }
+        }
+
+        $supplierIds = collect($request->input('supplier_id'))->filter()->values();
+        if ($supplierIds->isNotEmpty()) {
+            $names = Contact::whereIn('id', $supplierIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::purchase.Supplier').': '.$names;
+            }
+        }
+
+        $payMethods = collect($request->input('payment_method'))->filter()->values();
+        if ($payMethods->isNotEmpty()) {
+            $labels = $payMethods->map(fn ($m) => $this->salesComparisonPaymentMethodLabel((string) $m))->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::general.filter_panel_payment').': '.$labels;
+            }
+        }
+
+        $statuses = collect($request->input('payment_status'))->filter()->values();
+        if ($statuses->isNotEmpty()) {
+            $labels = $statuses->map(function ($s) {
+                $s = (string) $s;
+                $t = __('report::purchase.'.$s);
+
+                return $t !== 'report::purchase.'.$s ? $t : $s;
+            })->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::purchase.Payment Status').': '.$labels;
+            }
+        }
+
+        return $lines === [] ? __('report::general.export_no_filters') : implode("\n", $lines);
+    }
+
+    private function buildPurchasePaymentReportQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TransactionPayments::query()
+            ->leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('est_pos as d', 't.device_id', '=', 'd.id')
+            ->whereIn('t.type', ['purchases'])
+            ->select(
+                DB::raw("IF(transaction_payments.transaction_id IS NULL,
                                 (SELECT c.name FROM transactions as ts
                                 JOIN cs_contacts as c ON ts.contact_id=c.id),
                                 (SELECT CONCAT(COALESCE(c.name, '')) FROM transactions as ts JOIN
@@ -355,98 +1621,248 @@ class SalesReportController extends Controller
                                     WHERE ts.id=t.id
                                 )
                             ) as supplier"),
-                    /*'u.name as cashier',*/
-                    DB::raw("CASE
-                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                DB::raw("CASE
+                WHEN '".app()->getLocale()."' = 'ar' THEN e.name
                 ELSE e.name_en
               END as establishment_name"),
-                    'd.name as device_name',
-                    'transaction_payments.amount',
-                    'transaction_payments.method',
-                    'transaction_payments.paid_on',
-                    'transaction_payments.payment_ref_no',
-                    't.id as transaction_id',
-                    't.final_total',
-                    't.ref_no',
-                    't.created_at',
-                    't.payment_status',
-                    't.id as transaction_id',
-                    'transaction_payments.id as DT_RowId'
-                );
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
-            }
-            if ($request->has('device_id')) {
-                $branchIds = collect($request->input('device_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.device_id', $branchIds);
-                }
-            }
-            if ($request->has('cashier_id')) {
-                $query->where('t.created_by', $request->input('cashier_id'));
-            }
+                'd.name as device_name',
+                'transaction_payments.amount',
+                'transaction_payments.method',
+                'transaction_payments.paid_on',
+                'transaction_payments.payment_ref_no',
+                't.ref_no',
+                't.id as transaction_id',
+                't.final_total',
+                't.created_at',
+                't.payment_status',
+                'transaction_payments.id as DT_RowId'
+            );
 
-            if ($request->has('supplier_id')) {
-                $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
-                if (!empty($supplierIds)) {
-                    $query->whereIn('t.contact_id', $supplierIds);
-                }
+        if ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $query->whereIn('t.establishment_id', $branchIds);
             }
-
-            if ($request->has('payment_method')) {
-                $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
-                if (!empty($paymentMethods)) {
-                    $query->whereIn('transaction_payments.method', $paymentMethods);
-                }
+        }
+        if ($request->has('device_id')) {
+            $deviceIds = collect($request->input('device_id'))->filter()->values()->toArray();
+            if (! empty($deviceIds)) {
+                $query->whereIn('t.device_id', $deviceIds);
             }
-
-            if ($request->has('payment_status')) {
-                $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
-                if (!empty($paymentStatuses)) {
-                    $query->whereIn('t.payment_status', $paymentStatuses);
-                }
-            }
-
-            if (!empty($request->input('payment_date_range'))) {
-                $dateRange = explode(' - ', $request->input('payment_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('created_at', 'desc')->get();
-
-            return $transactionUtile->purchasePaymentReportTable($results);
+        }
+        if ($request->has('cashier_id')) {
+            $query->where('t.created_by', $request->input('cashier_id'));
         }
 
-        $columns = $transactionUtile->purchasePaymentReportColumns();
-        return view('report::sales.purchase_payment_report')
-            ->with(compact('columns'));
+        if ($request->has('supplier_id')) {
+            $supplierIds = collect($request->input('supplier_id'))->filter()->values()->toArray();
+            if (! empty($supplierIds)) {
+                $query->whereIn('t.contact_id', $supplierIds);
+            }
+        }
+
+        if ($request->has('payment_method')) {
+            $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
+            if (! empty($paymentMethods)) {
+                $query->whereIn('transaction_payments.method', $paymentMethods);
+            }
+        }
+
+        if ($request->has('payment_status')) {
+            $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
+            if (! empty($paymentStatuses)) {
+                $query->whereIn('t.payment_status', $paymentStatuses);
+            }
+        }
+
+        if (! empty($request->input('payment_date_range'))) {
+            $dateRange = explode(' - ', $request->input('payment_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
+            }
+        }
+
+        return $query->orderBy('t.created_at', 'desc');
     }
 
     public function salesPaymentReport(Request $request)
     {
 
-
-        $transactionUtile = new ReportTransactionsUtile();
-
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
+            $query = $this->buildSellPaymentReportQuery($request);
 
-            $query =
-                $query = TransactionPayments::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            return $transactionUtile->purchasePaymentReportTable($query);
+        }
 
-                ->leftjoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftjoin('est_pos as d', 't.device_id', '=', 'd.id')
-                ->whereIn('t.type', ['sell'])
+        $columns = $transactionUtile->salesPaymentReportColumns();
+        $sellPaymentColumnPicker = ReportTransactionsUtile::getSellPaymentColumnPickerMeta();
+        $sellPaymentExportColumnKeys = ReportTransactionsUtile::getSellPaymentExportColumnKeys();
 
-                ->select(
-                    DB::raw("IF(transaction_payments.transaction_id IS NULL,
+        return view('report::sales.sell_payment_report')
+            ->with(compact('columns', 'sellPaymentColumnPicker', 'sellPaymentExportColumnKeys'));
+    }
+
+    public function sellPaymentExportExcel(Request $request)
+    {
+        $exportKeys = $this->resolveSellPaymentExportColumnKeys($request);
+        $rows = $this->buildSellPaymentReportQuery($request)->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapSellPaymentRowForExport($r, $exportKeys));
+        $meta = $this->buildSellPaymentExportMeta($request, $mapped->count(), $exportKeys);
+        $filename = 'sell-payment-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new SellPaymentExcelExport($mapped, $meta), $filename);
+    }
+
+    public function sellPaymentExportPdf(Request $request)
+    {
+        $exportKeys = $this->resolveSellPaymentExportColumnKeys($request);
+        $rows = $this->buildSellPaymentReportQuery($request)->get();
+        $mapped = $rows->map(fn ($r) => ReportTransactionsUtile::mapSellPaymentRowForExport($r, $exportKeys));
+        $meta = $this->buildSellPaymentExportMeta($request, $mapped->count(), $exportKeys);
+        $headers = ReportTransactionsUtile::getSellPaymentExportHeaderLabels($exportKeys);
+        $textStartColIndexes = ReportTransactionsUtile::sellPaymentExportPdfTextStartIndexes($exportKeys);
+
+        $html = view('report::sales.sell_payment_export_pdf', [
+            'meta' => $meta,
+            'headers' => $headers,
+            'rows' => $mapped->all(),
+            'textStartColIndexes' => $textStartColIndexes,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'sell-payment-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $exportKeys
+     * @return array{title: string, generated_at: string, filters: string, row_count: int, headers: array}
+     */
+    private function buildSellPaymentExportMeta(Request $request, int $rowCount, array $exportKeys): array
+    {
+        return [
+            'title' => __('menuItemLang.sell-payment-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'filters' => $this->sellPaymentExportFilterSummary($request),
+            'row_count' => $rowCount,
+            'headers' => ReportTransactionsUtile::getSellPaymentExportHeaderLabels($exportKeys),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveSellPaymentExportColumnKeys(Request $request): array
+    {
+        $all = ReportTransactionsUtile::getSellPaymentExportColumnKeys();
+        $raw = $request->input('export_columns', []);
+        $requested = collect(\Illuminate\Support\Arr::wrap($raw))
+            ->flatten()
+            ->filter(fn ($k) => is_string($k) && $k !== '')
+            ->values()
+            ->all();
+        if ($requested === []) {
+            return $all;
+        }
+        $picked = array_values(array_intersect($all, $requested));
+
+        return $picked === [] ? $all : $picked;
+    }
+
+    private function sellPaymentExportFilterSummary(Request $request): string
+    {
+        $locale = app()->getLocale();
+        $sep = $locale === 'ar' ? '، ' : ', ';
+        $lines = [];
+        $dr = trim((string) $request->input('payment_date_range', ''));
+        if ($dr !== '') {
+            $lines[] = __('report::purchase.Payment Date Range').': '.$dr;
+        }
+
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+        if ($branchIds->isNotEmpty()) {
+            $names = Establishment::whereIn('id', $branchIds)->get()->map(function ($e) use ($locale) {
+                return $locale === 'ar' ? ($e->name ?? '') : ($e->name_en ?? $e->name ?? '');
+            })->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_branch').': '.$names;
+            }
+        }
+
+        $deviceIds = collect($request->input('device_id'))->filter()->values();
+        if ($deviceIds->isNotEmpty()) {
+            $names = EstPos::whereIn('id', $deviceIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::purchase.Device').': '.$names;
+            }
+        }
+
+        $customerIds = collect($request->input('customer_id'))->filter()->values();
+        if ($customerIds->isNotEmpty()) {
+            $names = Contact::whereIn('id', $customerIds)->pluck('name')->filter()->unique()->implode($sep);
+            if ($names !== '') {
+                $lines[] = __('report::general.filter_panel_customer').': '.$names;
+            }
+        }
+
+        $payMethods = collect($request->input('payment_method'))->filter()->values();
+        if ($payMethods->isNotEmpty()) {
+            $labels = $payMethods->map(fn ($m) => $this->salesComparisonPaymentMethodLabel((string) $m))->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::general.filter_panel_payment').': '.$labels;
+            }
+        }
+
+        $statuses = collect($request->input('payment_status'))->filter()->values();
+        if ($statuses->isNotEmpty()) {
+            $labels = $statuses->map(function ($s) {
+                $s = (string) $s;
+                $t = __('report::purchase.'.$s);
+
+                return $t !== 'report::purchase.'.$s ? $t : $s;
+            })->unique()->implode($sep);
+            if ($labels !== '') {
+                $lines[] = __('report::purchase.Payment Status').': '.$labels;
+            }
+        }
+
+        return $lines === [] ? __('report::general.export_no_filters') : implode("\n", $lines);
+    }
+
+    private function buildSellPaymentReportQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TransactionPayments::query()
+            ->leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('est_pos as d', 't.device_id', '=', 'd.id')
+            ->whereIn('t.type', ['sell'])
+            ->select(
+                DB::raw("IF(transaction_payments.transaction_id IS NULL,
                                 (SELECT c.name FROM transactions as ts
                                 JOIN cs_contacts as c ON ts.contact_id=c.id),
                                 (SELECT CONCAT(COALESCE(c.name, '')) FROM transactions as ts JOIN
@@ -454,83 +1870,75 @@ class SalesReportController extends Controller
                                     WHERE ts.id=t.id
                                 )
                             ) as supplier"),
-                    DB::raw("CASE
-                WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                DB::raw("CASE
+                WHEN '".app()->getLocale()."' = 'ar' THEN e.name
                 ELSE e.name_en
               END as establishment_name"),
-                    'd.name as device_name',
-                    'transaction_payments.amount',
-                    'transaction_payments.method',
-                    'transaction_payments.paid_on',
-                    'transaction_payments.payment_ref_no',
-                    't.ref_no',
-                    't.id as transaction_id',
-                    't.final_total',
-                    't.created_at',
-                    't.payment_status',
-                    // 'transaction_no',
-                    'transaction_payments.id as DT_RowId'
-                );
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
-            }
-            if ($request->has('device_id')) {
-                $branchIds = collect($request->input('device_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
-                    $query->whereIn('t.device_id', $branchIds);
-                }
-            }
-            if ($request->has('cashier_id')) {
-                $query->where('t.created_by', $request->input('cashier_id'));
-            }
+                'd.name as device_name',
+                'transaction_payments.amount',
+                'transaction_payments.method',
+                'transaction_payments.paid_on',
+                'transaction_payments.payment_ref_no',
+                't.ref_no',
+                't.id as transaction_id',
+                't.final_total',
+                't.created_at',
+                't.payment_status',
+                'transaction_payments.id as DT_RowId'
+            );
 
-            if ($request->has('customer_id')) {
-                $supplierIds = collect($request->input('customer_id'))->filter()->values()->toArray();
-                if (!empty($supplierIds)) {
-                    $query->whereIn('t.contact_id', $supplierIds);
-                }
+        if ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $query->whereIn('t.establishment_id', $branchIds);
             }
-
-            if ($request->has('payment_method')) {
-                $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
-                if (!empty($paymentMethods)) {
-                    $query->whereIn('transaction_payments.method', $paymentMethods);
-                }
+        }
+        if ($request->has('device_id')) {
+            $deviceIds = collect($request->input('device_id'))->filter()->values()->toArray();
+            if (! empty($deviceIds)) {
+                $query->whereIn('t.device_id', $deviceIds);
             }
-
-            if ($request->has('payment_status')) {
-                $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
-                if (!empty($paymentStatuses)) {
-                    $query->whereIn('t.payment_status', $paymentStatuses);
-                }
-            }
-
-            if (!empty($request->input('payment_date_range'))) {
-                $dateRange = explode(' - ', $request->input('payment_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('created_at', 'desc')->get();
-
-
-            return $transactionUtile->purchasePaymentReportTable($query);
+        }
+        if ($request->has('cashier_id')) {
+            $query->where('t.created_by', $request->input('cashier_id'));
         }
 
-        $columns = $transactionUtile->salesPaymentReportColumns();
-        return view('report::sales.sell_payment_report')
-            ->with(compact('columns'));
+        if ($request->has('customer_id')) {
+            $supplierIds = collect($request->input('customer_id'))->filter()->values()->toArray();
+            if (! empty($supplierIds)) {
+                $query->whereIn('t.contact_id', $supplierIds);
+            }
+        }
+
+        if ($request->has('payment_method')) {
+            $paymentMethods = collect($request->input('payment_method'))->filter()->values()->toArray();
+            if (! empty($paymentMethods)) {
+                $query->whereIn('transaction_payments.method', $paymentMethods);
+            }
+        }
+
+        if ($request->has('payment_status')) {
+            $paymentStatuses = collect($request->input('payment_status'))->filter()->values()->toArray();
+            if (! empty($paymentStatuses)) {
+                $query->whereIn('t.payment_status', $paymentStatuses);
+            }
+        }
+
+        if (! empty($request->input('payment_date_range'))) {
+            $dateRange = explode(' - ', $request->input('payment_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('transaction_payments.paid_on', [$from, $to]);
+            }
+        }
+
+        return $query->orderBy('t.created_at', 'desc');
     }
 
     public function getProfitLoss(Request $request)
     {
-        $transactionUtile = new TransactionUtile();
+        $transactionUtile = new TransactionUtile;
 
         if ($request->ajax()) {
             $start_date = $request->get('start_date');
@@ -547,9 +1955,9 @@ class SalesReportController extends Controller
 
     public function getPurchaseSell(Request $request)
     {
-        $transactionUtile = new TransactionUtile();
+        $transactionUtile = new TransactionUtile;
 
-        //Return the details in ajax call
+        // Return the details in ajax call
         if ($request->ajax()) {
             $start_date = $request->get('start_date');
             $end_date = $request->get('end_date');
@@ -559,7 +1967,7 @@ class SalesReportController extends Controller
             $dueDateRange = trim($request->date_range);
             $dates = explode(' إلى ', $dueDateRange);
             if ($request->date_range) {
-                $start_date =   $dates[0];
+                $start_date = $dates[0];
                 $end_date = $dates[1];
             }
 
@@ -583,33 +1991,31 @@ class SalesReportController extends Controller
 
             $purchase_data = '
             <tr>
-                <td>' . __('report::general.total_purchase_inc_tax') . '</td>
-                <td>' . ($purchase_details['total_purchase_inc_tax'] ?? 0) . '</td>
+                <td>'.__('report::general.total_purchase_inc_tax').'</td>
+                <td>'.($purchase_details['total_purchase_inc_tax'] ?? 0).'</td>
             </tr>
             <tr>
-                <td>' . __('report::general.total_purchase_return') . '</td>
-                <td>' . ($total_purchase_return_inc_tax ?? 0) . '</td>
+                <td>'.__('report::general.total_purchase_return').'</td>
+                <td>'.($total_purchase_return_inc_tax ?? 0).'</td>
             </tr>
             <tr>
-                <td>' . __('report::general.purchase_due') . '</td>
-                <td>' . ($purchase_details['purchase_due'] ?? 0) . '</td>
+                <td>'.__('report::general.purchase_due').'</td>
+                <td>'.($purchase_details['purchase_due'] ?? 0).'</td>
             </tr>';
-
 
             $sales_data = '
             <tr>
-                <td>' . __('report::general.total_sell_inc_tax') . '</td>
-                <td>' . ($sell_details['total_sell_inc_tax'] ?? 0) . '</td>
+                <td>'.__('report::general.total_sell_inc_tax').'</td>
+                <td>'.($sell_details['total_sell_inc_tax'] ?? 0).'</td>
             </tr>
             <tr>
-                <td>' . __('report::general.total_sell_return') . '</td>
-                <td>' . ($total_sell_return_inc_tax ?? 0) . '</td>
+                <td>'.__('report::general.total_sell_return').'</td>
+                <td>'.($total_sell_return_inc_tax ?? 0).'</td>
             </tr>
             <tr>
-                <td>' . __('report::general.invoice_due') . '</td>
-                <td>' . ($sell_details['invoice_due'] ?? 0) . '</td>
+                <td>'.__('report::general.invoice_due').'</td>
+                <td>'.($sell_details['invoice_due'] ?? 0).'</td>
             </tr>';
-
 
             $difference = [
                 'total' => $sell_details['total_sell_inc_tax'] - $total_sell_return_inc_tax - ($purchase_details['total_purchase_inc_tax'] - $total_purchase_return_inc_tax),
@@ -619,7 +2025,7 @@ class SalesReportController extends Controller
             return response()->json([
                 'purchase_data' => $purchase_data,
                 'sales_data' => $sales_data,
-                'difference' => $difference
+                'difference' => $difference,
             ]);
         }
 
@@ -636,12 +2042,12 @@ class SalesReportController extends Controller
             ->join('product_products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.type', 'sell')
             ->where('sale.status', 'approved');
-        $query->addSelect(DB::raw("
+        $query->addSelect(DB::raw('
             SUM(
                 (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *
                 (transaction_sell_lines.unit_price_inc_tax - COALESCE(TPL.unit_price_inc_tax, 0))
             ) AS gross_profit
-        "));
+        '));
 
         if ($by == 'product') {
             $query->addSelect(DB::raw("
@@ -656,8 +2062,6 @@ class SalesReportController extends Controller
            "))
                 ->groupBy('C.id', 'C.name_ar', 'C.name_en');
         }
-
-
 
         if ($by == 'location') {
             $query->join('est_establishments as E', 'sale.establishment_id', '=', 'E.id')
@@ -702,14 +2106,13 @@ class SalesReportController extends Controller
             $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
             foreach ($days as $day) {
-                if (!isset($profits[$day])) {
+                if (! isset($profits[$day])) {
                     $profits[$day] = 0;
                 }
             }
 
             return view('report::profit_by_day')->with(compact('profits', 'days'));
         }
-
 
         if ($by == 'customer') {
             $query->join('cs_contacts as CU', 'sale.contact_id', '=', 'CU.id')
@@ -725,7 +2128,7 @@ class SalesReportController extends Controller
                     $discount = ($row->discount_amount * $row->total_before_vat) / 100;
                 }
 
-                return    $profit = $row->gross_profit - $discount;
+                return $profit = $row->gross_profit - $discount;
                 // return $this->transactionUtil->num_f($profit, true);
             });
         } else {
@@ -744,7 +2147,6 @@ class SalesReportController extends Controller
             );
         }
 
-
         if ($by == 'date') {
             $datatable->editColumn('transaction_date', '{{($transaction_date)}}');
         }
@@ -755,17 +2157,18 @@ class SalesReportController extends Controller
 
         if ($by == 'invoice') {
             $datatable->editColumn('ref_no', function ($row) {
-                return '<a href="' . action([TransactionController::class, 'show'], [$row->transaction_id])
-                    . '"  data-container=".view_modal" class="btn-modal">' . $row->ref_no . '</a>';
+                return '<a href="'.action([TransactionController::class, 'show'], [$row->transaction_id])
+                    .'"  data-container=".view_modal" class="btn-modal">'.$row->ref_no.'</a>';
             });
         }
 
         return $datatable->rawColumns(['gross_profit', 'category', 'customer', 'ref_no'])
             ->make(true);
     }
+
     public function productInventoryReport(Request $request)
     {
-        $transactionUtile = new ReportTransactionsUtile();
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
             $query = DB::table('transactions as t')
@@ -789,10 +2192,10 @@ class SalesReportController extends Controller
                         ELSE '+'
                     END as transfer_in_out"),
                     't.transfer_status as process',
-                    DB::raw("CASE
+                    DB::raw('CASE
                         WHEN sl.id IS NOT NULL THEN sl.qyt
                         ELSE pl.qyt
-                    END as quantity"),
+                    END as quantity'),
                     't.created_at as transfer_date',
                     't.type as type',
                     'u.unit1 as unit',
@@ -815,24 +2218,24 @@ class SalesReportController extends Controller
                 });
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
+                if (! empty($branchIds)) {
                     $query->whereIn('t.establishment_id', $branchIds);
                 }
             }
             if ($request->has('product_id')) {
                 $products = collect($request->input('product_id'))->filter()->values()->toArray();
-                if (!empty($products)) {
+                if (! empty($products)) {
                     $query->whereIn('p.id', $products);
                 }
             }
             if ($request->has('process_type')) {
                 $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (!empty($processType)) {
+                if (! empty($processType)) {
                     $query->whereIn('t.type', $processType);
                 }
             }
 
-            if (!empty($request->input('inventory_date_range'))) {
+            if (! empty($request->input('inventory_date_range'))) {
                 $dateRange = explode(' - ', $request->input('inventory_date_range'));
                 if (count($dateRange) === 2) {
                     $from = date('Y-m-d', strtotime($dateRange[0]));
@@ -847,12 +2250,14 @@ class SalesReportController extends Controller
         }
 
         $columns = $transactionUtile->productInventoryReportColumns();
+
         return view('report::sales.product_inventory_report')
             ->with(compact('columns'));
     }
+
     public function productInventorySummary(Request $request)
     {
-        $transactionUtile = new ReportTransactionsUtile();
+        $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
             $query = DB::table('transactions as t')
@@ -875,7 +2280,7 @@ class SalesReportController extends Controller
                     'e.id as establishment_id',
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                     DB::raw("CASE
-                    WHEN '" . app()->getLocale() . "' = 'ar' THEN e.name
+                    WHEN '".app()->getLocale()."' = 'ar' THEN e.name
                     ELSE e.name_en
                 END as establishment_name"),
                     DB::raw("
@@ -883,14 +2288,14 @@ class SalesReportController extends Controller
                         SELECT COALESCE(
                             MAX(
                                 CASE
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '" . app()->getLocale() . "' = 'ar' THEN pu_disp_sub.unit1
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '" . app()->getLocale() . "' = 'en' THEN pu_disp_sub.unit1
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'en' THEN pu_disp_sub.unit1
                                     ELSE NULL
                                 END
                             ),
                             MAX(
                                 CASE
-                                    WHEN '" . app()->getLocale() . "' = 'ar' THEN pu_disp_sub.unit1
+                                    WHEN '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
                                     ELSE pu_disp_sub.unit1
                                 END
                             )
@@ -1035,9 +2440,9 @@ SUM(
                         END
                     ) as opening_inventory
                 "),
-                    DB::raw("NULL as counted_quantity"),
+                    DB::raw('NULL as counted_quantity'),
                     //     DB::raw("NULL as quantity_on_inventory"),
-                    DB::raw("
+                    DB::raw('
     (
         SELECT FORMAT(SUM(pi.qty *
             CASE
@@ -1050,7 +2455,7 @@ SUM(
         WHERE pi.establishment_id = t.establishment_id
         AND pi.product_id = p.id
     ) as quantity_on_inventory
-")
+')
                 )
                 ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
                 ->where(function ($query) {
@@ -1070,34 +2475,37 @@ SUM(
 
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
+                if (! empty($branchIds)) {
                     $query->whereIn('t.establishment_id', $branchIds);
                 }
             }
             if ($request->has('product_id')) {
                 $products = collect($request->input('product_id'))->filter()->values()->toArray();
-                if (!empty($products)) {
+                if (! empty($products)) {
                     $query->whereIn('p.id', $products);
                 }
             }
             if ($request->has('process_type')) {
                 $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (!empty($processType)) {
+                if (! empty($processType)) {
                     $query->whereIn('t.type', $processType);
                 }
             }
 
             $results = $query->get();
+
             return $transactionUtile->productInventorySummaryTable($results);
         }
 
         $columns = $transactionUtile->productInventorySummaryColumns();
+
         return view('report::sales.product_inventory_summary')
             ->with(compact('columns'));
     }
+
     public function productInventoryRecord(Request $request, $product_id, $establishment_id)
     {
-        $transactionUtile = new ReportTransactionsUtile();
+        $transactionUtile = new ReportTransactionsUtile;
         Log::info($request);
         if ($request->ajax()) {
             $query = DB::table('transactions as t')
@@ -1126,10 +2534,10 @@ SUM(
                     ELSE '+'
                 END as transfer_in_out"),
                     't.transfer_status as process',
-                    DB::raw("CASE
+                    DB::raw('CASE
                     WHEN sl.id IS NOT NULL THEN sl.qyt
                     ELSE pl.qyt
-                END as quantity"),
+                END as quantity'),
                     't.created_at as transfer_date',
                     't.type as type',
                     'u.unit1 as unit',
@@ -1143,19 +2551,19 @@ SUM(
 
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (!empty($branchIds)) {
+                if (! empty($branchIds)) {
                     $query->whereIn('t.establishment_id', $branchIds);
                 }
             }
 
             if ($request->has('process_type')) {
                 $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (!empty($processType)) {
+                if (! empty($processType)) {
                     $query->whereIn('t.type', $processType);
                 }
             }
 
-            if (!empty($request->input('inventory_date_range'))) {
+            if (! empty($request->input('inventory_date_range'))) {
                 $dateRange = explode(' - ', $request->input('inventory_date_range'));
                 if (count($dateRange) === 2) {
                     $from = date('Y-m-d', strtotime($dateRange[0]));
@@ -1177,6 +2585,7 @@ SUM(
         $productionQuantity = $request->production_quantity;
         $quantityOnInventory = $request->quantity_on_inventory;
         $columns = $transactionUtile->productInventoryReportColumns();
+
         return view('report::sales.product_inventory_record')
             ->with(compact(
                 'columns',
@@ -1193,12 +2602,11 @@ SUM(
             ));
     }
 
-
     public function productStockReport(Request $request)
     {
         $productId = $request->product_id ?: Product::orderBy('id', 'asc')->first()?->id;
-        if (!$productId) {
-            return response()->json(["error" => "No products found"], 404);
+        if (! $productId) {
+            return response()->json(['error' => 'No products found'], 404);
         }
 
         $currentProduct = Product::find($productId);
@@ -1209,7 +2617,7 @@ SUM(
         $establishmentId = $request->branch_id ?: $main_establishment->id;
 
         $from = $request->from ? date('Y-m-d', strtotime($request->from)) : '1900-01-01';
-        $to   = $request->to   ? date('Y-m-d', strtotime($request->to))   : now();
+        $to = $request->to ? date('Y-m-d', strtotime($request->to)) : now();
 
         $purchases = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
             ->where('transactione_purchases_lines.product_id', $productId)
@@ -1271,7 +2679,7 @@ SUM(
         $movements = [];
 
         $allPurchases = TransactionePurchasesLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
+            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
             ->get();
 
         $stockQty = 0;
@@ -1289,7 +2697,7 @@ SUM(
         }
 
         $allSales = TransactionSellLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
+            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
             ->get();
 
         foreach ($allSales as $s) {
@@ -1305,7 +2713,7 @@ SUM(
             ];
         }
 
-        usort($movements, fn($a, $b) => strtotime($b['transaction_date']) <=> strtotime($a['transaction_date']));
+        usort($movements, fn ($a, $b) => strtotime($b['transaction_date']) <=> strtotime($a['transaction_date']));
 
         if ($request->ajax()) {
             return response()->json([
@@ -1343,8 +2751,6 @@ SUM(
         ));
     }
 
-
-
     public function getRegisterReport(Request $request)
     {
         $start_date = $request->input('start_date');
@@ -1356,27 +2762,28 @@ SUM(
         if ($request->ajax()) {
             return Datatables::of($registers)
                 ->editColumn('total_card_payment', function ($row) {
-                    return '<span data-orig-value="' . $row['total_card_payment'] . '">' . $row['total_card_payment'] . '</span>';
+                    return '<span data-orig-value="'.$row['total_card_payment'].'">'.$row['total_card_payment'].'</span>';
                 })
                 ->editColumn('total_cheque_payment', function ($row) {
-                    return '<span data-orig-value="' . $row['total_cheque_payment'] . '">' . $row['total_cheque_payment'] . '</span>';
+                    return '<span data-orig-value="'.$row['total_cheque_payment'].'">'.$row['total_cheque_payment'].'</span>';
                 })
                 ->editColumn('total_cash_payment', function ($row) {
-                    return '<span data-orig-value="' . $row['total_cash_payment'] . '">' . $row['total_cash_payment'] . '</span>';
+                    return '<span data-orig-value="'.$row['total_cash_payment'].'">'.$row['total_cash_payment'].'</span>';
                 })
                 ->editColumn('total_bank_transfer_payment', function ($row) {
-                    return '<span data-orig-value="' . $row['total_bank_transfer_payment'] . '">' . $row['total_bank_transfer_payment'] . '</span>';
+                    return '<span data-orig-value="'.$row['total_bank_transfer_payment'].'">'.$row['total_bank_transfer_payment'].'</span>';
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row['created_at'] ?? '';
                 })
                 ->addColumn('total', function ($row) {
                     $total = $row['total_cash_payment'] + $row['total_cheque_payment'] + $row['total_card_payment'] + $row['total_bank_transfer_payment'];
-                    return '<span data-orig-value="' . $total . '">' . $total . '</span>';
+
+                    return '<span data-orig-value="'.$total.'">'.$total.'</span>';
                 })
                 ->addColumn('action', function ($row) {
                     // return '';
-                    return '<a type="button" href="' . action([SalesReportController::class, 'show'], [$row['id']]) . '" class="btn btn-info " >عرض</a>';
+                    return '<a type="button" href="'.action([SalesReportController::class, 'show'], [$row['id']]).'" class="btn btn-info " >عرض</a>';
                 })
                 ->rawColumns(['total_card_payment', 'total_cheque_payment', 'total_cash_payment', 'total_bank_transfer_payment', 'total', 'action'])
                 ->make(true);
@@ -1387,10 +2794,6 @@ SUM(
 
         return view('report::report.register_report', compact('users', 'payment_types'));
     }
-
-
-
-
 
     public function registerReport($start_date = null, $end_date = null, $user_id = null)
     {
@@ -1416,7 +2819,6 @@ SUM(
             'cash_registers.status',
             'cash_registers.created_at',
 
-
             DB::raw("MIN(CONCAT(
                 COALESCE(u.name, ''),
                 ' - ',
@@ -1424,7 +2826,7 @@ SUM(
 
             )) as user_name"),
 
-            DB::raw("MIN(bl.name) as location_name"),
+            DB::raw('MIN(bl.name) as location_name'),
 
             DB::raw("SUM(IF(pay_method='cash', IF(transaction_type='sell', amount, 0), 0)) as total_cash_payment"),
             DB::raw("SUM(IF(pay_method='cheque', IF(transaction_type='sell', amount, 0), 0)) as total_cheque_payment"),
@@ -1436,11 +2838,8 @@ SUM(
                 'cash_registers.user_id',
                 'cash_registers.establishment_id',
                 'cash_registers.status',
-                'cash_registers.created_at'
+                'cash_registers.created_at',
             ]);
-
-
-
 
         if (! empty(request()->input('register_user_id'))) {
             $registers->where('cash_registers.user_id', request()->input('register_user_id'));
@@ -1471,7 +2870,6 @@ SUM(
         return view('report::report.register_details')
             ->with(compact('register_details', 'payment_types', 'details', 'close_time'));
     }
-
 
     public function getRegisterDetails($register_id = null)
     {
@@ -1525,12 +2923,11 @@ SUM(
             'u.email',
             'bl.name as location_name'
         )
-            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id',  'u.name', 'u.name_en', 'u.email', 'bl.name')
+            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id', 'u.name', 'u.name_en', 'u.email', 'bl.name')
             ->first();
 
         return $register_details;
     }
-
 
     public function getRegisterTransactionDetails($user_id, $open_time, $close_time)
     {
@@ -1564,6 +2961,323 @@ SUM(
         return [
             'product_details' => $product_details,
             'transaction_details' => $transaction_details,
+        ];
+    }
+
+    /**
+     * Aggregated footer row for the sales comparison DataTable (full filtered dataset, not current page).
+     *
+     * @param  \Illuminate\Support\Collection<int, object>  $merged
+     * @return array<string, string>
+     */
+    private function computeSalesComparisonFooterTotals(Collection $merged): array
+    {
+        $label = __('report::general.table_footer_total');
+        $dash = '—';
+        $empty = [
+            'product_name' => $label,
+            'category' => '',
+            'subcategory' => '',
+            'establishment_name' => '',
+            'SKU' => '',
+            'customer' => '',
+            'qty_period_a' => $dash,
+            'avg_unit_price_period_a' => $dash,
+            'discount_period_a' => $dash,
+            'tax_period_a' => $dash,
+            'subtotal_period_a' => $dash,
+            'lines_period_a' => $dash,
+            'qty_period_b' => $dash,
+            'avg_unit_price_period_b' => $dash,
+            'discount_period_b' => $dash,
+            'tax_period_b' => $dash,
+            'subtotal_period_b' => $dash,
+            'lines_period_b' => $dash,
+            'qty_difference' => $dash,
+            'qty_change_percent' => $dash,
+            'subtotal_difference' => $dash,
+            'subtotal_change_percent' => $dash,
+            'discount_difference' => $dash,
+            'tax_difference' => $dash,
+            'lines_difference' => $dash,
+        ];
+
+        if ($merged->isEmpty()) {
+            return $empty;
+        }
+
+        $sumQtyA = (float) $merged->sum(fn ($r) => (float) ($r->qty_period_a ?? 0));
+        $sumQtyB = (float) $merged->sum(fn ($r) => (float) ($r->qty_period_b ?? 0));
+        $sumDiscA = (float) $merged->sum(fn ($r) => (float) ($r->discount_period_a ?? 0));
+        $sumDiscB = (float) $merged->sum(fn ($r) => (float) ($r->discount_period_b ?? 0));
+        $sumTaxA = (float) $merged->sum(fn ($r) => (float) ($r->tax_period_a ?? 0));
+        $sumTaxB = (float) $merged->sum(fn ($r) => (float) ($r->tax_period_b ?? 0));
+        $sumSubA = (float) $merged->sum(fn ($r) => (float) ($r->subtotal_period_a ?? 0));
+        $sumSubB = (float) $merged->sum(fn ($r) => (float) ($r->subtotal_period_b ?? 0));
+        $sumLinesA = (int) $merged->sum(fn ($r) => (int) ($r->lines_period_a ?? 0));
+        $sumLinesB = (int) $merged->sum(fn ($r) => (int) ($r->lines_period_b ?? 0));
+
+        $avgA = $sumQtyA > 0 ? $sumSubA / $sumQtyA : null;
+        $avgB = $sumQtyB > 0 ? $sumSubB / $sumQtyB : null;
+
+        $fmt = static fn ($v) => number_format((float) $v, 2);
+        $fmtQty = static fn ($v) => number_format((float) $v, 3);
+        $fmtPct = static function ($v) {
+            if ($v === null) {
+                return '—';
+            }
+
+            return number_format($v, 2).'%';
+        };
+        $fmtAvg = static function ($v) {
+            if ($v === null) {
+                return '—';
+            }
+
+            return number_format((float) $v, 4);
+        };
+
+        return [
+            'product_name' => $label,
+            'category' => '',
+            'subcategory' => '',
+            'establishment_name' => '',
+            'SKU' => '',
+            'customer' => '',
+            'qty_period_a' => $fmtQty($sumQtyA),
+            'avg_unit_price_period_a' => $fmtAvg($avgA),
+            'discount_period_a' => $fmt($sumDiscA),
+            'tax_period_a' => $fmt($sumTaxA),
+            'subtotal_period_a' => $fmt($sumSubA),
+            'lines_period_a' => (string) $sumLinesA,
+            'qty_period_b' => $fmtQty($sumQtyB),
+            'avg_unit_price_period_b' => $fmtAvg($avgB),
+            'discount_period_b' => $fmt($sumDiscB),
+            'tax_period_b' => $fmt($sumTaxB),
+            'subtotal_period_b' => $fmt($sumSubB),
+            'lines_period_b' => (string) $sumLinesB,
+            'qty_difference' => $fmtQty($sumQtyB - $sumQtyA),
+            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB)),
+            'subtotal_difference' => $fmt($sumSubB - $sumSubA),
+            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB)),
+            'discount_difference' => $fmt($sumDiscB - $sumDiscA),
+            'tax_difference' => $fmt($sumTaxB - $sumTaxA),
+            'lines_difference' => (string) ($sumLinesB - $sumLinesA),
+        ];
+    }
+
+    private function buildSalesComparisonMergedCollection(Request $request): ?Collection
+    {
+        $periodA = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_a_preset'),
+            $request->input('period_a_range')
+        );
+        $periodB = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_b_preset'),
+            $request->input('period_b_range')
+        );
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $aggA = $this->aggregateSalesComparisonPeriod($request, $aFrom, $aTo);
+        $aggB = $this->aggregateSalesComparisonPeriod($request, $bFrom, $bTo);
+
+        $allKeys = $aggA->keys()->merge($aggB->keys())->unique()->values();
+        $merged = collect();
+
+        foreach ($allKeys as $key) {
+            $rowA = $aggA->get($key);
+            $rowB = $aggB->get($key);
+            $base = $rowA ?? $rowB;
+
+            $qtyA = (float) ($rowA->qty ?? 0);
+            $qtyB = (float) ($rowB->qty ?? 0);
+            $discA = (float) ($rowA->discount ?? 0);
+            $discB = (float) ($rowB->discount ?? 0);
+            $taxA = (float) ($rowA->tax ?? 0);
+            $taxB = (float) ($rowB->tax ?? 0);
+            $subA = (float) ($rowA->subtotal ?? 0);
+            $subB = (float) ($rowB->subtotal ?? 0);
+            $linesA = (int) ($rowA->line_count ?? 0);
+            $linesB = (int) ($rowB->line_count ?? 0);
+
+            $avgA = $qtyA > 0 ? $subA / $qtyA : null;
+            $avgB = $qtyB > 0 ? $subB / $qtyB : null;
+
+            $merged->push((object) [
+                'product_name' => app()->getLocale() === 'ar' ? $base->product_name_ar : $base->product_name_en,
+                'category' => $base->category ?? '--',
+                'subcategory' => $base->subcategory ?? '--',
+                'establishment_name' => $base->establishment_name ?? '--',
+                'SKU' => $base->sku ?? '--',
+                'customer' => $base->customer ?? '--',
+                'qty_period_a' => $qtyA,
+                'avg_unit_price_period_a' => $avgA,
+                'discount_period_a' => $discA,
+                'tax_period_a' => $taxA,
+                'subtotal_period_a' => $subA,
+                'lines_period_a' => $linesA,
+                'qty_period_b' => $qtyB,
+                'avg_unit_price_period_b' => $avgB,
+                'discount_period_b' => $discB,
+                'tax_period_b' => $taxB,
+                'subtotal_period_b' => $subB,
+                'lines_period_b' => $linesB,
+                'qty_difference' => $qtyB - $qtyA,
+                'qty_change_percent' => ReportTransactionsUtile::computePercentChange($qtyA, $qtyB),
+                'subtotal_difference' => $subB - $subA,
+                'subtotal_change_percent' => ReportTransactionsUtile::computePercentChange($subA, $subB),
+                'discount_difference' => $discB - $discA,
+                'tax_difference' => $taxB - $taxA,
+                'lines_difference' => $linesB - $linesA,
+            ]);
+        }
+
+        return $merged;
+    }
+
+    /**
+     * @return array{title: string, generated_at: string, period_a_line: string, period_b_line: string, filters: string, row_count: int}
+     */
+    private function salesComparisonExportMeta(Request $request, Collection $merged): array
+    {
+        $periodA = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_a_preset'),
+            $request->input('period_a_range')
+        );
+        $periodB = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_b_preset'),
+            $request->input('period_b_range')
+        );
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $presetA = $request->input('period_a_preset') ?: SalesComparisonPeriodResolver::PRESET_CUSTOM;
+        if (! in_array($presetA, SalesComparisonPeriodResolver::PRESETS, true)) {
+            $presetA = SalesComparisonPeriodResolver::PRESET_CUSTOM;
+        }
+        $presetB = $request->input('period_b_preset') ?: SalesComparisonPeriodResolver::PRESET_CUSTOM;
+        if (! in_array($presetB, SalesComparisonPeriodResolver::PRESETS, true)) {
+            $presetB = SalesComparisonPeriodResolver::PRESET_CUSTOM;
+        }
+
+        $labelA = __('report::general.preset_'.$presetA);
+        $labelB = __('report::general.preset_'.$presetB);
+
+        return [
+            'title' => __('menuItemLang.sales-comparison-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'period_a_line' => $labelA.' — '.$aFrom.' / '.$aTo,
+            'period_b_line' => $labelB.' — '.$bFrom.' / '.$bTo,
+            'filters' => $this->salesComparisonFilterSummary($request),
+            'row_count' => $merged->count(),
+        ];
+    }
+
+    private function salesComparisonFilterSummary(Request $request): string
+    {
+        $lines = $this->sellLineReportFilterSummaryLines($request);
+
+        return $lines === [] ? __('report::general.export_no_filters') : implode("\n", $lines);
+    }
+
+    private function salesComparisonPaymentMethodLabel(string $method): string
+    {
+        $key = strtolower(trim($method));
+        if ($key === '') {
+            return '--';
+        }
+
+        $ar = [
+            'cash' => 'نقدي',
+            'card' => 'بطاقة',
+            'bank_transfer' => 'تحويل بنكي',
+            'bank' => 'بنك',
+            'cheque' => 'شيك',
+            'check' => 'شيك',
+            'credit' => 'آجل',
+            'due' => 'آجل',
+            'wallet' => 'محفظة',
+            'advance' => 'سلفة',
+        ];
+        $en = [
+            'cash' => 'Cash',
+            'card' => 'Card',
+            'bank_transfer' => 'Bank transfer',
+            'bank' => 'Bank',
+            'cheque' => 'Cheque',
+            'check' => 'Check',
+            'credit' => 'Credit',
+            'due' => 'Due',
+            'wallet' => 'Wallet',
+            'advance' => 'Advance',
+        ];
+
+        if (app()->getLocale() === 'ar') {
+            return $ar[$key] ?? $method;
+        }
+
+        return $en[$key] ?? ucfirst(str_replace('_', ' ', $method));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function mapSalesComparisonRowForPdf(object $row): array
+    {
+        $fmt = static fn ($v) => number_format((float) $v, 2);
+        $fmtQty = static fn ($v) => number_format((float) $v, 3);
+        $fmtPct = static function ($v) {
+            if ($v === null) {
+                return '—';
+            }
+
+            return number_format($v, 2).'%';
+        };
+        $fmtAvg = static function ($v) {
+            if ($v === null) {
+                return '—';
+            }
+
+            return number_format((float) $v, 4);
+        };
+
+        $qtyA = (float) $row->qty_period_a;
+        $qtyB = (float) $row->qty_period_b;
+        $subA = (float) $row->subtotal_period_a;
+        $subB = (float) $row->subtotal_period_b;
+
+        return [
+            'product_name' => (string) ($row->product_name ?? '--'),
+            'category' => (string) ($row->category ?? '--'),
+            'subcategory' => (string) ($row->subcategory ?? '--'),
+            'establishment_name' => (string) ($row->establishment_name ?? '--'),
+            'SKU' => (string) ($row->SKU ?? '--'),
+            'customer' => (string) ($row->customer ?? '--'),
+            'qty_period_a' => $fmtQty($qtyA),
+            'avg_unit_price_period_a' => $fmtAvg($row->avg_unit_price_period_a),
+            'discount_period_a' => $fmt($row->discount_period_a),
+            'tax_period_a' => $fmt($row->tax_period_a),
+            'subtotal_period_a' => $fmt($subA),
+            'lines_period_a' => (string) (int) $row->lines_period_a,
+            'qty_period_b' => $fmtQty($qtyB),
+            'avg_unit_price_period_b' => $fmtAvg($row->avg_unit_price_period_b),
+            'discount_period_b' => $fmt($row->discount_period_b),
+            'tax_period_b' => $fmt($row->tax_period_b),
+            'subtotal_period_b' => $fmt($subB),
+            'lines_period_b' => (string) (int) $row->lines_period_b,
+            'qty_difference' => $fmtQty($row->qty_difference),
+            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($qtyA, $qtyB)),
+            'subtotal_difference' => $fmt($row->subtotal_difference),
+            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($subA, $subB)),
+            'discount_difference' => $fmt($row->discount_difference),
+            'tax_difference' => $fmt($row->tax_difference),
+            'lines_difference' => (string) (int) $row->lines_difference,
         ];
     }
 }

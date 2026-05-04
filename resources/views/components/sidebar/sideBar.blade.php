@@ -47,9 +47,11 @@
     @endphp
 
     @if ($visibleSubmenuItems->isNotEmpty() || $hasMenuPermission($menuItem['permission'] ?? null))
+        @if ($visibleSubmenuItems->isEmpty())
+            <x-sidebar.main-menu-item :url="$menuItem['url']" :icon="$menuItem['icon']" :name="$menuItem['name']" />
+        @else
     <x-sidebar.main-menu :isSubmenuActive="$isSubmenuActive">
-        @if ($visibleSubmenuItems->isNotEmpty())
-            <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="1" />
+        <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="1" />
         <x-sidebar.submenu>
             @foreach ($menuItem['subMenu'] as $submenuItem)
             @if (!array_key_exists('subMenu', $submenuItem))
@@ -131,11 +133,8 @@
             @endif
             @endforeach
         </x-sidebar.submenu>
-        @endif
-          @if ($visibleSubmenuItems->isEmpty())
-                <x-sidebar.main-menu-item :url="$menuItem['url']" :icon="$menuItem['icon']" :name="$menuItem['name']" />
-            @endif
     </x-sidebar.main-menu>
+        @endif
     @endif
 
     @endforeach

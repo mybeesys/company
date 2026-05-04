@@ -446,53 +446,10 @@ return [
     ],
     [
         'name' => 'reports_module',
-        'url' => '/',
+        'url' => 'payment-reports',
         'icon' => 'fas fa-bar-chart',
         'permission' => 'reports_module.all.show',
-        'subMenu' => [
-
-            /*   [
-                'name' => 'Profit-Loss',
-                'url' => 'Profit-Loss',
-                'permission' => 'reports_module.all.show',
-            ],
-            [
-                'name' => 'sales',
-                'url' => 'sales-report',
-                'permission' => 'reports_module.all.show',
-            ],*/
-            [
-                'name' => 'payment-reports',
-                'url' => 'payment-reports',
-                'permission' => 'reports_module.all.show',
-            ],
-            /*    [
-                'name' => 'purchase-sell',
-                'url' => 'purchase-sell',
-                'permission' => 'reports_module.all.show',
-            ],
-
-            [
-                'name' => 'product-sales-report',
-                'url' => 'product-sales-report',
-                'permission' => 'reports_module.all.show',
-            ],
-
-            [
-                'name' => 'product-purchase-report',
-                'url' => 'product-purchase-report',
-                'permission' => 'reports_module.all.show',
-            ],
-            [
-                'name' => 'product-inventory-report',
-                'url' => 'product-inventory-report',
-                'permission' => 'reports_module.all.show',
-            ],
-*/
-
-
-
-        ]
+        'subMenu' => [],
     ],
     [
         'name' => 'setting',

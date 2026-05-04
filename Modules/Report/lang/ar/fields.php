@@ -14,6 +14,8 @@ return [
     'unit_price' => 'سعر الوحدة',
     'unit_sale_price' => 'سعر البيع للوحدة',
     'sell_qty' => 'الكمية المباعة',
+    'line_unit' => 'وحدة البيع',
+    'invoice_payment_methods' => 'طرق الدفع',
     'discount_amount' => 'قيمة الخصم',
     'tax_value' => 'قيمة الضريبة',
     'subtotal' => 'الإجمالي الفرعي',
@@ -87,7 +89,7 @@ return [
     'total_bank_transfer' => 'إجمالي التحويل البنكي',
     'total_advance_payment' => 'إجمالي المدفوعات المقدمة',
 
-        // Cash Register
+    // Cash Register
     'register_details' => 'تفاصيل صندوق النقد',
     'closing_note' => 'ملاحظة الإغلاق',
 
@@ -118,8 +120,7 @@ return [
     'cancel' => 'إلغاء',
     'summary' => 'ملخص',
 
-
-     'payment_method' => 'طريقة الدفع',
+    'payment_method' => 'طريقة الدفع',
     'sale' => 'المبيعات',
     'expense' => 'المصروفات',
     'refund' => 'المسترجعات',
@@ -158,4 +159,27 @@ return [
     // Reports
     'total_expense' => 'إجمالي المصروفات',
     'register_report_details' => 'عرض تفاصيل تقرير الخزنة',
+
+    // Sales comparison (two periods)
+    'qty_period_a' => 'الكمية — الفترة 1',
+    'avg_unit_price_period_a' => 'متوسط سعر الوحدة (شامل الضريبة) — الفترة 1',
+    'discount_period_a' => 'الخصم — الفترة 1',
+    'tax_period_a' => 'الضريبة — الفترة 1',
+    'subtotal_period_a' => 'إجمالي السطر (شامل الضريبة) — الفترة 1',
+    'lines_period_a' => 'عدد بنود الفاتورة — الفترة 1',
+    'qty_period_b' => 'الكمية — الفترة 2',
+    'avg_unit_price_period_b' => 'متوسط سعر الوحدة (شامل الضريبة) — الفترة 2',
+    'discount_period_b' => 'الخصم — الفترة 2',
+    'tax_period_b' => 'الضريبة — الفترة 2',
+    'subtotal_period_b' => 'إجمالي السطر (شامل الضريبة) — الفترة 2',
+    'lines_period_b' => 'عدد بنود الفاتورة — الفترة 2',
+    'qty_difference' => 'فرق الكمية',
+    'qty_change_percent' => 'نسبة تغيير الكمية %',
+    'subtotal_difference' => 'فرق الإيراد',
+    'subtotal_change_percent' => 'نسبة تغيير الإيراد %',
+    'discount_difference' => 'فرق الخصم',
+    'tax_difference' => 'فرق الضريبة',
+    'lines_difference' => 'فرق عدد البنود',
+
+    'no_movements' => 'لا توجد حركات مخزون في هذه الفترة',
 ];
