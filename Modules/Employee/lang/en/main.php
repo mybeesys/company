@@ -89,5 +89,6 @@ return [
     'balance' => 'Balance',
     'Sales vs Expenses - Last 6 Months' => 'Sales vs Expenses - Last 6 Months',
 
+    'dashboard_page_subtitle' => 'Quick financial overview: sales, purchases, and balances.',
 
 ];

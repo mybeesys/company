@@ -93,5 +93,6 @@ return [
     'balance' => 'الرصيد',
     'Sales vs Expenses - Last 6 Months' => 'المبيعات vs المصروفات - آخر 6 أشهر ',
 
+    'dashboard_page_subtitle' => 'ملخص مالي سريع للمبيعات والمشتريات والذمم.',
 
 ];
