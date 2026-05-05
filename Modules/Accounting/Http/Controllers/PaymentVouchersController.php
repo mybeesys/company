@@ -3,12 +3,13 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Utils\StandaloneVoucherHelper;
 
 class PaymentVouchersController extends Controller
 {
@@ -27,13 +28,30 @@ class PaymentVouchersController extends Controller
             $transactions = AccountingAccountsTransaction::where('sub_type', 'payment_voucher')
                 ->orderBy('id')
                 ->get();
-            return  AccountingAccountsTransaction::getReceiptsTable($transactions);
+            return AccountingAccountsTransaction::getReceiptsTable($transactions, 'payment_voucher');
         }
 
         $columns = AccountingAccountsTransaction::getReceiptsColumns();
         $accounts =  AccountingAccount::forDropdown();
 
         return view('accounting::payment-vouchers.index', compact('transactions', 'accounts', 'columns'));
+    }
+
+    public function formData(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        try {
+            return response()->json(
+                StandaloneVoucherHelper::paymentFormPayload((int) $validated['id'])
+            );
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => __('accounting::lang.voucher_line_not_found'),
+            ], 422);
+        }
     }
 
     /**
@@ -114,9 +132,47 @@ class PaymentVouchersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
-        //
+        $validated = $request->validate([
+            'account_id' => ['required', 'integer', 'min:1'],
+            'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'pament_on' => ['required', 'date'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            [$debit, $credit] = StandaloneVoucherHelper::paymentLines($id);
+
+            DB::beginTransaction();
+
+            $note = $validated['additionalNotes'] ?? null;
+            $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
+            $date = $validated['pament_on'];
+
+            $debit->update([
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['from_account'],
+                'operation_date' => $date,
+                'note' => $note,
+            ]);
+
+            $credit->update([
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['account_id'],
+                'operation_date' => $date,
+                'note' => $note,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('payment-vouchers')->with('success', __('messages.updated_successfully'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->route('payment-vouchers')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     /**

@@ -83,8 +83,11 @@ class AccountingAccountsTransaction extends Model
         ];
     }
 
-    public static function getReceiptsTable($transactions)
+    public static function getReceiptsTable($transactions, string $voucherSubType = 'receipt_voucher')
     {
+        $isPayment = $voucherSubType === 'payment_voucher';
+        $editClass = $isPayment ? 'payment-voucher-edit' : 'receipt-voucher-edit';
+        $dupClass = $isPayment ? 'payment-voucher-duplicate' : 'receipt-voucher-duplicate';
 
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
@@ -115,10 +118,16 @@ class AccountingAccountsTransaction extends Model
 
             ->addColumn(
                 'actions',
-                function ($row) {
+                function ($row) use ($editClass, $dupClass) {
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">' . __('employee::fields.actions') . '<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
+                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">';
 
+                    $actions .= '<div class="menu-item px-3">
+                        <a href="#" class="menu-link px-3 ' . $editClass . '" data-line-id="' . $row->id . '">' . __('employee::fields.edit') . '</a>
+                    </div>';
+                    $actions .= '<div class="menu-item px-3">
+                        <a href="#" class="menu-link px-3 ' . $dupClass . '" data-line-id="' . $row->id . '">' . __('accounting::fields.duplication') . '</a>
+                    </div>';
                     $actions .= '<div class="menu-item px-3">
                 <a href="#" class="menu-link px-3">' . __('general.print') . '</a>
             </div>';

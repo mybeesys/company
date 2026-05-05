@@ -3,12 +3,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="payment-vouchers-ModalLabel">@lang('menuItemLang.payment_vouchers')</h5>
+                <h5 class="modal-title" id="payment-vouchers-ModalLabel"><span id="payment_vouchers_title_text">@lang('menuItemLang.payment_vouchers')</span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                     aria-label="@lang('sales::general.close')"></button>
             </div>
-            <form id="payment-vouchers-store" method="post" action="{{ route('payment-vouchers-store') }}">
+            <form id="payment-vouchers-form" method="post" action="{{ route('payment-vouchers-store') }}">
                 @csrf
+                <input type="hidden" name="_method" id="payment_vouchers_method" value="PUT" disabled>
                 <div class="modal-body">
                     <div class="card" data-section="contact" style="border: 0;box-shadow: none">
                         <div class="container">

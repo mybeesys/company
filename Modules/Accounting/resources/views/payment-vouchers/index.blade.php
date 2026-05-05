@@ -43,7 +43,7 @@
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:export>
-                    <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px" data-bs-toggle="modal"
+                    <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px payment-voucher-new-btn" data-bs-toggle="modal"
                         data-bs-target="#payment-vouchers-Modal">
                         @lang('sales::general.add_receipts')
                     </a>
@@ -74,6 +74,29 @@
         let dataTable;
         const table = $('#kt_sell_table');;
         const dataUrl = '{{ route('payment-vouchers') }}';
+        const paymentStoreUrl = '{{ route('payment-vouchers-store') }}';
+        const paymentUpdateBase = '{{ url('payment-vouchers') }}';
+        const paymentFormDataUrl = '{{ route('payment-vouchers-form-data') }}';
+        const paymentDefaultTitle = @json(__('menuItemLang.payment_vouchers'));
+        const paymentEditTitle = @json(__('employee::fields.edit') . ' — ' . __('menuItemLang.payment_vouchers'));
+        const paymentDupTitle = @json(__('accounting::fields.duplication') . ' — ' . __('menuItemLang.payment_vouchers'));
+
+        function resetPaymentVoucherForm() {
+            $('#payment_vouchers_method').prop('disabled', true);
+            $('#payment-vouchers-form').attr('action', paymentStoreUrl);
+            const form = document.getElementById('payment-vouchers-form');
+            if (form) form.reset();
+            $('#payment-vouchers-Modal #from_account, #payment-vouchers-Modal #cash_account').val(null).trigger('change');
+            $('#payment_vouchers_title_text').text(paymentDefaultTitle);
+        }
+
+        function fillPaymentVoucherForm(data) {
+            $('#payment-vouchers-Modal #from_account').val(String(data.from_account)).trigger('change');
+            $('#payment-vouchers-Modal #cash_account').val(String(data.account_id)).trigger('change');
+            $('#payment-vouchers-Modal #transaction_date').val(data.pament_on);
+            $('#payment-vouchers-Modal #paid_amount').val(data.paid_amount);
+            $('#payment-vouchers-Modal #notice').val(data.additionalNotes || '');
+        }
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -82,14 +105,52 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
-            $('#cash_account').select2({
-
+            $('#payment-vouchers-Modal #from_account, #payment-vouchers-Modal #cash_account').select2({
+                dropdownParent: $('#payment-vouchers-Modal')
             });
 
-            $('#from_account').select2({
-
+            $('.payment-voucher-new-btn').on('click', function() {
+                resetPaymentVoucherForm();
             });
 
+            $(document).on('click', '.payment-voucher-edit', function(e) {
+                e.preventDefault();
+                const id = $(this).data('line-id');
+                $.getJSON(paymentFormDataUrl, { id: id })
+                    .done(function(data) {
+                        fillPaymentVoucherForm(data);
+                        $('#payment_vouchers_method').prop('disabled', false);
+                        $('#payment-vouchers-form').attr('action', paymentUpdateBase + '/' + id);
+                        $('#payment_vouchers_title_text').text(paymentEditTitle);
+                        $('#payment-vouchers-Modal').modal('show');
+                    })
+                    .fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        const msg = j.message || (j.errors && j.errors.id && j.errors.id[0]) || xhr.statusText;
+                        alert(msg);
+                    });
+            });
+
+            $(document).on('click', '.payment-voucher-duplicate', function(e) {
+                e.preventDefault();
+                const id = $(this).data('line-id');
+                $.getJSON(paymentFormDataUrl, { id: id })
+                    .done(function(data) {
+                        resetPaymentVoucherForm();
+                        fillPaymentVoucherForm(data);
+                        $('#payment_vouchers_title_text').text(paymentDupTitle);
+                        $('#payment-vouchers-Modal').modal('show');
+                    })
+                    .fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        const msg = j.message || (j.errors && j.errors.id && j.errors.id[0]) || xhr.statusText;
+                        alert(msg);
+                    });
+            });
+
+            $('#payment-vouchers-Modal').on('hidden.bs.modal', function() {
+                resetPaymentVoucherForm();
+            });
         });
 
 

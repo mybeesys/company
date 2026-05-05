@@ -3,12 +3,13 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="receipt-vouchers-ModalLabel">@lang('menuItemLang.receipt_vouchers')</h5>
+                    <h5 class="modal-title" id="receipt-vouchers-ModalLabel"><span id="receipt_vouchers_title_text">@lang('menuItemLang.receipt_vouchers')</span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="@lang('sales::general.close')"></button>
                 </div>
-                <form id="receipt-vouchers-store" method="post" action="{{ route('receipt-vouchers-store') }}">
+                <form id="receipt-vouchers-form" method="post" action="{{ route('receipt-vouchers-store') }}">
                     @csrf
+                    <input type="hidden" name="_method" id="receipt_vouchers_method" value="PUT" disabled>
                     <div class="modal-body">
                         <div class="card" data-section="contact" style="border: 0;box-shadow: none">
                             <div class="container">

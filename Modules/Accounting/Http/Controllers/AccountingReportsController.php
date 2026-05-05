@@ -934,26 +934,9 @@ class AccountingReportsController extends Controller
         $refNo = $request->input('ref_no');
         $note = $request->input('note');
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
+        $journalSources = $this->normalizeJournalSources($request);
 
-        $journals = AccountingAccTransMapping::where('type', 'journal_entry')
-            ->when($startDate, fn($query) => $query->whereDate('operation_date', '>=', $startDate))
-            ->when($endDate, fn($query) => $query->whereDate('operation_date', '<=', $endDate))
-            ->when($refNo, fn($query) => $query->where('ref_no', 'like', '%' . $refNo . '%'))
-            ->when($note, fn($query) => $query->where('note', 'like', '%' . $note . '%'))
-            ->with(['transactions' => function ($query) {
-                $query->join('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
-                    ->select('accounting_accounts_transactions.*', 'accounting_accounts.name_ar', 'accounting_accounts.name_en', 'accounting_accounts.gl_code')
-                    ->when(request()->filled('choose_cost_center_select'), function ($q) {
-                        $q->whereIn('accounting_accounts_transactions.cost_center_id', request()->input('choose_cost_center_select', []));
-                    });
-            }])
-            ->whereHas('transactions', function ($query) use ($choose_cost_center_select) {
-                if (!empty($choose_cost_center_select)) {
-                    $query->whereIn('cost_center_id', $choose_cost_center_select);
-                }
-            })
-            ->orderByDesc('operation_date')
-            ->get();
+        $journals = $this->buildJournalReportQuery($request)->get();
 
         $totalDebit = 0.0;
         $totalCredit = 0.0;
@@ -979,7 +962,8 @@ class AccountingReportsController extends Controller
             'costCenters',
             'choose_cost_center_select',
             'refNo',
-            'note'
+            'note',
+            'journalSources'
         ));
     }
 
@@ -1035,26 +1019,9 @@ class AccountingReportsController extends Controller
         $refNo = $request->input('ref_no');
         $note = $request->input('note');
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
+        $journalSources = $this->normalizeJournalSources($request);
 
-        $journals = AccountingAccTransMapping::where('type', 'journal_entry')
-            ->when($startDate, fn($query) => $query->whereDate('operation_date', '>=', $startDate))
-            ->when($endDate, fn($query) => $query->whereDate('operation_date', '<=', $endDate))
-            ->when($refNo, fn($query) => $query->where('ref_no', 'like', '%' . $refNo . '%'))
-            ->when($note, fn($query) => $query->where('note', 'like', '%' . $note . '%'))
-            ->with(['transactions' => function ($query) use ($choose_cost_center_select) {
-                $query->join('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
-                    ->select('accounting_accounts_transactions.*', 'accounting_accounts.name_ar', 'accounting_accounts.name_en', 'accounting_accounts.gl_code')
-                    ->when(!empty($choose_cost_center_select), function ($q) use ($choose_cost_center_select) {
-                        $q->whereIn('accounting_accounts_transactions.cost_center_id', $choose_cost_center_select);
-                    });
-            }])
-            ->whereHas('transactions', function ($query) use ($choose_cost_center_select) {
-                if (!empty($choose_cost_center_select)) {
-                    $query->whereIn('cost_center_id', $choose_cost_center_select);
-                }
-            })
-            ->orderByDesc('operation_date')
-            ->get();
+        $journals = $this->buildJournalReportQuery($request)->get();
 
         $totalDebit = 0.0;
         $totalCredit = 0.0;
@@ -1070,7 +1037,106 @@ class AccountingReportsController extends Controller
             'totalDebit' => $totalDebit,
             'totalCredit' => $totalCredit,
             'difference' => abs($totalDebit - $totalCredit),
+            'journalSources' => $journalSources,
         ];
+    }
+
+    /**
+     * Base query for journal report (web, PDF, Excel). Applies date/ref/note/cost-center and optional source filter.
+     */
+    private function buildJournalReportQuery(Request $request)
+    {
+        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
+        $refNo = $request->input('ref_no');
+        $note = $request->input('note');
+        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
+
+        $query = AccountingAccTransMapping::query()
+            ->where('type', 'journal_entry')
+            ->when($startDate, fn($q) => $q->whereDate('operation_date', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('operation_date', '<=', $endDate))
+            ->when($refNo, fn($q) => $q->where('ref_no', 'like', '%' . $refNo . '%'))
+            ->when($note, fn($q) => $q->where('note', 'like', '%' . $note . '%'))
+            ->with(['transactions' => function ($query) {
+                $query->join('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
+                    ->select('accounting_accounts_transactions.*', 'accounting_accounts.name_ar', 'accounting_accounts.name_en', 'accounting_accounts.gl_code')
+                    ->when(request()->filled('choose_cost_center_select'), function ($q) {
+                        $q->whereIn('accounting_accounts_transactions.cost_center_id', request()->input('choose_cost_center_select', []));
+                    });
+            }])
+            ->whereHas('transactions', function ($query) use ($choose_cost_center_select) {
+                if (!empty($choose_cost_center_select)) {
+                    $query->whereIn('cost_center_id', $choose_cost_center_select);
+                }
+            });
+
+        $this->applyJournalReportSourceFilter($query, $this->normalizeJournalSources($request));
+
+        return $query->orderByDesc('operation_date');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizeJournalSources(Request $request): array
+    {
+        $allowed = ['sales', 'purchases', 'receipt_voucher', 'payment_voucher', 'manual_journal'];
+        $raw = $request->input('journal_source');
+        if ($raw === null || $raw === '' || $raw === 'all') {
+            return [];
+        }
+        if (is_string($raw)) {
+            $raw = [$raw];
+        }
+        if (! is_array($raw)) {
+            return [];
+        }
+        $out = [];
+        foreach ($raw as $item) {
+            if (! is_string($item)) {
+                continue;
+            }
+            $item = trim($item);
+            if ($item !== '' && in_array($item, $allowed, true)) {
+                $out[$item] = true;
+            }
+        }
+
+        return array_keys($out);
+    }
+
+    /**
+     * @param  list<string>  $journalSources  Empty = no filter (all sources).
+     */
+    private function applyJournalReportSourceFilter($query, array $journalSources): void
+    {
+        if ($journalSources === []) {
+            return;
+        }
+
+        $query->where(function ($outer) use ($journalSources) {
+            foreach ($journalSources as $key) {
+                $outer->orWhere(function ($sub) use ($key) {
+                    match ($key) {
+                        'sales' => $sub->whereHas('transactions', function ($q) {
+                            $q->whereIn('sub_type', ['sell', 'sell-return', 'sell_cash', 'sales_revenue']);
+                        }),
+                        'purchases' => $sub->whereHas('transactions', function ($q) {
+                            $q->whereIn('sub_type', ['purchases', 'purchases-return']);
+                        }),
+                        'receipt_voucher' => $sub->whereHas('transactions', function ($q) {
+                            $q->where('sub_type', 'receipt_voucher');
+                        }),
+                        'payment_voucher' => $sub->whereHas('transactions', function ($q) {
+                            $q->where('sub_type', 'payment_voucher');
+                        }),
+                        'manual_journal' => $sub->where('is_manual', 1),
+                        default => null,
+                    };
+                });
+            }
+        });
     }
 
 

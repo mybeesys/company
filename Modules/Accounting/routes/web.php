@@ -77,9 +77,13 @@ Route::middleware([
 
 
         Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
+        Route::get('payment-vouchers/form-data', [PaymentVouchersController::class, 'formData'])->name('payment-vouchers-form-data');
+        Route::put('payment-vouchers/{id}', [PaymentVouchersController::class, 'update'])->name('payment-vouchers-update');
         Route::post('payment-vouchers-store', [PaymentVouchersController::class, 'store'])->name('payment-vouchers-store');
 
         Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
+        Route::get('receipt-vouchers/form-data', [ReceiptVouchersController::class, 'formData'])->name('receipt-vouchers-form-data');
+        Route::put('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'update'])->name('receipt-vouchers-update');
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
 
 

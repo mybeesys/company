@@ -31,8 +31,9 @@
                     <label>{{ __('accounting::lang.to_date') }}</label>
                     <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary mt-6">{{ __('accounting::lang.search') }}</button>
+                <div class="col-md-3 d-flex align-items-end gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-primary">{{ __('accounting::lang.search') }}</button>
+                    <a href="{{ route('journal-report') }}" class="btn btn-light">{{ __('accounting::lang.clear_filters') }}</a>
                 </div>
                 <div class="col-md-3">
                     <label>{{ __('accounting::lang.ref_no') }}</label>
@@ -41,6 +42,18 @@
                 <div class="col-md-3">
                     <label>{{ __('accounting::lang.note') }}</label>
                     <input type="text" name="note" class="form-control" value="{{ $note ?? '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="journal_source">{{ __('accounting::lang.journal_source') }}</label>
+                    <select name="journal_source[]" id="journal_source" class="form-select form-select-solid" multiple>
+                        @php $js = $journalSources ?? []; @endphp
+                        <option value="sales" @if (in_array('sales', $js, true)) selected @endif>{{ __('accounting::lang.journal_source_sales') }}</option>
+                        <option value="purchases" @if (in_array('purchases', $js, true)) selected @endif>{{ __('accounting::lang.journal_source_purchases') }}</option>
+                        <option value="receipt_voucher" @if (in_array('receipt_voucher', $js, true)) selected @endif>{{ __('accounting::lang.journal_source_receipt_voucher') }}</option>
+                        <option value="payment_voucher" @if (in_array('payment_voucher', $js, true)) selected @endif>{{ __('accounting::lang.journal_source_payment_voucher') }}</option>
+                        <option value="manual_journal" @if (in_array('manual_journal', $js, true)) selected @endif>{{ __('accounting::lang.journal_source_manual_journal') }}</option>
+                    </select>
+                    <div class="form-text">{{ __('accounting::lang.journal_source_hint') }}</div>
                 </div>
                 <div class="col-md-4">
                     <label for="choose_cost_center_select">{{ __('accounting::lang.cost_center') }}</label>
@@ -172,12 +185,16 @@
             const endDate = $('input[name="end_date"]').val();
             const refNo = $('input[name="ref_no"]').val();
             const note = $('input[name="note"]').val();
+            const journalSources = $('#journal_source').val() || [];
             const costCenters = $('#choose_cost_center_select').val() || [];
 
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (refNo) params.append('ref_no', refNo);
             if (note) params.append('note', note);
+            journalSources.forEach(function(value) {
+                params.append('journal_source[]', value);
+            });
             costCenters.forEach(function(value) {
                 params.append('choose_cost_center_select[]', value);
             });
@@ -185,6 +202,9 @@
         }
 
         $(document).ready(function() {
+            $('#journal_source').select2({
+                placeholder: @json(__('accounting::lang.journal_source_placeholder')),
+            });
             $('#choose_cost_center_select').select2();
 
             $('#journalExportPdf').on('click', function() {
