@@ -256,6 +256,9 @@ class AccountingUtil
             if ($transaction->type == 'sell') {
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+                $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
+                $discountAmount = (float) ($transaction->discount_amount ?? 0);
+                $salesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
 
                 if ($transaction->invoice_type == 'cash') {
 
@@ -264,8 +267,13 @@ class AccountingUtil
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $sales_sales->account_id;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $salesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                            $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -276,8 +284,13 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $sales_sales->account_id;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $salesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                            $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -310,6 +323,9 @@ class AccountingUtil
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
+                $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
+                $discountAmount = (float) ($transaction->discount_amount ?? 0);
+                $purchasesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
                 $inventoryAssetAccountId = AccountingAccount::where('gl_code', '11105')
                     ->orWhere('account_category', 'inventory')
                     ->value('id');
@@ -332,8 +348,13 @@ class AccountingUtil
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
+                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -348,8 +369,13 @@ class AccountingUtil
 
 
                         $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
+                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -589,10 +615,12 @@ class AccountingUtil
             'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
             'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
             'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
+            'sales_discount_allowed' => [$transaction->discount_amount, 'debit'],
 
             'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
             'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
             'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+            'purchases_earned_discount' => [$transaction->discount_amount, 'credit'],
 
             'sales_return_sales' => [$transaction->totalAfterDiscount, 'debit'],
             'purchases_return_purchases' => [$transaction->totalAfterDiscount, 'credit'],
@@ -657,7 +685,25 @@ class AccountingUtil
                 'updated_at' => now(),
             ],
             [
+                'type' => 'sales_discount_allowed',
+                'section' => 'sales',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'type' => 'purchases_discount_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_earned_discount',
                 'section' => 'purchases',
                 'routing_type' => 'expense',
                 'account_id' => $discount_acc?->id,

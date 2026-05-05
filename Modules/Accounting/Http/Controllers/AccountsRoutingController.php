@@ -23,6 +23,7 @@ class AccountsRoutingController extends Controller
         if (count($accounts) == 0) {
             return redirect()->route('tree-of-accounts')->with('error', __('accounting::lang.no_accounts'));
         }
+        $defaultDiscountAccountId = AccountingAccount::where('gl_code', '523')->value('id');
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',
@@ -31,7 +32,7 @@ class AccountsRoutingController extends Controller
         $accountsRoting = AccountsRoting::all();
         $isPeriodicInventoryPolicy = Setting::isPeriodicInventory();
 
-        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy'));
+        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy', 'defaultDiscountAccountId'));
     }
 
     /**
@@ -57,11 +58,13 @@ class AccountsRoutingController extends Controller
             // 'sales_total_amount' => 'asset',
             // 'sales_amount_before_vat' => 'asset',
             'sales_discount_calculation' => 'expense',
+            'sales_discount_allowed' => 'expense',
             'sales_sell_return' => 'expense',
             'purchases_vat_calculation' => 'liability',
             // 'purchases_total_amount' => 'asset',
             // 'purchases_amount_before_vat' => 'asset',
             'purchases_discount_calculation' => 'expense',
+            'purchases_earned_discount' => 'expense',
             // 'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',

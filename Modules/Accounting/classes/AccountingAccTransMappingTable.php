@@ -12,14 +12,14 @@ class AccountingAccTransMappingTable
     {
         return [
 
-            ["class" => "text-start min-w-250px px-3", "name" => "operation_date"],
-            ["class" => "text-start min-w-200px px-3", "name" => "type"],
-            ["class" => "text-start min-w-200px px-3", "name" => "ref_no"],
-            ["class" => "text-start min-w-200px text-nowrap px-3", "name" => "created_by"],
-            ["class" => "text-start min-w-200px text-nowrap px-3", "name" => "sub_type"],
+            ["class" => "text-start min-w-150px px-3", "name" => "operation_date"],
+            ["class" => "text-start min-w-140px px-3", "name" => "type"],
+            ["class" => "text-start min-w-150px px-3", "name" => "ref_no"],
+            ["class" => "text-start min-w-160px px-3", "name" => "created_by"],
+            ["class" => "text-start min-w-150px px-3", "name" => "sub_type"],
 
 
-            ["class" => "text-start min-w-150px text-nowrap px-3", "name" => "note"],
+            ["class" => "text-start min-w-220px px-3", "name" => "note"],
 
         ];
     }
@@ -27,6 +27,26 @@ class AccountingAccTransMappingTable
     public static function getAccTransMappingTable($acc_trans_mapping)
     {
         return DataTables::of($acc_trans_mapping)
+            ->filter(function ($query) {
+                $search = (string) (request('search.value') ?? '');
+                $search = trim($search);
+                if ($search === '') {
+                    return;
+                }
+                $like = '%' . $search . '%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('ref_no', 'like', $like)
+                        ->orWhere('note', 'like', $like)
+                        ->orWhere('type', 'like', $like)
+                        ->orWhere('operation_date', 'like', $like)
+                        ->orWhereHas('added_by', function ($q2) use ($like) {
+                            $q2->where('name', 'like', $like);
+                        })
+                        ->orWhereHas('transactions', function ($q3) use ($like) {
+                            $q3->where('sub_type', 'like', $like);
+                        });
+                });
+            })
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
                                      {$row->id}

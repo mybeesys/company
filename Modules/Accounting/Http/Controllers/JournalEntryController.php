@@ -24,6 +24,7 @@ use Modules\Accounting\Utils\JournalEntryValidator;
 use Modules\Employee\Models\Employee;
 use Mpdf\Mpdf;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Storage;
 
 
 class JournalEntryController extends Controller
@@ -36,7 +37,13 @@ class JournalEntryController extends Controller
 
         if ($request->ajax()) {
 
-            $acc_trans_mapping = AccountingAccTransMapping::select('id', 'ref_no', 'type', 'is_manual', 'operation_date', 'created_by', 'note');
+            // Journal Entry Index should show MANUAL journal entries by default.
+            $acc_trans_mapping = AccountingAccTransMapping::select('id', 'ref_no', 'type', 'is_manual', 'operation_date', 'created_by', 'note')
+                ->where('type', 'journal_entry')
+                ->when(! $request->filled('is_manual'), function ($q) {
+                    $q->where('is_manual', 1);
+                })
+                ->with(['added_by', 'transactions']);
 
             if ($request->filled('from_date')) {
                 $acc_trans_mapping->whereDate('operation_date', '>=', $request->from_date);
@@ -207,6 +214,35 @@ class JournalEntryController extends Controller
         $filename = 'journal' . str_replace(['/', '\\'], '-', $journal->ref_no) . '.xlsx';
 
         return Excel::download(new JournalExport($journal), $filename);
+    }
+
+    public function downloadAttachment($id)
+    {
+        $journal = AccountingAccTransMapping::findOrFail($id);
+        if (empty($journal->path_file)) {
+            return redirect()->back()->with('error', __('accounting::lang.no_attachment'));
+        }
+
+        $path = ltrim((string) $journal->path_file, '/');
+
+        // Try common disks first (some installs store uploads on "public").
+        foreach (['public', 'local'] as $disk) {
+            try {
+                if (Storage::disk($disk)->exists($path)) {
+                    return Storage::disk($disk)->download($path);
+                }
+            } catch (\Throwable $e) {
+                // ignore and try next
+            }
+        }
+
+        // Fallback to direct file system path (storage/app/*).
+        $fullPath = storage_path('app/' . $path);
+        if (is_file($fullPath)) {
+            return response()->download($fullPath);
+        }
+
+        return redirect()->back()->with('error', __('accounting::lang.attachment_not_found'));
     }
     /**
      * Show the form for editing the specified resource.

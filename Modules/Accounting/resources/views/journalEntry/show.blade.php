@@ -72,6 +72,12 @@
                 @lang('Back')
             </a>
 
+            @if (!empty($acc_trans_mapping->path_file))
+                <a href="{{ route('journal-entry-attachment', $acc_trans_mapping->id) }}" class="btn btn-light-primary mx-2">
+                    @lang('accounting::lang.view_attachment')
+                </a>
+            @endif
+
             <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}"
                class="btn btn-primary mx-2">
                 @lang('general.export_as_pdf')
@@ -186,11 +192,14 @@
                             <td></td>
                         </tr>
 
-                        @if (round($totalDebit,2) !== round($totalCredit,2))
+                        @php
+                            $diff = round((float) $totalDebit - (float) $totalCredit, 2);
+                        @endphp
+                        @if (abs($diff) > 0.005)
                             <tr>
                                 <td colspan="5" class="text-danger text-center">
                                     @lang('accounting::lang.The journal entry is unbalanced with a difference of')
-                                    ( {{ number_format(abs($totalDebit - $totalCredit), 2) }} )
+                                    ( {{ number_format(abs($diff), 2) }} )
                                 </td>
                             </tr>
                         @endif

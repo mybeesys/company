@@ -109,6 +109,9 @@
             $("#sales_vat_calculation_account").select2();
             $("#sales_vat_calculation_account").select2();
 
+            $("#purchases_earned_discount_type_route").select2();
+            $("#purchases_earned_discount_account").select2();
+
             $("#sales_total_amount_type_route").select2();
             $("#sales_vat_calculation_type_route").select2();
 
@@ -117,6 +120,9 @@
 
             $("#sales_discount_calculation_type_route").select2();
             $("#sales_discount_calculation_account").select2();
+
+            $("#sales_discount_allowed_type_route").select2();
+            $("#sales_discount_allowed_account").select2();
 
             $("#periodic_inventory_adjustment_type_route").select2();
             $("#periodic_inventory_adjustment_account").select2();

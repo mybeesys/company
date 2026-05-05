@@ -60,6 +60,7 @@ Route::middleware([
         Route::get('journal-entry-print/{id}', [JournalEntryController::class, 'print'])->name('journal-entry-print');
         Route::get('journal-entry-export-pdf/{id}', [JournalEntryController::class, 'exportPDF'])->name('journal-entry-export-pdf');
         Route::get('journal-entry-export-excel/{id}', [JournalEntryController::class, 'exportExcel'])->name('journal-entry-export-excel');
+        Route::get('journal-entry-attachment/{id}', [JournalEntryController::class, 'downloadAttachment'])->name('journal-entry-attachment');
 
         // Cost Center
         Route::get('cost-center-index', [CostCenterConrollerController::class, 'index'])->name('cost-center-index');

@@ -173,15 +173,12 @@ table {
                         <td><strong>{{ $total_debit }}</strong></td>
                         <td><strong>{{ $total_credit }}</strong></td>
                         @php
-                            $text = '';
-                            $Budget = $total_debit - $total_credit;
-                            $budgetDifferenceText = __(
-                                'accounting::lang.The journal entry is unbalanced with a difference of',
-                            );
-                            $text = $budgetDifferenceText . ' : ( ' . abs($Budget) . ' ) ';
+                            $diff = round((float) $total_debit - (float) $total_credit, 2);
+                            $budgetDifferenceText = __('accounting::lang.The journal entry is unbalanced with a difference of');
+                            $text = $budgetDifferenceText . ' : ( ' . number_format(abs($diff), 2) . ' ) ';
                         @endphp
                         <td colspan="2" id="Budget" style="text-align: center;color:red">
-                            {{ $Budget > 0 ?? $text }}
+                            {{ abs($diff) > 0.005 ? $text : '' }}
                         </td>
                     </tr>
                 </tfoot>
