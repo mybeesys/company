@@ -40,6 +40,8 @@ Route::middleware([
         Route::get('ledger-export-pdf/{id}', [TreeAccountsController::class, 'ledgerExportPdf'])->name('ledger-export-pdf');
         Route::get('ledger-export-excel/{id}', [TreeAccountsController::class, 'ledgerExportExcel'])->name('ledger-export-excel');
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])->name('change-status-account');
+        Route::get('next-gl-code', [TreeAccountsController::class, 'nextGlCode'])->name('next-gl-code');
+        Route::post('delete-account', [TreeAccountsController::class, 'deleteAccount'])->name('delete-account');
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
 

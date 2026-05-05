@@ -174,6 +174,21 @@
                                                                     </a>
                                                                 @endif
                                                             </li>
+
+                                                            <li>
+                                                                <form action="{{ route('delete-account') }}" method="POST"
+                                                                    onsubmit="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));"
+                                                                    style="display:inline;" onclick="event.stopPropagation();">
+                                                                    @csrf
+                                                                    <input type="hidden" name="account_id" value="{{ $account->id }}">
+                                                                    <button type="submit" class="btn-xs btn-default text-danger"
+                                                                        style="margin: 2px; background: transparent; border: 0; padding: 0;"
+                                                                        onclick="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));">
+                                                                        <i class="fas fa-trash"></i>
+                                                                        <span style="margin-left: 5px;">@lang('messages.delete')</span>
+                                                                    </button>
+                                                                </form>
+                                                            </li>
                                                         </ul>
                                                     </div>
 
@@ -272,6 +287,21 @@
                                                                                             @lang('messages.activate')
                                                                                     </a>
                                                                                 @endif
+                                                                            </li>
+
+                                                                            <li>
+                                                                                <form action="{{ route('delete-account') }}" method="POST"
+                                                                                    onsubmit="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));"
+                                                                                    style="display:inline;" onclick="event.stopPropagation();">
+                                                                                    @csrf
+                                                                                    <input type="hidden" name="account_id" value="{{ $child_account->id }}">
+                                                                                    <button type="submit" class="btn-xs btn-default text-danger"
+                                                                                        style="margin: 2px; background: transparent; border: 0; padding: 0;"
+                                                                                        onclick="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                        <span style="margin-left: 5px;">@lang('messages.delete')</span>
+                                                                                    </button>
+                                                                                </form>
                                                                             </li>
                                                                         </ul>
                                                                     </div>

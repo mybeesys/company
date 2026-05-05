@@ -52,6 +52,47 @@
             font-size: 14px;
             color: #333;
         }
+
+        /* Show + / − on expand control */
+        .jstree-default .jstree-ocl {
+            background-image: none !important;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            margin-top: 2px;
+            text-align: center;
+            color: #1f2937; /* darker */
+            background: #eef2f7;
+            border-radius: 5px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+        }
+
+        .jstree-default .jstree-closed > .jstree-ocl:before {
+            content: "+";
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .jstree-default .jstree-open > .jstree-ocl:before {
+            content: "−";
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .jstree-default .jstree-leaf > .jstree-ocl:before {
+            content: "";
+        }
+
+        .jstree-default .jstree-ocl:hover {
+            background: #e5ebf5;
+            color: #111827;
+        }
+
+        .jstree-default .jstree-anchor:focus-visible + .jstree-ocl,
+        .jstree-default .jstree-ocl:focus-visible {
+            outline: 2px solid rgba(27, 132, 255, 0.35);
+            outline-offset: 1px;
+        }
     </style>
 @stop
 
@@ -208,7 +249,15 @@ $('#account_nature_display_1').text(natureText)
 
             $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
                 var value = sessionStorage.getItem('account_id');
-                $('#account_id_').val(value);
+                $('#account_id_create').val(value);
+
+                var url = @json(route('next-gl-code'));
+                $.get(url, { parent_account_id: value })
+                    .done(function(resp) {
+                        if (resp && resp.gl_code) {
+                            $('#create_gl_code').val(resp.gl_code);
+                        }
+                    });
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_edit_account', function() {
@@ -257,7 +306,7 @@ $('#account_nature_display_1').text(natureText)
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_deactive', function() {
-                $('#account_id_').val(sessionStorage.getItem('account_id'));
+                $('#account_id_deactive').val(sessionStorage.getItem('account_id'));
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_active', function() {

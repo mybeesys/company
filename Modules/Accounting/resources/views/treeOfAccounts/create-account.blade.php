@@ -41,7 +41,16 @@
                             value="">
                     </div>
 
-                    <input type="text" id="account_id_" hidden class="form-control form-control-solid"
+                    <div class="fv-row mb-5 fv-plugins-icon-container">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('accounting::lang.gl_code')</span>
+                        </label>
+                        <input type="text" class="form-control form-control-solid" id="create_gl_code" required
+                            name="gl_code" value="">
+                        <div class="form-text text-muted">@lang('accounting::lang.gl_code_unique_hint')</div>
+                    </div>
+
+                    <input type="text" id="account_id_create" hidden class="form-control form-control-solid"
                         name="account_id" value="">
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">
