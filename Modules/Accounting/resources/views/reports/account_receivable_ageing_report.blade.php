@@ -49,8 +49,8 @@
                         </div>
                         <div class="col-md-12 d-flex gap-2">
                             <button class="btn btn-primary" type="submit">@lang('report::general.filter')</button>
-                            <a class="btn btn-light-primary" href="{{ route('account-receivable-ageing-report-export-pdf', request()->query()) }}">PDF</a>
-                            <a class="btn btn-light-success" href="{{ route('account-receivable-ageing-report-export-excel', request()->query()) }}">Excel</a>
+                            <a class="btn btn-export-pdf" href="{{ route('account-receivable-ageing-report-export-pdf', request()->query()) }}">PDF</a>
+                            <a class="btn btn-export-excel" href="{{ route('account-receivable-ageing-report-export-excel', request()->query()) }}">Excel</a>
                         </div>
                     </form>
                     <div class="box box-warning mt-4">

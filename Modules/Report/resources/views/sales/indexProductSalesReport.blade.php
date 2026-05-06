@@ -151,12 +151,12 @@
                             placeholder="@lang('report::general.ProductSales_search')" />
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap ms-sm-auto">
-                        <button type="button" class="btn btn-sm btn-light-success" id="productSalesExportExcelBtn"
+                        <button type="button" class="btn btn-sm btn-export-excel" id="productSalesExportExcelBtn"
                             title="@lang('report::general.product_sales_export_full_hint')">
                             <i class="bi bi-file-earmark-excel fs-5"></i>
                             @lang('report::general.export_excel_btn')
                         </button>
-                        <button type="button" class="btn btn-sm btn-light-danger" id="productSalesExportPdfBtn"
+                        <button type="button" class="btn btn-sm btn-export-pdf" id="productSalesExportPdfBtn"
                             title="@lang('report::general.product_sales_export_full_hint')">
                             <i class="bi bi-file-earmark-pdf fs-5"></i>
                             @lang('report::general.export_pdf_btn')

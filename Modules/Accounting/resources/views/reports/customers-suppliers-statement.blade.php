@@ -119,8 +119,8 @@
 
                         <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
-                            <button type="button" id="statementExportPdf" class="btn btn-light-primary">PDF</button>
-                            <button type="button" id="statementExportExcel" class="btn btn-light-success">Excel</button>
+                            <button type="button" id="statementExportPdf" class="btn btn-export-pdf">PDF</button>
+                            <button type="button" id="statementExportExcel" class="btn btn-export-excel">Excel</button>
                         </div>
 
                     </div>

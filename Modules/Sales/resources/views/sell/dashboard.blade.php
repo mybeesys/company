@@ -65,7 +65,7 @@
                     <a href="{{ route('sales-dashbord-export-csv', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-primary">
                         <i class="fas fa-file-csv"></i> CSV
                     </a>
-                    <a href="{{ route('sales-dashbord-export-pdf', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-danger">
+                    <a href="{{ route('sales-dashbord-export-pdf', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-export-pdf">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
                 </form>

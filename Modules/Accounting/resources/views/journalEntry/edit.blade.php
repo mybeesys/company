@@ -99,9 +99,9 @@
             </div>
         </div>
     </div>
-    <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-primary mx-2"
+    <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-export-pdf mx-2"
         style="width: 10rem;padding: 5px;">@lang('general.export_as_pdf')</a>
-    <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}" class="btn btn-primary mx-2"
+    <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}" class="btn btn-export-excel mx-2"
         style="width: 10rem;padding: 5px;">@lang('general.export_as_excel')</a>
 
     <div class="separator d-flex flex-center my-5">

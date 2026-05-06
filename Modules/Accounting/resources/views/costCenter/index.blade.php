@@ -149,7 +149,7 @@
                         <li>
                             <div class="menu-item ">
                                 <a href= "{{ url('/cost-center-export-pdf') }}"
-                                    style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('general.export_as_pdf')</a>
+                                    style="width: 100%;text-align: start; padding: 0;" class="btn btn-export-pdf">@lang('general.export_as_pdf')</a>
                             </div>
                         </li>
 
@@ -157,7 +157,7 @@
                         <li>
                             <div class="menu-item ">
                                 <a href= "{{ url('/cost-center-export-excel') }}"
-                                    style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('general.export_as_excel')</a>
+                                    style="width: 100%;text-align: start; padding: 0;" class="btn btn-export-excel">@lang('general.export_as_excel')</a>
                             </div>
                         </li>
 

@@ -61,8 +61,8 @@
 
                         <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary">@lang('report::general.filter')</button>
-                            <button type="button" id="incomeStatementExportPdf" class="btn btn-light-primary">PDF</button>
-                            <button type="button" id="incomeStatementExportExcel" class="btn btn-light-success">Excel</button>
+                            <button type="button" id="incomeStatementExportPdf" class="btn btn-export-pdf">PDF</button>
+                            <button type="button" id="incomeStatementExportExcel" class="btn btn-export-excel">Excel</button>
                         </div>
                     </div>
                 </form>

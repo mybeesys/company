@@ -29,12 +29,47 @@
         }
 
         body {
-            font-size: 14px;
+            font-size: 13px;
             font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
-            padding: 12px;
+            padding: 18px 18px 16px 18px;
             margin: 0;
             color: #333;
             text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};
+        }
+
+        .ledger-header-top {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .ledger-header-top .h-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+            margin: 0 0 4px 0;
+        }
+
+        .ledger-header-top .h-company {
+            font-size: 12px;
+            color: #444;
+            margin: 0 0 3px 0;
+        }
+
+        .ledger-header-top .h-period {
+            font-size: 12px;
+            color: #555;
+            margin: 0;
+        }
+
+        .ledger-header-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        .ledger-header-grid .col {
+            display: table-cell;
+            vertical-align: top;
         }
 
         .ledger-print-title {
@@ -51,6 +86,34 @@
             line-height: 1.5;
         }
 
+        .ledger-meta-box {
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 10px;
+        }
+
+        .ledger-meta-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .ledger-meta-row .k,
+        .ledger-meta-row .v {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        .ledger-meta-row .k {
+            width: 26%;
+            color: #111;
+            font-weight: bold;
+        }
+
+        .ledger-meta-row .v {
+            width: 74%;
+        }
+
         .table_component table {
             border: 1px solid #333;
             table-layout: auto;
@@ -59,11 +122,15 @@
             font-size: 11px;
         }
 
+        .table_component {
+            margin-top: 10px;
+        }
+
         .table_component th {
             border: 1px solid #333;
             background-color: #e8e8e8;
             color: #000;
-            padding: 8px 6px;
+            padding: 9px 6px;
             text-align: center;
             font-weight: bold;
         }
@@ -72,7 +139,7 @@
             border: 1px solid #666;
             background-color: #ffffff;
             color: #000;
-            padding: 6px;
+            padding: 8px 6px;
             vertical-align: top;
         }
 
@@ -90,6 +157,28 @@
         .ledger-foot-row td {
             font-weight: bold;
             background-color: #ececec;
+        }
+
+        .ledger-sign {
+            margin-top: 14px;
+            display: table;
+            width: 100%;
+        }
+
+        .ledger-sign .box {
+            display: table-cell;
+            border: 1px solid #333;
+            padding: 8px;
+            width: 33.33%;
+            height: 64px;
+            vertical-align: top;
+        }
+
+        .ledger-sign .lbl {
+            font-size: 11px;
+            color: #111;
+            font-weight: bold;
+            margin-bottom: 6px;
         }
 
         @media print {
@@ -112,33 +201,29 @@
 
 <body>
 
-    <div class="template-header">
-        <div class="ledger-print-title text-center">@lang('accounting::lang.ledger')</div>
-        <div class="ledger-print-meta text-center">
-            <strong>{{ $account->gl_code }}</strong>
+    <div class="ledger-header-top">
+        <div class="h-title">
+            @lang('accounting::lang.ledger')
             —
+            {{ $account->gl_code }}
+            {{ app()->getLocale() == 'ar' ? ' - ' : ' - ' }}
             {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
-            @if ($periodLine)
-                <br>{{ $periodLine }}
-            @endif
         </div>
+        @if (! empty($company?->name))
+            <div class="h-company">{{ $company->name }}</div>
+        @endif
+        @if ($periodLine)
+            <div class="h-period">{{ $periodLine }}</div>
+        @endif
     </div>
 
-    <div class="section">
-        <div class="ledger-print-meta" style="margin-bottom: 10px;">
-            <strong>@lang('accounting::lang.ledger_report_account_class'):</strong>
-            @lang('accounting::lang.' . $account->account_primary_type)
-            @if ($account->account_sub_type)
-                — {{ app()->getLocale() == 'ar' ? $account->account_sub_type->name_ar : $account->account_sub_type->name_en }}
-            @endif
-            <br>
-            <strong>@lang('accounting::lang.balance'):</strong> @format_currency($current_bal)
-        </div>
+    {{-- Account details box intentionally removed (Saudi-style clean header) --}}
 
         <div class="content table_component">
             <table id="journal_table">
                 <thead>
                     <tr>
+                        <th style="width: 34px;">م</th>
                         @if ($ledgerCol('ref_no'))
                             <th>@lang('accounting::lang.transaction_number')</th>
                         @endif
@@ -174,8 +259,10 @@
                         $balance = (float) $opening_balance;
                         $total_debit = 0;
                         $total_credit = 0;
+                        $rowNo = 0;
                     @endphp
                     <tr class="ledger-opening-row">
+                        <td class="num">—</td>
                         <td colspan="{{ $ledgerOpeningLabelSpan }}" style="text-align: center;">
                             @lang('accounting::lang.opening_balance')
                         </td>
@@ -188,6 +275,7 @@
                     </tr>
                     @foreach ($account_transactions as $transactions)
                         @php
+                            $rowNo++;
                             if ($is_debit_nature) {
                                 if ($transactions->type == 'debit') {
                                     $balance += $transactions->amount;
@@ -214,6 +302,7 @@
                             }
                         @endphp
                         <tr>
+                            <td class="num">{{ $rowNo }}</td>
                             @if ($ledgerCol('ref_no'))
                                 <td>
                                     @if (isset($transactions->accTransMapping))
@@ -285,6 +374,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="ledger-foot-row">
+                        <td class="num">—</td>
                         <td colspan="{{ $ledgerFootLabelSpan }}" style="text-align: center;">
                             @lang('accounting::lang.Closing balance')
                         </td>
@@ -303,6 +393,18 @@
                     </tr>
                 </tfoot>
             </table>
+        </div>
+
+        <div class="ledger-sign">
+            <div class="box">
+                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'إعداد' : 'Prepared by' }}</div>
+            </div>
+            <div class="box">
+                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'مراجعة' : 'Reviewed by' }}</div>
+            </div>
+            <div class="box">
+                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'اعتماد' : 'Approved by' }}</div>
+            </div>
         </div>
     </div>
 </body>

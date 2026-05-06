@@ -79,12 +79,12 @@
             @endif
 
             <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}"
-               class="btn btn-primary mx-2">
+               class="btn btn-export-pdf mx-2">
                 @lang('general.export_as_pdf')
             </a>
 
             <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}"
-               class="btn btn-primary">
+               class="btn btn-export-excel">
                 @lang('general.export_as_excel')
             </a>
         </div>

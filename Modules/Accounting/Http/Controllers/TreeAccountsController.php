@@ -514,7 +514,10 @@ class TreeAccountsController extends Controller
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
         return view('accounting::treeOfAccounts.print-ledger', compact(
+            'company',
             'account',
             'current_bal',
             'account_transactions',
@@ -550,7 +553,10 @@ class TreeAccountsController extends Controller
             ->select([DB::raw(AccountingUtil::balanceFormula())]);
         $current_bal = $current_bal->first()->balance;
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
         $html = view('accounting::treeOfAccounts.print-ledger', compact(
+            'company',
             'account',
             'current_bal',
             'account_transactions',

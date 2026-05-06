@@ -63,7 +63,7 @@
                     <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
                     <a href="{{ route('purchase-dashbord') }}" class="btn btn-light">@lang('general.clear_filters')</a>
                     <a href="{{ route('purchase-dashbord-export-csv', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-primary"><i class="fas fa-file-csv"></i> CSV</a>
-                    <a href="{{ route('purchase-dashbord-export-pdf', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-light-danger"><i class="fas fa-file-pdf"></i> PDF</a>
+                    <a href="{{ route('purchase-dashbord-export-pdf', ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()]) }}" class="btn btn-export-pdf"><i class="fas fa-file-pdf"></i> PDF</a>
                 </form>
             </div>
         </div>

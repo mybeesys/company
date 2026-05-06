@@ -132,8 +132,8 @@
                     <div class="col-md-3 d-flex align-items-end gap-2">
                         <button class="btn btn-info btn-xs pull-right btn-flat" onclick="dataTable.ajax.reload();"
                             style="margin-top: 24px; width: 70px; height: 40px; border-radius: 8px;padding: 0;">@lang('report::general.filter')</button>
-                        <button type="button" id="trialBalanceExportPdf" class="btn btn-light-primary btn-sm">PDF</button>
-                        <button type="button" id="trialBalanceExportExcel" class="btn btn-light-success btn-sm">Excel</button>
+                        <button type="button" id="trialBalanceExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
+                        <button type="button" id="trialBalanceExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
                     </div>
                 </div>
             </div>
