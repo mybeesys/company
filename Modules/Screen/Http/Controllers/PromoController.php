@@ -15,6 +15,7 @@ class PromoController extends Controller
     {
         if ($request->ajax()) {
             $promos = Promo::all();
+
             return PromoTable::getPromoIndexTable($promos);
         }
     }
@@ -23,6 +24,7 @@ class PromoController extends Controller
     {
         if ($request->ajax()) {
             $promos = Promo::all();
+
             return PromoTable::getPlaylistPromoTable($promos);
         }
     }
@@ -33,14 +35,16 @@ class PromoController extends Controller
             'promo' => ['required', 'mimes:jpeg,jpg,png,mp4,mov,avi,webm,mkv', 'max:120000'],
         ]);
         try {
-            $action = new PromoActions();
+            $action = new PromoActions;
             $action->storePromo($validated);
+
             return response()->json(['message' => __('employee::responses.operation_success')]);
         } catch (\Throwable $e) {
             \Log::error('promo creation field', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
@@ -50,19 +54,21 @@ class PromoController extends Controller
         try {
             $validated = $request->validate(['name' => ['required', 'string', 'max:255']]);
             $promo->update(['name' => $validated['name']]);
+
             return response()->json(['message' => __('employee::responses.updated_successfully', ['name' => __('screen::fields.promo')])]);
         } catch (\Throwable $e) {
             \Log::error('promo creation field', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
 
     public function destroy(Promo $promo)
     {
-        $file = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $promo->path);
+        $file = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$promo->path);
 
         if (File::exists($file)) {
             File::delete($file);

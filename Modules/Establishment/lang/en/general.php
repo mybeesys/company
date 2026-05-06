@@ -1,6 +1,5 @@
 <?php
 
-
 return [
     'add_establishment' => 'Add establishment',
     'edit_establishment' => 'Edit establishment',

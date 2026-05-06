@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Middleware\AuthenticateJWT;
 use Illuminate\Support\Facades\Route;
+use Modules\Inventory\Http\Controllers\Import\OpenInventoryImportController;
 use Modules\Inventory\Http\Controllers\IngredientInventoryController;
+use Modules\Inventory\Http\Controllers\InventoryDashboardController;
 use Modules\Inventory\Http\Controllers\InventoryOperationController;
 use Modules\Inventory\Http\Controllers\PrepController;
 use Modules\Inventory\Http\Controllers\ProductInventoryController;
-use Modules\Inventory\Http\Controllers\InventoryDashboardController;
 use Modules\Inventory\Http\Controllers\ProductInventoryReportController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use Modules\Inventory\Http\Controllers\PurchaseOrderReportController;
@@ -14,7 +14,6 @@ use Modules\Inventory\Http\Controllers\RMAController;
 use Modules\Inventory\Http\Controllers\TransferController;
 use Modules\Inventory\Http\Controllers\WarehouseController;
 use Modules\Inventory\Http\Controllers\WasteController;
-use Modules\Inventory\Http\Controllers\Import\OpenInventoryImportController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -32,7 +31,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class
+    PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
@@ -43,7 +42,7 @@ Route::middleware([
         Route::get('/purchaseOrderReport/{id}/purchase_order_pdf', [PurchaseOrderReportController::class, 'purchase_order_pdf'])->name('purchaseOrder.purchase_order_pdf');
         Route::resource('purchaseOrderReport', PurchaseOrderReportController::class)->names('purchaseOrderReport');
         Route::get('/productInventoryReport/{id}/productInventory_pdf', [ProductInventoryReportController::class, 'productInventory_pdf'])->name('productInventory.productInventory_pdf');
-        Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');;
+        Route::get('/productInventoryReport/{id}/productInventory_xls', [ProductInventoryReportController::class, 'productInventory_xls'])->name('productInventory.productInventory_xls');
         Route::resource('productInventoryReport', ProductInventoryReportController::class)->names('productInventoryReport');
         Route::get('inventory-dashboard', [InventoryDashboardController::class, 'index'])->name('inventory.dashboard');
         Route::get('inventory-dashboard/export/critical-items-csv', [InventoryDashboardController::class, 'exportCriticalItemsCsv'])->name('inventory.dashboard.export.critical-items-csv');
@@ -75,7 +74,7 @@ Route::middleware([
         Route::post('transfer/full-receiving', [TransferController::class, 'fullReceiving'])->name('fullReceiving');
         Route::get('transfer/{id1}/partial-deliveries/{id2}', [TransferController::class, 'partialDeliveries'])->name('partialDeliveries');
         Route::resource('inventoryOperation', InventoryOperationController::class)->names('inventoryOperation');
-        Route::get('/inventoryOperationList/{type?}', [InventoryOperationController::class, 'getinventoryOperations'])->name('inventoryOperationList');;
+        Route::get('/inventoryOperationList/{type?}', [InventoryOperationController::class, 'getinventoryOperations'])->name('inventoryOperationList');
         Route::post('/statusUpdate', [InventoryOperationController::class, 'statusUpdate'])->name('statusUpdate');
         Route::post('/updateRecive', [PurchaseOrderController::class, 'updateRecive'])->name('updateRecive');
         Route::get('/purchaseOrder/{id}/recieve', [PurchaseOrderController::class, 'recieve'])->name('purchaseOrder.recieve');

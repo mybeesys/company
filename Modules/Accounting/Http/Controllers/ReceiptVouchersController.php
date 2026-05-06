@@ -23,17 +23,17 @@ class ReceiptVouchersController extends Controller
             ->orderBy('id')
             ->get();
 
-
         if ($request->ajax()) {
 
             $transactions = AccountingAccountsTransaction::where('sub_type', 'receipt_voucher')
                 ->orderBy('id')
                 ->get();
+
             return AccountingAccountsTransaction::getReceiptsTable($transactions, 'receipt_voucher');
         }
 
         $columns = AccountingAccountsTransaction::getReceiptsColumns();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
 
         return view('accounting::receipt-vouchers.index', compact('transactions', 'accounts', 'columns', 'cost_centers'));
@@ -109,9 +109,11 @@ class ReceiptVouchersController extends Controller
             $debit->save();
 
             DB::commit();
+
             return redirect()->route('receipt-vouchers')->with('success', __('messages.add_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('receipt-vouchers')->with('error', __('messages.something_went_wrong'));
         }
 

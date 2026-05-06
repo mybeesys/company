@@ -22,13 +22,13 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('vendor_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_vendors');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_vendors');
             $table->foreign('operation_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('inventory_Operations');
+                ->references('id')                    // References the id on the categories table
+                ->on('inventory_Operations');
         });
-         Schema::create('inventory_Op_purchaseOrder_items', function (Blueprint $table) {
+        Schema::create('inventory_Op_purchaseOrder_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('operation_item_id');
             $table->boolean('taxed');
@@ -36,8 +36,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('operation_item_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('inventory_Operation_items');
+                ->references('id')                    // References the id on the categories table
+                ->on('inventory_Operation_items');
         });
     }
 

@@ -2,8 +2,8 @@
 
 namespace Modules\Franchise\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Establishment\Models\Establishment;
 
 // use Modules\Franchise\Database\Factories\FranchiseCompaniesFactory;
@@ -16,6 +16,7 @@ class FranchiseCompanies extends Model
      * The attributes that are mass assignable.
      */
     protected $table = 'franchise_companies';
+
     protected $guarded = ['id'];
 
     public function contracts()
@@ -27,8 +28,6 @@ class FranchiseCompanies extends Model
     {
         return $query->has('contracts', '=', 0);
     }
-
-
 
     public function activeContract()
     {

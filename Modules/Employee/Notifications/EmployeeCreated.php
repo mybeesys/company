@@ -15,10 +15,7 @@ class EmployeeCreated extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(protected Employee $employee, protected string $password = "__('messages.in_active')")
-    {
-
-    }
+    public function __construct(protected Employee $employee, protected string $password = "__('messages.in_active')") {}
 
     /**
      * Get the notification's delivery channels.
@@ -74,7 +71,6 @@ class EmployeeCreated extends Notification
             ? date_format($this->employee->created_at, 'H:i')
             : '';
 
-
         $subject = $getLocalizedContent(
             'created_emp_email_notification_subject_ar',
             'created_emp_email_notification_subject_en'
@@ -100,7 +96,6 @@ class EmployeeCreated extends Notification
         $body = str_replace('{employee_password}', $this->password, $body);
         $body = str_replace('{employee_pin}', $this->employee->pin, $body);
         $body = str_replace('{employee_total_wage}', ($this->employee->wage->rate ?? 0) + ($this->employee->allowances()?->always()?->sum('amount') ?? 0), $body);
-
 
         return [
             'subject' => $subject,

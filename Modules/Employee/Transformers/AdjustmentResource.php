@@ -4,7 +4,6 @@ namespace Modules\Employee\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class AdjustmentResource extends JsonResource
 {
@@ -23,7 +22,7 @@ class AdjustmentResource extends JsonResource
             'amount' => $this->amount,
             'amount_type' => $this->amount_type,
             'applicable_date' => $this->applicable_date,
-            'apply_once' => $this->apply_once
+            'apply_once' => $this->apply_once,
         ];
     }
 }

@@ -1,15 +1,14 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\Ingredient;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -22,10 +21,11 @@ class Unit extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'name_en',
-        'name_ar'
+        'name_ar',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -33,4 +33,3 @@ class Unit extends Model
     // Define relationships here (if any)
 
 }
-?>

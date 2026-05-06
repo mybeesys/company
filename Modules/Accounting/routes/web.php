@@ -1,8 +1,6 @@
 <?php
 
-use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
-use Modules\Accounting\Http\Controllers\AccountingController;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
@@ -15,7 +13,6 @@ use Modules\Accounting\Http\Controllers\TreeAccountsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
@@ -24,13 +21,11 @@ Route::middleware([
     // Accounting Dashbord
     Route::get('accounting-dashboard', [AccountingDashboardController::class, 'index'])->name('accounting-dashboard');
 
-
     Route::middleware(['auth'])->group(function () {
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');
         Route::post('store-sub-account', [TreeAccountsController::class, 'storeSubAccount'])->name('store-sub-account');
-
 
         Route::get('create-default-accounts', [TreeAccountsController::class, 'createDefaultAccounts'])->name('create-default-accounts');
         Route::post('store-account', [TreeAccountsController::class, 'store'])->name('store-account');
@@ -43,7 +38,6 @@ Route::middleware([
         Route::get('next-gl-code', [TreeAccountsController::class, 'nextGlCode'])->name('next-gl-code');
         Route::post('delete-account', [TreeAccountsController::class, 'deleteAccount'])->name('delete-account');
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
-
 
         Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
         Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');
@@ -75,7 +69,6 @@ Route::middleware([
         Route::get('cost-center-export-pdf', [CostCenterConrollerController::class, 'exportPDF'])->name('cost-center-export-pdf');
         Route::get('cost-center-export-excel', [CostCenterConrollerController::class, 'exportExcel'])->name('cost-center-export-excel');
 
-
         Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
         Route::get('payment-vouchers/form-data', [PaymentVouchersController::class, 'formData'])->name('payment-vouchers-form-data');
         Route::put('payment-vouchers/{id}', [PaymentVouchersController::class, 'update'])->name('payment-vouchers-update');
@@ -85,7 +78,6 @@ Route::middleware([
         Route::get('receipt-vouchers/form-data', [ReceiptVouchersController::class, 'formData'])->name('receipt-vouchers-form-data');
         Route::put('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'update'])->name('receipt-vouchers-update');
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
-
 
         Route::get('accounting-reports', [AccountingReportsController::class, 'index'])->name('accounting-reports');
         Route::get('income-statement', [AccountingReportsController::class, 'incomeStatement'])->name('income-statement');
@@ -145,7 +137,7 @@ Route::middleware([
                     'store' => 'periodic-inventory.store',
                     'edit' => 'periodic-inventory.edit',
                     'update' => 'periodic-inventory.update',
-                    'show' => 'periodic-inventory.show'
+                    'show' => 'periodic-inventory.show',
                 ]);
         });
         //

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('product_attributeclass', function (Blueprint $table) {
             $table->id();
             $table->string('name_ar');
-            $table->string('name_en'); 
-            $table->integer('order');   
-            $table->boolean('active');       
+            $table->string('name_en');
+            $table->integer('order');
+            $table->boolean('active');
             $table->timestamps();
             $table->softDeletes(); // Adds a deleted_at column
         });

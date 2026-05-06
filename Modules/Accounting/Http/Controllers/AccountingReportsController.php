@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Maatwebsite\Excel\Facades\Excel;
-use Mpdf\Mpdf;
-use Modules\Accounting\classes\BalanceSheetExport;
-use Modules\Accounting\classes\CashFlowExport;
 use Modules\Accounting\classes\AgeingDetailsExport;
 use Modules\Accounting\classes\AgeingSummaryExport;
+use Modules\Accounting\classes\BalanceSheetExport;
+use Modules\Accounting\classes\CashFlowExport;
 use Modules\Accounting\classes\CustomersSuppliersStatementExport;
 use Modules\Accounting\classes\IncomeStatementExport;
 use Modules\Accounting\classes\JournalReportExport;
@@ -26,11 +25,11 @@ use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Actions;
 use Modules\General\Models\Tax;
+use Mpdf\Mpdf;
 use Yajra\DataTables\Facades\DataTables;
 
 class AccountingReportsController extends Controller
 {
-
     public function index()
     {
         return view('accounting::reports.reports');
@@ -41,14 +40,14 @@ class AccountingReportsController extends Controller
         $validated = $request->validate([
             'type' => 'required|string',
             'action' => 'required|string',
-            'name' => 'required|string'
+            'name' => 'required|string',
         ]);
 
         Actions::create([
             'user_id' => Auth::user()->id,
             'type' => $validated['type'],
             'action' => $validated['action'],
-            'name' => $validated['name']
+            'name' => $validated['name'],
         ]);
 
         return response()->json(['success' => true]);
@@ -112,7 +111,7 @@ class AccountingReportsController extends Controller
             'cost_of_revenue' => $cost_of_revenue,
             'total_expense' => $total_expense,
             'total_other_income' => $total_other_income,
-            'total_other_expense' => $total_other_expense
+            'total_other_expense' => $total_other_expense,
         ];
     }
 
@@ -120,7 +119,7 @@ class AccountingReportsController extends Controller
     {
         $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
         $end_date = request()->end_date ?? now()->format('Y-m-d');
-        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $choose_cost_center_select = request()->choose_cost_center_select ?? [];
 
         $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
@@ -186,25 +185,25 @@ class AccountingReportsController extends Controller
         $rows = collect();
         foreach ($incomeDataset['revenueAccounts'] as $account) {
             $rows->push([
-                __('accounting::lang.Revenues') . ' - ' . (app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
+                __('accounting::lang.Revenues').' - '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
                 number_format((float) $account->amount, 2, '.', ''),
             ]);
         }
-        $rows->push([__('accounting::lang.total') . ' ' . __('accounting::lang.Revenues'), number_format((float) ($incomeDataset['data']['revenue_net'] ?? 0), 2, '.', '')]);
+        $rows->push([__('accounting::lang.total').' '.__('accounting::lang.Revenues'), number_format((float) ($incomeDataset['data']['revenue_net'] ?? 0), 2, '.', '')]);
 
         foreach ($incomeDataset['expenseAccounts'] as $account) {
             $rows->push([
-                __('accounting::lang.account_types.expenses') . ' - ' . (app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
+                __('accounting::lang.account_types.expenses').' - '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
                 number_format((float) $account->amount, 2, '.', ''),
             ]);
         }
-        $rows->push([__('accounting::lang.total') . ' ' . __('accounting::lang.account_types.expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
+        $rows->push([__('accounting::lang.total').' '.__('accounting::lang.account_types.expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
         $rows->push([__('report::general.gross_profit'), number_format((float) ($incomeDataset['data']['gross_profit'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.income_before_tax'), number_format((float) ($incomeDataset['data']['income_before_tax'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.tax_amount'), number_format((float) ($incomeDataset['data']['tax_amount'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.net_profit'), number_format((float) (($incomeDataset['data']['income_before_tax'] ?? 0) - ($incomeDataset['data']['tax_amount'] ?? 0)), 2, '.', '')]);
 
-        $filename = 'income-statement-' . now()->format('Ymd-His') . '.xlsx';
+        $filename = 'income-statement-'.now()->format('Ymd-His').'.xlsx';
 
         return Excel::download(
             new IncomeStatementExport($rows, [
@@ -250,6 +249,7 @@ class AccountingReportsController extends Controller
             ->where('acc_type', 'income')
             ->map(function ($account) {
                 $account->amount = (float) $account->credit_balance - (float) $account->debit_balance;
+
                 return $account;
             })
             ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
@@ -259,6 +259,7 @@ class AccountingReportsController extends Controller
             ->where('acc_type', 'expenses')
             ->map(function ($account) {
                 $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
+
                 return $account;
             })
             ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
@@ -272,7 +273,6 @@ class AccountingReportsController extends Controller
         ];
     }
 
-
     public function trialBalance(Request $request)
     {
         // try {
@@ -283,7 +283,6 @@ class AccountingReportsController extends Controller
             $accounts_array[$key] =
                 $account_type['label'];
         }
-
 
         $with_zero_balances = $request->input('with_zero_balances', 0);
 
@@ -297,7 +296,7 @@ class AccountingReportsController extends Controller
         $max_levels = AccountingAccount::pluck('gl_code')->toArray();
 
         $lengths = array_map(function ($length) {
-            return str_replace(".", "", $length);
+            return str_replace('.', '', $length);
         }, $max_levels);
         if (empty($max_levels)) {
             // Redirect to the 'chart-of-accounts' route with a flash message
@@ -313,7 +312,7 @@ class AccountingReportsController extends Controller
 
         $levelsArray = [null => __('all')] + $levelsArray;
 
-        if (!empty($request->start_date) && !empty($request->end_date)) {
+        if (! empty($request->start_date) && ! empty($request->end_date)) {
             $start_date = $request->input('start_date');
             $end_date = $request->input('end_date');
         } else {
@@ -352,9 +351,7 @@ class AccountingReportsController extends Controller
                         ->orWhere(function ($query) use ($start_date, $end_date) {
                             $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
                                 ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                        })
-
-                    ;
+                        });
                 }
             );
         } elseif ($with_zero_balances == 2) {
@@ -385,12 +382,11 @@ class AccountingReportsController extends Controller
                     ORDER BY AAT.operation_date ASC LIMIT 1), 0) = 0");
         }
 
-
         // return $accounts->get();
         $accounts->when($choose_accounts_select, function ($query, $choose_accounts_select) {
             return $query->where(function ($query) use ($choose_accounts_select) {
                 foreach ($choose_accounts_select as $type) {
-                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type . '%');
+                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type.'%');
                 }
             });
         })
@@ -440,9 +436,9 @@ class AccountingReportsController extends Controller
             foreach ($accounts->get() as $account) {
 
                 $groupKey = $account->name;
-                if (!isset($aggregatedAccounts[$groupKey])) {
+                if (! isset($aggregatedAccounts[$groupKey])) {
                     $aggregatedAccounts[$groupKey] = (object) [
-                        'name' => Lang::has('accounting::lang.' . $groupKey) ? __('accounting::lang.' . $groupKey) : $groupKey,
+                        'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
                         'gl_code' => $account->gl_code[0],
                         'credit_balance' => 0,
                         'debit_balance' => 0,
@@ -471,7 +467,6 @@ class AccountingReportsController extends Controller
                 $totalCreditBalance += $account->credit_balance;
                 $totalDebitOpeningBalance += $account->debit_opening_balance;
                 $totalCreditOpeningBalance += $account->credit_opening_balance;
-
 
                 $closing_balance = $this->calculateClosingBalance($account);
                 $totalClosingDebitBalance += $closing_balance['closing_debit_balance'];
@@ -502,24 +497,27 @@ class AccountingReportsController extends Controller
                 })
                 ->addColumn('closing_debit_balance', function ($account) {
                     $closing_balance = $this->calculateClosingBalance($account);
+
                     return $closing_balance['closing_debit_balance'] ?? 0;
                 })
                 ->addColumn('closing_credit_balance', function ($account) {
                     $closing_balance = $this->calculateClosingBalance($account);
+
                     return $closing_balance['closing_credit_balance'] ?? 0;
                 })
                 ->addColumn('action', function ($account) use ($aggregated) {
-                    if (!$aggregated) {
+                    if (! $aggregated) {
                         return '<div class="btn-group">
-                                <button type="button" class="btn btn-info btn-xs" >' . '
+                                <button type="button" class="btn btn-info btn-xs" >'.'
                                     <a class=" btn-modal text-white" data-container="#printledger"
-                                        href="' . action('\Modules\Accounting\Http\Controllers\TreeAccountsController@ledgerPrint', [$account->id]) . '"
+                                        href="'.action('\Modules\Accounting\Http\Controllers\TreeAccountsController@ledgerPrint', [$account->id]).'"
                                     >
-                                        ' . __("accounting::lang.account_statement") . '
+                                        '.__('accounting::lang.account_statement').'
                                     </a>
                                 </button>
                             </div>';
                     }
+
                     return '';
                 })
                 ->with([
@@ -536,6 +534,7 @@ class AccountingReportsController extends Controller
         }
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+
         return view('accounting::reports.trial_balance')
             ->with(compact('levelsArray', 'accounts_array', 'costCenters'));
         // } catch (\Exception $e) {
@@ -576,7 +575,7 @@ class AccountingReportsController extends Controller
     {
         $report = $this->getTrialBalanceExportDataset($request);
 
-        $filename = 'trial-balance-' . now()->format('Ymd-His') . '.xlsx';
+        $filename = 'trial-balance-'.now()->format('Ymd-His').'.xlsx';
 
         return Excel::download(
             new TrialBalanceExport(
@@ -600,7 +599,7 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select');
         $level_filter = $request->input('level_filter');
 
-        if (!empty($request->start_date) && !empty($request->end_date)) {
+        if (! empty($request->start_date) && ! empty($request->end_date)) {
             $start_date = $request->input('start_date');
             $end_date = $request->input('end_date');
         } else {
@@ -659,7 +658,7 @@ class AccountingReportsController extends Controller
         $accounts->when($choose_accounts_select, function ($query, $choose_accounts_select) {
             return $query->where(function ($query) use ($choose_accounts_select) {
                 foreach ($choose_accounts_select as $type) {
-                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type . '%');
+                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type.'%');
                 }
             });
         })->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
@@ -698,9 +697,9 @@ class AccountingReportsController extends Controller
             $aggregatedAccounts = [];
             foreach ($accounts->get() as $account) {
                 $groupKey = $account->name;
-                if (!isset($aggregatedAccounts[$groupKey])) {
+                if (! isset($aggregatedAccounts[$groupKey])) {
                     $aggregatedAccounts[$groupKey] = (object) [
-                        'name' => Lang::has('accounting::lang.' . $groupKey) ? __('accounting::lang.' . $groupKey) : $groupKey,
+                        'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
                         'gl_code' => $account->gl_code[0],
                         'credit_balance' => 0,
                         'debit_balance' => 0,
@@ -831,6 +830,7 @@ class AccountingReportsController extends Controller
             'autoScriptToLang' => true,
         ]);
         $mpdf->WriteHTML($html);
+
         return $mpdf->Output('balance-sheet.pdf', 'D');
     }
 
@@ -862,7 +862,7 @@ class AccountingReportsController extends Controller
                 'difference' => $dataset['difference'],
                 'balance_status' => $dataset['balance_status'],
             ]),
-            'balance-sheet-' . now()->format('Ymd-His') . '.xlsx'
+            'balance-sheet-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
@@ -875,7 +875,7 @@ class AccountingReportsController extends Controller
                 $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                     ->whereDate('AAT.operation_date', '>=', $start_date)
                     ->whereDate('AAT.operation_date', '<=', $end_date);
-                if (!empty($choose_cost_center_select)) {
+                if (! empty($choose_cost_center_select)) {
                     $join->whereIn('AAT.cost_center_id', $choose_cost_center_select);
                 }
             }
@@ -905,10 +905,10 @@ class AccountingReportsController extends Controller
             ->orderBy('accounting_accounts.gl_code')
             ->get();
 
-        $filtered = $with_zero_balances ? $baseQuery : $baseQuery->filter(fn($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+        $filtered = $with_zero_balances ? $baseQuery : $baseQuery->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
 
         $assets = $filtered->where('account_primary_type', 'asset')->values();
-        $liabilities = $filtered->filter(fn($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
+        $liabilities = $filtered->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
         $equities = $filtered->where('account_primary_type', 'equity')->values();
 
         $total_assets = (float) $assets->sum('balance');
@@ -925,7 +925,6 @@ class AccountingReportsController extends Controller
             'balance_status' => $difference < 0.005 ? __('accounting::lang.balanced') : __('accounting::lang.unbalanced'),
         ];
     }
-
 
     public function JournalReport(Request $request)
     {
@@ -980,6 +979,7 @@ class AccountingReportsController extends Controller
             'autoScriptToLang' => true,
         ]);
         $mpdf->WriteHTML($html);
+
         return $mpdf->Output('journal-report.pdf', 'D');
     }
 
@@ -1000,6 +1000,7 @@ class AccountingReportsController extends Controller
                 ]);
             }
         }
+
         return Excel::download(
             new JournalReportExport($rows, [
                 'start_date' => $report['startDate'],
@@ -1008,7 +1009,7 @@ class AccountingReportsController extends Controller
                 'total_credit' => $report['totalCredit'],
                 'difference' => $report['difference'],
             ]),
-            'journal-report-' . now()->format('Ymd-His') . '.xlsx'
+            'journal-report-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
@@ -1054,10 +1055,10 @@ class AccountingReportsController extends Controller
 
         $query = AccountingAccTransMapping::query()
             ->where('type', 'journal_entry')
-            ->when($startDate, fn($q) => $q->whereDate('operation_date', '>=', $startDate))
-            ->when($endDate, fn($q) => $q->whereDate('operation_date', '<=', $endDate))
-            ->when($refNo, fn($q) => $q->where('ref_no', 'like', '%' . $refNo . '%'))
-            ->when($note, fn($q) => $q->where('note', 'like', '%' . $note . '%'))
+            ->when($startDate, fn ($q) => $q->whereDate('operation_date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->whereDate('operation_date', '<=', $endDate))
+            ->when($refNo, fn ($q) => $q->where('ref_no', 'like', '%'.$refNo.'%'))
+            ->when($note, fn ($q) => $q->where('note', 'like', '%'.$note.'%'))
             ->with(['transactions' => function ($query) {
                 $query->join('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
                     ->select('accounting_accounts_transactions.*', 'accounting_accounts.name_ar', 'accounting_accounts.name_en', 'accounting_accounts.gl_code')
@@ -1066,7 +1067,7 @@ class AccountingReportsController extends Controller
                     });
             }])
             ->whereHas('transactions', function ($query) use ($choose_cost_center_select) {
-                if (!empty($choose_cost_center_select)) {
+                if (! empty($choose_cost_center_select)) {
                     $query->whereIn('cost_center_id', $choose_cost_center_select);
                 }
             });
@@ -1139,7 +1140,6 @@ class AccountingReportsController extends Controller
         });
     }
 
-
     public function cash_flow(Request $request)
     {
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
@@ -1154,6 +1154,7 @@ class AccountingReportsController extends Controller
         $operatingCashFlows = $dataset['query']->paginate(15);
         $operatingCashFlows->getCollection()->transform(function ($flow) {
             $flow->section_key = $this->resolveCashFlowSection($flow->sub_type);
+
             return $flow;
         });
         $cashInflows = $dataset['cashInflows'];
@@ -1248,27 +1249,27 @@ class AccountingReportsController extends Controller
                 'cash_outflows' => $dataset['cashOutflows'],
                 'net_cash_flow' => $dataset['netCashFlow'],
             ]),
-            'cash-flow-' . now()->format('Ymd-His') . '.xlsx'
+            'cash-flow-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
     private function buildCashFlowDataset(string $startDate, string $endDate, array $choose_cost_center_select, ?string $movement_type, array $selected_sub_types, ?string $activity_section): array
     {
         $defaultSubTypes = ['sell', 'sell_cash', 'purchases', 'sales_revenue', 'receipt_voucher', 'payment_voucher', 'journal_entry'];
-        $effectiveSubTypes = !empty($selected_sub_types) ? $selected_sub_types : $defaultSubTypes;
+        $effectiveSubTypes = ! empty($selected_sub_types) ? $selected_sub_types : $defaultSubTypes;
 
         $baseQuery = AccountingAccountsTransaction::with(['accTransMapping', 'costCenter'])
             ->whereBetween('operation_date', [$startDate, $endDate])
             ->whereIn('sub_type', $effectiveSubTypes)
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('cost_center_id', $choose_cost_center_select);
             })
-            ->when(!empty($movement_type), function ($query) use ($movement_type) {
+            ->when(! empty($movement_type), function ($query) use ($movement_type) {
                 return $query->where('type', $movement_type);
             })
-            ->when(!empty($activity_section), function ($query) use ($activity_section) {
+            ->when(! empty($activity_section), function ($query) use ($activity_section) {
                 $sectionSubTypes = $this->getCashFlowSectionSubTypes($activity_section);
-                if (!empty($sectionSubTypes)) {
+                if (! empty($sectionSubTypes)) {
                     $query->whereIn('sub_type', $sectionSubTypes);
                 }
             })
@@ -1281,11 +1282,12 @@ class AccountingReportsController extends Controller
         $allRows = (clone $baseQuery)->get();
         $rows = $allRows->map(function ($flow) {
             $sectionKey = $this->resolveCashFlowSection($flow->sub_type);
+
             return [
-                'section' => __('accounting::lang.' . $sectionKey . '_activities'),
+                'section' => __('accounting::lang.'.$sectionKey.'_activities'),
                 'operation_date' => $flow->operation_date,
                 'ref_no' => $flow->accTransMapping?->ref_no ?? '--',
-                'transaction_type' => Lang::has('accounting::lang.' . $flow->sub_type) ? __('accounting::lang.' . $flow->sub_type) : $flow->sub_type,
+                'transaction_type' => Lang::has('accounting::lang.'.$flow->sub_type) ? __('accounting::lang.'.$flow->sub_type) : $flow->sub_type,
                 'movement_type' => $flow->type === 'debit' ? __('accounting::lang.debit') : __('accounting::lang.credit'),
                 'cost_center' => $flow->costCenter ? ((app()->getLocale() === 'ar' ? $flow->costCenter->name_ar : $flow->costCenter->name_en) ?? $flow->costCenter->name_ar ?? $flow->costCenter->name_en) : '--',
                 'amount' => (float) $flow->amount,
@@ -1335,6 +1337,7 @@ class AccountingReportsController extends Controller
         if (in_array($subType, $this->getCashFlowSectionSubTypes('financing'), true)) {
             return 'financing';
         }
+
         return 'operating';
     }
 
@@ -1349,12 +1352,11 @@ class AccountingReportsController extends Controller
         return $map[$section] ?? [];
     }
 
-
     public function customersSuppliersStatement(Request $request)
     {
         $accountingUtil = new AccountingUtil;
         $contact_id = $request->query('id') ?? Contact::query()->value('id');
-        if (!$contact_id) {
+        if (! $contact_id) {
             return redirect()->route('accounting-reports')->with('error', __('messages.no_data_found'));
         }
         $contact = Contact::with(['transactions'])
@@ -1393,38 +1395,41 @@ class AccountingReportsController extends Controller
                         : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--');
                 })
 
-
                 ->editColumn('ref_no', function ($row) {
                     $description = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
-                    if (!empty($row->atm_id)) {
+                    if (! empty($row->atm_id)) {
                         $description = '<a class=" btn-modal"
                       data-container="#printJournalEntry"
-                        href="' . action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]) . '"
+                        href="'.action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]).'"
                          >
-                            ' . $description . '
+                            '.$description.'
                         </a>';
                     }
+
                     return $description;
                 })
                 ->addColumn('transaction', function ($row) {
-                    if (Lang::has('accounting::lang.' . $row->sub_type)) {
+                    if (Lang::has('accounting::lang.'.$row->sub_type)) {
 
-                        $description = __('accounting::lang.' . $row->sub_type);
+                        $description = __('accounting::lang.'.$row->sub_type);
                     } else {
                         $description = $row->sub_type;
                     }
+
                     return $description;
                 })
                 ->addColumn('debit', function ($row) {
                     if ($row->type == 'debit') {
-                        return '<span class="debit" data-orig-value="' . $row->amount . '">' . number_format((float) $row->amount, 2, '.', '') . '</span>';
+                        return '<span class="debit" data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
                     }
+
                     return '';
                 })
                 ->addColumn('credit', function ($row) {
                     if ($row->type == 'credit') {
-                        return '<span class="credit"  data-orig-value="' . $row->amount . '">' . number_format((float) $row->amount, 2, '.', '') . '</span>';
+                        return '<span class="credit"  data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
                     }
+
                     return '';
                 })
                 ->rawColumns(['ref_no', 'credit', 'cost_center_name', 'debit', 'balance', 'action'])
@@ -1449,7 +1454,6 @@ class AccountingReportsController extends Controller
             ->select([DB::raw($accountingUtil->balanceFormula())]);
 
         $current_bal = $current_bal?->first()->balance;
-
 
         $total_debit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
             ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
@@ -1480,7 +1484,6 @@ class AccountingReportsController extends Controller
 
         $total_credit_bal = $total_credit_bal->balance;
 
-
         $period_debit = (clone $statementQuery)->where('aat.type', 'debit')->sum('aat.amount');
         $period_credit = (clone $statementQuery)->where('aat.type', 'credit')->sum('aat.amount');
         $net_movement = (float) $period_debit - (float) $period_credit;
@@ -1490,7 +1493,7 @@ class AccountingReportsController extends Controller
             ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
             ->whereDate('aat.operation_date', '>=', $start_date)
             ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
             })
             ->distinct()
@@ -1563,7 +1566,7 @@ class AccountingReportsController extends Controller
                 'period_debit' => $report['period_debit'],
                 'period_credit' => $report['period_credit'],
             ]),
-            'customers-suppliers-statement-' . now()->format('Ymd-His') . '.xlsx'
+            'customers-suppliers-statement-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
@@ -1591,10 +1594,11 @@ class AccountingReportsController extends Controller
 
         $rows = (clone $query)->get()->map(function ($row) {
             $displayRef = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
+
             return [
                 'ref_no' => $displayRef,
                 'operation_date' => $row->operation_date,
-                'transaction' => Lang::has('accounting::lang.' . $row->sub_type) ? __('accounting::lang.' . $row->sub_type) : $row->sub_type,
+                'transaction' => Lang::has('accounting::lang.'.$row->sub_type) ? __('accounting::lang.'.$row->sub_type) : $row->sub_type,
                 'cost_center' => app()->getLocale() === 'ar'
                     ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '--')
                     : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--'),
@@ -1612,7 +1616,7 @@ class AccountingReportsController extends Controller
             ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
             ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
             ->leftjoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
-            ->select([DB::raw((new AccountingUtil())->balanceFormula())])
+            ->select([DB::raw((new AccountingUtil)->balanceFormula())])
             ->first()?->balance ?? 0;
 
         return compact('contact', 'rows', 'start_date', 'end_date', 'current_bal', 'period_debit', 'period_credit');
@@ -1636,20 +1640,20 @@ class AccountingReportsController extends Controller
             ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
             ->whereDate('aat.operation_date', '>=', $start_date)
             ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
             })
-            ->when(!empty($entry_type), function ($query) use ($entry_type) {
+            ->when(! empty($entry_type), function ($query) use ($entry_type) {
                 return $query->where('aat.type', $entry_type);
             })
-            ->when(!empty($sub_type), function ($query) use ($sub_type) {
+            ->when(! empty($sub_type), function ($query) use ($sub_type) {
                 return $query->where('aat.sub_type', $sub_type);
             })
-            ->when(!empty($ref_no), function ($query) use ($ref_no) {
+            ->when(! empty($ref_no), function ($query) use ($ref_no) {
                 return $query->where(function ($q) use ($ref_no) {
-                    $q->where('atm.ref_no', 'like', '%' . $ref_no . '%')
-                        ->orWhere('t.ref_no', 'like', '%' . $ref_no . '%')
-                        ->orWhere('tp.payment_ref_no', 'like', '%' . $ref_no . '%');
+                    $q->where('atm.ref_no', 'like', '%'.$ref_no.'%')
+                        ->orWhere('t.ref_no', 'like', '%'.$ref_no.'%')
+                        ->orWhere('tp.payment_ref_no', 'like', '%'.$ref_no.'%');
                 });
             })
             ->select(
@@ -1672,7 +1676,6 @@ class AccountingReportsController extends Controller
             ->orderByDesc('aat.id');
     }
 
-
     public function accountReceivableAgeingReport()
     {
         $accountingUtil = new AccountingUtil;
@@ -1681,12 +1684,10 @@ class AccountingReportsController extends Controller
         $report_details = $accountingUtil->getAgeingReport('sell', 'contact', $filters);
 
         $contacts = Contact::select('id', 'name')->orderBy('name')->get();
+
         return view('accounting::reports.account_receivable_ageing_report')
             ->with(compact('report_details', 'contacts', 'filters'));
     }
-
-
-
 
     public function accountPayableAgeingReport()
     {
@@ -1699,10 +1700,10 @@ class AccountingReportsController extends Controller
             $filters
         );
         $contacts = Contact::select('id', 'name')->orderBy('name')->get();
+
         return view('accounting::reports.account_payable_ageing_report')
             ->with(compact('report_details', 'contacts', 'filters'));
     }
-
 
     public function accountReceivableAgeingDetails()
     {
@@ -1785,7 +1786,7 @@ class AccountingReportsController extends Controller
     private function exportAgeingSummaryPdf(Request $request, string $type, string $title, string $nameHeader)
     {
         $filters = $this->ageingFilters($request);
-        $rows = array_values((new AccountingUtil())->getAgeingReport($type, 'contact', $filters));
+        $rows = array_values((new AccountingUtil)->getAgeingReport($type, 'contact', $filters));
         $html = view('accounting::reports.ageing_summary_print', [
             'title' => $title,
             'as_of_date' => $filters['as_of_date'],
@@ -1801,13 +1802,14 @@ class AccountingReportsController extends Controller
             'autoScriptToLang' => true,
         ]);
         $mpdf->WriteHTML($html);
+
         return $mpdf->Output('ageing-summary.pdf', 'D');
     }
 
     private function exportAgeingSummaryExcel(Request $request, string $type, string $title, string $nameHeader, string $prefix)
     {
         $filters = $this->ageingFilters($request);
-        $rows = collect(array_values((new AccountingUtil())->getAgeingReport($type, 'contact', $filters)))
+        $rows = collect(array_values((new AccountingUtil)->getAgeingReport($type, 'contact', $filters)))
             ->map(function ($row) {
                 return [
                     $row['name'],
@@ -1819,20 +1821,21 @@ class AccountingReportsController extends Controller
                     number_format((float) $row['total_due'], 2, '.', ''),
                 ];
             });
+
         return Excel::download(
             new AgeingSummaryExport($rows, [
                 'title' => $title,
                 'as_of_date' => $filters['as_of_date'],
                 'name_header' => $nameHeader,
             ]),
-            $prefix . '-' . now()->format('Ymd-His') . '.xlsx'
+            $prefix.'-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
     private function exportAgeingDetailsPdf(Request $request, string $type, string $title, string $contactHeader, string $transactionLabel)
     {
         $filters = $this->ageingFilters($request);
-        $rows = $this->flattenAgeingDetails((new AccountingUtil())->getAgeingReport($type, 'due_date', $filters), $transactionLabel);
+        $rows = $this->flattenAgeingDetails((new AccountingUtil)->getAgeingReport($type, 'due_date', $filters), $transactionLabel);
         $html = view('accounting::reports.ageing_details_print', [
             'title' => $title,
             'as_of_date' => $filters['as_of_date'],
@@ -1848,13 +1851,14 @@ class AccountingReportsController extends Controller
             'autoScriptToLang' => true,
         ]);
         $mpdf->WriteHTML($html);
+
         return $mpdf->Output('ageing-details.pdf', 'D');
     }
 
     private function exportAgeingDetailsExcel(Request $request, string $type, string $title, string $contactHeader, string $transactionLabel, string $prefix)
     {
         $filters = $this->ageingFilters($request);
-        $rows = collect($this->flattenAgeingDetails((new AccountingUtil())->getAgeingReport($type, 'due_date', $filters), $transactionLabel))
+        $rows = collect($this->flattenAgeingDetails((new AccountingUtil)->getAgeingReport($type, 'due_date', $filters), $transactionLabel))
             ->map(function ($row) {
                 return [
                     $row['bucket'],
@@ -1866,13 +1870,14 @@ class AccountingReportsController extends Controller
                     number_format((float) $row['due'], 2, '.', ''),
                 ];
             });
+
         return Excel::download(
             new AgeingDetailsExport($rows, [
                 'title' => $title,
                 'as_of_date' => $filters['as_of_date'],
                 'contact_header' => $contactHeader,
             ]),
-            $prefix . '-' . now()->format('Ymd-His') . '.xlsx'
+            $prefix.'-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
@@ -1899,6 +1904,7 @@ class AccountingReportsController extends Controller
                 ];
             }
         }
+
         return $rows;
     }
 }

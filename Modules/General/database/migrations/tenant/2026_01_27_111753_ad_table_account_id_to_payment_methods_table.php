@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payment_methods', function (Blueprint $table) {
-    $table->unsignedBigInteger('account_id')->nullable()->after('id');
-  });
+            $table->unsignedBigInteger('account_id')->nullable()->after('id');
+        });
     }
 
     /**
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-          Schema::table('payment_methods', function (Blueprint $table) {
-
-        });
+        Schema::table('payment_methods', function (Blueprint $table) {});
     }
 };

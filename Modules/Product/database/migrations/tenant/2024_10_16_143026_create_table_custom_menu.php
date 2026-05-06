@@ -11,23 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-            Schema::create('product_custom_menus', function (Blueprint $table) {
-                $table->id();
-                $table->string('name_ar')->unique();
-                $table->string('name_en')->unique();
-                $table->integer('application_type');
-                $table->integer('mode')->nullable();
-                $table->integer('station_id')->nullable();
-                $table->boolean('active');
-                $table->timestamps();
-                $table->softDeletes(); // Adds a deleted_at column
-            });
+        Schema::create('product_custom_menus', function (Blueprint $table) {
+            $table->id();
+            $table->string('name_ar')->unique();
+            $table->string('name_en')->unique();
+            $table->integer('application_type');
+            $table->integer('mode')->nullable();
+            $table->integer('station_id')->nullable();
+            $table->boolean('active');
+            $table->timestamps();
+            $table->softDeletes(); // Adds a deleted_at column
+        });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 };

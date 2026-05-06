@@ -3,8 +3,8 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Product\Enums\ModifierDisplay;
 use Illuminate\Http\JsonResponse;
+use Modules\Product\Enums\ModifierDisplay;
 
 class ModifierDisplayController extends Controller
 {
@@ -13,5 +13,3 @@ class ModifierDisplayController extends Controller
         return response()->json(ModifierDisplay::all());
     }
 }
-
-?>

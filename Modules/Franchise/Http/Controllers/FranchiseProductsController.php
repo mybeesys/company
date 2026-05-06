@@ -4,17 +4,15 @@ namespace Modules\Franchise\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-
-use Modules\Product\Models\Category;
-use Modules\Franchise\Models\FranchiseCompanies;
 use Illuminate\Support\Facades\DB;
+use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Product\Models\AttributeClass;
+use Modules\Product\Models\Category;
 use Modules\Product\Models\ModifierClass;
 use Modules\Product\Models\Product;
 
 class FranchiseProductsController extends Controller
 {
-
     // public function index()
     // {
     //     $franchises = FranchiseCompanies::all();
@@ -67,7 +65,6 @@ class FranchiseProductsController extends Controller
         return view('franchise::products.manage', compact('franchises', 'categories', 'ingredients', 'modifierClasses', 'attributeClasses'));
     }
 
-
     public function getFranchiseProducts($id)
     {
         $permissions = DB::table('franchise_product_permissions')
@@ -75,10 +72,10 @@ class FranchiseProductsController extends Controller
             ->get();
 
         $data = [
-            'product'    => $permissions->where('permitted_type', 'product')->pluck('permitted_id')->toArray(),
+            'product' => $permissions->where('permitted_type', 'product')->pluck('permitted_id')->toArray(),
             'ingredient' => $permissions->where('permitted_type', 'ingredient')->pluck('permitted_id')->toArray(),
-            'modifier'   => $permissions->where('permitted_type', 'modifier')->pluck('permitted_id')->toArray(),
-            'attribute'  => $permissions->where('permitted_type', 'attribute')->pluck('permitted_id')->toArray(), // إضافة الـ attribute
+            'modifier' => $permissions->where('permitted_type', 'modifier')->pluck('permitted_id')->toArray(),
+            'attribute' => $permissions->where('permitted_type', 'attribute')->pluck('permitted_id')->toArray(), // إضافة الـ attribute
         ];
 
         return response()->json($data);
@@ -111,12 +108,13 @@ class FranchiseProductsController extends Controller
                         'permitted_id' => $p['id'],
                         'permitted_type' => $p['type'],
                         'created_at' => now(),
-                        'updated_at' => now()
+                        'updated_at' => now(),
                     ];
                 }
                 DB::table('franchise_product_permissions')->insert($insertData);
             }
         });
+
         return response()->json(['message' => 'تم حفظ جميع الصلاحيات بنجاح']);
     }
 
@@ -136,7 +134,7 @@ class FranchiseProductsController extends Controller
         $request->validate([
             'product_id' => 'required|exists:product_products,id',
             'status' => 'required|in:approve,reject',
-            'reason' => 'nullable|string'
+            'reason' => 'nullable|string',
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -145,15 +143,17 @@ class FranchiseProductsController extends Controller
             $product->update([
                 'status' => 'approved',
                 'active' => 1,
-                'rejection_reason' => null
+                'rejection_reason' => null,
             ]);
+
             return response()->json(['success' => true, 'message' => 'تم قبول المنتج وتفعيله بنجاح']);
         } else {
             $product->update([
                 'status' => 'rejected',
                 'active' => 0,
-                'rejection_reason' => $request->reason
+                'rejection_reason' => $request->reason,
             ]);
+
             return response()->json(['success' => true, 'message' => 'تم رفض المنتج وإبلاغ الفرع']);
         }
     }

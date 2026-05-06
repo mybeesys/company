@@ -3,10 +3,10 @@
 namespace Modules\Screen\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Establishment\Models\Establishment;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Modules\Establishment\Models\Establishment;
 
 class Playlist extends Model
 {
@@ -17,12 +17,12 @@ class Playlist extends Model
      */
     protected $guarded = ['id', 'updated_at', 'created_at'];
 
-    protected $table = "screen_playlists";
+    protected $table = 'screen_playlists';
 
     protected function startTimeDate(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
+            get: fn (string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
         );
     }
 
@@ -35,7 +35,7 @@ class Playlist extends Model
 
     public function promos()
     {
-        return $this->morphedByMany(Promo::class, 'related', 'screen_playlists_relates')->withTimestamps()->orderBy('screen_playlists_relates.created_at', 'asc');;
+        return $this->morphedByMany(Promo::class, 'related', 'screen_playlists_relates')->withTimestamps()->orderBy('screen_playlists_relates.created_at', 'asc');
     }
 
     public function devices()

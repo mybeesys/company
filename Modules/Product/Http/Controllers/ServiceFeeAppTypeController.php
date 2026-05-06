@@ -3,7 +3,6 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Product\Enums\Mode;
 use Illuminate\Http\JsonResponse;
 use Modules\Product\Enums\ServiceFeeApplicationType;
 
@@ -14,5 +13,3 @@ class ServiceFeeAppTypeController extends Controller
         return response()->json(ServiceFeeApplicationType::all());
     }
 }
-
-?>

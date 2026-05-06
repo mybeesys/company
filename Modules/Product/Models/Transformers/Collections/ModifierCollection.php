@@ -9,11 +9,12 @@ class ModifierCollection extends ResourceCollection
 {
     public function toArray($request)
     {
-        $extraData =['withProduct' => 'N'];
+        $extraData = ['withProduct' => 'N'];
+
         return [
             'data' => ProductModifierResource::collection($this->collection->map(function ($product) use ($extraData) {
                 return new ProductModifierResource($product, $extraData);
-            }))
+            })),
         ];
     }
 }

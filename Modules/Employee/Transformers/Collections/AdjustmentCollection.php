@@ -8,7 +8,6 @@ use Modules\Employee\Transformers\AdjustmentResource;
 
 class AdjustmentCollection extends ResourceCollection
 {
-
     public $collects = AdjustmentResource::class;
 
     /**
@@ -17,7 +16,7 @@ class AdjustmentCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection
+            'data' => $this->collection,
         ];
     }
 }

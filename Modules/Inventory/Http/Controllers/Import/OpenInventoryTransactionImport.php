@@ -1,46 +1,48 @@
 <?php
+
 namespace Modules\Inventory\Http\Controllers\Import;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
-use Exception;
 use Modules\Inventory\Models\TransactionUtil;
 
 class OpenInventoryTransactionImport implements ToCollection, WithHeadingRow
 {
     protected $errors = [];
+
     public $transactions = [];  // Public property to store categories
 
     public function collection(Collection $rows)
     {
         // Group data by 'category' column
         $groupedData = $rows->groupBy('establishment');
-        $establishment=null;
+        $establishment = null;
         foreach ($groupedData as $category => $items) {
             $establishment = Establishment::where('name', '=', $category)
-                            ->orWhere('name_en', '=', $category)->first();
-            if (!$establishment) {
+                ->orWhere('name_en', '=', $category)->first();
+            if (! $establishment) {
                 $this->errors[] = [
                     'row' => [
-                        'name_ar'           => $category,
-                        'name_en'           => $category,
+                        'name_ar' => $category,
+                        'name_en' => $category,
                     ],
-                    'message' => ['message' => 'INVALID_establishment', 'data' => [ $category]]
+                    'message' => ['message' => 'INVALID_establishment', 'data' => [$category]],
                 ];
-                throw new Exception("Validation failed for row: " . json_encode($items));
+                throw new Exception('Validation failed for row: '.json_encode($items));
             }
             $transaction = Transaction::create([
-                'type'              => 'PO0',
-                'status'            => 'approved',
-                'ref_no'            => TransactionUtil::generatePoNo('PO0'),
-                'establishment_id'  => $establishment?->id,
-                'total_before_tax'  => 0,
-                'transaction_date'  => date("Y-m-d"),
+                'type' => 'PO0',
+                'status' => 'approved',
+                'ref_no' => TransactionUtil::generatePoNo('PO0'),
+                'establishment_id' => $establishment?->id,
+                'total_before_tax' => 0,
+                'transaction_date' => date('Y-m-d'),
             ]);
-            $this->transactions [] = [ 'establishment' => $category, 'transaction' => $transaction];
+            $this->transactions[] = ['establishment' => $category, 'transaction' => $transaction];
         }
     }
 
@@ -50,7 +52,7 @@ class OpenInventoryTransactionImport implements ToCollection, WithHeadingRow
             // Collect error details (row number and error message)
             $this->errors[] = [
                 'row' => $failure->row(),
-                'message' => $failure->errors()
+                'message' => $failure->errors(),
             ];
         }
     }
@@ -64,5 +66,4 @@ class OpenInventoryTransactionImport implements ToCollection, WithHeadingRow
     {
         return $this->errors;
     }
-
 }

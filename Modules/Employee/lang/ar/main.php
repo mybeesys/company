@@ -46,9 +46,8 @@ return [
     'purchases_management_module' => 'المشتريات',
     'accountingReports_management_module' => 'التقارير المحاسبية',
     'setting_management_module' => 'الإعدادات',
-    'Franchise Companies_management_module'=>'الإمتياز التجاري',
+    'Franchise Companies_management_module' => 'الإمتياز التجاري',
     //
-
 
     'notifications_settings' => 'إعدادات الإشعارات',
     'system_settings' => 'إعدادات النظام',

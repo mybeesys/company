@@ -29,7 +29,6 @@ return [
     'actions' => 'العمليات',
     'payment_status' => 'حالة الدفع',
 
-
     'remaining_amount' => 'المبلغ المتبقي',
     'piad_amount' => 'المبلغ المدفوع',
     'invoice_amount' => 'مبلغ الفاتورة',
@@ -39,19 +38,5 @@ return [
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',
 
     'add_payment' => 'سند صرف',
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ];

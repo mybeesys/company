@@ -1,4 +1,5 @@
 <?php
+
 return [
     'actions' => 'الإجراءات',
     'view' => 'عرض',
@@ -6,7 +7,7 @@ return [
     'delete' => 'حذف',
     'print' => 'طباعة',
     'all' => 'الكل',
-    'status' => "الحالة",
+    'status' => 'الحالة',
     'new_no_contract' => 'جديدة (بلا عقد)',
     'active_contracts' => 'عقود فعالة',
     'expired_contracts' => 'عقود منتهية',
@@ -130,9 +131,9 @@ return [
     'delete_confirm' => 'هل أنت متأكد من حذف هذا الفرع؟',
     'success' => 'تمت العملية بنجاح',
     'active_contract_exists' => 'يوجد عقد نشط حالياً (لا يمكن إضافة عقد جديد)',
-    'inactive' => "غير مفعل",
-    'active' => "مفعل",
-    'ok' => "Ok",
+    'inactive' => 'غير مفعل',
+    'active' => 'مفعل',
+    'ok' => 'Ok',
 
     'manage_franchise_products' => 'إدارة منتجات الفرنشايز',
     'select_franchise_company' => 'اختر شركة الفرنشايز',

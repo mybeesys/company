@@ -17,7 +17,8 @@ class PaymentMethodsController extends Controller
         if ($request->ajax()) {
 
             $paymentMethods = PaymentMethod::all();
-            return  PaymentMethod::getPaymentMethodsTable($paymentMethods);
+
+            return PaymentMethod::getPaymentMethodsTable($paymentMethods);
         }
 
         $columns = PaymentMethod::getsPaymentMethodsColumns();

@@ -17,12 +17,12 @@ return new class extends Migration
             $table->string('name_en');
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_categories');    
+                ->references('id')                    // References the id on the categories table
+                ->on('product_categories');
             $table->unsignedBigInteger('subcategory_id');           // Table to reference
             $table->foreign('subcategory_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_subcategories');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_subcategories');
             $table->text('description_ar')->nullable();
             $table->text('description_en')->nullable();
             $table->decimal('price');
@@ -34,7 +34,6 @@ return new class extends Migration
             $table->softDeletes(); // Adds a deleted_at column
         });
     }
-
 
     /**
      * Reverse the migrations.

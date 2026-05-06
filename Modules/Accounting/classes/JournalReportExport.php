@@ -24,14 +24,14 @@ class JournalReportExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [
-                __('accounting::lang.journal_report') . ' - ' .
-                    __('accounting::lang.from_date') . ': ' . $this->meta['start_date'] . ' - ' .
-                    __('accounting::lang.to_date') . ': ' . $this->meta['end_date'],
+                __('accounting::lang.journal_report').' - '.
+                    __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                    __('accounting::lang.to_date').': '.$this->meta['end_date'],
             ],
             [
-                __('accounting::lang.debit') . ': ' . number_format((float) $this->meta['total_debit'], 2, '.', '') .
-                    ' | ' . __('accounting::lang.credit') . ': ' . number_format((float) $this->meta['total_credit'], 2, '.', '') .
-                    ' | ' . __('accounting::lang.difference') . ': ' . number_format((float) $this->meta['difference'], 2, '.', ''),
+                __('accounting::lang.debit').': '.number_format((float) $this->meta['total_debit'], 2, '.', '').
+                    ' | '.__('accounting::lang.credit').': '.number_format((float) $this->meta['total_credit'], 2, '.', '').
+                    ' | '.__('accounting::lang.difference').': '.number_format((float) $this->meta['difference'], 2, '.', ''),
             ],
             [
                 __('accounting::lang.ref_no'),
@@ -54,4 +54,3 @@ class JournalReportExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

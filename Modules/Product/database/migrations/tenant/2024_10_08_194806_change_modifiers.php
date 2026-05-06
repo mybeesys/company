@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::table('product_modifierclasses', function (Blueprint $table) {
             $table->boolean('active')->default(false);
-            $table->integer('order');    
-        
-             });
-            //
+            $table->integer('order');
+
+        });
+        //
         Schema::table('product_modifiers', function (Blueprint $table) {
-                $table->boolean('active')->default(false);
-                $table->integer('order');    
-            
-                 });
+            $table->boolean('active')->default(false);
+            $table->integer('order');
+
+        });
     }
 
     /**

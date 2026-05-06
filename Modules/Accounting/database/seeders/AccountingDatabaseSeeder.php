@@ -4,7 +4,6 @@ namespace Modules\Accounting\database\seeders;
 
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Http;
 use Modules\General\Models\Country;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\PrefixSetting;
@@ -27,12 +26,12 @@ class AccountingDatabaseSeeder extends Seeder
                 $nameAr = $country['translations']['ara']['common'] ?? null;
                 $isoCode = $country['cca2'] ?? null;
                 $dialCode = isset($country['idd']['root']) && isset($country['idd']['suffixes'])
-                    ? $country['idd']['root'] . $country['idd']['suffixes'][0]
+                    ? $country['idd']['root'].$country['idd']['suffixes'][0]
                     : '+000';
                 $currencyData = $country['currencies'] ?? [];
                 $currencyNameEn = $currencySymbolEn = $currencyNameAr = $currencySymbolAr = null;
 
-                if (!empty($currencyData)) {
+                if (! empty($currencyData)) {
                     $firstCurrency = array_values($currencyData)[0];
                     $currencyNameEn = $firstCurrency['name'] ?? null;
                     $currencySymbolEn = $firstCurrency['symbol'] ?? null;
@@ -95,18 +94,14 @@ class AccountingDatabaseSeeder extends Seeder
             ],
         ];
 
-
-
         // Tax::insert($taxes);
         foreach ($taxes as $tax) {
             $exists = Tax::where('name', $tax['name'])->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 Tax::insert($tax);
             }
         }
-
-
 
         $paymentMethods = [
             [
@@ -159,7 +154,6 @@ class AccountingDatabaseSeeder extends Seeder
             );
         }
 
-
         $prefixes = [
             ['type' => 'invoices', 'prefix' => 'INV', 'table_name' => 'transactions'],
             ['type' => 'quotations', 'prefix' => 'QTN', 'table_name' => 'transactions'],
@@ -169,11 +163,11 @@ class AccountingDatabaseSeeder extends Seeder
             ['type' => 'sell', 'prefix' => 'SP', 'table_name' => 'transaction_payments'],
         ];
 
-              foreach ($prefixes as $prefix) {
+        foreach ($prefixes as $prefix) {
             PrefixSetting::firstOrCreate(
                 [
                     'type' => $prefix['type'],
-                    'table_name' => $prefix['table_name']
+                    'table_name' => $prefix['table_name'],
                 ],
                 ['prefix' => $prefix['prefix']]
             );

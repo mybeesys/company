@@ -3,9 +3,9 @@
 namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
+
 // use Modules\Accounting\Database\Factories\PeriodicInventoryFactory;
 
 class PeriodicInventory extends Model
@@ -23,7 +23,7 @@ class PeriodicInventory extends Model
         'adjustment_entry_id',
         'notes',
         'created_by',
-        'establishment_id'
+        'establishment_id',
     ];
 
     public function items()

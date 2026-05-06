@@ -6,12 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Establishment\Models\Establishment;
-use Modules\Product\Models\Product;
 
 class EstablishmentProduct extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -24,14 +22,16 @@ class EstablishmentProduct extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'product_id',
-        'establishment_id'
+        'establishment_id',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -46,5 +46,4 @@ class EstablishmentProduct extends Model
     {
         return $this->belongsTo(Establishment::class, 'establishment_id', 'id');
     }
-
 }

@@ -16,7 +16,7 @@ class PayrollAction
             'date' => $request->validated('date'),
             'state' => $request->validated('payroll_group_state'),
             'payment_status' => 'due',
-            'gross_total' => 0
+            'gross_total' => 0,
         ]);
         $payroll_group_id = $payroll_group->id;
         $gross_total = 0;
@@ -24,7 +24,7 @@ class PayrollAction
         $employeeIdsToKeep = [];
         foreach ($employeeIds as $employeeId) {
             $employee = Employee::where('id', $employeeId)->whereHas('wage')->first();
-            if (!$employee) {
+            if (! $employee) {
                 continue;
             }
             $payrollData = Cache::get("payroll_table_{$date}_{$employeeId}");
@@ -65,11 +65,11 @@ class PayrollAction
         Payroll::where('payroll_group_id', $payroll_group_id)->whereNotIn('employee_id', $employeeIdsToKeep)->delete();
         $payroll_group->update([
             // 'net_total' => $net_total,
-            'gross_total' => $gross_total
+            'gross_total' => $gross_total,
         ]);
 
         collect($employeeIds)->each(function ($employeeId) use ($date) {
-            Cache::forget("payroll_table_{$date}" . $employeeId);
+            Cache::forget("payroll_table_{$date}".$employeeId);
         });
     }
 }

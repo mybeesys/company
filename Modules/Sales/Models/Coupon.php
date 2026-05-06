@@ -3,15 +3,15 @@
 namespace Modules\Sales\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClientsAndSuppliers\Models\ClientContacts;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Coupon extends Model
 {
@@ -24,18 +24,17 @@ class Coupon extends Model
 
     protected $table = 'sales_coupons';
 
-
     protected function startDate(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
+            get: fn (string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
         );
     }
 
     protected function endDate(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
+            get: fn (string $value) => Carbon::parse($value)->format('Y-m-d H:i'),
         );
     }
 

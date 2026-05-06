@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Modules\Establishment\Services;
 
 use Illuminate\Support\Facades\File;
@@ -8,20 +7,19 @@ use Modules\Establishment\Models\Establishment;
 
 class EstablishmentActions
 {
-    public function __construct(protected $request)
-    {
-    }
+    public function __construct(protected $request) {}
 
     public function storeImage($image, $oldImage = null)
     {
-        $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldImage);
+        $oldPath = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$oldImage);
 
         if (File::exists($oldPath)) {
             File::delete($oldPath);
         }
 
-        $logoName = 'est_logos/' . time() . '.' . $image->extension();
+        $logoName = 'est_logos/'.time().'.'.$image->extension();
         $image->storeAs('', $logoName, 'public');
+
         return $logoName;
     }
 
@@ -47,14 +45,14 @@ class EstablishmentActions
             $data['is_active'] = $this->activateBasedOnParent(Establishment::findOrFail($establishment->parent_id)) ? $data['is_active'] : false;
         }
         if ($establishment->children()->exists()) {
-            if (!$data['is_active']) {
+            if (! $data['is_active']) {
                 $this->activateDeactivateChildren($establishment, false);
             } else {
                 $this->activateDeactivateChildren($establishment, true);
             }
 
             $data['is_main'] = true;
-        } elseif ($establishment->hasAnyRelation() && !$establishment->children()->exists()) {
+        } elseif ($establishment->hasAnyRelation() && ! $establishment->children()->exists()) {
             $data['is_main'] = false;
         }
 
@@ -62,15 +60,16 @@ class EstablishmentActions
             $data = $data->merge([
                 'logo' => $logoName,
             ]);
-        } elseif (!$this->request->get('logo_old')) {
+        } elseif (! $this->request->get('logo_old')) {
             $data = $data->merge(['logo' => null]);
         }
+
         return $establishment->update($data->toArray());
     }
 
     public function activateBasedOnParent($establishment)
     {
-        if (!$establishment->is_active) {
+        if (! $establishment->is_active) {
             return false;
         } else {
             return true;
@@ -81,7 +80,7 @@ class EstablishmentActions
     {
         $establishment->children->each(function ($child) use ($status) {
             $child->update([
-                'is_active' => $status
+                'is_active' => $status,
             ]);
             $this->activateDeactivateChildren($child, $status);
         });

@@ -37,10 +37,10 @@ class SellReturnController extends Controller
         if ($request->ajax()) {
             $transactionsQuery
                 ->when($request->filled('favorite'), function ($query) {
-                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                    $query->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
                 })
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -57,14 +57,14 @@ class SellReturnController extends Controller
                 });
 
             $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
 
-
         $columns = Transaction::getsSellsColumns();
 
-        $clients =  Contact::where('business_type', 'customer')->get();
+        $clients = Contact::where('business_type', 'customer')->get();
 
         return view('sales::sell-return.index', compact('columns', 'clients', 'transaction'));
     }
@@ -82,19 +82,21 @@ class SellReturnController extends Controller
         }])->get();
 
         $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+
         return view('sales::sell-return.create', compact('transaction', 'products', 'taxes', 'invoicePrecheckConfig'));
     }
+
     public function createSellReturn(Request $request)
     {
 
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('create_sell-return', 'add_sell-return', 'create-invoice');
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
@@ -106,7 +108,6 @@ class SellReturnController extends Controller
             $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
         }
 
-
         $settings = Setting::getNotesAndTermsConditions();
 
         $products = Product::with(['unitTransfers' => function ($query) {
@@ -114,25 +115,26 @@ class SellReturnController extends Controller
         }])->get();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
-        if (!$Latest_event) {
-            $actionUtil = new ActionUtil();
+        if (! $Latest_event) {
+            $actionUtil = new ActionUtil;
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
         $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+
         return view('sales::sell-return.create-return', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
     }
 
     private function buildSellReturnPrecheckConfig(): array
     {
         $missing = [];
-        if (!AccountsRoting::where('type', 'sales_sell_return')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'sales_sell_return')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب مردود المبيعات' : 'Sales return account';
         }
-        if (!AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب المبيعات' : 'Sales account';
         }
-        if (!AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المبيعات' : 'Sales VAT account';
         }
 
@@ -158,20 +160,20 @@ class SellReturnController extends Controller
         // try {
         $sell = Transaction::findOrFail($request->transaction_id);
 
-        if (!$sell) {
+        if (! $sell) {
             return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         }
 
-        $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+        $ref_no = SalesUtile::generateReferenceNumber('sell-return');
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-        $transactionUtil = new TransactionUtils();
+        $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
         $main_establishment = Establishment::notMain()->active()->first();
         $establishment_id = $request->storehouse;
         if ($request->storehouse == $main_establishment->id) {
             $establishment_id = $main_establishment->id;
         }
-        $transaction =   Transaction::create([
+        $transaction = Transaction::create([
             'type' => 'sell-return',
             'invoice_type' => $request->invoice_type,
             // 'due_date' => $request->due_date,
@@ -193,14 +195,13 @@ class SellReturnController extends Controller
             'establishment_id' => $establishment_id,
             'establishment_id' => $establishment_id,
 
-
         ]);
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
         $products = json_decode(json_encode($request->products));
 
         foreach ($products as $product) {
-            $discount_type =  null;
+            $discount_type = null;
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->product_id,
@@ -217,9 +218,8 @@ class SellReturnController extends Controller
             ]);
         }
 
-
         if ($transaction) {
-                $request['amount'] = $transaction->final_total;
+            $request['amount'] = $transaction->final_total;
 
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
@@ -230,6 +230,7 @@ class SellReturnController extends Controller
             );
         }
         DB::commit();
+
         return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
         // } catch (Exception $e) {
         //     DB::rollBack();
@@ -241,7 +242,7 @@ class SellReturnController extends Controller
     {
         // return $request;
         // try {
-        $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+        $ref_no = SalesUtile::generateReferenceNumber('sell-return');
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
         $main_establishment = Establishment::notMain()->active()->first();
         $establishment_id = $request->storehouse;
@@ -258,7 +259,7 @@ class SellReturnController extends Controller
             ]);
             DB::beginTransaction();
         }
-        $transaction =   Transaction::create([
+        $transaction = Transaction::create([
             'type' => 'sell-return',
             'invoice_type' => $request->invoice_type,
             'due_date' => $request->due_date,
@@ -279,15 +280,13 @@ class SellReturnController extends Controller
             'establishment_id' => $establishment_id,
             'settings_terms_notes' => $termsNotesData,
 
-
         ]);
-        $transactionUtil = new TransactionUtils();
-
+        $transactionUtil = new TransactionUtils;
 
         $products = json_decode(json_encode($request->products));
 
         foreach ($products as $product) {
-            $discount_type =  null;
+            $discount_type = null;
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
@@ -310,26 +309,28 @@ class SellReturnController extends Controller
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
 
-
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-
 
         $msg = __('messages.add_successfully');
         $status = 'success';
         DB::commit();
+
         return redirect()->route('sell-return')->with($status, $msg);
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     return redirect()->route('sell-return')->with('error', __('messages.something_went_wrong'));
         // }
     }
+
     /**
      * Show the specified resource.
      */
-    function distributeReturnToInvoiceLines($returnTransaction)
+    public function distributeReturnToInvoiceLines($returnTransaction)
     {
         $invoice_id = $returnTransaction;
-        if (!$invoice_id) return;
+        if (! $invoice_id) {
+            return;
+        }
 
         $returnLines = TransactionePurchasesLine::where('transaction_id', $returnTransaction->id)->get();
         $transactionIds = Transaction::where('type', 'sell')
@@ -346,7 +347,9 @@ class SellReturnController extends Controller
             $product_id = $returnLine->product_id;
 
             foreach ($invoiceLines->where('product_id', $product_id) as $sellLine) {
-                if ($remainingToReturn <= 0) break;
+                if ($remainingToReturn <= 0) {
+                    break;
+                }
 
                 $returnQty = min($sellLine->remaining_qty ?? $sellLine->qyt, $remainingToReturn);
                 $sellLine->remaining_qty = ($sellLine->remaining_qty ?? $sellLine->qyt) - $returnQty;
@@ -367,13 +370,11 @@ class SellReturnController extends Controller
         }
     }
 
-
-
-    function updateSalesReturnStatus($invoice_id)
+    public function updateSalesReturnStatus($invoice_id)
     {
         $invoice = Transaction::find($invoice_id);
 
-        if (!$invoice) {
+        if (! $invoice) {
             return;
         }
 
@@ -422,11 +423,11 @@ class SellReturnController extends Controller
             $sellLine->save();
 
             $productsStatus[] = [
-                'product_id'    => $sellLine->product_id,
-                'qyt'           => $soldQty,
-                'returned_qty'  => $returnedQtyForProduct,
+                'product_id' => $sellLine->product_id,
+                'qyt' => $soldQty,
+                'returned_qty' => $returnedQtyForProduct,
                 'remaining_qty' => $remainingQty,
-                'line_status'   => $lineStatus,
+                'line_status' => $lineStatus,
             ];
         }
 
@@ -442,10 +443,10 @@ class SellReturnController extends Controller
         $returnTransaction->save();
 
         return [
-            'po_status'   => $overallStatus,
-            'returned_count'  => $returnedCount,
-            'returned_qty'    => $returnedQty,
-            'products'        => $productsStatus,
+            'po_status' => $overallStatus,
+            'returned_count' => $returnedCount,
+            'returned_qty' => $returnedQty,
+            'products' => $productsStatus,
         ];
     }
 }

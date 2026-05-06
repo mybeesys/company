@@ -37,5 +37,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('accounting_accounts');
 
-  }
+    }
 };

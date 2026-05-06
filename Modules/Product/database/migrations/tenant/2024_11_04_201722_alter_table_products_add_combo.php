@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_products', function (Blueprint $table) {  
+        Schema::table('product_products', function (Blueprint $table) {
             $table->boolean('group_combo');
             $table->boolean('set_price');
             $table->boolean('use_upcharge');

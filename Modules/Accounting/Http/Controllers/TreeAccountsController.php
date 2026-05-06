@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\LedgerExport;
 use Modules\Accounting\Models\AccountingAccount;
@@ -22,7 +21,6 @@ use Modules\Accounting\Utils\GeneralTreeAccUtil;
 use Modules\Accounting\Utils\RestaurantCafeAccUtil;
 use Modules\Accounting\Utils\ServicesAccUtil;
 use Mpdf\Mpdf;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 class TreeAccountsController extends Controller
 {
@@ -124,9 +122,9 @@ class TreeAccountsController extends Controller
 
                 return $query->where(function ($subQuery) use ($refNo) {
                     $subQuery->whereHas('accTransMapping', function ($q) use ($refNo) {
-                        $q->where('ref_no', 'like', '%' . $refNo . '%');
+                        $q->where('ref_no', 'like', '%'.$refNo.'%');
                     })->orWhereHas('transaction', function ($q) use ($refNo) {
-                        $q->where('ref_no', 'like', '%' . $refNo . '%');
+                        $q->where('ref_no', 'like', '%'.$refNo.'%');
                     });
                 });
             })
@@ -162,7 +160,6 @@ class TreeAccountsController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function index()
     {
         // if(auth()->user()->hasDashboardPermission('')){
@@ -204,12 +201,9 @@ class TreeAccountsController extends Controller
                                 FROM accounting_accounts_transactions AS AAT
                                 JOIN accounting_accounts AS AA ON AAT.accounting_account_id = AA.id
                                 WHERE AAT.accounting_account_id = accounting_accounts.id) AS balance"),
-                'accounting_accounts.*'
+                'accounting_accounts.*',
             ])
             ->get();
-
-
-
 
         // $accounts = $query->get();
         $account_GLC = [];
@@ -222,12 +216,13 @@ class TreeAccountsController extends Controller
         $account_exist = AccountingAccount::exists();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
+
         return view('accounting::treeOfAccounts.index', compact('accounts', 'account_category', 'account_main_types', 'account_exist', 'account_types', 'account_GLC', 'account_sub_types'));
     }
 
     public function createDefaultAccounts()
     {
-        $company =  DB::connection('mysql')->table('companies')->find(get_company_id());
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $business_type = $company->business_type ?? 'general';
 
@@ -247,7 +242,7 @@ class TreeAccountsController extends Controller
             AccountingAccountTypes::insert($default_accounting_account_types);
         }
 
-        $default_accounts =AccountingUtil::Default_Accounts();
+        $default_accounts = AccountingUtil::Default_Accounts();
         // $default_accounts = $utilClass::Default_Accounts();
         if (AccountingAccount::doesntExist()) {
             AccountingAccount::insert($default_accounts);
@@ -267,14 +262,13 @@ class TreeAccountsController extends Controller
         // }
         // AccountingUtil::default_accounting_route();
 
-
-
-        //redirect back
+        // redirect back
         $output = [
             'success' => 1,
-            'msg' => __('lang_v1.added_success')
+            'msg' => __('lang_v1.added_success'),
         ];
-        return redirect()->back()->with('status', $output);;
+
+        return redirect()->back()->with('status', $output);
     }
 
     /**
@@ -287,7 +281,6 @@ class TreeAccountsController extends Controller
 
         $account_transactions = AccountingAccountsTransaction::with(['accTransMapping', 'transaction', 'createdBy'])
             ->where('accounting_account_id', $account->id)->get();
-
 
         return view('accounting::treeOfAccounts.ledger', compact('account', 'account_transactions'));
     }
@@ -351,7 +344,7 @@ class TreeAccountsController extends Controller
             'name_en',
             // 'account_category',
             'sub_account_id',
-            'account_type'
+            'account_type',
         ]);
 
         $account_sub_account = AccountingAccountTypes::find($input['sub_account_id']);
@@ -373,8 +366,8 @@ class TreeAccountsController extends Controller
             'updated_at' => Carbon::now(),
         ]);
 
-
         DB::commit();
+
         return redirect()->back();
         // } catch (\Exception $e) {
         //     DB::rollBack();
@@ -411,7 +404,7 @@ class TreeAccountsController extends Controller
                 'account_id' => 'required|exists:accounting_accounts,id',
                 'name_ar' => 'required|string|max:255',
                 'name_en' => 'required|string|max:255',
-                'gl_code' => 'required|string|max:255|unique:accounting_accounts,gl_code,' . $request->account_id,
+                'gl_code' => 'required|string|max:255|unique:accounting_accounts,gl_code,'.$request->account_id,
             ]);
             DB::beginTransaction();
             $data = $request->only([
@@ -426,74 +419,73 @@ class TreeAccountsController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back();
         }
 
         return redirect()->back();
     }
 
+    public function ledger(Request $request)
+    {
+        $account_id = $request->query('account_id') ?? optional(AccountingAccount::orderBy('id')->first())->id;
+        $choose_cost_center_select = $this->ledgerCostCenters($request);
+        [$start_date, $end_date] = $this->ledgerDateRange($request);
 
-   public function ledger(Request $request)
-{
-    $account_id = $request->query('account_id') ?? optional(AccountingAccount::orderBy('id')->first())->id;
-    $choose_cost_center_select = $this->ledgerCostCenters($request);
-    [$start_date, $end_date] = $this->ledgerDateRange($request);
+        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
+            ->findOrFail($account_id);
 
-    $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
-        ->findOrFail($account_id);
+        $account_type = $account->account_primary_type;
+        $is_debit_nature = $this->ledgerIsDebitNature($account);
 
-    $account_type = $account->account_primary_type;
-    $is_debit_nature = $this->ledgerIsDebitNature($account);
+        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
-    $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
+        $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->paginate(10);
 
-    $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->paginate(10);
+        $current_bal = AccountingAccount::leftjoin(
+            'accounting_accounts_transactions as AAT',
+            'AAT.accounting_account_id',
+            '=',
+            'accounting_accounts.id'
+        )
+            ->where('accounting_accounts.id', $account->id)
+            ->select([DB::raw(AccountingUtil::balanceFormula())])
+            ->first()->balance;
 
-    $current_bal = AccountingAccount::leftjoin(
-        'accounting_accounts_transactions as AAT',
-        'AAT.accounting_account_id',
-        '=',
-        'accounting_accounts.id'
-    )
-        ->where('accounting_accounts.id', $account->id)
-        ->select([DB::raw(AccountingUtil::balanceFormula())])
-        ->first()->balance;
+        $previous = AccountingAccount::where('id', '<', $account_id)->orderBy('id', 'desc')->first();
+        $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
+        $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $accountingAccount = AccountingAccount::forDropdown();
+        $subTypes = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
+            ->select('sub_type')
+            ->whereNotNull('sub_type')
+            ->distinct()
+            ->pluck('sub_type')
+            ->filter(fn ($type) => filled($type))
+            ->values();
 
-    $previous = AccountingAccount::where('id', '<', $account_id)->orderBy('id', 'desc')->first();
-    $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
-    $costCenters = AccountingCostCenter::where('is_main', 0)->get();
-    $accountingAccount = AccountingAccount::forDropdown();
-    $subTypes = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
-        ->select('sub_type')
-        ->whereNotNull('sub_type')
-        ->distinct()
-        ->pluck('sub_type')
-        ->filter(fn ($type) => filled($type))
-        ->values();
+        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+        $ledger_export_base_params = $this->ledgerExportBaseParams($request, $start_date, $end_date);
 
-    $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
-    $ledger_export_base_params = $this->ledgerExportBaseParams($request, $start_date, $end_date);
-
-    return view('accounting::treeOfAccounts.ledger', compact(
-        'account',
-        'account_type',
-        'is_debit_nature',
-        'opening_balance',
-        'start_date',
-        'end_date',
-        'choose_cost_center_select',
-        'costCenters',
-        'subTypes',
-        'previous',
-        'next',
-        'accountingAccount',
-        'current_bal',
-        'account_transactions',
-        'ledger_visible_columns',
-        'ledger_export_base_params'
-    ));
-}
-
+        return view('accounting::treeOfAccounts.ledger', compact(
+            'account',
+            'account_type',
+            'is_debit_nature',
+            'opening_balance',
+            'start_date',
+            'end_date',
+            'choose_cost_center_select',
+            'costCenters',
+            'subTypes',
+            'previous',
+            'next',
+            'accountingAccount',
+            'current_bal',
+            'account_transactions',
+            'ledger_visible_columns',
+            'ledger_export_base_params'
+        ));
+    }
 
     public function ledgerPrint(Request $request, $id)
     {
@@ -534,7 +526,6 @@ class TreeAccountsController extends Controller
         ));
     }
 
-
     public function ledgerExportPdf(Request $request, $id)
     {
         $account_id = $id;
@@ -570,7 +561,6 @@ class TreeAccountsController extends Controller
             'is_debit_nature'
         ))->render();
 
-
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
@@ -582,7 +572,7 @@ class TreeAccountsController extends Controller
 
         $mpdf->WriteHTML($html);
 
-        $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.pdf';
+        $filename = __('accounting::lang.ledger').' '.(App::getLocale() == 'ar' ? $account->name_ar : $account->name_en).'- ('.str_replace(['/', '\\'], ' - ', $account->gl_code).')'.'.pdf';
 
         return $mpdf->Output($filename, 'D');
     }
@@ -616,7 +606,7 @@ class TreeAccountsController extends Controller
         $account['opening_balance'] = $opening_balance;
         $account['is_debit_nature'] = $is_debit_nature;
 
-        $filename = __('accounting::lang.ledger') . ' ' . (App::getLocale() == 'ar' ? $account->name_ar : $account->name_en) . '- (' . str_replace(['/', '\\'], ' - ', $account->gl_code) . ')' . '.xlsx';
+        $filename = __('accounting::lang.ledger').' '.(App::getLocale() == 'ar' ? $account->name_ar : $account->name_en).'- ('.str_replace(['/', '\\'], ' - ', $account->gl_code).')'.'.xlsx';
 
         return Excel::download(new LedgerExport($account, $ledger_visible_columns), $filename);
     }
@@ -674,8 +664,6 @@ class TreeAccountsController extends Controller
         return redirect()->back()->with('success', __('messages.deleted_successfully'));
     }
 
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -689,11 +677,11 @@ class TreeAccountsController extends Controller
             $accounts_array = [];
             foreach ($accounts as $account) {
                 if (app()->getLocale() == 'ar') {
-                    $text = $account->name_ar . ' - <small class="text-muted">' . __('accounting::lang.' . $account->account_primary_type) . '</small>';
-                    $html = $account->name_ar . ' - <small class="text-muted">' . __('accounting::lang.' . $account->account_primary_type) . '</small>';
+                    $text = $account->name_ar.' - <small class="text-muted">'.__('accounting::lang.'.$account->account_primary_type).'</small>';
+                    $html = $account->name_ar.' - <small class="text-muted">'.__('accounting::lang.'.$account->account_primary_type).'</small>';
                 } else {
-                    $text = $account->name_en . ' - <small class="text-muted">' . __('accounting::lang.' . $account->account_primary_type) . '</small>';
-                    $html = $account->name_en . ' - <small class="text-muted">' . __('accounting::lang.' . $account->account_primary_type) . '</small>';
+                    $text = $account->name_en.' - <small class="text-muted">'.__('accounting::lang.'.$account->account_primary_type).'</small>';
+                    $html = $account->name_en.' - <small class="text-muted">'.__('accounting::lang.'.$account->account_primary_type).'</small>';
                 }
 
                 $accounts_array[] = [
@@ -703,7 +691,6 @@ class TreeAccountsController extends Controller
                 ];
             }
         }
-
 
         return $accounts_array;
     }

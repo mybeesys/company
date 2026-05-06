@@ -12,19 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('franchise_companies', function (Blueprint $table) {
-    $table->id();
-    $table->string('name_ar');
-    $table->string('name_en');
-    $table->string('city');
-    $table->string('street')->nullable();
-    $table->string('national_address')->nullable();
-    $table->string('vat_no')->unique();
-    $table->string('tel')->nullable();
-    $table->string('mobile');
-    $table->string('email')->unique();
-    $table->string('account'); 
-    $table->timestamps();
-});
+            $table->id();
+            $table->string('name_ar');
+            $table->string('name_en');
+            $table->string('city');
+            $table->string('street')->nullable();
+            $table->string('national_address')->nullable();
+            $table->string('vat_no')->unique();
+            $table->string('tel')->nullable();
+            $table->string('mobile');
+            $table->string('email')->unique();
+            $table->string('account');
+            $table->timestamps();
+        });
     }
 
     /**

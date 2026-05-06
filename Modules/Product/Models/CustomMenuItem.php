@@ -1,16 +1,16 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\CustomMenuTimeDetail;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomMenuItem extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
+
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
     protected $table = 'product_custommenu_items';
@@ -21,16 +21,17 @@ class CustomMenuItem extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'custommenu_id',
-        'product_id'
+        'product_id',
         // add more fields as needed
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function product(){
-        return $this->belongsTo(Product::class,'product_id');
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
-
 }

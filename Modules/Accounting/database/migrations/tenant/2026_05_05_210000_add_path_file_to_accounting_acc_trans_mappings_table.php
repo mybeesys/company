@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('accounting_acc_trans_mappings', function (Blueprint $table) {
-            if (!Schema::hasColumn('accounting_acc_trans_mappings', 'path_file')) {
+            if (! Schema::hasColumn('accounting_acc_trans_mappings', 'path_file')) {
                 $table->string('path_file')->nullable()->after('note');
             }
         });
@@ -30,4 +30,3 @@ return new class extends Migration
         });
     }
 };
-

@@ -7,13 +7,21 @@ use Illuminate\View\Component;
 class AccountRouting extends Component
 {
     public $section;
+
     public $title;
+
     public $typeSelectId;
+
     public $typeSelectName;
+
     public $accountSelectId;
+
     public $accountSelectName;
+
     public $accounts;
+
     public $typeOptions;
+
     public function __construct(
         $section,
         $title,

@@ -2,9 +2,10 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Employee\Models\Employee;
+
 // use Modules\General\Database\Factories\NotificationSettingFactory;
 
 class NotificationSetting extends Model
@@ -17,6 +18,7 @@ class NotificationSetting extends Model
     protected $guarded = [];
 
     protected $table = 'notifications_settings';
+
     /**
      * Get the attributes that should be cast.
      *

@@ -2,9 +2,8 @@
 
 namespace Modules\Reservation\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Product\Models\Subcategory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Establishment\Models\Establishment;
 
@@ -16,6 +15,7 @@ class Area extends Model
     protected $table = 'reservation_areas';
 
     public $timestamps = true;
+
     /**
      * The attributes that are mass assignable.
      */
@@ -23,21 +23,25 @@ class Area extends Model
         'name_ar',
         'name_en',
         'establishment_id',
-        'active'
+        'active',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($keys){
+    public function addToFillable($keys)
+    {
         foreach ($keys as $key) {
             return array_push($this->fillable, $key);
         }
     }
 
     public $type = 'area';
+
     public $childType = 'table';
+
     public $childKey = 'area_id';
 
     public function children()

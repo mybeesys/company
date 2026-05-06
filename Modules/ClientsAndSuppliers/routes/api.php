@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientsAndSuppliersApiController;
-use Modules\ClientsAndSuppliers\Http\Controllers\ClientsAndSuppliersController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 

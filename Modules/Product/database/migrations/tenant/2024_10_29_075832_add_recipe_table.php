@@ -16,11 +16,11 @@ return new class extends Migration
             $table->unsignedBigInteger('ingredient_id');
             $table->unsignedBigInteger('product_id');
             $table->foreign('ingredient_id')
-            ->references('id')
-            ->on('product_ingredients');
-           $table->foreign('product_id')
-            ->references('id')
-            ->on('product_products');
+                ->references('id')
+                ->on('product_ingredients');
+            $table->foreign('product_id')
+                ->references('id')
+                ->on('product_products');
             $table->integer('quantity');
             $table->integer('order');
             $table->timestamps();
@@ -32,11 +32,11 @@ return new class extends Migration
             $table->unsignedBigInteger('ingredient_id');
             $table->unsignedBigInteger('modifier_id');
             $table->foreign('ingredient_id')
-            ->references('id')
-            ->on('product_ingredients');
-           $table->foreign('modifier_id')
-            ->references('id')
-            ->on('product_modifiers');
+                ->references('id')
+                ->on('product_ingredients');
+            $table->foreign('modifier_id')
+                ->references('id')
+                ->on('product_modifiers');
             $table->integer('quantity');
             $table->integer('order');
             $table->timestamps();

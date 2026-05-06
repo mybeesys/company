@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Modules\Screen\Services;
 
 use FFMpeg\Coordinate\TimeCode;
@@ -10,7 +9,6 @@ use Modules\Screen\Models\Promo;
 
 class PromoActions
 {
-
     public function storePromo($data)
     {
         $file = $data['promo'];
@@ -22,11 +20,11 @@ class PromoActions
         $extension = strtolower($file->getClientOriginalExtension());
         if (in_array($extension, ['mp4', 'mov', 'avi', 'webm', 'mkv'], true)) {
 
-            $videoPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $promoName);
+            $videoPath = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$promoName);
 
-            $thumbnailName = 'thumbnails/' . time() . '.jpg';
+            $thumbnailName = 'thumbnails/'.time().'.jpg';
 
-            $thumbnailPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $thumbnailName);
+            $thumbnailPath = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$thumbnailName);
             try {
                 $this->generateVideoThumbnail($videoPath, $thumbnailPath);
                 $thumbnailPath = $thumbnailName;
@@ -41,25 +39,26 @@ class PromoActions
         Promo::create(['name' => $fileName, 'path' => $promoName, 'thumbnail' => $thumbnailPath]);
     }
 
-    public function storePromoMedia($image, $oldPromo = null, $folder)
+    public function storePromoMedia($image, $oldPromo, $folder)
     {
-        $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldPromo);
+        $oldPath = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$oldPromo);
 
         if (File::exists($oldPath)) {
             File::delete($oldPath);
         }
-        $promoName = $folder . '/' . time() . '.' . $image->extension();
+        $promoName = $folder.'/'.time().'.'.$image->extension();
         $image->storeAs('', $promoName, 'public');
+
         return $promoName;
     }
 
     public static function generateVideoThumbnail($videoPath, $thumbnailPath)
     {
-        if (!file_exists($videoPath)) {
+        if (! file_exists($videoPath)) {
             throw new \Exception("Video file not found: $videoPath");
         }
 
-        if (!file_exists(dirname($thumbnailPath))) {
+        if (! file_exists(dirname($thumbnailPath))) {
             mkdir(dirname($thumbnailPath), 0777, true);
         }
 

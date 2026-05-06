@@ -13,6 +13,7 @@ Route::middleware([
     Route::get('/set-locale/{locale}', function ($locale) {
         session()->put('locale', $locale);
         app()->setLocale($locale);
+
         return redirect()->back();
     })->withoutMiddleware(LocalizationMiddleware::class)->name('set_locale');
 

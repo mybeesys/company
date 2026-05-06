@@ -23,17 +23,17 @@ class PaymentVouchersController extends Controller
             ->orderBy('id')
             ->get();
 
-
         if ($request->ajax()) {
 
             $transactions = AccountingAccountsTransaction::where('sub_type', 'payment_voucher')
                 ->orderBy('id')
                 ->get();
+
             return AccountingAccountsTransaction::getReceiptsTable($transactions, 'payment_voucher');
         }
 
         $columns = AccountingAccountsTransaction::getReceiptsColumns();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
 
         return view('accounting::payment-vouchers.index', compact('transactions', 'accounts', 'columns', 'cost_centers'));

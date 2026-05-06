@@ -26,8 +26,7 @@ class DashbordController extends Controller
         //     'order_id' =>1,
         // ]);
 
-//    event(new OrderCreated(["amen"=>"test"]));
-
+        //    event(new OrderCreated(["amen"=>"test"]));
 
         $today = Carbon::today();
         $yesterday = Carbon::yesterday();
@@ -79,8 +78,6 @@ class DashbordController extends Controller
         $formattedTodaySales = number_format($todaySales);
         $formattedCurrentMonthSales = number_format($currentMonthSales);
 
-
-
         $todayPurchases = Transaction::where('type', 'purchases')
             ->whereIn('status', $validStatuses)
             ->whereDate('transaction_date', $today)
@@ -112,7 +109,6 @@ class DashbordController extends Controller
         $formattedTodayPurchases = number_format($todayPurchases);
         $formattedCurrentMonthPurchases = number_format($currentMonthPurchases);
 
-
         $paymentsSub = DB::table('transaction_payments as tp')
             ->selectRaw('tp.transaction_id, SUM(IF(tp.is_return = 1, -1 * tp.amount, tp.amount)) as total_paid')
             ->groupBy('tp.transaction_id');
@@ -129,12 +125,10 @@ class DashbordController extends Controller
 
         $total_due = $customer_balances->total_invoices - $customer_balances->total_payments;
         $formatted_total_due = number_format($total_due);
-        $total_unpaid_invoices = Transaction::where('type',  'sell')
+        $total_unpaid_invoices = Transaction::where('type', 'sell')
             ->whereIn('status', $validStatuses)
             ->whereIn('payment_status', ['partial', 'due'])
             ->count();
-
-
 
         $supplier_balances = DB::table('transactions as t')
             ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
@@ -149,12 +143,10 @@ class DashbordController extends Controller
         $total_due_supplier = $supplier_balances->total_invoices - $supplier_balances->total_payments;
         $formatted_total_due_supplier = number_format($total_due_supplier);
 
-        $total_unpaid_purchases_invoices = Transaction::where('type',  'purchases')
+        $total_unpaid_purchases_invoices = Transaction::where('type', 'purchases')
             ->whereIn('status', $validStatuses)
             ->whereIn('payment_status', ['partial', 'due'])
             ->count();
-
-
 
         $customersBalances = DB::table('transactions as t')
             ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
@@ -178,7 +170,6 @@ class DashbordController extends Controller
             ->limit(20)
             ->get();
 
-
         $supplierBalances = DB::table('transactions as t')
             ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
                 $join->on('t.id', '=', 'tp_sum.transaction_id');
@@ -200,7 +191,6 @@ class DashbordController extends Controller
             ->orderBy('balance', 'desc')
             ->limit(20)
             ->get();
-
 
         $months = collect(range(0, 5))->map(function ($i) {
             return Carbon::now()->subMonths($i)->format('Y-m');
@@ -235,8 +225,6 @@ class DashbordController extends Controller
             $salesArray[] = (float) ($salesData[$month] ?? 0);
             $expensesArray[] = (float) ($expensesData[$month] ?? 0);
         }
-
-
 
         $todayExpenses = DB::table('accounting_accounts_transactions')
             ->join(
@@ -389,7 +377,6 @@ class DashbordController extends Controller
             'periodExpenses',
             'periodExpensesChange',
             'periodNet'
-
 
         ));
     }

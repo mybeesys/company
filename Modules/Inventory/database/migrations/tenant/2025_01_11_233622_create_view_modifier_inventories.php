@@ -1,9 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("CREATE OR REPLACE VIEW modifier_inventories AS
+        DB::statement('CREATE OR REPLACE VIEW modifier_inventories AS
     	SELECT 
         pii.id AS modifier_id,
         establishment_id,
@@ -86,7 +85,7 @@ return new class extends Migration
 					WHERE io1.op_type = 4 /*transfer in*/
 					GROUP BY ioi.modifier_id, iot.establishment_id
                     ) op ON op.modifier_id = pii.id
-        group by pii.id, establishment_id");
+        group by pii.id, establishment_id');
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace Modules\Inventory\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 use Modules\General\Models\NotificationSetting;
 use Modules\Product\Models\Product;
 
@@ -15,11 +15,7 @@ class LowStockAmountNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(protected Product $product, protected float $total_qty, protected float $threshold)
-    {
-
-    }
-
+    public function __construct(protected Product $product, protected float $total_qty, protected float $threshold) {}
 
     /**
      * Get the notification's delivery channels.
@@ -58,6 +54,7 @@ class LowStockAmountNotification extends Notification
         $getLocalizedContent = function ($arKey, $enKey) use ($notification_setting) {
             $locale = session('locale');
             $template = $notification_setting->template;
+
             return ($locale === 'ar' ? $template[$arKey] : $template[$enKey])
                 ?? $template[$enKey]
                 ?? $template[$arKey]
@@ -84,6 +81,7 @@ class LowStockAmountNotification extends Notification
         $body = str_replace('{product_barcode}', $this->product->barcode, $body);
         $body = str_replace('{threshold}', $this->threshold, $body);
         $body = str_replace('{total_qty}', $this->total_qty, $body);
+
         return [
             'subject' => $subject,
             'body' => $body,

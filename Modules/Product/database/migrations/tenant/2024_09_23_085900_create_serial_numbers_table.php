@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('product_serial_numbers', function (Blueprint $table) {
             $table->id();
             $table->string('serial_number');
-            $table->unsignedBigInteger('product_id'); 
+            $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_serial_numbers'); 
-            $table->string('status');   
+                ->references('id')                    // References the id on the categories table
+                ->on('product_serial_numbers');
+            $table->string('status');
             $table->timestamps();
             $table->softDeletes(); // Adds a deleted_at column
         });

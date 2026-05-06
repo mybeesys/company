@@ -1,4 +1,5 @@
 <?php
+
 return [
     'report_export' => 'استخراج التقارير',
     'export_as_pdf' => 'تصدير كـ PDf',
@@ -33,5 +34,5 @@ return [
     'notifications' => 'الإشعارات',
     'no_notifications' => 'لا يوجد اشعارات',
     'mark_as_read' => 'تعيين كمقروء',
-    'subscriptions' => 'الاشتراكات'
+    'subscriptions' => 'الاشتراكات',
 ];

@@ -24,14 +24,14 @@ class CashFlowExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [
-                __('accounting::lang.cash_flow_statement') . ' - ' .
-                    __('accounting::lang.from_date') . ': ' . $this->meta['start_date'] . ' - ' .
-                    __('accounting::lang.to_date') . ': ' . $this->meta['end_date'],
+                __('accounting::lang.cash_flow_statement').' - '.
+                    __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                    __('accounting::lang.to_date').': '.$this->meta['end_date'],
             ],
             [
-                __('accounting::lang.cash_inflows') . ': ' . number_format((float) $this->meta['cash_inflows'], 2, '.', '') .
-                    ' | ' . __('accounting::lang.cash_outflows') . ': ' . number_format((float) $this->meta['cash_outflows'], 2, '.', '') .
-                    ' | ' . __('accounting::lang.net_cash_flows') . ': ' . number_format((float) $this->meta['net_cash_flow'], 2, '.', ''),
+                __('accounting::lang.cash_inflows').': '.number_format((float) $this->meta['cash_inflows'], 2, '.', '').
+                    ' | '.__('accounting::lang.cash_outflows').': '.number_format((float) $this->meta['cash_outflows'], 2, '.', '').
+                    ' | '.__('accounting::lang.net_cash_flows').': '.number_format((float) $this->meta['net_cash_flow'], 2, '.', ''),
             ],
             [
                 __('accounting::lang.activity_section'),
@@ -54,4 +54,3 @@ class CashFlowExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

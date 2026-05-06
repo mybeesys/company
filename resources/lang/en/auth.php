@@ -32,5 +32,5 @@ return [
     'password has been successfully reseted' => 'password has been successfully reseted',
     'Your mobile number is not verified.' => 'Your mobile number is not verified.',
     'Your phone number has been verified successfully' => 'Your phone number has been verified successfully',
-    'not_registered' => 'not_registered'
+    'not_registered' => 'not_registered',
 ];

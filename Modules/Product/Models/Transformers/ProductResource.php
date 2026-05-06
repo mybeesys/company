@@ -13,18 +13,18 @@ class ProductResource extends JsonResource
     {
         $category = [];
         if ($this->category) {
-            $category["id"] = $this->category["id"];
-            $category["name_ar"] = $this->category["name_ar"];
-            $category["name_en"] = $this->category["name_en"];
-            $category["product_id"] = $this->id;
+            $category['id'] = $this->category['id'];
+            $category['name_ar'] = $this->category['name_ar'];
+            $category['name_en'] = $this->category['name_en'];
+            $category['product_id'] = $this->id;
         }
 
         $subcategory = null;
         if ($this->subcategory) {
-            $subcategory["id"] = $this->subcategory["id"];
-            $subcategory["name_ar"] = $this->subcategory["name_ar"];
-            $subcategory["name_en"] = $this->subcategory["name_en"];
-            $subcategory["product_id"] = $this->id;
+            $subcategory['id'] = $this->subcategory['id'];
+            $subcategory['name_ar'] = $this->subcategory['name_ar'];
+            $subcategory['name_en'] = $this->subcategory['name_en'];
+            $subcategory['product_id'] = $this->id;
         }
 
         if ($this->type == 'variable') {
@@ -32,29 +32,28 @@ class ProductResource extends JsonResource
             $temp = Product::where('parent_id', $this->id)->first();
             if ($temp->category) {
                 $category = [
-                    "id" => $temp->category["id"],
-                    "name_ar" => $temp->category["name_ar"],
-                    "name_en" => $temp->category["name_en"],
-                    "product_id" => $temp->id,
+                    'id' => $temp->category['id'],
+                    'name_ar' => $temp->category['name_ar'],
+                    'name_en' => $temp->category['name_en'],
+                    'product_id' => $temp->id,
                 ];
             }
 
             if ($temp->subcategory) {
                 $subcategory = [
-                    "id" => $temp->subcategory["id"],
-                    "name_ar" => $temp->subcategory["name_ar"],
-                    "name_en" => $temp->subcategory["name_en"],
-                    "product_id" => $temp->id,
+                    'id' => $temp->subcategory['id'],
+                    'name_ar' => $temp->subcategory['name_ar'],
+                    'name_en' => $temp->subcategory['name_en'],
+                    'product_id' => $temp->id,
                 ];
             }
         }
 
-
         $unit = [];
-        if (!empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
-            $unit["id"] = $this->unitTransfers[0]->id;
-            $unit["name"] = $this->unitTransfers[0]->unit1;
-            $unit["product_id"] = $this->unitTransfers[0]->product_id;
+        if (! empty($this->unitTransfers) && count($this->unitTransfers) > 0) {
+            $unit['id'] = $this->unitTransfers[0]->id;
+            $unit['name'] = $this->unitTransfers[0]->unit1;
+            $unit['product_id'] = $this->unitTransfers[0]->product_id;
         }
 
         $tax = [];
@@ -66,13 +65,13 @@ class ProductResource extends JsonResource
         $tax_2_minimum_limit = 0;
 
         if ($this->tax) {
-            $tax["id"] = $this->tax["id"];
-            $tax["name"] = $this->tax["name"];
-            $tax["value"] = TaxHelper::getTax($this->price, $this->tax->amount);
-            $tax["is_tax_group"] = $this->tax["is_tax_group"];
-            $tax["sub_taxes"] = $this->sub_taxes ? TaxResource::collection($this->sub_taxes) : [];
+            $tax['id'] = $this->tax['id'];
+            $tax['name'] = $this->tax['name'];
+            $tax['value'] = TaxHelper::getTax($this->price, $this->tax->amount);
+            $tax['is_tax_group'] = $this->tax['is_tax_group'];
+            $tax['sub_taxes'] = $this->sub_taxes ? TaxResource::collection($this->sub_taxes) : [];
 
-            if (!empty($this->sub_taxes)) {
+            if (! empty($this->sub_taxes)) {
                 $firstTax = $this->sub_taxes->first();
                 if ($firstTax) {
                     $tax_1 = $firstTax->amount;
@@ -85,26 +84,26 @@ class ProductResource extends JsonResource
                     $tax_2_minimum_limit = $secondTax->minimum_limit;
                 }
 
-                if (!empty($this->tax_1)) {
+                if (! empty($this->tax_1)) {
                     $price_withtax += $price_withtax * ($this->tax_1 / 100);
                     if ($price_withtax < $tax_1_minimum_limit) {
                         $price_withtax = $price_withtax + $tax_1_minimum_limit;
                     }
                 }
 
-                if (!empty($this->tax_2)) {
+                if (! empty($this->tax_2)) {
                     $price_withtax += $price_withtax * ($this->tax_2 / 100);
                     if ($price_withtax < $tax_2_minimum_limit) {
                         $price_withtax = $price_withtax + $tax_2_minimum_limit;
                     }
                 }
             } else {
-                $price_withtax = $this->price + ($tax ? $tax["value"] : 0);
+                $price_withtax = $this->price + ($tax ? $tax['value'] : 0);
                 if ($price_withtax < $this->minimum_limit) {
                     $price_withtax = $price_withtax + $this->minimum_limit;
                 }
 
-                $tax_1 = $tax["value"];
+                $tax_1 = $tax['value'];
             }
         }
 
@@ -138,7 +137,7 @@ class ProductResource extends JsonResource
             })),
             'combos' => ComboResource::collection($this->combos ?? []),
             'unit' => $unit,
-            'image' => $this->image ? asset($this->image) : asset("images.png"),
+            'image' => $this->image ? asset($this->image) : asset('images.png'),
         ];
     }
     // public function toArray($request)

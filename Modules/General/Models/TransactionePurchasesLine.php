@@ -2,8 +2,8 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
@@ -35,6 +35,7 @@ class TransactionePurchasesLine extends Model
     {
         return $this->belongsTo(Transaction::class, 'transaction_id');
     }
+
     public function transactionSellLine()
     {
         return $this->belongsTo(TransactionSellLine::class, 'transactionsell_id');

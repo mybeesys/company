@@ -3,11 +3,10 @@
 namespace Modules\Establishment\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Establishment\Models\EstPos;
 use Illuminate\Http\Request;
 use Modules\Establishment\Classes\EstablishmentTable;
-use Illuminate\Support\Facades\Log;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Models\EstPos;
 
 class DeviceController extends Controller
 {
@@ -21,6 +20,7 @@ class DeviceController extends Controller
             return EstablishmentTable::getDeviceTable($establishments);
         }
         $columns = EstablishmentTable::getDeviceColumns();
+
         return view('establishment::device.index', compact('columns', 'establishments'));
     }
 
@@ -60,6 +60,7 @@ class DeviceController extends Controller
 
         return response()->json(['success' => 'Device added successfully']);
     }
+
     public function getEstablishment()
     {
         $establishments = Establishment::all()->map(function ($establishment) {
@@ -71,11 +72,12 @@ class DeviceController extends Controller
 
         return response()->json($establishments);
     }
+
     public function destroy($id)
     {
         $device = EstPos::find($id);
 
-        if (!$device) {
+        if (! $device) {
             return response()->json(['message' => 'Device not found'], 404);
         }
 

@@ -28,7 +28,7 @@ class AccountingDashboardController extends Controller
             function ($join) use ($start_date, $end_date, $choose_cost_center_select) {
                 $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                     ->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                if (!empty($choose_cost_center_select)) {
+                if (! empty($choose_cost_center_select)) {
                     $join->whereIn('AAT.cost_center_id', $choose_cost_center_select);
                 }
             }
@@ -45,17 +45,17 @@ class AccountingDashboardController extends Controller
         $labels = [];
         $values = [];
 
-        foreach ($account_types as $k =>  $v) {
+        foreach ($account_types as $k => $v) {
             $value = 0;
 
             foreach ($tree_of_account_overview as $overview) {
-                if ($overview->account_primary_type == $k && !empty($overview->balance)) {
-                    $value = (float)$overview->balance;
+                if ($overview->account_primary_type == $k && ! empty($overview->balance)) {
+                    $value = (float) $overview->balance;
                 }
             }
             $values[] = abs($value);
 
-            //Suffix CR/DR as per value
+            // Suffix CR/DR as per value
             $tmp = $v['label'];
             if ($value < 0) {
                 $tmp .= (in_array($v['label'], ['Asset', 'Expenses']) ? ' (CR)' : ' (DR)');
@@ -63,7 +63,7 @@ class AccountingDashboardController extends Controller
             $labels[] = $tmp;
         }
 
-        foreach ($account_types as $k =>  $v) {
+        foreach ($account_types as $k => $v) {
             $sub_types = AccountingAccountTypes::where('account_primary_type', $k)
                 ->get();
 
@@ -72,7 +72,7 @@ class AccountingDashboardController extends Controller
                 function ($join) use ($start_date, $end_date, $choose_cost_center_select) {
                     $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                         ->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                    if (!empty($choose_cost_center_select)) {
+                    if (! empty($choose_cost_center_select)) {
                         $join->whereIn('AAT.cost_center_id', $choose_cost_center_select);
                     }
                 }
@@ -99,21 +99,20 @@ class AccountingDashboardController extends Controller
                 $value = 0;
 
                 foreach ($balances as $bal) {
-                    if ($bal->account_sub_type_id == $st->id && !empty($bal->balance)) {
-                        $value = (float)$bal->balance;
+                    if ($bal->account_sub_type_id == $st->id && ! empty($bal->balance)) {
+                        $value = (float) $bal->balance;
                         $account_types[$k]['balance'] = $value;
                     }
                 }
                 $values[] = $value;
             }
-        };
-
+        }
 
         // إجمالي الأرصدة
         $total_balance = DB::table('accounting_accounts_transactions')
             ->selectRaw('SUM(CASE WHEN type = "credit" THEN amount ELSE -amount END) as balance')
             ->whereBetween('operation_date', [$start_date, $end_date])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('cost_center_id', $choose_cost_center_select);
             })
             ->first()->balance ?? 0;
@@ -123,7 +122,7 @@ class AccountingDashboardController extends Controller
             ->selectRaw('SUM(CASE WHEN type = "debit" THEN amount ELSE 0 END) as total_debit')
             ->selectRaw('SUM(CASE WHEN type = "credit" THEN amount ELSE 0 END) as total_credit')
             ->whereBetween('operation_date', [$start_date, $end_date])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('cost_center_id', $choose_cost_center_select);
             })
             ->first();
@@ -136,7 +135,7 @@ class AccountingDashboardController extends Controller
                 Carbon::parse($start_date)->startOfYear()->format('Y-m-d'),
                 Carbon::parse($end_date)->endOfYear()->format('Y-m-d'),
             ])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('cost_center_id', $choose_cost_center_select);
             })
             ->groupBy('month')
@@ -147,7 +146,7 @@ class AccountingDashboardController extends Controller
         $transaction_types = DB::table('accounting_accounts_transactions')
             ->select('sub_type', DB::raw('COUNT(*) as count'))
             ->whereBetween('operation_date', [$start_date, $end_date])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('cost_center_id', $choose_cost_center_select);
             })
             ->groupBy('sub_type')
@@ -158,9 +157,9 @@ class AccountingDashboardController extends Controller
             ->leftJoin('accounting_cost_centers as c', 'ta.cost_center_id', '=', 'c.id')
             ->leftJoin('accounting_acc_trans_mappings as tm', 'ta.acc_trans_mapping_id', '=', 'tm.id')
             ->leftJoin('transactions as T', 'ta.transaction_id', '=', 'T.id')
-            ->select('ta.*', 'a.name_ar as account_name','a.gl_code as gl_code','a.name_en as account_name_en', 'c.name_ar as cost_center_name','c.name_en as cost_center_name_en','tm.ref_no as refNo','T.ref_no as RefNo')
+            ->select('ta.*', 'a.name_ar as account_name', 'a.gl_code as gl_code', 'a.name_en as account_name_en', 'c.name_ar as cost_center_name', 'c.name_en as cost_center_name_en', 'tm.ref_no as refNo', 'T.ref_no as RefNo')
             ->whereBetween('ta.operation_date', [$start_date, $end_date])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('ta.cost_center_id', $choose_cost_center_select);
             })
             ->orderBy('ta.operation_date', 'desc')
@@ -170,7 +169,7 @@ class AccountingDashboardController extends Controller
         $snapshotBalances = AccountingAccount::leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($start_date, $end_date, $choose_cost_center_select) {
             $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                 ->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-            if (!empty($choose_cost_center_select)) {
+            if (! empty($choose_cost_center_select)) {
                 $join->whereIn('AAT.cost_center_id', $choose_cost_center_select);
             }
         })
@@ -190,14 +189,14 @@ class AccountingDashboardController extends Controller
             'start_date' => $start_date,
             'end_date' => $end_date,
         ];
-        $receivables_due = collect((new AccountingUtil())->getAgeingReport('sell', 'contact', $ageingFilters))->sum('total_due');
-        $payables_due = collect((new AccountingUtil())->getAgeingReport('purchases', 'contact', $ageingFilters))->sum('total_due');
+        $receivables_due = collect((new AccountingUtil)->getAgeingReport('sell', 'contact', $ageingFilters))->sum('total_due');
+        $payables_due = collect((new AccountingUtil)->getAgeingReport('purchases', 'contact', $ageingFilters))->sum('total_due');
 
         $unbalanced_journal_entries = DB::table('accounting_acc_trans_mappings as m')
             ->join('accounting_accounts_transactions as t', 't.acc_trans_mapping_id', '=', 'm.id')
             ->where('m.type', 'journal_entry')
             ->whereBetween('m.operation_date', [$start_date, $end_date])
-            ->when(!empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 return $query->whereIn('t.cost_center_id', $choose_cost_center_select);
             })
             ->select('m.id')
@@ -272,7 +271,6 @@ class AccountingDashboardController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($id)
-
     {
         //
     }

@@ -1,22 +1,23 @@
 <?php
 
 namespace Modules\Inventory\Models;
+
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Events\BeforeSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-class ExcelExport implements FromArray, WithHeadings, WithColumnWidths, WithStyles, WithEvents
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class ExcelExport implements FromArray, WithColumnWidths, WithEvents, WithHeadings, WithStyles
 {
     protected $data;
 
     public function __construct(array $data)
     {
-        
+
         $this->data = $data;
     }
 
@@ -24,7 +25,8 @@ class ExcelExport implements FromArray, WithHeadings, WithColumnWidths, WithStyl
     {
         $result = [];
         $this->toExcelArray($this->data, 0, $result);
-        return  $result;
+
+        return $result;
     }
 
     private function indent($level)
@@ -41,10 +43,10 @@ class ExcelExport implements FromArray, WithHeadings, WithColumnWidths, WithStyl
     {
         foreach ($data as $parent) {
             // Add parent
-            $result[] = [$this->indent($level) . ($parent['name_ar'] ?? $parent['name']), $parent['qty']?? null];
+            $result[] = [$this->indent($level).($parent['name_ar'] ?? $parent['name']), $parent['qty'] ?? null];
 
-            if (!empty($parent['children'])) {
-                $this->toExcelArray($parent['children'], $level+1, $result);
+            if (! empty($parent['children'])) {
+                $this->toExcelArray($parent['children'], $level + 1, $result);
             }
         }
     }
@@ -59,8 +61,8 @@ class ExcelExport implements FromArray, WithHeadings, WithColumnWidths, WithStyl
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:B' . $sheet->getHighestRow())->getAlignment()->setHorizontal('right');
-        $sheet->getStyle('A1:B' . $sheet->getHighestRow())->applyFromArray([
+        $sheet->getStyle('A1:B'.$sheet->getHighestRow())->getAlignment()->setHorizontal('right');
+        $sheet->getStyle('A1:B'.$sheet->getHighestRow())->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -90,9 +92,9 @@ class ExcelExport implements FromArray, WithHeadings, WithColumnWidths, WithStyl
     {
         return [
 
-            BeforeSheet::class  =>function(BeforeSheet $event){
+            BeforeSheet::class => function (BeforeSheet $event) {
                 $event->getDelegate()->setRightToLeft(true);
-            }
+            },
         ];
     }
 }

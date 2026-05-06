@@ -8,19 +8,16 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
-use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\Product\Models\Product;
 
 class TransactionUtils
 {
-
-
-    function generateZatcaQr($sellerName, $vatNumber, $invoiceDate, $totalAmount, $vatAmount)
+    public function generateZatcaQr($sellerName, $vatNumber, $invoiceDate, $totalAmount, $vatAmount)
     {
         $data = [
             [1, $sellerName],
@@ -32,7 +29,7 @@ class TransactionUtils
 
         $tlv = '';
         foreach ($data as [$tag, $value]) {
-            $tlv .= chr($tag) . chr(strlen($value)) . $value;
+            $tlv .= chr($tag).chr(strlen($value)).$value;
         }
 
         return base64_encode($tlv);
@@ -104,7 +101,7 @@ class TransactionUtils
             $request->amount = $request->paid_amount;
         }
 
-        $accountUtil = new AccountingUtil();
+        $accountUtil = new AccountingUtil;
 
         if ($transaction->status == 'draft') {
             return true;
@@ -116,11 +113,12 @@ class TransactionUtils
             if (is_array($request)) {
                 return $request[$key] ?? null;
             }
+
             return $request->{$key} ?? null;
         };
 
         $payment_on_raw = $get_val('payment_on');
-        $date = !empty($payment_on_raw) ? Carbon::parse($payment_on_raw) : now();
+        $date = ! empty($payment_on_raw) ? Carbon::parse($payment_on_raw) : now();
         $payment_on = $date->format('Y-m-d H:i:s');
 
         $due_account_id = '';
@@ -150,21 +148,21 @@ class TransactionUtils
         }
         $userId = auth()->user() ? auth()->user()->id : $request->created_by;
         $transactionPayment = TransactionPayments::create([
-            'transaction_id'    => $transaction->id,
-            'payment_type'      => $transaction->invoice_type,
-            'amount'            => $get_val('amount'),
-            'method'            => $payment_method,
+            'transaction_id' => $transaction->id,
+            'payment_type' => $transaction->invoice_type,
+            'amount' => $get_val('amount'),
+            'method' => $payment_method,
             'payment_method_id' => $payment_method_id,
-            'is_return'         => in_array($transaction->type, ['sell-return', 'purchases-return'], true) ? 1 : 0,
-            'note'              => $get_val('additionalNotes'),
-            'paid_on'           => $payment_on,
-            'created_by'        => $userId,
-            'payment_for'       => $transaction->contact_id,
-            'payment_ref_no'    => $payment_ref_no,
-            'account_id'        => $account_id,
+            'is_return' => in_array($transaction->type, ['sell-return', 'purchases-return'], true) ? 1 : 0,
+            'note' => $get_val('additionalNotes'),
+            'paid_on' => $payment_on,
+            'created_by' => $userId,
+            'payment_for' => $transaction->contact_id,
+            'payment_ref_no' => $payment_ref_no,
+            'account_id' => $account_id,
         ]);
 
-        if (!$shift_id) {
+        if (! $shift_id) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
 
@@ -188,14 +186,14 @@ class TransactionUtils
                 'amount' => $cogsAmount,
                 'type' => 'debit',
                 'transaction_id' => $transaction->id,
-                'operation_date' => $transaction->transaction_date
+                'operation_date' => $transaction->transaction_date,
             ]);
         }
     }
 
     public function addPaymentLines_journalEntry($transaction, $request)
     {
-        $accountUtil = new AccountingUtil();
+        $accountUtil = new AccountingUtil;
 
         if ($transaction->status == 'draft') {
             return true;
@@ -228,7 +226,7 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
-        $acc_trans_mapping = new AccountingAccTransMapping();
+        $acc_trans_mapping = new AccountingAccTransMapping;
 
         $ref_number = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
@@ -272,7 +270,7 @@ class TransactionUtils
         return true;
     }
 
-    public  function updatePaymentStatus($transaction_id, $final_amount = null)
+    public function updatePaymentStatus($transaction_id, $final_amount = null)
     {
         $status = $this->calculatePaymentStatus($transaction_id, $final_amount);
 
@@ -282,7 +280,8 @@ class TransactionUtils
 
         return $status;
     }
-    public  function calculatePaymentStatus($transaction_id, $final_amount = null)
+
+    public function calculatePaymentStatus($transaction_id, $final_amount = null)
     {
         $total_paid = $this->getTotalPaid($transaction_id);
         if (is_null($final_amount)) {
@@ -290,7 +289,7 @@ class TransactionUtils
         }
 
         $status = 'due';
-        if ((int)$final_amount <= ($total_paid ?? 0)) {
+        if ((int) $final_amount <= ($total_paid ?? 0)) {
             $status = 'paid';
         } elseif ($total_paid > 0 && $final_amount > $total_paid) {
             $status = 'partial';
@@ -298,6 +297,7 @@ class TransactionUtils
 
         return $status;
     }
+
     public function getTotalPaid($transaction_id)
     {
         $total_paid = 0;
@@ -310,7 +310,7 @@ class TransactionUtils
         return $total_paid;
     }
 
-    public  function generateReferenceNumber($type)
+    public function generateReferenceNumber($type)
     {
         $currentYear = date('Y');
 
@@ -326,17 +326,17 @@ class TransactionUtils
         if ($transactionPayments) {
             $last_ref_no = $transactionPayments->payment_ref_no;
 
-            list(, $yearAndNumber) = explode('-', $last_ref_no);
-            list($year, $number) = explode('/', $yearAndNumber);
+            [, $yearAndNumber] = explode('-', $last_ref_no);
+            [$year, $number] = explode('/', $yearAndNumber);
 
             if ($year == $currentYear) {
                 $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = $prefix_type . $currentYear . '/' . $newNumber;
+                $new_ref_no = $prefix_type.$currentYear.'/'.$newNumber;
             } else {
-                $new_ref_no = $prefix_type . $currentYear . '/0001';
+                $new_ref_no = $prefix_type.$currentYear.'/0001';
             }
         } else {
-            $new_ref_no = $prefix_type . $currentYear . '/0001';
+            $new_ref_no = $prefix_type.$currentYear.'/0001';
         }
 
         return $new_ref_no;
@@ -352,27 +352,29 @@ class TransactionUtils
                 ->where('payment_status', 'due')
                 ->sum('final_total');
 
-
             $totalPartial = Transaction::where('contact_id', $customerId)
                 ->where('type', $transactionType)
                 ->where('payment_status', 'partial')
                 ->get()
                 ->sum(function ($transaction) {
                     $paidAmount = $transaction->payment()->sum('amount');
+
                     return $transaction->final_total - $paidAmount;
                 });
 
             $totalOutstanding = $totalDue + $totalPartial;
 
             return $totalOutstanding;
+
             return response()->json([
                 'customer_id' => $customerId,
                 'transaction_type' => $transactionType,
                 'total_due' => $totalDue,
                 'total_partial_due' => $totalPartial,
-                'total_outstanding' => $totalOutstanding
+                'total_outstanding' => $totalOutstanding,
             ]);
         }
+
         return false;
     }
 }

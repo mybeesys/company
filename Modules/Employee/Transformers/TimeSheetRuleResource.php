@@ -15,7 +15,7 @@ class TimeSheetRuleResource extends JsonResource
         return [
             'id' => $this->id,
             'rule_name' => $this->rule_name,
-            'rule_value' => $this->rule_value
+            'rule_value' => $this->rule_value,
         ];
     }
 }

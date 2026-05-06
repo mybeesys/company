@@ -25,11 +25,11 @@ Route::middleware([
 ])->group(function () {
     Route::get('main', [MainController::class, 'index'])->name('screens.main');
 
-    Route::controller(PromoController::class)->prefix('promo')->name('promos.')->group(function(){
+    Route::controller(PromoController::class)->prefix('promo')->name('promos.')->group(function () {
         Route::post('/store', 'store')->name('store');
 
         Route::get('', 'index')->name('index');
-        
+
         Route::get('playlist-index', 'playlistIndex')->name('playlist-index');
 
         Route::delete('/{promo}', 'destroy')->name('delete');
@@ -37,7 +37,7 @@ Route::middleware([
         route::patch('/{promo}', 'update')->name('update');
     });
 
-    Route::controller(PlaylistController::class)->prefix('playlist')->name('playlists.')->group(function(){
+    Route::controller(PlaylistController::class)->prefix('playlist')->name('playlists.')->group(function () {
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
         Route::get('/{playlist}', 'show')->name('show');
@@ -48,7 +48,7 @@ Route::middleware([
         Route::get('get-promos/{playlist}', 'getPlaylistPromos')->name('get-playlist-promos');
     });
 
-    Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function(){
+    Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function () {
         Route::post('/store', 'store')->name('store');
         Route::get('/index', 'index')->name('index');
         Route::patch('/{device}', 'update')->name('update');

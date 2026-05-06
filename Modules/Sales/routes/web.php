@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AuthenticateJWT;
-use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
 use Modules\Product\Http\Controllers\ProductController;
 use Modules\Sales\Http\Controllers\CouponController;
 use Modules\Sales\Http\Controllers\QuotationController;
@@ -42,7 +40,6 @@ Route::middleware([
         Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
         Route::get('products-for-quotation', [ProductController::class, 'productsForQuotation'])->name('products-for-quotation');
         Route::get('products-for-client', [ProductController::class, 'productsForClient'])->name('products-for-client');
-
 
         Route::get('sell-return', [SellReturnController::class, 'index'])->name('sell-return');
         Route::get('create-sell-return/{id}', [SellReturnController::class, 'create'])->name('create-sell-return');

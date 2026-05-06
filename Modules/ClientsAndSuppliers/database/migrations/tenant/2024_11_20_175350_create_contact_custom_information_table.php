@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('table_name');
             $table->bigInteger('contact_id');
 
-
             $table->timestamps();
         });
     }

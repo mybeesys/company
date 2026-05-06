@@ -15,6 +15,7 @@ class BaseEmployeeModel extends Model
         if (strpos($table, static::$prefix) === 0) {
             return $table;  // Return table as it already has the prefix
         }
-        return static::$prefix . $table;
+
+        return static::$prefix.$table;
     }
 }

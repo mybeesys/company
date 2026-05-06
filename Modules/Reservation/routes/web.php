@@ -3,10 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Reservation\Http\Controllers\AreaController;
 use Modules\Reservation\Http\Controllers\OrderController;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Modules\Reservation\Http\Controllers\TableController;
 use Modules\Reservation\Http\Controllers\TableStatusTypeController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ Route::middleware([
         Route::get('areaMiniList', [AreaController::class, 'getMiniAreas'])->name('areaMiniList');
         Route::resource('table', TableController::class)->names('table');
         Route::get('tableList', [TableController::class, 'getTables'])->name('tableList');
-        Route::get('table-status-type-values', [TableStatusTypeController::class, 'getTableStatusTypeValues'])->name('table-status-type-values');;
+        Route::get('table-status-type-values', [TableStatusTypeController::class, 'getTableStatusTypeValues'])->name('table-status-type-values');
         Route::get('/areaQR', [AreaController::class, 'areaQR'])->name('reservation.areaQR');
         Route::get('searchAreas', [AreaController::class, 'searchAreas'])->name('searchAreas');
         Route::get('/menuQR', [OrderController::class, 'menuQR'])->name('reservation.menuQR');
@@ -48,7 +48,6 @@ Route::middleware([
     Route::get('/menuSimple/{token}', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
     Route::post('/menuSimple/{token}/feedback', [OrderController::class, 'storeMenuFeedback'])->name('reservation.menuSimple.feedback');
     Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
-
 
     Route::post('/generate-menu-token', [OrderController::class, 'generateToken']);
 });

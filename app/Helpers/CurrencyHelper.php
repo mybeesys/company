@@ -6,6 +6,7 @@ class CurrencyHelper
 {
     /** Same Saudi Riyal sign used in menuSimple. */
     public const SAR_SIGN = "\u{20C1}";
+
     public const SAR_TEXT = 'ريال';
 
     public static function normalizeCurrencyDisplay(?string $stored): string
@@ -27,7 +28,7 @@ class CurrencyHelper
 
     public static function format_currency($amount)
     {
-        return number_format((float) $amount, 2) . ' ' . self::displayCurrencyUnit();
+        return number_format((float) $amount, 2).' '.self::displayCurrencyUnit();
     }
 
     public static function get_format_currency()
@@ -45,7 +46,7 @@ class CurrencyHelper
         );
 
         if ($isMenuRoute) {
-            return '<span class="currency-symbol">' . self::SAR_SIGN . '</span>';
+            return '<span class="currency-symbol">'.self::SAR_SIGN.'</span>';
         }
 
         return self::SAR_TEXT;

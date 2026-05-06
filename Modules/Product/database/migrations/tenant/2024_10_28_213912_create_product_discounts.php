@@ -19,11 +19,11 @@ return new class extends Migration
             $table->tinyInteger('discount_type');
             $table->decimal('amount')->nullable();
             $table->tinyInteger('qualification');
-            $table->tinyInteger('qualification_type')->nullable();;
+            $table->tinyInteger('qualification_type')->nullable();
             $table->boolean('auto_apply');
             $table->boolean('item_level');
             $table->integer('required_product_count')->nullable();
-            $table->integer('minimum_amount')->nullable();;
+            $table->integer('minimum_amount')->nullable();
             $table->timestamps();
             $table->softDeletes(); // Adds a deleted_at column
         });

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('product_modifiers', function (Blueprint $table) {
             $table->decimal('cost')->nullable();
-      
-             });
+
+        });
     }
 
     /**

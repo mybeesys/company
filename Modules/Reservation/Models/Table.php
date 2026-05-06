@@ -2,8 +2,8 @@
 
 namespace Modules\Reservation\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Models\Employee;
 
@@ -19,7 +19,7 @@ class Table extends Model
         'steating_capacity',
         'table_status',
         'active',
-        'assigned_waiter_id'
+        'assigned_waiter_id',
     ];
 
     public function area()
@@ -35,7 +35,7 @@ class Table extends Model
     public function activeOrder()
     {
         return $this->hasOne(TableOrders::class, 'table_id')
-            ->where('order_status','<>','canceled')
+            ->where('order_status', '<>', 'canceled')
             ->latest();
     }
 

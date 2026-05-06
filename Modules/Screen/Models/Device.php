@@ -2,9 +2,10 @@
 
 namespace Modules\Screen\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Establishment\Models\Establishment;
+
 // use Modules\Screen\Database\Factories\DeviceFactory;
 
 class Device extends Model
@@ -16,7 +17,7 @@ class Device extends Model
      */
     protected $guarded = ['id', 'updated_at', 'created_at'];
 
-    protected $table = "screen_devices";
+    protected $table = 'screen_devices';
 
     public function playlists()
     {

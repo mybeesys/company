@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name_ar');
             $table->string('name_en');
-            $table->unsignedBigInteger('category_id'); 
+            $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_categories');    
-            $table->integer('order');          
+                ->references('id')                    // References the id on the categories table
+                ->on('product_categories');
+            $table->integer('order');
             $table->timestamps();
             $table->softDeletes(); // Adds a deleted_at column
         });

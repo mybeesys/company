@@ -23,4 +23,3 @@ return [
     'add_receipt' => 'سند قبض',
     'add_payment' => 'سند صرف',
 ];
-

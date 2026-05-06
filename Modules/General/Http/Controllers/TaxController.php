@@ -17,11 +17,11 @@ class TaxController extends Controller
     public function index(Request $request)
     {
 
-
         if ($request->ajax()) {
 
             $taxes = Tax::all();
-            return  Tax::getTaxesTable($taxes);
+
+            return Tax::getTaxesTable($taxes);
         }
 
         $columns = Tax::getsTaxesColumns();
@@ -45,8 +45,8 @@ class TaxController extends Controller
             DB::beginTransaction();
             if ($request->group_tax_checkbox != 'on') {
                 Tax::create([
-                    'name' => $request->tax_name . ' (' . $request->tax_amount . '%)',
-                    'name_en' => '(' . $request->tax_amount . '%) ' . $request->tax_name_en,
+                    'name' => $request->tax_name.' ('.$request->tax_amount.'%)',
+                    'name_en' => '('.$request->tax_amount.'%) '.$request->tax_name_en,
                     'amount' => $request->tax_amount,
                     'minimum_limit' => $request->minimum_limit,
                     'for_tax_group' => 0,
@@ -64,9 +64,9 @@ class TaxController extends Controller
                 $input['amount'] = $amount;
                 $input['is_tax_group'] = 1;
 
-                $tax_rate =    Tax::create([
-                    'name' => $request->tax_name . ' (' . $amount . '%)',
-                    'name_en' => '(' . $amount . '%) ' . $request->tax_name_en,
+                $tax_rate = Tax::create([
+                    'name' => $request->tax_name.' ('.$amount.'%)',
+                    'name_en' => '('.$amount.'%) '.$request->tax_name_en,
                     'amount' => $amount,
                     'minimum_limit' => $request->minimum_limit,
 
@@ -78,9 +78,11 @@ class TaxController extends Controller
             }
 
             DB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -119,8 +121,8 @@ class TaxController extends Controller
                 }
 
                 $tax_rate = Tax::find($request->id);
-                $tax_rate->name = preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $amount . '%)';
-                $tax_rate->name_en = '(' . $amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en);
+                $tax_rate->name = preg_replace('/\([^)]*\)\s*/', '', $request->tax_name).' ('.$amount.'%)';
+                $tax_rate->name_en = '('.$amount.'%) '.preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en);
                 $tax_rate->amount = $amount;
                 $tax_rate->minimum_limit = $request->minimum_limit;
 
@@ -128,17 +130,19 @@ class TaxController extends Controller
                 $tax_rate->sub_taxes()->sync($sub_tax_ids);
             } else {
                 $tax->update([
-                    'name' => preg_replace('/\([^)]*\)\s*/', '', $request->tax_name) . ' (' . $request->tax_amount . '%)',
-                    'name_en' => '(' . $request->tax_amount . '%) ' . preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en),
+                    'name' => preg_replace('/\([^)]*\)\s*/', '', $request->tax_name).' ('.$request->tax_amount.'%)',
+                    'name_en' => '('.$request->tax_amount.'%) '.preg_replace('/\([^)]*\)\s*/', '', $request->tax_name_en),
                     'amount' => $request->tax_amount,
-                    'minimum_limit' =>  $request->minimum_limit
+                    'minimum_limit' => $request->minimum_limit,
                 ]);
             }
 
             DB::commit();
+
             return redirect()->back()->with('success', __('messages.updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -153,9 +157,11 @@ class TaxController extends Controller
             $tax = Tax::find($id)->delete();
 
             DB::commit();
+
             return redirect()->route('taxes')->with('success', __('messages.deleted_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('taxes')->with('error', __('messages.something_went_wrong'));
         }
     }

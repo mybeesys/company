@@ -19,7 +19,6 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
-
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
@@ -43,11 +42,10 @@ Route::middleware([
         Route::post('store-loyalty-point-settings', [ClientSupplierSettingController::class, 'storeLoyaltyPointsSettings'])->name('store-loyalty-point-settings');
     });
 
-
     Route::get('/view-file/{filename}', function ($filename) {
-        $path = storage_path('tenanttest/app/customers/' . $filename);
+        $path = storage_path('tenanttest/app/customers/'.$filename);
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
 

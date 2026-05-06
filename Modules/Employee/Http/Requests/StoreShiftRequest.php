@@ -3,8 +3,6 @@
 namespace Modules\Employee\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Modules\Employee\Models\Employee;
 use Modules\Employee\Rules\LastShiftEndStatus;
 
 class StoreShiftRequest extends FormRequest
@@ -17,7 +15,7 @@ class StoreShiftRequest extends FormRequest
         return [
             'employee_id' => ['required', 'exists:emp_employees,id'],
             'date' => ['required', 'date'],
-            'shift_repeater' => ['array', 'required', new LastShiftEndStatus()],
+            'shift_repeater' => ['array', 'required', new LastShiftEndStatus],
             'shift_repeater.*.startTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.endTime' => ['required', 'date_format:H:i'],
             'shift_repeater.*.end_status' => ['required', 'in:clockout,break'],

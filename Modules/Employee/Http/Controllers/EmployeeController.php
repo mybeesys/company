@@ -14,18 +14,18 @@ use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustmentType;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PosRole;
-use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\EmployeeActions;
 use Modules\Establishment\Models\Establishment;
-use Modules\General\Models\NotificationSetting;
-use Notification;
 
 class EmployeeController extends Controller
 {
     protected $establishments;
+
     protected $dashboardRoles;
+
     protected $posRoles;
+
     protected $allowances_types;
 
     public function __construct()
@@ -42,6 +42,7 @@ class EmployeeController extends Controller
         if (Employee::where('pin', $number)->exists()) {
             return $this->generatePin();
         }
+
         return response()->json(['data' => $number]);
     }
 
@@ -52,25 +53,25 @@ class EmployeeController extends Controller
     private function getEmployeeViewData(int $id): array
     {
         return [
-            'employee' => Employee::with(['allowances' => fn($query) => $query->always(), 'dashboardRoles', 'posRoles'])->findOrFail($id),
+            'employee' => Employee::with(['allowances' => fn ($query) => $query->always(), 'dashboardRoles', 'posRoles'])->findOrFail($id),
             'posRoles' => $this->posRoles,
             'dashboardRoles' => $this->dashboardRoles,
             'establishments' => $this->establishments,
             'allowances_types' => $this->allowances_types,
-            ];
+        ];
     }
-
 
     public function index(Request $request)
     {
         $employees = Employee::with('permissions:id,name')->select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
         if ($request->ajax()) {
 
-            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+            if ($request->has('deleted_records') && ! empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
                     ? $employees->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $employees->withTrashed() : null);
             }
+
             return EmployeeTable::getEmployeeTable($employees);
         }
         $employees = $employees->get();
@@ -82,6 +83,7 @@ class EmployeeController extends Controller
         $posRoles = $this->posRoles;
         $establishments = $this->establishments;
         $dashboardRoles = $this->dashboardRoles;
+
         return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules', 'posRoles', 'establishments', 'dashboardRoles'));
     }
 
@@ -107,8 +109,9 @@ class EmployeeController extends Controller
             } catch (\Throwable $e) {
                 Log::error('Employee creation failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
                 return redirect()->back()->with('error', __('employee::responses.something_wrong_happened'));
             }
         });
@@ -126,7 +129,7 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
-         
+
         return DB::transaction(function () use ($request, $employee) {
             try {
                 $filteredRequest = $request->safe()->collect()->filter(function ($item) {
@@ -134,12 +137,14 @@ class EmployeeController extends Controller
                 });
                 $updateEmployee = new EmployeeActions($filteredRequest);
                 $updateEmployee->update($employee);
+
                 return to_route('employees.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.employee')]));
             } catch (\Throwable $e) {
                 Log::error('Employee updating failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
                 return redirect()->back()->with('error', __('employee::responses.something_wrong_happened'));
             }
         });

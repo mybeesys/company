@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
 use Modules\Product\Models\Vendor;
 
-
 class PurchaseOrder extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -28,38 +26,43 @@ class PurchaseOrder extends Model
         'invoice_status',
         'tax',
         'misc_amount',
-        'shipping_amount'
+        'shipping_amount',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable(){
+    public function addToFillable()
+    {
         return array_push($this->fillable, 'vendor');
     }
 
     public $type = 'purchaseOrder';
 
     protected $casts = [
-       'invoice_status' => PurchaseOrderInvoiceStatus::class,  // Cast the 'status' attribute to the Status enum
+        'invoice_status' => PurchaseOrderInvoiceStatus::class,  // Cast the 'status' attribute to the Status enum
     ];
 
     public $validated = ['tax' => 'nullable|numeric',
-            'misc_amount' => 'nullable|numeric',
-            'shipping_amount' => 'nullable|numeric'];
+        'misc_amount' => 'nullable|numeric',
+        'shipping_amount' => 'nullable|numeric'];
 
-    public function totals($validated){
-        return (isset($validated["tax"]) ? $validated["tax"] : 0 ) + 
-        (isset($validated["misc_amount"]) ? $validated["misc_amount"] : 0 ) +
-        (isset($validated["shipping_amount"]) ? $validated["shipping_amount"] : 0 );
+    public function totals($validated)
+    {
+        return (isset($validated['tax']) ? $validated['tax'] : 0) +
+        (isset($validated['misc_amount']) ? $validated['misc_amount'] : 0) +
+        (isset($validated['shipping_amount']) ? $validated['shipping_amount'] : 0);
     }
 
-    public function fillValidated($validated, $data){
-        $validated["invoice_status"] = PurchaseOrderInvoiceStatus::unIvoiced;
-        if (isset($data["vendor"])) {
-            $validated["vendor_id"] = $data["vendor"]["id"];
+    public function fillValidated($validated, $data)
+    {
+        $validated['invoice_status'] = PurchaseOrderInvoiceStatus::unIvoiced;
+        if (isset($data['vendor'])) {
+            $validated['vendor_id'] = $data['vendor']['id'];
         }
+
         return $validated;
     }
 

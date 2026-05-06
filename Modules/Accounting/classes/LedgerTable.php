@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Modules\Accounting\classes;
 
 use Illuminate\Support\Facades\App;
@@ -8,18 +7,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class LedgerTable
 {
-
     public static function getAccTransMappingColumns()
     {
         return [
 
-            ["class" => "text-start min-w-250px px-3", "name" => "transaction_number"],
-            ["class" => "text-start min-w-200px px-3", "name" => "operation_date"],
-            ["class" => "text-start min-w-200px px-3", "name" => "transaction"],
-            ["class" => "text-start min-w-200px text-nowrap px-3", "name" => "cost_center"],
-            ["class" => "text-start min-w-200px text-nowrap px-3", "name" => "added_by"],
-            ["class" => "text-start min-w-150px text-nowrap px-3", "name" => "debit"],
-            ["class" => "text-start min-w-150px text-nowrap px-3", "name" => "credit"],
+            ['class' => 'text-start min-w-250px px-3', 'name' => 'transaction_number'],
+            ['class' => 'text-start min-w-200px px-3', 'name' => 'operation_date'],
+            ['class' => 'text-start min-w-200px px-3', 'name' => 'transaction'],
+            ['class' => 'text-start min-w-200px text-nowrap px-3', 'name' => 'cost_center'],
+            ['class' => 'text-start min-w-200px text-nowrap px-3', 'name' => 'added_by'],
+            ['class' => 'text-start min-w-150px text-nowrap px-3', 'name' => 'debit'],
+            ['class' => 'text-start min-w-150px text-nowrap px-3', 'name' => 'credit'],
 
         ];
     }
@@ -32,7 +30,7 @@ class LedgerTable
             })
 
             ->editColumn('sub_type', function ($row) {
-                return __('accounting::lang.' . $row->sub_type);
+                return __('accounting::lang.'.$row->sub_type);
             })
             ->editColumn('transaction_number', function ($row) {
                 return $row->accTransMapping->ref_no;
@@ -48,7 +46,7 @@ class LedgerTable
                 return $row->type == 'credit' ? $row->amount : '--';
             })
             ->editColumn('cost_center', function ($row) {
-                return $row->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $row->costCenter->name_ar : $row->costCenter->name_en);
+                return $row->costCenter->account_center_number.' - '.(App::getLocale() == 'ar' ? $row->costCenter->name_ar : $row->costCenter->name_en);
             })
 
             ->rawColumns(['debit', 'credit', 'operation_date', 'transaction_number', 'cost_center', 'sub_type', 'created_by'])

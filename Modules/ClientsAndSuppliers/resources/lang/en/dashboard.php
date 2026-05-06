@@ -23,4 +23,3 @@ return [
     'add_receipt' => 'Receipt voucher',
     'add_payment' => 'Payment voucher',
 ];
-

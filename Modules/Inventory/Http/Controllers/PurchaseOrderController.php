@@ -26,11 +26,13 @@ class PurchaseOrderController extends Controller
      */
     public function create()
     {
-        $purchaseOrder = new PurchaseOrder();
-        $purchaseOrder->vendor = new Vendor();
+        $purchaseOrder = new PurchaseOrder;
+        $purchaseOrder->vendor = new Vendor;
         $purchaseOrder->items = [];
+
         return view('inventory::purchaseOrder.create', compact('purchaseOrder'));
     }
+
     /**
      * Show the specified resource.
      */
@@ -44,7 +46,7 @@ class PurchaseOrderController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
+        $inventoryOperation = InventoryOperation::with('establishment')->find($id);
         $inventoryOperation->detail->addToFillable();
         foreach ($inventoryOperation->detail->getFillable() as $key) {
             $inventoryOperation->$key = $inventoryOperation->detail[$key];
@@ -54,36 +56,37 @@ class PurchaseOrderController extends Controller
         $inventoryOperation->addToFillable('establishment');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
         $resInventoryOperation = $inventoryOperation->toArray();
-        $resInventoryOperation["items"] = [];
+        $resInventoryOperation['items'] = [];
         foreach ($inventoryOperation->items as $item) {
             $newItem = $item->toArray();
-            if(isset($item->product_id)){
-                $newItem["product_id"] = $item->product_id.'-p';
+            if (isset($item->product_id)) {
+                $newItem['product_id'] = $item->product_id.'-p';
                 $prod = $item->product->toArray();
-                $prod["id"] =  $item->product_id.'-p';
-                $newItem["product"] =$prod;
+                $prod['id'] = $item->product_id.'-p';
+                $newItem['product'] = $prod;
             }
-            if(isset($item->ingredient_id)){
-                $newItem["product_id"] = $item->ingredient_id.'-i';
+            if (isset($item->ingredient_id)) {
+                $newItem['product_id'] = $item->ingredient_id.'-i';
                 $ingr = $item->ingredient->toArray();
-                $ingr["id"] =  $item->ingredient_id.'-i';
-                $newItem["product"] =$ingr;
+                $ingr['id'] = $item->ingredient_id.'-i';
+                $newItem['product'] = $ingr;
             }
-            if(isset($item->modifier_id)){
-                $newItem["product_id"] = $item->modifier_id.'-m';
+            if (isset($item->modifier_id)) {
+                $newItem['product_id'] = $item->modifier_id.'-m';
                 $mod = $item->modifier->toArray();
-                $mod["id"] =  $item->modifier_id.'-m';
-                $newItem["product"] =$mod;
+                $mod['id'] = $item->modifier_id.'-m';
+                $newItem['product'] = $mod;
             }
-            $newItem["unit"] = $item->unit->toArray();
-            $resInventoryOperation["items"][] =$newItem;
+            $newItem['unit'] = $item->unit->toArray();
+            $resInventoryOperation['items'][] = $newItem;
         }
+
         return view('inventory::purchaseOrder.edit', compact('resInventoryOperation'));
     }
 
     public function recieve($id)
     {
-        $inventoryOperation  = InventoryOperation::find($id);
+        $inventoryOperation = InventoryOperation::find($id);
         $inventoryOperation->detail->addToFillable();
         foreach ($inventoryOperation->detail->getFillable() as $key) {
             $inventoryOperation->$key = $inventoryOperation->detail[$key];
@@ -92,28 +95,30 @@ class PurchaseOrderController extends Controller
         $inventoryOperation->addToFillable('op_status_name');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
         $resInventoryOperation = $inventoryOperation->toArray();
-        $resInventoryOperation["items"] = [];
+        $resInventoryOperation['items'] = [];
         foreach ($inventoryOperation->items as $item) {
             foreach ($item->detail->getFillable() as $key) {
                 $item->$key = $item->detail[$key];
             }
             $newItem = $item->toArray();
-            if(isset($item->product_id)){
-                $newItem["product"] = $item->product;
+            if (isset($item->product_id)) {
+                $newItem['product'] = $item->product;
             }
-            if(isset($item->ingredient_id)){
-                $newItem["product"] = $item->ingredient;
+            if (isset($item->ingredient_id)) {
+                $newItem['product'] = $item->ingredient;
             }
-            if(isset($item->modifier_id)){
-                $newItem["product"] = $item->modifier;
+            if (isset($item->modifier_id)) {
+                $newItem['product'] = $item->modifier;
             }
-            $newItem["unit"] = $item->unit;
-            $resInventoryOperation["items"][] =$newItem;
+            $newItem['unit'] = $item->unit;
+            $resInventoryOperation['items'][] = $newItem;
         }
+
         return view('inventory::purchaseOrder.recieve', compact('resInventoryOperation'));
     }
 
-    public function updateRecive(Request $request){
+    public function updateRecive(Request $request)
+    {
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'notes' => 'nullable|string',
@@ -122,15 +127,15 @@ class PurchaseOrderController extends Controller
             'shipping_amount' => 'nullable|numeric',
         ]);
         $inventoryOperation = InventoryOperation::find($validated['id']);
-        $inventoryOperationItems = InventoryOperationItem::where("operation_id", "=",$inventoryOperation->id)->get();
-        $inventoryOperation->notes = $validated["notes"];
+        $inventoryOperationItems = InventoryOperationItem::where('operation_id', '=', $inventoryOperation->id)->get();
+        $inventoryOperation->notes = $validated['notes'];
         $inventoryOperation->total = 0;
-        if(isset($request['items'])){
-            $itemTotal = array_reduce($request['items'], function($carry, $item) {
-                return $carry + $item["qty"] * $item["cost"];
+        if (isset($request['items'])) {
+            $itemTotal = array_reduce($request['items'], function ($carry, $item) {
+                return $carry + $item['qty'] * $item['cost'];
             }, 0);
-            $itemTotalQty = array_reduce($inventoryOperationItems->toArray(), function($carry, $item) {
-                return $carry + $item["qty"];
+            $itemTotalQty = array_reduce($inventoryOperationItems->toArray(), function ($carry, $item) {
+                return $carry + $item['qty'];
             }, 0);
         }
         $detail = $inventoryOperation->detail;
@@ -138,15 +143,16 @@ class PurchaseOrderController extends Controller
         $inventoryOperation->total = $total;
 
         foreach ($detail->getFillable() as $key) {
-            if(isset($validated[$key]))
+            if (isset($validated[$key])) {
                 $detail->$key = $validated[$key];
+            }
         }
         DB::transaction(function () use ($inventoryOperation, $itemTotalQty, $request) {
             $recievedTotal = 0;
-            if(isset($request['items'])){
+            if (isset($request['items'])) {
                 foreach ($request['items'] as $newItem) {
-                    if(isset($newItem)){
-                        if(isset($newItem['recievd_qty'])){
+                    if (isset($newItem)) {
+                        if (isset($newItem['recievd_qty'])) {
                             $recievedTotal += $newItem['recievd_qty'];
                             $item = InventoryOperationItem::find($newItem['id']);
                             $detailItem = $item->detail;
@@ -154,13 +160,16 @@ class PurchaseOrderController extends Controller
                             $detailItem->save();
                         }
                     }
+                }
+                if ($itemTotalQty == $recievedTotal) {
+                    $inventoryOperation->op_status = InventoryOperationStatus::fullyReceived;
+                } elseif ($recievedTotal > 0) {
+                    $inventoryOperation->op_status = InventoryOperationStatus::partiallyReceived;
+                }
+                $inventoryOperation->save();
             }
-            if($itemTotalQty == $recievedTotal)
-                $inventoryOperation->op_status = InventoryOperationStatus::fullyReceived;
-            else if($recievedTotal >0)
-                $inventoryOperation->op_status = InventoryOperationStatus::partiallyReceived;
-            $inventoryOperation->save();
-        }});
-        return response()->json(["message" => "Done"]);
+        });
+
+        return response()->json(['message' => 'Done']);
     }
 }

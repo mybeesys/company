@@ -3,8 +3,8 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Product\Enums\ApplicationType;
 use Illuminate\Http\JsonResponse;
+use Modules\Product\Enums\ApplicationType;
 
 class ApplicationTypeController extends Controller
 {
@@ -13,5 +13,3 @@ class ApplicationTypeController extends Controller
         return response()->json(ApplicationType::all());
     }
 }
-
-?>

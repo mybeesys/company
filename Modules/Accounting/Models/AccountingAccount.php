@@ -2,8 +2,9 @@
 
 namespace Modules\Accounting\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Accounting\Database\Factories\AccountingAccountFactory;
 
 class AccountingAccount extends Model
@@ -23,6 +24,7 @@ class AccountingAccount extends Model
         if (tenant()) {
             return $query->on(tenant()->database);
         }
+
         return $query;
     }
 
@@ -41,17 +43,17 @@ class AccountingAccount extends Model
         return $this->belongsTo(AccountingAccountTypes::class, 'detail_type_id');
     }
 
-
     public static function forDropdown($q = '')
     {
         $parent_account_ids = AccountingAccount::where('parent_account_id', '<>', null)->get()->pluck('parent_account_id');
         $query = AccountingAccount::
         // where('accounting_accounts.parent_account_id', '<>', null)
-        where('status','active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
+        where('status', 'active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
 
-        if (!empty($q)) {
+        if (! empty($q)) {
             $query->where('accounting_accounts.name_ar', 'like', "%{$q}%")->orWhere('accounting_accounts.name_en', 'like', "%{$q}%")->orWhere('accounting_accounts.gl_code', 'like', "%{$q}%");
         }
+
         return $query->get();
     }
 }

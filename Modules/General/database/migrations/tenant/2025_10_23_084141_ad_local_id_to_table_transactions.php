@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-             $table->string('local_id')->nullable()->after('status');
+            $table->string('local_id')->nullable()->after('status');
         });
     }
 
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-
-        });
+        Schema::table('transactions', function (Blueprint $table) {});
     }
 };

@@ -23,7 +23,7 @@ class PeriodicInventoryExport implements FromCollection, WithColumnWidths, WithH
 
     public function title(): string
     {
-        return 'PI-' . $this->inventory->id;
+        return 'PI-'.$this->inventory->id;
     }
 
     public function collection()

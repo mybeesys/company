@@ -26,6 +26,4 @@ class MainController extends Controller
 
         return view('screen::main.index', compact('promos', 'establishments', 'devices', 'playlistsCount', 'hasEstablishmentColumn'));
     }
-
-
 }

@@ -9,14 +9,12 @@ Route::controller(OrderController::class)->group(function () {
     Route::post('/order', 'store');
 });
 
-
 Route::controller(TableConrtollerController::class)->group(function () {
     Route::get('/tables', 'index');
     Route::get('/get-tables', 'tables');
     Route::get('/tables/{id}', 'details');
     Route::post('/change-status/{id}', 'changeStatus');
 });
-
 
 Route::post('/new-order', [ApiOrderController::class, 'storeApi']);
 Route::post('/cancel-order', [ApiOrderController::class, 'cancelOrder']);

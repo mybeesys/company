@@ -4,14 +4,12 @@ namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\Product;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\General\Models\Tax;
 
 class ProductTax extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -27,8 +25,8 @@ class ProductTax extends Model
         'product_id',
     ];
 
-
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -44,6 +42,4 @@ class ProductTax extends Model
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
-
 }
-?>

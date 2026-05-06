@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('product_products', function (Blueprint $table) {
-          
-        $table->boolean('sold_by_weight')->default(false);
-        $table->boolean('track_serial_number')->default(false);
-        $table->string('image')->nullable();
-        $table->string('color')->nullable();
-        $table->decimal('commissions')->nullable();
-         });
+
+            $table->boolean('sold_by_weight')->default(false);
+            $table->boolean('track_serial_number')->default(false);
+            $table->string('image')->nullable();
+            $table->string('color')->nullable();
+            $table->decimal('commissions')->nullable();
+        });
         //
     }
 

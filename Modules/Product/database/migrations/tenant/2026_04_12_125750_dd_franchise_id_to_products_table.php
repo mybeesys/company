@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('approved')->after('active');
             $table->text('rejection_reason')->nullable()->after('status');
 
-               });
+        });
     }
 
     /**

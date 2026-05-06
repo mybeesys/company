@@ -2,8 +2,4 @@
 
 namespace Modules\Accounting\Utils;
 
-class JournalEntryUtil
-{
-
-
-}
+class JournalEntryUtil {}

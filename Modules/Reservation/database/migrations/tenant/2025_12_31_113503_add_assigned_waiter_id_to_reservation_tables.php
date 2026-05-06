@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::table('reservation_tables', function (Blueprint $table) {
+        Schema::table('reservation_tables', function (Blueprint $table) {
             $table->foreignId('assigned_waiter_id')
-                  ->nullable()
-                  ->after('area_id');
+                ->nullable()
+                ->after('area_id');
         });
     }
 
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('reservation_tables', function (Blueprint $table) {
-           });}
+        Schema::table('reservation_tables', function (Blueprint $table) {});
+    }
 };

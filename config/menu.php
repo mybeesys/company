@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     [
@@ -6,9 +7,8 @@ return [
         'url' => '/dashboard',
         'icon' => 'fas fa-home',
         'permission' => '',
-        'subMenu' => []
+        'subMenu' => [],
     ],
-
 
     [
         'name' => 'franchise',
@@ -37,10 +37,8 @@ return [
                 'permission' => 'Franchise Companies.all.show',
             ],
 
-
-        ]
+        ],
     ],
-
 
     [
         'name' => 'product_module',
@@ -99,7 +97,6 @@ return [
 
             ],
 
-
             [
                 'name' => 'priceTier',
                 'url' => 'priceTier',
@@ -129,9 +126,9 @@ return [
                 'url' => 'importProduct/import',
                 'permission' => 'products.importProduct.show',
 
-            ]
+            ],
 
-        ]
+        ],
     ],
     [
         'name' => 'inventory_module',
@@ -173,8 +170,8 @@ return [
                 'name' => 'import',
                 'url' => 'openInventoryImport/import',
                 'permission' => 'inventory.import.show',
-            ]
-        ]
+            ],
+        ],
     ],
     [
         'name' => 'sales',
@@ -182,7 +179,6 @@ return [
         'icon' => 'fas fa-dollar-sign',
         'permission' => 'sales.all.show',
         'subMenu' => [
-
 
             [
                 'name' => 'sales-dashbord',
@@ -223,9 +219,9 @@ return [
             [
                 'name' => 'coupons',
                 'url' => 'coupon',
-                'permission' => 'sales.coupons.show'
-            ]
-        ]
+                'permission' => 'sales.coupons.show',
+            ],
+        ],
     ],
     [
         'name' => 'purchases',
@@ -269,9 +265,7 @@ return [
                 'permission' => 'purchases.Supplier vouchers.show',
             ],
 
-
-
-        ]
+        ],
     ],
 
     [
@@ -322,15 +316,14 @@ return [
                 'permission' => 'accounting.Payment vouchers.show',
             ],
 
-
-        ]
+        ],
     ],
     [
         'name' => 'accounting_reports',
         'url' => 'accounting-reports',
         'icon' => 'fas fa-bar-chart',
         'permission' => 'accountingReports.all.show',
-        'subMenu' => []
+        'subMenu' => [],
     ],
 
     // [
@@ -367,7 +360,6 @@ return [
     //     ]
     // ],
 
-
     [
         'name' => 'clients_suppliers_module',
         'url' => '/',
@@ -377,9 +369,9 @@ return [
             [
                 'name' => 'clients_suppliers_settings',
                 'url' => 'client-supplier-setting',
-                'permission' => 'sales.Customers.show'
+                'permission' => 'sales.Customers.show',
             ],
-        ]
+        ],
     ],
     [
 
@@ -433,16 +425,16 @@ return [
                         'url' => 'schedule/payroll',
                         'permission' => ['employees.payrolls.show', 'employees.payrolls_groups.show'],
                     ],
-                ]
+                ],
             ],
-        ]
+        ],
     ],
     [
         'name' => 'screen_module',
         'url' => 'main',
         'icon' => 'fas fa-desktop',
         'permission' => 'screen_module.all.show',
-        'subMenu' => []
+        'subMenu' => [],
     ],
     [
         'name' => 'reports_module',
@@ -507,7 +499,7 @@ return [
 
             ],
 
-        ]
+        ],
 
     ],
 ];

@@ -12,15 +12,16 @@ use Modules\Screen\Models\Playlist;
 
 class PlaylistController extends Controller
 {
-
     public function index(Request $request)
     {
-        if($request->ajax()){
+        if ($request->ajax()) {
             $playlists = Playlist::all();
+
             return PlaylistTable::getPlaylistTable($playlists);
         }
 
     }
+
     public function store(StorePlaylistRequest $request)
     {
         $data = $request->safe();
@@ -46,7 +47,7 @@ class PlaylistController extends Controller
                 foreach ($data->selected_promos as $index => $promoId) {
                     $playlist->promos()->attach($promoId, [
                         'created_at' => now()->addSeconds($index),
-                        'updated_at' => now()->addSeconds($index)
+                        'updated_at' => now()->addSeconds($index),
                     ]);
                 }
                 $playlist->establishments()->sync($data->establishments_ids);
@@ -57,8 +58,9 @@ class PlaylistController extends Controller
         } catch (\Throwable $e) {
             \Log::error('playlist creation failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
@@ -73,7 +75,7 @@ class PlaylistController extends Controller
                 'establishments_ids' => $playlist->establishments()->pluck('est_establishments.id')->toArray(),
                 'devices' => $playlist->devices()->pluck('screen_devices.id')->toArray(),
                 'selected_promos' => $playlist->promos()->pluck('screen_promos.id')->toArray(),
-            ]
+            ],
         ]);
     }
 
@@ -103,7 +105,7 @@ class PlaylistController extends Controller
                 foreach ($data->selected_promos as $index => $promoId) {
                     $playlist->promos()->attach($promoId, [
                         'created_at' => now()->addSeconds($index),
-                        'updated_at' => now()->addSeconds($index)
+                        'updated_at' => now()->addSeconds($index),
                     ]);
                 }
                 $playlist->establishments()->sync($data->establishments_ids);
@@ -114,18 +116,19 @@ class PlaylistController extends Controller
         } catch (\Throwable $e) {
             \Log::error('playlist update failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
 
     public function getPlaylistPromos(Playlist $playlist)
     {
-         $promos = $playlist->promos->select('path');
-         return response()->json(['data' => $promos]);
-    }
+        $promos = $playlist->promos->select('path');
 
+        return response()->json(['data' => $promos]);
+    }
 
     public function destroy(Playlist $playlist)
     {

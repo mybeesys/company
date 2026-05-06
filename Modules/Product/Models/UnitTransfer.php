@@ -4,13 +4,11 @@ namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\Ingredient;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UnitTransfer extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -29,7 +27,7 @@ class UnitTransfer extends Model
         'ingredient_id',
         'modifier_id',
         'primary',
-        'default'
+        'default',
     ];
 
     public function getFillable()

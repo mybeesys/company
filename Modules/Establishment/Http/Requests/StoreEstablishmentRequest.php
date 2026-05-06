@@ -12,7 +12,8 @@ class StoreEstablishmentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $notAjaxValidate = !str_contains(request()->url(), 'validate');
+        $notAjaxValidate = ! str_contains(request()->url(), 'validate');
+
         return [
             'name' => [Rule::requiredIf($notAjaxValidate), 'string'],
             'name_en' => [Rule::requiredIf($notAjaxValidate), 'string'],
@@ -25,7 +26,7 @@ class StoreEstablishmentRequest extends FormRequest
             'is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'parent_id' => ['nullable', Rule::exists('est_establishments', 'id')->where('is_main', true)->where('is_active', true)],
             'is_main' => ['nullable', 'in:0,1'],
-            'logo_old' => [Rule::requiredIf($notAjaxValidate), 'boolean']
+            'logo_old' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
         ];
     }
 

@@ -4,10 +4,10 @@ namespace Modules\Franchise\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Storage;
 use Modules\Establishment\Models\Establishment;
 use Modules\Franchise\Models\FranchiseCompanies;
+use Yajra\DataTables\Facades\DataTables;
 
 class FranchiseBranchController extends Controller
 {
@@ -24,23 +24,23 @@ class FranchiseBranchController extends Controller
                     return $row->franchise ? $row->franchise->name_ar : '-';
                 })
                 ->addColumn('location_info', function ($row) {
-                    return $row->city . ($row->region ? ' / ' . $row->region : '');
+                    return $row->city.($row->region ? ' / '.$row->region : '');
                 })
                 ->addColumn('status_label', function ($row) {
                     $active = __('franchise::lang.active') ?? 'مفعل';
                     $inactive = __('franchise::lang.inactive') ?? 'غير مفعل';
 
                     return $row->is_active ?
-                        '<span class="badge badge-light-success">' . $active . '</span>' :
-                        '<span class="badge badge-light-danger">' . $inactive . '</span>';
+                        '<span class="badge badge-light-success">'.$active.'</span>' :
+                        '<span class="badge badge-light-danger">'.$inactive.'</span>';
                 })
                 ->addColumn('actions', function ($row) {
                     return '
                     <div class="d-flex justify-content-end">
-                        <button onclick="editBranch(' . $row->id . ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                        <button onclick="editBranch('.$row->id.')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                             <i class="ki-outline ki-pencil fs-2"></i>
                         </button>
-                        <button onclick="deleteBranch(' . $row->id . ')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
+                        <button onclick="deleteBranch('.$row->id.')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
                             <i class="ki-outline ki-trash fs-2"></i>
                         </button>
                     </div>';
@@ -52,8 +52,10 @@ class FranchiseBranchController extends Controller
             ->get()
             ->filter(function ($company) {
                 $activeContract = $company->activeContract;
+
                 return $company->branches()->count() < $activeContract->unite_no;
             });
+
         return view('franchise::branches.index', compact('franchises'));
     }
 
@@ -65,13 +67,13 @@ class FranchiseBranchController extends Controller
             'code' => 'required|unique:est_establishments,code',
             'name' => 'required',
             'name_en' => 'required',
-            'city' => 'required'
+            'city' => 'required',
         ]);
 
         $company = FranchiseCompanies::with('activeContract')->findOrFail($request->franchise_id);
         $activeContract = $company->activeContract;
 
-        if (!$activeContract) {
+        if (! $activeContract) {
             return response()->json(['message' => 'هذه الشركة ليس لديها عقد نشط حالياً'], 422);
         }
 
@@ -88,12 +90,14 @@ class FranchiseBranchController extends Controller
         }
 
         Establishment::create($data);
+
         return response()->json(['success' => true]);
     }
 
     public function edit($id)
     {
         $branch = Establishment::withoutGlobalScope('excludeFranchise')->findOrFail($id);
+
         return response()->json($branch);
     }
 
@@ -102,7 +106,7 @@ class FranchiseBranchController extends Controller
         $branch = Establishment::withoutGlobalScope('excludeFranchise')->findOrFail($id);
 
         $request->validate([
-            'code' => 'required|unique:est_establishments,code,' . $id,
+            'code' => 'required|unique:est_establishments,code,'.$id,
         ]);
 
         $data = $request->except(['logo', '_token', '_method', 'branch_id']);
@@ -115,6 +119,7 @@ class FranchiseBranchController extends Controller
         }
 
         $branch->update($data);
+
         return response()->json(['success' => true]);
     }
 
@@ -122,6 +127,7 @@ class FranchiseBranchController extends Controller
     {
         $branch = Establishment::withoutGlobalScope('excludeFranchise')->findOrFail($id);
         $branch->delete();
+
         return response()->json(['success' => true]);
     }
 }

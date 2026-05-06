@@ -38,10 +38,8 @@ return [
     'Your mobile number is not verified.' => 'رقم هاتفك غير مؤكد',
     'Your phone number has been verified successfully' => 'تم تأكيد رقم هاتفك بنجاح',
     'not_registered' => 'غير مسجل',
-    
-    
 
-    //------------------ mail -------------------------------------
+    // ------------------ mail -------------------------------------
     'mail_acc_activation' => 'تفعيل الحساب',
     'mail_hi' => 'مرحبا بك في تطبيق تورش',
     'mail_activation_code' => 'إليك كود تفعيل الحساب: ',

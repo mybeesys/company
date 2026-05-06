@@ -2222,11 +2222,28 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">@lang('reservation::lang.map_pick_hint')</p>
+                    @if (isset($menuEstablishments) && is_iterable($menuEstablishments) && count($menuEstablishments) > 1)
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small mb-1">{{ $local == 'ar' ? 'الفرع' : 'Branch' }}</label>
+                            <select class="form-select form-select-sm" id="menuLocationEstSelect">
+                                @foreach ($menuEstablishments as $estRow)
+                                    @php
+                                        $label = $local == 'ar' ? ($estRow->name ?? '') : ($estRow->name_en ?? $estRow->name ?? '');
+                                    @endphp
+                                    <option value="{{ (int) ($estRow->id ?? 0) }}"
+                                        {{ (int) ($estRow->id ?? 0) === (int) ($establishment_id ?? 0) ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                     @if ($mapEmbedUrl)
                         <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm mb-3">
-                            <iframe src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            <iframe id="menuLocationMapFrame" src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>
-                        <a class="btn btn-primary w-100" target="_blank" rel="noopener"
+                        <a id="menuLocationOpenMapsBtn" class="btn btn-primary w-100" target="_blank" rel="noopener"
                             href="https://www.google.com/maps?q={{ $mapLat }},{{ $mapLng }}">@lang('reservation::lang.modal_open_maps')</a>
                     @else
                         <p class="text-muted">@lang('general::lang.no_results')</p>
@@ -2235,6 +2252,51 @@
             </div>
         </div>
     </div>
+
+    @php
+        $menuEstLocations = is_array($menuToken->est_locations ?? null) ? $menuToken->est_locations : [];
+        $menuEstLocations = array_map(function ($row) {
+            if (! is_array($row)) {
+                return null;
+            }
+            return [
+                'map_lat' => $row['map_lat'] ?? null,
+                'map_lng' => $row['map_lng'] ?? null,
+                'map_label' => $row['map_label'] ?? null,
+            ];
+        }, $menuEstLocations);
+    @endphp
+    <script>
+        (function() {
+            const estLocations = @json($menuEstLocations);
+
+            const select = document.getElementById('menuLocationEstSelect');
+            const frame = document.getElementById('menuLocationMapFrame');
+            const btn = document.getElementById('menuLocationOpenMapsBtn');
+
+            if (!select || !frame || !btn) return;
+
+            const buildEmbedUrl = (lat, lng) => {
+                const d = 0.02;
+                const bbox = `${(Number(lng) - d)},${(Number(lat) - d)},${(Number(lng) + d)},${(Number(lat) + d)}`;
+                return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${Number(lat)},${Number(lng)}`;
+            };
+
+            const applyLocation = (estId) => {
+                const row = estLocations[String(estId)] || estLocations[Number(estId)] || null;
+                const lat = row && row.map_lat != null ? row.map_lat : null;
+                const lng = row && row.map_lng != null ? row.map_lng : null;
+                if (lat == null || lng == null || String(lat).trim() === '' || String(lng).trim() === '') {
+                    return;
+                }
+                frame.src = buildEmbedUrl(lat, lng);
+                btn.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+            };
+
+            applyLocation(select.value);
+            select.addEventListener('change', (e) => applyLocation(e.target.value));
+        })();
+    </script>
 
     <div class="modal fade" id="modalSmartMenu" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

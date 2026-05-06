@@ -73,7 +73,7 @@ class StandaloneVoucherHelper
         $credit = $line->type === 'credit' ? $line : $other;
 
         if ($debit->type !== 'debit' || $credit->type !== 'credit') {
-            throw (new ModelNotFoundException())->setModel(AccountingAccountsTransaction::class, [$lineId]);
+            throw (new ModelNotFoundException)->setModel(AccountingAccountsTransaction::class, [$lineId]);
         }
 
         return [$debit, $credit];
@@ -82,12 +82,12 @@ class StandaloneVoucherHelper
     private static function partnerOrFail(AccountingAccountsTransaction $line, string $subType): AccountingAccountsTransaction
     {
         if (! $line->transaction_id) {
-            throw (new ModelNotFoundException())->setModel(AccountingAccountsTransaction::class);
+            throw (new ModelNotFoundException)->setModel(AccountingAccountsTransaction::class);
         }
 
         $other = AccountingAccountsTransaction::query()->find($line->transaction_id);
         if (! $other || $other->sub_type !== $subType) {
-            throw (new ModelNotFoundException())->setModel(AccountingAccountsTransaction::class);
+            throw (new ModelNotFoundException)->setModel(AccountingAccountsTransaction::class);
         }
 
         return $other;

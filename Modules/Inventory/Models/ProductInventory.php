@@ -14,7 +14,6 @@ use Modules\Product\Models\Vendor;
 class ProductInventory extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -34,7 +33,7 @@ class ProductInventory extends Model
         'primary_vendor_id',
         'primary_vendor_unit_id',
         'primary_vendor_default_quantity',
-        'primary_vendor_default_price'
+        'primary_vendor_default_price',
     ];
 
     public function getFillable()

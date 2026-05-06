@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
-use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\DashbordController;
 use Modules\Employee\Http\Controllers\EmployeeController;
+use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
+use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
 use Modules\Employee\Http\Controllers\PayrollController;
 use Modules\Employee\Http\Controllers\PayrollGroupController;
 use Modules\Employee\Http\Controllers\PermissionController;
@@ -37,14 +37,13 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-
 
     Route::middleware(['auth'])->group(function () {
 
@@ -80,7 +79,6 @@ Route::middleware([
             Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions')->can('view', DashboardRole::class);
         });
 
-
         Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', PosRole::class);
             Route::get('/show/{id}', 'show')->name('show')->can('view', PosRole::class);
@@ -103,7 +101,6 @@ Route::middleware([
             Route::get('/{dashboardRole}/edit', 'edit')->name('edit')->can('update', DashboardRole::class);
             Route::patch('/{dashboardRole}', 'update')->name('update')->can('update', DashboardRole::class);
             Route::delete('/{dashboardRole}', 'destroy')->name('delete')->can('delete', DashboardRole::class);
-
 
             Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
             Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
@@ -182,6 +179,7 @@ Route::middleware([
 
                 Route::get('/print-all', function () {
                     $payrolls = Payroll::all();
+
                     return view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
                 })->name('print-all');
 

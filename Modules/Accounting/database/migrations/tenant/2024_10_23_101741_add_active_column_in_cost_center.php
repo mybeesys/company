@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('accounting_cost_centers', function (Blueprint $table) {
-             $table->integer('active')->default('1');
+            $table->integer('active')->default('1');
         });
     }
 
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('accounting_cost_centers', function (Blueprint $table) {
-
-        });
+        Schema::table('accounting_cost_centers', function (Blueprint $table) {});
     }
 };

@@ -60,15 +60,11 @@ return [
     'points_expiration_period' => 'Points expiration period',
     'credit_limit' => 'Credit limit',
 
-
     '1' => 'Account',
     '2' => 'Sales',
     '3' => 'Payments',
     '4' => 'Activities',
     '5' => 'Subscriptions',
-    "view_file" => "View attachment",
-
-
-
+    'view_file' => 'View attachment',
 
 ];

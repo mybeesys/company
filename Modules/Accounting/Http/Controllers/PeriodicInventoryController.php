@@ -9,30 +9,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
-use Mpdf\Mpdf;
 use Modules\Accounting\Exports\PeriodicInventoryExport;
 use Modules\Accounting\Exports\PeriodicInventoryListExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
-use Modules\Accounting\Models\PeriodicInventory;
 use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Models\PeriodicInventory;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
-use Modules\General\Models\TransactionSellLine;
-use Modules\General\Models\Setting;
-use Modules\Inventory\Models\ProductInventory;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Sales\Utils\SalesUtile;
+use Mpdf\Mpdf;
 
 class PeriodicInventoryController extends Controller
 {
     private function ensurePeriodicInventoryEnabled()
     {
-        if (!Setting::isPeriodicInventory()) {
+        if (! Setting::isPeriodicInventory()) {
             return redirect('/productInventory')
                 ->with('error', app()->getLocale() === 'ar'
                     ? 'ميزة الجرد الدوري غير متاحة لأن سياسة الجرد الحالية هي الجرد المستمر.'
@@ -68,14 +66,14 @@ class PeriodicInventoryController extends Controller
     {
         $parts = [];
         if ($request->filled('from_date')) {
-            $parts[] = __('accounting::lang.from_date') . ': ' . $request->from_date;
+            $parts[] = __('accounting::lang.from_date').': '.$request->from_date;
         }
         if ($request->filled('to_date')) {
-            $parts[] = __('accounting::lang.to_date') . ': ' . $request->to_date;
+            $parts[] = __('accounting::lang.to_date').': '.$request->to_date;
         }
         if ($request->filled('establishment')) {
             $est = Establishment::find($request->establishment);
-            $parts[] = __('accounting::lang.establishment_name') . ': ' . ($est?->name ?? $request->establishment);
+            $parts[] = __('accounting::lang.establishment_name').': '.($est?->name ?? $request->establishment);
         }
         if ($request->filled('status')) {
             $label = match ($request->status) {
@@ -83,7 +81,7 @@ class PeriodicInventoryController extends Controller
                 'without_adjustment' => __('accounting::lang.without_adjustment'),
                 default => (string) $request->status,
             };
-            $parts[] = __('accounting::lang.period_status') . ': ' . $label;
+            $parts[] = __('accounting::lang.period_status').': '.$label;
         }
 
         return $parts === []
@@ -106,7 +104,7 @@ class PeriodicInventoryController extends Controller
             'filter_note' => $this->periodicInventoryFilterNote($request),
         ];
 
-        $filename = 'periodic-inventory-list-' . now()->format('Y-m-d-His') . '.xlsx';
+        $filename = 'periodic-inventory-list-'.now()->format('Y-m-d-His').'.xlsx';
 
         return Excel::download(new PeriodicInventoryListExport($rows, $meta), $filename);
     }
@@ -118,7 +116,7 @@ class PeriodicInventoryController extends Controller
         }
 
         $inventory = PeriodicInventory::with(['items.product', 'establishment', 'creator', 'adjustmentEntry'])->findOrFail($id);
-        $filename = 'periodic-inventory-' . $inventory->id . '-' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'periodic-inventory-'.$inventory->id.'-'.now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new PeriodicInventoryExport($inventory), $filename);
     }
@@ -169,6 +167,7 @@ class PeriodicInventoryController extends Controller
             $p->setAttribute('inventory_unit_label', $this->resolveProductInventoryUnitLabel($p));
         });
         $establishments = Establishment::all();
+
         return view('accounting::inventory.periodic.create', [
             'start_date' => $start_date,
             'count_date_default' => now()->format('Y-m-d'),
@@ -332,8 +331,8 @@ class PeriodicInventoryController extends Controller
                 'ref_no' => $ref_no,
                 'status' => 'approved',
                 'notice' => app()->getLocale() === 'ar'
-                    ? ('تسوية جرد مخزون بتاريخ ' . $inventory->end_date . ' (من ' . $inventory->start_date . ')')
-                    : ('Inventory count settlement as of ' . $inventory->end_date . ' (period from ' . $inventory->start_date . ')'),
+                    ? ('تسوية جرد مخزون بتاريخ '.$inventory->end_date.' (من '.$inventory->start_date.')')
+                    : ('Inventory count settlement as of '.$inventory->end_date.' (period from '.$inventory->start_date.')'),
                 'establishment_id' => $inventory->establishment_id,
             ]);
 
@@ -348,7 +347,7 @@ class PeriodicInventoryController extends Controller
 
                 $product->update([
                     'last_counted_quantity' => $item->physical_quantity,
-                    'last_counted_date' => now()
+                    'last_counted_date' => now(),
                 ]);
 
                 TransactionePurchasesLine::create([
@@ -363,7 +362,7 @@ class PeriodicInventoryController extends Controller
             $adjustmentEntry = $this->postInventoryAdjustments($inventory);
             if ($adjustmentEntry) {
                 $inventory->adjustment_entry_id = $adjustmentEntry->id;
-                $inventory->notes = 'تم اعتماد الجرد مع قيد تسوية رقم ' . ($adjustmentEntry->ref_no ?? $adjustmentEntry->id);
+                $inventory->notes = 'تم اعتماد الجرد مع قيد تسوية رقم '.($adjustmentEntry->ref_no ?? $adjustmentEntry->id);
             } else {
                 $inventory->notes = 'تم اعتماد الجرد بدون قيد تسوية (فرق الجرد يساوي صفر).';
             }
@@ -385,7 +384,6 @@ class PeriodicInventoryController extends Controller
     }
 
     /**
-     * @param array $items
      * @return array<int, array<string, mixed>>
      */
     private function normalizePeriodicInventoryItems(array $items): array
@@ -455,7 +453,7 @@ class PeriodicInventoryController extends Controller
                 $opening,
                 $purchases,
                 $closing
-            )
+            ),
         ];
     }
 
@@ -471,6 +469,7 @@ class PeriodicInventoryController extends Controller
         if (! $ut) {
             return '—';
         }
+
         // The unit label is stored directly on product_unit_transfer.unit1 (string).
         return (string) ($ut->unit1 ?: '—');
     }
@@ -491,10 +490,10 @@ class PeriodicInventoryController extends Controller
 
                 $journalEntry = [
                     'ref_no' => $ref_number,
-                    'note' => 'تسوية جرد مخزون للفترة من ' . $inventory->start_date . ' إلى ' . $inventory->end_date,
+                    'note' => 'تسوية جرد مخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
                     'type' => 'journal_entry',
                     'created_by' => Auth::user()->id,
-                    'operation_date' => now()
+                    'operation_date' => now(),
                 ];
 
                 $acc_trans_mapping = AccountingAccTransMapping::create($journalEntry);
@@ -533,17 +532,17 @@ class PeriodicInventoryController extends Controller
                     'account_id' => $inventoryAccountId,
                     'amount' => abs($variance),
                     'type' => $variance > 0 ? 'debit' : 'credit',
-                    'notes' => 'تسوية مخزون'
+                    'notes' => 'تسوية مخزون',
                 ];
 
                 $journalEntries[] = [
                     'account_id' => $inventoryAdjustmentAccountId,
                     'amount' => abs($variance),
                     'type' => $variance > 0 ? 'credit' : 'debit',
-                    'notes' => 'تسوية مخزون'
+                    'notes' => 'تسوية مخزون',
                 ];
 
-                if (!$journalEntries[0]['account_id'] || !$journalEntries[1]['account_id']) {
+                if (! $journalEntries[0]['account_id'] || ! $journalEntries[1]['account_id']) {
                     throw new \RuntimeException('Required accounts for periodic inventory adjustment are not configured (inventory / inventory_adjustment).');
                 }
 
@@ -556,7 +555,7 @@ class PeriodicInventoryController extends Controller
                         'created_by' => Auth::user()->id,
                         'operation_date' => now(),
                         'sub_type' => 'inventory_adjustment',
-                        'acc_trans_mapping_id' => $acc_trans_mapping->id
+                        'acc_trans_mapping_id' => $acc_trans_mapping->id,
                     ]);
                 }
 
@@ -567,15 +566,13 @@ class PeriodicInventoryController extends Controller
                 return $acc_trans_mapping;
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('فشل في تسوية الجرد: ' . $e->getMessage());
+                Log::error('فشل في تسوية الجرد: '.$e->getMessage());
                 throw $e;
             }
         }
 
         return null;
     }
-
-
 
     protected function getPurchasesBetween($startDate, $endDate)
     {
@@ -605,8 +602,6 @@ class PeriodicInventoryController extends Controller
     {
         return $openingStockValue + $purchasesValue - $closingStockValue;
     }
-
-
 
     public function getProductsByEstablishment($establishmentId)
     {
@@ -645,10 +640,10 @@ class PeriodicInventoryController extends Controller
             'margin_right' => 8,
             'margin_top' => 8,
             'margin_bottom' => 8,
-            'tempDir' => storage_path('temp/mpdf')
+            'tempDir' => storage_path('temp/mpdf'),
         ]);
         $mpdf->WriteHTML($html);
 
-        return $mpdf->Output('periodic-inventory-' . $inventory->id . '.pdf', 'D');
+        return $mpdf->Output('periodic-inventory-'.$inventory->id.'.pdf', 'D');
     }
 }

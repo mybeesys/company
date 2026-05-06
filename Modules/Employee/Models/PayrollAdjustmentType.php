@@ -29,7 +29,7 @@ class PayrollAdjustmentType extends BaseEmployeeModel
     {
         return $this->hasMany(PayrollAdjustment::class, 'adjustment_type_id')->where('type', 'allowance')->withTrashed();
     }
-    
+
     public function deductions()
     {
         return $this->hasMany(PayrollAdjustment::class, 'adjustment_type_id')->where('type', 'deduction')->withTrashed();

@@ -1,16 +1,16 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\CustomMenuTimeDetail;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomMenuTime extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
+
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
     protected $table = 'product_custommenu_times';
@@ -31,7 +31,8 @@ class CustomMenuTime extends Model
         'no_date_limit' => 'boolean',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -39,7 +40,4 @@ class CustomMenuTime extends Model
     {
         return $this->hasMany(CustomMenuTimeDetail::class, 'custommenu_time_id', 'id');
     }
-
-
 }
-?>

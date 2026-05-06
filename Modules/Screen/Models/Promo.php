@@ -2,8 +2,9 @@
 
 namespace Modules\Screen\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Screen\Database\Factories\VideoFactory;
 
 class Promo extends Model
@@ -15,7 +16,7 @@ class Promo extends Model
      */
     protected $guarded = ['id', 'updated_at', 'created_at'];
 
-    protected $table = "screen_promos";
+    protected $table = 'screen_promos';
 
     public function playlists()
     {

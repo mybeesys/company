@@ -8,7 +8,6 @@ use Modules\General\Http\Controllers\NotificationSettingController;
 use Modules\General\Http\Controllers\PaymentMethodsController;
 use Modules\General\Http\Controllers\TaxController;
 use Modules\General\Http\Controllers\TransactionController;
-use Modules\Sales\Http\Controllers\SellController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -44,18 +43,15 @@ Route::middleware([
         Route::post('update-tax', [TaxController::class, 'update'])->name('update-tax');
         Route::get('delete-tax/{id}', [TaxController::class, 'destroy'])->name('delete-tax');
 
-
         Route::get('payment-methods', [PaymentMethodsController::class, 'index'])->name('payment-methods');
-          Route::post('update-payment-methods/{id}', [PaymentMethodsController::class, 'update'])->name('update-payment-methods');
+        Route::post('update-payment-methods/{id}', [PaymentMethodsController::class, 'update'])->name('update-payment-methods');
 
         Route::get('transaction-show/{id}', [TransactionController::class, 'show'])->name('transaction-show');
         Route::get('show-receipts-payments/{id}', [TransactionController::class, 'showReceiptsPayments'])->name('show-receipts-payments');
 
-
         Route::get('transaction-print/{id}', [TransactionController::class, 'print'])->name('transaction-print');
         Route::get('transaction-payment-print/{id}', [TransactionController::class, 'paymentPrint'])->name('transaction-payment-print');
         Route::get('transaction-export-pdf/{id}', [TransactionController::class, 'exportPDF'])->name('transaction-export-pdf');
-
 
         Route::get('transaction-show-payments/{id}', [TransactionController::class, 'showPayments'])->name('transaction-show-payments');
         Route::post('add-payment', [TransactionController::class, 'addPayment'])->name('add-payment');
@@ -71,20 +67,16 @@ Route::middleware([
             ->name('update-unit');
         Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
 
-
-
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');
         Route::get('fetch-notification', [NotificationController::class, 'fetchNotification'])->name('fetch-notification');
 
         Route::post('save-nots-terms', [GeneralController::class, 'saveNotsTerms'])->name('save-nots-terms');
 
-
         Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
         Route::get('/invoice-settings', [GeneralController::class, 'getInvoiceSettings'])->name('invoice-settings-get');
         Route::post('/update-reward-points', [GeneralController::class, 'updateRewardPoints'])->name('update-reward-points');
         Route::post('/invoice-settings-update', [GeneralController::class, 'updateInvoiceSetting'])->name('invoice-settings-update');
-
 
     });
 });

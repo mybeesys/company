@@ -2,8 +2,9 @@
 
 namespace Modules\Accounting\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Accounting\Database\Factories\AccountingAccountTypesFactory;
 
 class AccountingAccountTypes extends Model
@@ -19,7 +20,7 @@ class AccountingAccountTypes extends Model
 
     public static function accounting_primary_type()
     {
-           $accounting_primary_type = [
+        $accounting_primary_type = [
             'asset' => ['label' => __('accounting::lang.asset'), 'GLC' => 1, 'color' => '#006ae6'],
             'liabilities' => ['label' => __('accounting::lang.liabilities'), 'GLC' => 2, 'color' => '#00a261'],
             'equity' => ['label' => __('accounting::lang.equity'), 'GLC' => 3, 'color' => '#e42855'],
@@ -31,6 +32,7 @@ class AccountingAccountTypes extends Model
 
         return $accounting_primary_type;
     }
+
     public static function contractors_accounting_primary_type()
     {
         $accounting_primary_type = [

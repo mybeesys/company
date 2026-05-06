@@ -12,13 +12,9 @@ class TypeServiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-
-
     public function index(Request $request)
     {
         $typesOfService = TypesOfService::all();
-
 
         if ($request->ajax()) {
 
@@ -26,8 +22,6 @@ class TypeServiceController extends Controller
         }
 
         $columns = TypesOfService::getTypesOfServiceColumns();
-
-
 
         return view('product::type-service.index', compact('columns', 'typesOfService'));
     }
@@ -55,13 +49,14 @@ class TypeServiceController extends Controller
                 'packing_charge',
             ]);
 
-
             TypesOfService::create($input);
             DB::commit();
+
             return redirect()->route('type-service')->with(200, 'messages.add_successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('type-service')->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -79,9 +74,9 @@ class TypeServiceController extends Controller
      */
     public function edit($id)
     {
-        $service= TypesOfService::find($id);
+        $service = TypesOfService::find($id);
 
-        return view('product::type-service.edit',compact('service'));
+        return view('product::type-service.edit', compact('service'));
     }
 
     /**
@@ -99,14 +94,15 @@ class TypeServiceController extends Controller
                 'packing_charge',
             ]);
 
-
-           $service= TypesOfService::find($request->id);
-           $service->update($input);
+            $service = TypesOfService::find($request->id);
+            $service->update($input);
             DB::commit();
+
             return redirect()->route('type-service')->with(200, 'messages.updated_successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('type-service')->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -116,7 +112,7 @@ class TypeServiceController extends Controller
      */
     public function destroy($id)
     {
-          $service= TypesOfService::find($id)->delete();
+        $service = TypesOfService::find($id)->delete();
 
         return redirect()->back();
     }

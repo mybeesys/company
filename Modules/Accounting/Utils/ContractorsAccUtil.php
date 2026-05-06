@@ -10,7 +10,6 @@ use Modules\Accounting\Models\AccountsRoting;
 
 class ContractorsAccUtil
 {
-
     public static function default_accounting_route()
     {
         $vat_acc = AccountingAccount::where('gl_code', '214')->first();
@@ -82,7 +81,7 @@ class ContractorsAccUtil
 
     public static function default_accounting_account_types()
     {
-        return  $account_sub_types = [
+        return $account_sub_types = [
             [
                 'name_en' => 'Current Assets',
                 'name_ar' => 'الأصول المتداولة',
@@ -90,7 +89,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Fixed Assets',
@@ -99,7 +98,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Current Liabilities',
@@ -108,7 +107,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Equity',
@@ -117,7 +116,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Project Revenues',
@@ -126,7 +125,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Revenues',
@@ -135,7 +134,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Direct costs of projects',
@@ -144,7 +143,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Administrative expenses',
@@ -153,7 +152,7 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Analytical accounts',
@@ -162,13 +161,8 @@ class ContractorsAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'analytical_accounts',
-                'parent_id' => null
+                'parent_id' => null,
             ],
-
-
-
-
-
 
         ];
     }
@@ -258,7 +252,7 @@ class ContractorsAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //-----------
+            // -----------
             [
                 'name_en' => 'Cash on Hand',
                 'name_ar' => 'نقد بالصندوق',
@@ -343,7 +337,7 @@ class ContractorsAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //----------
+            // ----------
             [
                 'name_en' => 'Construction Material Suppliers',
                 'name_ar' => 'موردون مواد بناء',
@@ -428,7 +422,7 @@ class ContractorsAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //------------------
+            // ------------------
             [
                 'name_en' => 'Owner’s Account',
                 'name_ar' => 'حساب المالك',
@@ -459,7 +453,6 @@ class ContractorsAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
             [
                 'name_en' => 'Net Profit / Loss',
                 'name_ar' => 'صافي الربح / الخسارة',
@@ -475,7 +468,7 @@ class ContractorsAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-            //-------------
+            // -------------
             [
                 'name_en' => 'Workers and Engineers Salaries',
                 'name_ar' => 'رواتب عمال ومهندسين',

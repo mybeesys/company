@@ -49,21 +49,21 @@ class NotificationSettingController extends Controller
             foreach ($details['fields'] as $field) {
                 $template[$field] = $request->validated($field);
             }
-           if($request->validated($details['is_active'])){
-               $data = [
-                   'template' => $template,
-                   'is_active' => $request->validated($details['is_active']),
-               ];
-   
-               $notificationSetting = NotificationSetting::updateOrCreate(
-                   ['type' => $notificationType, 'sendType' => $sendType],
-                   $data
-               );
-   
-               if ($request->validated($details['recipient'])) {
-                   $notificationSetting->notifiable()->sync($request->validated($details['recipient']));
-               }
-           }
+            if ($request->validated($details['is_active'])) {
+                $data = [
+                    'template' => $template,
+                    'is_active' => $request->validated($details['is_active']),
+                ];
+
+                $notificationSetting = NotificationSetting::updateOrCreate(
+                    ['type' => $notificationType, 'sendType' => $sendType],
+                    $data
+                );
+
+                if ($request->validated($details['recipient'])) {
+                    $notificationSetting->notifiable()->sync($request->validated($details['recipient']));
+                }
+            }
         }
 
         return response()->json(['message' => __('employee::responses.operation_success')]);
@@ -74,11 +74,12 @@ class NotificationSettingController extends Controller
         $validated = $request->validate([
             'key' => ['required', 'array'],
             'key.*' => ['string'],
-            'key.index' => ['string']
+            'key.index' => ['string'],
         ]);
         foreach ($validated['key'] as $index => $value) {
             NotificationSettingParameter::updateOrCreate(['key' => $index], ['value' => $value]);
         }
+
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 }

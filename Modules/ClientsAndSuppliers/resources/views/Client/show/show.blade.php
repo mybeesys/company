@@ -66,8 +66,8 @@
         </div>
 
         <div class="container">
-            <div class="row">
-                <div class="col-sm">
+            <div class="row g-6">
+                <div class="col-12 col-lg-4">
 
                     {{-- client information --}}
                     @include('clientsandsuppliers::Client.show.client-information')
@@ -78,7 +78,7 @@
 
 
                 </div>
-                <div class="col-7">
+                <div class="col-12 col-lg-8">
 
                     @include('clientsandsuppliers::Client.show.nav-tabs')
 

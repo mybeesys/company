@@ -1,7 +1,7 @@
 <?php
 
 return [
- [
+    [
         // module.model.permission
         'name' => 'Franchise Companies.all.show',
         'name_ar' => '',
@@ -37,10 +37,9 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-////////////////////////////////////
+    // //////////////////////////////////
 
-
-[
+    [
         // module.model.permission
         'name' => 'employees.all.show',
         'name_ar' => '',
@@ -77,7 +76,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'employees.employees.show',
         'name_ar' => 'الموظفون',
@@ -92,7 +90,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'employees.employee.create',
@@ -129,7 +126,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'employees.pos_roles.show',
@@ -182,7 +178,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'employees.dashboard_roles.show',
@@ -265,7 +260,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'employees.timecards.show',
         'name_ar' => 'أوقات الدوام',
@@ -310,7 +304,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'employees.payrolls.show',
         'name_ar' => 'كشوف المرتبات',
@@ -326,7 +319,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'employees.payroll.create',
         'name_ar' => 'كشف راتب',
@@ -341,7 +333,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'employees.payrolls_groups.show',
@@ -378,7 +369,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'employees.allowances_deductions.show',
@@ -999,7 +989,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'establishments.all.show',
         'name_ar' => '',
@@ -1036,7 +1025,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'establishments.establishments.show',
         'name_ar' => 'فرع',
@@ -1066,7 +1054,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'establishments.company.show',
@@ -1182,7 +1169,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'sales.Customers.show',
@@ -1306,7 +1292,7 @@ return [
         'type' => 'ems',
     ],
 
-     [
+    [
         'name' => 'sales.Allow Sale Without Stock.create',
         'name_ar' => 'السماح بالبيع دون توفر الكمية',
         'description' => '',
@@ -1334,7 +1320,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'sales.Sell returns.show',
@@ -1386,7 +1371,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'sales.Customer receipts.show',
@@ -1588,7 +1572,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
 
     [
         'name' => 'accounting.Accounts routing.show',
@@ -1807,8 +1790,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
-
 
     [
         'name' => 'accountingReports.Trial balance.show',
@@ -2243,7 +2224,6 @@ return [
         'type' => 'ems',
     ],
 
-
     [
         'name' => 'setting.General setting.show',
         'name_ar' => 'الإعدادات العامة',
@@ -2333,8 +2313,6 @@ return [
         'type' => 'ems',
     ],
 
-
-
     [
         'name' => 'setting.tables_qr.show',
         'name_ar' => 'QR الطاولات',
@@ -2372,13 +2350,6 @@ return [
         'type' => 'ems',
     ],
 
-
-
-
-
-
-
-
     [
         'name' => 'setting.menu_qr.show',
         'name_ar' => 'QR قائمة',
@@ -2415,9 +2386,6 @@ return [
         'description_ar' => '',
         'type' => 'ems',
     ],
-
-
-
 
     [
         'name' => 'screen_module.all.show',

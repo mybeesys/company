@@ -4,8 +4,6 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
-use Illuminate\Support\Facades\Log;
-use DB;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as FacadesDB;
@@ -19,7 +17,6 @@ use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
 use Modules\Product\Models\UnitTransfer;
-use Predis\Configuration\Option\Prefix;
 
 class GeneralController extends Controller
 {
@@ -33,13 +30,12 @@ class GeneralController extends Controller
 
     public function storeSidebarState(Request $request)
     {
-        $state = $request->input('state') === "true" ? true : false;
+        $state = $request->input('state') === 'true' ? true : false;
 
         session(['sidebar_minimize' => $state]);
 
         return response()->json(['success' => true]);
     }
-
 
     public function setting(Request $request)
     {
@@ -88,8 +84,7 @@ class GeneralController extends Controller
             'reports' => 'reports',
         ];
 
-
-        if (!get_company_id()) {
+        if (! get_company_id()) {
             return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
         }
         // $company = FacadesDB::connection('mysql')->table('companies')->find(get_company_id());
@@ -109,11 +104,11 @@ class GeneralController extends Controller
 
         $policy = Setting::getInventoryTrackingPolicy();
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
-        $unit = UnitTransfer::where("default", 1)->first();
+        $unit = UnitTransfer::where('default', 1)->first();
 
-         $settings = Setting::getNotesAndTermsConditions();
+        $settings = Setting::getNotesAndTermsConditions();
 
-       $social_keys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x','menu_cover_image'];
+        $social_keys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x', 'menu_cover_image'];
         $social_settings = Setting::whereIn('key', $social_keys)->get();
 
         $settings = $settings->merge($social_settings);
@@ -127,16 +122,14 @@ class GeneralController extends Controller
         $current_subscription = $company->subscription;
         $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
         $user = FacadesDB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
+
         return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
     }
-
-
 
     public function updateModules(Request $request)
     {
         try {
             $enabledModules = $request->input('modules', []);
-
 
             Setting::updateOrCreate(
                 ['key' => 'enabled_modules'],
@@ -175,7 +168,6 @@ class GeneralController extends Controller
             );
         }
 
-
         foreach ($prefixes_payments as $type => $prefix) {
             PrefixSetting::updateOrCreate(
                 ['type' => $type],
@@ -190,9 +182,9 @@ class GeneralController extends Controller
         }
 
         PrefixSetting::updateRefNumbers();
+
         return redirect()->back()->with('success', __('product::messages.add_successfully'));
     }
-
 
     public function saveNotsTerms(Request $request)
     {
@@ -213,9 +205,11 @@ class GeneralController extends Controller
             }
 
             FacadesDB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             FacadesDB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -236,9 +230,11 @@ class GeneralController extends Controller
             }
 
             FacadesDB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             FacadesDB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -259,13 +255,14 @@ class GeneralController extends Controller
             }
 
             FacadesDB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             FacadesDB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
-
 
     public function getInvoiceSettings()
     {
@@ -279,7 +276,7 @@ class GeneralController extends Controller
                 'delegates' => Setting::where('key', 'toggleDelegates')->value('value') == 1,
                 // Default is enabled when setting is not created yet.
                 'coupon' => is_null($toggleCouponSetting) ? true : ((int) $toggleCouponSetting === 1),
-            ]
+            ],
         ]);
     }
 
@@ -287,7 +284,7 @@ class GeneralController extends Controller
     {
         $request->validate([
             'key' => 'required|string',
-            'value' => 'required|boolean'
+            'value' => 'required|boolean',
         ]);
 
         Setting::updateOrCreate(
@@ -317,11 +314,13 @@ class GeneralController extends Controller
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
+
     public function updateUnit(Request $request)
     {
         $unit = UnitTransfer::where('id', $request->unit_transfer_id)->first();
         $unit->unit1 = $request->unit1;
         $unit->save();
+
         return redirect()->back()->with('success', __('messages.add_successfully'));
     }
 }

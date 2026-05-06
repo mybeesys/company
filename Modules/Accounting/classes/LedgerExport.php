@@ -9,11 +9,11 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents
+class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapping, WithStyles
 {
     /** @var list<string> */
     private const LEDGER_COLUMN_ORDER = [
@@ -94,7 +94,7 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
             return __('accounting::lang.payment_voucher');
         }
 
-        return __('accounting::lang.' . $transaction->sub_type);
+        return __('accounting::lang.'.$transaction->sub_type);
     }
 
     protected function narrationText($transaction): string
@@ -152,7 +152,7 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
                 'narration' => $this->narrationText($transaction),
                 'transaction' => $this->subTypeLabel($transaction),
                 'cost_center' => ($transaction->costCenter
-                    ? $transaction->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $transaction->costCenter->name_ar : $transaction->costCenter->name_en)
+                    ? $transaction->costCenter->account_center_number.' - '.(App::getLocale() == 'ar' ? $transaction->costCenter->name_ar : $transaction->costCenter->name_en)
                     : '--'),
                 'added_by' => $transaction->createdBy->name ?? '--',
                 'debit' => $transaction->type == 'debit' ? $transaction->amount : '0.0',
@@ -180,7 +180,7 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
                 if ($creditIdx !== false) {
                     $footer[$creditIdx] = $this->totalCredit;
                 }
-                $event->sheet->getDelegate()->fromArray([$footer], null, 'A' . ($event->sheet->getHighestRow() + 1));
+                $event->sheet->getDelegate()->fromArray([$footer], null, 'A'.($event->sheet->getHighestRow() + 1));
             },
         ];
     }

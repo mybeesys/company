@@ -23,6 +23,6 @@ return [
     'percent' => 'Percent',
     'enable_custom_fields' => 'Enable Custom Fields',
     'enable_custom_fields_label' => 'Enable custom fields',
-    'actions' =>'actions',
+    'actions' => 'actions',
 
 ];

@@ -17,8 +17,8 @@ class EmailOrUserNameExists implements ValidationRule
             ->where('email', $value)
             ->orWhere('user_name', $value)
             ->exists();
-            if(!$exists){
-                $fail(__('employee::responses.incorrect_credential'));
-            }
+        if (! $exists) {
+            $fail(__('employee::responses.incorrect_credential'));
+        }
     }
 }

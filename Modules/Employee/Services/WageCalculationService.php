@@ -8,9 +8,7 @@ use Modules\Employee\Models\TimeSheetRule;
 
 class WageCalculationService
 {
-    public function __construct(public TimeSheetRuleService $timeSheetRuleService)
-    {
-    }
+    public function __construct(public TimeSheetRuleService $timeSheetRuleService) {}
 
     public function calculateMonthlyWage($timecards, $basicWage, Carbon $carbonMonth, Employee $employee): float
     {
@@ -40,6 +38,7 @@ class WageCalculationService
             while ($current->lte($week['end'])) {
                 if (in_array(strtolower($current->format('l')), $off_days)) {
                     $current->addDay();
+
                     continue;
                 }
 
@@ -47,9 +46,9 @@ class WageCalculationService
                 $current->addDay();
             }
         }
+
         return $totalWage;
     }
-
 
     private function prepareWageCalculationParameters($basicWage, Carbon $carbonMonth): array
     {
@@ -78,12 +77,13 @@ class WageCalculationService
 
         $totalTimecardMinutes = $this->calculateTimecardsMinutes($timecards, $formattedDate, $employee->id, $wageParams, true);
 
-        //Determine if qualify for paid break
+        // Determine if qualify for paid break
         if ($totalTimecardMinutes > $wageParams['minutes_to_qualify_to_paid_break']) {
             $adjustedTimecardMinutes = $this->adjustTimecardMinutesForBreak($totalTimecardMinutes, $totalShiftMinutes, $wageParams['paid_break_minutes']);
         } else {
             $adjustedTimecardMinutes = $totalTimecardMinutes;
         }
+
         return ($adjustedTimecardMinutes / 60) * $hourWage;
     }
 
@@ -95,7 +95,7 @@ class WageCalculationService
 
         $regularWorkMinutes = $wageParams['regular_work_minutes'];
 
-        //Determine if qualify for paid break
+        // Determine if qualify for paid break
         if ($totalTimecardMinutes > $wageParams['minutes_to_qualify_to_paid_break']) {
             $adjustedTimecardMinutes = $this->adjustTimecardMinutesForBreak($totalTimecardMinutes, $regularWorkMinutes, $wageParams['paid_break_minutes']);
         } else {
@@ -136,6 +136,7 @@ class WageCalculationService
         if ($totalTimecardMinutes < $totalWorkingMinutes && (($totalWorkingMinutes - $totalTimecardMinutes) >= $paidBreakMinutes)) {
             $totalTimecardMinutes += $paidBreakMinutes;
         }
+
         return $totalTimecardMinutes;
     }
 
@@ -143,7 +144,7 @@ class WageCalculationService
     {
         return $timecards->clone()
             ->where('employee_id', $employeeId)
-            ->where(fn($query) => $query->whereDate('clock_in_time', $formattedCurrentDate)
+            ->where(fn ($query) => $query->whereDate('clock_in_time', $formattedCurrentDate)
                 ->orWhereDate('clock_out_time', $formattedCurrentDate))
             ->get()
             ->map(function ($timecard) use ($formattedCurrentDate, $with_over_time, $wageParams) {
@@ -167,18 +168,19 @@ class WageCalculationService
             $added_minutes = $overtime * $overTime_rate_multiplier - $overtime;
             $total_minutes += $added_minutes;
         }
+
         return $total_minutes;
     }
 
     private function determineStartTime(Carbon $clockInTime, string $formattedCurrentDate): Carbon
     {
-        //If start time is from the past day then make it at 00
+        // If start time is from the past day then make it at 00
         return $clockInTime->format('Y-m-d') != $formattedCurrentDate ? Carbon::parse("{$formattedCurrentDate} 00:00:00") : $clockInTime;
     }
 
     private function determineEndTime(Carbon $clockOutTime, string $formattedCurrentDate): Carbon
     {
-        //If the end time goes to the next day then make it at the end of the day
+        // If the end time goes to the next day then make it at the end of the day
         return $clockOutTime->format('Y-m-d') != $formattedCurrentDate ? Carbon::parse("{$formattedCurrentDate} 23:59:59") : $clockOutTime;
     }
 
@@ -199,13 +201,13 @@ class WageCalculationService
 
             $employeeShifts = $employee->shifts()
                 ->whereNull('type')
-                ->whereHas('schedule', fn($query) => $query->where('start_date', '<=', $weekStart->format('Y-m-d'))->where('end_date', $weekEnd->format('Y-m-d')))
+                ->whereHas('schedule', fn ($query) => $query->where('start_date', '<=', $weekStart->format('Y-m-d'))->where('end_date', $weekEnd->format('Y-m-d')))
                 ->get();
 
             $weeks[] = [
                 'start' => $weekStart,
                 'end' => $weekEnd,
-                'has_shifts' => $employeeShifts->isNotEmpty()
+                'has_shifts' => $employeeShifts->isNotEmpty(),
             ];
 
             $current->addWeek();
@@ -213,7 +215,7 @@ class WageCalculationService
 
         return [
             'weeks_with_shifts' => collect($weeks)->where('has_shifts', true),
-            'weeks_without_shifts' => collect($weeks)->where('has_shifts', false)
+            'weeks_without_shifts' => collect($weeks)->where('has_shifts', false),
         ];
     }
 }

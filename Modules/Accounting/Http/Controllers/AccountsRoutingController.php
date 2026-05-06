@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\General\Models\Setting;
@@ -19,7 +18,7 @@ class AccountsRoutingController extends Controller
     public function index()
     {
 
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         if (count($accounts) == 0) {
             return redirect()->route('tree-of-accounts')->with('error', __('accounting::lang.no_accounts'));
         }
@@ -42,8 +41,6 @@ class AccountsRoutingController extends Controller
     {
         return view('accounting::create');
     }
-
-
 
     public function store(Request $request)
     {
@@ -97,9 +94,7 @@ class AccountsRoutingController extends Controller
             ];
         }
 
-
         $formattedDirections = array_values($directions);
-
 
         try {
             DB::beginTransaction();
@@ -109,28 +104,26 @@ class AccountsRoutingController extends Controller
                     AccountsRoting::updateOrCreate(
                         [
                             'type' => $direction['type'],
-                            'section' => $direction['section']
+                            'section' => $direction['section'],
                         ],
                         [
                             'routing_type' => $direction['routing_type'],
                             'direction' => 'auto_assign',
-                            'account_id' => $direction['account_id']
+                            'account_id' => $direction['account_id'],
                         ]
                     );
                 }
             }
 
             DB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
-
-
-
-
 
     /**
      * Show the specified resource.

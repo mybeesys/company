@@ -7,11 +7,11 @@ return [
     'add_clients' => 'Add Client',
     'clients_search' => 'Find a client',
     'sales' => 'المبيعات',
-    'no_data_to_show'=>'No Data Available!',
-    'reach-non-existent-customer'=>'Attempt to reach a non-existent customer',
-    'edit_clients'=>'Edit Client',
+    'no_data_to_show' => 'No Data Available!',
+    'reach-non-existent-customer' => 'Attempt to reach a non-existent customer',
+    'edit_clients' => 'Edit Client',
 
-    'edit_Supplier'=>'Eedit Supplier',
+    'edit_Supplier' => 'Eedit Supplier',
 
     'Supplier' => 'Supplier',
     'suppliers' => 'Suppliers',
@@ -31,6 +31,5 @@ return [
     'minimum_points_hint' => 'The minimum points that can be used per invoice. Leave it empty if you do not need this restriction',
     'maximum_redeem_point_per_order_hint' => 'The maximum points that can be used in a single order. Leave it empty if you do not need this restriction',
     'points_expiration_period_hint' => 'The expiration period for the points earned by the customer. Expired points will be automatically deducted from the customer\'s account after this period.',
-
 
 ];

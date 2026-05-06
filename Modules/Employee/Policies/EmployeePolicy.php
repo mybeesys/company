@@ -3,6 +3,7 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+
 class EmployeePolicy
 {
     use HandlesAuthorization;

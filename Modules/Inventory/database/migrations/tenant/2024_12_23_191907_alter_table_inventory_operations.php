@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inventory_Operations', function (Blueprint $table) {
-          
+
             $table->unsignedBigInteger('establishment_id')->nullable();
             $table->foreign('establishment_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+                ->references('id')                    // References the id on the categories table
+                ->on('est_establishments');
         });
     }
 

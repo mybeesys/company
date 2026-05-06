@@ -17,6 +17,7 @@ class TimeSheetRuleController extends Controller
     {
         $stored_settings = TimeSheetRule::pluck('rule_value', 'rule_name')->toArray();
         $settings = include base_path('Modules/Employee/data/timesheet-rules.php');
+
         return view('employee::schedules.timesheet-rules.index', compact('settings', 'stored_settings'));
     }
 
@@ -31,6 +32,7 @@ class TimeSheetRuleController extends Controller
                     TimeSheetRule::updateOrCreate(['rule_name' => $setting_name], ['rule_value' => $value]);
                 }
                 ShiftService::storeDefaultShifts();
+
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             });
         }

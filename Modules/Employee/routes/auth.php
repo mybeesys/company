@@ -5,8 +5,6 @@ use Modules\Employee\Http\Controllers\AuthController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-
-
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
@@ -19,7 +17,6 @@ Route::middleware([
 
         Route::post('/postlogin', 'login')->name('login.postLogin');
     });
-
 
     Route::middleware(['auth'])->group(function () {
 

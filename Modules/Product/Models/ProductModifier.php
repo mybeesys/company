@@ -2,18 +2,18 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Modules\Product\Database\Factories\ProductModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductModifier extends Model
 {
-
     protected $table = 'product_product_modifiers';
 
     use HasFactory;
     use SoftDeletes;
+
     public $timestamps = true;
 
     use HasFactory;
@@ -34,18 +34,20 @@ class ProductModifier extends Model
         'min_modifiers',
         'button_display',
         'modifier_display',
-        'display_order'
+        'display_order',
     ];
 
     public function modifierItem()
     {
         return $this->belongsTo(Product::class, 'modifier_id', 'id');
-            // ->where('type', 'modifier');
+        // ->where('type', 'modifier');
     }
+
     public function modifierClass()
     {
         return $this->belongsTo(ModifierClass::class, 'modifier_class_id', 'id');
     }
+
     public function products()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');

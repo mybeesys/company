@@ -2,17 +2,17 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductCombo extends Model
 {
-
     protected $table = 'product_product_combos';
 
     use HasFactory;
     use SoftDeletes;
+
     public $timestamps = true;
 
     use HasFactory;
@@ -27,10 +27,9 @@ class ProductCombo extends Model
         'barcode',
         'combo_saving',
         'quantity',
-        'price'
+        'price',
     ];
 
-    
     public function items()
     {
         return $this->hasMany(ProductComboItem::class, 'combo_id', 'id');

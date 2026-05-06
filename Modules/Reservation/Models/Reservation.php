@@ -2,8 +2,8 @@
 
 namespace Modules\Reservation\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // use Modules\Reservation\Database\Factories\ReservationFactory;
@@ -21,7 +21,7 @@ class Reservation extends Model
         'reservation_time',
         'guests_count',
         'status',
-        'created_by'
+        'created_by',
     ];
 
     public function table()

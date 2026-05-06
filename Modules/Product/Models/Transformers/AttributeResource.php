@@ -12,7 +12,7 @@ class AttributeResource extends JsonResource
             'id' => $this->id,
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
-            'products' => ProductAttributeResource::collection($this->products)
+            'products' => ProductAttributeResource::collection($this->products),
         ];
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Enums;
 
 enum Mode: string
@@ -13,20 +14,19 @@ enum Mode: string
 
     public static function values(): array
     {
-        return array_map(fn($case) => $case->value, self::cases());
+        return array_map(fn ($case) => $case->value, self::cases());
     }
 
     public static function labels(): array
     {
-        return array_map(fn($case) => $case->name, self::cases());
+        return array_map(fn ($case) => $case->name, self::cases());
     }
 
     public static function all(): array
     {
         return array_map(
-            fn($case) => ['name' => $case->name, 'value' => $case->value],
+            fn ($case) => ['name' => $case->name, 'value' => $case->value],
             self::cases()
         );
     }
 }
-?>

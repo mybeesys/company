@@ -2,8 +2,9 @@
 
 namespace Modules\Reservation\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Reservation\Database\Factories\MenuTokenFactory;
 
 class MenuToken extends Model
@@ -13,6 +14,7 @@ class MenuToken extends Model
     protected $fillable = [
         'est_id',
         'est_ids',
+        'est_locations',
         'title',
         'sub_title',
         'products',
@@ -30,6 +32,7 @@ class MenuToken extends Model
     protected $casts = [
         'products' => 'array',
         'est_ids' => 'array',
+        'est_locations' => 'array',
         'section_flags' => 'array',
         'allergen_visible_keys' => 'array',
         'map_lat' => 'float',

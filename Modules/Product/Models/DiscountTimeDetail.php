@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,12 +24,12 @@ class DiscountTimeDetail extends Model
         'day_no',
         'from_time',
         'to_time',
-        'active'
+        'active',
         // add more fields as needed
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 }
-?>

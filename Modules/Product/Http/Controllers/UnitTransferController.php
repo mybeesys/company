@@ -4,8 +4,6 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
 
@@ -13,14 +11,17 @@ class UnitTransferController extends Controller
 {
     public function getUnitsTransferList($type, $id)
     {
-        if ($type == "product") {
+        if ($type == 'product') {
             $prodTransfer = UnitTransfer::where('product_id', '=', $id)->get();
+
             return response()->json($prodTransfer);
-        } else if ($type == "ingredint") {
+        } elseif ($type == 'ingredint') {
             $ingTransfer = UnitTransfer::where('product_id', '=', $id)->get();
+
             return response()->json($ingTransfer);
         } else {
             $modTransfer = UnitTransfer::where('product_id', '=', $id)->get();
+
             return response()->json($modTransfer);
         }
     }
@@ -31,6 +32,7 @@ class UnitTransferController extends Controller
 
         return response()->json($unit);
     }
+
     public function searchUnitTransfers(Request $request)
     {
         $query = $request->query('query');
@@ -40,15 +42,15 @@ class UnitTransferController extends Controller
 
         if ($request->has('id')) {
             $id = $request['id'];
-            if (!str_contains($id, '-')) {
+            if (! str_contains($id, '-')) {
                 $id = preg_replace('/(\d+)([a-zA-Z]+)/', '$1-$2', $id);
                 $request['id'] = $id;
             }
 
-            $recipeIngredient = explode("-", $id);
+            $recipeIngredient = explode('-', $id);
             if ($recipeIngredient[1] == 'p') {
                 $request['product_id'] = $recipeIngredient[0];
-            } else if ($recipeIngredient[1] == 'm') {;
+            } elseif ($recipeIngredient[1] == 'm') {
                 $request['modifier_id'] = $recipeIngredient[0];
             } else {
                 $request['ingredient_id'] = intval($recipeIngredient[0]);
@@ -60,21 +62,21 @@ class UnitTransferController extends Controller
         $modifier_id = $request->query('modifier_id', '');
 
         if ($request->has('product_id')) {
-            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+            $units = UnitTransfer::where('unit1', 'like', '%'.$key.'%')
                 ->where('product_id', '=', $porduct_id)
                 ->take(10)
                 ->get();
         }
 
         if ($request->has('ingredient_id')) {
-            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+            $units = UnitTransfer::where('unit1', 'like', '%'.$key.'%')
                 ->where('product_id', '=', $ingredient_id)
                 ->take(10)
                 ->get();
         }
 
         if ($request->has('modifier_id')) {
-            $units = UnitTransfer::where('unit1', 'like', '%' . $key . '%')
+            $units = UnitTransfer::where('unit1', 'like', '%'.$key.'%')
                 ->where('modifier_id', '=', $modifier_id)
                 ->take(10)
                 ->get();
@@ -86,9 +88,9 @@ class UnitTransferController extends Controller
     public function Units($id)
     {
         $unit = Unit::find($id);
+
         return response()->json($unit);
     }
-
 
     public function index()
     {
@@ -97,13 +99,14 @@ class UnitTransferController extends Controller
 
     public function edit($id)
     {
-        $unit  = Unit::find($id);
+        $unit = Unit::find($id);
+
         return view('product::unit.edit', compact('unit'));
     }
 
     public function create()
     {
-        $ingredient  = new Unit();
+        $ingredient = new Unit;
 
         return view('product::unit.create', compact('unit'));
     }
@@ -114,43 +117,49 @@ class UnitTransferController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
 
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $serviceFee = Unit::find($validated['id']);
             $serviceFee->delete();
-            return response()->json(["message" => "Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $unit = Unit::where('name_ar', $validated['name_ar'])->first();
-            if ($unit != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($unit != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $unit = Unit::where('name_en', $validated['name_en'])->first();
-            if ($unit != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($unit != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             Unit::create($validated);
         } else {
             $unit = Unit::where([
                 ['id', '!=', $validated['id']],
-                ['name_ar', '=', $validated['name_ar']]
+                ['name_ar', '=', $validated['name_ar']],
             ])->first();
-            if ($unit != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($unit != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $unit = Unit::where([
                 ['id', '!=', $validated['id']],
-                ['name_en', '=', $validated['name_en']]
+                ['name_en', '=', $validated['name_en']],
             ])->first();
-            if ($unit != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($unit != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             $Ingredient = Unit::find($validated['id']);
             $Ingredient->name_ar = $validated['name_ar'];
             $Ingredient->name_en = $validated['name_en'];
             $Ingredient->save();
         }
-        return response()->json(["message" => "Done"]);
+
+        return response()->json(['message' => 'Done']);
     }
 }

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('taxes', function (Blueprint $table) {
-         $table->float('minimum_limit')->default(0);
+            $table->float('minimum_limit')->default(0);
         });
     }
 
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('taxes', function (Blueprint $table) {
-
-        });
+        Schema::table('taxes', function (Blueprint $table) {});
     }
 };

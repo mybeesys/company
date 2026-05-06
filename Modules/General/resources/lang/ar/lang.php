@@ -32,17 +32,13 @@ return [
     'discount_type' => 'نوع الخصم',
     'inventory_tracking_policy' => 'سياسة الجرد',
 
-
     'invoice_info' => 'معلومات الفاتورة',
-
 
     'active_suppliers' => 'موردين نشطين',
     'purchases' => 'فاتورة شراء',
     'purchases-order' => 'طلب شراء',
     'purchases-return' => 'مردود شراء',
     'reward_points_tab' => ' نظام نقاط الولاء',
-
-
 
     'menu' => 'قائمة الطعام',
     'night_mode' => 'ليلي',

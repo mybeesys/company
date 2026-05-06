@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('PLU')->nullable()->change();
             $table->string('color')->nullable()->change();
             $table->string('image')->nullable()->change();
-      
-             });
+
+        });
     }
 
     /**

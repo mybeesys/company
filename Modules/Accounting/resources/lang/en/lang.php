@@ -1,4 +1,5 @@
 <?php
+
 return [
     'tree_of_accounts' => 'Tree of accounts',
     'import_tree_of_accounts' => 'Import tree of accounts',
@@ -125,7 +126,7 @@ return [
     'add_journalEntry' => 'Add Journal Entry',
     'edit_journalEntry' => 'Edit Journal Entry',
     'journalEntry_date' => 'Journal Entry Date',
-    "Pick_journalEntry_date" => 'Pick Journal Entry Date',
+    'Pick_journalEntry_date' => 'Pick Journal Entry Date',
     'ref_number' => 'Reference Number',
     'ref_number_note' => 'Leave blank for automatic creation',
     'additionalNotes' => 'Additional Notes',
@@ -184,12 +185,12 @@ return [
     'no_routing' => 'No routing',
     'cancel_account' => 'Cancel account',
     'assign_to_each' => 'Assign to each',
-    "vat_calculation" => "VAT Account",
-    "total_amount" => "Total Amount Account",
-    "amount_before_vat" => "Amount Before VAT",
-    "discount_calculation" => "Discount Account",
-    "discount_allowed" => "Discount allowed (sales)",
-    "earned_discount" => "Earned discount (purchases)",
+    'vat_calculation' => 'VAT Account',
+    'total_amount' => 'Total Amount Account',
+    'amount_before_vat' => 'Amount Before VAT',
+    'discount_calculation' => 'Discount Account',
+    'discount_allowed' => 'Discount allowed (sales)',
+    'earned_discount' => 'Earned discount (purchases)',
     'client' => 'Client Account',
     'sales' => 'Sales Account',
     'sell_return' => 'Sell Return Account',
@@ -226,8 +227,8 @@ return [
     'liab_owners_capital' => 'Liabilities & Owner\'s Capital',
     'total_assets' => 'Total Assets',
     'total_liab_owners' => 'Total Liabilities & Owner\'s Capital',
-    "journal_report" => "Journal Report",
-    "journal_report_manual_only" => "This report lists both manual and automatic journal entries.",
+    'journal_report' => 'Journal Report',
+    'journal_report_manual_only' => 'This report lists both manual and automatic journal entries.',
     'journal_source' => 'Entry source',
     'journal_source_all' => 'All',
     'journal_source_sales' => 'Sales',
@@ -239,36 +240,36 @@ return [
     'journal_source_placeholder' => 'Select one or more sources…',
     'clear_filters' => 'Clear filters',
     'voucher_line_not_found' => 'Could not load this voucher: line not found or the debit/credit pair is incomplete.',
-    "search" => "Search",
-    "start_date" => "Start Date",
-    "end_date" => "End Date",
-    "ref_no" => "Reference No",
-    "operation_date" => "Operation Date",
-    "created_by" => "Created By",
-    "note" => "Note",
-    "account_name" => "Account Name",
-    "gl_code" => "GL Code",
-    "debit" => "Debit",
-    "credit" => "Credit",
-    "amount" => "Amount",
-    "no_data" => "No data available",
-    "cash_flow_statement" => "Cash Flow Statement",
-    "operating_activities" => "Operating Activities",
-    "investing_activities" => "Investing Activities",
-    "financing_activities" => "Financing Activities",
-    "payment_date" => "Payment Date",
-    "amount" => "Amount",
-    "payment_method" => "Payment Method",
-    "operation_date" => "Operation Date",
-    "transaction_type" => "Transaction Type",
-    "cash" => "Cash",
-    "due" => "Due",
-    "investment_purchase" => "Investment Purchase",
-    "asset_sale" => "Asset Sale",
-    "loan_received" => "Loan Received",
-    "loan_repayment" => "Loan Repayment",
-    "capital_injection" => "Capital Injection",
-    "dividend_payment" => "Dividend Payment",
+    'search' => 'Search',
+    'start_date' => 'Start Date',
+    'end_date' => 'End Date',
+    'ref_no' => 'Reference No',
+    'operation_date' => 'Operation Date',
+    'created_by' => 'Created By',
+    'note' => 'Note',
+    'account_name' => 'Account Name',
+    'gl_code' => 'GL Code',
+    'debit' => 'Debit',
+    'credit' => 'Credit',
+    'amount' => 'Amount',
+    'no_data' => 'No data available',
+    'cash_flow_statement' => 'Cash Flow Statement',
+    'operating_activities' => 'Operating Activities',
+    'investing_activities' => 'Investing Activities',
+    'financing_activities' => 'Financing Activities',
+    'payment_date' => 'Payment Date',
+    'amount' => 'Amount',
+    'payment_method' => 'Payment Method',
+    'operation_date' => 'Operation Date',
+    'transaction_type' => 'Transaction Type',
+    'cash' => 'Cash',
+    'due' => 'Due',
+    'investment_purchase' => 'Investment Purchase',
+    'asset_sale' => 'Asset Sale',
+    'loan_received' => 'Loan Received',
+    'loan_repayment' => 'Loan Repayment',
+    'capital_injection' => 'Capital Injection',
+    'dividend_payment' => 'Dividend Payment',
     'cash_flow_statement' => 'Cash Flow Statement',
     'from_date' => ' From Date:',
     'to_date' => ' To Date:',
@@ -321,7 +322,6 @@ return [
     invoices in mentioned days range as per the due date.',
     'invoice' => 'Invoice',
 
-
     'total_for_days_past_due' => 'Total for :days days past due',
     'total_for_91_and_over' => 'Total for 91 and over',
     '91_and_over_past_due' => '91 days and over past due',
@@ -331,9 +331,6 @@ return [
 
     'total_for_current' => 'Total for Current',
 
-
-
-
     'account_types' => [
         'fixed_assets' => 'Fixed Assets',
         'current_assets' => 'Current Assets',
@@ -342,11 +339,9 @@ return [
         'equity' => 'Equity',
         'income' => 'Income',
         'expenses' => 'Expenses',
-        'analytical_accounts' => 'Analytical Accounts'
+        'analytical_accounts' => 'Analytical Accounts',
 
     ],
-
-
 
     'new_periodic_inventory' => 'New Periodic Inventory',
     'establishment' => 'Establishment',
@@ -397,7 +392,7 @@ return [
     'periodic_inventory_review_note' => 'This count will be saved as “In review”. When you click “Approve”, the inventory adjustment and financial posting will be generated and the count becomes read-only.',
     'back' => 'Back',
     'to' => 'To',
-    'Last used' => "Last used",
+    'Last used' => 'Last used',
     'accounting_dashboard' => 'Accounting Dashboard',
     'total_transactions' => 'Total Transactions',
     'total_balance' => 'Total Balance',
@@ -417,9 +412,6 @@ return [
     'debit' => 'Debit',
     'credit' => 'Credit',
 
-
-
-
     'entry_type' => 'Entry Type',
     'created_by' => 'Created By',
     'entry_source' => 'Entry Source',
@@ -434,7 +426,7 @@ return [
     'all' => 'All',
     'nature_account' => 'Account Nature: ',
     'view_journalEntry' => 'View Journal Entry',
-    'sell-return' => "Sell Return",
+    'sell-return' => 'Sell Return',
     'periodic_inventory_workflow_title' => 'Periodic Inventory Workflow',
     'periodic_inventory_workflow_subtitle' => 'Period setup > Physical count > Financial adjustment > Posting',
     'periods_count' => 'Periods',
@@ -474,10 +466,5 @@ return [
     'periodic_inventory_count_date_help' => 'Physical count is recorded as-of this date (one moment in time). The period start for purchases/COGS still runs from the previous count automatically.',
     'periodic_inventory_last_count_hint' => 'Period start (from last posted count)',
     'unit' => 'Unit',
-
-
-
-
-
 
 ];

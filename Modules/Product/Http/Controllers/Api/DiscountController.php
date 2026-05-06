@@ -16,52 +16,60 @@ class DiscountController extends Controller
     public function discountFunctions()
     {
         $result = DiscountFunction::all();
+
         return response()->json([
-            'data' => array_map(function($item) {
-                $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('product::messages.discount_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('product::messages.discount_'.$item["name"], [], 'en'); ;
+            'data' => array_map(function ($item) {
+                $newItem['id'] = $item['value'];
+                $newItem['name_ar'] = Lang::get('product::messages.discount_'.$item['name'], [], 'ar');
+                $newItem['name_en'] = Lang::get('product::messages.discount_'.$item['name'], [], 'en');
+
                 return $newItem;
-            }, $result)
+            }, $result),
         ]);
     }
 
     public function discountTypes()
     {
         $result = DiscountType::all();
+
         return response()->json([
-            'data' => array_map(function($item) {
-                $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('product::messages.discount_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('product::messages.discount_'.$item["name"], [], 'en'); ;
+            'data' => array_map(function ($item) {
+                $newItem['id'] = $item['value'];
+                $newItem['name_ar'] = Lang::get('product::messages.discount_'.$item['name'], [], 'ar');
+                $newItem['name_en'] = Lang::get('product::messages.discount_'.$item['name'], [], 'en');
+
                 return $newItem;
-            }, $result)
+            }, $result),
         ]);
     }
 
     public function discountQualifications()
     {
         $result = DiscountQualification::all();
+
         return response()->json([
-            'data' => array_map(function($item) {
-                $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('product::messages.discount_qualification_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('product::messages.discount_qualification_'.$item["name"], [], 'en'); ;
+            'data' => array_map(function ($item) {
+                $newItem['id'] = $item['value'];
+                $newItem['name_ar'] = Lang::get('product::messages.discount_qualification_'.$item['name'], [], 'ar');
+                $newItem['name_en'] = Lang::get('product::messages.discount_qualification_'.$item['name'], [], 'en');
+
                 return $newItem;
-            }, $result)
+            }, $result),
         ]);
     }
 
     public function discountQualificationTypes()
     {
         $result = DiscountQualificationType::all();
+
         return response()->json([
-            'data' => array_map(function($item) {
-                $newItem["id"] = $item["value"];
-                $newItem["name_ar"] = Lang::get('product::messages.discount_qualification_type_'.$item["name"], [], 'ar'); ;
-                $newItem["name_en"] = Lang::get('product::messages.discount_qualification_type_'.$item["name"], [], 'en'); ;
+            'data' => array_map(function ($item) {
+                $newItem['id'] = $item['value'];
+                $newItem['name_ar'] = Lang::get('product::messages.discount_qualification_type_'.$item['name'], [], 'ar');
+                $newItem['name_en'] = Lang::get('product::messages.discount_qualification_type_'.$item['name'], [], 'en');
+
                 return $newItem;
-            }, $result)
+            }, $result),
         ]);
     }
 
@@ -72,6 +80,7 @@ class DiscountController extends Controller
                 $query->where('active', 1);
             }]);
         }])->get();
+
         return new DiscountCollection($result);
     }
 }

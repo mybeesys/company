@@ -8,7 +8,7 @@ return [
     'sales' => 'المبيعات',
     'activate' => 'نشط',
     'suppliers' => 'الموردين',
- 
+
     'deactivate' => 'إلغاء تنشيط',
     'inactive' => 'غير نشط',
     'you_cannot_delete_this_client' => 'لا يمكن حذف العميل - المعاملات موجودة بالفعل للعميل.',

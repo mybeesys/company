@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::table('transaction_sell_lines', function (Blueprint $table) {
+        Schema::table('transaction_sell_lines', function (Blueprint $table) {
             $table->string('line_status')->nullable()->after('qyt')->default('pending');
-       
+
             $table->string('remaining_qty')->after('qyt')->default('0');
         });
 
@@ -25,8 +25,6 @@ return new class extends Migration
     public function down(): void
     {
 
-          Schema::table('transaction_sell_lines', function (Blueprint $table) {
-
-        });
+        Schema::table('transaction_sell_lines', function (Blueprint $table) {});
     }
 };

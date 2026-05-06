@@ -13,5 +13,3 @@ class TableStatusTypeController extends Controller
         return response()->json(TableStatusType::all());
     }
 }
-
-?>

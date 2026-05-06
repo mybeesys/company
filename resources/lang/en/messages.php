@@ -1,4 +1,5 @@
 <?php
+
 return [
     'try_now' => 'Try Now',
     'edit' => 'Edit',
@@ -7,7 +8,7 @@ return [
     'active' => 'Active',
     'in_active' => 'Inactive',
     'view_all' => 'View All',
-'view_favorite'=>'View Favorite',
+    'view_favorite' => 'View Favorite',
     'deactivate' => 'Deactivate',
     'cancel' => 'Cancel',
     'submit' => 'Submit',
@@ -44,16 +45,7 @@ return [
     'never_used' => 'Never used',
     'move' => 'Move',
 
-    "Added successfully, but the customer exceeded"=> "Added successfully, but the customer exceeded the credit limit.",
-'print' =>'Print',
-
-
-
-
-
-
-
-
-
+    'Added successfully, but the customer exceeded' => 'Added successfully, but the customer exceeded the credit limit.',
+    'print' => 'Print',
 
 ];

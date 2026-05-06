@@ -21,17 +21,17 @@ return new class extends Migration
             $table->decimal('primary_vendor_default_quantity')->nullable();
             $table->decimal('primary_vendor_default_price')->nullable();
             $table->foreign('primary_vendor_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_vendors');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_vendors');
             $table->foreign('product_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_products');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_products');
             $table->foreign('unit_id')
-                  ->references('id')
-                  ->on('product_unit_transfer');
+                ->references('id')
+                ->on('product_unit_transfer');
             $table->foreign('primary_vendor_unit_id')
-                  ->references('id')
-                  ->on('product_unit_transfer');
+                ->references('id')
+                ->on('product_unit_transfer');
             $table->timestamps();
             $table->softDeletes();
         });

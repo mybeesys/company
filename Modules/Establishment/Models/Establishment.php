@@ -3,8 +3,8 @@
 namespace Modules\Establishment\Models;
 
 use Illuminate\Contracts\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Payroll;
@@ -20,17 +20,18 @@ class Establishment extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'est_establishments';
+
     /**
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     protected static function booted()
-{
-    static::addGlobalScope('excludeFranchise', function (Builder $builder) {
-        $builder->whereNull('franchise_id');
-    });
-}
+    {
+        static::addGlobalScope('excludeFranchise', function (Builder $builder) {
+            $builder->whereNull('franchise_id');
+        });
+    }
 
     public function posRoles()
     {
@@ -92,7 +93,7 @@ class Establishment extends Model
             'timecards',
             'shifts',
             'payrolls',
-            'children'
+            'children',
         ];
 
         foreach ($relationships as $relation) {
@@ -104,17 +105,21 @@ class Establishment extends Model
         return false;
     }
 
-    public function franchise() {
-    return $this->belongsTo(FranchiseCompanies::class, 'franchise_id');
-}
+    public function franchise()
+    {
+        return $this->belongsTo(FranchiseCompanies::class, 'franchise_id');
+    }
+
     public function coupons()
     {
         return $this->belongsToMany(Coupon::class, 'sales_coupons_establishments');
     }
+
     public function customMenus()
     {
         return $this->hasMany(CustomMenu::class, 'station_id', 'id');
     }
+
     public function estPos()
     {
         return $this->hasMany(EstPos::class, 'establishment_id', 'id');

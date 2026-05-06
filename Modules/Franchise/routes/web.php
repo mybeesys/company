@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Franchise\Http\Controllers\FranchiseBranchController;
-use Modules\Franchise\Http\Controllers\FranchiseController;
 use Modules\Franchise\Http\Controllers\FranchiseCompanyController;
 use Modules\Franchise\Http\Controllers\FranchiseContractController;
 use Modules\Franchise\Http\Controllers\FranchiseCustomMenuController;
@@ -10,13 +9,11 @@ use Modules\Franchise\Http\Controllers\FranchiseProductsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-
 
     Route::prefix('franchise')->name('franchise.')->group(function () {
         Route::post('contracts/{id}/extend', [FranchiseContractController::class, 'extend'])->name('franchise.contracts.extend');

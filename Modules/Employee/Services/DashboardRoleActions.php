@@ -19,7 +19,7 @@ class DashboardRoleActions
             $filteredPermissions = collect([]);
         }
 
-        if (!$role) {
+        if (! $role) {
             $filteredPermissions = collect(array_merge(
                 $dashboardRole->getDirectPermissions()->where('type', 'pos')->pluck('id')->toArray(),
                 $filteredPermissions->toArray()

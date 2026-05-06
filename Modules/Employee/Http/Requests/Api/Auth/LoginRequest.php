@@ -30,7 +30,7 @@ class LoginRequest extends FormRequest
             'pin' => ['nullable', 'exists:emp_employees,pin'],
             'clock_in_time' => ['required', 'date_format:Y-m-d H:i:s'],
             'date' => ['required', 'date_format:Y-m-d'],
-            'establishment_id' => ['required', 'exists:est_establishments,id']
+            'establishment_id' => ['required', 'exists:est_establishments,id'],
         ];
     }
 
@@ -43,7 +43,7 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Employee::firstWhere($this->only('pin'))) {
+        if (! Employee::firstWhere($this->only('pin'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -61,7 +61,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -82,6 +82,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->input('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
     }
 }

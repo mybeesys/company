@@ -21,22 +21,20 @@ class ProductModifierResource extends JsonResource
         $modifierClass = null;
         if ($this->modifierClass) {
 
-
             $modifierClass = [
                 'id' => $this->modifierClass->id,
                 'name_ar' => $this->modifierClass->name_ar,
                 'name_en' => $this->modifierClass->name_en,
 
-
-
                 'modifiers' => $this->modifierClass->children->map(function ($child) {
                     $unit = [];
 
-                    if (!empty($child->unitTransfers) && count($child->unitTransfers) > 0) {
-                        $unit["id"] = $child->unitTransfers[0]->id;
-                        $unit["name"] = $child->unitTransfers[0]->unit1;
-                        $unit["product_id"] = $child->unitTransfers[0]->product_id;
+                    if (! empty($child->unitTransfers) && count($child->unitTransfers) > 0) {
+                        $unit['id'] = $child->unitTransfers[0]->id;
+                        $unit['name'] = $child->unitTransfers[0]->unit1;
+                        $unit['product_id'] = $child->unitTransfers[0]->product_id;
                     }
+
                     return [
                         'id' => $child->id,
                         'name_ar' => $child->name_ar,
@@ -45,9 +43,9 @@ class ProductModifierResource extends JsonResource
                         'price_with_tax' => $child->price_with_tax,
                         'unit' => $unit,
                         'product_id' => $this->product_id,
-                        'modifier_id' => $this->id
+                        'modifier_id' => $this->id,
                     ];
-                })
+                }),
             ];
         }
 
@@ -56,14 +54,14 @@ class ProductModifierResource extends JsonResource
             $productData = [
                 'id' => $this->products->id,
                 'name_ar' => $this->products->name_ar,
-                'name_en' => $this->products->name_en
+                'name_en' => $this->products->name_en,
             ];
         }
 
         return [
             'id' => $this->id,
-            'default' => (bool)$this->default,
-            'required' => (bool)$this->required,
+            'default' => (bool) $this->default,
+            'required' => (bool) $this->required,
             'free_quantity' => $this->free_quantity,
             'display_order' => $this->display_order,
             'min_modifiers' => $this->min_modifiers,

@@ -7,7 +7,6 @@ use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeSheetRule;
 
-
 class ShiftService
 {
     protected $lang;
@@ -26,11 +25,13 @@ class ShiftService
             $totalMinutes = convertToDecimalFormatHelper($workingHours, minutes: true);
 
             $startOfDayTime = Carbon::parse($startOfDay);
+
             return [
                 'start_of_day' => $startOfDayTime,
-                'end_of_day' => $startOfDayTime->copy()->addMinutes($totalMinutes)
+                'end_of_day' => $startOfDayTime->copy()->addMinutes($totalMinutes),
             ];
         }
+
         return ['start_of_day' => null, 'end_of_day' => null];
     }
 
@@ -60,6 +61,7 @@ class ShiftService
                 }
             }
             $essentialColumns = $this->getEssentialColumns($employee);
+
             return array_merge($essentialColumns, $shifts);
         });
     }
@@ -67,12 +69,13 @@ class ShiftService
     public function getFieldByType(Carbon $first_time, Carbon $second_time, $break_duration = null)
     {
         $divElement = match ($this->table_type) {
-            'default' => $first_time->format('H:i') . ' - ' . $second_time->format('H:i'),
+            'default' => $first_time->format('H:i').' - '.$second_time->format('H:i'),
             'hours' => $first_time->diffInMinutes($second_time),
-            'breaks' => $break_duration ? $second_time->copy()->addMinutes($break_duration)->format('H:i') . '-' . $second_time->format('H:i') . ' (' . ($this->request->format === 'hours_minutes' ? convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)) . ')' : '-',
+            'breaks' => $break_duration ? $second_time->copy()->addMinutes($break_duration)->format('H:i').'-'.$second_time->format('H:i').' ('.($this->request->format === 'hours_minutes' ? convertToHoursMinutesHelper($break_duration) : round($break_duration / 60, 2)).')' : '-',
             'wage' => '-',
             default => '',
         };
+
         return $divElement;
     }
 
@@ -83,8 +86,8 @@ class ShiftService
             $startTime = Carbon::parse($item['startTime'])->format('H:i');
             $endTime = Carbon::parse($item['endTime'])->format('H:i');
 
-            $updatable && $shiftHtml .= ' data-schedule-shift-id-' . $key . '="' . $item['id'] . '"';
-            $shiftHtml .= ' data-establishment-id-' . $key . '="' . $item['establishment_id'] . '"';
+            $updatable && $shiftHtml .= ' data-schedule-shift-id-'.$key.'="'.$item['id'].'"';
+            $shiftHtml .= ' data-establishment-id-'.$key.'="'.$item['establishment_id'].'"';
             $shiftHtml .= " data-break-duration-$key=$break_duration ";
             $shiftHtml .= "data-start-time-$key=$startTime ";
             $shiftHtml .= "data-end-time-$key=$endTime ";
@@ -109,25 +112,28 @@ class ShiftService
     {
         $element = array_sum(array_filter($divElement, 'is_numeric'));
         if ($divElement) {
-            if (!(str_contains($divElement[0], '-'))) {
+            if (! (str_contains($divElement[0], '-'))) {
 
                 if ($this->request->format === 'hours_minutes') {
-                    return $shiftHtml .= "<div> " . (is_numeric($element) ? convertToHoursMinutesHelper($element) : $element) . " </div>";
+                    return $shiftHtml .= '<div> '.(is_numeric($element) ? convertToHoursMinutesHelper($element) : $element).' </div>';
                 }
-                return $shiftHtml .= "<div> " . (is_numeric($element) ? round($element / 60, 2) : $element) . " </div>";
+
+                return $shiftHtml .= '<div> '.(is_numeric($element) ? round($element / 60, 2) : $element).' </div>';
             } else {
-                if (count(array_filter($divElement, fn($item) => $item !== "-")) === 0) {
+                if (count(array_filter($divElement, fn ($item) => $item !== '-')) === 0) {
                     // If the array contains only dashes ("-")
-                    $divElement = ["-"];  // Keep only one "-"
+                    $divElement = ['-'];  // Keep only one "-"
                 } else {
                     // If the array contains other items, remove all dashes
-                    $divElement = array_filter($divElement, fn($item) => $item !== "-");
+                    $divElement = array_filter($divElement, fn ($item) => $item !== '-');
                 }
+
                 return $shiftHtml .= implode('', array_map(function ($element) use ($updatable) {
-                    return "<div class='" . ($updatable ? 'fw-bolder' : '') . "'>$element</div>";
+                    return "<div class='".($updatable ? 'fw-bolder' : '')."'>$element</div>";
                 }, $divElement));
             }
         }
+
         return '';
     }
 
@@ -142,8 +148,8 @@ class ShiftService
             'role' => implode('<br>', $employee->allRoles->unique()->pluck('name')->toArray()),
             'establishment' => $establishments = $employee?->shifts->pluck('establishment.name')->unique()->implode(', '),
             'select' => '<div class="form-check form-check-sm form-check-custom form-check-solid">
-                            <input data-employee-id="' . $employee->id . '" class="form-check-input shift_select" type="checkbox" value="1" />
-                        </div>'
+                            <input data-employee-id="'.$employee->id.'" class="form-check-input shift_select" type="checkbox" value="1" />
+                        </div>',
         ];
     }
 
@@ -159,13 +165,13 @@ class ShiftService
             Shift::updateOrCreate(['type' => 'general_break'], [
                 'startTime' => $day_working_time['start_of_day']->format('Y-m-d H:i:s'),
                 'endTime' => $brake_start_time->copy()->format('Y-m-d H:i:s'),
-                'break_duration' => intval(convertToDecimalFormatHelper($brake_duration, minutes: true))
+                'break_duration' => intval(convertToDecimalFormatHelper($brake_duration, minutes: true)),
             ]);
 
             Shift::updateOrCreate(['type' => 'general_working_hours'], [
                 'startTime' => $brake_start_time->copy()->addMinutes(convertToDecimalFormatHelper($brake_duration, minutes: true))->format('Y-m-d H:i:s'),
                 'endTime' => $day_working_time['end_of_day']->format('Y-m-d H:i:s'),
-                'break_duration' => null
+                'break_duration' => null,
             ]);
 
         } else {

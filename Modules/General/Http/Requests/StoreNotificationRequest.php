@@ -4,7 +4,6 @@ namespace Modules\General\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-
 class StoreNotificationRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -20,11 +19,12 @@ class StoreNotificationRequest extends FormRequest
     public function rules(): array
     {
         $notificationType = $this->route()->notificationType;
+
         return [
             "{$notificationType}_internal_notification_active" => ['nullable', 'boolean'],
             "{$notificationType}_email_notification_active" => ['nullable', 'boolean'],
             "{$notificationType}_sms_notification_active" => ['nullable', 'boolean'],
-            
+
             "{$notificationType}_internal_notification_title_ar" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],
             "{$notificationType}_internal_notification_title_en" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],
             "{$notificationType}_internal_notification_body_ar" => ['required_if:{$notificationType}_internal_notification_active,1', 'nullable', 'string', 'max:100'],

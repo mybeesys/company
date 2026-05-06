@@ -2,11 +2,9 @@
 
 namespace Modules\Employee\Services;
 
-
 class ShiftFilters
 {
-    public function __construct(protected array $filters) {
-    }
+    public function __construct(protected array $filters) {}
 
     public function applyFilters($request, $employees)
     {
@@ -21,7 +19,7 @@ class ShiftFilters
 
     public function filter_role($value, $employees)
     {
-        $employees->whereHas('allRoles', fn($query) => $query->where('role_id', $value));
+        $employees->whereHas('allRoles', fn ($query) => $query->where('role_id', $value));
     }
 
     public function filter_establishment($value, $employees)

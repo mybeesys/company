@@ -3,8 +3,8 @@
 namespace Modules\Product\Models;
 
 use App\Helpers\TaxHelper;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Modules\General\Models\Tax;
@@ -17,8 +17,8 @@ class Product extends Model
 
     use HasFactory;
     use SoftDeletes;
-    public $timestamps = true;
 
+    public $timestamps = true;
 
     // Define fillable fields for mass assignment
     protected $fillable = [
@@ -67,11 +67,10 @@ class Product extends Model
         'last_counted_quantity',
         'franchise_id',
         'status',
-    'rejection_reason',
-        'last_counted_date'
+        'rejection_reason',
+        'last_counted_date',
 
     ];
-
 
     // public function scopeRestrictByFranchise($query)
     // {
@@ -87,23 +86,22 @@ class Product extends Model
     //     return $query->where('franchise_id',null);
     // }
 
-
     public function scopeRestrictByFranchise($query)
-{
-    $user = auth()->user();
-    if ($user && $user->franchise_id) {
-        return $query->where(function($q) use ($user) {
-            $q->whereIn('id', function($sub) use ($user) {
-                $sub->select('permitted_id')
-                    ->from('franchise_product_permissions')
-                    ->where('franchise_id', $user->franchise_id);
-            })
-            ->orWhere('franchise_id', $user->franchise_id);
-        });
-    }
+    {
+        $user = auth()->user();
+        if ($user && $user->franchise_id) {
+            return $query->where(function ($q) use ($user) {
+                $q->whereIn('id', function ($sub) use ($user) {
+                    $sub->select('permitted_id')
+                        ->from('franchise_product_permissions')
+                        ->where('franchise_id', $user->franchise_id);
+                })
+                    ->orWhere('franchise_id', $user->franchise_id);
+            });
+        }
 
-    return $query->whereNull('franchise_id');
-}
+        return $query->whereNull('franchise_id');
+    }
 
     /*protected $appends = ['price_with_tax'];
 
@@ -123,66 +121,80 @@ class Product extends Model
     }
 
     protected $attributes = [
-        'type' => 'product'
+        'type' => 'product',
     ];
 
     protected $casts = [
         'allergens' => 'array',
     ];
+
     public $parentKey = 'subcategory_id';
 
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
     }
+
     public function subcategory()
     {
         return $this->belongsTo(Subcategory::class, 'subcategory_id', 'id');
     }
+
     public function serial_numbers()
     {
         return $this->hasMany(SerialNumber::class, 'product_id', 'id');
     }
+
     public function modifiers()
     {
         return $this->hasMany(ProductModifier::class, 'product_id', 'id');
     }
+
     public function recipe()
     {
         return $this->hasMany(RecipeProduct::class, 'product_id', 'id');
     }
+
     public function combos()
     {
         return $this->hasMany(ProductCombo::class, 'product_id', 'id');
     }
+
     public function establishments()
     {
         return $this->hasMany(EstablishmentProduct::class, 'product_id', 'id');
     }
+
     public function priceTiers()
     {
         return $this->hasMany(ProductPriceTier::class, 'product_id', 'id');
     }
+
     public function linkedCombos()
     {
         return $this->hasMany(ProductLinkedComboItem::class, 'product_id', 'id');
     }
+
     public function inventory()
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'product_id');
     }
+
     public function unitTransfers()
     {
         return $this->hasMany(UnitTransfer::class, 'product_id', 'id');
     }
+
     public function attributes()
     {
         return $this->hasMany(Product_Attribute::class, 'product_id', 'id');
     }
+
     public function tax()
     {
         return $this->belongsTo(Tax::class, 'tax_id', 'id');
     }
+
     public function total()
     {
         return $this->belongsTo(ProductInventoryTotal::class, 'product_id', 'id');
@@ -229,6 +241,7 @@ class Product extends Model
             $model->order = OrderGenerator::generateOrder($model->order, 'subcategory_id', $model->subcategory_id, $model->table);
         });
     }
+
     public function attribute1()
     {
         return $this->belongsTo(Attribute::class, 'attribute_id1', 'id');
@@ -243,7 +256,6 @@ class Product extends Model
     {
         return $this->belongsTo(ModifierClass::class, 'class_id', 'id');
     }
-
 
     public static function productsForSell()
     {

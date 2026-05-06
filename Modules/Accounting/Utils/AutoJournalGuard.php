@@ -15,7 +15,7 @@ class AutoJournalGuard
     public static function assertBalanced(int $accTransMappingId): void
     {
         $rows = DB::table('accounting_accounts_transactions')
-            ->selectRaw("type, ROUND(SUM(amount), 2) as total")
+            ->selectRaw('type, ROUND(SUM(amount), 2) as total')
             ->where('acc_trans_mapping_id', $accTransMappingId)
             ->groupBy('type')
             ->pluck('total', 'type')
@@ -43,4 +43,3 @@ class AutoJournalGuard
         return $diff > 0 ? 1 : -1;
     }
 }
-

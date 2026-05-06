@@ -12,6 +12,7 @@ class EmployeeFactory extends Factory
      * The name of the factory's corresponding model.
      */
     protected $model = Employee::class;
+
     /**
      * Define the model's default state.
      */
@@ -30,4 +31,3 @@ class EmployeeFactory extends Factory
         ];
     }
 }
-

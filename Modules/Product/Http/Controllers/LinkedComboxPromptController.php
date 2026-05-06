@@ -13,5 +13,3 @@ class LinkedComboxPromptController extends Controller
         return response()->json(LinkedComboxPrompt::all());
     }
 }
-
-?>

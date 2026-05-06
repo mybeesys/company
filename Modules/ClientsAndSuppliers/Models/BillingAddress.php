@@ -2,8 +2,8 @@
 
 namespace Modules\ClientsAndSuppliers\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\General\Models\Country;
 
 // use Modules\ClientsAndSuppliers\Database\Factories\BillingAddressFactory;
@@ -16,15 +16,18 @@ class BillingAddress extends Model
 
     protected $guarded = ['id'];
 
-    public function contact(){
-        return $this->belongsTo(Contact::class,'contact_id');
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class, 'contact_id');
     }
 
-    public function customInformation(){
-        return $this->hasMany(ContactCustomInformation::class,'contact_id')->where('table_name','billing_addresses');
+    public function customInformation()
+    {
+        return $this->hasMany(ContactCustomInformation::class, 'contact_id')->where('table_name', 'billing_addresses');
     }
 
-    public function country_(){
-        return $this->belongsTo(Country::class,'country');
+    public function country_()
+    {
+        return $this->belongsTo(Country::class, 'country');
     }
 }

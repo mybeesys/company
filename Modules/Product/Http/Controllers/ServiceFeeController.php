@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -14,8 +15,9 @@ class ServiceFeeController extends Controller
     public function getServiceFeesTree()
     {
         $stations = ServiceFee::all();
-        $treeBuilder = new TreeBuilder();
-        $tree = $treeBuilder->buildTree($stations ,null, 'serviceFee', null, null, null);
+        $treeBuilder = new TreeBuilder;
+        $tree = $treeBuilder->buildTree($stations, null, 'serviceFee', null, null, null);
+
         return response()->json($tree);
     }
 
@@ -36,34 +38,37 @@ class ServiceFeeController extends Controller
             'calculation_method' => 'required|numeric',
             'taxable' => 'required|boolean',
             'active' => 'required|boolean',
-            'auto_apply_type'=> 'nullable|numeric',
-            'from_date'=> 'nullable|date',
-            'to_date'=> 'nullable|date',
-            'credit_type'=> 'nullable|numeric',
-            'guestCount'=> 'nullable|numeric',
+            'auto_apply_type' => 'nullable|numeric',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date',
+            'credit_type' => 'nullable|numeric',
+            'guestCount' => 'nullable|numeric',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
 
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $serviceFee = ServiceFee::find($validated['id']);
             $serviceFee->delete();
-            return response()->json(["message" => "Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $serviceFee = ServiceFee::where('name_ar', $validated['name_ar'])->first();
-            if($serviceFee != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            if ($serviceFee != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $serviceFee = ServiceFee::where('name_en', $validated['name_en'])->first();
-            if($serviceFee != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            if ($serviceFee != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
             DB::transaction(function () use ($serviceFee, $request, $validated) {
                 $serviceFee = ServiceFee::create($validated);
-                if(isset($request['cards'])){
+                if (isset($request['cards'])) {
                     foreach ($request['cards'] as $newCard) {
-                        if(isset($newCard)){
-                            $paymentCard = new ServiceFeePaymentCard();
+                        if (isset($newCard)) {
+                            $paymentCard = new ServiceFeePaymentCard;
                             $paymentCard->payment_card_id = $newCard['payment_card_id'];
                             $paymentCard->service_fee_id = $serviceFee->id;
                             $paymentCard = $paymentCard->save();
@@ -71,10 +76,10 @@ class ServiceFeeController extends Controller
                         }
                     }
                 }
-                if(isset($request['diningTypes'])){
+                if (isset($request['diningTypes'])) {
                     foreach ($request['diningTypes'] as $newDiningType) {
-                        if(isset($newDiningType)){
-                            $digningType = new ServiceFeeDiningType();
+                        if (isset($newDiningType)) {
+                            $digningType = new ServiceFeeDiningType;
                             $digningType->dining_type_id = $newDiningType['dining_type_id'];
                             $digningType->service_fee_id = $serviceFee->id;
                             $digningType = $digningType->save();
@@ -86,13 +91,15 @@ class ServiceFeeController extends Controller
             $serviceFee = ServiceFee::where([
                 ['id', '!=', $validated['id']],
                 ['name_ar', '=', $validated['name_ar']]])->first();
-            if($serviceFee != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            if ($serviceFee != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $serviceFee = ServiceFee::where([
                 ['id', '!=', $validated['id']],
                 ['name_en', '=', $validated['name_en']]])->first();
-            if($serviceFee != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            if ($serviceFee != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
             $serviceFee = ServiceFee::find($validated['id']);
             $serviceFee->name_ar = $validated['name_ar'];
             $serviceFee->name_en = $validated['name_en'];
@@ -112,10 +119,10 @@ class ServiceFeeController extends Controller
                 $serviceFee->save();
                 ServiceFeePaymentCard::where('service_fee_id', '=', $serviceFee->id)->delete();
                 ServiceFeeDiningType::where('service_fee_id', '=', $serviceFee->id)->delete();
-                if(isset($request['cards'])){
+                if (isset($request['cards'])) {
                     foreach ($request['cards'] as $newCard) {
-                        if(isset($newCard)){
-                            $paymentCard = new ServiceFeePaymentCard();
+                        if (isset($newCard)) {
+                            $paymentCard = new ServiceFeePaymentCard;
                             $paymentCard->payment_card_id = $newCard['payment_card_id'];
                             $paymentCard->service_fee_id = $serviceFee->id;
                             $paymentCard = $paymentCard->save();
@@ -123,10 +130,10 @@ class ServiceFeeController extends Controller
                         }
                     }
                 }
-                if(isset($request['diningTypes'])){
+                if (isset($request['diningTypes'])) {
                     foreach ($request['diningTypes'] as $newDiningType) {
-                        if(isset($newDiningType)){
-                            $digningType = new ServiceFeeDiningType();
+                        if (isset($newDiningType)) {
+                            $digningType = new ServiceFeeDiningType;
                             $digningType->dining_type_id = $newDiningType['dining_type_id'];
                             $digningType->service_fee_id = $serviceFee->id;
                             $digningType = $digningType->save();
@@ -135,20 +142,22 @@ class ServiceFeeController extends Controller
                 }
             });
         }
-        return response()->json(["message" => "Done"]);
+
+        return response()->json(['message' => 'Done']);
     }
 
     public function edit($id)
     {
-        $serviceFee  = ServiceFee::find($id);
+        $serviceFee = ServiceFee::find($id);
         $serviceFee->cards = $serviceFee->cards;
         $serviceFee->diningTypes = $serviceFee->diningTypes;
+
         return view('product::serviceFee.edit', compact('serviceFee'));
     }
 
     public function create()
     {
-        $serviceFee  = new ServiceFee();
+        $serviceFee = new ServiceFee;
         $serviceFee->service_fee_type = 0;
         $serviceFee->application_type = 0;
         $serviceFee->calculation_method = 0;
@@ -156,7 +165,7 @@ class ServiceFeeController extends Controller
         $serviceFee->active = 0;
         $serviceFee->cards = [];
         $serviceFee->diningTypes = [];
+
         return view('product::serviceFee.create', compact('serviceFee'));
     }
-
 }

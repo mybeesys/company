@@ -19,10 +19,9 @@ class StoreAdjustmentRequest extends FormRequest
             'amount' => ['required', 'decimal:0,2', 'numeric'],
             'amount_type' => ['required', 'in:fixed,percent'],
             'applicable_date' => ['required', 'date_format:Y-m'],
-            'apply_once' => ['nullable', 'boolean']
+            'apply_once' => ['nullable', 'boolean'],
         ];
     }
-
 
     /**
      * Determine if the user is authorized to make this request.

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('transaction_sell_lines', function (Blueprint $table) {
             $table->string('is_show')->nullable()->after('qyt')->default('1');
 
-
         });
     }
 

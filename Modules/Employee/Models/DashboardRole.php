@@ -3,13 +3,10 @@
 namespace Modules\Employee\Models;
 
 use Illuminate\Contracts\Database\Eloquent\Builder;
-use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Models\Role as SpatieRole;
-
 
 class DashboardRole extends SpatieRole
 {
-
     protected static function booted()
     {
         static::addGlobalScope('dashboardRole', function (Builder $query) {

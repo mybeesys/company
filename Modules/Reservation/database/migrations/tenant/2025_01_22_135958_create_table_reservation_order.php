@@ -19,11 +19,11 @@ return new class extends Migration
             $table->unsignedBigInteger(column: 'establishment_id');
             $table->unsignedBigInteger(column: 'table_id')->nullable();
             $table->foreign('establishment_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+                ->references('id')                    // References the id on the categories table
+                ->on('est_establishments');
             $table->foreign('table_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('reservation_tables');
+                ->references('id')                    // References the id on the categories table
+                ->on('reservation_tables');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -35,11 +35,11 @@ return new class extends Migration
             $table->unsignedBigInteger(column: 'order_id');
             $table->unsignedBigInteger(column: 'item_id');
             $table->foreign('order_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('reservation_orders');
+                ->references('id')                    // References the id on the categories table
+                ->on('reservation_orders');
             $table->foreign('item_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_products');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_products');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -7,7 +7,6 @@ use Modules\General\Models\Transaction;
 
 class SalesUtile
 {
-
     public static function paymentTerms()
     {
         return [
@@ -43,47 +42,50 @@ class SalesUtile
         ];
     }
 
-
     public static function generateReferenceNumber($type)
-{
-    $currentYear = date('Y');
-    $type_prefix = '';
+    {
+        $currentYear = date('Y');
+        $type_prefix = '';
 
-     if (in_array($type, ['sell', 'sell-return', 'purchases-return', 'purchases'])) {
-        $type_prefix = 'invoices';
-    }
+        if (in_array($type, ['sell', 'sell-return', 'purchases-return', 'purchases'])) {
+            $type_prefix = 'invoices';
+        }
 
-    $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
-    $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
+        $prefixSetting = PrefixSetting::where('type', $type_prefix)->first();
+        $prefix = $prefixSetting ? $prefixSetting->prefix : 'INV00';
 
-    if ($type == 'period') $prefix = 'PERIOD';
-    if (in_array($type, ['sell-return', 'purchases-return'])) $prefix = 'RET';
+        if ($type == 'period') {
+            $prefix = 'PERIOD';
+        }
+        if (in_array($type, ['sell-return', 'purchases-return'])) {
+            $prefix = 'RET';
+        }
 
-    $transaction = Transaction::where('type', $type)
-        ->whereYear('created_at', $currentYear)
-        ->latest('id')
-        ->first();
+        $transaction = Transaction::where('type', $type)
+            ->whereYear('created_at', $currentYear)
+            ->latest('id')
+            ->first();
 
-    $newNumber = '0001';
+        $newNumber = '0001';
 
-    if ($transaction && $transaction->ref_no) {
-        $parts = explode('-', $transaction->ref_no);
+        if ($transaction && $transaction->ref_no) {
+            $parts = explode('-', $transaction->ref_no);
 
-        if (count($parts) > 1) {
-            $yearAndNumber = $parts[1];
-            $subParts = explode('/', $yearAndNumber);
+            if (count($parts) > 1) {
+                $yearAndNumber = $parts[1];
+                $subParts = explode('/', $yearAndNumber);
 
-            if (count($subParts) > 1) {
-                $year = $subParts[0];
-                $number = $subParts[1];
+                if (count($subParts) > 1) {
+                    $year = $subParts[0];
+                    $number = $subParts[1];
 
-                if ($year == $currentYear) {
-                    $newNumber = str_pad((int)$number + 1, 4, '0', STR_PAD_LEFT);
+                    if ($year == $currentYear) {
+                        $newNumber = str_pad((int) $number + 1, 4, '0', STR_PAD_LEFT);
+                    }
                 }
             }
         }
-    }
 
-    return $prefix . '-' . $currentYear . '/' . $newNumber;
-}
+        return $prefix.'-'.$currentYear.'/'.$newNumber;
+    }
 }

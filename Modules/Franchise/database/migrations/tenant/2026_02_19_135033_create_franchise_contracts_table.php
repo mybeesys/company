@@ -11,19 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('franchise_contracts', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('franchise_id')->constrained('franchise_companies')->onDelete('cascade');
-    $table->integer('contract_duration');
-    $table->date('start_date');
-    $table->date('end_date');
-    $table->decimal('reality_fees', 15, 2);
-    $table->integer('unite_no')->default(1);
-    $table->string('contract_file')->nullable();
-    $table->text('notes')->nullable();
-    $table->enum('status', ['active', 'expired', 'pending'])->default('active');
-    $table->timestamps();
-});
+        Schema::create('franchise_contracts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('franchise_id')->constrained('franchise_companies')->onDelete('cascade');
+            $table->integer('contract_duration');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->decimal('reality_fees', 15, 2);
+            $table->integer('unite_no')->default(1);
+            $table->string('contract_file')->nullable();
+            $table->text('notes')->nullable();
+            $table->enum('status', ['active', 'expired', 'pending'])->default('active');
+            $table->timestamps();
+        });
     }
 
     /**

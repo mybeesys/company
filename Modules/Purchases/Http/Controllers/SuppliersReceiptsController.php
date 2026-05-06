@@ -27,7 +27,6 @@ class SuppliersReceiptsController extends Controller
             ->orderBy('id')
             ->get();
 
-
         if ($request->ajax()) {
 
             $transactions = TransactionPayments::with('transaction')
@@ -39,7 +38,8 @@ class SuppliersReceiptsController extends Controller
                 })
                 ->orderBy('id')
                 ->get();
-            return  TransactionPayments::getReceiptsTable($transactions);
+
+            return TransactionPayments::getReceiptsTable($transactions);
         }
 
         $columns = TransactionPayments::getSuppliersReceiptsColumns();
@@ -53,14 +53,14 @@ class SuppliersReceiptsController extends Controller
     public function create()
     {
         $clients = Contact::where('business_type', 'supplier')->get();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $countries = Country::all();
-        $supplier=true;
+        $supplier = true;
         $cost_centers = AccountingCostCenter::forDropdown();
 
-
-        return view('sales::receipts.create', compact('clients','cost_centers', 'supplier','accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries'));
     }
+
     /**
      * Store a newly created resource in storage.
      */

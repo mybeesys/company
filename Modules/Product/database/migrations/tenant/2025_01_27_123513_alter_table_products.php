@@ -16,7 +16,7 @@ return new class extends Migration
             $table->decimal('calories')->nullable();
             $table->boolean('show_in_menu')->nullable();
 
-          });
+        });
     }
 
     /**

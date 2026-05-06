@@ -2,8 +2,8 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // use Modules\Product\Database\Factories\ModifierFactory;
@@ -11,12 +11,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ServiceFee extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     protected $table = 'product_service_fees';
-        
+
     public $timestamps = true;
+
     /**
      * The attributes that are mass assignable.
      */
@@ -34,10 +34,11 @@ class ServiceFee extends Model
         'from_date',
         'to_date',
         'credit_type',
-        'guestCount'
+        'guestCount',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -52,5 +53,4 @@ class ServiceFee extends Model
     {
         return $this->hasMany(ServiceFeeDiningType::class, 'service_fee_id', 'id');
     }
-
 }
