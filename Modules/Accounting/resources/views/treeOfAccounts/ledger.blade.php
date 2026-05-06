@@ -100,11 +100,15 @@
         #ledger-table.ledger-table-pro thead th {
             background: #f5f8fa !important;
             color: #3f4254 !important;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+            font-size: 0.86rem;
+            font-weight: 800;
+            text-transform: none;
+            letter-spacing: 0;
             border-bottom: 2px solid #e4e6ef;
             vertical-align: middle;
+            text-align: center;
+            padding-top: 0.65rem;
+            padding-bottom: 0.65rem;
         }
 
         #ledger-table.ledger-table-pro tbody td,
