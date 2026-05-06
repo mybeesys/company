@@ -66,8 +66,8 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="button" id="journalExportPdf" class="btn btn-light-primary">PDF</button>
-                    <button type="button" id="journalExportExcel" class="btn btn-light-success">Excel</button>
+                    <button type="button" id="journalExportPdf" class="btn btn-export-pdf">PDF</button>
+                    <button type="button" id="journalExportExcel" class="btn btn-export-excel">Excel</button>
                 </div>
 
             </div>

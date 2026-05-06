@@ -19,7 +19,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ $exportListUrl }}" class="btn btn-success d-inline-flex align-items-center gap-2">
+                        <a href="{{ $exportListUrl }}" class="btn btn-export-excel d-inline-flex align-items-center gap-2">
                             <i class="fa-solid fa-file-excel"></i>
                             <span>@lang('accounting::lang.periodic_export_list_excel')</span>
                         </a>

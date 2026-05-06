@@ -87,7 +87,7 @@
                     <a href="{{ route('inventory.dashboard.export.movement-csv', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'movement_type' => $movementType]) }}" class="btn btn-sm btn-light-primary">
                         <i class="fas fa-file-csv"></i> CSV
                     </a>
-                    <a href="{{ route('inventory.dashboard.export.movement-pdf', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'movement_type' => $movementType]) }}" class="btn btn-sm btn-light-danger">
+                    <a href="{{ route('inventory.dashboard.export.movement-pdf', ['warehouse_id' => $selectedWarehouseId, 'start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'movement_type' => $movementType]) }}" class="btn btn-sm btn-export-pdf">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
                 </div>

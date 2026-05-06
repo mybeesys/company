@@ -116,7 +116,7 @@
                             <li>
                                 <div class="menu-item-custom ">
                                     <a href= "{{ url('/cost-center-transactions-export-pdf', $costCenter->id) }}"
-                                        class="btn">@lang('general.export_as_pdf')</a>
+                                        class="btn btn-export-pdf">@lang('general.export_as_pdf')</a>
                                 </div>
                             </li>
 
@@ -124,7 +124,7 @@
                             <li>
                                 <div class="menu-item-custom ">
                                     <a href= "{{ url('/cost-center-transactions-export-excel', $costCenter->id) }}"
-                                        class="btn">@lang('general.export_as_excel')</a>
+                                        class="btn btn-export-excel">@lang('general.export_as_excel')</a>
                                 </div>
                             </li>
 

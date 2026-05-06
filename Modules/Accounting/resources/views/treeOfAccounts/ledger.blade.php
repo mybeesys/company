@@ -70,6 +70,28 @@
             margin-top: 0.5rem;
         }
 
+        .ledger-banner-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: end;
+            justify-content: flex-end;
+        }
+
+        .ledger-banner-controls .select2-container {
+            min-width: 320px;
+        }
+
+        @media (max-width: 992px) {
+            .ledger-banner-controls {
+                justify-content: flex-start;
+            }
+
+            .ledger-banner-controls .select2-container {
+                min-width: 100%;
+            }
+        }
+
         #ledger-table.ledger-table-pro {
             border: 1px solid #e4e6ef;
             font-variant-numeric: tabular-nums;
@@ -89,11 +111,36 @@
         #ledger-table.ledger-table-pro tfoot td {
             border-color: #eff2f5;
             vertical-align: middle;
+            padding-top: 0.45rem;
+            padding-bottom: 0.45rem;
         }
 
         #ledger-table.ledger-table-pro .ledger-num {
             text-align: end;
             white-space: nowrap;
+        }
+
+        #ledger-table.ledger-table-pro td {
+            font-size: 0.78rem;
+        }
+
+        #ledger-table.ledger-table-pro thead th {
+            padding-top: 0.55rem;
+            padding-bottom: 0.55rem;
+        }
+
+        .ledger-balance-pill {
+            display: inline-flex;
+            align-items: baseline;
+            font-weight: 700;
+        }
+
+        .ledger-balance-pill.ledger-bal-dr {
+            color: #0f5132;
+        }
+
+        .ledger-balance-pill.ledger-bal-cr {
+            color: #b02a37;
         }
 
         #ledger-table.ledger-table-pro .ledger-row-opening td {
@@ -117,6 +164,34 @@
                         <span class="text-gray-500">—</span>
                         {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
                     </div>
+
+                    <div class="mt-3">
+                        <div class="ledger-banner-controls">
+                            <div style="flex: 1 1 auto;">
+                                <label class="form-label fs-7 text-muted mb-1">@lang('accounting::lang.account_name')</label>
+                                <select id="accounts" class="form-select form-select-solid select-2 w-100" name="id">
+                                    @foreach ($accountingAccount as $_account)
+                                        <option value="{{ $_account->id }}" @if ($account->id == $_account->id) selected @endif>
+                                            @if (app()->getLocale() == 'ar')
+                                                {{ $_account->name_ar }}
+                                            @else
+                                                {{ $_account->name_en }}
+                                            @endif -
+                                            {{ $_account->gl_code }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label fs-7 text-muted mb-1 d-block">&nbsp;</label>
+                                <button type="button" id="ledgerAccountSearchBtn" class="btn btn-primary px-6">
+                                    {{ app()->getLocale() == 'ar' ? 'بحث' : 'Search' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
                     <div class="ledger-report-period">
                         {{ __('accounting::lang.ledger_report_period', [
                             'from' => \Carbon\Carbon::parse($start_date)->format('d/m/Y'),
@@ -131,21 +206,6 @@
                             {{ app()->getLocale() == 'ar' ? $account->account_sub_type['name_ar'] : $account->account_sub_type['name_en'] }}
                         @endif
                     </div>
-                </div>
-                <div class="col-lg-4">
-                    <label class="form-label fs-7 text-muted mb-1">@lang('accounting::lang.account_name')</label>
-                    <select id="accounts" class="form-select form-select-solid select-2 w-100" name="id">
-                        @foreach ($accountingAccount as $_account)
-                            <option value="{{ $_account->id }}" @if ($account->id == $_account->id) selected @endif>
-                                @if (app()->getLocale() == 'ar')
-                                    {{ $_account->name_ar }}
-                                @else
-                                    {{ $_account->name_en }}
-                                @endif -
-                                {{ $_account->gl_code }}
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
             </div>
         </div>
@@ -186,17 +246,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-3">
-                <label>{{ __('accounting::lang.transaction') }}</label>
-                <select name="sub_type" class="form-select form-select-solid select-2">
-                    <option value="">{{ __('messages.view_all') }}</option>
-                    @foreach ($subTypes as $subType)
-                        <option value="{{ $subType }}" @selected(request('sub_type') === $subType)>
-                            {{ __('accounting::lang.' . $subType) }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+         
             <div class="col-md-3 mt-4">
                 <label>{{ __('accounting::lang.transaction_number') }}</label>
                 <input type="text" name="ref_no" class="form-control" value="{{ request('ref_no') }}"
@@ -339,24 +389,18 @@
                                         'ref_no' => __('accounting::lang.ledger_column_ref_no'),
                                         'operation_date' => __('accounting::lang.ledger_column_operation_date'),
                                         'narration' => __('accounting::lang.ledger_column_narration'),
-                                        'transaction' => __('accounting::lang.ledger_column_transaction'),
                                         'cost_center' => __('accounting::lang.ledger_column_cost_center'),
                                         'added_by' => __('accounting::lang.ledger_column_added_by'),
-                                        'debit' => __('accounting::lang.ledger_column_debit'),
-                                        'credit' => __('accounting::lang.ledger_column_credit'),
-                                        'balance' => __('accounting::lang.ledger_column_balance'),
                                     ];
                                     $ledgerExportQuery = array_merge($ledger_export_base_params ?? [], ['ledger_cols' => implode(',', $ledger_visible_columns)]);
                                 @endphp
-                                @foreach (\Modules\Accounting\Http\Controllers\TreeAccountsController::LEDGER_COLUMN_ORDER as $colKey)
+                                @foreach (array_keys($ledgerColMeta) as $colKey)
                                     <div class="form-check">
                                         <input class="form-check-input ledger-col-cb" type="checkbox"
                                             id="ledger-col-{{ $colKey }}" data-ledger-col-key="{{ $colKey }}"
-                                            @if ($colKey === 'balance') checked disabled title="{{ __('accounting::lang.ledger_column_balance_locked') }}"
-                                            @elseif (in_array($colKey, $ledger_visible_columns, true)) checked @endif>
+                                            @if (in_array($colKey, $ledger_visible_columns, true)) checked @endif>
                                         <label class="form-check-label fs-8" for="ledger-col-{{ $colKey }}"
-                                            @if ($colKey === 'balance') title="{{ __('accounting::lang.ledger_column_balance_locked') }}" @endif>
-                                            {{ $ledgerColMeta[$colKey] }}</label>
+                                            >{{ $ledgerColMeta[$colKey] }}</label>
                                     </div>
                                 @endforeach
                             </li>
@@ -372,7 +416,7 @@
                             <li>
                                 <div class="menu-item-custom ">
                                     <a href="{{ url('/ledger-export-pdf', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
-                                        class="btn ledger-export-link"
+                                        class="btn btn-export-pdf ledger-export-link"
                                         data-ledger-export-base="{{ url('/ledger-export-pdf', $account->id) }}">@lang('general.export_as_pdf')</a>
                                 </div>
                             </li>
@@ -380,7 +424,7 @@
                             <li>
                                 <div class="menu-item-custom ">
                                     <a href="{{ url('/ledger-export-excel', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
-                                        class="btn ledger-export-link"
+                                        class="btn btn-export-excel ledger-export-link"
                                         data-ledger-export-base="{{ url('/ledger-export-excel', $account->id) }}">@lang('general.export_as_excel')</a>
                                 </div>
                             </li>
@@ -444,23 +488,21 @@
                     <table class="table align-middle gs-0 gy-4 ledger-table-pro" id="ledger-table">
                         <thead>
                             <tr class="fw-bold  text-muted bg-light">
-                                <th class="min-w-125px @if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
+                                <th class="min-w-110px @if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
                                     @lang('accounting::lang.transaction_number')</th>
-                                <th class="min-w-100px @if (!$ledgerColShow('operation_date')) d-none @endif" data-ledger-col="operation_date">
+                                <th class="min-w-90px @if (!$ledgerColShow('operation_date')) d-none @endif" data-ledger-col="operation_date">
                                     @lang('accounting::lang.operation_date')</th>
-                                <th class="min-w-200px @if (!$ledgerColShow('narration')) d-none @endif" data-ledger-col="narration">
+                                <th class="min-w-140px @if (!$ledgerColShow('narration')) d-none @endif" data-ledger-col="narration">
                                     @lang('accounting::lang.ledger_narration')</th>
-                                <th class="min-w-125px @if (!$ledgerColShow('transaction')) d-none @endif" data-ledger-col="transaction">
-                                    @lang('accounting::lang.transaction')</th>
-                                <th class="min-w-125px @if (!$ledgerColShow('cost_center')) d-none @endif" data-ledger-col="cost_center">
+                                <th class="min-w-120px @if (!$ledgerColShow('cost_center')) d-none @endif" data-ledger-col="cost_center">
                                     @lang('accounting::lang.cost_center')</th>
-                                <th class="min-w-200px @if (!$ledgerColShow('added_by')) d-none @endif" data-ledger-col="added_by">
+                                <th class="min-w-120px @if (!$ledgerColShow('added_by')) d-none @endif" data-ledger-col="added_by">
                                     @lang('accounting::lang.added_by')</th>
-                                <th class="min-w-150px ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
+                                <th class="min-w-110px ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
                                     @lang('accounting::lang.debit')</th>
-                                <th class="min-w-150px ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
+                                <th class="min-w-110px ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
                                     @lang('accounting::lang.credit')</th>
-                                <th class="min-w-150px ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
+                                <th class="min-w-120px ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
                                     @lang('accounting::lang.balance')</th>
                             </tr>
                         </thead>
@@ -542,19 +584,6 @@
                                         @endphp
                                         <span class="text-gray-800 fs-7">{{ $ledgerNarr !== '' ? $ledgerNarr : '—' }}</span>
                                     </td>
-                                    <td class="@if (!$ledgerColShow('transaction')) d-none @endif" data-ledger-col="transaction">
-                                        <span class="badge badge-light-primary fs-7">
-                                            @if ($transactions->sub_type == 'sell')
-                                                @lang('accounting::lang.sell')
-                                            @elseif ($transactions->sub_type == 'sell_cash')
-                                                @lang('accounting::lang.receipt_voucher')
-                                            @elseif ($transactions->sub_type == 'sales_revenue')
-                                                @lang('accounting::lang.payment_voucher')
-                                            @else
-                                                @lang('accounting::lang.' . $transactions->sub_type)
-                                            @endif
-                                        </span>
-                                    </td>
                                     <td class="@if (!$ledgerColShow('cost_center')) d-none @endif" data-ledger-col="cost_center">
                                         <span class="text-muted fw-semibold text-muted d-block fs-7">
                                             @if ($transactions->costCenter)
@@ -584,9 +613,19 @@
                                         @endif
                                     </td>
                                     <td class="ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                        <span class="fw-bold fs-6" style="color: #020804">
+                                        @php
+                                            $balIsCredit = $balance < 0;
+                                            $balCss = $balIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
+                                            $balHint = app()->getLocale() == 'ar'
+                                                ? ($balIsCredit
+                                                    ? 'رصيد دائن: يعني أن إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع احتساب الرصيد الافتتاحي). تم حساب الرصيد وفق طبيعة الحساب.'
+                                                    : 'رصيد مدين: يعني أن إجمالي المدين أكبر من إجمالي الدائن ضمن الفترة (مع احتساب الرصيد الافتتاحي). تم حساب الرصيد وفق طبيعة الحساب.')
+                                                : ($balIsCredit
+                                                    ? 'Credit balance: total credit exceeds total debit for the period (including opening balance). Balance is computed according to the account nature.'
+                                                    : 'Debit balance: total debit exceeds total credit for the period (including opening balance). Balance is computed according to the account nature.');
+                                        @endphp
+                                        <span class="ledger-balance-pill {{ $balCss }}" title="{{ $balHint }}">
                                             {{ number_format(abs($balance), 2) }}
-                                            <span class="fs-8 text-muted">({{ $balance < 0 ? __('accounting::lang.credit') : __('accounting::lang.debit') }})</span>
                                         </span>
                                     </td>
                                 </tr>
@@ -603,8 +642,20 @@
                                     @format_currency($total_credit)
                                 </td>
                                 <td class=" fw-bold fs-5 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                    @format_currency(abs($balance))
-                                    <span class="fs-8 text-muted">({{ $balance < 0 ? __('accounting::lang.credit') : __('accounting::lang.debit') }})</span>
+                                    @php
+                                        $footIsCredit = $balance < 0;
+                                        $footCss = $footIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
+                                        $footHint = app()->getLocale() == 'ar'
+                                            ? ($footIsCredit
+                                                ? 'الرصيد الختامي دائن: إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع الرصيد الافتتاحي).'
+                                                : 'الرصيد الختامي مدين: إجمالي المدين أكبر من إجمالي الدائن ضمن الفترة (مع الرصيد الافتتاحي).')
+                                            : ($footIsCredit
+                                                ? 'Closing balance is credit: total credit exceeds total debit for the period (including opening balance).'
+                                                : 'Closing balance is debit: total debit exceeds total credit for the period (including opening balance).');
+                                    @endphp
+                                    <span class="ledger-balance-pill {{ $footCss }}" title="{{ $footHint }}">
+                                        @format_currency(abs($balance))
+                                    </span>
                                 </td>
                             </tr>
                         </tfoot>
@@ -626,7 +677,7 @@
 
     <script>
         $(document).ready(function() {
-            var LEDGER_COL_ORDER = @json(\Modules\Accounting\Http\Controllers\TreeAccountsController::LEDGER_COLUMN_ORDER);
+            var LEDGER_COL_ORDER = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by', 'debit', 'credit', 'balance'];
             var LEDGER_COL_STORAGE = 'ledger_visible_columns_v2';
             var ledgerVisibleFromServer = @json($ledger_visible_columns);
             var ledgerExportBaseParams = @json($ledger_export_base_params ?? []);
@@ -645,9 +696,9 @@
                     parsed.forEach(function(k) {
                         set[k] = true;
                     });
-                    if (!set.balance) {
-                        parsed.push('balance');
-                    }
+                if (parsed.indexOf('balance') === -1) parsed.push('balance');
+                if (parsed.indexOf('debit') === -1) parsed.push('debit');
+                if (parsed.indexOf('credit') === -1) parsed.push('credit');
                     return LEDGER_COL_ORDER.filter(function(k) {
                         return parsed.indexOf(k) !== -1;
                     });
@@ -662,6 +713,12 @@
                 });
                 if (ordered.indexOf('balance') === -1) {
                     ordered.push('balance');
+                }
+                if (ordered.indexOf('debit') === -1) {
+                    ordered.push('debit');
+                }
+                if (ordered.indexOf('credit') === -1) {
+                    ordered.push('credit');
                 }
                 localStorage.setItem(LEDGER_COL_STORAGE, JSON.stringify(ordered));
                 return ordered;
@@ -701,7 +758,7 @@
             function ledgerSyncCheckboxes(cols) {
                 $('.ledger-col-cb').each(function() {
                     var key = $(this).data('ledger-col-key');
-                    if (key === 'balance') {
+                    if (key === 'balance' || key === 'debit' || key === 'credit') {
                         $(this).prop('checked', true);
                         return;
                     }
@@ -717,89 +774,44 @@
 
             $('.ledger-col-cb').on('change', function() {
                 var key = $(this).data('ledger-col-key');
-                if (key === 'balance') {
+                if (key === 'balance' || key === 'debit' || key === 'credit') {
                     return;
                 }
                 var next = [];
                 $('.ledger-col-cb').each(function() {
                     var k = $(this).data('ledger-col-key');
-                    if (k === 'balance' || $(this).is(':checked')) {
+                    if (k === 'balance' || k === 'debit' || k === 'credit' || $(this).is(':checked')) {
                         next.push(k);
                     }
                 });
                 if (next.indexOf('balance') === -1) {
                     next.push('balance');
                 }
+                if (next.indexOf('debit') === -1) next.push('debit');
+                if (next.indexOf('credit') === -1) next.push('credit');
                 next = ledgerWriteVisible(next);
                 ledgerApplyColumnVisibility(next);
             });
 
             var ledgerAccountId = String({{ (int) $account->id }});
             var ledgerBaseUrl = @json(url('ledger'));
-            var swalTitle = @json(__('accounting::lang.ledger_switch_confirm_title'));
-            var swalIntro = @json(__('accounting::lang.ledger_switch_confirm_intro'));
-            var swalOk = @json(__('accounting::lang.ledger_switch_confirm_ok'));
-            var swalCancel = @json(__('accounting::lang.ledger_switch_confirm_cancel'));
-
-            function escapeHtml(s) {
-                return String(s).replace(/[&<>"']/g, function(c) {
-                    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
-                });
-            }
-
-            function confirmLedgerSwitch(newId, accountLabel) {
-                var doGo = function() {
-                    window.location.href = ledgerBaseUrl + '?account_id=' + encodeURIComponent(newId);
-                };
-                var SwalApi = (typeof window.Swal !== 'undefined' && window.Swal) ? window.Swal :
-                    (typeof window.Sweetalert2 !== 'undefined' ? window.Sweetalert2 : null);
-                if (SwalApi && typeof SwalApi.fire === 'function') {
-                    SwalApi.fire({
-                        title: swalTitle,
-                        html: '<p class="mb-2">' + escapeHtml(swalIntro) + '</p><p class="fw-bold fs-5">' + escapeHtml(accountLabel) + '</p>',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: swalOk,
-                        cancelButtonText: swalCancel,
-                        reverseButtons: {{ app()->getLocale() === 'ar' ? 'true' : 'false' }}
-                    }).then(function(result) {
-                        if (result.isConfirmed) {
-                            doGo();
-                        }
-                    });
-                } else if (window.confirm(swalIntro + '\n' + accountLabel)) {
-                    doGo();
-                }
+            function ledgerNavigateToAccount(newId) {
+                var url = new URL(ledgerBaseUrl, window.location.origin);
+                var params = new URLSearchParams(window.location.search);
+                params.set('account_id', String(newId));
+                url.search = params.toString();
+                window.location.href = url.toString();
             }
 
             $('#accounts').select2();
 
-            $('#accounts').on('select2:selecting', function(e) {
-                var data = e.params && e.params.args && e.params.args.data ? e.params.args.data :
-                    (e.params && e.params.data ? e.params.data : null);
-                if (!data) {
-                    return;
-                }
-                var newId = String(data.id);
-                if (newId === ledgerAccountId) {
-                    return;
-                }
-                e.preventDefault();
-                confirmLedgerSwitch(newId, data.text || '');
-            });
-
-            $('#accounts').on('change', function() {
-                if ($('#accounts').data('select2')) {
-                    return;
-                }
-                var sel = this;
-                var v = String(sel.value);
-                if (v === ledgerAccountId) {
-                    return;
-                }
-                var label = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
-                sel.value = ledgerAccountId;
-                confirmLedgerSwitch(v, label);
+            $('#ledgerAccountSearchBtn').on('click', function() {
+                var sel = document.getElementById('accounts');
+                if (!sel) return;
+                var v = String(sel.value || '');
+                if (!v) return;
+                if (v === ledgerAccountId) return;
+                ledgerNavigateToAccount(v);
             });
 
             $('#choose_cost_center_select').select2();

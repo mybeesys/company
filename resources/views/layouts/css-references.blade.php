@@ -110,6 +110,63 @@
     .select2-container .select2-selection--single .select2-selection__clear {
         position: absolute !important;
     }
+
+    /* Unified export buttons (Excel/PDF) across system */
+    .btn-export-excel {
+        --export-bg: #eafff3;
+        --export-border: #b8f2d0;
+        --export-text: #0f5132;
+        background-color: var(--export-bg) !important;
+        border-color: var(--export-border) !important;
+        color: var(--export-text) !important;
+    }
+
+    .btn-export-excel:hover,
+    .btn-export-excel:focus {
+        background-color: #d6ffe8 !important;
+        border-color: #86eab6 !important;
+        color: var(--export-text) !important;
+    }
+
+    .btn-export-pdf {
+        --export-bg: #fff0f0;
+        --export-border: #f5b5b5;
+        --export-text: #842029;
+        background-color: var(--export-bg) !important;
+        border-color: var(--export-border) !important;
+        color: var(--export-text) !important;
+    }
+
+    .btn-export-pdf:hover,
+    .btn-export-pdf:focus {
+        background-color: #ffe0e0 !important;
+        border-color: #f08d8d !important;
+        color: var(--export-text) !important;
+    }
+
+    [data-bs-theme="dark"] .btn-export-excel {
+        background-color: rgba(0, 255, 128, 0.12) !important;
+        border-color: rgba(0, 255, 128, 0.28) !important;
+        color: #6ee7b7 !important;
+    }
+
+    [data-bs-theme="dark"] .btn-export-excel:hover,
+    [data-bs-theme="dark"] .btn-export-excel:focus {
+        background-color: rgba(0, 255, 128, 0.18) !important;
+        border-color: rgba(0, 255, 128, 0.4) !important;
+    }
+
+    [data-bs-theme="dark"] .btn-export-pdf {
+        background-color: rgba(255, 76, 76, 0.12) !important;
+        border-color: rgba(255, 76, 76, 0.28) !important;
+        color: #fda4af !important;
+    }
+
+    [data-bs-theme="dark"] .btn-export-pdf:hover,
+    [data-bs-theme="dark"] .btn-export-pdf:focus {
+        background-color: rgba(255, 76, 76, 0.18) !important;
+        border-color: rgba(255, 76, 76, 0.4) !important;
+    }
 </style>
 
 @if ($local == 'ar')
