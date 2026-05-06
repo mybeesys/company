@@ -375,16 +375,80 @@
                     @endforeach
                 </tbody>
                 <tfoot>
+                    @php
+                        $netMovementSigned = $is_debit_nature
+                            ? ((float) $total_debit - (float) $total_credit)
+                            : ((float) $total_credit - (float) $total_debit);
+                        $netMovementIsCredit = $netMovementSigned < 0;
+                        $netMovementAbs = abs($netMovementSigned);
+                        $totalsLabel = app()->getLocale() == 'ar' ? 'المجموع' : 'Totals';
+                        $netLabel = app()->getLocale() == 'ar' ? 'صافي الحركة' : 'Net movement';
+                        $endingLabel = app()->getLocale() == 'ar' ? 'الرصيد الختامي' : __('accounting::lang.Closing balance');
+                        $totalsHint = app()->getLocale() == 'ar'
+                            ? 'المجموع = مجموع مبالغ المدين ومجموع مبالغ الدائن خلال الفترة (لا يشمل الرصيد الافتتاحي).'
+                            : 'Totals = sum of debit amounts and sum of credit amounts during the period (excludes opening balance).';
+                        $netHint = app()->getLocale() == 'ar'
+                            ? 'صافي الحركة = (المدين − الدائن) للحسابات ذات الطبيعة المدينة، و(الدائن − المدين) للحسابات ذات الطبيعة الدائنة. لا يشمل الرصيد الافتتاحي.'
+                            : 'Net movement = (debit − credit) for debit-nature accounts, and (credit − debit) for credit-nature accounts. Excludes opening balance.';
+                        $endingHint = app()->getLocale() == 'ar'
+                            ? 'الرصيد الختامي = الرصيد الافتتاحي + صافي الحركة (بحسب طبيعة الحساب).'
+                            : 'Ending balance = opening balance + net movement (respecting the account nature).';
+                    @endphp
+
                     <tr class="ledger-foot-row">
                         <td class="num">—</td>
-                        <td colspan="{{ $ledgerFootLabelSpan }}" style="text-align: center;">
-                            @lang('accounting::lang.Closing balance')
+                        <td colspan="{{ $ledgerFootLabelSpan }}" style="text-align: center;" title="{{ $totalsHint }}">
+                            {{ $totalsLabel }}
                         </td>
                         @if ($ledgerCol('debit'))
                             <td class="num">@format_currency($total_debit)</td>
                         @endif
                         @if ($ledgerCol('credit'))
                             <td class="num">@format_currency($total_credit)</td>
+                        @endif
+                        @if ($ledgerCol('balance'))
+                            <td class="num">—</td>
+                        @endif
+                    </tr>
+
+                    <tr class="ledger-foot-row">
+                        <td class="num">—</td>
+                        <td colspan="{{ $ledgerFootLabelSpan }}" style="text-align: center;" title="{{ $netHint }}">
+                            {{ $netLabel }}
+                        </td>
+                        @if ($ledgerCol('debit'))
+                            <td class="num">
+                                @if (! $netMovementIsCredit)
+                                    @format_currency($netMovementAbs)
+                                @else
+                                    —
+                                @endif
+                            </td>
+                        @endif
+                        @if ($ledgerCol('credit'))
+                            <td class="num">
+                                @if ($netMovementIsCredit)
+                                    @format_currency($netMovementAbs)
+                                @else
+                                    —
+                                @endif
+                            </td>
+                        @endif
+                        @if ($ledgerCol('balance'))
+                            <td class="num">—</td>
+                        @endif
+                    </tr>
+
+                    <tr class="ledger-foot-row">
+                        <td class="num">—</td>
+                        <td colspan="{{ $ledgerFootLabelSpan }}" style="text-align: center;" title="{{ $endingHint }}">
+                            {{ $endingLabel }}
+                        </td>
+                        @if ($ledgerCol('debit'))
+                            <td class="num">—</td>
+                        @endif
+                        @if ($ledgerCol('credit'))
+                            <td class="num">—</td>
                         @endif
                         @if ($ledgerCol('balance'))
                             <td class="num">

@@ -484,7 +484,7 @@
                 </div>
                 @php
                     $ledgerColShow = fn(string $k): bool => in_array($k, $ledger_visible_columns, true);
-                    $ledgerPrefixKeys = ['ref_no', 'operation_date', 'narration', 'transaction', 'cost_center', 'added_by'];
+                    $ledgerPrefixKeys = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
                     $ledgerOpeningLabelSpan = max(1, count(array_diff($ledger_visible_columns, ['balance'])));
                     $ledgerFootLabelSpan = max(1, count(array_intersect($ledgerPrefixKeys, $ledger_visible_columns)));
                 @endphp
@@ -636,27 +636,86 @@
                             @endforeach
                         </tbody>
                         <tfoot>
+                            @php
+                                $netMovementSigned = $is_debit_nature
+                                    ? ((float) $total_debit - (float) $total_credit)
+                                    : ((float) $total_credit - (float) $total_debit);
+                                $netMovementIsCredit = $netMovementSigned < 0;
+                                $netMovementAbs = abs($netMovementSigned);
+                                $totalsLabel = app()->getLocale() == 'ar' ? 'المجموع' : 'Totals';
+                                $netLabel = app()->getLocale() == 'ar' ? 'صافي الحركة' : 'Net movement';
+                                $endingLabel = app()->getLocale() == 'ar' ? 'الرصيد الختامي' : __('accounting::lang.Closing balance');
+                                $totalsHint = app()->getLocale() == 'ar'
+                                    ? 'المجموع = مجموع مبالغ المدين ومجموع مبالغ الدائن خلال الفترة (لا يشمل الرصيد الافتتاحي).'
+                                    : 'Totals = sum of debit amounts and sum of credit amounts during the period (excludes opening balance).';
+                                $netHint = app()->getLocale() == 'ar'
+                                    ? 'صافي الحركة = (المدين − الدائن) للحسابات ذات الطبيعة المدينة، و(الدائن − المدين) للحسابات ذات الطبيعة الدائنة. لا يشمل الرصيد الافتتاحي.'
+                                    : 'Net movement = (debit − credit) for debit-nature accounts, and (credit − debit) for credit-nature accounts. Excludes opening balance.';
+                                $endingHint = app()->getLocale() == 'ar'
+                                    ? 'الرصيد الختامي = الرصيد الافتتاحي + صافي الحركة (بحسب طبيعة الحساب).'
+                                    : 'Ending balance = opening balance + net movement (respecting the account nature).';
+                            @endphp
+
                             <tr>
-                                <td class="text-center fw-bold fs-4 ledger-foot-label" colspan="{{ $ledgerFootLabelSpan }}">
-                                    @lang('accounting::lang.Closing balance')</td>
-                                <td class=" fw-bold fs-5 ledger-foot-debit ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
+                                <td class="text-center fw-bold fs-6 ledger-foot-label" colspan="{{ $ledgerFootLabelSpan }}">
+                                    <span title="{{ $totalsHint }}">{{ $totalsLabel }}</span>
+                                </td>
+                                <td class="fw-bold fs-6 ledger-foot-debit ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
                                     @format_currency($total_debit)
                                 </td>
-                                <td class=" fw-bold fs-5 ledger-foot-credit ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
+                                <td class="fw-bold fs-6 ledger-foot-credit ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
                                     @format_currency($total_credit)
                                 </td>
-                                <td class=" fw-bold fs-5 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                    @php
-                                        $footIsCredit = $balance < 0;
-                                        $footCss = $footIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
-                                        $footHint = app()->getLocale() == 'ar'
-                                            ? ($footIsCredit
-                                                ? 'الرصيد الختامي دائن: إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع الرصيد الافتتاحي).'
-                                                : 'الرصيد الختامي مدين: إجمالي المدين أكبر من إجمالي الدائن ضمن الفترة (مع الرصيد الافتتاحي).')
-                                            : ($footIsCredit
-                                                ? 'Closing balance is credit: total credit exceeds total debit for the period (including opening balance).'
-                                                : 'Closing balance is debit: total debit exceeds total credit for the period (including opening balance).');
-                                    @endphp
+                                <td class="fw-bold fs-6 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
+                                    <span class="text-muted">—</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="text-center fw-bold fs-6 ledger-foot-label" colspan="{{ $ledgerFootLabelSpan }}">
+                                    <span title="{{ $netHint }}">{{ $netLabel }}</span>
+                                </td>
+                                <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
+                                    @if (! $netMovementIsCredit)
+                                        @format_currency($netMovementAbs)
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
+                                    @if ($netMovementIsCredit)
+                                        @format_currency($netMovementAbs)
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
+                                    <span class="text-muted">—</span>
+                                </td>
+                            </tr>
+
+                            @php
+                                $footIsCredit = $balance < 0;
+                                $footCss = $footIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
+                                $footHint = app()->getLocale() == 'ar'
+                                    ? ($footIsCredit
+                                        ? 'الرصيد الختامي دائن: إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع الرصيد الافتتاحي).'
+                                        : 'الرصيد الختامي مدين: إجمالي المدين أكبر من إجمالي الدائن ضمن الفترة (مع الرصيد الافتتاحي).')
+                                    : ($footIsCredit
+                                        ? 'Closing balance is credit: total credit exceeds total debit for the period (including opening balance).'
+                                        : 'Closing balance is debit: total debit exceeds total credit for the period (including opening balance).');
+                            @endphp
+                            <tr>
+                                <td class="text-center fw-bold fs-6 ledger-foot-label" colspan="{{ $ledgerFootLabelSpan }}">
+                                    <span title="{{ $endingHint }}">{{ $endingLabel }}</span>
+                                </td>
+                                <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
+                                    <span class="text-muted">—</span>
+                                </td>
+                                <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
+                                    <span class="text-muted">—</span>
+                                </td>
+                                <td class="fw-bold fs-6 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
                                     <span class="ledger-balance-pill {{ $footCss }}" title="{{ $footHint }}">
                                         @format_currency(abs($balance))
                                     </span>
