@@ -7,6 +7,28 @@ use Illuminate\Validation\ValidationException;
 
 class JournalEntryValidator
 {
+    private static function addDecimal(string $left, string $right, int $scale = 2): string
+    {
+        if (function_exists('bcadd')) {
+            return \bcadd($left, $right, $scale);
+        }
+
+        $sum = round(((float) $left) + ((float) $right), $scale);
+
+        return number_format($sum, $scale, '.', '');
+    }
+
+    private static function compareDecimal(string $left, string $right, int $scale = 2): int
+    {
+        if (function_exists('bccomp')) {
+            return \bccomp($left, $right, $scale);
+        }
+
+        $diff = round(((float) $left) - ((float) $right), $scale);
+
+        return $diff < 0 ? -1 : ($diff > 0 ? 1 : 0);
+    }
+
     /**
      * @param  array<int, array<string, mixed>>  $entries
      * @return array<int, array{account_id:int,type:string,amount:string,cost_center_id:int|null,notes:string|null}>
@@ -59,9 +81,9 @@ class JournalEntryValidator
             $amount = number_format((float) $amount, 2, '.', '');
 
             if ($type === 'debit') {
-                $debitTotal = bcadd($debitTotal, $amount, 2);
+                $debitTotal = self::addDecimal($debitTotal, $amount, 2);
             } else {
-                $creditTotal = bcadd($creditTotal, $amount, 2);
+                $creditTotal = self::addDecimal($creditTotal, $amount, 2);
             }
 
             $costCenterRaw = $entry['cost_center'] ?? null;
@@ -88,7 +110,7 @@ class JournalEntryValidator
             ]);
         }
 
-        if (bccomp($debitTotal, $creditTotal, 2) !== 0) {
+        if (self::compareDecimal($debitTotal, $creditTotal, 2) !== 0) {
             throw ValidationException::withMessages([
                 'JournalEntries' => ["Journal entry is not balanced. Debit $debitTotal must equal credit $creditTotal."],
             ]);
