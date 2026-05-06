@@ -34,10 +34,10 @@ class QuotationController extends Controller
 
             $transactionsQuery
                 ->when($request->filled('favorite'), function ($query) {
-                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                    $query->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
                 })
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -53,18 +53,18 @@ class QuotationController extends Controller
                     }
                 });
 
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
 
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
             return Transaction::getSellsTable($transactions);
         }
 
         $transaction = $transactionsQuery->get();
 
         $columns = Transaction::getsQuotationColumns();
-        $clients =  Contact::where('business_type', 'customer')->get();
-        $page='quotations';
+        $clients = Contact::where('business_type', 'customer')->get();
+        $page = 'quotations';
 
-        return view('sales::quotation.index', compact('columns', 'page','clients', 'transaction'));
+        return view('sales::quotation.index', compact('columns', 'page', 'clients', 'transaction'));
     }
 
     /**
@@ -72,7 +72,7 @@ class QuotationController extends Controller
      */
     public function create()
     {
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
 
         $clients = Contact::where('business_type', 'customer')->get();
@@ -80,16 +80,17 @@ class QuotationController extends Controller
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
 
         $quotation = true;
         $transaction = null;
-        $products = Product::where('type','<>','ingredint')->with(['unitTransfers' => function ($query) {
+        $products = Product::where('type', '<>', 'ingredint')->with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
+
         return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
@@ -99,9 +100,9 @@ class QuotationController extends Controller
     public function store(Request $request)
     {
         try {
-            $transactionUtil = new TransactionUtils();
+            $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('quotation');
+            $ref_no = SalesUtile::generateReferenceNumber('quotation');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $main_establishment = Establishment::notMain()->active()->first();
@@ -109,7 +110,7 @@ class QuotationController extends Controller
             if ($request->storehouse == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
-            $transaction =   Transaction::create([
+            $transaction = Transaction::create([
                 'type' => 'quotation',
                 'invoice_type' => $request->invoice_type,
                 'due_date' => $request->due_date,
@@ -129,9 +130,7 @@ class QuotationController extends Controller
                 'notice' => $request->notice,
                 'establishment_id' => $establishment_id,
 
-
             ]);
-
 
             $products = json_decode(json_encode($request->products));
 
@@ -153,12 +152,12 @@ class QuotationController extends Controller
                 ]);
             }
 
-
-            
             DB::commit();
+
             return redirect()->route('quotations')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('quotations')->with('error', __('messages.something_went_wrong'));
         }
     }

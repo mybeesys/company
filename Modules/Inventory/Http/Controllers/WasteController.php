@@ -3,15 +3,15 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Modules\General\Models\Transaction;
-use Modules\General\Models\TransactionSellLine;
-use Modules\Inventory\Models\TransactionUtil;
-use DB;
-use Illuminate\Support\Facades\Auth;
 use Modules\General\Models\TransactionePurchasesLine;
+use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\ProductInventoryTotal;
+use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 
@@ -27,79 +27,84 @@ class WasteController extends Controller
             'PREP' => 'PREP',
             'RMA' => 'RMA',
             'WASTE' => 'WASTE',
-            'TRANSFER' => 'TRANS'
+            'TRANSFER' => 'TRANS',
         ];
         // Get the last invoice number (if any)
         $lastPO = Transaction::where('type', '=', $opType)->orderBy('ref_no', 'desc')->first();
 
         // Check if there is a previous invoice
-        $newPONumber = $prefix[$opType] . '-1001';  // Default starting number
+        $newPONumber = $prefix[$opType].'-1001';  // Default starting number
         if ($lastPO) {
             // Extract the number part from the last invoice
             preg_match('/(\d+)/', $lastPO->ref_no, $matches);
-            $lastNumber = (int)$matches[0];
-            $newPONumber = $prefix[$opType] . '-' . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            $lastNumber = (int) $matches[0];
+            $newPONumber = $prefix[$opType].'-'.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
         }
 
         return $newPONumber;
     }
+
     public static function prepareTransaction($id)
     {
-        $transaction  = Transaction::with('establishment')->find($id); //::->find($id);
+        $transaction = Transaction::with('establishment')->find($id); // ::->find($id);
         $related = Transaction::with('establishment')->where('parent_id', $id)->first();
         $transaction->toEstablishment = $related?->establishment;
         $resTransaction = $transaction->toArray();
-        $resTransaction["items"] = [];
+        $resTransaction['items'] = [];
         foreach ($transaction->sell_lines as $item) {
-            $resTransaction["items"][] = self::prepareItem($item);
+            $resTransaction['items'][] = self::prepareItem($item);
         }
-        $resTransaction["purshaseItems"] = [];
+        $resTransaction['purshaseItems'] = [];
         if ($related) {
             foreach ($related->purchases_lines as $purchaseItem) {
-                $resTransaction["purshaseItems"][] = self::prepareItem($purchaseItem);
+                $resTransaction['purshaseItems'][] = self::prepareItem($purchaseItem);
             }
         }
+
         return $resTransaction;
     }
+
     private static function prepareItem($item)
     {
         $newItem = $item->toArray();
         $transaction = Transaction::where('parent_id', $item->transaction_id)->first();
-        if (!$transaction) {
-            $newItem["receivedQuantity"] = 0;
-            $newItem["remainingQuantity"] = $item->qyt;
+        if (! $transaction) {
+            $newItem['receivedQuantity'] = 0;
+            $newItem['remainingQuantity'] = $item->qyt;
         } else {
             $transactionePurchasesLine = TransactionePurchasesLine::where('transaction_id', $transaction->id)
                 ->where('transactionsell_id', $item->id)
                 ->sum('qyt');
 
-            $newItem["receivedQuantity"] = $transactionePurchasesLine ? $transactionePurchasesLine : 0;
-            $newItem["remainingQuantity"] = $transactionePurchasesLine ? ($item->qyt - $transactionePurchasesLine) : $item->qyt;
+            $newItem['receivedQuantity'] = $transactionePurchasesLine ? $transactionePurchasesLine : 0;
+            $newItem['remainingQuantity'] = $transactionePurchasesLine ? ($item->qyt - $transactionePurchasesLine) : $item->qyt;
         }
 
-        $newItem["qty"] = $item->qyt;
-        $newItem["quantityToReceive"] = 0;
+        $newItem['qty'] = $item->qyt;
+        $newItem['quantityToReceive'] = 0;
         if (isset($item->product_id)) {
-            $newItem["product_id"] = $item->product_id;
+            $newItem['product_id'] = $item->product_id;
             $prod = $item->product->toArray();
-            $prod["id"] =  $item->product_id;
-            $newItem["product"] = $prod;
+            $prod['id'] = $item->product_id;
+            $newItem['product'] = $prod;
         }
         if (isset($item->ingredient_id)) {
-            $newItem["product_id"] = $item->ingredient_id;
+            $newItem['product_id'] = $item->ingredient_id;
             $ingr = $item->ingredient->toArray();
-            $ingr["id"] =  $item->ingredient_id;
-            $newItem["product"] = $ingr;
+            $ingr['id'] = $item->ingredient_id;
+            $newItem['product'] = $ingr;
         }
         if (isset($item->modifier_id)) {
-            $newItem["product_id"] = $item->modifier_id;
+            $newItem['product_id'] = $item->modifier_id;
             $mod = $item->modifier->toArray();
-            $mod["id"] =  $item->modifier_id;
-            $newItem["product"] = $mod;
+            $mod['id'] = $item->modifier_id;
+            $newItem['product'] = $mod;
         }
-        $newItem["unit"] = $item->unitTransfer?->toArray();
+        $newItem['unit'] = $item->unitTransfer?->toArray();
+
         return $newItem;
     }
+
     public function index()
     {
         return view('inventory::waste.index');
@@ -110,8 +115,9 @@ class WasteController extends Controller
      */
     public function create()
     {
-        $waste = new Transaction();
+        $waste = new Transaction;
         $waste->items = [];
+
         return view('inventory::waste.create', compact('waste'));
     }
 
@@ -122,6 +128,7 @@ class WasteController extends Controller
     {
         $waste = self::prepareTransaction($id);
         Log::info($waste);
+
         return view('inventory::waste.edit', compact('waste'));
     }
 
@@ -137,19 +144,21 @@ class WasteController extends Controller
             'transaction_date' => 'nullable|date',
             'description' => 'nullable|string',
         ]);
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             Log::info($request);
             $result = TransactionUtil::createTransaction('WASTE', $validated, $request, false);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         } else {
             $result = TransactionUtil::updateTransaction($validated, $request, false);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         }
     }
 
@@ -206,16 +215,16 @@ class WasteController extends Controller
 
                 // Check inventory for the product
                 $prodTotal = $prodTotals->firstWhere('product_id', $productId);
-                if (!$prodTotal) {
+                if (! $prodTotal) {
                     $product = Product::find($productId);
                     $result[] = [
-                        "name_ar" => $product->name_ar,
-                        "name_en" => $product->name_en,
-                        "qty" => 0
+                        'name_ar' => $product->name_ar,
+                        'name_en' => $product->name_en,
+                        'qty' => 0,
                     ];
                 }
 
-                $wasteProduct =  UnitTransfer::where('id', $item['unit']['id'])
+                $wasteProduct = UnitTransfer::where('id', $item['unit']['id'])
                     ->first();
                 Log::info($item['unit']['id']);
                 $totalQty = $prodTotal->qty;
@@ -227,14 +236,15 @@ class WasteController extends Controller
                 if ($totalQty < $requestedQty) {
                     $product = Product::find($productId);
                     $result[] = [
-                        "name_ar" => $product->name_ar,
-                        "name_en" => $product->name_en,
-                        "qty" => $totalQty . '' . $wasteProduct->unit1
+                        'name_ar' => $product->name_ar,
+                        'name_en' => $product->name_en,
+                        'qty' => $totalQty.''.$wasteProduct->unit1,
                     ];
                 }
 
-                if (count($result) > 0)
+                if (count($result) > 0) {
                     return $result;
+                }
 
                 if ($transactionId) {
                     $line = TransactionSellLine::findOrFail($itemId);
@@ -259,12 +269,12 @@ class WasteController extends Controller
 
             DB::commit();
 
-            return response()->json(["message" => "Done"]);
+            return response()->json(['message' => 'Done']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error processing waste transaction: ' . $e->getMessage());
+            Log::error('Error processing waste transaction: '.$e->getMessage());
 
-            return response()->json(["message" => "An error occurred while processing the waste transaction.", "error" => $e->getMessage()], 500);
+            return response()->json(['message' => 'An error occurred while processing the waste transaction.', 'error' => $e->getMessage()], 500);
         }
     }
 }

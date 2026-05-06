@@ -40,30 +40,28 @@ class SellApiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(Request $request)
     {
 
         try {
 
-
-            $transactionUtil = new TransactionUtils();
+            $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('sell');
+            $ref_no = SalesUtile::generateReferenceNumber('sell');
             $main_establishment = Establishment::notMain()->active()->first();
             $establishment_id = $request->establishment_id;
             if ($request->establishment_id == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
             $created_by = Employee::find($request->user_id);
-            if (!$created_by) {
+            if (! $created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
             }
             if (EstPos::find($request->device_id)) {
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
             }
 
-            $transaction =   Transaction::create([
+            $transaction = Transaction::create([
                 'type' => 'sell',
                 'local_id' => $request->id,
                 'invoice_type' => $request->payment_status,
@@ -95,14 +93,15 @@ class SellApiController extends Controller
 
             foreach ($products as $product) {
                 $find_product = Product::find($product->product_id);
-                if (!$find_product) {
-                    return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                if (! $find_product) {
+                    return response()->json(['message' => 'Product not found id ='.$product->product_id], 404);
                 }
 
                 if ($mustValidateStock) {
                     $availableQty = $this->getAvailableProductQty((int) $product->product_id, (int) $establishment_id);
                     if ($availableQty < (float) $product->quantity) {
                         DB::rollBack();
+
                         return response()->json([
                             'message' => app()->getLocale() === 'ar'
                                 ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$find_product->name_ar}"
@@ -128,14 +127,15 @@ class SellApiController extends Controller
 
                 foreach ($modifiers as $modifier) {
                     $find_product = Product::find($modifier->modifier_id);
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                    if (! $find_product) {
+                        return response()->json(['message' => 'Modifier not found id ='.$modifier->modifier_id], 404);
                     }
 
                     if ($mustValidateStock) {
                         $availableQty = $this->getAvailableProductQty((int) $modifier->modifier_id, (int) $establishment_id);
                         if ($availableQty < (float) $modifier->quantity) {
                             DB::rollBack();
+
                             return response()->json([
                                 'message' => app()->getLocale() === 'ar'
                                     ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$find_product->name_ar}"
@@ -162,8 +162,8 @@ class SellApiController extends Controller
 
                 foreach ($order_item_combos as $order_item_combo) {
                     $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                    if (! $find_product) {
+                        return response()->json(['message' => 'Combo not found id ='.$order_item_combo->combo_group_id], 404);
                     }
 
                     if ($mustValidateStock) {
@@ -171,6 +171,7 @@ class SellApiController extends Controller
                         if ($availableQty < (float) $find_product->quantity) {
                             DB::rollBack();
                             $comboProduct = Product::find($find_product->product_id);
+
                             return response()->json([
                                 'message' => app()->getLocale() === 'ar'
                                     ? 'لا يمكن إتمام البيع لأن الكمية غير كافية لأحد منتجات الكومبو.'
@@ -199,8 +200,8 @@ class SellApiController extends Controller
             foreach ($payments as $payment) {
 
                 $find_payment = PaymentMethod::find($payment->method_id);
-                if (!$find_payment) {
-                    return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                if (! $find_payment) {
+                    return response()->json(['message' => 'Payment method not found id ='.$payment->method_id], 404);
                 }
 
                 $request['payment_method_id'] = $request->method;
@@ -210,17 +211,18 @@ class SellApiController extends Controller
                     $request['payment_method_id'] = $payment->method_id;
                     $request['invoice_type'] = $request->method;
 
-
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
                 }
             }
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
+
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'something went wrong \n' . $e], 500);
+
+            return response()->json(['message' => 'something went wrong \n'.$e], 500);
         }
     }
 
@@ -231,7 +233,6 @@ class SellApiController extends Controller
             ->where('establishment_id', $establishmentId)
             ->sum('qty'));
     }
-
 
     /**
      * Show the specified resource.

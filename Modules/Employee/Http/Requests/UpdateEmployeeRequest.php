@@ -8,14 +8,15 @@ use Modules\Employee\Traits\EmployeeValidateTrait;
 
 class UpdateEmployeeRequest extends FormRequest
 {
-
     use EmployeeValidateTrait;
+
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(Request $request): array
     {
-        $notAjaxValidate = !str_contains(request()->url(), 'validate');
+        $notAjaxValidate = ! str_contains(request()->url(), 'validate');
+
         return $this->getUpdateValidationRules($notAjaxValidate, $request, $this);
     }
 

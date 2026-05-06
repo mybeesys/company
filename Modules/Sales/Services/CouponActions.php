@@ -3,8 +3,6 @@
 namespace Modules\Sales\Services;
 
 use Modules\Sales\Models\Coupon;
-use Str;
-
 
 class CouponActions
 {

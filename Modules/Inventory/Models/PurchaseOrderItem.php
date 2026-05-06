@@ -3,18 +3,11 @@
 namespace Modules\Inventory\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Product\Models\Ingredient;
-use Modules\Product\Models\Product;
-use Modules\Product\Models\Unit;
-use Modules\Product\Models\UnitTransfer;
-use Modules\Product\Models\Vendor;
 
 class PurchaseOrderItem extends InventoryOperationItem
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -28,17 +21,20 @@ class PurchaseOrderItem extends InventoryOperationItem
     protected $fillable = [
         'operation_item_id',
         'taxed',
-        'recievd_qty'
+        'recievd_qty',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
     public $type = 'purchaseOrderItems';
 
-    public function fillValidated($validated, $data){
-        $validated["taxed"] = 0;
+    public function fillValidated($validated, $data)
+    {
+        $validated['taxed'] = 0;
+
         return $validated;
     }
 }

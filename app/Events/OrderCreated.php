@@ -32,7 +32,6 @@ use Illuminate\Broadcasting\Channel;
 //     }
 // }
 
-
 // use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
@@ -40,11 +39,13 @@ class OrderCreated implements ShouldBroadcast
 {
     public $orderData;
 
-    public function __construct($orderData) {
+    public function __construct($orderData)
+    {
         $this->orderData = $orderData;
     }
 
-    public function broadcastOn() {
+    public function broadcastOn()
+    {
         return new Channel('reservation-channel');
     }
 }

@@ -3,8 +3,8 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Product\Enums\ButtonDisplay;
 use Illuminate\Http\JsonResponse;
+use Modules\Product\Enums\ButtonDisplay;
 
 class ButtonDisplayController extends Controller
 {
@@ -13,5 +13,3 @@ class ButtonDisplayController extends Controller
         return response()->json(ButtonDisplay::all());
     }
 }
-
-?>

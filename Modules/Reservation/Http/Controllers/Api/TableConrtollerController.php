@@ -6,17 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Product\Models\TypesOfService;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
 use Modules\Reservation\Transformers\TableResource;
-use Modules\Product\Models\TypesOfService;
 
 class TableConrtollerController extends Controller
 {
     public function index()
     {
         $tables = Table::with('area')->get();
+
         return TableResource::collection($tables);
     }
 
@@ -27,7 +28,7 @@ class TableConrtollerController extends Controller
         $tables = Table::with([
             'area',
             'activeOrder',
-            'reservation'
+            'reservation',
         ])->where('active', 1)
             ->when($establishmentId, function ($query) use ($establishmentId) {
                 return $query->whereHas('area', function ($q) use ($establishmentId) {
@@ -43,8 +44,8 @@ class TableConrtollerController extends Controller
                     'name' => $table->code,
                     'capacity' => $table->steating_capacity,
                     'status' => match ($table->table_status) {
-                        "1" => 'reserved',
-                        "2" => 'notAvailable',
+                        '1' => 'reserved',
+                        '2' => 'notAvailable',
                         default => 'available',
                     },
                     'current_order_id' => optional($table->activeOrder)->id,
@@ -53,7 +54,7 @@ class TableConrtollerController extends Controller
                     'current_guests' => optional($table->reservation)->guests_count,
                     'opened_at' => optional($table->activeOrder)->created_at,
                     'area' => optional($table->area)->name_en,
-                    "establishment_id" => optional($table->area)->establishment_id,
+                    'establishment_id' => optional($table->area)->establishment_id,
                     'floor' => optional($table->area)->floor ?? 1,
                     'reservation' => $table->reservation ? [
                         'customer_name' => $table->reservation->customer_name,
@@ -62,7 +63,7 @@ class TableConrtollerController extends Controller
                         'guests_count' => $table->reservation->guests_count,
                     ] : null,
                 ];
-            })
+            }),
         ]);
     }
 
@@ -72,12 +73,12 @@ class TableConrtollerController extends Controller
             'area',
             'reservation',
             'activeOrder.payment',
-            'activeOrder.sell_lines.product'
+            'activeOrder.sell_lines.product',
         ])->find($id);
 
-        if (!$table) {
+        if (! $table) {
             return response()->json([
-                'message' => 'Table not found id = ' . $id
+                'message' => 'Table not found id = '.$id,
             ], 404);
         }
 
@@ -85,7 +86,7 @@ class TableConrtollerController extends Controller
         $table_status = 'available';
         if ($table->table_status == 1) {
             $table_status = 'reserved';
-        } else if ($table->table_status == 2) {
+        } elseif ($table->table_status == 2) {
             $table_status = 'notAvailable';
         }
 
@@ -98,26 +99,27 @@ class TableConrtollerController extends Controller
 
             $items = $parentItems->map(function ($mainItem) use ($allLines) {
                 $subItems = $allLines->where('parent_id', $mainItem->id);
+
                 return [
                     'id' => $mainItem->id,
                     'product_id' => $mainItem->product_id,
                     'product_name' => $mainItem->product->name_ar ?? '',
-                    'quantity' => (float)$mainItem->qyt,
-                    'price' => (float)$mainItem->unit_price,
-                    'price_after_discount' => (float)$mainItem->unit_price_before_discount,
+                    'quantity' => (float) $mainItem->qyt,
+                    'price' => (float) $mainItem->unit_price,
+                    'price_after_discount' => (float) $mainItem->unit_price_before_discount,
                     'discount_type' => $mainItem->discount_type,
-                    'discount_amount' => (float)$mainItem->discount_amount,
+                    'discount_amount' => (float) $mainItem->discount_amount,
                     'tax_id' => $mainItem->tax_id,
-                    'tax_value' => (float)$mainItem->tax_value,
-                    'price_with_tax_after_discount' => (float)$mainItem->unit_price_inc_tax,
+                    'tax_value' => (float) $mainItem->tax_value,
+                    'price_with_tax_after_discount' => (float) $mainItem->unit_price_inc_tax,
                     'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
                         return [
                             'id' => $mod->id,
                             'modifier_id' => $mod->modifier_id,
                             'modifier_name' => $mod->product->name_ar ?? 'Modifier',
-                            'quantity' => (float)$mod->qyt,
-                            'price' => (float)$mod->unit_price,
-                            'price_with_tax' => (float)$mod->unit_price_inc_tax,
+                            'quantity' => (float) $mod->qyt,
+                            'price' => (float) $mod->unit_price,
+                            'price_with_tax' => (float) $mod->unit_price_inc_tax,
                         ];
                     })->values(),
                     'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
@@ -125,7 +127,7 @@ class TableConrtollerController extends Controller
                             'id' => $combo->id,
                             'option_id' => $combo->combo_id,
                             'option_name' => $combo->productCombo->name_ar ?? '',
-                            'price' => (float)$combo->unit_price,
+                            'price' => (float) $combo->unit_price,
                         ];
                     })->values(),
                 ];
@@ -173,9 +175,9 @@ class TableConrtollerController extends Controller
                 'description' => $order->description,
                 'tax_amount' => $order->tax_amount,
                 'order_status' => $order->order_status,
-                "order_type" => $service_name,
+                'order_type' => $service_name,
                 'payment_status' => $order?->payment_status,
-                'invoice_created' => !empty($order->id),
+                'invoice_created' => ! empty($order->id),
                 'invoice_id' => $order->id,
                 'paid_amount' => $order?->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
@@ -202,7 +204,7 @@ class TableConrtollerController extends Controller
             if ($hasActiveOrder) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'لا يمكن تغيير حالة الطاولة يدوياً لوجود طلب مفتوح عليها.'
+                    'message' => 'لا يمكن تغيير حالة الطاولة يدوياً لوجود طلب مفتوح عليها.',
                 ], 422);
             }
 
@@ -235,12 +237,13 @@ class TableConrtollerController extends Controller
                 'data' => [
                     'table_id' => $table->id,
                     'status' => $table->table_status,
-                    'updated_at' => now()->toDateTimeString()
-                ]
+                    'updated_at' => now()->toDateTimeString(),
+                ],
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => false, 'message' => 'خطأ: ' . $e->getMessage()], 500);
+
+            return response()->json(['status' => false, 'message' => 'خطأ: '.$e->getMessage()], 500);
         }
     }
 
@@ -248,16 +251,16 @@ class TableConrtollerController extends Controller
     {
         try {
             $tenantId = (string) tenancy()->tenant->id;
-            \Illuminate\Support\Facades\Http::timeout(1)->post("http://127.0.0.1:3001/broadcast", [
+            \Illuminate\Support\Facades\Http::timeout(1)->post('http://127.0.0.1:3001/broadcast', [
                 'tenant_id' => $tenantId,
                 'event' => 'TableUpdated',
                 'data' => [
                     'table_id' => $table->id,
-                    'status' => $table->table_status
-                ]
+                    'status' => $table->table_status,
+                ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Socket Error: " . $e->getMessage());
+            Log::error('Socket Error: '.$e->getMessage());
         }
     }
 }

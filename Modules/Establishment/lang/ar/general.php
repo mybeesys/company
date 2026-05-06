@@ -1,6 +1,5 @@
 <?php
 
-
 return [
     'add_establishment' => 'إضافة فرع',
     'edit_establishment' => 'تعديل فرع',
@@ -42,8 +41,7 @@ return [
     'you_will_delete_this_device' => 'ستقوم بحذف هذا الجهاز!',
     'yes' => 'نعم، احذفه!',
     'no' => 'لا، ألغي!',
-    'successfully_deleted'=>'تم حذف الجهاز بنجاح.',
-    'deleted'=>'محذوف',
-
+    'successfully_deleted' => 'تم حذف الجهاز بنجاح.',
+    'deleted' => 'محذوف',
 
 ];

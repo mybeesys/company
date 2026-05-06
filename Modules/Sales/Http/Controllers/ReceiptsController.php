@@ -32,7 +32,6 @@ class ReceiptsController extends Controller
             ->orderBy('id')
             ->get();
 
-
         if ($request->ajax()) {
 
             $transactions = TransactionPayments::with('transaction')
@@ -44,7 +43,8 @@ class ReceiptsController extends Controller
                 })
                 ->orderBy('id')
                 ->get();
-            return  TransactionPayments::getReceiptsTable($transactions);
+
+            return TransactionPayments::getReceiptsTable($transactions);
         }
 
         $columns = TransactionPayments::getReceiptsColumns();
@@ -58,13 +58,10 @@ class ReceiptsController extends Controller
     public function create()
     {
         $clients = Contact::where('business_type', 'customer')->get();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $countries = Country::all();
         $supplier = false;
         $cost_centers = AccountingCostCenter::forDropdown();
-
-
-
 
         return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries'));
     }
@@ -92,27 +89,29 @@ class ReceiptsController extends Controller
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
 
-            DB::beginTransaction();
-            if ($validated['allocation_option'] == 'specified_invoices') {
-                $ids = $validated['transactions'] ?? [];
-                if (count($ids) === 0) {
-                    return redirect()->back()->with('error', __('messages.something_went_wrong'));
-                }
-                $transactions = Transaction::whereIn('id', $ids)->get();
-                $this->settleTransactions($transactions, $request);
-            } else {
-                if ($contact->business_type == 'customer') {
-                    $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
-                } else {
-                    $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['purchases'])->get();
-                }
-                $this->settleTransactions($transactions, $request);
+        DB::beginTransaction();
+        if ($validated['allocation_option'] == 'specified_invoices') {
+            $ids = $validated['transactions'] ?? [];
+            if (count($ids) === 0) {
+                return redirect()->back()->with('error', __('messages.something_went_wrong'));
             }
+            $transactions = Transaction::whereIn('id', $ids)->get();
+            $this->settleTransactions($transactions, $request);
+        } else {
+            if ($contact->business_type == 'customer') {
+                $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+            } else {
+                $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['purchases'])->get();
+            }
+            $this->settleTransactions($transactions, $request);
+        }
 
-            DB::commit();
-            if ($contact->business_type == 'customer')
-                return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
-            return redirect()->route('suppliers-receipts')->with('success', __('messages.add_successfully'));
+        DB::commit();
+        if ($contact->business_type == 'customer') {
+            return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
+        }
+
+        return redirect()->route('suppliers-receipts')->with('success', __('messages.add_successfully'));
         // } catch (Exception $e) {
         //     DB::rollBack();
         //     if ($contact->business_type == 'customer')
@@ -122,13 +121,11 @@ class ReceiptsController extends Controller
         // }
     }
 
-
-
-    function settleTransactions($transactions, $request)
+    public function settleTransactions($transactions, $request)
     {
 
-        $transactionUtil = new TransactionUtils();
-        $contactUtils = new ContactUtils();
+        $transactionUtil = new TransactionUtils;
+        $contactUtils = new ContactUtils;
         $paid_amount = $request->paid_amount;
         foreach ($transactions as $transaction) {
             $paidAmount = $transactionUtil->getTotalPaid($transaction->id);
@@ -152,8 +149,8 @@ class ReceiptsController extends Controller
             $remaining_amount = str_replace(',', '', $remaining_amount);
             $paid_amount = str_replace(',', '', $paid_amount);
             // return $transaction;
-            $remaining_amount = (float)$remaining_amount;
-            $paid_amount = (float)$paid_amount;
+            $remaining_amount = (float) $remaining_amount;
+            $paid_amount = (float) $paid_amount;
             if ($paid_amount >= $remaining_amount) {
                 // Pay the full remaining amount of this invoice.
                 $paid_amount -= $remaining_amount;
@@ -182,19 +179,15 @@ class ReceiptsController extends Controller
             }
         }
 
-
-
-
         return $settledTransactions;
     }
-
 
     /**
      * Show the specified resource.
      */
     public function getTransactions($clientId)
     {
-        $transactionUtil = new TransactionUtils();
+        $transactionUtil = new TransactionUtils;
 
         $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status', 'approved')->get();
 

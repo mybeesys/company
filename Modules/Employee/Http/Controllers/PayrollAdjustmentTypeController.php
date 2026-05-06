@@ -16,11 +16,12 @@ class PayrollAdjustmentTypeController extends Controller
     {
         if ($request->ajax()) {
             $adjustments_types = PayrollAdjustmentType::select('id', 'name', 'name_en', 'type');
-            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+            if ($request->has('deleted_records') && ! empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
                     ? $adjustments_types->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $adjustments_types->withTrashed() : null);
             }
+
             return AdjustmentTypeTable::getAdjustmentTypeTable($adjustments_types);
         }
     }
@@ -28,11 +29,12 @@ class PayrollAdjustmentTypeController extends Controller
     public function getAdjustmentsTypes(Request $request)
     {
         $request->validate([
-            'type' => 'required|in:allowance,deduction'
+            'type' => 'required|in:allowance,deduction',
         ]);
         $adjustments_types = PayrollAdjustmentType::where('type', $request->type)->select('id', 'name', 'name_en')->get()->toArray();
+
         return response()->json([
-            'data' => $adjustments_types
+            'data' => $adjustments_types,
         ]);
     }
 
@@ -47,7 +49,7 @@ class PayrollAdjustmentTypeController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'type' => 'nullable|in:allowance,deduction',
-            'adjustment_type_type' => 'nullable|in:allowance,deduction'
+            'adjustment_type_type' => 'nullable|in:allowance,deduction',
         ]);
 
         $type = $request->adjustment_type_type ?? $request->type ?? 'allowance';
@@ -55,12 +57,12 @@ class PayrollAdjustmentTypeController extends Controller
         $allowanceType = PayrollAdjustmentType::updateOrCreate(['id' => $request->id], [
             $request->name_lang ?? 'name' => $request->name,
             'name_en' => $request->name_en,
-            'type' => $type
+            'type' => $type,
         ]);
 
         return response()->json([
             'id' => $allowanceType->id,
-            'message' => __('employee::responses.created_successfully', ['name' => __("employee::fields.new_{$type}_type")])
+            'message' => __('employee::responses.created_successfully', ['name' => __("employee::fields.new_{$type}_type")]),
         ]);
     }
 
@@ -68,12 +70,14 @@ class PayrollAdjustmentTypeController extends Controller
     {
         try {
             $adjustmentType->delete();
+
             return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('employee::general.this_element')])]);
         } catch (\Throwable $e) {
             \Log::error('adjustment type deletion failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }

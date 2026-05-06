@@ -3,26 +3,23 @@
 namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Modules\Employee\Models\AdministrativeUser;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
 use Modules\Employee\Services\DashboardRoleActions;
 use Modules\Employee\Services\PosRoleActions;
-use Illuminate\Support\Facades\Log;
-use DB;
 
 class PermissionController extends Controller
 {
-
     public function assignPosPermissionsToEmployee(Request $request, Employee $employee)
     {
         $validated = $request->validate([
             'pos_permissions' => ['array', 'nullable'],
             'pos_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'pos')],
             'pos_role_ids' => ['array', 'nullable'],
-            'pos_role_ids.*' => ['integer', Rule::exists('roles', 'id')]
+            'pos_role_ids.*' => ['integer', Rule::exists('roles', 'id')],
         ]);
         $permissions = new PosRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee, false);
@@ -49,7 +46,7 @@ class PermissionController extends Controller
             }
 
             // Insert new roles
-            if (!empty($dataToInsert)) {
+            if (! empty($dataToInsert)) {
                 DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
             }
         } else {
@@ -59,6 +56,7 @@ class PermissionController extends Controller
                 ->whereNotNull('establishment_id')
                 ->delete();
         }
+
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 
@@ -68,7 +66,7 @@ class PermissionController extends Controller
         $employee = Employee::with(['posRoles' => function ($query) {}, 'permissions'])->find($employeeId);
 
         // Handle the case where the employee is not found
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['success' => false, 'message' => 'Not Found'], 404);
         }
 
@@ -107,16 +105,15 @@ class PermissionController extends Controller
             'dashboard_permissions' => ['array', 'nullable'],
             'dashboard_permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('type', 'ems')],
             'dashboard_role_ids' => ['array', 'nullable'],
-            'dashboard_role_ids.*' => ['integer', Rule::exists('roles', 'id')]
+            'dashboard_role_ids.*' => ['integer', Rule::exists('roles', 'id')],
         ]);
 
-        
         // Handle permissions
         $permissions = new DashboardRoleActions(collect($validated));
         $permissions->storeUpdateRolePermissions($employee, false);
 
         // If dashboard_role_ids are provided, handle them
-        if (!empty($validated['dashboard_role_ids'])) {
+        if (! empty($validated['dashboard_role_ids'])) {
             // Delete old roles assigned to the employee in the current establishment
             DB::table('emp_employee_establishments_roles')
                 ->where('employee_id', $employee->id)
@@ -137,7 +134,7 @@ class PermissionController extends Controller
             }
 
             // Insert new roles if data is not empty
-            if (!empty($dataToInsert)) {
+            if (! empty($dataToInsert)) {
                 DB::table('emp_employee_establishments_roles')->insert($dataToInsert);
             }
         } else {
@@ -159,10 +156,10 @@ class PermissionController extends Controller
             },
             'permissions' => function ($query) {
                 $query->where('type', 'ems');
-            }
+            },
         ])->find($id);
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
         }
 

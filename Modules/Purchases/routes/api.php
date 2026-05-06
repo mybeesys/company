@@ -5,8 +5,6 @@ use Modules\Purchases\Http\Controllers\PurchasesReturnApiController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-
-
 Route::middleware([
     'api',
     InitializeTenancyByDomain::class,

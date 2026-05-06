@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_modifierclasses', function (Blueprint $table) {
- 
+
             $table->id();
             $table->string('name_ar');
             $table->string('name_en');

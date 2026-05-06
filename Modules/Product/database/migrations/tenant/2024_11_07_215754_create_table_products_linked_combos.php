@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('product_linked_combos', function (Blueprint $table) {
             $table->id();
-            $table->string('name_ar');  
-            $table->string('name_en'); 
+            $table->string('name_ar');
+            $table->string('name_en');
             $table->decimal('price');
-            $table->string('barcode')->nullable(); 
-            $table->boolean('active'); 
+            $table->string('barcode')->nullable();
+            $table->boolean('active');
             $table->timestamps();
             $table->softDeletes();
         });

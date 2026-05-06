@@ -43,7 +43,7 @@
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:export>
-                    <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px" data-bs-toggle="modal"
+                    <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px receipt-voucher-new-btn" data-bs-toggle="modal"
                         data-bs-target="#receipt-vouchers-Modal">
                         @lang('sales::general.add_receipts')
                     </a>
@@ -74,6 +74,30 @@
         let dataTable;
         const table = $('#kt_sell_table');;
         const dataUrl = '{{ route('receipt-vouchers') }}';
+        const receiptStoreUrl = '{{ route('receipt-vouchers-store') }}';
+        const receiptUpdateBase = '{{ url('receipt-vouchers') }}';
+        const receiptFormDataUrl = '{{ route('receipt-vouchers-form-data') }}';
+        const receiptDefaultTitle = @json(__('menuItemLang.receipt_vouchers'));
+        const receiptEditTitle = @json(__('employee::fields.edit') . ' — ' . __('menuItemLang.receipt_vouchers'));
+        const receiptDupTitle = @json(__('accounting::fields.duplication') . ' — ' . __('menuItemLang.receipt_vouchers'));
+
+        function resetReceiptVoucherForm() {
+            $('#receipt_vouchers_method').prop('disabled', true);
+            $('#receipt-vouchers-form').attr('action', receiptStoreUrl);
+            const form = document.getElementById('receipt-vouchers-form');
+            if (form) form.reset();
+            $('#receipt-vouchers-Modal #from_account, #receipt-vouchers-Modal #cash_account, #receipt-vouchers-Modal #cost_center').val(null).trigger('change');
+            $('#receipt_vouchers_title_text').text(receiptDefaultTitle);
+        }
+
+        function fillReceiptVoucherForm(data) {
+            $('#receipt-vouchers-Modal #from_account').val(String(data.from_account)).trigger('change');
+            $('#receipt-vouchers-Modal #cash_account').val(String(data.account_id)).trigger('change');
+            $('#receipt-vouchers-Modal #transaction_date').val(data.pament_on);
+            $('#receipt-vouchers-Modal #paid_amount').val(data.paid_amount);
+            $('#receipt-vouchers-Modal #cost_center').val(data.cost_center_id ? String(data.cost_center_id) : null).trigger('change');
+            $('#receipt-vouchers-Modal #notice').val(data.additionalNotes || '');
+        }
 
         $(document).ready(function() {
             if (!table.length) return;
@@ -82,10 +106,57 @@
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
-          $('#from_account, #cash_account').select2({
-        dropdownParent: $('#receipt-vouchers-Modal')
-    });
+            $('#receipt-vouchers-Modal #from_account, #receipt-vouchers-Modal #cash_account').select2({
+                dropdownParent: $('#receipt-vouchers-Modal')
+            });
+            $('#receipt-vouchers-Modal #cost_center').select2({
+                dropdownParent: $('#receipt-vouchers-Modal'),
+                placeholder: @json(__('accounting::lang.cost_center')),
+                allowClear: true
+            });
 
+            $('.receipt-voucher-new-btn').on('click', function() {
+                resetReceiptVoucherForm();
+            });
+
+            $(document).on('click', '.receipt-voucher-edit', function(e) {
+                e.preventDefault();
+                const id = $(this).data('line-id');
+                $.getJSON(receiptFormDataUrl, { id: id })
+                    .done(function(data) {
+                        fillReceiptVoucherForm(data);
+                        $('#receipt_vouchers_method').prop('disabled', false);
+                        $('#receipt-vouchers-form').attr('action', receiptUpdateBase + '/' + id);
+                        $('#receipt_vouchers_title_text').text(receiptEditTitle);
+                        $('#receipt-vouchers-Modal').modal('show');
+                    })
+                    .fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        const msg = j.message || (j.errors && j.errors.id && j.errors.id[0]) || xhr.statusText;
+                        alert(msg);
+                    });
+            });
+
+            $(document).on('click', '.receipt-voucher-duplicate', function(e) {
+                e.preventDefault();
+                const id = $(this).data('line-id');
+                $.getJSON(receiptFormDataUrl, { id: id })
+                    .done(function(data) {
+                        resetReceiptVoucherForm();
+                        fillReceiptVoucherForm(data);
+                        $('#receipt_vouchers_title_text').text(receiptDupTitle);
+                        $('#receipt-vouchers-Modal').modal('show');
+                    })
+                    .fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        const msg = j.message || (j.errors && j.errors.id && j.errors.id[0]) || xhr.statusText;
+                        alert(msg);
+                    });
+            });
+
+            $('#receipt-vouchers-Modal').on('hidden.bs.modal', function() {
+                resetReceiptVoucherForm();
+            });
         });
 
 

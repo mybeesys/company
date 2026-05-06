@@ -27,14 +27,12 @@ class ContactResource extends JsonResource
             // 'bank_account_info' => new BankAccountInformationResource($this->bankAccountInformation),
             // 'billing_address' => new BillingAddressResource($this->billingAddress),
 
-
             'street_name' => $this->billingAddress?->street_name ?? '',
             'city' => $this->billingAddress?->city ?? '',
             'state' => $this->billingAddress?->state ?? '',
             'postal_code' => $this->billingAddress?->postal_code ?? '',
             'building_number' => $this->billingAddress?->building_number ?? '',
-            'country' => $this->billingAddress?->country_->name_en . ' - ' . $this->billingAddress?->country_->name_ar ?? '',
-
+            'country' => $this->billingAddress?->country_->name_en.' - '.$this->billingAddress?->country_->name_ar ?? '',
 
             // 'shipping_address' => new ShippingAddressResource($this->shippingAddress),
             // 'client_contact' => ClientContactResource::collection($this->clientContacts),

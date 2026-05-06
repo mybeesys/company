@@ -2,9 +2,8 @@
 
 namespace Modules\Accounting\Models;
 
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\Transaction;
@@ -18,6 +17,7 @@ class AccountingAccountsTransaction extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+
     protected $table = 'accounting_accounts_transactions';
 
     public function account()
@@ -45,13 +45,10 @@ class AccountingAccountsTransaction extends Model
         return $this->belongsTo(Employee::class, 'created_by');
     }
 
-
     public function costCenter()
     {
         return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
     }
-
-    
 
     public static function getAccountTransactionType($tansaction_type)
     {
@@ -69,22 +66,24 @@ class AccountingAccountsTransaction extends Model
         return $account_transaction_types[$tansaction_type];
     }
 
-
     public static function getReceiptsColumns()
     {
         return [
 
-            ["class" => "text-start min-w-150px ", "name" => "account"],
-            ["class" => "text-start min-w-150px ", "name" => "debit/credit"],
-            ["class" => "text-start min-w-150px", "name" => "operation_date"],
-            ["class" => "text-start min-w-80px ", "name" => "amount"],
-            ["class" => "text-start min-w-150px  ", "name" => "created_by"],
-            ["class" => "text-start min-w-150px ", "name" => "note"],
+            ['class' => 'text-start min-w-150px ', 'name' => 'account'],
+            ['class' => 'text-start min-w-150px ', 'name' => 'debit/credit'],
+            ['class' => 'text-start min-w-150px', 'name' => 'operation_date'],
+            ['class' => 'text-start min-w-80px ', 'name' => 'amount'],
+            ['class' => 'text-start min-w-150px  ', 'name' => 'created_by'],
+            ['class' => 'text-start min-w-150px ', 'name' => 'note'],
         ];
     }
 
-    public static function getReceiptsTable($transactions)
+    public static function getReceiptsTable($transactions, string $voucherSubType = 'receipt_voucher')
     {
+        $isPayment = $voucherSubType === 'payment_voucher';
+        $editClass = $isPayment ? 'payment-voucher-edit' : 'receipt-voucher-edit';
+        $dupClass = $isPayment ? 'payment-voucher-duplicate' : 'receipt-voucher-duplicate';
 
         return DataTables::of($transactions)
             ->editColumn('id', function ($row) {
@@ -93,42 +92,47 @@ class AccountingAccountsTransaction extends Model
                             </div>";
             })
             ->editColumn('account', function ($row) {
-                return $row->account->gl_code . ' - ' . (App::getLocale() == 'en' ? $row->account->name_en : $row->account->name_ar);
+                return $row->account->gl_code.' - '.(App::getLocale() == 'en' ? $row->account->name_en : $row->account->name_ar);
             })
             ->editColumn('operation_date', function ($row) {
-                return  $row->operation_date ?? '--';
+                return $row->operation_date ?? '--';
             })
             ->editColumn('type', function ($row) {
-                return  __('accounting::lang.' . $row->type);
+                return __('accounting::lang.'.$row->type);
             })
 
             ->editColumn('amount', function ($row) {
                 return $row->amount;
             })
             ->editColumn('created_by', function ($row) {
-                return  $row->createdBy->name;
+                return $row->createdBy->name;
             })
 
             ->editColumn('note', function ($row) {
-                return  $row->note ?? '--';
+                return $row->note ?? '--';
             })
 
             ->addColumn(
                 'actions',
-                function ($row) {
-                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">' . __('employee::fields.actions') . '<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
+                function ($row) use ($editClass, $dupClass) {
+                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
+                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">';
 
                     $actions .= '<div class="menu-item px-3">
-                <a href="#" class="menu-link px-3">' . __('general.print') . '</a>
+                        <a href="#" class="menu-link px-3 '.$editClass.'" data-line-id="'.$row->id.'">'.__('employee::fields.edit').'</a>
+                    </div>';
+                    $actions .= '<div class="menu-item px-3">
+                        <a href="#" class="menu-link px-3 '.$dupClass.'" data-line-id="'.$row->id.'">'.__('accounting::fields.duplication').'</a>
+                    </div>';
+                    $actions .= '<div class="menu-item px-3">
+                <a href="#" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
-
 
                     return $actions;
                 }
             )
 
-            ->rawColumns(['actions', 'account','type', 'id'])
+            ->rawColumns(['actions', 'account', 'type', 'id'])
             ->make(true);
     }
 }

@@ -10,7 +10,6 @@ use Modules\Accounting\Models\AccountsRoting;
 
 class E_commerceAccUtil
 {
-
     public static function default_accounting_route()
     {
         $vat_acc = AccountingAccount::where('gl_code', '212')->first();
@@ -82,7 +81,7 @@ class E_commerceAccUtil
 
     public static function default_accounting_account_types()
     {
-        return  $account_sub_types = [
+        return $account_sub_types = [
             [
                 'name_en' => 'Current Assets',
                 'name_ar' => 'الأصول المتداولة',
@@ -90,7 +89,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Fixed Assets',
@@ -99,7 +98,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Current Liabilities',
@@ -108,7 +107,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Liabilities',
@@ -117,7 +116,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Equity',
@@ -126,7 +125,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Sales Revenue',
@@ -135,7 +134,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Revenues',
@@ -144,7 +143,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Expenses',
@@ -153,7 +152,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Operating Expenses',
@@ -162,7 +161,7 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Analytical accounts',
@@ -171,13 +170,8 @@ class E_commerceAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'analytical_accounts',
-                'parent_id' => null
+                'parent_id' => null,
             ],
-
-
-
-
-
 
         ];
     }
@@ -197,7 +191,6 @@ class E_commerceAccUtil
         $Expenses_id = AccountingAccountTypes::where('name_en', 'Expenses')->first()->id;
         $OperatingExpenses_id = AccountingAccountTypes::where('name_en', 'Operating Expenses')->first()->id;
         $Analytical_accounts_id = AccountingAccountTypes::where('name_en', 'Analytical accounts')->first()->id;
-
 
         return [
             [
@@ -242,7 +235,7 @@ class E_commerceAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //-----------
+            // -----------
             [
                 'name_en' => 'Cash on Hand',
                 'name_ar' => 'النقد بالصندوق',
@@ -313,7 +306,7 @@ class E_commerceAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //----------
+            // ----------
             [
                 'name_en' => 'Accounts Payable (Suppliers)',
                 'name_ar' => 'الموردين',
@@ -384,7 +377,7 @@ class E_commerceAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //------------------
+            // ------------------
             [
                 'name_en' => 'Capital',
                 'name_ar' => 'رأس المال',
@@ -430,7 +423,6 @@ class E_commerceAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
             [
                 'name_en' => 'Net Profit / Loss',
                 'name_ar' => 'صافي الربح / الخسارة',
@@ -446,7 +438,7 @@ class E_commerceAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-            //-------------
+            // -------------
             [
                 'name_en' => ' Cost of Goods Sold (COGS)',
                 'name_ar' => 'تكلفة البضاعة المباعة',

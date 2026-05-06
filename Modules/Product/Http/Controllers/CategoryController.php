@@ -4,9 +4,9 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Subcategory;
+use Modules\Product\Models\TreeBuilder;
 
 class CategoryController extends Controller
 {
@@ -16,6 +16,7 @@ class CategoryController extends Controller
     public function index()
     {
         $product_permission = auth()->user()->franchise?->product_permission ?? 'absolute';
+
         return view('product::category.index', compact('product_permission'));
     }
 
@@ -29,18 +30,21 @@ class CategoryController extends Controller
     public function getminisubcategorylist($id)
     {
         $subcategories = Category::find($id);
+
         return response()->json($subcategories->subcategories);
     }
 
     public function getCategories()
     {
-        $TreeBuilder = new TreeBuilder();
+        $TreeBuilder = new TreeBuilder;
         $categories = Category::all();
         $categories = Category::restrictByFranchise()
             ->get();
         $tree = $TreeBuilder->buildTrees($categories, null, 'category', null, null, null);
+
         return response()->json($tree);
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -60,44 +64,52 @@ class CategoryController extends Controller
             'order' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
 
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $subCategory = Subcategory::where([['category_id', '=', $validated['id']]])->first();
-            if ($subCategory != null)
-                return response()->json(["message" => "CHILD_EXIST"]);
+            if ($subCategory != null) {
+                return response()->json(['message' => 'CHILD_EXIST']);
+            }
 
             $category = Category::find($validated['id']);
             $category->delete();
-            return response()->json(["message" => "Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             if (isset($validated['order'])) {
                 $category = Category::where('order', $validated['order'])->first();
-                if ($category != null)
-                    return response()->json(["message" => "ORDER_EXIST"]);
+                if ($category != null) {
+                    return response()->json(['message' => 'ORDER_EXIST']);
+                }
             }
             $category = Category::where('name_ar', $validated['name_ar'])->first();
-            if ($category != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($category != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $category = Category::where('name_en', $validated['name_en'])->first();
-            if ($category != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($category != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
             $category = Category::create($validated);
         } else {
             if (isset($validated['order'])) {
                 $categories = Category::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-                if ($categories != null)
-                    return response()->json(["message" => "ORDER_EXIST"]);
+                if ($categories != null) {
+                    return response()->json(['message' => 'ORDER_EXIST']);
+                }
             }
             $categories = Category::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
-            if ($categories != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($categories != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $categories = Category::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
-            if ($categories != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($categories != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             $category = Category::find($validated['id']);
             $category->name_ar = $validated['name_ar'];
@@ -108,8 +120,9 @@ class CategoryController extends Controller
             $category->save();
         }
 
-        return response()->json(["message" => "Done"]);
+        return response()->json(['message' => 'Done']);
     }
+
     /**
      * Show the specified resource.
      */

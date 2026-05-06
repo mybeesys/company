@@ -2,14 +2,15 @@
 
 namespace Modules\Product\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
     protected string $name = 'Product';
 
     protected $moduleNamespace = 'Modules\Product\Http\Controllers';
+
     /**
      * Called before routes are registered.
      *
@@ -37,8 +38,8 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapWebRoutes(): void
     {
         Route::middleware('web')
-        ->namespace($this->moduleNamespace)
-        ->group(module_path($this->name, '/routes/web.php'));
+            ->namespace($this->moduleNamespace)
+            ->group(module_path($this->name, '/routes/web.php'));
     }
 
     /**

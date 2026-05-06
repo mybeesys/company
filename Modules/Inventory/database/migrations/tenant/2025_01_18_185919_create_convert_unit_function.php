@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -12,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("DROP FUNCTION IF EXISTS get_main_unit");
+        DB::statement('DROP FUNCTION IF EXISTS get_main_unit');
         DB::statement("CREATE FUNCTION get_main_unit
                 (p_type char(1), 
                 p_id INT) 
@@ -35,7 +34,7 @@ return new class extends Migration
                     END IF;
                     RETURN result;
                 END;");
-        DB::statement("DROP FUNCTION IF EXISTS convert_quantity");
+        DB::statement('DROP FUNCTION IF EXISTS convert_quantity');
         DB::statement("CREATE FUNCTION convert_quantity
                     (p_type char(1), 
                     p_id INT, 
@@ -86,7 +85,6 @@ return new class extends Migration
 
                     RETURN result_quantity;
                 END");
-        
 
         DB::statement("CREATE OR REPLACE VIEW product_inventories AS
         SELECT 
@@ -152,7 +150,6 @@ return new class extends Migration
                     ) op ON op.product_id = pp.id
         group by pp.id, establishment_id"
         );
-
 
         DB::statement("CREATE OR REPLACE VIEW modifier_inventories AS
     	SELECT 

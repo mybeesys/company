@@ -2,8 +2,9 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\General\Database\Factories\SettingFactory;
 
 class Setting extends Model
@@ -18,14 +19,13 @@ class Setting extends Model
     public static function getNotesAndTermsConditions()
     {
 
-        return   $settings = Setting::whereIn('key', [
+        return $settings = Setting::whereIn('key', [
             'terms_and_conditions_en',
             'terms_and_conditions_ar',
             'note_ar',
-            'note_en'
+            'note_en',
         ])->get();
     }
-
 
     public static function getInventoryCostingMethod()
     {
@@ -37,6 +37,7 @@ class Setting extends Model
     public static function getInventoryTrackingPolicy(): string
     {
         $policy = (string) (Setting::where('key', 'inventory_tracking_policy')->value('value') ?? 'perpetual');
+
         return in_array($policy, ['perpetual', 'periodic'], true) ? $policy : 'perpetual';
     }
 
@@ -77,15 +78,13 @@ class Setting extends Model
     public static function getCurrency()
     {
         $currency = Setting::where('key', 'currency')->value('value');
-        if (!empty($currency)) {
+        if (! empty($currency)) {
             return $currency;
         }
 
         $sarCurrency = Country::where('iso_code', 'SA')->value('currency_symbol_en');
+
         return $sarCurrency ?: 'SAR';
 
     }
-
-
-    
 }

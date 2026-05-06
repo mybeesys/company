@@ -22,11 +22,8 @@ use Spatie\Permission\Models\Role;
 
 class PayrollController extends Controller
 {
+    public function __construct(protected PayrollTable $payrollTable, protected PayrollAction $payrollAction) {}
 
-
-    public function __construct(protected PayrollTable $payrollTable, protected PayrollAction $payrollAction)
-    {
-    }
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +31,7 @@ class PayrollController extends Controller
     {
         if ($request->ajax()) {
             $payrolls = Payroll::with('employee', 'payrollGroup', 'allowances', 'deductions', 'adjustments.adjustmentType');
-            if ($request->has('date_filter') && !empty($request->date_filter)) {
+            if ($request->has('date_filter') && ! empty($request->date_filter)) {
                 $payrolls->whereRelation('payrollGroup', 'date', $request->date_filter);
             }
 
@@ -48,6 +45,7 @@ class PayrollController extends Controller
 
         return view('employee::schedules.payroll.index', compact('payroll_columns', 'establishments', 'employees', 'payroll_group_columns'));
     }
+
     public function getColumns()
     {
         return response()->json(PayrollTable::getIndexPayrollColumns());
@@ -72,14 +70,14 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', __('employee::responses.employees_do_have_wages'));
         }
 
-        $lockKey = 'payroll_creation_lock_' . $date . '_(' . implode('-', $establishmentIds) . ')';
+        $lockKey = 'payroll_creation_lock_'.$date.'_('.implode('-', $establishmentIds).')';
         $lock = Cache::lock($lockKey, 30);
 
         if ($request->ajax()) {
             return $this->payrollTable->getCreatePayrollTable($date, $employeeIds->toArray(), $establishmentIds);
         }
 
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             return to_route('schedules.payrolls.index')
                 ->with('error', __('employee::responses.payroll_creation_in_progress'));
         }
@@ -113,7 +111,6 @@ class PayrollController extends Controller
         ));
     }
 
-
     public function extendLock(Request $request)
     {
         $lockKey = $request->input('lockKey');
@@ -139,12 +136,12 @@ class PayrollController extends Controller
             'default_font_size' => 12,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
-            'tempDir' => storage_path('temp/mpdf')
+            'tempDir' => storage_path('temp/mpdf'),
         ]);
 
         $mpdf->WriteHTML($html);
 
-        return $mpdf->Output('payrolls.pdf','D');
+        return $mpdf->Output('payrolls.pdf', 'D');
     }
 
     public function store(StorePayrollRequest $request)
@@ -153,21 +150,22 @@ class PayrollController extends Controller
         $date = $request->validated('date');
         $payroll_group_id = $request->validated('payroll_group_id');
 
-        $lockKey = 'payroll_lock_' . $date . '_' . implode('-', $employeeIds);
+        $lockKey = 'payroll_lock_'.$date.'_'.implode('-', $employeeIds);
 
         $lock = Cache::lock($lockKey, 60);
 
         try {
-            if (!$lock->get()) {
+            if (! $lock->get()) {
                 return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
             }
 
             $payrollDataExists = collect($employeeIds)->every(function ($employeeId) use ($date) {
-                return Cache::has("payroll_table_{$date}_" . $employeeId);
+                return Cache::has("payroll_table_{$date}_".$employeeId);
             });
 
-            if (!$payrollDataExists) {
+            if (! $payrollDataExists) {
                 $lock->release();
+
                 return to_route('schedules.payrolls.index')->with('error', __('employee::responses.duplicate_payroll'));
             }
 
@@ -183,7 +181,8 @@ class PayrollController extends Controller
             if (isset($lock)) {
                 $lock->release();
             }
-            Log::error('Payroll creation failed: ' . $e->getMessage());
+            Log::error('Payroll creation failed: '.$e->getMessage());
+
             return back()->with('error', __('employee::responses.something_wrong_happened'));
         } finally {
             if (isset($lock)) {

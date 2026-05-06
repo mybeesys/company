@@ -39,20 +39,20 @@ class PurchasesReturnApiController extends Controller
         try {
             $purchases = Transaction::findOrFail($request->transaction_id);
 
-            if (!$purchases) {
+            if (! $purchases) {
                 return response()->json(['message' => 'something went wrong'], 500);
             }
 
-            $ref_no =  SalesUtile::generateReferenceNumber('purchases-return');
+            $ref_no = SalesUtile::generateReferenceNumber('purchases-return');
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-            $transactionUtil = new TransactionUtils();
+            $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
             $main_establishment = Establishment::notMain()->active()->first();
             $establishment_id = $request->establishment_id;
             if ($request->establishment_id == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
-            $transaction =   Transaction::create([
+            $transaction = Transaction::create([
                 'type' => 'purchases-return',
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
@@ -80,7 +80,7 @@ class PurchasesReturnApiController extends Controller
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
-                $discount_type =  null;
+                $discount_type = null;
                 TransactionSellLine::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->product_id,
@@ -96,9 +96,11 @@ class PurchasesReturnApiController extends Controller
                 ]);
             }
             DB::commit();
+
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'something went wrong'], 500);
         }
     }

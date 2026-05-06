@@ -34,11 +34,9 @@ return [
 
     'invoice_info' => 'Invoice information',
 
-
     'purchases' => 'Purchase Invoice',
     'purchases-order' => 'Purchase Order',
     'purchases-return' => 'Purchase Return',
-
 
     'menu' => 'Menu',
     'night_mode' => 'Night',

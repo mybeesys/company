@@ -1,44 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AuthenticateJWT;
-use Modules\Product\Http\Controllers\PriceTierController;
-use Modules\Product\Http\Controllers\ProductController;
-use Modules\Product\Http\Controllers\ProductDashboardController;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-use Modules\Product\Http\Controllers\CategoryController;
-use Modules\Product\Http\Controllers\SubCategoryController;
-use Modules\Product\Http\Controllers\ModifierClassController;
-use Modules\Product\Http\Controllers\ModifierController;
-use Modules\Product\Http\Controllers\AttributesClassController;
-use Modules\Product\Http\Controllers\AttributeController;
-use Modules\Product\Http\Controllers\IngredientController;
-use Modules\Product\Http\Controllers\ButtonDisplayController;
-use Modules\Product\Http\Controllers\ModifierDisplayController;
-use Modules\Product\Http\Controllers\CustomMenuController;
 use Modules\Product\Http\Controllers\ApplicationTypeController;
+use Modules\Product\Http\Controllers\AttributeController;
+use Modules\Product\Http\Controllers\AttributesClassController;
+use Modules\Product\Http\Controllers\ButtonDisplayController;
+use Modules\Product\Http\Controllers\CategoryController;
 use Modules\Product\Http\Controllers\CreditCardTypeController;
+use Modules\Product\Http\Controllers\CustomMenuController;
 use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\DiscountController;
 use Modules\Product\Http\Controllers\DiscountLOVController;
 use Modules\Product\Http\Controllers\GeneralController;
 use Modules\Product\Http\Controllers\Import\ProductImportController;
+use Modules\Product\Http\Controllers\IngredientController;
 use Modules\Product\Http\Controllers\LinkedComboController;
 use Modules\Product\Http\Controllers\ModeController;
+use Modules\Product\Http\Controllers\ModifierClassController;
+use Modules\Product\Http\Controllers\ModifierController;
+use Modules\Product\Http\Controllers\ModifierDisplayController;
 use Modules\Product\Http\Controllers\ModifierLOVController;
-use Modules\Product\Http\Controllers\StationController;
 use Modules\Product\Http\Controllers\PaymentCardController;
+use Modules\Product\Http\Controllers\PriceTierController;
+use Modules\Product\Http\Controllers\ProductController;
+use Modules\Product\Http\Controllers\ProductDashboardController;
 use Modules\Product\Http\Controllers\ProductLOVController;
 use Modules\Product\Http\Controllers\ServiceFeeAppTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeAutoApplyTypeController;
 use Modules\Product\Http\Controllers\ServiceFeeCalcMethedController;
 use Modules\Product\Http\Controllers\ServiceFeeController;
 use Modules\Product\Http\Controllers\ServiceFeeTypeController;
+use Modules\Product\Http\Controllers\StationController;
+use Modules\Product\Http\Controllers\SubCategoryController;
 use Modules\Product\Http\Controllers\TypeServiceController;
 use Modules\Product\Http\Controllers\UnitController;
 use Modules\Product\Http\Controllers\UnitTransferController;
 use Modules\Product\Http\Controllers\VendorController;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,13 +79,13 @@ Route::middleware([
         Route::get('attributeClassList', [AttributesClassController::class, 'getAttributes'])->name('attributeClassList');
         Route::get('getProductMatrix/{id?}', [AttributeController::class, 'getProductMatrix'])->name('getProductMatrix');
 
-        Route::get('button-display-values', [ButtonDisplayController::class, 'getButtonDisplayValues'])->name('button-display-values');;
-        Route::get('modifier-display-values', [ModifierDisplayController::class, 'getModifierDisplayValues'])->name('modifier-display-values');;
+        Route::get('button-display-values', [ButtonDisplayController::class, 'getButtonDisplayValues'])->name('button-display-values');
+        Route::get('modifier-display-values', [ModifierDisplayController::class, 'getModifierDisplayValues'])->name('modifier-display-values');
 
         Route::get('customMenues', [CustomMenuController::class, 'getCustomMenus'])->name('customMenuList');
         Route::resource('customMenu', CustomMenuController::class)->names('customMenu');
-        Route::get('application-type-values', [ApplicationTypeController::class, 'getApplicationTypeValues'])->name('application-type-values');;
-        Route::get('mode-values', [ModeController::class, 'getModeValues'])->name('mode-values');;
+        Route::get('application-type-values', [ApplicationTypeController::class, 'getApplicationTypeValues'])->name('application-type-values');
+        Route::get('mode-values', [ModeController::class, 'getModeValues'])->name('mode-values');
         Route::get('stations', [StationController::class, 'getStations'])->name('stationList');
 
         Route::resource('ingredient', IngredientController::class)->names('ingredient');
@@ -134,7 +133,7 @@ Route::middleware([
         Route::get('searchVendors', [VendorController::class, 'searchVendors'])->name('searchVendors');
         Route::get('searchProducts', [ProductController::class, 'searchProducts'])->name('searchProducts');
         Route::get('searchProduct', [ProductController::class, 'searchProduct'])->name('searchProduct');
-        //Route::get('getProductsByEstablishments', [ProductController::class, 'getProductsByEstablishments'])->name('getProductsByEstablishments');
+        // Route::get('getProductsByEstablishments', [ProductController::class, 'getProductsByEstablishments'])->name('getProductsByEstablishments');
         Route::get('getProductsByEstablishment/{establishmentId}', [ProductController::class, 'getProductsByEstablishment'])->name('getProductsByEstablishment');
         Route::get('searchPrepProducts', [ProductController::class, 'searchPrepProducts'])->name('searchPrepProducts');
         Route::get('searchEstablishments', [GeneralController::class, 'searchEstablishments'])->name('searchEstablishments');
@@ -149,13 +148,10 @@ Route::middleware([
 
         Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
 
-
         Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
         Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
         Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
         Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])->name('productBarcode.barcode');
-
-
 
         Route::get('/type-service', [TypeServiceController::class, 'index'])->name('type-service');
         Route::post('/type-service-store', [TypeServiceController::class, 'store'])->name('typeService.store');

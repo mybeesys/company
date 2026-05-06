@@ -2,10 +2,9 @@
 
 namespace Modules\Franchise\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Modules\Employee\Models\Employee;
@@ -16,8 +15,6 @@ use Spatie\Permission\Models\Role;
 
 class FranchiseContractController extends Controller
 {
-
-
     public function store(Request $request)
     {
         $request->validate([
@@ -44,7 +41,7 @@ class FranchiseContractController extends Controller
             'start_date',
             'reality_fees',
             'unite_no',
-            'notes'
+            'notes',
         ]);
 
         $data['end_date'] = \Carbon\Carbon::parse($request->start_date)
@@ -52,7 +49,7 @@ class FranchiseContractController extends Controller
 
         if ($request->hasFile('contract_file')) {
             $file = $request->file('contract_file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
+            $fileName = time().'_'.$file->getClientOriginalName();
             $data['contract_file'] = $file->storeAs('franchise_contracts', $fileName, 'public');
         }
 
@@ -61,19 +58,19 @@ class FranchiseContractController extends Controller
 
             $employeeExists = Employee::where('franchise_id', $franchise->id)->exists();
 
-            if (!$employeeExists) {
+            if (! $employeeExists) {
                 $employee = Employee::create([
                     'name' => $franchise->name_ar,
                     'name_en' => $franchise->name_en,
-                    'last_name'  => 'Admin',
-                    'email'      => $franchise->email,
-                    'user_name'      => $franchise->email,
+                    'last_name' => 'Admin',
+                    'email' => $franchise->email,
+                    'user_name' => $franchise->email,
                     'phone_number' => $franchise->tel,
-                    'password'   => bcrypt('123456789'),
+                    'password' => bcrypt('123456789'),
                     'franchise_id' => $franchise->id,
                     'employment_start_date' => now()->format('Y-m-d'),
                     'created_by' => auth()->user()->id ?? null,
-                    'is_active'  => 1,
+                    'is_active' => 1,
                     'ems_access' => 1,
                 ]);
 
@@ -94,7 +91,6 @@ class FranchiseContractController extends Controller
                 //     $employee->permissions()->sync($allPermissionIds);
                 // }
 
-
                 // $adminRole = DB::table('roles')->where('name', 'Admin')->first();
                 // if ($adminRole) {
                 //     DB::table('emp_employee_establishments_roles')->insert([
@@ -106,13 +102,11 @@ class FranchiseContractController extends Controller
                 //     ]);
                 // }
 
-
-
                 $roleName = 'صلاحيات ممنوح';
 
                 $role = DB::table('roles')->where('name', $roleName)->first();
 
-                if (!$role) {
+                if (! $role) {
                     $roleId = DB::table('roles')->insertGetId([
                         'name' => $roleName,
                         'guard_name' => 'web',
@@ -136,7 +130,7 @@ class FranchiseContractController extends Controller
                         ->toArray();
 
                     $roleModel = Role::find($roleId);
-                    if ($roleModel && !empty($allPermissionIds)) {
+                    if ($roleModel && ! empty($allPermissionIds)) {
                         $roleModel->permissions()->sync($allPermissionIds);
                     }
                 } else {
@@ -145,32 +139,31 @@ class FranchiseContractController extends Controller
 
                 DB::table('emp_employee_establishments_roles')->insert([
                     'employee_id' => $employee->id,
-                    'role_id'     => $roleId,
+                    'role_id' => $roleId,
                     'establishment_id' => null,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
-                //////////////////////////////////////////////////////////
-
-
+                // ////////////////////////////////////////////////////////
 
             }
         });
 
         return response()->json(['message' => __('franchise::lang.added_successfully')]);
     }
+
     public function destroy($id)
     {
         FranchiseContract::findOrFail($id)->delete();
+
         return response()->json(['message' => __('franchise::lang.deleted_successfully')]);
     }
-
-
 
     public function edit($id)
     {
         $contract = FranchiseContract::findOrFail($id);
+
         return response()->json($contract);
     }
 
@@ -190,7 +183,7 @@ class FranchiseContractController extends Controller
             'start_date',
             'reality_fees',
             'unite_no',
-            'notes'
+            'notes',
         ]);
 
         $data['end_date'] = \Carbon\Carbon::parse($request->start_date)
@@ -202,7 +195,7 @@ class FranchiseContractController extends Controller
             }
 
             $file = $request->file('contract_file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
+            $fileName = time().'_'.$file->getClientOriginalName();
             $data['contract_file'] = $file->storeAs('franchise_contracts', $fileName, 'public');
         }
 
@@ -210,7 +203,6 @@ class FranchiseContractController extends Controller
 
         return response()->json(['message' => __('franchise::lang.updated_successfully')]);
     }
-
 
     public function extend(Request $request, $id)
     {
@@ -230,9 +222,9 @@ class FranchiseContractController extends Controller
                 'added_months' => $extensionMonths,
                 'old_end_date' => $oldEndDate,
                 'new_end_date' => $newEndDate,
-                'created_by'   => auth()->user()->id ?? null,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'created_by' => auth()->user()->id ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $contract->contract_duration += $extensionMonths;

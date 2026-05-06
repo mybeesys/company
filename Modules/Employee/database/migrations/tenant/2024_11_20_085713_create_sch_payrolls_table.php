@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,7 +14,7 @@ return new class extends Migration {
         Schema::create('sch_payrolls', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('emp_employees')->nullOnDelete();
-            $table->foreignId('establishment_id')->nullable()->constrained('est_establishments')->nullOnDelete();  
+            $table->foreignId('establishment_id')->nullable()->constrained('est_establishments')->nullOnDelete();
             $table->foreignId('payroll_group_id')->nullable()->constrained('sch_payroll_groups')->nullOnDelete();
             $table->decimal('regular_worked_hours', 10, 2)->default(0);
             $table->decimal('overtime_hours', 10, 2)->default(0);

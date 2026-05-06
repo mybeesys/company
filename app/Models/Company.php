@@ -8,7 +8,7 @@ use LucasDotVin\Soulbscription\Models\Concerns\HasSubscriptions;
 
 class Company extends Model
 {
-    use SoftDeletes, HasSubscriptions;
-   
+    use HasSubscriptions, SoftDeletes;
+
     protected $connection = 'mysql';
 }

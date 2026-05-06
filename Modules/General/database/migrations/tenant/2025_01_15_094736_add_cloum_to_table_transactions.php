@@ -20,7 +20,7 @@ return new class extends Migration
             $table->bigInteger('unit_id')->nullable();
             $table->bigInteger('modifier_id')->nullable();
         });
-        
+
         Schema::table('transactione_purchases_lines', function (Blueprint $table) {
             $table->bigInteger('unit_id')->nullable();
             $table->bigInteger('modifier_id')->nullable();

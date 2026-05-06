@@ -6,52 +6,24 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
-use Modules\Establishment\Models\EstPos;
-use Modules\General\Models\PaymentMethod;
+use Modules\General\Models\Tax;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
-use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\ProductCombo;
-use Modules\Reservation\Events\OrderCreated;
+use Modules\Product\Models\TypesOfService;
 use Modules\Reservation\Models\Order;
-use Modules\Reservation\Models\OrderItem;
 use Modules\Reservation\Models\OrderTableItems;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
-use Modules\Sales\Utils\SalesUtile;
-use Illuminate\Support\Facades\Mail;
-use Modules\Accounting\Models\AccountingAccount;
-use Modules\Accounting\Models\AccountingAccTransMapping;
-use Modules\Accounting\Models\AccountingCostCenter;
-use Modules\Accounting\Models\AccountsRoting;
-use Modules\Accounting\Utils\AccountingUtil;
-use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\ClientsAndSuppliers\utils\ContactUtils;
-use Modules\General\Models\Actions;
-use Modules\General\Models\Country;
-use Modules\General\Models\Setting;
-use Modules\General\Models\Tax;
-use Modules\General\Models\TransactionPayments;
-use Modules\General\Utils\ActionUtil;
-use Modules\Inventory\Models\Transfer;
-use Modules\Product\Http\Controllers\Api\ProductController;
-use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\TypesOfService;
-use Modules\Product\Models\Transformers\Collections\ProductCollection;
 
 class OrderController extends Controller
 {
-
-
-
     public function storeApi(Request $request)
     {
         try {
@@ -61,7 +33,7 @@ class OrderController extends Controller
             $userId = auth()->user() ? auth()->user()->id : $request->created_by;
 
             $created_by = Employee::find($userId);
-            if (!$created_by) {
+            if (! $created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
             }
 
@@ -89,9 +61,10 @@ class OrderController extends Controller
                 // الحالة 3: القديم معلق (غير مدفوع) والجديد مدفوع -> مرفوض محاسبياً
                 elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
                     DB::rollBack();
+
                     return response()->json([
                         'status' => false,
-                        'message' => 'لا يمكن دفع طلب جديد منفصل وهناك طلبات سابقة معلقة على هذه الطاولة.'
+                        'message' => 'لا يمكن دفع طلب جديد منفصل وهناك طلبات سابقة معلقة على هذه الطاولة.',
                     ], 422);
                 }
                 // الحالة 2: دمج الطلبات (القديم والجديد غير مدفوعين)
@@ -106,57 +79,57 @@ class OrderController extends Controller
             if (isset($request->order_id) && $existingOrder) {
                 $transaction = $existingOrder;
                 $transaction->update([
-                    'discount_amount'      => $request->discount_value,
-                    'discount_type'        => $request->discount_type,
-                    'total_before_tax'     => $request->total_before_discount,
+                    'discount_amount' => $request->discount_value,
+                    'discount_type' => $request->discount_type,
+                    'total_before_tax' => $request->total_before_discount,
                     'total_after_discount' => $request->total_after_discount,
-                    'tax_amount'           => $request->total_tax,
-                    'final_total'          => $request->total_paid,
-                    'created_by'           => $userId,
-                    'description'          => $request->note,
-                    'payment_status'       => $isNewRequestPaid ? 'paid' : $transaction->payment_status,
+                    'tax_amount' => $request->total_tax,
+                    'final_total' => $request->total_paid,
+                    'created_by' => $userId,
+                    'description' => $request->note,
+                    'payment_status' => $isNewRequestPaid ? 'paid' : $transaction->payment_status,
                 ]);
 
                 $this->saveOrderItems($transaction, $request->items);
             } else {
                 // إنشاء حجز وطلب جديد تماماً
-                if ($table->table_status != 0 && !$existingOrder) {
+                if ($table->table_status != 0 && ! $existingOrder) {
                     // تنظيف أي حجز عالق قبل البدء
                     Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'canceled']);
                 }
 
                 $reservation = Reservation::create([
-                    'table_id'         => $table->id,
-                    'customer_name'    => $request->customer_name ?? 'Guest',
-                    'customer_phone'   => $request->customer_phone ?? null,
+                    'table_id' => $table->id,
+                    'customer_name' => $request->customer_name ?? 'Guest',
+                    'customer_phone' => $request->customer_phone ?? null,
                     'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                    'guests_count'     => $request->guests_count ?? 1,
-                    'status'           => 'active',
-                    'created_by'       => $userId
+                    'guests_count' => $request->guests_count ?? 1,
+                    'status' => 'active',
+                    'created_by' => $userId,
                 ]);
 
                 $table->update(['table_status' => 2, 'assigned_waiter_id' => $userId]);
 
                 $transaction = TableOrders::create([
-                    'type'                 => 'sell',
-                    'invoice_type'         => 'cash',
-                    'transaction_date'     => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-                    'discount_amount'      => $request->discount_value,
-                    'discount_type'        => $request->discount_type,
-                    'total_before_tax'     => $request->total_before_discount,
+                    'type' => 'sell',
+                    'invoice_type' => 'cash',
+                    'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+                    'discount_amount' => $request->discount_value,
+                    'discount_type' => $request->discount_type,
+                    'total_before_tax' => $request->total_before_discount,
                     'total_after_discount' => $request->total_after_discount,
-                    'tax_amount'           => $request->total_tax,
-                    'final_total'          => $request->total_paid,
-                    'created_by'           => $userId,
-                    'description'          => $request->note,
-                    'ref_no'               => $this->generateOrdNo(),
-                    'status'               => 'draft',
-                    'establishment_id'     => $table->area->establishment_id,
-                    'table_id'             => $table->id,
-                    'order_status'         => 'inpreparation',
-                    'payment_status'       => $isNewRequestPaid ? 'paid' : 'due',
-                    'order_type'           => $request->order_type ?? 1,
-                    'local_id'             => 'table_order'
+                    'tax_amount' => $request->total_tax,
+                    'final_total' => $request->total_paid,
+                    'created_by' => $userId,
+                    'description' => $request->note,
+                    'ref_no' => $this->generateOrdNo(),
+                    'status' => 'draft',
+                    'establishment_id' => $table->area->establishment_id,
+                    'table_id' => $table->id,
+                    'order_status' => 'inpreparation',
+                    'payment_status' => $isNewRequestPaid ? 'paid' : 'due',
+                    'order_type' => $request->order_type ?? 1,
+                    'local_id' => 'table_order',
                 ]);
 
                 $this->saveOrderItems($transaction, $request->items);
@@ -166,14 +139,15 @@ class OrderController extends Controller
             $this->broadcastTableUpdate($table, $transaction);
 
             return response()->json([
-                'status'   => true,
-                'message'  => $isNewRequestPaid ? 'Order paid successfully' : 'Order saved',
+                'status' => true,
+                'message' => $isNewRequestPaid ? 'Order paid successfully' : 'Order saved',
                 'order_id' => $transaction->id,
-                'order_no' => $transaction->ref_no
+                'order_no' => $transaction->ref_no,
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error("Store Error: " . $e->getMessage());
+            Log::error('Store Error: '.$e->getMessage());
+
             return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
         }
     }
@@ -186,7 +160,9 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
             $order = TableOrders::find($request->id);
-            if (!$order) return response()->json(['message' => 'No Order found'], 404);
+            if (! $order) {
+                return response()->json(['message' => 'No Order found'], 404);
+            }
 
             // تحديث حالة الطلب للإلغاء
             $order->update(['order_status' => 'canceled']);
@@ -203,9 +179,11 @@ class OrderController extends Controller
                 ->update(['status' => 'canceled']);
 
             DB::commit();
+
             return response()->json(['message' => 'Order canceled successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Cancel failed', 'error' => $e->getMessage()], 500);
         }
     }
@@ -215,31 +193,31 @@ class OrderController extends Controller
         $products = json_decode(json_encode($items));
         foreach ($products as $product) {
             $mainItem = OrderTableItems::create([
-                'transaction_id'             => $transaction->id,
-                'product_id'                 => $product->product_id,
-                'qyt'                        => $product->quantity,
+                'transaction_id' => $transaction->id,
+                'product_id' => $product->product_id,
+                'qyt' => $product->quantity,
                 'unit_price_before_discount' => $product->price_after_discount ?? $product->price,
-                'unit_price'                 => $product->price,
-                'discount_type'              => $product->discount_type ?? null,
-                'discount_amount'            => $product->discount_amount ?? 0,
-                'unit_price_inc_tax'         => $product->price_with_tax ?? $product->price,
-                'tax_id'                     => $product->tax_id ?? null,
-                'tax_value'                  => $product->tax_value ?? 0,
-                'line_status'                => 'inpreparation',
+                'unit_price' => $product->price,
+                'discount_type' => $product->discount_type ?? null,
+                'discount_amount' => $product->discount_amount ?? 0,
+                'unit_price_inc_tax' => $product->price_with_tax ?? $product->price,
+                'tax_id' => $product->tax_id ?? null,
+                'tax_value' => $product->tax_value ?? 0,
+                'line_status' => 'inpreparation',
             ]);
 
             if (isset($product->order_item_modifiers)) {
                 foreach ($product->order_item_modifiers as $modifier) {
                     OrderTableItems::create([
-                        'transaction_id'             => $transaction->id,
-                        'modifier_id'                => $modifier->modifier_id,
-                        'product_id'                 => $modifier->modifier_id,
-                        'parent_id'                  => $mainItem->id,
-                        'qyt'                        => $modifier->quantity,
-                        'unit_price'                 => $modifier->price,
+                        'transaction_id' => $transaction->id,
+                        'modifier_id' => $modifier->modifier_id,
+                        'product_id' => $modifier->modifier_id,
+                        'parent_id' => $mainItem->id,
+                        'qyt' => $modifier->quantity,
+                        'unit_price' => $modifier->price,
                         'unit_price_before_discount' => $modifier->price_after_discount ?? $modifier->price,
-                        'unit_price_inc_tax'         => $modifier->price_with_tax ?? $modifier->price,
-                        'line_status'                => 'inpreparation',
+                        'unit_price_inc_tax' => $modifier->price_with_tax ?? $modifier->price,
+                        'line_status' => 'inpreparation',
                     ]);
                 }
             }
@@ -247,14 +225,14 @@ class OrderController extends Controller
             if (isset($product->order_item_combos)) {
                 foreach ($product->order_item_combos as $combo) {
                     OrderTableItems::create([
-                        'transaction_id'             => $transaction->id,
-                        'combo_id'                   => $combo->option_id,
-                        'product_id'                 => $combo->product_id ?? $mainItem->product_id,
-                        'parent_id'                  => $mainItem->id,
-                        'qyt'                        => $combo->quantity ?? 1,
-                        'unit_price'                 => $combo->price ?? 0,
+                        'transaction_id' => $transaction->id,
+                        'combo_id' => $combo->option_id,
+                        'product_id' => $combo->product_id ?? $mainItem->product_id,
+                        'parent_id' => $mainItem->id,
+                        'qyt' => $combo->quantity ?? 1,
+                        'unit_price' => $combo->price ?? 0,
                         'unit_price_before_discount' => $combo->price ?? 0,
-                        'line_status'                => 'inpreparation',
+                        'line_status' => 'inpreparation',
                     ]);
                 }
             }
@@ -274,27 +252,26 @@ class OrderController extends Controller
             $lastNumber = (int) $matches[1];
         }
 
-        return $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
     }
 
     private function broadcastTableUpdate($table, $transaction)
     {
         try {
             $tenantId = (string) tenancy()->tenant->id;
-            \Illuminate\Support\Facades\Http::timeout(2)->post("http://127.0.0.1:3001/broadcast", [
+            \Illuminate\Support\Facades\Http::timeout(2)->post('http://127.0.0.1:3001/broadcast', [
                 'tenant_id' => $tenantId,
-                'event'     => 'TableUpdated',
-                'data'      => [
-                    'table_id'           => $table->id,
-                    'table_code'         => $table->code,
-                    'transaction_ref_no' => $transaction->ref_no
-                ]
+                'event' => 'TableUpdated',
+                'data' => [
+                    'table_id' => $table->id,
+                    'table_code' => $table->code,
+                    'transaction_ref_no' => $transaction->ref_no,
+                ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Socket Error: " . $e->getMessage());
+            Log::error('Socket Error: '.$e->getMessage());
         }
     }
-
 
     public function establishmentOrders(Request $request, $id)
     {
@@ -334,35 +311,36 @@ class OrderController extends Controller
                 'order_status' => $order->order_status,
                 'order_type' => $service->name_ar ?? 'محلي',
                 'payment_status' => $order?->payment_status,
-                'invoice_created' => !empty($order->id),
+                'invoice_created' => ! empty($order->id),
                 'invoice_id' => $order->id,
                 'paid_amount' => $order?->payment?->sum('amount') ?? 0,
                 'total_amount' => $order->final_total ?? 0,
                 'items' => $parentItems->map(function ($mainItem) use ($allLines) {
                     $subItems = $allLines->where('parent_id', $mainItem->id);
+
                     return [
                         'product_id' => $mainItem->product_id,
                         'product_name' => $mainItem->product->name_ar ?? '',
-                        'quantity' => (float)$mainItem->qyt,
-                        'price' => (float)$mainItem->unit_price,
-                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                        'quantity' => (float) $mainItem->qyt,
+                        'price' => (float) $mainItem->unit_price,
+                        'price_with_tax' => (float) $mainItem->unit_price_inc_tax,
                         'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
                             return [
                                 'modifier_id' => $mod->product_id,
                                 'modifier_name' => $mod->product->name_ar ?? '',
-                                'quantity' => (float)$mod->qyt,
-                                'price' => (float)$mod->unit_price,
+                                'quantity' => (float) $mod->qyt,
+                                'price' => (float) $mod->unit_price,
                             ];
                         })->values(),
                         'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
                             return [
                                 'option_id' => $combo->combo_id,
                                 'option_name' => $combo->productCombo->name_ar ?? '',
-                                'price' => (float)$combo->unit_price,
+                                'price' => (float) $combo->unit_price,
                             ];
                         })->values(),
                     ];
-                })->values()
+                })->values(),
             ];
         });
 
@@ -399,34 +377,35 @@ class OrderController extends Controller
                 'customer_phone' => $reservation->customer_phone ?? '',
                 'guests_count' => $reservation->guests_count ?? 0,
                 'discount_type' => $order->discount_type,
-                'discount_value' => (float)$order->discount_amount,
-                'total_before_discount' => (float)$order->total_before_tax,
-                'total_after_discount' => (float)$order->total_after_discount,
-                'total_tax' => (float)$order->tax_amount,
-                'total_paid' => (float)$order->final_total,
+                'discount_value' => (float) $order->discount_amount,
+                'total_before_discount' => (float) $order->total_before_tax,
+                'total_after_discount' => (float) $order->total_after_discount,
+                'total_tax' => (float) $order->tax_amount,
+                'total_paid' => (float) $order->final_total,
                 'note' => $order->description,
                 'items' => $parentItems->map(function ($mainItem) use ($allLines) {
                     $subItems = $allLines->where('parent_id', $mainItem->id);
+
                     return [
                         'id' => $mainItem->id,
                         'order_id' => $mainItem->transaction_id,
                         'product_id' => $mainItem->product_id,
                         'product_name' => $mainItem->product->name_ar ?? '',
-                        'quantity' => (float)$mainItem->qyt,
-                        'price' => (float)$mainItem->unit_price,
-                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                        'quantity' => (float) $mainItem->qyt,
+                        'price' => (float) $mainItem->unit_price,
+                        'price_with_tax' => (float) $mainItem->unit_price_inc_tax,
                         'tax_id' => $mainItem->tax_id,
-                        'tax_value' => (float)$mainItem->tax_value,
+                        'tax_value' => (float) $mainItem->tax_value,
                         'discount_type' => $mainItem->discount_type,
-                        'discount_amount' => (float)$mainItem->discount_amount,
+                        'discount_amount' => (float) $mainItem->discount_amount,
                         'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
                             return [
                                 'id' => $mod->id,
                                 'modifier_id' => $mod->product_id,
                                 'modifier_name' => $mod->product->name_ar ?? '',
-                                'quantity' => (float)$mod->qyt,
-                                'price' => (float)$mod->unit_price,
-                                'price_with_tax' => (float)$mod->unit_price_inc_tax,
+                                'quantity' => (float) $mod->qyt,
+                                'price' => (float) $mod->unit_price,
+                                'price_with_tax' => (float) $mod->unit_price_inc_tax,
                             ];
                         })->values(),
                         'order_item_combos' => $subItems->whereNotNull('combo_id')->map(function ($combo) {
@@ -434,12 +413,12 @@ class OrderController extends Controller
                                 'id' => $combo->id,
                                 'option_id' => $combo->combo_id,
                                 'option_name' => $combo->productCombo->name_ar ?? '',
-                                'price' => (float)$combo->unit_price,
+                                'price' => (float) $combo->unit_price,
                                 'combo_group_id' => $combo->product_id,
                             ];
                         })->values(),
                     ];
-                })->values()
+                })->values(),
             ];
         });
 
@@ -449,16 +428,17 @@ class OrderController extends Controller
     public function updateOrders(Request $request, $id)
     {
         $order = TableOrders::find($id);
-        if (!$order) {
+        if (! $order) {
             return response()->json([
-                'message' => 'no order with given id'
+                'message' => 'no order with given id',
             ], 409);
         }
         $order->update([
-            'order_status' => $request->status
+            'order_status' => $request->status,
         ]);
+
         return response()->json([
-            'message' => $order
+            'message' => $order,
         ], 200);
     }
 
@@ -475,6 +455,7 @@ class OrderController extends Controller
                 'packing_charge_type' => $service->packing_charge_type,
             ];
         });
+
         return response()->json($formattedData);
     }
 
@@ -576,14 +557,14 @@ class OrderController extends Controller
         $category_ids = $request->input('category_ids', []);
         $establishment_id = $request->input('establishment_id');
 
-        if (!$establishment_id || !Establishment::find($establishment_id)) {
+        if (! $establishment_id || ! Establishment::find($establishment_id)) {
             return response()->json(['message' => 'Establishment not found'], 404);
         }
 
         $tableOrders = TableOrders::where('establishment_id', $establishment_id)
 
             ->where('order_status', 'inpreparation')
-            ->when(!empty($category_ids), function ($query) use ($category_ids) {
+            ->when(! empty($category_ids), function ($query) use ($category_ids) {
                 return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
                     $q->whereIn('category_id', $category_ids);
                 });
@@ -594,7 +575,7 @@ class OrderController extends Controller
         $posTransactions = Transaction::where('establishment_id', $establishment_id)
             ->where('type', 'sell')
             ->where('order_status', 'inpreparation')
-            ->when(!empty($category_ids), function ($query) use ($category_ids) {
+            ->when(! empty($category_ids), function ($query) use ($category_ids) {
                 return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
                     $q->whereIn('category_id', $category_ids);
                 });
@@ -616,16 +597,19 @@ class OrderController extends Controller
             $allLines = $order->sell_lines;
 
             $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
-                if (empty($category_ids)) return true;
+                if (empty($category_ids)) {
+                    return true;
+                }
+
                 return $line->product && in_array($line->product->category_id, $category_ids);
             });
 
-            if (!empty($category_ids) && $filteredLines->isEmpty()) {
+            if (! empty($category_ids) && $filteredLines->isEmpty()) {
                 return null;
             }
 
             $serviceName = 'محلي';
-            if (!isset($order->table_id)) {
+            if (! isset($order->table_id)) {
                 $serviceName = 'سفري';
             } else {
                 $service = TypesOfService::find($order->order_type);
@@ -643,11 +627,11 @@ class OrderController extends Controller
                 'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
                 'guests_count' => $reservation->guests_count ?? 0,
                 'discount_type' => $order->discount_type,
-                'discount_value' => (float)$order->discount_amount,
-                'total_before_discount' => (float)$order->total_before_tax,
-                'total_after_discount' => (float)$order->total_after_discount,
-                'total_tax' => (float)$order->tax_amount,
-                'total_paid' => (float)$order->final_total,
+                'discount_value' => (float) $order->discount_amount,
+                'total_before_discount' => (float) $order->total_before_tax,
+                'total_after_discount' => (float) $order->total_after_discount,
+                'total_tax' => (float) $order->tax_amount,
+                'total_paid' => (float) $order->final_total,
                 'note' => $order->description,
                 'items' => $filteredLines->map(function ($mainItem) {
                     return [
@@ -656,16 +640,16 @@ class OrderController extends Controller
                         'product_id' => $mainItem->product_id,
                         'product_name' => $mainItem->product->name_ar ?? '',
                         'category_id' => $mainItem->product->category_id,
-                        'quantity' => (float)$mainItem->qyt,
-                        'price' => (float)$mainItem->unit_price,
-                        'price_with_tax' => (float)$mainItem->unit_price_inc_tax,
+                        'quantity' => (float) $mainItem->qyt,
+                        'price' => (float) $mainItem->unit_price,
+                        'price_with_tax' => (float) $mainItem->unit_price_inc_tax,
                         'tax_id' => $mainItem->tax_id,
-                        'tax_value' => (float)$mainItem->tax_value,
+                        'tax_value' => (float) $mainItem->tax_value,
                         'discount_type' => $mainItem->discount_type,
-                        'discount_amount' => (float)$mainItem->discount_amount,
+                        'discount_amount' => (float) $mainItem->discount_amount,
                         'status' => $mainItem->line_status ?? 'inpreparation',
                     ];
-                })->values()
+                })->values(),
             ];
         })->filter()->values();
 
@@ -675,7 +659,7 @@ class OrderController extends Controller
     public function updateItemStatus(Request $request)
     {
         $request->validate([
-            'item_id'    => 'required',
+            'item_id' => 'required',
             'order_type' => 'required|in:local,pos',
         ]);
 
@@ -692,7 +676,7 @@ class OrderController extends Controller
 
         $item = $itemModel::with(['product'])->find($itemId);
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Item not found'], 404);
         }
 
@@ -714,44 +698,44 @@ class OrderController extends Controller
 
         try {
             $tenantId = (string) tenancy()->tenant->id;
-            $broadcastUrl = "http://127.0.0.1:3001/broadcast";
+            $broadcastUrl = 'http://127.0.0.1:3001/broadcast';
 
             \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
                 'tenant_id' => $tenantId,
-                'event'     => 'ItemStatusUpdated',
-                'data'      => [
-                    'item_id'      => $item->id,
-                    'order_id'     => $item->transaction_id,
-                    'order_type'   => $orderType,
-                    'status'       => $item->line_status,
+                'event' => 'ItemStatusUpdated',
+                'data' => [
+                    'item_id' => $item->id,
+                    'order_id' => $item->transaction_id,
+                    'order_type' => $orderType,
+                    'status' => $item->line_status,
                     'product_name' => $item->product->name_ar ?? '',
-                    'updated_at'   => now()->toDateTimeString()
-                ]
+                    'updated_at' => now()->toDateTimeString(),
+                ],
             ]);
 
             if ($allOrderPrepared) {
                 \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
                     'tenant_id' => $tenantId,
-                    'event'     => 'OrderIsPrepared',
-                    'data'      => [
-                        'order_id'   => $order->id,
+                    'event' => 'OrderIsPrepared',
+                    'data' => [
+                        'order_id' => $order->id,
                         'order_type' => $orderType,
-                        'table_id'   => $order->table_id ?? null,
-                        'ref_no'     => $order->ref_no ?? $order->invoice_no,
-                        'message'    => "الطلب رقم " . ($order->ref_no ?? $order->invoice_no) . " جاهز بالكامل",
-                        'status'     => 'prepared'
-                    ]
+                        'table_id' => $order->table_id ?? null,
+                        'ref_no' => $order->ref_no ?? $order->invoice_no,
+                        'message' => 'الطلب رقم '.($order->ref_no ?? $order->invoice_no).' جاهز بالكامل',
+                        'status' => 'prepared',
+                    ],
                 ]);
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Socket Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Socket Error: '.$e->getMessage());
         }
 
         return response()->json([
-            'status'       => true,
-            'message'      => 'Status updated successfully',
-            'new_status'   => $item->line_status,
-            'order_status' => $order ? $order->order_status : null
+            'status' => true,
+            'message' => 'Status updated successfully',
+            'new_status' => $item->line_status,
+            'order_status' => $order ? $order->order_status : null,
         ]);
     }
 }

@@ -23,7 +23,7 @@ class EstablishmentResource extends JsonResource
             'region' => $this->region,
             'phone_number' => $this->contact_details,
             'logo' => $this->logo,
-            'is_active' => $this->is_active
+            'is_active' => $this->is_active,
         ];
     }
 }

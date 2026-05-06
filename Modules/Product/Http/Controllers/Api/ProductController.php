@@ -32,7 +32,7 @@ class ProductController extends Controller
                     ->with([
                         'modifierClass' => function ($q) {
                             $q->with(['children' => function ($q) {}]);
-                        }
+                        },
                     ]);
             }])
             ->with(['combos' => function ($query) {
@@ -46,6 +46,7 @@ class ProductController extends Controller
                 $query->where('establishment_id', '=', $establishment_id);
             }])
             ->get();
+
         return new ProductCollection($products);
     }
 
@@ -70,6 +71,7 @@ class ProductController extends Controller
         }])->with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->with('category')->with('subcategory')->with('tax')->get();
+
         return new ProductCollection($products);
     }
 
@@ -77,24 +79,27 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         $mappedCategories = array_map(function ($item) {
-            $newItem["id"] = $item["id"];
-            $newItem["parent_id"] = null;
-            $newItem["name_ar"] = $item["name_en"];
-            $newItem["name_en"] = $item["name_en"];
-            $newItem["type"] = "category";
+            $newItem['id'] = $item['id'];
+            $newItem['parent_id'] = null;
+            $newItem['name_ar'] = $item['name_en'];
+            $newItem['name_en'] = $item['name_en'];
+            $newItem['type'] = 'category';
+
             return $newItem;
         }, $categories->toArray());
 
         $subCategories = Subcategory::all();
         $mappedSubcategories = array_map(function ($item) {
-            $newItem["id"] = $item["id"];
-            $newItem["parent_id"] = $item["category_id"];
-            $newItem["name_ar"] = $item["name_en"];
-            $newItem["name_en"] = $item["name_en"];
-            $newItem["type"] = "subcategory"; // Add an extra field
+            $newItem['id'] = $item['id'];
+            $newItem['parent_id'] = $item['category_id'];
+            $newItem['name_ar'] = $item['name_en'];
+            $newItem['name_en'] = $item['name_en'];
+            $newItem['type'] = 'subcategory'; // Add an extra field
+
             return $newItem;
         }, $subCategories->toArray());
         $result = array_merge($mappedCategories, $mappedSubcategories);
+
         return response()->json($result);
     }
 
@@ -103,6 +108,7 @@ class ProductController extends Controller
         $modifiers = ModifierClass::with(['products' => function ($query) {
             $query->with('products');
         }])->get();
+
         return new ModifierClassCollection($modifiers);
     }
 
@@ -111,6 +117,7 @@ class ProductController extends Controller
         $modifiers = Attribute::with(['products' => function ($query) {
             $query->with('product');
         }])->get();
+
         return new PAttributeCollection($modifiers);
     }
 }

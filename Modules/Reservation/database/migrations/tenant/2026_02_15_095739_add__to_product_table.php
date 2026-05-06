@@ -15,10 +15,9 @@ return new class extends Migration
             $table->string('order_type')
                 ->default('local')
                 ->after('status');
-                // delivery
+            // delivery
         });
 
-        
     }
 
     /**
@@ -26,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-         Schema::table('table_orders', function (Blueprint $table) {
-            
-        });
+        Schema::table('table_orders', function (Blueprint $table) {});
     }
 };

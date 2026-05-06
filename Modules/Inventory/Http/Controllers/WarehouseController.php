@@ -14,14 +14,15 @@ class WarehouseController extends Controller
      */
     public function index()
     {
-        return view('inventory::warehouse.index' ); 
+        return view('inventory::warehouse.index');
     }
-    
+
     public function getWarehouselist()
     {
-        $TreeBuilder = new TreeBuilder();
+        $TreeBuilder = new TreeBuilder;
         $warehouses = Warehouse::all();
-        $tree = $TreeBuilder->buildTree($warehouses ,null, 'warehouse', null, null, null);
+        $tree = $TreeBuilder->buildTree($warehouses, null, 'warehouse', null, null, null);
+
         return response()->json($tree);
     }
 
@@ -43,49 +44,52 @@ class WarehouseController extends Controller
             'name_en' => 'required|string',
             'order' => 'required|numeric',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
-  
-        if(isset($validated['method']) && ($validated['method'] =="delete"))
-        {
+
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $warehouse = Warehouse::find($validated['id']);
             $warehouse->delete();
-            return response()->json(["message"=>"Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-        if(!isset($validated['id']))
-        {
+        if (! isset($validated['id'])) {
             $warehouse = Warehouse::where('order', $validated['order'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'ORDER_EXIST']);
+            }
             $warehouse = Warehouse::where('name_ar', $validated['name_ar'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $warehouse = Warehouse::where('name_en', $validated['name_en'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
             $warehouse = Warehouse::create($validated);
-        }
-         else
-         {
+        } else {
             $warehouse = Warehouse::where('order', $validated['order'])->where('id', '!=', $validated['id'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"ORDER_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'ORDER_EXIST']);
+            }
             $warehouse = Warehouse::where('name_ar', $validated['name_ar'])->where('id', '!=', $validated['id'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"NAME_AR_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $warehouse = Warehouse::where('name_en', $validated['name_en'])->where('id', '!=', $validated['id'])->first();
-            if($warehouse != null)
-                return response()->json(["message"=>"NAME_EN_EXIST"]);
+            if ($warehouse != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             $warehouse = Warehouse::find($validated['id']);
             $warehouse->name_ar = $validated['name_ar'];
             $warehouse->name_en = $validated['name_en'];
             $warehouse->order = $validated['order'];
             $warehouse->save();
-         }
+        }
 
-        return response()->json(["message"=>"Done"]);
+        return response()->json(['message' => 'Done']);
     }
 
     /**
@@ -100,11 +104,11 @@ class WarehouseController extends Controller
     {
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
-        $warhouses = Warehouse::where('name_ar', 'like', '%' . $key . '%')
-                            ->orWhere('name_en', 'like', '%' . $key . '%')
-                            ->take(10)
-                            ->get();
+        $warhouses = Warehouse::where('name_ar', 'like', '%'.$key.'%')
+            ->orWhere('name_en', 'like', '%'.$key.'%')
+            ->take(10)
+            ->get();
+
         return response()->json($warhouses);
     }
-
 }

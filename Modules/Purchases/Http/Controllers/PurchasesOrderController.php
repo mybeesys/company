@@ -33,10 +33,10 @@ class PurchasesOrderController extends Controller
         if ($request->ajax()) {
             $transactionsQuery
                 ->when($request->filled('favorite'), function ($query) {
-                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                    $query->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
                 })
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -51,15 +51,15 @@ class PurchasesOrderController extends Controller
                         $query->whereBetween('transaction_date', [$dates[0], $dates[1]]);
                     }
                 });
-            $transactions = $transactionsQuery->orderBy('id','desc')->get();
+            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
 
         $transaction = $transactionsQuery->get();
         $columns = Transaction::getsPOColumns();
-        $clients =  Contact::where('business_type', 'supplier')->get();
+        $clients = Contact::where('business_type', 'supplier')->get();
         $page = 'quotations';
-
 
         return view('purchases::purchase-order.index', compact('columns', 'page', 'clients', 'transaction'));
     }
@@ -69,14 +69,14 @@ class PurchasesOrderController extends Controller
      */
     public function create(Request $request)
     {
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
 
         $clients = Contact::where('business_type', 'supplier')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
@@ -90,11 +90,10 @@ class PurchasesOrderController extends Controller
             $actionUtil->saveOrUpdateAction('create_po', 'convert-to-invoice', '#');
         }
 
-
-
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
+
         return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
     }
 
@@ -104,9 +103,9 @@ class PurchasesOrderController extends Controller
     public function store(Request $request)
     {
         try {
-            $transactionUtil = new TransactionUtils();
+            $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('purchases-order');
+            $ref_no = SalesUtile::generateReferenceNumber('purchases-order');
 
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $main_establishment = Establishment::notMain()->active()->first();
@@ -115,7 +114,7 @@ class PurchasesOrderController extends Controller
             if ($request->storehouse == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
-            $transaction =   Transaction::create([
+            $transaction = Transaction::create([
                 'type' => 'purchases-order',
                 'invoice_type' => $request->invoice_type,
                 'due_date' => $request->due_date,
@@ -137,7 +136,6 @@ class PurchasesOrderController extends Controller
 
             ]);
 
-
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
@@ -158,11 +156,12 @@ class PurchasesOrderController extends Controller
                 ]);
             }
 
-
             DB::commit();
+
             return redirect()->route('purchases-order')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('purchases-order')->with('error', __('messages.something_went_wrong'));
         }
     }

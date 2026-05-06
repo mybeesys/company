@@ -15,6 +15,7 @@ class TaxApiController extends Controller
     public function taxes()
     {
         $taxes = Tax::all();
+
         return TaxResource::collection($taxes);
     }
 

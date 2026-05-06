@@ -1,9 +1,9 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\CustomMenuTimeDetail;
 
 class ServiceFeePaymentCard extends Model
 {
@@ -19,11 +19,12 @@ class ServiceFeePaymentCard extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'service_fee_id',
-        'payment_card_id'
+        'payment_card_id',
         // add more fields as needed
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -31,6 +32,4 @@ class ServiceFeePaymentCard extends Model
     {
         return $this->belongsTo(PaymentCard::class, 'payment_card_id', 'id');
     }
-
 }
-?>

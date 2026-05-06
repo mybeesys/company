@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('order_table_items', function (Blueprint $table) {
             $table->string('parent_id')->nullable();
-            
+
         });
     }
 
@@ -22,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-         Schema::table('order_table_items', function (Blueprint $table) {
-
-        });
+        Schema::table('order_table_items', function (Blueprint $table) {});
     }
 };

@@ -3,7 +3,6 @@
 namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\General\Models\FavoriteBills;
@@ -11,24 +10,25 @@ use Modules\General\Models\FavoriteBills;
 class FavoriteController extends Controller
 {
     public function toggle(Request $request)
-{
-    $transactionId = $request->transaction_id;
-    $userId = Auth::user()->id;
+    {
+        $transactionId = $request->transaction_id;
+        $userId = Auth::user()->id;
 
-    $favorite = FavoriteBills::where('transaction_id', $transactionId)->where('user_id', $userId)->first();
+        $favorite = FavoriteBills::where('transaction_id', $transactionId)->where('user_id', $userId)->first();
 
-    if ($favorite) {
-        $favorite->delete();
-        return response()->json(['is_favorite' => false]);
-    } else {
-        FavoriteBills::create([
-            'transaction_id' => $transactionId,
-            'user_id' => $userId
-        ]);
-        return response()->json(['is_favorite' => true]);
+        if ($favorite) {
+            $favorite->delete();
+
+            return response()->json(['is_favorite' => false]);
+        } else {
+            FavoriteBills::create([
+                'transaction_id' => $transactionId,
+                'user_id' => $userId,
+            ]);
+
+            return response()->json(['is_favorite' => true]);
+        }
     }
-}
-
 
     /**
      * Show the form for creating a new resource.

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('product_recipe_modifiers', function (Blueprint $table) {
             $table->unsignedBigInteger('unit_transfer_id')->nullable();
             $table->foreign('unit_transfer_id')
-            ->references('id')
-            ->on('product_unit_transfer');
-          });
+                ->references('id')
+                ->on('product_unit_transfer');
+        });
     }
 
     /**

@@ -2,11 +2,10 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Product\Database\Factories\ModifierFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
+// use Modules\Product\Database\Factories\ModifierFactory;
 
 class Product_Attribute extends Model
 {
@@ -15,6 +14,7 @@ class Product_Attribute extends Model
     protected $table = 'product_product_attribute';
 
     public $timestamps = true;
+
     /**
      * The attributes that are mass assignable.
      */
@@ -27,15 +27,13 @@ class Product_Attribute extends Model
         'barcode',
         'SKU',
         'price',
-        'starting'
+        'starting',
     ];
 
     public function getFillable()
     {
         return $this->fillable;
     }
-
-
 
     public function product()
     {

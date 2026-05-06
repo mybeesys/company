@@ -6,7 +6,6 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Modules\Establishment\Models\Establishment;
 use Spatie\Permission\Models\Role as SpatieRole;
 
-
 class PosRole extends SpatieRole
 {
     protected static function booted()

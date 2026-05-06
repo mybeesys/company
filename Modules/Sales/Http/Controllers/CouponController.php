@@ -16,12 +16,11 @@ use Str;
 
 class CouponController extends Controller
 {
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
             $coupons = Coupon::with('products', 'categories');
-            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+            if ($request->has('deleted_records') && ! empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
                     ? $coupons->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $coupons->withTrashed() : null);
@@ -34,6 +33,7 @@ class CouponController extends Controller
         $products = Product::get();
         $categories = Category::get();
         $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
+
         return view('sales::coupon.index', compact('coupons_columns', 'products', 'categories', 'establishments'));
     }
 
@@ -43,13 +43,15 @@ class CouponController extends Controller
         try {
             DB::transaction(function () use ($data, $action) {
                 $action->store($data);
+
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             });
         } catch (\Throwable $e) {
             \Log::error('coupons creation failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
     }
@@ -60,12 +62,14 @@ class CouponController extends Controller
         if (Coupon::where('code', $code)->exists()) {
             return $this->generateCode();
         }
+
         return response()->json(['data' => $code]);
     }
 
     public function getCouponDetails($id)
     {
         $coupon = Coupon::firstWhere('id', $id);
+
         return response()->json(['coupon' => $coupon, 'establishments_ids' => $coupon->establishments->pluck('id'), 'products_ids' => $coupon->products->pluck('id'), 'categories_ids' => $coupon->categories->pluck('id')]);
     }
 

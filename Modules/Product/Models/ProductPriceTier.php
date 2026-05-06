@@ -2,17 +2,13 @@
 
 namespace Modules\Product\Models;
 
-use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Establishment\Models\Establishment;
-use Modules\Product\Models\Product;
 
 class ProductPriceTier extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -26,14 +22,16 @@ class ProductPriceTier extends Model
     protected $fillable = [
         'price_tier_id',
         'product_id',
-        'price'
+        'price',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -48,5 +46,4 @@ class ProductPriceTier extends Model
     {
         return $this->belongsTo(PriceTier::class, 'price_tier_id', 'id');
     }
-
 }

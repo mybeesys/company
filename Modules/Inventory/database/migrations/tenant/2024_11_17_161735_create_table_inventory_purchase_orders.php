@@ -34,17 +34,17 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('operation_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('inventory_Operations');
+                ->references('id')                    // References the id on the categories table
+                ->on('inventory_Operations');
             $table->foreign('product_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_products');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_products');
             $table->foreign('ingredient_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_ingredients');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_ingredients');
             $table->foreign('unit_id')
-            ->references('id')
-            ->on('product_unit_transfer');
+                ->references('id')
+                ->on('product_unit_transfer');
         });
     }
 

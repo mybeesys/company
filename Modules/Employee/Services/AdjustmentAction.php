@@ -1,10 +1,9 @@
 <?php
+
 namespace Modules\Employee\Services;
 
-use Carbon\Carbon;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\PayrollAdjustment;
-
 
 class AdjustmentAction
 {
@@ -13,9 +12,9 @@ class AdjustmentAction
         if ($adjustment_repeater) {
             $ids = [];
             foreach ($adjustment_repeater as $adjustment) {
-                if (isset($adjustment["id"])) {
-                    $ids[] = $adjustment["id"];
-                    PayrollAdjustment::where('id', $adjustment["id"])->update([
+                if (isset($adjustment['id'])) {
+                    $ids[] = $adjustment['id'];
+                    PayrollAdjustment::where('id', $adjustment['id'])->update([
                         'adjustment_type_id' => $adjustment['adjustment_type'],
                         'amount' => $adjustment['amount'],
                         'amount_type' => $adjustment['amount_type'],
@@ -28,7 +27,7 @@ class AdjustmentAction
                         'amount_type' => $adjustment['amount_type'],
                         'apply_once' => true,
                         'applicable_date' => "{$date}-01",
-                        'type' => $type
+                        'type' => $type,
                     ])->id;
                     $ids[] = $id;
                 }
@@ -46,6 +45,7 @@ class AdjustmentAction
                 $employee->deductions()->where('applicable_date', "{$date}-01")->once()->delete();
             }
         }
+
         return $ids;
     }
 }

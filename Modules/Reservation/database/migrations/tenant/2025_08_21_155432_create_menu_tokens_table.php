@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('menu_tokens', function (Blueprint $table) {
+        Schema::create('menu_tokens', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('est_id');
             $table->string('title')->nullable();

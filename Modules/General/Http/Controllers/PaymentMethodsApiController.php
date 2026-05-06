@@ -15,6 +15,7 @@ class PaymentMethodsApiController extends Controller
     public function index()
     {
         $pay_methods = PaymentMethod::all();
+
         return PaymentMethodsResource::collection($pay_methods);
     }
 

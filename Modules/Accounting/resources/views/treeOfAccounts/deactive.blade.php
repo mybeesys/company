@@ -14,7 +14,7 @@
                 <form action="{{ route('change-status-account') }}" method="POST">
                     @csrf
 
-                    <input type="text" hidden id="account_id_" class="form-control form-control" name="account_id"
+                    <input type="text" hidden id="account_id_deactive" class="form-control form-control" name="account_id"
                         value="{{ session()->get('account_id') }}">
                     <ul class="swal2-progress-steps" style="display: none;"></ul>
                     <div class="swal2-icon swal2-warning swal2-icon-show" style="display: flex;">

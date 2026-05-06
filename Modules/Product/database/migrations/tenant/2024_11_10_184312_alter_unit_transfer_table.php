@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::table('product_unit_transfer', function (Blueprint $table) {
             $table->dropColumn('objectId');
             $table->dropColumn('objectType');
-            $table->unsignedBigInteger('product_id')->nullable();  
+            $table->unsignedBigInteger('product_id')->nullable();
             $table->foreign('product_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_products');
-            $table->unsignedBigInteger('ingredient_id')->nullable();  
+                ->references('id')                    // References the id on the categories table
+                ->on('product_products');
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->foreign('ingredient_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_ingredients');
-           
+                ->references('id')                    // References the id on the categories table
+                ->on('product_ingredients');
+
         });
     }
 

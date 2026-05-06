@@ -3,7 +3,6 @@
 namespace Modules\ClientsAndSuppliers\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-
 use Carbon\Exceptions\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,12 +26,12 @@ class ClientController extends Controller
 
         $business_type = Route::currentRouteName();
 
-        $businessType = $business_type  == 'clients'  ? 'customer' : 'supplier';
-        $create_url = $business_type  == 'clients'  ? 'client-create' : 'supplier-create';
+        $businessType = $business_type == 'clients' ? 'customer' : 'supplier';
+        $create_url = $business_type == 'clients' ? 'client-create' : 'supplier-create';
         if ($request->ajax()) {
-            $contacts =  Contact::where('business_type', $businessType)->select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status');
+            $contacts = Contact::where('business_type', $businessType)->select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status');
 
-            return  Contact::getContactsTable($contacts);
+            return Contact::getContactsTable($contacts);
         }
         $columns = Contact::getContactsColumns();
 
@@ -45,39 +44,34 @@ class ClientController extends Controller
     public function create()
     {
         // dd(env('DB_CONNECTION')) ;
-        $countries = Country::all(); //DB::connection('mysql')->table('countries')->get();
+        $countries = Country::all(); // DB::connection('mysql')->table('countries')->get();
         $payment_terms = SalesUtile::paymentTerms();
-        $accounts =  AccountingAccount::forDropdown();
-
+        $accounts = AccountingAccount::forDropdown();
 
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
         $create_page = Route::currentRouteName();
 
-        if ($create_page == 'supplier-create')
+        if ($create_page == 'supplier-create') {
             return view('clientsandsuppliers::Client.create.supplier', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
-
+        }
 
         return view('clientsandsuppliers::Client.create.create', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
     }
-
-
 
     public function edit($id)
     {
         // $countries = DB::connection('mysql')->table('countries')->get();
         $countries = Country::all();
         $payment_terms = SalesUtile::paymentTerms();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
 
-        $contact =  Contact::find($id);
+        $contact = Contact::find($id);
 
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
-
-
 
         return view('clientsandsuppliers::Client.edit.edit', compact('countries', 'contact', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
     }
@@ -96,9 +90,9 @@ class ClientController extends Controller
             if ($request->ajax()) {
                 $attachment_name = null;
                 if ($request->hasFile('attachment')) {
-                $attachment = $request->file('attachment');
-                $attachment_name = $attachment->store('customers', 'public');
-            }
+                    $attachment = $request->file('attachment');
+                    $attachment_name = $attachment->store('customers', 'public');
+                }
 
                 $contact = Contact::create([
                     'name' => $request->client_name,
@@ -107,7 +101,7 @@ class ClientController extends Controller
                     'mobile_number' => $request->mobile_number,
                     'website' => $request->website,
                     'email' => $request->email,
-                    'point_of_sale_client' => $request->has('point_of_sale_client')  ? 1 : 0,
+                    'point_of_sale_client' => $request->has('point_of_sale_client') ? 1 : 0,
                     'tax_number' => $request->tax_number,
                     'commercial_register' => $request->commercial_register,
                     'payment_terms' => $request->payment_terms,
@@ -115,14 +109,14 @@ class ClientController extends Controller
                     'file_path' => $attachment_name,
                     'credit_limit' => $request->credit_limit,
                     'status' => 'active',
- 
+
                 ]);
 
                 if (
                     $request->billing_street_name || $request->billing_city || $request->billing_state
                     || $request->billing_postal_code || $request->building_number || $request->billing_country
                 ) {
-                    $billingAddress =  $contact->billingAddress()->create([
+                    $billingAddress = $contact->billingAddress()->create([
                         'street_name' => $request->billing_street_name,
                         'city' => $request->billing_city,
                         'state' => $request->billing_state,
@@ -132,6 +126,7 @@ class ClientController extends Controller
                     ]);
                 }
                 DB::commit();
+
                 return response()->json($contact);
             }
             $attachment_name = null;
@@ -148,7 +143,7 @@ class ClientController extends Controller
                 'mobile_number' => $request->mobile_number,
                 'website' => $request->website,
                 'email' => $request->email,
-                'point_of_sale_client' => $request->has('point_of_sale_client')  ? 1 : 0,
+                'point_of_sale_client' => $request->has('point_of_sale_client') ? 1 : 0,
                 'tax_number' => $request->tax_number,
                 'commercial_register' => $request->commercial_register,
                 'file_path' => $attachment_name,
@@ -157,28 +152,25 @@ class ClientController extends Controller
                 'account_id' => $request->account_id,
                 'credit_limit' => $request->credit_limit,
 
-
             ]);
-
 
             if ($request->contact_customLable) {
                 foreach ($request->contact_customLable as $index => $label) {
-                    if (!empty($label) && !empty($request->contact_customValue[$index])) {
+                    if (! empty($label) && ! empty($request->contact_customValue[$index])) {
                         $contact->customInformation()->create([
                             'lable' => $label,
                             'value' => $request->contact_customValue[$index],
-                            'table_name' => 'contacts'
+                            'table_name' => 'contacts',
                         ]);
                     }
                 }
             }
 
-
             if (
                 $request->billing_street_name || $request->billing_city || $request->billing_state
                 || $request->billing_postal_code || $request->building_number || $request->billing_country
             ) {
-                $billingAddress =  $contact->billingAddress()->create([
+                $billingAddress = $contact->billingAddress()->create([
                     'street_name' => $request->billing_street_name,
                     'city' => $request->billing_city,
                     'state' => $request->billing_state,
@@ -189,23 +181,22 @@ class ClientController extends Controller
 
                 if ($request->billing_customLable) {
                     foreach ($request->billing_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->billing_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->billing_customValue[$index])) {
                             $billingAddress->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->billing_customValue[$index],
-                                'table_name' => 'billing_addresses'
+                                'table_name' => 'billing_addresses',
                             ]);
                         }
                     }
                 }
             }
 
-
             if (
                 $request->shipping_street_name || $request->shipping_city || $request->shipping_state
                 || $request->shipping_postal_code || $request->shipping_country
             ) {
-                $shippingAddress =  $contact->shippingAddress()->create([
+                $shippingAddress = $contact->shippingAddress()->create([
                     'street_name' => $request->shipping_street_name,
                     'city' => $request->shipping_city,
                     'state' => $request->shipping_state,
@@ -215,11 +206,11 @@ class ClientController extends Controller
 
                 if ($request->shipping_customLable) {
                     foreach ($request->shipping_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->shipping_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->shipping_customValue[$index])) {
                             $shippingAddress->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->shipping_customValue[$index],
-                                'table_name' => 'shipping_addresses'
+                                'table_name' => 'shipping_addresses',
                             ]);
                         }
                     }
@@ -243,18 +234,18 @@ class ClientController extends Controller
                 ]);
                 if ($request->bankInfo_customLable) {
                     foreach ($request->bankInfo_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->bankInfo_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->bankInfo_customValue[$index])) {
                             $bankAccountInformation->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->bankInfo_customValue[$index],
-                                'table_name' => 'bank_account_information'
+                                'table_name' => 'bank_account_information',
                             ]);
                         }
                     }
                 }
             }
 
-            if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
+            if (! empty($request->client_contact_name) && ! in_array(null, $request->client_contact_name, true)) {
                 foreach ($request->client_contact_name as $index => $name) {
                     $contact->clientContacts()->create([
                         'name' => $name,
@@ -268,13 +259,15 @@ class ClientController extends Controller
                 }
             }
 
-
             DB::commit();
-            if ($request->business_type == 'customer')
+            if ($request->business_type == 'customer') {
                 return redirect()->route('clients')->with('success', __('messages.add_successfully'));
+            }
+
             return redirect()->route('suppliers')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('clients')->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -286,7 +279,7 @@ class ClientController extends Controller
     {
 
         $contact = Contact::find($id);
-        if (!$contact) {
+        if (! $contact) {
             return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
         }
 
@@ -312,7 +305,7 @@ class ClientController extends Controller
         $invoicesTotal = (float) ($totals->invoices_total ?? 0);
         $outstandingTotal = max(0, $invoicesTotal - $paidTotal);
 
-        $ageingBase = "COALESCE(due_date, transaction_date)";
+        $ageingBase = 'COALESCE(due_date, transaction_date)';
         $ageing = (clone $invoicesQuery)
             ->whereIn('payment_status', ['due', 'partial'])
             ->selectRaw("COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), $ageingBase) BETWEEN 0 AND 30 THEN final_total ELSE 0 END),0) as b0_30")
@@ -339,15 +332,15 @@ class ClientController extends Controller
         $country_billingAddress = null;
         $country_shippingAddress = null;
 
-        if (!empty($contact->bankAccountInformation) && !empty($contact->bankAccountInformation->country_bank)) {
+        if (! empty($contact->bankAccountInformation) && ! empty($contact->bankAccountInformation->country_bank)) {
             $country_bank = Country::find($contact->bankAccountInformation->country_bank);
         }
 
-        if (!empty($contact->billingAddress) && !empty($contact->billingAddress->country)) {
+        if (! empty($contact->billingAddress) && ! empty($contact->billingAddress->country)) {
             $country_billingAddress = Country::find($contact->billingAddress->country);
         }
 
-        if (!empty($contact->shippingAddress) && !empty($contact->shippingAddress->country)) {
+        if (! empty($contact->shippingAddress) && ! empty($contact->shippingAddress->country)) {
             $country_shippingAddress = Country::find($contact->shippingAddress->country);
         }
 
@@ -376,8 +369,6 @@ class ClientController extends Controller
         ));
     }
 
-
-
     /**
      * Update the specified resource in storage.
      */
@@ -393,7 +384,6 @@ class ClientController extends Controller
                 $attachment_name = $attachment->store('customers', 'public');
             }
 
-
             $contact = Contact::find($request->id);
             DB::beginTransaction();
             $contact->update([
@@ -402,7 +392,7 @@ class ClientController extends Controller
                 'mobile_number' => $request->mobile_number,
                 'website' => $request->website,
                 'email' => $request->email,
-                'point_of_sale_client' => $request->has('point_of_sale_client')  ? 1 : 0,
+                'point_of_sale_client' => $request->has('point_of_sale_client') ? 1 : 0,
                 'tax_number' => $request->tax_number,
                 'commercial_register' => $request->commercial_register,
                 'file_path' => $attachment_name,
@@ -410,30 +400,27 @@ class ClientController extends Controller
                 'account_id' => $request->account_id,
                 'credit_limit' => $request->credit_limit,
 
-
             ]);
-
 
             if ($request->contact_customLable) {
                 $contact->customInformation()->delete();
                 foreach ($request->contact_customLable as $index => $label) {
-                    if (!empty($label) && !empty($request->contact_customValue[$index])) {
+                    if (! empty($label) && ! empty($request->contact_customValue[$index])) {
                         $contact->customInformation()->create([
                             'lable' => $label,
                             'value' => $request->contact_customValue[$index],
-                            'table_name' => 'contacts'
+                            'table_name' => 'contacts',
                         ]);
                     }
                 }
             }
-
 
             if (
                 $request->billing_street_name || $request->billing_city || $request->billing_state
                 || $request->billing_postal_code || $request->building_number || $request->billing_country
             ) {
                 $contact->billingAddress()->delete();
-                $billingAddress =  $contact->billingAddress()->create([
+                $billingAddress = $contact->billingAddress()->create([
                     'street_name' => $request->billing_street_name,
                     'city' => $request->billing_city,
                     'state' => $request->billing_state,
@@ -445,24 +432,23 @@ class ClientController extends Controller
                 if ($request->billing_customLable) {
                     $billingAddress->customInformation()->delete();
                     foreach ($request->billing_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->billing_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->billing_customValue[$index])) {
                             $billingAddress->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->billing_customValue[$index],
-                                'table_name' => 'billing_addresses'
+                                'table_name' => 'billing_addresses',
                             ]);
                         }
                     }
                 }
             }
 
-
             if (
                 $request->shipping_street_name || $request->shipping_city || $request->shipping_state
                 || $request->shipping_postal_code || $request->shipping_country
             ) {
                 $contact->shippingAddress()->delete();
-                $shippingAddress =  $contact->shippingAddress()->create([
+                $shippingAddress = $contact->shippingAddress()->create([
                     'street_name' => $request->shipping_street_name,
                     'city' => $request->shipping_city,
                     'state' => $request->shipping_state,
@@ -473,11 +459,11 @@ class ClientController extends Controller
                 if ($request->shipping_customLable) {
                     $shippingAddress->customInformation()->delete();
                     foreach ($request->shipping_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->shipping_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->shipping_customValue[$index])) {
                             $shippingAddress->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->shipping_customValue[$index],
-                                'table_name' => 'shipping_addresses'
+                                'table_name' => 'shipping_addresses',
                             ]);
                         }
                     }
@@ -505,18 +491,18 @@ class ClientController extends Controller
 
                 if ($request->bankInfo_customLable) {
                     foreach ($request->bankInfo_customLable as $index => $label) {
-                        if (!empty($label) && !empty($request->bankInfo_customValue[$index])) {
+                        if (! empty($label) && ! empty($request->bankInfo_customValue[$index])) {
                             $bankAccountInformation->customInformation()->create([
                                 'lable' => $label,
                                 'value' => $request->bankInfo_customValue[$index],
-                                'table_name' => 'bank_account_information'
+                                'table_name' => 'bank_account_information',
                             ]);
                         }
                     }
                 }
             }
 
-            if (!empty($request->client_contact_name) && !in_array(null, $request->client_contact_name, true)) {
+            if (! empty($request->client_contact_name) && ! in_array(null, $request->client_contact_name, true)) {
                 $contact->clientContacts()->delete();
                 foreach ($request->client_contact_name as $index => $name) {
                     $contact->clientContacts()->create([
@@ -530,13 +516,15 @@ class ClientController extends Controller
                 }
             }
 
-
             DB::commit();
-            if ($contact->business_type == 'customer')
+            if ($contact->business_type == 'customer') {
                 return redirect()->route('clients')->with('success', __('messages.updated_successfully'));
+            }
+
             return redirect()->route('suppliers')->with('success', __('messages.updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('clients')->with('error', __('messages.something_went_wrong'));
         }
     }

@@ -7,14 +7,14 @@ use Illuminate\Http\Request;
 
 class StorePayrollRequest extends FormRequest
 {
-
     public function prepareForValidation()
     {
         $this->merge([
             'establishment_ids' => is_array(explode(',', $this->establishment_ids)) ? explode(',', $this->establishment_ids) : [explode(',', $this->establishment_ids)],
-            'employee_ids' => explode(',', $this->employee_ids)
+            'employee_ids' => explode(',', $this->employee_ids),
         ]);
     }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -28,10 +28,9 @@ class StorePayrollRequest extends FormRequest
             'date' => ['required', 'date_format:Y-m'],
             'payroll_group_name' => ['required', 'string', 'max:30'],
             'payroll_group_state' => ['required', 'in:final,draft'],
-            'payroll_group_id' => ['nullable', 'exists:sch_payroll_groups,id']
+            'payroll_group_id' => ['nullable', 'exists:sch_payroll_groups,id'],
         ];
     }
-
 
     /**
      * Determine if the user is authorized to make this request.

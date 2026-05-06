@@ -2,8 +2,8 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
@@ -15,7 +15,6 @@ class TransactionSellLine extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
-
 
     public function product()
     {

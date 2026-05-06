@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -14,6 +13,7 @@ class InvoiceMail extends Mailable
     use Queueable, SerializesModels;
 
     public $invoiceData;
+
     /**
      * Create a new message instance.
      */
@@ -52,11 +52,10 @@ class InvoiceMail extends Mailable
         return [];
     }
 
-
     public function build()
     {
         return $this->subject('فاتورتك الجديدة')
-                    ->view('emails.invoice')
-                    ->with('invoiceData', $this->invoiceData);
+            ->view('emails.invoice')
+            ->with('invoiceData', $this->invoiceData);
     }
 }

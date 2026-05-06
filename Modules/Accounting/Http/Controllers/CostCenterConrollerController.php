@@ -11,7 +11,6 @@ use Modules\Accounting\classes\CostCenterExport;
 use Modules\Accounting\classes\TransactionsCostCenterExport;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\CostCenterUtil;
-use Modules\Product\Models\Product;
 use Mpdf\Mpdf;
 
 class CostCenterConrollerController extends Controller
@@ -22,9 +21,9 @@ class CostCenterConrollerController extends Controller
     public function index(Request $request)
     {
 
-
         $costCenters = AccountingCostCenter::where('parent_id', 'null')->with('chiledCostCenter')->get();
         $includeInactive = $request->includeInactive == 0 ? 1 : 0;
+
         return view('accounting::costCenter.index', compact('costCenters', 'includeInactive'));
     }
 
@@ -51,14 +50,16 @@ class CostCenterConrollerController extends Controller
                 'name_en' => $request->name_en,
                 'account_center_number' => $next_account_center_number,
                 'parent_id' => $request->parent_account_id,
-                'is_main' =>  $request->has('is_main')  ? 1 : 0,
+                'is_main' => $request->has('is_main') ? 1 : 0,
 
             ]);
 
             DB::commit();
+
             return redirect()->route('cost-center-index')->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('cost-center-index')->with('error', __('messages.something_went_wrong'));
         }
     }
@@ -73,13 +74,11 @@ class CostCenterConrollerController extends Controller
         return view('accounting::costCenter.print', compact('CostCenter'));
     }
 
-
     public function exportPDF()
     {
         $CostCenter = AccountingCostCenter::all();
 
         $html = view('accounting::costCenter.print', compact('CostCenter'))->render();
-
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -98,7 +97,6 @@ class CostCenterConrollerController extends Controller
     public function exportExcel()
     {
         $CostCenters = AccountingCostCenter::all();
-
 
         return Excel::download(new CostCenterExport($CostCenters), 'cost-centers.xlsx');
     }
@@ -122,7 +120,6 @@ class CostCenterConrollerController extends Controller
     {
         $costCenter = AccountingCostCenter::with('transactions')->find($id);
 
-
         return view('accounting::costCenter.transactions_print', compact('costCenter'));
     }
 
@@ -131,7 +128,6 @@ class CostCenterConrollerController extends Controller
         $costCenter = AccountingCostCenter::with('transactions')->find($id);
 
         $html = view('accounting::costCenter.transactions_print', compact('costCenter'))->render();
-
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -143,7 +139,7 @@ class CostCenterConrollerController extends Controller
         ]);
 
         $mpdf->WriteHTML($html);
-        $filename = 'cost-centers-' . str_replace(['/', '\\'], ' - ', $costCenter->account_center_number) . '.pdf';
+        $filename = 'cost-centers-'.str_replace(['/', '\\'], ' - ', $costCenter->account_center_number).'.pdf';
 
         return $mpdf->Output($filename, 'D');
     }
@@ -152,7 +148,7 @@ class CostCenterConrollerController extends Controller
     {
         $costCenter = AccountingCostCenter::with('transactions')->find($id);
 
-        $filename = 'cost-centers-' . str_replace(['/', '\\'], ' - ', $costCenter->account_center_number) . '.xlsx';
+        $filename = 'cost-centers-'.str_replace(['/', '\\'], ' - ', $costCenter->account_center_number).'.xlsx';
 
         return Excel::download(new TransactionsCostCenterExport($costCenter), $filename);
     }
@@ -169,14 +165,16 @@ class CostCenterConrollerController extends Controller
             $costCenter->update([
                 'name_ar' => $request->name_ar,
                 'name_en' => $request->name_en,
-                'is_main' =>  $request->has('is_main')  ? 1 : 0,
+                'is_main' => $request->has('is_main') ? 1 : 0,
 
             ]);
 
             DB::commit();
+
             return redirect()->route('cost-center-index')->with('success', __('messages.updated_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->route('cost-center-index')->with('error', __('messages.something_went_wrong'));
         }
     }

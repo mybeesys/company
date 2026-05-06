@@ -1,6 +1,5 @@
 <?php
 
-
 return [
     'created_at' => 'تاريخ الانشاء',
     'updated_at' => 'تم تحديثه في',
@@ -90,5 +89,5 @@ return [
     'device_name' => 'اسم الجهاز',
     'device_type' => 'نوع الجهاز',
     'ref' => 'الرقم المرجعي',
-    'generate'=>'إنشاء',
+    'generate' => 'إنشاء',
 ];

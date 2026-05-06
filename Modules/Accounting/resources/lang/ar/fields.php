@@ -1,6 +1,6 @@
 <?php
-return [
 
+return [
 
     'operation_date' => 'تاريخ المعاملة',
 
@@ -19,18 +19,5 @@ return [
     'amount' => 'المبلغ',
     'sub_type' => 'صادر عن',
     'debit/credit' => 'مدين / دائن',
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ];

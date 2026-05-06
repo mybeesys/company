@@ -9,9 +9,8 @@ use Modules\Employee\Classes\DashboardRoleTable;
 use Modules\Employee\Http\Requests\StoreDashboardRoleRequest;
 use Modules\Employee\Http\Requests\UpdateDashboardRoleRequest;
 use Modules\Employee\Models\DashboardRole;
-use Modules\Employee\Services\DashboardRoleService;
 use Modules\Employee\Services\DashboardRoleActions;
-
+use Modules\Employee\Services\DashboardRoleService;
 
 class DashboardRoleController extends Controller
 {
@@ -22,9 +21,11 @@ class DashboardRoleController extends Controller
     {
         if ($request->ajax()) {
             $dashboardRoles = DashboardRole::get(['id', 'name', 'is_active', 'rank']);
+
             return DashboardRoleTable::getDashboardRoleTable($dashboardRoles);
         }
         $columns = DashboardRoleTable::getDashboardRoleColumns();
+
         return view('employee::dashboard-roles.index', compact('columns'));
     }
 
@@ -32,13 +33,13 @@ class DashboardRoleController extends Controller
 
     public function updateLiveValidation(UpdateDashboardRoleRequest $request) {}
 
-
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
         $modules = DashboardRoleService::getModulesPermissions();
+
         return view('employee::dashboard-roles.create', ['modules' => $modules]);
     }
 
@@ -52,6 +53,7 @@ class DashboardRoleController extends Controller
             $storeRole = new dashboardRoleActions($filteredRequest);
             $storeRole->store();
         });
+
         return to_route('dashboard-roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
@@ -63,6 +65,7 @@ class DashboardRoleController extends Controller
         $modules = DashboardRoleService::getModulesPermissions();
 
         $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
+
         return view('employee::dashboard-roles.show', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
 
@@ -74,6 +77,7 @@ class DashboardRoleController extends Controller
         $modules = DashboardRoleService::getModulesPermissions();
 
         $rolePermissions = $dashboardRole->permissions()->get()->pluck('id');
+
         return view('employee::dashboard-roles.edit', compact('dashboardRole', 'modules', 'rolePermissions'));
     }
 
@@ -87,6 +91,7 @@ class DashboardRoleController extends Controller
             $storeRole = new dashboardRoleActions($filteredRequest);
             $storeRole->update($dashboardRole);
         });
+
         return to_route('dashboard-roles.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::fields.role')]));
     }
 

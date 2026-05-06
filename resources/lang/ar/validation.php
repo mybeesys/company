@@ -246,7 +246,7 @@ return [
         'employee_declares_break_type' => 'الموظف يحدد نوع الاستراحة',
         'employee_ids' => 'الموظف',
         'employee_ids.*' => 'للموظف',
-        'establishment_id' => 'رقم الفرع'
+        'establishment_id' => 'رقم الفرع',
 
     ],
 ];

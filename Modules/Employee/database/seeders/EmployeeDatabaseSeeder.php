@@ -2,13 +2,11 @@
 
 namespace Modules\Employee\database\seeders;
 
-use Carbon\Carbon;
 use DB;
 use Hash;
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\TimeCard;
 use Modules\Establishment\Models\Establishment;
 
 class EmployeeDatabaseSeeder extends Seeder
@@ -27,7 +25,7 @@ class EmployeeDatabaseSeeder extends Seeder
             'employment_start_date' => now()->format('Y-m-d'),
             'pin' => 99913,
             'ems_access' => true,
-            'pos_is_active' => true
+            'pos_is_active' => true,
         ]);
 
         $establishment = Establishment::active()->notMain()->first();
@@ -47,7 +45,7 @@ class EmployeeDatabaseSeeder extends Seeder
                     'description' => $permission['description'],
                     'description_ar' => $permission['description_ar'],
                     'type' => $permission['type'],
-                    'guard_name' => 'web'
+                    'guard_name' => 'web',
                 ]
             );
         }

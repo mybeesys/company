@@ -2,14 +2,14 @@
 
 namespace Modules\Establishment\Http\Controllers;
 
-use Log;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Modules\Establishment\Http\Requests\UpdateCompanyRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Log;
+use Modules\Establishment\Http\Requests\UpdateCompanyRequest;
 use Modules\General\Models\Setting;
 
 class CompanyController extends Controller
@@ -19,7 +19,7 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
-        if (!get_company_id()) {
+        if (! get_company_id()) {
             return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
         }
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
@@ -30,9 +30,9 @@ class CompanyController extends Controller
                 'name' => session('locale') == 'ar' ? $country->name_ar : $country->name_en,
             ];
         });
+
         return view('establishment::company.settings.index', compact('company', 'countries'));
     }
-
 
     public function updateLiveValidation(UpdateCompanyRequest $request) {}
 
@@ -70,7 +70,7 @@ class CompanyController extends Controller
         if (request()->ajax()) {
             try {
                 $company = DB::connection('mysql')->table('companies')->where('id', $id)->first();
-                if (!$company) {
+                if (! $company) {
                     return response()->json(['error' => 'Company not found'], 404);
                 }
 
@@ -97,7 +97,7 @@ class CompanyController extends Controller
                     $file = $request->file('menu_cover_image');
                     $oldCoverPath = Setting::where('key', 'menu_cover_image')->value('value');
 
-                    $fileName = 'company-' . $id . '-' . time() . '.' . $file->getClientOriginalExtension();
+                    $fileName = 'company-'.$id.'-'.time().'.'.$file->getClientOriginalExtension();
                     $path = $file->storeAs('menu-covers', $fileName, 'public');
 
                     if ($oldCoverPath && Storage::disk('public')->exists($oldCoverPath)) {

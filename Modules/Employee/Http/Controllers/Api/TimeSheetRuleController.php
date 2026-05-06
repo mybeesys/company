@@ -11,6 +11,7 @@ class TimeSheetRuleController extends Controller
     public function index()
     {
         $timeSheetRules = TimeSheetRule::all();
+
         return new TimeSheetRuleCollection($timeSheetRules);
     }
 }

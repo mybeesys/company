@@ -35,7 +35,7 @@ class StoreTimesheetRuleRequest extends FormRequest
             'duration_of_paid_break' => ['required', 'string', $this->minHoursRule()],
             // 'employee_declares_break_type' => ['required', 'boolean'],
             'clock_in_before_shift_time_limit' => ['required_if:allow_clockin_before_shift,true', 'nullable', 'string', $this->minHoursRule()],
-            'auto_clock_out_time' => ['required_if:enable_auto_clockout,true', 'nullable', 'string', 'date_format:H:i']
+            'auto_clock_out_time' => ['required_if:enable_auto_clockout,true', 'nullable', 'string', 'date_format:H:i'],
         ];
     }
 
@@ -47,12 +47,13 @@ class StoreTimesheetRuleRequest extends FormRequest
                 if ((int) $string[1] >= 60) {
                     $fail(__('employee::responses.minutes_cannot_be_above_60'));
                 }
-                if (!is_numeric($string[0]) || !is_numeric($string[1])) {
+                if (! is_numeric($string[0]) || ! is_numeric($string[1])) {
                     $fail('invalid input');
                 }
             }
         };
     }
+
     /**
      * Determine if the user is authorized to make this request.
      */

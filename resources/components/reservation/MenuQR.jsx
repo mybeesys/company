@@ -1,6 +1,6 @@
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useState, useMemo } from "react";
-import { BlockPicker } from "react-color";
+import { TwitterPicker } from "react-color";
 import { InputSwitch } from "primereact/inputswitch";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
@@ -116,6 +116,7 @@ const MenuQR = ({ translations, dir }) => {
         map_lat: "",
         map_lng: "",
         map_label: "",
+        est_locations: {},
         allergyFile: null,
         allergenVisible: defaultAllergenVisible(),
     });
@@ -242,6 +243,28 @@ const MenuQR = ({ translations, dir }) => {
         setCurrentObject((prev) => ({ ...prev, [key]: val }));
     };
 
+    const getEstLocation = (estId) => {
+        const m = currentObject.est_locations && typeof currentObject.est_locations === "object" ? currentObject.est_locations : {};
+        const k = String(estId);
+        const v = m[k];
+        return v && typeof v === "object" ? v : { map_lat: "", map_lng: "", map_label: "" };
+    };
+
+    const setEstLocation = (estId, patch) => {
+        const k = String(estId);
+        setCurrentObject((prev) => {
+            const prevMap = prev.est_locations && typeof prev.est_locations === "object" ? prev.est_locations : {};
+            const prevRow = prevMap[k] && typeof prevMap[k] === "object" ? prevMap[k] : { map_lat: "", map_lng: "", map_label: "" };
+            return {
+                ...prev,
+                est_locations: {
+                    ...prevMap,
+                    [k]: { ...prevRow, ...patch },
+                },
+            };
+        });
+    };
+
     const establishmentOptions = useMemo(
         () => [
             { value: "all", label: dir === "rtl" ? "اختيار كافة الأفرع" : "Select All Establishments" },
@@ -260,10 +283,23 @@ const MenuQR = ({ translations, dir }) => {
 
     const handleSelectChange = (field, selected, allOptions, originalData) => {
         const vals = selected || [];
-        if (vals.some((opt) => opt.value === "all")) {
-            onChange(field, originalData);
-        } else {
-            onChange(field, vals);
+        const next = vals.some((opt) => opt.value === "all") ? originalData : vals;
+        onChange(field, next);
+
+        if (field === "selectedEstablishments") {
+            const ids = (next || []).map((e) => e.value);
+            setCurrentObject((prev) => {
+                const prevMap = prev.est_locations && typeof prev.est_locations === "object" ? prev.est_locations : {};
+                const keep = {};
+                for (const id of ids) {
+                    const k = String(id);
+                    keep[k] =
+                        prevMap[k] && typeof prevMap[k] === "object"
+                            ? prevMap[k]
+                            : { map_lat: prev.map_lat || "", map_lng: prev.map_lng || "", map_label: prev.map_label || "" };
+                }
+                return { ...prev, est_locations: keep };
+            });
         }
     };
 
@@ -278,8 +314,14 @@ const MenuQR = ({ translations, dir }) => {
         }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                onChange("map_lat", String(pos.coords.latitude));
-                onChange("map_lng", String(pos.coords.longitude));
+                const lat = String(pos.coords.latitude);
+                const lng = String(pos.coords.longitude);
+                onChange("map_lat", lat);
+                onChange("map_lng", lng);
+                const firstEstId = currentObject.selectedEstablishments?.[0]?.value;
+                if (firstEstId) {
+                    setEstLocation(firstEstId, { map_lat: lat, map_lng: lng });
+                }
             },
             () => {
                 window.Swal.fire({
@@ -302,7 +344,27 @@ const MenuQR = ({ translations, dir }) => {
             return false;
         }
         if (s.location) {
-            if (currentObject.map_lat === "" || currentObject.map_lng === "") {
+            const selected = currentObject.selectedEstablishments || [];
+            const ids = selected.map((e) => e.value);
+            const map = currentObject.est_locations && typeof currentObject.est_locations === "object" ? currentObject.est_locations : {};
+            if (ids.length > 0) {
+                for (const id of ids) {
+                    const row = map[String(id)];
+                    const lat = row?.map_lat ?? "";
+                    const lng = row?.map_lng ?? "";
+                    if (String(lat).trim() === "" || String(lng).trim() === "") {
+                        window.Swal.fire({
+                            icon: "error",
+                            title: dir === "rtl" ? "الموقع" : "Location",
+                            text:
+                                dir === "rtl"
+                                    ? "أدخل خط العرض والطول لكل فرع أو استخدم زر موقعي"
+                                    : "Enter coordinates for each establishment or use My location",
+                        });
+                        return false;
+                    }
+                }
+            } else if (currentObject.map_lat === "" || currentObject.map_lng === "") {
                 window.Swal.fire({
                     icon: "error",
                     title: dir === "rtl" ? "الموقع" : "Location",
@@ -359,6 +421,7 @@ const MenuQR = ({ translations, dir }) => {
                 formData.append("map_lat", String(currentObject.map_lat));
                 formData.append("map_lng", String(currentObject.map_lng));
                 formData.append("map_label", currentObject.map_label || "");
+                formData.append("est_locations", JSON.stringify(currentObject.est_locations || {}));
             }
             if (currentObject.allergyFile) {
                 formData.append("allergy_document", currentObject.allergyFile);
@@ -428,6 +491,7 @@ const MenuQR = ({ translations, dir }) => {
             map_lat: "",
             map_lng: "",
             map_label: "",
+            est_locations: {},
             allergyFile: null,
             allergenVisible: defaultAllergenVisible(),
         });
@@ -457,6 +521,18 @@ const MenuQR = ({ translations, dir }) => {
                 ...prev.menuSections,
                 ...(record.section_flags || {}),
             },
+            est_locations:
+                record && typeof record === "object" && record.est_locations && typeof record.est_locations === "object"
+                    ? record.est_locations
+                    : (record.est_ids || []).reduce((acc, id) => {
+                        const k = String(id);
+                        acc[k] = {
+                            map_lat: record.map_lat || "",
+                            map_lng: record.map_lng || "",
+                            map_label: record.map_label || "",
+                        };
+                        return acc;
+                    }, {}),
             allergenVisible: allergenVisibleFromRecord(record),
         }));
     };
@@ -698,8 +774,72 @@ const MenuQR = ({ translations, dir }) => {
                                 </div>
                                 <div className="col-md-6">
                                     <label className="form-label d-block mb-2 fw-bold">{translations.color || "لون الـ QR"}</label>
-                                    <div className="menuqr-color-picker border rounded p-2 bg-light d-flex justify-content-center">
-                                        <BlockPicker color={currentObject.color} onChange={(color) => onChange("color", color.hex)} />
+                                    <div className="border rounded p-3 bg-light">
+                                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <span
+                                                    className="rounded-circle border"
+                                                    style={{
+                                                        width: 20,
+                                                        height: 20,
+                                                        background: currentObject.color || "#000000",
+                                                        boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                                                    }}
+                                                />
+                                                <span className="text-muted small">{currentObject.color || "#000000"}</span>
+                                            </div>
+                                            <div className="d-flex flex-wrap gap-1">
+                                                {["#000000", "#1E40AF", "#0F766E", "#16A34A", "#F59E0B", "#DC2626", "#7C3AED", "#EC4899"].map((hex) => (
+                                                    <button
+                                                        key={hex}
+                                                        type="button"
+                                                        className="border-0 p-0 bg-transparent"
+                                                        onClick={() => onChange("color", hex)}
+                                                        title={hex}
+                                                    >
+                                                        <span
+                                                            className="rounded-circle border d-inline-block"
+                                                            style={{
+                                                                width: 18,
+                                                                height: 18,
+                                                                background: hex,
+                                                                boxShadow: hex === currentObject.color ? "0 0 0 2px rgba(13,110,253,0.35)" : "0 1px 2px rgba(0,0,0,0.08)",
+                                                            }}
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="menuqr-color-picker d-flex justify-content-center">
+                                            <TwitterPicker
+                                                triangle="hide"
+                                                color={currentObject.color}
+                                                onChange={(color) => onChange("color", color.hex)}
+                                                colors={[
+                                                    "#000000",
+                                                    "#1E40AF",
+                                                    "#0F766E",
+                                                    "#16A34A",
+                                                    "#F59E0B",
+                                                    "#DC2626",
+                                                    "#7C3AED",
+                                                    "#EC4899",
+                                                    "#0EA5E9",
+                                                    "#22C55E",
+                                                    "#F97316",
+                                                    "#64748B",
+                                                ]}
+                                                styles={{
+                                                    default: {
+                                                        card: {
+                                                            background: "transparent",
+                                                            boxShadow: "none",
+                                                            padding: 0,
+                                                        },
+                                                    },
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -782,31 +922,55 @@ const MenuQR = ({ translations, dir }) => {
                                             {dir === "rtl" ? "موقعي الحالي" : "My location"}
                                         </button>
                                     </div>
-                                    <div className="row g-2">
-                                        <div className="col-md-4">
-                                            <label className="form-label fs-7">Latitude</label>
-                                            <input
-                                                className="form-control form-control-sm form-control-solid"
-                                                value={currentObject.map_lat}
-                                                onChange={(e) => onChange("map_lat", e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <label className="form-label fs-7">Longitude</label>
-                                            <input
-                                                className="form-control form-control-sm form-control-solid"
-                                                value={currentObject.map_lng}
-                                                onChange={(e) => onChange("map_lng", e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <label className="form-label fs-7">{dir === "rtl" ? "وصف الموقع" : "Place label"}</label>
-                                            <input
-                                                className="form-control form-control-sm form-control-solid"
-                                                value={currentObject.map_label}
-                                                onChange={(e) => onChange("map_label", e.target.value)}
-                                            />
-                                        </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr className="text-muted fs-7">
+                                                    <th style={{ width: "26%" }}>{dir === "rtl" ? "الفرع" : "Establishment"}</th>
+                                                    <th style={{ width: "22%" }}>Latitude</th>
+                                                    <th style={{ width: "22%" }}>Longitude</th>
+                                                    <th style={{ width: "30%" }}>{dir === "rtl" ? "وصف الموقع" : "Place label"}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(currentObject.selectedEstablishments || []).map((e) => {
+                                                    const loc = getEstLocation(e.value);
+                                                    return (
+                                                        <tr key={e.value}>
+                                                            <td className="fw-semibold">{e.label}</td>
+                                                            <td>
+                                                                <input
+                                                                    className="form-control form-control-sm form-control-solid"
+                                                                    value={loc.map_lat ?? ""}
+                                                                    onChange={(ev) => setEstLocation(e.value, { map_lat: ev.target.value })}
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <input
+                                                                    className="form-control form-control-sm form-control-solid"
+                                                                    value={loc.map_lng ?? ""}
+                                                                    onChange={(ev) => setEstLocation(e.value, { map_lng: ev.target.value })}
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <input
+                                                                    className="form-control form-control-sm form-control-solid"
+                                                                    value={loc.map_label ?? ""}
+                                                                    onChange={(ev) => setEstLocation(e.value, { map_label: ev.target.value })}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                                {(currentObject.selectedEstablishments || []).length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center text-muted">
+                                                            {dir === "rtl" ? "اختر الأفرع أولاً" : "Select establishments first"}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             )}

@@ -4,11 +4,6 @@ namespace Modules\Inventory\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Product\Models\Ingredient;
-use Modules\Product\Models\Product;
-use Modules\Product\Models\UnitTransfer;
-use Modules\Product\Models\Vendor;
 
 class ModifierInventoryTotal extends Model
 {
@@ -25,10 +20,11 @@ class ModifierInventoryTotal extends Model
     protected $fillable = [
         'modifier_id',
         'establishment_id',
-        'qty'
+        'qty',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 

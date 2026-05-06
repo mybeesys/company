@@ -22,9 +22,10 @@ class RMAController extends Controller
      */
     public function create()
     {
-        $rma = new PurchaseOrder();
-        $rma->vendor = new Vendor();
+        $rma = new PurchaseOrder;
+        $rma->vendor = new Vendor;
         $rma->items = [];
+
         return view('inventory::rma.create', compact('rma'));
     }
 
@@ -33,7 +34,7 @@ class RMAController extends Controller
      */
     public function edit($id)
     {
-        $inventoryOperation  = InventoryOperation::with('establishment')->find($id);
+        $inventoryOperation = InventoryOperation::with('establishment')->find($id);
         $inventoryOperation->detail->addToFillable();
         foreach ($inventoryOperation->detail->getFillable() as $key) {
             $inventoryOperation->$key = $inventoryOperation->detail[$key];
@@ -43,30 +44,31 @@ class RMAController extends Controller
         $inventoryOperation->addToFillable('establishment');
         $inventoryOperation->op_status_name = $inventoryOperation->op_status->name;
         $resInventoryOperation = $inventoryOperation->toArray();
-        $resInventoryOperation["items"] = [];
+        $resInventoryOperation['items'] = [];
         foreach ($inventoryOperation->items as $item) {
             $newItem = $item->toArray();
-            if(isset($item->product_id)){
-                $newItem["product_id"] = $item->product_id.'-p';
+            if (isset($item->product_id)) {
+                $newItem['product_id'] = $item->product_id.'-p';
                 $prod = $item->product->toArray();
-                $prod["id"] =  $item->product_id.'-p';
-                $newItem["product"] =$prod;
+                $prod['id'] = $item->product_id.'-p';
+                $newItem['product'] = $prod;
             }
-            if(isset($item->ingredient_id)){
-                $newItem["product_id"] = $item->ingredient_id.'-i';
+            if (isset($item->ingredient_id)) {
+                $newItem['product_id'] = $item->ingredient_id.'-i';
                 $ingr = $item->ingredient->toArray();
-                $ingr["id"] =  $item->ingredient_id.'-i';
-                $newItem["product"] =$ingr;
+                $ingr['id'] = $item->ingredient_id.'-i';
+                $newItem['product'] = $ingr;
             }
-            if(isset($item->modifier_id)){
-                $newItem["product_id"] = $item->modifier_id.'-m';
+            if (isset($item->modifier_id)) {
+                $newItem['product_id'] = $item->modifier_id.'-m';
                 $mod = $item->modifier->toArray();
-                $mod["id"] =  $item->modifier_id.'-m';
-                $newItem["product"] =$mod;
+                $mod['id'] = $item->modifier_id.'-m';
+                $newItem['product'] = $mod;
             }
-            $newItem["unit"] = $item->unit->toArray();
-            $resInventoryOperation["items"][] =$newItem;
+            $newItem['unit'] = $item->unit->toArray();
+            $resInventoryOperation['items'][] = $newItem;
         }
+
         return view('inventory::rma.edit', compact('resInventoryOperation'));
     }
 }

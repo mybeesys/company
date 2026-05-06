@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('product_products', function (Blueprint $table) {
             $table->boolean('for_sell')->after('active')->default(1);
-          });
+        });
     }
 
     /**

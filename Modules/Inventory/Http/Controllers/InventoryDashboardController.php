@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Mpdf\Mpdf;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
+use Mpdf\Mpdf;
 
 class InventoryDashboardController extends Controller
 {
@@ -40,20 +40,20 @@ class InventoryDashboardController extends Controller
             ->where('type', 'TRANSFER')
             ->where('status', 'approved')
             ->where('parent_id', null)
-            ->when($selectedWarehouseId, fn($q) => $q->where('establishment_id', $selectedWarehouseId))
+            ->when($selectedWarehouseId, fn ($q) => $q->where('establishment_id', $selectedWarehouseId))
             ->where($dateFilter)
             ->count();
         $wasteCount = Transaction::query()
             ->where('type', 'WASTE')
             ->where('status', 'approved')
-            ->when($selectedWarehouseId, fn($q) => $q->where('establishment_id', $selectedWarehouseId))
+            ->when($selectedWarehouseId, fn ($q) => $q->where('establishment_id', $selectedWarehouseId))
             ->where($dateFilter)
             ->count();
         $prepCount = Transaction::query()
             ->where('type', 'PREP')
             ->where('status', 'approved')
             ->where('parent_id', null)
-            ->when($selectedWarehouseId, fn($q) => $q->where('establishment_id', $selectedWarehouseId))
+            ->when($selectedWarehouseId, fn ($q) => $q->where('establishment_id', $selectedWarehouseId))
             ->where($dateFilter)
             ->count();
 
@@ -269,7 +269,7 @@ class InventoryDashboardController extends Controller
             'margin_right' => 8,
             'margin_top' => 8,
             'margin_bottom' => 8,
-            'tempDir' => storage_path('temp/mpdf')
+            'tempDir' => storage_path('temp/mpdf'),
         ]);
         $mpdf->WriteHTML($html);
 
@@ -280,7 +280,7 @@ class InventoryDashboardController extends Controller
     {
         $warehouseIds = Establishment::where('is_main', 0)->pluck('id');
         $selectedWarehouseId = $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null;
-        if ($selectedWarehouseId && !$warehouseIds->contains($selectedWarehouseId)) {
+        if ($selectedWarehouseId && ! $warehouseIds->contains($selectedWarehouseId)) {
             $selectedWarehouseId = null;
         }
         $startDate = $request->filled('start_date')
@@ -303,7 +303,7 @@ class InventoryDashboardController extends Controller
             ? collect([$selectedWarehouseId])
             : $warehouseIds;
         $months = collect(range(5, 0))
-            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'))
             ->push(now()->format('Y-m'))
             ->values();
         $movementRows = Transaction::query()

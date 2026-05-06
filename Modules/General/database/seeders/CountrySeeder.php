@@ -23,12 +23,12 @@ class CountrySeeder extends Seeder
                 $nameAr = $country['translations']['ara']['common'] ?? null;
                 $isoCode = $country['cca2'] ?? null;
                 $dialCode = isset($country['idd']['root']) && isset($country['idd']['suffixes'])
-                    ? $country['idd']['root'] . $country['idd']['suffixes'][0]
+                    ? $country['idd']['root'].$country['idd']['suffixes'][0]
                     : '+000';
                 $currencyData = $country['currencies'] ?? [];
                 $currencyNameEn = $currencySymbolEn = $currencyNameAr = $currencySymbolAr = null;
 
-                if (!empty($currencyData)) {
+                if (! empty($currencyData)) {
                     $firstCurrency = array_values($currencyData)[0];
                     $currencyNameEn = $firstCurrency['name'] ?? null;
                     $currencySymbolEn = $firstCurrency['symbol'] ?? null;

@@ -32,11 +32,11 @@ class EnsureHasSubscription
         }
 
         $company = Company::find(get_company_id());
-        if (!$company) {
+        if (! $company) {
             return $this->handleCompanyNotFound($request);
         }
 
-        if (!$company->subscription) {
+        if (! $company->subscription) {
             return $this->handleNoSubscription($request);
         }
 
@@ -51,10 +51,11 @@ class EnsureHasSubscription
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('company_not_found')
+                'message' => __('company_not_found'),
             ], 403);
         }
         auth()->logout();
+
         return redirect()->route('login')
             ->withInput()
             ->withErrors(['company' => __('company_not_found')]);
@@ -64,10 +65,11 @@ class EnsureHasSubscription
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('no_subscription_found')
+                'message' => __('no_subscription_found'),
             ], 403);
         }
         auth()->logout();
+
         return redirect()->route('login')
             ->withInput()
             ->withErrors(['subscription' => __('no_subscription_found')]);
@@ -77,7 +79,7 @@ class EnsureHasSubscription
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('subscription_expired')
+                'message' => __('subscription_expired'),
             ], 403);
         }
         auth()->logout();

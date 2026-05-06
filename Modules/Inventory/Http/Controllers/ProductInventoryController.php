@@ -3,48 +3,49 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Inventory\Models\ProductInventory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Modules\Accounting\Models\PeriodicInventory;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Setting;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
+use Modules\Inventory\Models\ProductInventory;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\UnitTransferConvertor;
 use Modules\Product\Models\UnitTransfer;
-use Illuminate\Support\Facades\Log;
+use Modules\Product\Models\UnitTransferConvertor;
+
 use function Laravel\Prompts\error;
-use Illuminate\Support\Facades\DB;
-use Modules\Accounting\Models\PeriodicInventory;
-use Modules\General\Models\Setting;
 
 class ProductInventoryController extends Controller
 {
-
     protected function fillProduct($establishment, $key)
     {
 
-        if ($establishment["is_main"] == 1) {
+        if ($establishment['is_main'] == 1) {
             $children = [];
-            foreach ($establishment["children"] as $childEstablishment) {
+            foreach ($establishment['children'] as $childEstablishment) {
                 $est = $this->fillProduct($childEstablishment, $key);
                 $children[] = $est;
             }
-            $establishment["children"] = $children;
+            $establishment['children'] = $children;
+
             return $establishment;
         }
         $productInventories = [];
         $modifierInventories = [];
         if ($key != null) {
-            $productInventories = Product::where('name_ar', 'like', '%' . $key . '%')
-                ->orWhere('name_en', 'like', '%' . $key . '%')
+            $productInventories = Product::where('name_ar', 'like', '%'.$key.'%')
+                ->orWhere('name_en', 'like', '%'.$key.'%')
                 ->with(['inventory' => function ($query) {
                     $query->with('vendor');
                     $query->with('unit');
                 }]);
-            $modifierInventories = Modifier::where('name_ar', 'like', '%' . $key . '%')
-                ->orWhere('name_en', 'like', '%' . $key . '%')
+            $modifierInventories = Modifier::where('name_ar', 'like', '%'.$key.'%')
+                ->orWhere('name_en', 'like', '%'.$key.'%')
                 ->with(['inventory' => function ($query) {
                     $query->with('vendor');
                     $query->with('unit');
@@ -61,7 +62,7 @@ class ProductInventoryController extends Controller
         }
         $productInventories = $productInventories->Join('product_inventories', function ($join) use ($establishment) {
             $join->on('product_inventories.product_id', '=', 'product_products.id')
-                ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+                ->where('establishment_id', '=', $establishment['id']); // Constant condition
         })->get();
         $children = [];
 
@@ -69,8 +70,8 @@ class ProductInventoryController extends Controller
             $productInventory->addToFillable('inventory');
             $productInventory->addToFillable('qty');
             $pp = $productInventory->toArray();
-            $pp["type"] = "product";
-            $pp["establishment_id"] = $establishment["id"];
+            $pp['type'] = 'product';
+            $pp['establishment_id'] = $establishment['id'];
             $children[] = $pp;
             // error_log(json_encode($pp));
             // error_log(",");
@@ -78,37 +79,39 @@ class ProductInventoryController extends Controller
 
         $modifierInventories = $modifierInventories->Join('modifier_inventories', function ($join) use ($establishment) {
             $join->on('modifier_inventories.modifier_id', '=', 'product_modifiers.id')
-                ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+                ->where('establishment_id', '=', $establishment['id']); // Constant condition
         })->get();
         foreach ($modifierInventories as $modifierInventory) {
             $modifierInventory->addToFillable('inventory');
             $modifierInventory->addToFillable('qty');
             $pp = $modifierInventory->toArray();
-            $pp["type"] = "modifier";
-            $pp["establishment_id"] = $establishment["id"];
+            $pp['type'] = 'modifier';
+            $pp['establishment_id'] = $establishment['id'];
             $children[] = $pp;
         }
-        $establishment["children"] = $children;
+        $establishment['children'] = $children;
 
         return $establishment;
     }
+
     protected function fillProducts($establishment, $key, array $periodicQtyMap = [], bool $usePeriodicSnapshot = false, ?string $statusFilter = null)
     {
 
-        if ($establishment["is_main"] == 1) {
+        if ($establishment['is_main'] == 1) {
             $children = [];
-            foreach ($establishment["children"] as $childEstablishment) {
+            foreach ($establishment['children'] as $childEstablishment) {
                 $est = $this->fillProducts($childEstablishment, $key, $periodicQtyMap, $usePeriodicSnapshot, $statusFilter);
                 $children[] = $est;
             }
-            $establishment["children"] = $children;
+            $establishment['children'] = $children;
+
             return $establishment;
         }
         $productInventories = [];
         $modifierInventories = [];
         if ($key != null) {
-            $productInventories = Product::where('name_ar', 'like', '%' . $key . '%')
-                ->orWhere('name_en', 'like', '%' . $key . '%')
+            $productInventories = Product::where('name_ar', 'like', '%'.$key.'%')
+                ->orWhere('name_en', 'like', '%'.$key.'%')
                 ->with(['inventory' => function ($query) {
                     $query->with('vendor');
                     $query->with('unit');
@@ -131,7 +134,7 @@ class ProductInventoryController extends Controller
         }
         $productInventories = $productInventories->Join('product_inventories', function ($join) use ($establishment) {
             $join->on('product_inventories.product_id', '=', 'product_products.id')
-                ->where('establishment_id', '=', $establishment["id"]); // Constant condition
+                ->where('establishment_id', '=', $establishment['id']); // Constant condition
         })->get();
         $children = [];
 
@@ -139,11 +142,11 @@ class ProductInventoryController extends Controller
             $productInventory->addToFillable('inventory');
             $productInventory->addToFillable('qty');
             $pp = $productInventory->toArray();
-            $pp["type"] = "product";
-            $pp["establishment_id"] = $establishment["id"];
+            $pp['type'] = 'product';
+            $pp['establishment_id'] = $establishment['id'];
             $effectiveQty = (float) $productInventory->qty;
             if ($usePeriodicSnapshot) {
-                $periodicKey = $establishment["id"] . '-' . $productInventory->id;
+                $periodicKey = $establishment['id'].'-'.$productInventory->id;
                 if (array_key_exists($periodicKey, $periodicQtyMap)) {
                     $effectiveQty = (float) $periodicQtyMap[$periodicKey];
                 }
@@ -160,7 +163,7 @@ class ProductInventoryController extends Controller
 
                     $quantities[] = "{$quantityInStock} {$unit->unit1}";
                 }
-                $pp["qty"] = implode(' , ', $quantities);
+                $pp['qty'] = implode(' , ', $quantities);
             } else {
                 $unit = UnitTransfer::where('product_id', $productInventory->product_id)
                     ->where('unit2', null)
@@ -173,13 +176,13 @@ class ProductInventoryController extends Controller
                     $formattedQty = number_format($qty, 2, '.', '');
                 }
                 $unitName = $unit?->unit1 ?? '';
-                $pp["qty"] = trim($formattedQty . ' ' . $unitName);
+                $pp['qty'] = trim($formattedQty.' '.$unitName);
             }
             $threshold = (float) ($productInventory->threshold ?? data_get($productInventory, 'inventory.threshold', 0));
             $stockStatus = $effectiveQty <= 0
                 ? 'out_of_stock'
                 : (($threshold > 0 && $effectiveQty <= $threshold) ? 'low_stock' : 'normal');
-            if (!empty($statusFilter) && $statusFilter !== 'all' && $stockStatus !== $statusFilter) {
+            if (! empty($statusFilter) && $statusFilter !== 'all' && $stockStatus !== $statusFilter) {
                 continue;
             }
             $pp['qty_raw'] = $effectiveQty;
@@ -200,10 +203,11 @@ class ProductInventoryController extends Controller
             $pp["establishment_id"] = $establishment["id"];
             $children[] = $pp;
         }*/
-        $establishment["children"] = $children;
+        $establishment['children'] = $children;
 
         return $establishment;
     }
+
     public function listTransactions(Request $request)
     {
         $typ = $request->query('typ');  // Get 'query' parameter
@@ -218,7 +222,7 @@ class ProductInventoryController extends Controller
                         $query->with('unit');
                     },
                     'unitTransfer',
-                    'transaction'
+                    'transaction',
                 ]
             )->where('product_id', '=', $id);
             $purchaseLines = TransactionePurchasesLine::with(
@@ -227,7 +231,7 @@ class ProductInventoryController extends Controller
                         $query->with('unit');
                     },
                     'unitTransfer',
-                    'transaction'
+                    'transaction',
                 ]
             )->where('product_id', '=', $id);
         } else {
@@ -236,7 +240,7 @@ class ProductInventoryController extends Controller
                     $query->with('unit');
                 },
                 'unitTransfer',
-                'transaction'
+                'transaction',
             ])->where('modifier_id', '=', $id);
             $purchaseLines = TransactionePurchasesLine::with(
                 [
@@ -244,7 +248,7 @@ class ProductInventoryController extends Controller
                         $query->with('unit');
                     },
                     'unitTransfer',
-                    'transaction'
+                    'transaction',
                 ]
             )->where('product_id', '=', $id);
         }
@@ -257,7 +261,7 @@ class ProductInventoryController extends Controller
         $resultSellLine = array_map(function ($item) use ($typ) {
             return $this->getTransItem($item, $typ, -1);
         }, $sellLines->toArray());
-        $resultPurchaseLine = array_map(function ($item) use ($typ, $purchaseLines) {
+        $resultPurchaseLine = array_map(function ($item) use ($typ) {
             return $this->getTransItem($item, $typ, 1);
         }, $purchaseLines->toArray());
         $result = array_merge($resultSellLine, $resultPurchaseLine);
@@ -269,6 +273,7 @@ class ProductInventoryController extends Controller
         $updatedResult = collect($result)->map(function ($item) use (&$subtotal) {
             $subtotal += $item['signed_qty'];
             $item['sub_total'] = $subtotal;
+
             return $item;
         })->toArray();
         usort($updatedResult, function ($a, $b) {
@@ -276,29 +281,31 @@ class ProductInventoryController extends Controller
                 ? $b['transaction_id'] <=> $a['transaction_id']
                 : $b['transaction_date'] <=> $a['transaction_date'];  // Descending order
         });
+
         return response()->json($updatedResult);
     }
 
     public function getTransItem($item, $typ, $sign)
     {
         $newItem = $item;
-        $newItem["type"] = $item["transaction"]["type"];
-        $newItem["product"] = $typ == 'product' ? $item["product"] : $item["modifier"];
+        $newItem['type'] = $item['transaction']['type'];
+        $newItem['product'] = $typ == 'product' ? $item['product'] : $item['modifier'];
         $itemType = $typ == 'product' ? 'P' : 'M';
-        $newItem["transaction_date"] = $item["transaction"]["transaction_date"];
-        $newItem["transaction_id"] = $item["transaction_id"];
-        $units = $newItem["product"]['unit_transfers'];
-        $newItem["unit_transfer"] = UnitTransferConvertor::getMainUnit($itemType, $newItem["product"]["id"], $units);
-        $quantity =  UnitTransferConvertor::convertUnit(
+        $newItem['transaction_date'] = $item['transaction']['transaction_date'];
+        $newItem['transaction_id'] = $item['transaction_id'];
+        $units = $newItem['product']['unit_transfers'];
+        $newItem['unit_transfer'] = UnitTransferConvertor::getMainUnit($itemType, $newItem['product']['id'], $units);
+        $quantity = UnitTransferConvertor::convertUnit(
             $itemType,
-            $newItem["product"]["id"],
-            $item["unit_id"],
+            $newItem['product']['id'],
+            $item['unit_id'],
             null,
-            $item["qyt"],
+            $item['qyt'],
             $units
         );
-        $newItem["qty"] = $quantity;
-        $newItem["signed_qty"] =  $sign * $quantity;
+        $newItem['qty'] = $quantity;
+        $newItem['signed_qty'] = $sign * $quantity;
+
         return $newItem;
     }
 
@@ -311,17 +318,16 @@ class ProductInventoryController extends Controller
         $establishments = [];
         $usePeriodicSnapshot = Setting::isPeriodicInventory();
         $periodicQtyMap = $this->getPeriodicQtyMap($usePeriodicSnapshot);
-        $TreeBuilder = new TreeBuilder();
+        $TreeBuilder = new TreeBuilder;
 
         $establishments = Establishment::whereNull('parent_id')->with('children')->get();
-
 
         $establishmentArray = $establishments->toArray();
         $details = [];
         $processedIds = [];
 
         foreach ($establishmentArray as $establishment) {
-            if (!in_array($establishment['id'], $processedIds)) {
+            if (! in_array($establishment['id'], $processedIds)) {
                 $processedIds[] = $establishment['id'];
 
                 $products = $this->fillProducts($establishment, $key, $periodicQtyMap, $usePeriodicSnapshot, $status);
@@ -338,6 +344,7 @@ class ProductInventoryController extends Controller
             return $details;
         } else {
             $tree = $TreeBuilder->buildTreeFromArray($details, null, 'productInventory', null, null, null);
+
             return response()->json($tree);
         }
     }
@@ -352,25 +359,30 @@ class ProductInventoryController extends Controller
             $est = $this->fillProduct($establishment, null);
             $details[] = $est;
         }
+
         return $details;
     }
 
     public function getProductInventory($id)
     {
-        $idd = explode("-", $id);
+        $idd = explode('-', $id);
         $result = null;
-        if ($idd[1] == 'p')
+        if ($idd[1] == 'p') {
             $result = Product::with(['inventory' => function ($query) {
                 $query->with('vendor');
                 $query->with('unit');
             }])->find($idd[0]);
-        if ($idd[1] == 'm')
+        }
+        if ($idd[1] == 'm') {
             $result = Modifier::with(['inventory' => function ($query) {
                 $query->with('vendor');
                 $query->with('unit');
             }])->find($idd[0]);
+        }
+
         return response()->json($result);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -394,7 +406,7 @@ class ProductInventoryController extends Controller
             'out_of_stock' => collect($items)->where('stock_status', 'out_of_stock')->count(),
             'low_stock' => collect($items)->where('stock_status', 'low_stock')->count(),
             'normal' => collect($items)->where('stock_status', 'normal')->count(),
-            'total_cost_value' => round((float) collect($items)->sum(fn($i) => max(0, (float) $i['qty']) * (float) $i['cost']), 2),
+            'total_cost_value' => round((float) collect($items)->sum(fn ($i) => max(0, (float) $i['qty']) * (float) $i['cost']), 2),
         ];
 
         $criticalItems = collect($items)
@@ -420,7 +432,8 @@ class ProductInventoryController extends Controller
             ->sortBy('qty')
             ->values();
 
-        $fileName = 'product-inventory-critical-items-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'product-inventory-critical-items-'.now()->format('Ymd-His').'.csv';
+
         return response()->streamDownload(function () use ($criticalItems) {
             $stream = fopen('php://output', 'w');
             fputcsv($stream, ['Establishment', 'Product', 'Qty', 'Threshold', 'Status', 'Cost']);
@@ -440,7 +453,7 @@ class ProductInventoryController extends Controller
 
     private function getPeriodicQtyMap(bool $usePeriodicSnapshot): array
     {
-        if (!$usePeriodicSnapshot) {
+        if (! $usePeriodicSnapshot) {
             return [];
         }
 
@@ -458,7 +471,7 @@ class ProductInventoryController extends Controller
 
         $periodicQtyMap = [];
         foreach ($periodicItems as $item) {
-            $periodicQtyMap[$item->establishment_id . '-' . $item->product_id] = (float) $item->physical_quantity;
+            $periodicQtyMap[$item->establishment_id.'-'.$item->product_id] = (float) $item->physical_quantity;
         }
 
         return $periodicQtyMap;
@@ -492,7 +505,7 @@ class ProductInventoryController extends Controller
         foreach ($rows as $row) {
             $qty = (float) $row->qty;
             if ($usePeriodicSnapshot) {
-                $key = $row->establishment_id . '-' . $row->product_id;
+                $key = $row->establishment_id.'-'.$row->product_id;
                 if (array_key_exists($key, $periodicQtyMap)) {
                     $qty = (float) $periodicQtyMap[$key];
                 }
@@ -531,15 +544,15 @@ class ProductInventoryController extends Controller
             'primary_vendor_default_quantity' => 'nullable|numeric',
             'primary_vendor_default_price' => 'nullable|numeric',
         ]);
-        if (!isset($validated['id'])) {
-            if (isset($request["unit"])) {
-                $validated["unit_id"] = $request["unit"]["id"];
+        if (! isset($validated['id'])) {
+            if (isset($request['unit'])) {
+                $validated['unit_id'] = $request['unit']['id'];
             }
-            if ($request["vendor"]) {
-                $validated["primary_vendor_id"] = $request["vendor"]["id"];
+            if ($request['vendor']) {
+                $validated['primary_vendor_id'] = $request['vendor']['id'];
             }
-            if ($request["vendor_unit"]) {
-                $validated["primary_vendor_unit_id"] = $request["vendor_unit"]["id"];
+            if ($request['vendor_unit']) {
+                $validated['primary_vendor_unit_id'] = $request['vendor_unit']['id'];
             }
             ProductInventory::create($validated);
         } else {
@@ -547,18 +560,19 @@ class ProductInventoryController extends Controller
             $productInventory->threshold = $validated['threshold'];
             $productInventory->primary_vendor_default_quantity = $validated['primary_vendor_default_quantity'];
             $productInventory->primary_vendor_default_price = $validated['primary_vendor_default_price'];
-            if (isset($request["unit"])) {
-                $productInventory["unit_id"] = $request["unit"]["id"];
+            if (isset($request['unit'])) {
+                $productInventory['unit_id'] = $request['unit']['id'];
             }
-            if (isset($request["vendor"])) {
-                $productInventory["primary_vendor_id"] = $request["vendor"]["id"];
+            if (isset($request['vendor'])) {
+                $productInventory['primary_vendor_id'] = $request['vendor']['id'];
             }
-            if (isset($request["vendor_unit"])) {
-                $productInventory["primary_vendor_unit_id"] = $request["vendor_unit"]["id"];
+            if (isset($request['vendor_unit'])) {
+                $productInventory['primary_vendor_unit_id'] = $request['vendor_unit']['id'];
             }
             $productInventory->save();
         }
-        return response()->json(["message" => "Done"]);
+
+        return response()->json(['message' => 'Done']);
     }
 
     /**
@@ -574,18 +588,19 @@ class ProductInventoryController extends Controller
      */
     public function edit($id)
     {
-        $product  = Product::with(['inventory' => function ($query) {
+        $product = Product::with(['inventory' => function ($query) {
             $query->with('vendor');
             $query->with('vendorUnit');
             $query->with('unit');
         }])->find($id);
         if ($product->inventory == null) {
-            $product->inventory = new ProductInventory();
+            $product->inventory = new ProductInventory;
         }
         $productInventory = $product->inventory;
         $productInventory->product_id = $id;
         $productInventory->name_ar = $product->name_ar;
         $productInventory->name_en = $product->name_en;
+
         return view('inventory::productInventory.edit', compact('productInventory'));
     }
 

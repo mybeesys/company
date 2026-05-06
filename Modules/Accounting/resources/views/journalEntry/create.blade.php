@@ -30,7 +30,7 @@
     <div class="separator d-flex flex-center my-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
-    <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}">
+    <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data">
         @csrf
 
         <div class="row row-cols-lg-12 g-10" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
@@ -347,13 +347,13 @@
                 totalCredit += credit;
             });
 
-            if (totalDebit != totalCredit) {
-                var Budget = totalDebit - totalCredit;
+            const diff = Math.abs(totalDebit - totalCredit);
+            const tolerance = 0.0001;
+            if (diff > tolerance) {
                 let budgetDifferenceText = "@lang('accounting::lang.The journal entry is unbalanced with a difference of')";
-                $('#Budget').text(budgetDifferenceText + ' : ( ' + Math.abs(Budget) + ' ) ');
+                $('#Budget').text(budgetDifferenceText + ' : ( ' + diff.toFixed(2) + ' ) ');
             } else {
                 $('#Budget').text('');
-
             }
             $('#kt_ecommerce_select2_account').select2();
             $('#kt_ecommerce_select2_cost_center').select2();

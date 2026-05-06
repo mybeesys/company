@@ -9,12 +9,9 @@ use Modules\Establishment\Models\Establishment;
 use Modules\Inventory\Enums\InventoryOperationStatus;
 use Modules\Inventory\Enums\InventoryOperationType;
 
-
-
 class InventoryOperation extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     protected $relatedModels = [
@@ -22,7 +19,7 @@ class InventoryOperation extends Model
         1 => \Modules\Inventory\Models\Prep::class,
         2 => \Modules\Inventory\Models\PurchaseOrder::class,
         3 => null,
-        4 => \Modules\Inventory\Models\Transfer::class
+        4 => \Modules\Inventory\Models\Transfer::class,
     ];
 
     // If the table name does not follow Laravel's conventions,
@@ -39,49 +36,53 @@ class InventoryOperation extends Model
         'op_type',
         'op_status',
         'op_date',
-        'total'
+        'total',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
     protected $casts = [
         'op_type' => InventoryOperationType::class,
-        'op_status' => InventoryOperationStatus::class  // Cast the 'status' attribute to the Status enum
-     ];
- 
+        'op_status' => InventoryOperationStatus::class,  // Cast the 'status' attribute to the Status enum
+    ];
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
     public $type = 'inventoryOperation';
 
-    public function hasDetail(){
-        
+    public function hasDetail()
+    {
+
         $relatedModel = $this->relatedModels[$this->op_type->value] ?? null;
-       if(!$relatedModel)
+        if (! $relatedModel) {
             return false;
-        else
+        } else {
             return true;
+        }
     }
 
     public function detail()
     {
 
         $relatedModel = $this->relatedModels[$this->op_type->value] ?? null;
-        
-        if(!$relatedModel)
-            return null;
 
-        if ($relatedModel) {
-            return $this->belongsTo($relatedModel, 'id', 'operation_id');//->with('vendor');
+        if (! $relatedModel) {
+            return null;
         }
 
-        //return $this->belongsTo($currentRelatedModel, 'operation_id', 'id');
+        if ($relatedModel) {
+            return $this->belongsTo($relatedModel, 'id', 'operation_id'); // ->with('vendor');
+        }
+
+        // return $this->belongsTo($currentRelatedModel, 'operation_id', 'id');
         // Return null if no valid model is found
-        //throw ex;
+        // throw ex;
     }
 
     public function createDetail(array $attributes)
@@ -89,7 +90,7 @@ class InventoryOperation extends Model
         // Get the related model class based on op_type
         $modelClass = $this->relatedModels[$this->op_type->value] ?? null;
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             return null;
         }
 
@@ -102,18 +103,19 @@ class InventoryOperation extends Model
         // Determine the model class based on op_type
         $modelClass = $this->relatedModels[$this->op_type->value] ?? null;
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             return null;
         }
 
         // Return an instance of the related model without saving
-        return new $modelClass();
+        return new $modelClass;
     }
 
     public function items()
     {
         return $this->hasMany(InventoryOperationItem::class, 'operation_id', 'id');
     }
+
     public function establishment()
     {
         return $this->belongsTo(Establishment::class, 'establishment_id', 'id');

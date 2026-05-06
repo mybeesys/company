@@ -5,30 +5,29 @@ namespace Modules\Employee\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Employee\database\factories\EmployeeFactory;
 use Modules\Establishment\Models\Establishment;
-use Spatie\Permission\Traits\HasPermissions;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Franchisee\Models\Agreement;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasPermissions;
+use Spatie\Permission\Traits\HasRoles;
 
 class Employee extends Authenticatable
 {
-    use HasFactory, HasRoles, SoftDeletes, HasPermissions, HasApiTokens, Notifiable;
+    use HasApiTokens, HasFactory, HasPermissions, HasRoles, Notifiable, SoftDeletes;
 
     protected $table = 'emp_employees';
 
-    protected $guard_name = "web";
+    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -145,6 +144,7 @@ class Employee extends Authenticatable
 
             return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
         }
+
         return false;
     }
 
@@ -156,6 +156,7 @@ class Employee extends Authenticatable
         return ($permissionRoles && $this->dashboardRoles->pluck('name')->intersect($permissionRoles)->isNotEmpty()) ||
             $allPermissionRoles && $this->dashboardRoles->pluck('name')->intersect($allPermissionRoles)->isNotEmpty();
     }
+
     public function parent()
     {
         return $this->belongsTo(Employee::class, 'parent_id');

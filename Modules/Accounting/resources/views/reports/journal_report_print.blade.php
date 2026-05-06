@@ -16,6 +16,24 @@
     <h2>{{ __('accounting::lang.journal_report') }}</h2>
     <div style="font-size: 11px; color: #4b5563; margin-bottom: 6px;">{{ __('accounting::lang.journal_report_manual_only') }}</div>
     <div>{{ __('accounting::lang.from_date') }}: {{ $startDate }} | {{ __('accounting::lang.to_date') }}: {{ $endDate }}</div>
+    @php
+        $jsList = $journalSources ?? [];
+    @endphp
+    @if (! empty($jsList))
+        <div>{{ __('accounting::lang.journal_source') }}:
+            @foreach ($jsList as $idx => $js)
+                @if ($idx > 0) — @endif
+                @switch($js)
+                    @case('sales') {{ __('accounting::lang.journal_source_sales') }} @break
+                    @case('purchases') {{ __('accounting::lang.journal_source_purchases') }} @break
+                    @case('receipt_voucher') {{ __('accounting::lang.journal_source_receipt_voucher') }} @break
+                    @case('payment_voucher') {{ __('accounting::lang.journal_source_payment_voucher') }} @break
+                    @case('manual_journal') {{ __('accounting::lang.journal_source_manual_journal') }} @break
+                    @default {{ $js }}
+                @endswitch
+            @endforeach
+        </div>
+    @endif
     <div class="summary">
         <strong>{{ __('accounting::lang.debit') }}:</strong> {{ number_format((float) $totalDebit, 2) }}
         <span style="margin: 0 8px;">|</span>

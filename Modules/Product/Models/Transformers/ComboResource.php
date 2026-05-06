@@ -9,6 +9,7 @@ class ComboResource extends JsonResource
     public function toArray($request)
     {
         $extraData = ['parent_id' => $this->id];
+
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,

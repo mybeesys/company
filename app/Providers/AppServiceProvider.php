@@ -4,12 +4,12 @@ namespace App\Providers;
 
 use App\Models\Company;
 use Illuminate\Mail\Events\MessageSending;
-use Illuminate\Translation\Translator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Translation\Translator;
 use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PayrollGroup;
 use Modules\Establishment\Policies\CompanyPolicy;
@@ -41,9 +41,8 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo App\\Helpers\\TaxHelper::getTax(...explode(',', $expression)); ?>";
         });
 
-
         Blade::directive('get_format_currency', function () {
-            return "<?php echo App\\Helpers\\CurrencyHelper::get_format_currency(); ?>";
+            return '<?php echo App\\Helpers\\CurrencyHelper::get_format_currency(); ?>';
         });
 
         Gate::define('viewPayrolls', function ($user) {
@@ -142,7 +141,7 @@ class AppServiceProvider extends ServiceProvider
             Config::set('mail.from.address', $mailSettings->firstWhere('key', 'MAIL_FROM_ADDRESS')?->value ?? env('MAIL_FROM_ADDRESS'));
             Config::set('mail.from.name', $mailSettings->firstWhere('key', 'MAIL_FROM_NAME')?->value ?? env('MAIL_FROM_NAME'));
         } catch (\Exception $e) {
-            \Log::error('Failed to load tenant mail settings: ' . $e->getMessage());
+            \Log::error('Failed to load tenant mail settings: '.$e->getMessage());
         }
     }
 }

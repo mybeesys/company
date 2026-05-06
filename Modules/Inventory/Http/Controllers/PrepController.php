@@ -9,18 +9,14 @@ use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
-use Modules\Inventory\Models\Prep;
 use Modules\Inventory\Models\ProductInventoryTotal;
-use Modules\Inventory\Models\PurchaseOrder;
 use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\UnitTransfer;
-use Illuminate\Support\Facades\Log;
 
 class PrepController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
@@ -34,9 +30,10 @@ class PrepController extends Controller
      */
     public function create()
     {
-        $prep = new Transaction();
+        $prep = new Transaction;
         $prep->items = [];
         $prep->purshaseItems = [];
+
         return view('inventory::prep.create', compact('prep'));
     }
 
@@ -46,6 +43,7 @@ class PrepController extends Controller
     public function edit($id)
     {
         $prep = TransactionUtil::prepareTransaction($id);
+
         return view('inventory::prep.edit', compact('prep'));
     }
 
@@ -53,16 +51,21 @@ class PrepController extends Controller
     {
         return response()->json(TransactionUtil::getTransactions('PREP'));
     }
+
     public function needPreparationList()
     {
         $products = Product::where('prep_recipe', 1)->get();
+
         return response()->json($products);
     }
+
     public function establishmentList()
     {
         $establishmentList = Establishment::where('is_main', 0)->get();
+
         return response()->json($establishmentList);
     }
+
     public function getIngredientList($id)
     {
 
@@ -85,21 +88,22 @@ class PrepController extends Controller
             'transaction_date' => 'nullable|date',
             'description' => 'nullable|string',
         ]);
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $result = TransactionUtil::createTransaction('PREP', $validated, $request, true);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         } else {
             $result = TransactionUtil::updateTransaction($validated, $request, true);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         }
     }
-
 
     public function prepareRecipe(Request $request)
     {
@@ -111,7 +115,7 @@ class PrepController extends Controller
             'ingredients' => 'required|array',
             'ingredients.*.id' => 'required|numeric',
             'ingredients.*.order' => 'required|numeric',
-            'ingredients.*.quantity' => 'required|numeric|min:0.01'
+            'ingredients.*.quantity' => 'required|numeric|min:0.01',
 
         ]);
         $from = $validated['from'];
@@ -126,7 +130,7 @@ class PrepController extends Controller
         $productUnit = UnitTransfer::where('product_id', $productId)
             ->whereNull('unit2')
             ->first();
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
         $result = [];
@@ -139,18 +143,19 @@ class PrepController extends Controller
 
         foreach ($ingredients as $prod) {
             $prodTotal = $prodTotals->firstWhere('product_id', $prod['id']);
-            if (!$prodTotal) {
+            if (! $prodTotal) {
                 $product = Product::find($prod['id']);
                 $result[] = [
-                    "name_ar" => $product->name_ar,
-                    "name_en" => $product->name_en,
-                    "qty" => 0
+                    'name_ar' => $product->name_ar,
+                    'name_en' => $product->name_en,
+                    'qty' => 0,
                 ];
+
                 return response()->json($result, 400);
             }
 
             $recipeProduct = RecipeProduct::with('unitTransfer')
-                ->where("item_id", $prod['id'])
+                ->where('item_id', $prod['id'])
                 ->where('order', $prod['order'])
                 ->where('product_id', $productId)
                 ->first();
@@ -163,48 +168,50 @@ class PrepController extends Controller
 
                 $product = Product::find($prod['id']);
                 $result[] = [
-                    "name_ar" => $product->name_ar,
-                    "name_en" => $product->name_en,
-                    "qty" => $totalQty . '' . $recipeProduct->unitTransfer->unit1
+                    'name_ar' => $product->name_ar,
+                    'name_en' => $product->name_en,
+                    'qty' => $totalQty.''.$recipeProduct->unitTransfer->unit1,
                 ];
+
                 return response()->json($result, 400);
             }
         }
         DB::transaction(
             function () use ($from, $to, $ingredients, $productId, $productionQty, $price, $productUnit) {
                 $transactionPurchasesId = Transaction::create([
-                    'type' => "PREP",
-                    'status' => "approved",
-                    'ref_no' => 'PREP-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'type' => 'PREP',
+                    'status' => 'approved',
+                    'ref_no' => 'PREP-'.str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
                     'created_by' => auth()->id(),
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transaction_date' => now(),
-                    'establishment_id' => $to
+                    'establishment_id' => $to,
                 ]);
                 $transactionSellId = Transaction::create([
-                    'type' => "PREP",
-                    'status' => "approved",
-                    'ref_no' => 'PREP-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'type' => 'PREP',
+                    'status' => 'approved',
+                    'ref_no' => 'PREP-'.str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
                     'created_by' => auth()->id(),
                     'created_at' => now(),
                     'updated_at' => now(),
                     'transaction_date' => now(),
                     'establishment_id' => $from,
-                    'parent_id' => $transactionPurchasesId->id
+                    'parent_id' => $transactionPurchasesId->id,
                 ]);
                 foreach ($ingredients as $ingredient) {
-                    $recipeProduct = RecipeProduct::with('unitTransfer')->where("item_id", $ingredient['id'])
+                    $recipeProduct = RecipeProduct::with('unitTransfer')->where('item_id', $ingredient['id'])
                         ->where('order', $ingredient['order'])
                         ->where('product_id', $productId)
                         ->first();
                     $unit2 = $recipeProduct->unitTransfer->unit2;
-                    $ingredientId = Product::where("id", $ingredient['id'])->first();
+                    $ingredientId = Product::where('id', $ingredient['id'])->first();
                     $ingredientCost = $ingredientId->cost;
-                    if ($unit2 != null)
+                    if ($unit2 != null) {
                         $unitPrice = $ingredient['quantity'] / $ingredientCost;
-                    else
+                    } else {
                         $unitPrice = $ingredient['quantity'] * $ingredientCost;
+                    }
                     $sellId = TransactionSellLine::create([
                         'transaction_id' => $transactionSellId->id,
                         'unit_price_before_discount' => $unitPrice,
@@ -220,7 +227,7 @@ class PrepController extends Controller
                     'transaction_id' => $transactionPurchasesId->id,
                     'unit_price_before_discount' => $price,
                     'unit_price' => $price,
-                    'product_id' =>  $productId,
+                    'product_id' => $productId,
                     'qyt' => $productionQty,
                     'unit_id' => $productUnit->id,
                     'created_at' => now(),
@@ -230,8 +237,6 @@ class PrepController extends Controller
             }
         );
 
-
-
-        return response()->json(["message" => "Done"]);
+        return response()->json(['message' => 'Done']);
     }
 }

@@ -10,7 +10,6 @@ use Modules\Accounting\Models\AccountsRoting;
 
 class RestaurantCafeAccUtil
 {
-
     public static function default_accounting_route()
     {
         $vat_acc = AccountingAccount::where('gl_code', '213')->first();
@@ -80,10 +79,9 @@ class RestaurantCafeAccUtil
         AccountsRoting::insert($data);
     }
 
-
     public static function default_accounting_account_types()
     {
-        return  $account_sub_types = [
+        return $account_sub_types = [
             [
                 'name_en' => 'Current Assets',
                 'name_ar' => 'الأصول المتداولة',
@@ -91,7 +89,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Fixed Assets',
@@ -100,7 +98,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Current Liabilities',
@@ -109,7 +107,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Equity',
@@ -118,7 +116,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Sales Revenue',
@@ -127,7 +125,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Revenues',
@@ -136,7 +134,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Cost of Raw Materials',
@@ -145,7 +143,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Operating Expenses',
@@ -154,7 +152,7 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Analytical accounts',
@@ -163,13 +161,8 @@ class RestaurantCafeAccUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'analytical_accounts',
-                'parent_id' => null
+                'parent_id' => null,
             ],
-
-
-
-
-
 
         ];
     }
@@ -259,7 +252,7 @@ class RestaurantCafeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //-----------
+            // -----------
             [
                 'name_en' => 'Cash on Hand',
                 'name_ar' => 'الصندوق',
@@ -330,7 +323,7 @@ class RestaurantCafeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //----------
+            // ----------
             [
                 'name_en' => 'Suppliers (Provisions, Beverages, Services)',
                 'name_ar' => 'الموردين (مؤن، مشروبات، خدمات)',
@@ -401,7 +394,7 @@ class RestaurantCafeAccUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-            //------------------
+            // ------------------
             [
                 'name_en' => 'Capital',
                 'name_ar' => 'رأس المال',
@@ -448,7 +441,6 @@ class RestaurantCafeAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
             [
                 'name_en' => 'Net Profit / Loss',
                 'name_ar' => 'صافي الربح / الخسارة',
@@ -464,8 +456,7 @@ class RestaurantCafeAccUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
-            //-------------
+            // -------------
             [
                 'name_en' => 'Cost of Meat and Vegetables',
                 'name_ar' => 'تكلفة اللحوم والخضروات',

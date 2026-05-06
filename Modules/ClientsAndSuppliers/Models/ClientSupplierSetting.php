@@ -2,8 +2,8 @@
 
 namespace Modules\ClientsAndSuppliers\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ClientSupplierSetting extends Model
 {
@@ -24,5 +24,4 @@ class ClientSupplierSetting extends Model
             'value' => 'array',
         ];
     }
-
 }

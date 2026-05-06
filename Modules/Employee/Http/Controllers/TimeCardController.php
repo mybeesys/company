@@ -22,23 +22,23 @@ class TimeCardController extends Controller
         if ($request->ajax()) {
             $timecards = TimeCard::with('employee');
 
-            if ($request->has('date') && !empty($request->date)) {
+            if ($request->has('date') && ! empty($request->date)) {
                 $timecards->whereDate('date', $request->date);
             }
             if ($request->has('employee_status') && isset($request->employee_status)) {
-                $timecards->whereHas('employee', fn($query) => $query->where('is_active', $request->employee_status));
+                $timecards->whereHas('employee', fn ($query) => $query->where('is_active', $request->employee_status));
             }
+
             return TimeCardTable::getTimecardTable($timecards);
         }
         $columns = TimeCardTable::getTimecardColumns();
+
         return view('employee::schedules.timecards.index', compact('columns'));
     }
 
-    public function createLiveValidation(StoreTimecardRequest $request)
-    {
-    }
+    public function createLiveValidation(StoreTimecardRequest $request) {}
 
-    /**                                                                                                                             
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -47,6 +47,7 @@ class TimeCardController extends Controller
         $maximum_overtime_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? '02:00';
         $employees = Employee::get(['id', 'name', 'name_en']);
         $establishments = Establishment::active()->notMain()->get()->select('id', 'name');
+
         return view('employee::schedules.timecards.create', compact('employees', 'establishments', 'maximum_regular_hours', 'maximum_overtime_hours'));
     }
 
@@ -58,8 +59,9 @@ class TimeCardController extends Controller
         TimeCard::create($request->safe()->merge([
             'clock_in_time' => Carbon::parse($request->get('clock_in_time'))->format('Y-m-d H:i:s'),
             'clock_out_time' => Carbon::parse($request->get('clock_out_time'))->format('Y-m-d H:i:s'),
-            'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
+            'date' => Carbon::parse($request->get('date'))->format('Y-m-d'),
         ])->toArray());
+
         return to_route('schedules.timecards.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::main.timecard')]));
     }
 
@@ -72,6 +74,7 @@ class TimeCardController extends Controller
         $maximum_overtime_hours = TimeSheetRule::firstWhere('rule_name', 'maximum_overtime_hours_per_day')?->rule_value ?? '02:00';
         $employees = Employee::get(['id', 'name', 'name_en']);
         $establishments = Establishment::active()->notMain()->get()->select('id', 'name');
+
         return view('employee::schedules.timecards.edit', compact('employees', 'timecard', 'establishments', 'maximum_regular_hours', 'maximum_overtime_hours'));
     }
 
@@ -83,8 +86,9 @@ class TimeCardController extends Controller
         $timecard->update($request->safe()->merge([
             'clock_in_time' => Carbon::parse($request->get('clock_in_time'))->format('Y-m-d H:i:s'),
             'clock_out_time' => Carbon::parse($request->get('clock_out_time'))->format('Y-m-d H:i:s'),
-            'date' => Carbon::parse($request->get('date'))->format('Y-m-d')
+            'date' => Carbon::parse($request->get('date'))->format('Y-m-d'),
         ])->toArray());
+
         return to_route('schedules.timecards.index')->with('success', __('employee::responses.updated_successfully', ['name' => __('employee::main.timecard')]));
     }
 

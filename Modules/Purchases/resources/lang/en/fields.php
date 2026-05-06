@@ -39,6 +39,4 @@ return [
 
     'add_payment' => 'Payment voucher',
 
-
-
 ];

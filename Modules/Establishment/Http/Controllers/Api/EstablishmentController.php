@@ -4,10 +4,10 @@ namespace Modules\Establishment\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Transformers\Collections\EstablishmentCollection;
-use Illuminate\Support\Str;
 
 class EstablishmentController extends Controller
 {
@@ -17,14 +17,14 @@ class EstablishmentController extends Controller
     public function index()
     {
         $establishments = Establishment::all();
+
         return new EstablishmentCollection($establishments);
     }
-
 
     public function devices(Request $request)
     {
         $request->validate([
-            'establishment_id' => 'required'
+            'establishment_id' => 'required',
         ]);
 
         $devices = EstPos::where('establishment_id', $request->establishment_id)
@@ -35,19 +35,21 @@ class EstablishmentController extends Controller
         if ($devices->isEmpty()) {
             return response()->json([
                 'message' => 'No unassigned devices found for this establishment.',
-                'devices' => []
+                'devices' => [],
             ], 200);
         }
+
         return response()->json([
             'message' => 'Devices fetched successfully',
-            'devices' => $devices
+            'devices' => $devices,
         ], 200);
     }
+
     public function assignDeviceToken(Request $request)
     {
         $request->validate([
             'establishment_id' => 'required|integer',
-            'device_id' => 'required|integer'
+            'device_id' => 'required|integer',
         ]);
 
         $device = EstPos::where('establishment_id', $request->establishment_id)
@@ -57,7 +59,7 @@ class EstablishmentController extends Controller
         if ($device) {
             return response()->json([
                 'message' => 'Device not found.',
-                'device' => []
+                'device' => [],
             ], 200);
         }
 
@@ -66,7 +68,7 @@ class EstablishmentController extends Controller
 
         return response()->json([
             'message' => 'Devices fetched successfully',
-            'device' => $device
+            'device' => $device,
         ], 200);
     }
 }

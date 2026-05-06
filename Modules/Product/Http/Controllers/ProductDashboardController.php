@@ -16,7 +16,7 @@ class ProductDashboardController extends Controller
     public function index()
     {
         $months = collect(range(5, 0))
-            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'))
             ->push(now()->format('Y-m'))
             ->values();
 
@@ -43,13 +43,13 @@ class ProductDashboardController extends Controller
             ->orderBy('month_key')
             ->pluck('count', 'month_key');
 
-        $productsMonthlyData = $months->map(fn($month) => (int) ($productsMonthlyRaw[$month] ?? 0))->values()->all();
-        $servicesMonthlyData = $months->map(fn($month) => (int) ($servicesMonthlyRaw[$month] ?? 0))->values()->all();
+        $productsMonthlyData = $months->map(fn ($month) => (int) ($productsMonthlyRaw[$month] ?? 0))->values()->all();
+        $servicesMonthlyData = $months->map(fn ($month) => (int) ($servicesMonthlyRaw[$month] ?? 0))->values()->all();
         $monthLabels = $months->map(function ($month) {
             return \Carbon\Carbon::createFromFormat('Y-m', $month)->translatedFormat('M Y');
         })->values()->all();
 
-        $latestProducts = Product::where('type','product')->latest()->take(5)->get();
+        $latestProducts = Product::where('type', 'product')->latest()->take(5)->get();
         $latestServices = CustomMenu::latest()->take(5)->get();
         $last30DaysStart = now()->subDays(30)->startOfDay();
         $topProductsLastPeriod = Product::where('type', 'product')

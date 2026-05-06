@@ -13,7 +13,7 @@ class ApplyCouponService
     /**
      * Validate coupon and compute discount for a sales invoice.
      *
-     * @param array<int, object|array<string, mixed>> $products
+     * @param  array<int, object|array<string, mixed>>  $products
      * @return array{coupon:Coupon,discount_amount:float,taxable_before:float,taxable_after:float,tax_amount:float,final_total:float}
      */
     public function applyForSale(string $couponCode, int $contactId, int $establishmentId, array $products, float $taxableBefore, float $currentTax): array
@@ -119,7 +119,7 @@ class ApplyCouponService
     }
 
     /**
-     * @param array<int, object|array<string, mixed>> $products
+     * @param  array<int, object|array<string, mixed>>  $products
      */
     protected function resolveApplicableBase(Coupon $coupon, array $products, float $taxableBefore): float
     {
@@ -197,7 +197,7 @@ class ApplyCouponService
     }
 
     /**
-     * @param object|array<string,mixed> $row
+     * @param  object|array<string,mixed>  $row
      */
     protected function getRowValue(object|array $row, string $key): mixed
     {
@@ -208,4 +208,3 @@ class ApplyCouponService
         return $row->{$key} ?? null;
     }
 }
-

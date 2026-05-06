@@ -1,4 +1,5 @@
 <?php
+
 return [
     'try_now' => 'Try Now',
     'edit' => 'Edit',

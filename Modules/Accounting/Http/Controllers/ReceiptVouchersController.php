@@ -3,11 +3,14 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Utils\StandaloneVoucherHelper;
 
 class ReceiptVouchersController extends Controller
 {
@@ -20,20 +23,38 @@ class ReceiptVouchersController extends Controller
             ->orderBy('id')
             ->get();
 
-
         if ($request->ajax()) {
 
             $transactions = AccountingAccountsTransaction::where('sub_type', 'receipt_voucher')
                 ->orderBy('id')
                 ->get();
-            return  AccountingAccountsTransaction::getReceiptsTable($transactions);
+
+            return AccountingAccountsTransaction::getReceiptsTable($transactions, 'receipt_voucher');
         }
 
         $columns = AccountingAccountsTransaction::getReceiptsColumns();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
 
-        return view('accounting::receipt-vouchers.index', compact('transactions', 'accounts', 'columns'));
+        return view('accounting::receipt-vouchers.index', compact('transactions', 'accounts', 'columns', 'cost_centers'));
 
+    }
+
+    public function formData(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        try {
+            return response()->json(
+                StandaloneVoucherHelper::receiptFormPayload((int) $validated['id'])
+            );
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => __('accounting::lang.voucher_line_not_found'),
+            ], 422);
+        }
     }
 
     /**
@@ -54,6 +75,7 @@ class ReceiptVouchersController extends Controller
             'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
             'paid_amount' => ['required', 'numeric', 'gt:0'],
             'pament_on' => ['required', 'date'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
             'additionalNotes' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -69,6 +91,7 @@ class ReceiptVouchersController extends Controller
                 'type' => 'debit',
                 'sub_type' => 'receipt_voucher',
                 'operation_date' => $validated['pament_on'],
+                'cost_center_id' => $validated['cost_center_id'] ?? null,
                 'created_by' => Auth::user()->id,
                 'note' => $note,
             ];
@@ -86,9 +109,11 @@ class ReceiptVouchersController extends Controller
             $debit->save();
 
             DB::commit();
+
             return redirect()->route('receipt-vouchers')->with('success', __('messages.add_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('receipt-vouchers')->with('error', __('messages.something_went_wrong'));
         }
 
@@ -113,9 +138,51 @@ class ReceiptVouchersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
-        //
+        $validated = $request->validate([
+            'account_id' => ['required', 'integer', 'min:1'],
+            'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'pament_on' => ['required', 'date'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            [$debit, $credit] = StandaloneVoucherHelper::receiptLines($id);
+
+            DB::beginTransaction();
+
+            $note = $validated['additionalNotes'] ?? null;
+            $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
+            $date = $validated['pament_on'];
+            $costCenterId = $validated['cost_center_id'] ?? null;
+
+            $debit->update([
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['account_id'],
+                'operation_date' => $date,
+                'cost_center_id' => $costCenterId,
+                'note' => $note,
+            ]);
+
+            $credit->update([
+                'amount' => $amount,
+                'accounting_account_id' => (int) $validated['from_account'],
+                'operation_date' => $date,
+                'cost_center_id' => $costCenterId,
+                'note' => $note,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('receipt-vouchers')->with('success', __('messages.updated_successfully'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->route('receipt-vouchers')->with('error', __('messages.something_went_wrong'));
+        }
     }
 
     /**

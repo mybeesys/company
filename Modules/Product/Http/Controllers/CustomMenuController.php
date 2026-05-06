@@ -4,16 +4,14 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Product\Models\TreeBuilder;
-use Modules\Product\Models\CustomMenu;
-use Modules\Product\Models\CustomMenuTime;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Lang;
 use Modules\Product\Enums\Mode;
+use Modules\Product\Models\CustomMenu;
 use Modules\Product\Models\CustomMenuItem;
+use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuTimeDetail;
+use Modules\Product\Models\TreeBuilder;
 
 class CustomMenuController extends Controller
 {
@@ -24,41 +22,38 @@ class CustomMenuController extends Controller
 
     public function getCustomMenus()
     {
-        $TreeBuilder = new TreeBuilder();
+        $TreeBuilder = new TreeBuilder;
         $customMenues = CustomMenu::restrictByFranchise()->get();
         $translationFilePath = resource_path('components/lang/ar.json');
         $translations = File::exists($translationFilePath)
             ? json_decode(File::get($translationFilePath), true)
             : [];
         $customMenues->transform(function ($menu) use ($translations) {
-            if (!empty($menu->mode)) {
+            if (! empty($menu->mode)) {
                 $modeArray = json_decode($menu->mode, true);
 
                 if (is_array($modeArray)) {
                     $translatedModes = array_map(
-                        fn($value) =>
-                        $translations[Mode::tryFrom($value)?->name] ?? Mode::tryFrom($value)?->name,
+                        fn ($value) => $translations[Mode::tryFrom($value)?->name] ?? Mode::tryFrom($value)?->name,
                         $modeArray
                     );
 
                     $menu->mode = implode(', ', $translatedModes);
                 }
             }
-            if (!empty($menu->station_id)) {
+            if (! empty($menu->station_id)) {
                 $stationArray = json_decode($menu->station_id, true);
 
-                if (is_array($stationArray) && !empty($stationArray)) {
+                if (is_array($stationArray) && ! empty($stationArray)) {
                     $establishments = DB::table('est_establishments')
                         ->whereIn('id', $stationArray)
                         ->get();
-
 
                     $translatedModes = $establishments->map(function ($establishment) {
                         return app()->getLocale() === 'ar' ? $establishment->name : $establishment->name_en;
                     })->toArray();
 
-
-                    $menu->station_id = !empty($translatedModes) ? implode(', ', $translatedModes) : '';
+                    $menu->station_id = ! empty($translatedModes) ? implode(', ', $translatedModes) : '';
                 } else {
                     $menu->station_id = '';
                 }
@@ -70,12 +65,14 @@ class CustomMenuController extends Controller
         });
 
         $tree = $TreeBuilder->buildTree($customMenues, null, 'customMenu', null, null, null);
+
         return response()->json($tree);
     }
 
     public function create()
     {
-        $custommenu  = new CustomMenu();
+        $custommenu = new CustomMenu;
+
         return view('product::custommenu.create');
     }
 
@@ -92,39 +89,41 @@ class CustomMenuController extends Controller
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
             'price_tier_id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
         $validated['application_type'] = $validated['application_type'] ?? 0;
         if (isset($validated['mode'])) {
-            if (!is_array($validated['mode'])) {
+            if (! is_array($validated['mode'])) {
                 $validated['mode'] = [$validated['mode']];
             }
 
             $validated['mode'] = json_encode($validated['mode']);
         }
         if (isset($validated['station_id'])) {
-            if (!is_array($validated['station_id'])) {
+            if (! is_array($validated['station_id'])) {
                 $validated['station_id'] = [$validated['station_id']];
             }
 
             $validated['station_id'] = json_encode($validated['station_id']);
         }
 
-
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $customMenu = CustomMenu::find($validated['id']);
             DB::table('franchise_custom_menu_permissions')->where('custom_menu_id', $customMenu->id)->delete();
             $customMenu->delete();
-            return response()->json(["message" => "Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $cMenu = CustomMenu::where('name_ar', $validated['name_ar'])->first();
-            if ($cMenu != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($cMenu != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $cMenu = CustomMenu::where('name_en', $validated['name_en'])->first();
-            if ($cMenu != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($cMenu != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             DB::transaction(function () use ($validated, $request) {
                 $customMenu = CustomMenu::create($validated);
@@ -135,7 +134,7 @@ class CustomMenuController extends Controller
                         'franchise_id' => $user->franchise_id,
                         'custom_menu_id' => $customMenu->id,
                         'created_at' => now(),
-                        'updated_at' => now()
+                        'updated_at' => now(),
                     ]);
                 }
 
@@ -152,8 +151,8 @@ class CustomMenuController extends Controller
                     $customMenu->station_id = null;
                     $customMenu->save();
                 }
-                if (isset($request["dates"])) {
-                    $customMenuDate = $request["dates"];
+                if (isset($request['dates'])) {
+                    $customMenuDate = $request['dates'];
                     $customMenuDate['custommenu_id'] = $customMenu->id;
                     $result = CustomMenuTime::create($customMenuDate);
                     foreach ($customMenuDate['times'] as $timed) {
@@ -168,7 +167,7 @@ class CustomMenuController extends Controller
                 if (isset($request['products'])) {
                     foreach ($request['products'] as $newProduct) {
                         if (isset($newProduct)) {
-                            $prod = new CustomMenuItem();
+                            $prod = new CustomMenuItem;
                             $prod->product_id = $newProduct['product_id'];
                             $prod->custommenu_id = $customMenu->id;
                             $prod = $prod->save();
@@ -179,16 +178,18 @@ class CustomMenuController extends Controller
         } else {
             $modifier = CustomMenu::where([
                 ['id', '!=', $validated['id']],
-                ['name_ar', '=', $validated['name_ar']]
+                ['name_ar', '=', $validated['name_ar']],
             ])->first();
-            if ($modifier != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($modifier != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $modifier = CustomMenu::where([
                 ['id', '!=', $validated['id']],
-                ['name_en', '=', $validated['name_en']]
+                ['name_en', '=', $validated['name_en']],
             ])->first();
-            if ($modifier != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($modifier != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
             $customMenu = CustomMenu::find($validated['id']);
             $customMenu->name_ar = $validated['name_ar'];
             $customMenu->name_en = $validated['name_en'];
@@ -230,7 +231,7 @@ class CustomMenuController extends Controller
                     CustomMenuItem::where('custommenu_id', '=', $customMenu->id)->delete();
                     foreach ($request['products'] as $newProduct) {
                         if (isset($newProduct)) {
-                            $prod = new CustomMenuItem();
+                            $prod = new CustomMenuItem;
                             $prod->product_id = $newProduct['product_id'];
                             $prod->custommenu_id = $customMenu->id;
                             $prod = $prod->save();
@@ -239,7 +240,8 @@ class CustomMenuController extends Controller
                 }
             });
         }
-        return response()->json(["message" => "Done"]);
+
+        return response()->json(['message' => 'Done']);
     }
 
     public function show($id)
@@ -248,6 +250,7 @@ class CustomMenuController extends Controller
         if ($item) {
             return response()->json($item);
         }
+
         return response()->json(['error' => 'Item not found'], 404);
     }
 
@@ -258,10 +261,10 @@ class CustomMenuController extends Controller
             $custommenu->application_type = (string) $custommenu->application_type;
         }
 
-        if (!empty($custommenu->mode)) {
+        if (! empty($custommenu->mode)) {
             $custommenu->mode = json_decode($custommenu->mode)[0];
         }
-        if (!empty($custommenu->station_id)) {
+        if (! empty($custommenu->station_id)) {
             $custommenu->station_id = $custommenu->station_id;
         }
         $custommenu->dates = $custommenu->dates;
@@ -269,14 +272,11 @@ class CustomMenuController extends Controller
             $d->times = $d->times;
         }
         $custommenu->products = $custommenu->products;
+
         return view('product::custommenu.edit', compact('custommenu'));
     }
 
-    public function update(Request $request, $id)
-    {
-    }
+    public function update(Request $request, $id) {}
 
-    public function destroy($id)
-    {
-    }
+    public function destroy($id) {}
 }

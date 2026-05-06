@@ -12,12 +12,10 @@ use Modules\Employee\Models\Permission;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Services\PosRoleActions;
 
-
 class PosRoleController extends Controller
 {
-
-
     protected $permissions;
+
     protected $departments;
 
     public function __construct()
@@ -25,13 +23,14 @@ class PosRoleController extends Controller
         $this->permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
         $this->departments = PosRole::departments();
     }
+
     public function getPermissions(PosRole $role)
     {
         // Check if the role exists
-        if (!$role) {
+        if (! $role) {
             return response()->json([
                 'permissions' => [],
-                'allPermissionsId' => null
+                'allPermissionsId' => null,
             ], 404);
         }
 
@@ -41,21 +40,22 @@ class PosRoleController extends Controller
         $allPermissions = Permission::where('name', 'pos_select_all_permissions')->first();
         $allPermissionsId = $allPermissions ? $allPermissions->id : null;
 
-
         if ($permissions->contains(2)) {
             // Get all permission IDs
             $allPermissionIds = Permission::all()->pluck('id');
+
             return response()->json([
                 'permissions' => $allPermissionIds,
-                'allPermissionsId' => $allPermissionsId
+                'allPermissionsId' => $allPermissionsId,
             ]);
         }
 
         return response()->json([
             'permissions' => $permissions,
-            'allPermissionsId' => $allPermissionsId
+            'allPermissionsId' => $allPermissionsId,
         ]);
     }
+
     public function getDashboardRolePermissions($roleId)
     {
 
@@ -63,13 +63,14 @@ class PosRoleController extends Controller
             ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
             ->where('role_has_permissions.role_id', $roleId)
             ->where('permissions.type', 'ems')
-            ->pluck('role_has_permissions.permission_id') 
+            ->pluck('role_has_permissions.permission_id')
             ->toArray();
 
         return response()->json([
-            'permissions' => $permissions
+            'permissions' => $permissions,
         ]);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -77,16 +78,17 @@ class PosRoleController extends Controller
     {
         if ($request->ajax()) {
             $roles = PosRole::select('id', 'name', 'guard_name', 'department', 'rank', 'is_active');
+
             return PosRoleTable::getRoleTable($roles);
         }
         $columns = PosRoleTable::getRoleColumns();
+
         return view('employee::pos-roles.index', compact('columns'));
     }
 
     public function createLiveValidation(StorePosRoleRequest $request) {}
 
     public function updateLiveValidation(UpdatePosRoleRequest $request) {}
-
 
     /**
      * Show the form for creating a new resource.
@@ -106,6 +108,7 @@ class PosRoleController extends Controller
             $storeRole = new PosRoleActions($filteredRequest);
             $storeRole->store();
         });
+
         return to_route('roles.index')->with('success', __('employee::responses.created_successfully', ['name' => __('employee::fields.role')]));
     }
 
@@ -115,6 +118,7 @@ class PosRoleController extends Controller
     public function show($id)
     {
         $role = PosRole::where('id', $id)->with('permissions:id,name')->first();
+
         return view('employee::pos-roles.show', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 
@@ -124,6 +128,7 @@ class PosRoleController extends Controller
     public function edit(int $id)
     {
         $role = PosRole::where('id', $id)->with('permissions:id,name')->first();
+
         return view('employee::pos-roles.edit', ['role' => $role, 'departments' => $this->departments, 'permissions' => $this->permissions]);
     }
 

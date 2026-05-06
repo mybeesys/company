@@ -7,5 +7,5 @@ return [
     Modules\Inventory\Providers\RouteServiceProvider::class,
     Modules\Inventory\Providers\InventoryServiceProvider::class,
     Modules\Reservation\Providers\RouteServiceProvider::class,
-    Modules\Reservation\Providers\ReservationServiceProvider::class
+    Modules\Reservation\Providers\ReservationServiceProvider::class,
 ];

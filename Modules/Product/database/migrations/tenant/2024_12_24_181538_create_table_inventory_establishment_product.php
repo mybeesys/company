@@ -17,11 +17,11 @@ return new class extends Migration
             $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('product_id');
             $table->foreign('establishment_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+                ->references('id')                    // References the id on the categories table
+                ->on('est_establishments');
             $table->foreign('product_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_products');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_products');
             $table->softDeletes();
             $table->timestamps();
         });

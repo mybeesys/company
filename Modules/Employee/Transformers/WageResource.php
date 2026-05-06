@@ -4,7 +4,6 @@ namespace Modules\Employee\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class WageResource extends JsonResource
 {
@@ -16,7 +15,7 @@ class WageResource extends JsonResource
         return [
             'id' => $this->id,
             'wage' => $this->wage_type,
-            'rate' => $this->rate
+            'rate' => $this->rate,
         ];
     }
 }

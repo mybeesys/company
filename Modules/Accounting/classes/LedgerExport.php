@@ -2,22 +2,24 @@
 
 namespace Modules\Accounting\classes;
 
+use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents
+class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapping, WithStyles
 {
     /** @var list<string> */
     private const LEDGER_COLUMN_ORDER = [
         'ref_no',
         'operation_date',
+        'narration',
         'transaction',
         'cost_center',
         'added_by',
@@ -35,7 +37,9 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
 
     protected $totalCredit = 0;
 
-    protected $runningBalance = 0.0;
+    protected float $runningBalance = 0.0;
+
+    protected bool $isDebitNature = true;
 
     public function __construct($account, ?array $ledgerVisibleColumns = null)
     {
@@ -50,6 +54,8 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
             $this->visibleColumns[] = 'balance';
             $this->visibleColumns = array_values(array_intersect($order, $this->visibleColumns));
         }
+        $this->runningBalance = (float) ($this->account['opening_balance'] ?? 0);
+        $this->isDebitNature = (bool) ($this->account['is_debit_nature'] ?? true);
     }
 
     /**
@@ -65,6 +71,7 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
         return match ($key) {
             'ref_no' => __('accounting::lang.transaction_number'),
             'operation_date' => __('accounting::lang.operation_date'),
+            'narration' => __('accounting::lang.ledger_narration'),
             'transaction' => __('accounting::lang.transaction'),
             'cost_center' => __('accounting::lang.cost_center'),
             'added_by' => __('accounting::lang.added_by'),
@@ -87,7 +94,17 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
             return __('accounting::lang.payment_voucher');
         }
 
-        return __('accounting::lang.' . $transaction->sub_type);
+        return __('accounting::lang.'.$transaction->sub_type);
+    }
+
+    protected function narrationText($transaction): string
+    {
+        $t = trim((string) ($transaction->note ?? ''));
+        if ($t === '' && $transaction->accTransMapping && $transaction->accTransMapping->note) {
+            $t = trim((string) $transaction->accTransMapping->note);
+        }
+
+        return $t !== '' ? $t : '—';
     }
 
     public function headings(): array
@@ -102,12 +119,22 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
 
     public function map($transaction): array
     {
-        if ($transaction->type == 'debit') {
-            $this->totalDebit += $transaction->amount;
-            $this->runningBalance += $transaction->amount;
-        } elseif ($transaction->type == 'credit') {
-            $this->totalCredit += $transaction->amount;
-            $this->runningBalance -= $transaction->amount;
+        if ($this->isDebitNature) {
+            if ($transaction->type == 'debit') {
+                $this->runningBalance += $transaction->amount;
+                $this->totalDebit += $transaction->amount;
+            } else {
+                $this->runningBalance -= $transaction->amount;
+                $this->totalCredit += $transaction->amount;
+            }
+        } else {
+            if ($transaction->type == 'debit') {
+                $this->runningBalance -= $transaction->amount;
+                $this->totalDebit += $transaction->amount;
+            } else {
+                $this->runningBalance += $transaction->amount;
+                $this->totalCredit += $transaction->amount;
+            }
         }
 
         $ref = '--';
@@ -121,15 +148,16 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
         foreach ($this->visibleColumns as $key) {
             $row[] = match ($key) {
                 'ref_no' => $ref,
-                'operation_date' => \Carbon\Carbon::parse($transaction->operation_date)->format('d/m/Y h:i A'),
+                'operation_date' => \Carbon\Carbon::parse($transaction->operation_date)->format('d/m/Y'),
+                'narration' => $this->narrationText($transaction),
                 'transaction' => $this->subTypeLabel($transaction),
                 'cost_center' => ($transaction->costCenter
-                    ? $transaction->costCenter->account_center_number . ' - ' . (App::getLocale() == 'ar' ? $transaction->costCenter->name_ar : $transaction->costCenter->name_en)
+                    ? $transaction->costCenter->account_center_number.' - '.(App::getLocale() == 'ar' ? $transaction->costCenter->name_ar : $transaction->costCenter->name_en)
                     : '--'),
                 'added_by' => $transaction->createdBy->name ?? '--',
                 'debit' => $transaction->type == 'debit' ? $transaction->amount : '0.0',
                 'credit' => $transaction->type == 'credit' ? $transaction->amount : '0.0',
-                'balance' => $this->runningBalance,
+                'balance' => round($this->runningBalance, 2),
                 default => '',
             };
         }
@@ -152,7 +180,7 @@ class LedgerExport implements FromCollection, WithHeadings, WithMapping, WithSty
                 if ($creditIdx !== false) {
                     $footer[$creditIdx] = $this->totalCredit;
                 }
-                $event->sheet->getDelegate()->fromArray([$footer], null, 'A' . ($event->sheet->getHighestRow() + 1));
+                $event->sheet->getDelegate()->fromArray([$footer], null, 'A'.($event->sheet->getHighestRow() + 1));
             },
         ];
     }

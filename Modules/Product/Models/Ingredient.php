@@ -1,18 +1,15 @@
 <?php
+
 namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\Vendor;
-use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\RecipeModifier;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Models\ProductInventory;
 
 class Ingredient extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -30,18 +27,20 @@ class Ingredient extends Model
         'unit_measurement',
         'SKU',
         'barcode',
-        'active' ,
+        'active',
         'vendor_id',
-        'reorder_point' ,
+        'reorder_point',
         'reorder_quantity',
-        'yield_percentage'
+        'yield_percentage',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -52,18 +51,22 @@ class Ingredient extends Model
     {
         return $this->belongsTo(Vendor::class, 'vendor_id', 'id');
     }
+
     public function recipeModifier()
     {
         return $this->hasMany(RecipeModifier::class, 'ingredient_id', 'id');
     }
+
     public function recipeProduct()
     {
         return $this->hasMany(RecipeProduct::class, 'ingredient_id', 'id');
     }
+
     public function inventory()
     {
         return $this->belongsTo(ProductInventory::class, 'id', 'ingredient_id');
     }
+
     // public function establishments()
     // {
     //     return $this->hasMany(EstablishmentProduct::class, 'ingredient_id', 'id');
@@ -72,6 +75,4 @@ class Ingredient extends Model
     {
         return $this->hasMany(UnitTransfer::class, 'ingredient_id', 'id');
     }
-
 }
-?>

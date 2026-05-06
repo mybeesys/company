@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('product_products', function (Blueprint $table) {
             $table->unsignedBigInteger('tax_id')->nullable();
             $table->foreign('tax_id')
-            ->references('id')
-            ->on('taxes');
-          });
+                ->references('id')
+                ->on('taxes');
+        });
     }
 
     /**

@@ -23,5 +23,4 @@ class CompanyPolicy
     {
         return auth()->user()->hasDashboardPermission('establishments.company.update');
     }
-
 }

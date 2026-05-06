@@ -2,8 +2,8 @@
 
 namespace Modules\Reservation\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -11,9 +11,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\FavoriteBills;
 use Modules\General\Models\PrefixSetting;
-use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionPayments;
-use Modules\General\Models\TransactionSellLine;
 
 // use Modules\Reservation\Database\Factories\TableOrdersFactory;
 
@@ -22,6 +20,7 @@ class TableOrders extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+
     public function getIsFavoriteAttribute()
     {
         return $this->favorites()->where('user_id', Auth::user()->id)->exists();
@@ -29,15 +28,13 @@ class TableOrders extends Model
 
     public function sell_lines()
     {
-        return $this->hasMany(OrderTableItems::class, 'transaction_id')->where('is_show', 1);;
+        return $this->hasMany(OrderTableItems::class, 'transaction_id')->where('is_show', 1);
     }
-
 
     public function favorites()
     {
         return $this->hasMany(FavoriteBills::class);
     }
-
 
     public function client()
     {
@@ -48,8 +45,6 @@ class TableOrders extends Model
     {
         return $this->belongsTo(Establishment::class, 'establishment_id');
     }
-
-
 
     public function payment()
     {

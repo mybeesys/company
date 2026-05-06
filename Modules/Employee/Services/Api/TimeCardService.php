@@ -9,22 +9,19 @@ use Modules\Employee\Services\TimeSheetRuleService;
 
 class TimeCardService
 {
-
-    public function __construct(protected TimeSheetRuleService $timeSheetRuleService)
-    {
-    }
+    public function __construct(protected TimeSheetRuleService $timeSheetRuleService) {}
 
     public function storeClockInTimecard($employee_id, $establishment_id, $clock_in_time, $date)
     {
         try {
             $perviousTimecard = TimeCard::whereDate('clock_in_time', $date)->where('employee_id', $employee_id)->where('establishment_id', $establishment_id)->latest('id')->first();
             if ($perviousTimecard) {
-                if (!$perviousTimecard->clock_out_time) {
+                if (! $perviousTimecard->clock_out_time) {
                     return ['status' => false, 'id' => $perviousTimecard->id, 'message' => __('employee::ApiResponses.employee_has_previous_clock_in'), 'status_code' => 409];
                 }
             }
             $conflict = $this->clockInConflictCheck($employee_id, $establishment_id, $clock_in_time, $date);
-            if($conflict){
+            if ($conflict) {
                 return ['status' => false, 'message' => __('employee::ApiResponses.timecards_conflict'), 'status_code' => 409];
             }
 
@@ -32,14 +29,16 @@ class TimeCardService
                 'employee_id' => $employee_id,
                 'establishment_id' => $establishment_id,
                 'clock_in_time' => $clock_in_time,
-                'date' => $date
+                'date' => $date,
             ])->id;
+
             return ['status' => true, 'id' => $timecard_id];
         } catch (\Throwable $e) {
             Log::error('Timecard creation failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return ['status' => false, 'message' => __('employee::ApiResponses.server_error'), 'status_code' => 500];
         }
     }
@@ -47,6 +46,7 @@ class TimeCardService
     public function clockInConflictCheck($employee_id, $establishment_id, $clock_in_time, $date)
     {
         $conflicted_timecards = TimeCard::whereDate('clock_in_time', $date)->where('employee_id', $employee_id)->where('clock_in_time', '<=', $clock_in_time)->where('clock_out_time', '>=', $clock_in_time)->get();
+
         return $conflicted_timecards->isNotEmpty();
     }
 
@@ -55,7 +55,7 @@ class TimeCardService
         $timecard = TimeCard::find($timecard_id);
         $clock_in_time = Carbon::parse($timecard->clock_in_time);
 
-        if($clock_in_time->gte($clock_out_time)){
+        if ($clock_in_time->gte($clock_out_time)) {
             return ['message' => __('employee::ApiResponses.clock_in_greater_than_clock_out'), 'status_code' => 409];
         }
 
@@ -81,12 +81,12 @@ class TimeCardService
         $updated = $timecard->update([
             'clock_out_time' => $clock_out_time,
             'hours_worked' => $hours_worked,
-            'overtime_hours' => $overtime_hours
+            'overtime_hours' => $overtime_hours,
         ]);
 
-        if($updated){
+        if ($updated) {
             return ['message' => __('employee::ApiResponses.logged_out'), 'status_code' => 200];
-        }else{
+        } else {
             return ['message' => __('employee::ApiResponses.server_error'), 'status_code' => 500];
         }
     }

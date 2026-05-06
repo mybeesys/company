@@ -2,8 +2,8 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Modules\Product\Database\Factories\ModifierFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,10 +11,11 @@ class Discount extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = 'product_discounts';
-        
+
     public $timestamps = true;
+
     /**
      * The attributes that are mass assignable.
      */
@@ -29,10 +30,11 @@ class Discount extends Model
         'auto_apply',
         'item_level',
         'required_product_count',
-        'minimum_amount'
+        'minimum_amount',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -47,6 +49,4 @@ class Discount extends Model
     {
         return $this->hasMany(DiscountTime::class, 'discount_id', 'id');
     }
-
-
 }

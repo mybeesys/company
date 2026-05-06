@@ -3,14 +3,13 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Establishment\Models\Establishment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\TransactionUtil;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class TransferController extends Controller
 {
@@ -27,8 +26,9 @@ class TransferController extends Controller
      */
     public function create()
     {
-        $transfer = new Transaction();
+        $transfer = new Transaction;
         $transfer->items = [];
+
         return view('inventory::transfer.create', compact('transfer'));
     }
 
@@ -38,6 +38,7 @@ class TransferController extends Controller
     public function edit($id)
     {
         $transfer = TransactionUtil::prepareTransaction($id);
+
         return view('inventory::transfer.edit', compact('transfer'));
     }
 
@@ -54,23 +55,26 @@ class TransferController extends Controller
             'description' => 'nullable|string',
             'type' => 'nullable|string',
         ]);
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $result = TransactionUtil::createTransaction('TRANSFER', $validated, $request, true);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         }
         if (isset($validated['type'])) {
             return TransactionUtil::QuantityUpdate($validated, $request);
         } else {
             $result = TransactionUtil::updateTransaction($validated, $request, true);
-            if (count($result) > 0)
+            if (count($result) > 0) {
                 return response()->json($result);
-            else
-                return response()->json(["message" => "Done"]);
+            } else {
+                return response()->json(['message' => 'Done']);
+            }
         }
     }
+
     public function fullReceiving(Request $request)
     {
         return DB::transaction(function () use ($request) {
@@ -93,7 +97,7 @@ class TransferController extends Controller
                 $transactionePurchasesLine->save();
             }
 
-            return response()->json(["message" =>  "Done"]);
+            return response()->json(['message' => 'Done']);
         });
     }
 
@@ -111,9 +115,10 @@ class TransferController extends Controller
             $transaction->save();
             $transactionId->save();
 
-            return response()->json(["message" =>  "Done"]);
+            return response()->json(['message' => 'Done']);
         });
     }
+
     public function inTransit(Request $request)
     {
         return DB::transaction(function () use ($request) {
@@ -126,7 +131,7 @@ class TransferController extends Controller
             $transaction->save();
             $transactionId->save();
 
-            return response()->json(["message" =>  "Done"]);
+            return response()->json(['message' => 'Done']);
         });
     }
 
@@ -134,11 +139,13 @@ class TransferController extends Controller
     {
         $query = $request->query('query');  // Get 'query' parameter
         $key = $request->query('key', '');
-        $establishments = Establishment::where('name', 'like', '%' . $key . '%')
+        $establishments = Establishment::where('name', 'like', '%'.$key.'%')
             ->take(10)
             ->get();
+
         return response()->json($establishments);
     }
+
     public function partialDeliveries($id1, $id2)
     {
         $transaction = Transaction::with('createdBy')->where('parent_id', $id1)->firstOrFail();
@@ -153,7 +160,6 @@ class TransferController extends Controller
                     'created_by_name' => $transaction->createdBy ? $transaction->createdBy->name : null,
                 ];
             });
-
 
         return response()->json(
             $transactionPurchasesLines,

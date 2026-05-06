@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('est_establishments', function (Blueprint $table) {
             $table->foreignId('franchise_id')->nullable()->after('code')
-                  ->constrained('franchise_companies')->onDelete('set null');
+                ->constrained('franchise_companies')->onDelete('set null');
             $table->boolean('is_franchise')->default(0)->after('franchise_id');
 
             $table->string('theme')->nullable()->after('logo');

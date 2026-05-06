@@ -3,8 +3,6 @@
 namespace Modules\Establishment\database\seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Establishment\Models\Brand;
-use Modules\Establishment\Models\Division;
 use Modules\Establishment\Models\Establishment;
 
 class EstablishmentDatabaseSeeder extends Seeder

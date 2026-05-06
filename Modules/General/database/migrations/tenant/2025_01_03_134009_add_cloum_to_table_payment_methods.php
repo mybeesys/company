@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('payment_methods', function (Blueprint $table) {
             $table->string('active')->default(1);
-           $table->string('description_en')->default(1);
-           $table->string('description_ar')->default(1);
+            $table->string('description_en')->default(1);
+            $table->string('description_ar')->default(1);
 
         });
     }
@@ -24,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payment_methods', function (Blueprint $table) {
-
-        });
+        Schema::table('payment_methods', function (Blueprint $table) {});
     }
 };

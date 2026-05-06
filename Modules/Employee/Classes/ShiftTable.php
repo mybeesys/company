@@ -1,7 +1,7 @@
 <?php
 
-
 namespace Modules\Employee\Classes;
+
 use Carbon\Carbon;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Schedule;
@@ -13,7 +13,9 @@ use Yajra\DataTables\DataTables;
 class ShiftTable
 {
     protected $lang;
+
     protected $establishment_id;
+
     public function __construct(protected $table_type, protected $request)
     {
         $this->lang = session('locale');
@@ -23,13 +25,13 @@ class ShiftTable
     public static function getShiftColumns()
     {
         return [
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "id"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "employee"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_hours"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "basic_wage"],
-            ["class" => "text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "total_wages"],
-            ["class" => "text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "role"],
-            ["class" => "text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6", "name" => "establishment"],
+            ['class' => 'text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'id'],
+            ['class' => 'text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'employee'],
+            ['class' => 'text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'total_hours'],
+            ['class' => 'text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'basic_wage'],
+            ['class' => 'text-start min-w-75px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'total_wages'],
+            ['class' => 'text-start min-w-125px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'role'],
+            ['class' => 'text-start min-w-150px px-3 py-1 align-middle text-gray-800 fs-6', 'name' => 'establishment'],
         ];
     }
 
@@ -42,8 +44,10 @@ class ShiftTable
             for ($i = 0; $i < 12; $i++) {
                 $row[] = ['class' => '', 'colspan' => '1', 'text' => ''];
             }
+
             return $row;
         };
+
         return [
             ['class' => 'd-none table-breaks-footer', 'th' => $generateRow(__('employee::fields.breaks_total'))],
             ['class' => 'd-none table-hours-footer', 'th' => $generateRow(__('employee::fields.total_hours'))],
@@ -62,6 +66,7 @@ class ShiftTable
 
         $shiftService = new ShiftService($this->table_type, $this->request, $this->establishment_id);
         $employeeData = $shiftService->getEmployeeData($employees->get(['id', 'name', 'name_en']), $start_date, $end_date, $schedules_ids);
+
         return DataTables::of($employeeData)->rawColumns($employeeData->first() ? array_keys($employeeData->first()) : [])->make(true);
     }
 }

@@ -13,14 +13,14 @@ class TableResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id" => $this->id,
-            "code" => $this->code,
-            "steating_capacity" => $this->steating_capacity,
-            "table_status" => $this->table_status,
-            "area_id" => $this->area_id,
-            "active" => $this->active,
-            "area"=> new AreaResource($this->area),
-            "type" => $this->type,
+            'id' => $this->id,
+            'code' => $this->code,
+            'steating_capacity' => $this->steating_capacity,
+            'table_status' => $this->table_status,
+            'area_id' => $this->area_id,
+            'active' => $this->active,
+            'area' => new AreaResource($this->area),
+            'type' => $this->type,
         ];
     }
 }

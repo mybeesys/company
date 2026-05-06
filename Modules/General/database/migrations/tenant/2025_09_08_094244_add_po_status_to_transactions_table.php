@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-             $table->string('po_status')->nullable()->after('status')->default('pending');
+            $table->string('po_status')->nullable()->after('status')->default('pending');
         });
     }
 
@@ -21,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-
-        });
+        Schema::table('transactions', function (Blueprint $table) {});
     }
 };

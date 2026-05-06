@@ -12,7 +12,7 @@ class CleanJsonNoiseMiddleware
     {
         $response = $next($request);
 
-        if (!$this->shouldSanitize($request, $response)) {
+        if (! $this->shouldSanitize($request, $response)) {
             return $response;
         }
 
@@ -36,6 +36,7 @@ class CleanJsonNoiseMiddleware
         }
 
         $response->setContent($cleaned);
+
         return $response;
     }
 
@@ -49,7 +50,7 @@ class CleanJsonNoiseMiddleware
 
     private function minPositive($a, $b): ?int
     {
-        $values = array_filter([$a, $b], static fn($v) => is_int($v) && $v >= 0);
+        $values = array_filter([$a, $b], static fn ($v) => is_int($v) && $v >= 0);
         if (empty($values)) {
             return null;
         }
@@ -57,4 +58,3 @@ class CleanJsonNoiseMiddleware
         return min($values);
     }
 }
-

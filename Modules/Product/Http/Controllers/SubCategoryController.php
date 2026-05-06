@@ -3,13 +3,10 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Product\Models\TreeCategoryBuilder;
-use Modules\Product\Models\Subcategory;
 use Modules\Product\Models\Product;
-use Illuminate\Database\Eloquent\Builder;;
-
-use Illuminate\Support\Facades\Log;
+use Modules\Product\Models\Subcategory;
 
 class SubCategoryController extends Controller
 {
@@ -29,20 +26,20 @@ class SubCategoryController extends Controller
     private function findSubCategory($validated, $field)
     {
         $whereCond = null;
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             $whereCond = [
                 ['category_id', '=', $validated['category_id']],
-                [$field, '=', $validated[$field]]
+                [$field, '=', $validated[$field]],
             ];
         } else {
             $whereCond = [
                 ['id', '!=', $validated['id']],
                 ['category_id', '=', $validated['category_id']],
-                [$field, '=', $validated[$field]]
+                [$field, '=', $validated[$field]],
             ];
         }
         $parentId = $validated['parent_id'];
-        if (!isset($parentId)) {
+        if (! isset($parentId)) {
             $subcategory = SubCategory::where($whereCond)
                 ->when($parentId, function (Builder $query, string $parentId) {
                     $query->WhereNull('parent_id');
@@ -53,6 +50,7 @@ class SubCategoryController extends Controller
                     $query->Where('parent_id', '=', $parentId);
                 })->first();
         }
+
         return $subcategory;
     }
 
@@ -69,46 +67,53 @@ class SubCategoryController extends Controller
             'parent_id' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'id' => 'nullable|numeric',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
         $validated['parent_id'] = null;
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
 
             $product = Product::where([['subcategory_id', '=', $validated['id']]])->first();
-            if ($product != null)
-                return response()->json(["message" => "CHILD_EXIST"]);
+            if ($product != null) {
+                return response()->json(['message' => 'CHILD_EXIST']);
+            }
             $subCategory = SubCategory::where([['id', '=', $validated['id']]])->first();
             $subCategory->delete();
-            return response()->json(["message" => "Done"]);
+
+            return response()->json(['message' => 'Done']);
         }
 
-
-        if (!isset($validated['id'])) {
+        if (! isset($validated['id'])) {
             if (isset($validated['order'])) {
                 $subcategory = $this->findSubCategory($validated, 'order');
-                if ($subcategory != null)
-                    return response()->json(["message" => "ORDER_EXIST"]);
+                if ($subcategory != null) {
+                    return response()->json(['message' => 'ORDER_EXIST']);
+                }
             }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
-            if ($subcategory != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($subcategory != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_en');
-            if ($subcategory != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($subcategory != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             $subcategory = SubCategory::create($validated);
         } else {
             if (isset($validated['order'])) {
                 $subcategory = $this->findSubCategory($validated, 'order');
-                if ($subcategory != null)
-                    return response()->json(["message" => "ORDER_EXIST"]);
+                if ($subcategory != null) {
+                    return response()->json(['message' => 'ORDER_EXIST']);
+                }
             }
             $subcategory = $this->findSubCategory($validated, 'name_ar');
-            if ($subcategory != null)
-                return response()->json(["message" => "NAME_AR_EXIST"]);
+            if ($subcategory != null) {
+                return response()->json(['message' => 'NAME_AR_EXIST']);
+            }
             $subcategory = $this->findSubCategory($validated, 'name_en');
-            if ($subcategory != null)
-                return response()->json(["message" => "NAME_EN_EXIST"]);
+            if ($subcategory != null) {
+                return response()->json(['message' => 'NAME_EN_EXIST']);
+            }
 
             $subcategory = SubCategory::find($validated['id']);
             $subcategory->name_ar = $validated['name_ar'];
@@ -119,7 +124,7 @@ class SubCategoryController extends Controller
             $subcategory->save();
         }
 
-        return response()->json(["message" => "Done"]);
+        return response()->json(['message' => 'Done']);
     }
 
     /**

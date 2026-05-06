@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\General\Models\Setting;
@@ -19,10 +18,11 @@ class AccountsRoutingController extends Controller
     public function index()
     {
 
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         if (count($accounts) == 0) {
             return redirect()->route('tree-of-accounts')->with('error', __('accounting::lang.no_accounts'));
         }
+        $defaultDiscountAccountId = AccountingAccount::where('gl_code', '523')->value('id');
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',
@@ -31,7 +31,7 @@ class AccountsRoutingController extends Controller
         $accountsRoting = AccountsRoting::all();
         $isPeriodicInventoryPolicy = Setting::isPeriodicInventory();
 
-        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy'));
+        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy', 'defaultDiscountAccountId'));
     }
 
     /**
@@ -41,8 +41,6 @@ class AccountsRoutingController extends Controller
     {
         return view('accounting::create');
     }
-
-
 
     public function store(Request $request)
     {
@@ -57,11 +55,13 @@ class AccountsRoutingController extends Controller
             // 'sales_total_amount' => 'asset',
             // 'sales_amount_before_vat' => 'asset',
             'sales_discount_calculation' => 'expense',
+            'sales_discount_allowed' => 'expense',
             'sales_sell_return' => 'expense',
             'purchases_vat_calculation' => 'liability',
             // 'purchases_total_amount' => 'asset',
             // 'purchases_amount_before_vat' => 'asset',
             'purchases_discount_calculation' => 'expense',
+            'purchases_earned_discount' => 'expense',
             // 'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
@@ -94,9 +94,7 @@ class AccountsRoutingController extends Controller
             ];
         }
 
-
         $formattedDirections = array_values($directions);
-
 
         try {
             DB::beginTransaction();
@@ -106,28 +104,26 @@ class AccountsRoutingController extends Controller
                     AccountsRoting::updateOrCreate(
                         [
                             'type' => $direction['type'],
-                            'section' => $direction['section']
+                            'section' => $direction['section'],
                         ],
                         [
                             'routing_type' => $direction['routing_type'],
                             'direction' => 'auto_assign',
-                            'account_id' => $direction['account_id']
+                            'account_id' => $direction['account_id'],
                         ]
                     );
                 }
             }
 
             DB::commit();
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
     }
-
-
-
-
 
     /**
      * Show the specified resource.

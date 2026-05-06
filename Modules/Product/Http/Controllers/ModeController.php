@@ -3,8 +3,8 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Product\Enums\Mode;
 use Illuminate\Http\JsonResponse;
+use Modules\Product\Enums\Mode;
 
 class ModeController extends Controller
 {
@@ -13,5 +13,3 @@ class ModeController extends Controller
         return response()->json(Mode::all());
     }
 }
-
-?>

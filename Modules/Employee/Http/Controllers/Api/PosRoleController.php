@@ -13,12 +13,14 @@ class PosRoleController extends Controller
     public function getAllRoles()
     {
         $roles = PosRole::all();
+
         return new PosRoleCollection($roles);
     }
 
     public function getAllPermissions()
     {
         $permissions = Permission::where('type', 'pos')->get();
-        return new PosPermissionCollection($permissions);    
+
+        return new PosPermissionCollection($permissions);
     }
 }

@@ -944,7 +944,7 @@
                                 ]
                             },
                             options: Object.assign({}, scChartCommonOptions, {
-                                indexAxis: 'y',
+                                indexAxis: 'x',
                                 plugins: Object.assign({}, scChartCommonOptions.plugins, {
                                     tooltip: {
                                         callbacks: {
@@ -955,10 +955,10 @@
                                     }
                                 }),
                                 scales: {
-                                    x: {
-                                        ticks: { callback: function(v) { return fmtNum(v); }, maxTicksLimit: 8 }
-                                    },
-                                    y: { grid: { display: false } }
+                                    x: { grid: { display: false } },
+                                    y: {
+                                        ticks: { callback: function(v) { return fmtNum(v); }, maxTicksLimit: 6 }
+                                    }
                                 }
                             })
                         });
@@ -994,7 +994,7 @@
                                 ]
                             },
                             options: Object.assign({}, scChartCommonOptions, {
-                                indexAxis: 'y',
+                                indexAxis: 'x',
                                 plugins: Object.assign({}, scChartCommonOptions.plugins, {
                                     tooltip: {
                                         callbacks: {
@@ -1006,9 +1006,20 @@
                                 }),
                                 scales: {
                                     x: {
-                                        ticks: { callback: function(v) { return fmtNum(v); }, maxTicksLimit: 8 }
+                                        grid: { display: false },
+                                        ticks: {
+                                            autoSkip: true,
+                                            maxRotation: 45,
+                                            minRotation: 0,
+                                            callback: function(v, i) {
+                                                const full = (res.top_products && res.top_products[i]) ? (res.top_products[i].name || labels[i] || '') : (labels[i] || '');
+                                                return full.length > 14 ? full.slice(0, 12) + '…' : full;
+                                            }
+                                        }
                                     },
-                                    y: { grid: { display: false } }
+                                    y: {
+                                        ticks: { callback: function(v) { return fmtNum(v); }, maxTicksLimit: 6 }
+                                    }
                                 }
                             })
                         });
@@ -1016,7 +1027,7 @@
                         chartProducts = new Chart(ctxP, {
                             type: 'bar',
                             data: { labels: ['—'], datasets: [{ label: str.p1, data: [0] }, { label: str.p2, data: [0] }] },
-                            options: Object.assign({}, scChartCommonOptions, { indexAxis: 'y' })
+                            options: Object.assign({}, scChartCommonOptions, { indexAxis: 'x' })
                         });
                     }
                 },

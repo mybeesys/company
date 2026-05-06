@@ -737,6 +737,5 @@ return [
         'description' => 'Allows user to view the Point of Sale Drop Down Reports without a password',
         'description_ar' => 'يسمح للمستخدم بعرض تقارير iPad لنقطة البيع بدون كلمة مرور',
         'type' => 'pos',
-    ]
+    ],
 ];
-

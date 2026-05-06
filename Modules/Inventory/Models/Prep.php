@@ -9,11 +9,9 @@ use Modules\General\Models\Transaction;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 
-
 class Prep extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -28,34 +26,40 @@ class Prep extends Model
         'operation_id',
         'product_id',
         'modifier_id',
-        'times'
+        'times',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable(){
-        $result= array_push($this->fillable, 'product');
+    public function addToFillable()
+    {
+        $result = array_push($this->fillable, 'product');
     }
 
     public $type = 'prep';
 
     public $validated = ['times' => 'required|numeric'];
 
-    public function totals($validated){
-        return 0;//(isset($validated["total"]) ? $validated["total"] * $validated["times"] : $validated["total"] );
+    public function totals($validated)
+    {
+        return 0; // (isset($validated["total"]) ? $validated["total"] * $validated["times"] : $validated["total"] );
     }
 
-    public function fillValidated($validated, $data){
-        if (isset($data["product"])) {
-            $idd = explode("-",$data["product"]["id"]);
-            if($idd[1] == 'p')
-                $validated["product_id"] = $idd[0];
-            if($idd[1] == 'm')
-                $validated["modifier_id"] = $idd[0];
+    public function fillValidated($validated, $data)
+    {
+        if (isset($data['product'])) {
+            $idd = explode('-', $data['product']['id']);
+            if ($idd[1] == 'p') {
+                $validated['product_id'] = $idd[0];
+            }
+            if ($idd[1] == 'm') {
+                $validated['modifier_id'] = $idd[0];
+            }
         }
-        
+
         return $validated;
     }
 
@@ -77,16 +81,15 @@ class Prep extends Model
     public function getProductAttribute()
     {
         $result = null;
-        if($this->preped)
-        {
+        if ($this->preped) {
             $result = $this->preped->toArray();
-            $result["id"] = $result["id"].'-p';
+            $result['id'] = $result['id'].'-p';
         }
-        if($this->modifier)
-        {
+        if ($this->modifier) {
             $result = $this->modifier->toArray();
-            $result["id"] = $result["id"].'-m';
+            $result['id'] = $result['id'].'-m';
         }
+
         return $result;
     }
 }

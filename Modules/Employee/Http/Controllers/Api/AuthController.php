@@ -4,15 +4,14 @@ namespace Modules\Employee\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Modules\Employee\Http\Requests\Api\Auth\LoginRequest;
 use Modules\Employee\Http\Requests\Api\Auth\LogoutRequest;
 use Modules\Employee\Models\Employee;
-use Illuminate\Http\Request;
 use Modules\Employee\Services\Api\TimeCardService;
 
 class AuthController extends Controller
 {
-
     public function __construct(protected TimeCardService $timeCardService) {}
     /**
      * Handle an incoming authentication request.
@@ -56,7 +55,6 @@ class AuthController extends Controller
     //     }
     // //
 
-
     public function store(LoginRequest $request)
     {
         $request->authenticate();
@@ -65,18 +63,18 @@ class AuthController extends Controller
         if ($request->has('pin')) {
             $employee = Employee::where('pin', $request->pin)->first();
 
-            if ($employee && !$employee->is_enable_service_staff_pin) {
+            if ($employee && ! $employee->is_enable_service_staff_pin) {
                 return response()->json(['message' => __('employee::ApiResponses.is_desable_staff_pin')], 401);
             }
-        } else if ($request->has('email')) {
+        } elseif ($request->has('email')) {
             $employee = Employee::where('email', $request->email)->first();
         }
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['message' => __('employee::ApiResponses.incorrect_credential')], 401);
         }
 
-        if (!$employee->pos_is_active) {
+        if (! $employee->pos_is_active) {
             return response()->json(['message' => __('employee::ApiResponses.account_disabled')], 401);
         }
 
@@ -89,11 +87,11 @@ class AuthController extends Controller
             $request->validated('date')
         );
 
-         if ($timeCard['status']) {
+        if ($timeCard['status']) {
             return response()->json([
                 'employee_id' => $employee->id,
                 'timecard_id' => $timeCard['id'],
-                'message' => 'Login successful'
+                'message' => 'Login successful',
             ]);
         } else {
             if ($timeCard['status_code'] == 409) {
@@ -102,25 +100,26 @@ class AuthController extends Controller
                 return response()->json([
                     'employee_id' => $employee->id,
                     'timecard_id' => $existingTimeCard ? $existingTimeCard->id : null,
-                    'message' => 'Employee already clocked in, proceeding to login.'
+                    'message' => 'Employee already clocked in, proceeding to login.',
                 ]);
             }
 
             return response()->json(['error' => $timeCard['message']], $timeCard['status_code']);
         }
     }
+
     public function waiterLogin(Request $request)
     {
         $employee = null;
         if ($request->has('pin')) {
             $employee = Employee::where('pin', $request->pin)->first();
 
-            if (!$employee->is_enable_service_staff_pin) {
+            if (! $employee->is_enable_service_staff_pin) {
                 return response()->json(['message' => __('employee::ApiResponses.is_desable_staff_pin')], 401);
             }
         }
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['message' => __('employee::ApiResponses.incorrect_credential')], 401);
         }
         $establishment_id = $employee->establishment_id;
@@ -140,9 +139,11 @@ class AuthController extends Controller
             }
         }
     }
+
     public function destroy(LogoutRequest $request)
     {
         $updated = $this->timeCardService->storeClockOutTimeCard($request->validated('timecard_id'), Carbon::parse($request->validated('clock_out_time')));
+
         return response()->json(['message' => $updated['message']], $updated['status_code']);
     }
 }

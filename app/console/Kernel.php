@@ -20,13 +20,12 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('inventory:ten-minute-reminder')->everyMinute()
-        ->sendOutputTo(storage_path('logs/inventory_schedule_output.log'));
+            ->sendOutputTo(storage_path('logs/inventory_schedule_output.log'));
     }
 
     /**

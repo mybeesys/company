@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name_en')->nullable();
             $table->enum('type', ['allowance', 'deduction']);
             $table->enum('amount_type', ['fixed', 'percent'])->default('fixed');
-            $table->decimal('amount', 10,2)->nullable();
+            $table->decimal('amount', 10, 2)->nullable();
             $table->timestamps();
         });
     }

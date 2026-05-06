@@ -24,9 +24,9 @@ class IncomeStatementExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [
-                __('accounting::lang.income_list') . ' - ' .
-                    __('accounting::lang.from_date') . ': ' . $this->meta['start_date'] . ' - ' .
-                    __('accounting::lang.to_date') . ': ' . $this->meta['end_date'],
+                __('accounting::lang.income_list').' - '.
+                    __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                    __('accounting::lang.to_date').': '.$this->meta['end_date'],
             ],
             [__('accounting::lang.account_name'), __('employee::fields.amount')],
         ];
@@ -40,4 +40,3 @@ class IncomeStatementExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

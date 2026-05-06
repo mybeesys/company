@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     'operation_date' => 'Operation Date',
@@ -18,22 +19,5 @@ return [
     'amount' => 'Amount',
     'debit/credit' => 'Debit / Credit',
     'sub_type' => 'Issued by',
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ];

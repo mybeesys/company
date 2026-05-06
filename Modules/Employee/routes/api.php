@@ -21,8 +21,8 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    require __DIR__ . '/Api/auth.php';
-    require __DIR__ . '/Api/employee.php';
-    require __DIR__ . '/Api/schedule.php';
-    require __DIR__ . '/Api/role.php';
+    require __DIR__.'/Api/auth.php';
+    require __DIR__.'/Api/employee.php';
+    require __DIR__.'/Api/schedule.php';
+    require __DIR__.'/Api/role.php';
 });

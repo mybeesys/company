@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
-use Modules\Establishment\Services\EstablishmentActions;
 use Modules\Establishment\Models\EstPos;
+use Modules\Establishment\Services\EstablishmentActions;
 
 class EstablishmentController extends Controller
 {
@@ -22,26 +22,27 @@ class EstablishmentController extends Controller
         $establishments = Establishment::select('id', 'name', 'name_en', 'address', 'is_main', 'parent_id', 'city', 'region', 'contact_details', 'is_active', 'deleted_at');
         if ($request->ajax()) {
 
-            if ($request->has('deleted_records') && !empty($request->deleted_records)) {
+            if ($request->has('deleted_records') && ! empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
                     ? $establishments->onlyTrashed()
                     : ($request->deleted_records == 'with_deleted_records' ? $establishments->withTrashed() : null);
             }
             if ($request->has('type') && $request->type === 'devices') {
                 $devices = Estpos::with('establishment')->get();
+
                 return EstablishmentTable::getDeviceTable($devices);
             }
+
             return EstablishmentTable::getEstablishmentTable($establishments);
         }
         $establishments = $this->getEstablishment();
         $columns = EstablishmentTable::getEstablishmentColumns();
         $deviceColumns = EstablishmentTable::getDeviceColumns();
+
         return view('establishment::establishment.index', compact('columns', 'establishments', 'deviceColumns'));
     }
 
-
     public function createLiveValidation(StoreEstablishmentRequest $request) {}
-
 
     /**
      * Show the form for creating a new resource.
@@ -49,6 +50,7 @@ class EstablishmentController extends Controller
     public function create()
     {
         $establishments = Establishment::where('is_main', true)->active()->get(['id', 'name', 'name_en']);
+
         return view('establishment::establishment.create', compact('establishments'));
     }
 
@@ -64,18 +66,18 @@ class EstablishmentController extends Controller
                 });
                 $storeEstablishment = new EstablishmentActions($filteredRequest);
                 $storeEstablishment->store();
+
                 return to_route('establishments.index')->with('success', __('employee::responses.created_successfully', ['name' => __('establishment::fields.establishment')]));
             } catch (\Throwable $e) {
                 Log::error('Establishment creation failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
                 return redirect()->back()->with('error', __('establishment::responses.something_wrong_happened'));
             }
         });
     }
-
-
 
     // this function return all categories with unspecified number of categories levels
     public function getLevels()
@@ -87,12 +89,13 @@ class EstablishmentController extends Controller
             $allWithChildren = array_merge($allWithChildren, [
                 $establishment,
                 ...$establishment->getAllDescendants()
-                    ->whereNull('parent_id')
+                    ->whereNull('parent_id'),
             ]);
         }
 
         return $allWithChildren;
     }
+
     public function getEstablishment()
     {
         $establishments = Establishment::with('children')->whereNull('parent_id')->get();
@@ -107,13 +110,12 @@ class EstablishmentController extends Controller
                     ->whereNull('parent_id')
                     ->each(function ($descendant) {
                         $descendant->makeHidden(['name_en', 'city', 'address', 'id']);
-                    })
+                    }),
             ]);
         }
 
         return $allWithChildren;
     }
-
 
     /**
      * Show the form for editing the specified resource.
@@ -122,6 +124,7 @@ class EstablishmentController extends Controller
     {
         $establishment = Establishment::with('children')->findOrFail($id);
         $establishments = Establishment::where('is_main', true)->active()->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
+
         return view('establishment::establishment.edit', compact('establishment', 'establishments'));
     }
 
@@ -137,12 +140,14 @@ class EstablishmentController extends Controller
                 });
                 $updateEstablishment = new EstablishmentActions($filteredRequest);
                 $updateEstablishment->update($establishment);
+
                 return to_route('establishments.index')->with('success', __('establishment::responses.updated_successfully', ['name' => __('establishment::fields.establishment')]));
             } catch (\Throwable $e) {
                 Log::error('Establishment updating failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
                 return redirect()->back()->with('error', __('establishment::responses.something_wrong_happened'));
             }
         });

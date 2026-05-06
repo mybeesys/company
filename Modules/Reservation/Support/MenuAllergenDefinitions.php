@@ -45,7 +45,7 @@ final class MenuAllergenDefinitions
 
     /**
      * @param  list<string>|null  $stored  null = اعرض الكل
-     * @return array<string, string>  مفتاح => صنف أيقونة FontAwesome
+     * @return array<string, string> مفتاح => صنف أيقونة FontAwesome
      */
     public static function filterMapForDisplay(?array $stored): array
     {

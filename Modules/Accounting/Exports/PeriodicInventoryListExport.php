@@ -40,7 +40,7 @@ class PeriodicInventoryListExport implements FromCollection, WithColumnWidths, W
             [__('accounting::lang.periodic_inventory_excel_generated', ['datetime' => $this->meta['generated_at'] ?? now()->format('Y-m-d H:i')])],
         ];
         if (! empty($this->meta['filter_note'])) {
-            $rows[] = [__('accounting::lang.periodic_inventory_excel_filters') . ': ' . $this->meta['filter_note']];
+            $rows[] = [__('accounting::lang.periodic_inventory_excel_filters').': '.$this->meta['filter_note']];
         }
         $rows[] = [
             __('accounting::lang.inventory_number'),

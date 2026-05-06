@@ -1,4 +1,5 @@
 <?php
+
 return [
     'try_now' => 'جرّب الآن',
     'edit' => 'نعديل',
@@ -25,6 +26,7 @@ return [
     'save' => 'حفظ',
     'deactivate' => 'إلغاء تنشيط',
     'actions' => 'العمليات',
+    'delete' => 'حذف',
     'add_successfully' => 'تمت الإضافة بنجاح',
     'updated_successfully' => 'تم التعديل بنجاح',
     'deleted_successfully' => 'تم الحذف بنجاح',
@@ -44,16 +46,7 @@ return [
     'never_used' => 'لم يستخدم بعد',
     'move' => 'تحريك',
 
-    "Added successfully, but the customer exceeded" => "تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.",
+    'Added successfully, but the customer exceeded' => 'تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.',
     'print' => 'طباعة',
-
-
-
-
-
-
-
-
-
 
 ];

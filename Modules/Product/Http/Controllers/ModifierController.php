@@ -6,10 +6,9 @@ use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Product\Models\ModifierPriceTier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeModifier;
-use Modules\Product\Models\ModifierPriceTier;
-use Modules\Product\Models\UnitTransfer;
 
 class ModifierController extends Controller
 {
@@ -36,22 +35,24 @@ class ModifierController extends Controller
             'recipe_yield' => 'nullable|numeric',
             'prep_recipe' => 'nullable|boolean',
             'adjust_product_cost_recipe_cost' => 'nullable|boolean',
-            'method' => 'nullable|string'
+            'method' => 'nullable|string',
         ]);
 
-        if (isset($validated['method']) && ($validated['method'] == "delete")) {
+        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $modifier = Product::restrictByFranchise()
                 ->where('type', 'modifier')
                 ->find($validated['id']);
 
             if ($modifier) {
                 $modifier->delete();
-                return response()->json(["message" => "Done"]);
+
+                return response()->json(['message' => 'Done']);
             }
-            return response()->json(["message" => "Modifier not found."], 404);
+
+            return response()->json(['message' => 'Modifier not found.'], 404);
         }
 
-        if (!isset($validated['order'])) {
+        if (! isset($validated['order'])) {
             $maxOrder = Product::restrictByFranchise()
                 ->where('type', 'modifier')
                 ->where('class_id', $validated['class_id'])
@@ -65,7 +66,7 @@ class ModifierController extends Controller
             $this->createModifier($validated, $request);
         }
 
-        return response()->json(["message" => "Done"]);
+        return response()->json(['message' => 'Done']);
     }
 
     protected function saveModifier($validated, $request)
@@ -76,37 +77,37 @@ class ModifierController extends Controller
 
         if ($user->franchise_id) {
             DB::table('franchise_product_permissions')->insert([
-                'franchise_id'    => $user->franchise_id,
-                'permitted_type'  => 'modifier',
-                'permitted_id'    => $modifier->id,
-                'created_at'      => now(),
-                'updated_at'      => now()
+                'franchise_id' => $user->franchise_id,
+                'permitted_type' => 'modifier',
+                'permitted_id' => $modifier->id,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         $cost = 0;
         if ($validated['adjust_product_cost_recipe_cost']) {
-            foreach ($request["recipe"] as $recipe) {
+            foreach ($request['recipe'] as $recipe) {
                 $cost += $recipe['cost'];
             }
         } else {
             $cost = $validated['cost'];
         }
         $modifier->cost = $cost;
-        $modifier->type = "modifier";
+        $modifier->type = 'modifier';
 
         DB::transaction(function () use ($modifier, $request) {
             $modifier->save();
             RecipeModifier::where('modifier_id', $modifier->id)->delete();
 
-            if (isset($request["recipe"])) {
+            if (isset($request['recipe'])) {
                 $order = 0;
-                foreach ($request["recipe"] as $recipe) {
+                foreach ($request['recipe'] as $recipe) {
                     $newid = $recipe['newid'];
                     $rec = [
                         'modifier_id' => $modifier->id,
                         'quantity' => $recipe['quantity'],
                         'order' => $order++,
-                        'unit_transfer_id' => $recipe["unit_transfer"]["id"] ?? null
+                        'unit_transfer_id' => $recipe['unit_transfer']['id'] ?? null,
                     ];
 
                     if (str_contains($newid, '-')) {
@@ -123,12 +124,12 @@ class ModifierController extends Controller
             }
 
             ModifierPriceTier::where('modifier_id', $modifier->id)->delete();
-            if (isset($request["price_tiers"])) {
-                foreach ($request["price_tiers"] as $pt) {
+            if (isset($request['price_tiers'])) {
+                foreach ($request['price_tiers'] as $pt) {
                     ModifierPriceTier::create([
                         'modifier_id' => $modifier->id,
-                        'price_tier_id' => $pt['price_tier']["id"],
-                        'price' => $pt["price"]
+                        'price_tier_id' => $pt['price_tier']['id'],
+                        'price' => $pt['price'],
                     ]);
                 }
             }
@@ -139,23 +140,23 @@ class ModifierController extends Controller
 
     protected function createModifier($validated, $request)
     {
-        DB::transaction(function () use ($validated, $request) {
+        DB::transaction(function () use ($validated) {
             $price_with_tax = $validated['price_with_tax'];
             $price = $price_with_tax / 1.15;
 
             $modifier = Product::create(array_merge($validated, [
                 'type' => 'modifier',
-                'price' => $price
+                'price' => $price,
             ]));
             $user = auth()->user();
 
             if ($user->franchise_id) {
                 DB::table('franchise_product_permissions')->insert([
-                    'franchise_id'    => $user->franchise_id,
-                    'permitted_type'  => 'modifier',
-                    'permitted_id'    => $modifier->id,
-                    'created_at'      => now(),
-                    'updated_at'      => now()
+                    'franchise_id' => $user->franchise_id,
+                    'permitted_type' => 'modifier',
+                    'permitted_id' => $modifier->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
             // Similar logic for Recipe, PriceTiers, and Units as saveModifier
@@ -173,9 +174,10 @@ class ModifierController extends Controller
             $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $modifier->tax->amount ?? 0);
         }
         foreach ($modifier->recipe as $rec) {
-            $rec->newid = $rec->item_id . "-" . $rec->item_type;
+            $rec->newid = $rec->item_id.'-'.$rec->item_type;
             $rec->cost = $rec->detail->cost ?? 0;
         }
+
         return view('product::modifier.edit', compact('modifier'));
     }
 
@@ -187,7 +189,7 @@ class ModifierController extends Controller
             ->where('type', 'modifier')
             ->get();
 
-        return response()->json($modifiers->map(fn($m) => [
+        return response()->json($modifiers->map(fn ($m) => [
             'id' => $m->id,
             'name' => $language === 'ar' ? $m->name_ar : $m->name_en,
         ]));

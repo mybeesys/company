@@ -24,7 +24,7 @@ class AgeingSummaryExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [$this->meta['title']],
-            [__('accounting::lang.to_date') . ': ' . $this->meta['as_of_date']],
+            [__('accounting::lang.to_date').': '.$this->meta['as_of_date']],
             [
                 $this->meta['name_header'],
                 __('accounting::lang.current'),
@@ -46,4 +46,3 @@ class AgeingSummaryExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

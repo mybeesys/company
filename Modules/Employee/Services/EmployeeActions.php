@@ -4,16 +4,14 @@ namespace Modules\Employee\Services;
 
 use Carbon\Carbon;
 use File;
-use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\PayrollAdjustment;
 use Modules\Employee\Models\Wage;
 use Modules\Employee\Notifications\EmployeeCreated;
 use Modules\General\Models\NotificationSetting;
 
-
 class EmployeeActions
 {
-
     public function __construct(protected $request) {}
 
     public function assignRolesEstablishments($PosRepeaterData, $dashboardRepeaterData, $employee)
@@ -30,7 +28,7 @@ class EmployeeActions
 
                 return [
                     $roleKey => $group->first()[$roleKey],
-                    'establishment' => $mergedEstablishments
+                    'establishment' => $mergedEstablishments,
                 ];
             })->values();
 
@@ -56,24 +54,24 @@ class EmployeeActions
         }
     }
 
-
     public function assignEmployeeWage($wage_amount, $wage_type, $employee_id)
     {
         Wage::updateOrCreate(['employee_id' => $employee_id], [
             'rate' => $wage_amount,
-            'wage_type' => $wage_type
+            'wage_type' => $wage_type,
         ]);
     }
 
     public function storeImage($image, $oldImage = null)
     {
-        $oldPath = public_path('storage/tenant' . tenancy()->tenant->id . '/' . $oldImage);
+        $oldPath = public_path('storage/tenant'.tenancy()->tenant->id.'/'.$oldImage);
 
         if (File::exists($oldPath)) {
             File::delete($oldPath);
         }
-        $imageName = 'profile_pictures/' . time() . '.' . $image->extension();
+        $imageName = 'profile_pictures/'.time().'.'.$image->extension();
         $image->storeAs('', $imageName, 'public');
+
         return $imageName;
     }
 
@@ -86,16 +84,15 @@ class EmployeeActions
             'created_by' => auth()->user()->id,
             'employment_start_date' => Carbon::parse($this->request->get('employment_start_date'))->format('Y-m-d'),
             'employment_end_date' => $this->request->has('employment_end_date') ? Carbon::parse($this->request->get('employment_end_date'))->format('Y-m-d') : null,
-            'is_enable_service_staff_pin' => $this->request->has('is_enable_service_staff_pin')
+            'is_enable_service_staff_pin' => $this->request->has('is_enable_service_staff_pin'),
 
-
-            ])->all());
+        ])->all());
 
         $this->assignRolesEstablishments($this->request->get('pos_role_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
 
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
-        !empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
+        ! empty($this->request->get('allowance_repeater')) && $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id);
 
         $notification_setting = NotificationSetting::where('type', 'created_emp')
             ->where('sendType', 'email')
@@ -112,7 +109,7 @@ class EmployeeActions
     {
         $this->assignRolesEstablishments($this->request->get('pos_role_repeater'), $this->request->get('dashboard_role_repeater'), $employee);
 
-        !empty($this->request->get('allowance_repeater')) ? $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id) : PayrollAdjustment::where('type', 'allowance')->where('employee_id', $employee->id)->delete();
+        ! empty($this->request->get('allowance_repeater')) ? $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id) : PayrollAdjustment::where('type', 'allowance')->where('employee_id', $employee->id)->delete();
 
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
 
@@ -127,11 +124,12 @@ class EmployeeActions
             $data = $data->merge([
                 'image' => $imageName,
             ]);
-        } else if (!$this->request->get('image_old')) {
+        } elseif (! $this->request->get('image_old')) {
             $data = $data->merge([
                 'image' => null,
             ]);
         }
+
         return $employee->update($data->toArray());
     }
 
@@ -145,7 +143,7 @@ class EmployeeActions
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
                     'adjustment_type_id' => $allowance['adjustment_type'],
-                    'applicable_date' => $allowance['applicable_date'] . '-01'
+                    'applicable_date' => $allowance['applicable_date'].'-01',
                 ]);
             } else {
                 $ids[] = PayrollAdjustment::create([
@@ -153,7 +151,7 @@ class EmployeeActions
                     'amount' => $allowance['amount'],
                     'amount_type' => $allowance['amount_type'],
                     'adjustment_type_id' => $allowance['adjustment_type'],
-                    'applicable_date' => $allowance['applicable_date'] . '-01'
+                    'applicable_date' => $allowance['applicable_date'].'-01',
                 ])->id;
             }
             PayrollAdjustment::allowance()->always()->where('employee_id', $employee_id)->whereNotIn('id', $ids)->delete();

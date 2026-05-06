@@ -24,13 +24,13 @@ class BalanceSheetExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [
-                __('accounting::lang.balance_sheet') . ' - ' .
-                    __('accounting::lang.from_date') . ': ' . $this->meta['start_date'] . ' - ' .
-                    __('accounting::lang.to_date') . ': ' . $this->meta['end_date'],
+                __('accounting::lang.balance_sheet').' - '.
+                    __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                    __('accounting::lang.to_date').': '.$this->meta['end_date'],
             ],
             [
-                __('accounting::lang.balance') . ': ' . $this->meta['balance_status'] .
-                    ' | ' . __('accounting::lang.difference') . ': ' . number_format((float) $this->meta['difference'], 2, '.', ''),
+                __('accounting::lang.balance').': '.$this->meta['balance_status'].
+                    ' | '.__('accounting::lang.difference').': '.number_format((float) $this->meta['difference'], 2, '.', ''),
             ],
             [__('accounting::lang.account_type'), __('accounting::lang.account_name'), __('employee::fields.amount')],
         ];
@@ -45,4 +45,3 @@ class BalanceSheetExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

@@ -146,6 +146,7 @@
                                 <th class="min-w-100px">@lang('accounting::lang.inventory_number')</th>
                                 <th class="min-w-125px">@lang('accounting::lang.period')</th>
                                 <th class="min-w-150px">@lang('accounting::lang.establishment_name')</th>
+                                <th class="min-w-140px">@lang('accounting::lang.inventory_status')</th>
                                 <th class="min-w-120px">@lang('accounting::lang.adjustment_status')</th>
                                 <th class="min-w-100px text-end">@lang('accounting::lang.opening_value')</th>
                                 <th class="min-w-100px text-end">@lang('accounting::lang.purchases_value')</th>
@@ -165,14 +166,18 @@
                                         <span class="badge badge-light-dark fs-7">#{{ $inventory->id }}</span>
                                     </td>
                                     <td>
-                                        <div class="small">
-                                            <span class="text-muted">@lang('accounting::lang.period_from'):</span> {{ $inventory->start_date }}
-                                        </div>
                                         <div class="small fw-semibold">
                                             <span class="text-muted">@lang('accounting::lang.periodic_inventory_count_date'):</span> {{ $inventory->end_date }}
                                         </div>
                                     </td>
                                     <td>{{ $inventory->establishment?->name ?? '—' }}</td>
+                                    <td>
+                                        @if (($inventory->status ?? 'in_review') === 'approved')
+                                            <span class="badge badge-light-success">@lang('accounting::lang.approved')</span>
+                                        @else
+                                            <span class="badge badge-light-warning text-gray-800">@lang('accounting::lang.in_review')</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if ($hasAdjustmentEntry)
                                             <span class="badge badge-light-success">@lang('accounting::lang.with_adjustment')</span>
@@ -186,29 +191,66 @@
                                     <td class="text-end font-monospace fw-semibold">{{ number_format((float) $inventory->cogs, 2) }}</td>
                                     <td class="small">{{ $inventory->creator?->name ?? '—' }}</td>
                                     <td class="text-end">
-                                        <div class="d-inline-flex flex-wrap justify-content-end gap-1">
-                                            <a href="{{ route('periodic-inventory-detail-export-excel', ['id' => $inventory->id]) }}"
-                                                class="btn btn-sm btn-light-success"
-                                                title="@lang('accounting::lang.periodic_export_row_excel')">
-                                                <i class="fa-solid fa-file-excel"></i>
-                                            </a>
-                                            <a href="{{ route('periodic-inventory-export-pdf', ['id' => $inventory->id]) }}" class="btn btn-sm btn-light-secondary">
-                                                <i class="fa-solid fa-file-pdf me-1"></i>@lang('accounting::lang.period_approval_report')
-                                            </a>
+                                        <a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary"
+                                            data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                            @lang('employee::fields.actions')
+                                            <i class="ki-outline ki-down fs-5 ms-1"></i>
+                                        </a>
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-225px py-4"
+                                            data-kt-menu="true">
+                                            <div class="menu-item px-3">
+                                                <a href="{{ route('periodic-inventory-detail-export-excel', ['id' => $inventory->id]) }}"
+                                                    class="menu-link px-3">
+                                                    <i class="fa-solid fa-file-excel text-success me-2"></i>
+                                                    @lang('accounting::lang.periodic_export_row_excel')
+                                                </a>
+                                            </div>
+                                            @if (($inventory->status ?? 'in_review') === 'approved')
+                                                <div class="menu-item px-3">
+                                                    <a href="{{ route('periodic-inventory-export-pdf', ['id' => $inventory->id]) }}" class="menu-link px-3">
+                                                        <i class="fa-solid fa-file-pdf text-danger me-2"></i>
+                                                        @lang('accounting::lang.period_approval_report')
+                                                    </a>
+                                                </div>
+                                            @endif
+                                            @if (($inventory->status ?? 'in_review') === 'in_review')
+                                                <div class="menu-item px-3">
+                                                    <a href="{{ route('periodic-inventory.edit', ['periodic_inventory' => $inventory->id]) }}" class="menu-link px-3">
+                                                        <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
+                                                        @lang('employee::fields.edit')
+                                                    </a>
+                                                </div>
+                                                <div class="menu-item px-3">
+                                                    <form method="POST" action="{{ route('periodic-inventory-approve', ['id' => $inventory->id]) }}"
+                                                        onsubmit="return confirm(@json(__('accounting::lang.approve_inventory_confirm')));">
+                                                        @csrf
+                                                        <button type="submit" class="menu-link px-3 border-0 bg-transparent text-start w-100">
+                                                            <i class="fa-solid fa-circle-check text-success me-2"></i>
+                                                            @lang('accounting::lang.approve')
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endif
                                             @if ($hasAdjustmentEntry)
-                                                <a href="{{ route('journal-entry-show', ['id' => $inventory->adjustment_entry_id]) }}" class="btn btn-sm btn-light-primary">
-                                                    @lang('accounting::lang.view_journalEntry')
-                                                </a>
-                                                <a href="{{ route('journal-entry-print', ['id' => $inventory->adjustment_entry_id]) }}" class="btn btn-sm btn-light-info">
-                                                    @lang('accounting::lang.print_journalEntry')
-                                                </a>
+                                                <div class="menu-item px-3">
+                                                    <a href="{{ route('journal-entry-show', ['id' => $inventory->adjustment_entry_id]) }}" class="menu-link px-3">
+                                                        <i class="fa-solid fa-eye text-info me-2"></i>
+                                                        @lang('accounting::lang.view_journalEntry')
+                                                    </a>
+                                                </div>
+                                                <div class="menu-item px-3">
+                                                    <a href="{{ route('journal-entry-print', ['id' => $inventory->adjustment_entry_id]) }}" class="menu-link px-3">
+                                                        <i class="fa-solid fa-print text-dark me-2"></i>
+                                                        @lang('accounting::lang.print_journalEntry')
+                                                    </a>
+                                                </div>
                                             @endif
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted py-10">@lang('accounting::lang.no_periodic_inventory_log')</td>
+                                    <td colspan="11" class="text-center text-muted py-10">@lang('accounting::lang.no_periodic_inventory_log')</td>
                                 </tr>
                             @endforelse
                         </tbody>

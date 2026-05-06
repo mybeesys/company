@@ -8,7 +8,6 @@ use Modules\Employee\Rules\EmployeeEstablishmentRule;
 
 trait EmployeeValidateTrait
 {
-
     protected function getCreateValidationRules($notAjaxValidate, $request)
     {
         return $this->getCommonValidationRules($notAjaxValidate, $request) + [
@@ -26,7 +25,7 @@ trait EmployeeValidateTrait
             'pin' => ['nullable', 'digits_between:4,5', 'numeric', Rule::unique('emp_employees', 'pin')->ignore($employee->pin, 'pin')],
             'user_name' => ['required_if_accepted:ems_access', 'nullable', Rule::unique('emp_employees', 'user_name')->ignore($employee->user_name, 'user_name'), 'string', 'max:50'],
             'password' => ['nullable', Password::default()],
-            'image_old' => [Rule::requiredIf($notAjaxValidate), 'boolean']
+            'image_old' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
         ];
     }
 
@@ -42,7 +41,6 @@ trait EmployeeValidateTrait
             'pos_is_active' => [Rule::requiredIf($notAjaxValidate), 'boolean'],
             'establishment_id' => [Rule::requiredIf($notAjaxValidate), 'exists:est_establishments,id'],
             'is_enable_service_staff_pin' => ['boolean'],
-
 
             'pos_role_repeater' => ['nullable', 'array'],
             'pos_role_repeater.*.posRole' => [Rule::requiredIf($notAjaxValidate), 'exists:roles,id'],

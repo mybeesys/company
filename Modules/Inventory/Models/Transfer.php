@@ -6,15 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Establishment\Models\Establishment;
-use Modules\Inventory\Enums\PurchaseOrderInvoiceStatus;
-use Modules\Product\Models\Product;
-use Modules\Product\Models\Vendor;
-
 
 class Transfer extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -27,14 +22,16 @@ class Transfer extends Model
     // If you want to allow mass assignment, define the fillable fields
     protected $fillable = [
         'operation_id',
-        'establishment_id'
+        'establishment_id',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable(){
+    public function addToFillable()
+    {
         return array_push($this->fillable, 'toEstablishment');
     }
 
@@ -42,15 +39,17 @@ class Transfer extends Model
 
     public $validated = [];
 
-    public function totals($validated){
-        return 0;//(isset($validated["total"]) ? $validated["total"] * $validated["times"] : $validated["total"] );
+    public function totals($validated)
+    {
+        return 0; // (isset($validated["total"]) ? $validated["total"] * $validated["times"] : $validated["total"] );
     }
 
-    public function fillValidated($validated, $data){
-        if (isset($data["toEstablishment"])) {
-            $validated["establishment_id"] = $data["toEstablishment"]["id"];
+    public function fillValidated($validated, $data)
+    {
+        if (isset($data['toEstablishment'])) {
+            $validated['establishment_id'] = $data['toEstablishment']['id'];
         }
-        
+
         return $validated;
     }
 

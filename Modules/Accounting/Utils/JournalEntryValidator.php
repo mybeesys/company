@@ -8,8 +8,9 @@ use Illuminate\Validation\ValidationException;
 class JournalEntryValidator
 {
     /**
-     * @param array<int, array<string, mixed>> $entries
+     * @param  array<int, array<string, mixed>>  $entries
      * @return array<int, array{account_id:int,type:string,amount:string,cost_center_id:int|null,notes:string|null}>
+     *
      * @throws ValidationException
      */
     public static function validateAndNormalize(array $entries): array
@@ -96,4 +97,3 @@ class JournalEntryValidator
         return $normalized;
     }
 }
-

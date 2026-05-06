@@ -2,7 +2,6 @@
 
 namespace Modules\Product\Models;
 
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ModifierPriceTier extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -24,14 +22,16 @@ class ModifierPriceTier extends Model
     protected $fillable = [
         'price_tier_id',
         'modifier_id',
-        'price'
+        'price',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -46,5 +46,4 @@ class ModifierPriceTier extends Model
     {
         return $this->belongsTo(PriceTier::class, 'price_tier_id', 'id');
     }
-
 }

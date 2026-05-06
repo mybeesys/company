@@ -1,9 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,8 +10,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("DROP VIEW IF EXISTS product_inventory_totals");
-        DB::statement("CREATE 
+        DB::statement('DROP VIEW IF EXISTS product_inventory_totals');
+        DB::statement('CREATE 
                 VIEW product_inventory_totals AS
                     SELECT 
         pp.id AS id,
@@ -63,7 +61,7 @@ return new class extends Migration
                 SUM(iop.times) AS qty
         FROM
             inventory_Op_preps iop
-        GROUP BY iop.product_id) prep1 ON ((prep1.product_id = pp.id)))");
+        GROUP BY iop.product_id) prep1 ON ((prep1.product_id = pp.id)))');
     }
 
     /**
@@ -71,6 +69,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("DROP VIEW product_inventory_totals");
+        DB::statement('DROP VIEW product_inventory_totals');
     }
 };

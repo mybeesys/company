@@ -12,17 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-             $table->string('table_id')->nullable();
+            $table->string('table_id')->nullable();
         });
-          }
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-         Schema::table('transactions', function (Blueprint $table) {
-
-        });
+        Schema::table('transactions', function (Blueprint $table) {});
     }
 };

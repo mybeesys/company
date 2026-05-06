@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inventory_Operation_items', function (Blueprint $table) {
-          
+
             $table->string('item_type');
-             });
+        });
     }
 
     /**

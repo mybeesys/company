@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Mpdf\Mpdf;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
@@ -30,17 +29,17 @@ use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Sales\Utils\SalesUtile;
+use Mpdf\Mpdf;
 
 class PurchasesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-
-
     public function purchaseDashbord(Request $request)
     {
         $data = $this->buildPurchaseDashboardData($request);
+
         return view('purchases::purchases.dashboard', $data);
     }
 
@@ -92,7 +91,7 @@ class PurchasesController extends Controller
                 $t->transaction_date ?? '',
                 (string) $t->final_total,
                 (string) $t->paid_amount,
-                (string) $t->remaining_amount
+                (string) $t->remaining_amount,
             ];
         }
 
@@ -116,7 +115,7 @@ class PurchasesController extends Controller
             'margin_right' => 8,
             'margin_top' => 8,
             'margin_bottom' => 8,
-            'tempDir' => storage_path('temp/mpdf')
+            'tempDir' => storage_path('temp/mpdf'),
         ]);
         $mpdf->WriteHTML($html);
 
@@ -148,7 +147,7 @@ class PurchasesController extends Controller
         $activeSuppliers = (clone $purchaseBase)->whereBetween('transaction_date', [$startDate, $endDate])->distinct('contact_id')->count('contact_id');
 
         $periodPurchaseQuery = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->where('t.type', 'purchases')
             ->whereIn('t.status', $validStatuses)
             ->whereBetween('t.transaction_date', [$startDate, $endDate]);
@@ -156,7 +155,7 @@ class PurchasesController extends Controller
         $dueAmount = (clone $periodPurchaseQuery)->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as due')->value('due') ?? 0;
 
         $paymentsStats = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
             ->selectRaw('COUNT(*) as total_payments, SUM(amount) as total_paid')
             ->first();
         $purchaseReturnStats = Transaction::query()
@@ -173,12 +172,12 @@ class PurchasesController extends Controller
         $favoritesStats = Transaction::query()
             ->whereIn('type', ['purchases', 'purchases-return', 'purchases-order'])
             ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()))
             ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
             ->first();
 
         $months = collect(range(5, 0))
-            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'))
             ->push(now()->format('Y-m'))
             ->values();
         $purchaseMonthly = (clone $purchaseBase)
@@ -187,7 +186,7 @@ class PurchasesController extends Controller
             ->groupBy('month_key')
             ->pluck('total', 'month_key');
         $paymentsMonthly = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
             ->selectRaw("DATE_FORMAT(paid_on, '%Y-%m') as month_key, SUM(amount) as total")
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->groupBy('month_key')
@@ -202,7 +201,7 @@ class PurchasesController extends Controller
         }
 
         $paymentMethods = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->selectRaw('method, SUM(amount) as total')
             ->groupBy('method')
@@ -223,7 +222,7 @@ class PurchasesController extends Controller
 
         $transactions = DB::table('transactions as t')
             ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->whereIn('t.type', ['purchases', 'purchases-order', 'purchases-return'])
             ->whereBetween('t.transaction_date', [$startDate, $endDate])
             ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as supplier_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
@@ -232,7 +231,7 @@ class PurchasesController extends Controller
             ->get();
 
         $recentPayments = TransactionPayments::with(['transaction', 'client'])
-            ->whereHas('transaction', fn($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'purchases')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->orderByDesc('paid_on')
             ->limit(10)
@@ -313,21 +312,30 @@ class PurchasesController extends Controller
             'wallet' => 'محفظة',
         ];
         $key = strtolower(trim($method));
+
         return $map[$key] ?? ($method ?: '--');
     }
 
     private function localizedPaymentStatus(string $status): string
     {
         $key = strtolower(trim($status));
-        if ($key === 'paid') return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
-        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        if ($key === 'paid') {
+            return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
+        }
+        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) {
+            return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        }
+
         return app()->getLocale() === 'ar' ? 'غير مدفوع' : 'Unpaid';
     }
 
     private function localizedApprovalStatus(string $status): string
     {
         $key = strtolower(trim($status));
-        if (in_array($key, ['approved', 'final'], true)) return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        if (in_array($key, ['approved', 'final'], true)) {
+            return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        }
+
         return app()->getLocale() === 'ar' ? 'مسودة' : 'Draft';
     }
 
@@ -339,10 +347,10 @@ class PurchasesController extends Controller
         if ($request->ajax()) {
             $transactionsQuery
                 ->when($request->filled('favorite'), function ($query) {
-                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                    $query->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
                 })
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -358,6 +366,7 @@ class PurchasesController extends Controller
                     }
                 });
             $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
         $transaction = $transactionsQuery->get();
@@ -366,25 +375,26 @@ class PurchasesController extends Controller
         $poes = Transaction::where('type', 'purchases-order')->where('po_status', '<>', 'completed')->get();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'create_po')->first();
-        if (!$Latest_event) {
-            $actionUtil = new ActionUtil();
+        if (! $Latest_event) {
+            $actionUtil = new ActionUtil;
             $Latest_event = $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
         }
-        $clients =  Contact::where('business_type', 'supplier')->get();
+        $clients = Contact::where('business_type', 'supplier')->get();
         $page = 'purchases';
+
         return view('purchases::purchases.index', compact('columns', 'page', 'clients', 'Latest_event', 'poes', 'transaction'));
     }
 
     public function favorites(Request $request)
     {
         $transactionsQuery = Transaction::whereIn('type', ['purchases', 'purchases-return', 'purchases-order'])
-            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
 
         if ($request->ajax()) {
             $transactionsQuery
-                ->when($request->filled('transaction_type'), fn($query) => $query->where('type', $request->transaction_type))
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('transaction_type'), fn ($query) => $query->where('type', $request->transaction_type))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -401,6 +411,7 @@ class PurchasesController extends Controller
                 });
 
             $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
 
@@ -417,7 +428,7 @@ class PurchasesController extends Controller
      */
     public function create(Request $request)
     {
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
 
         $clients = Contact::where('business_type', 'supplier')->get();
@@ -425,7 +436,7 @@ class PurchasesController extends Controller
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
@@ -441,10 +452,11 @@ class PurchasesController extends Controller
 
         $products = Product::where('active', 1)->take(25)->get();
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_purchases')->first();
-        if (!$Latest_event) {
-            $actionUtil = new ActionUtil();
+        if (! $Latest_event) {
+            $actionUtil = new ActionUtil;
             $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
         }
+
         return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
     }
 
@@ -452,10 +464,10 @@ class PurchasesController extends Controller
     {
         $missing = [];
         $purchasesAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
-        if (!$purchasesAccountId && !Setting::isPerpetualInventory()) {
+        if (! $purchasesAccountId && ! Setting::isPerpetualInventory()) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب المشتريات' : 'Purchases account';
         }
-        if (!AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';
         }
         if (Setting::isPerpetualInventory()) {
@@ -463,7 +475,7 @@ class PurchasesController extends Controller
                 ->where('gl_code', '11105')
                 ->orWhere('account_category', 'inventory')
                 ->value('id');
-            if (!$inventoryAccountId && !$purchasesAccountId) {
+            if (! $inventoryAccountId && ! $purchasesAccountId) {
                 $missing[] = app()->getLocale() === 'ar' ? 'حساب المخزون' : 'Inventory account';
             }
         }
@@ -486,15 +498,15 @@ class PurchasesController extends Controller
      */
     public function store(Request $request)
     {
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
-        $accountUtil = new AccountingUtil();
+        $accountUtil = new AccountingUtil;
 
         // try {
-        $transactionUtil = new TransactionUtils();
+        $transactionUtil = new TransactionUtils;
         // return $request;
         DB::beginTransaction();
-        $ref_no =  SalesUtile::generateReferenceNumber('purchases');
+        $ref_no = SalesUtile::generateReferenceNumber('purchases');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
         $main_establishment = Establishment::notMain()->active()->first();
@@ -517,7 +529,7 @@ class PurchasesController extends Controller
         if ($request->po_id) {
             $po_id = $request->po_id;
         }
-        $transaction =   Transaction::create([
+        $transaction = Transaction::create([
             'type' => 'purchases',
             'invoice_type' => $request->invoice_type,
             'due_date' => $request->due_date,
@@ -542,9 +554,8 @@ class PurchasesController extends Controller
 
         $products = json_decode(json_encode($request->products));
 
-
         foreach ($products as $product) {
-            $discount_type = $product->discount  ? $product->discount_type : null;
+            $discount_type = $product->discount ? $product->discount_type : null;
             $resolvedUnitId = $this->resolvePurchaseUnitId((int) $product->products_id, $product->unit ?? null);
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
@@ -571,7 +582,7 @@ class PurchasesController extends Controller
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         } else {
-            $acc_trans_mapping = new AccountingAccTransMapping();
+            $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مشتريات رقم {$transaction->ref_no}.";
@@ -590,14 +601,14 @@ class PurchasesController extends Controller
             $purchasesTargetAccountId = Setting::isPerpetualInventory()
                 ? ($inventoryAssetAccount?->id ?? $purchases_purchase?->account_id)
                 : ($purchases_purchase?->account_id);
-            if (!$purchasesTargetAccountId) {
+            if (! $purchasesTargetAccountId) {
                 throw ValidationException::withMessages([
                     'accounting' => app()->getLocale() === 'ar'
                         ? 'مسار حساب المشتريات/المخزون غير مضبوط. يرجى ضبط توجيه الحسابات للمشتريات.'
                         : 'Purchases/Inventory account routing is not configured. Please configure Accounts Routing.',
                 ]);
             }
-            if (!$purchases_vat_calculation || !$purchases_vat_calculation->account_id) {
+            if (! $purchases_vat_calculation || ! $purchases_vat_calculation->account_id) {
                 throw ValidationException::withMessages([
                     'accounting' => app()->getLocale() === 'ar'
                         ? 'حساب ضريبة المشتريات غير مضبوط في توجيه الحسابات.'
@@ -606,7 +617,7 @@ class PurchasesController extends Controller
             }
 
             $client = Contact::find($request->client_id);
-            $transactionPayment = new \stdClass();
+            $transactionPayment = new \stdClass;
 
             $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
             $transactionPayment->account_id = $client->account_id;
@@ -650,16 +661,15 @@ class PurchasesController extends Controller
             AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
-
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
         DB::commit();
-        $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
+        $totalOutstanding = $transactionUtil->contactTotalOutstanding($transaction);
 
         $msg = __('messages.add_successfully');
         $status = 'success';
         if ($totalOutstanding) {
-            $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
+            $credit_limit = Contact::find($transaction->contact_id)->credit_limit;
             if ($credit_limit && $credit_limit < $totalOutstanding) {
                 $msg = __('messages.Added successfully, but the customer exceeded');
                 $status = 'error';
@@ -668,7 +678,7 @@ class PurchasesController extends Controller
 
         if ($request->action == 'save_print') {
             return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
-        } else if ($request->action == 'save_add') {
+        } elseif ($request->action == 'save_add') {
             return redirect()->route('create-purchases-invoice')->with($status, $msg);
         } else {
             return redirect()->route('purchase-invoices')->with($status, $msg);
@@ -687,14 +697,11 @@ class PurchasesController extends Controller
         return view('purchases::show');
     }
 
-
-
-
-    function updatePurchaseOrderStatus($po_id)
+    public function updatePurchaseOrderStatus($po_id)
     {
         $poTransaction = Transaction::find($po_id);
 
-        if (!$poTransaction) {
+        if (! $poTransaction) {
             return;
         }
 
@@ -703,6 +710,7 @@ class PurchasesController extends Controller
         if ($poLines->isEmpty()) {
             $poTransaction->po_status = 'pending';
             $poTransaction->save();
+
             return;
         }
 

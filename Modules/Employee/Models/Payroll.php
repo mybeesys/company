@@ -14,7 +14,6 @@ class Payroll extends BaseScheduleModel
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
-
     public function employee()
     {
         return $this->belongsTo(Employee::class)->withTrashed();

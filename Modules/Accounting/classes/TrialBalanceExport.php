@@ -2,11 +2,11 @@
 
 namespace Modules\Accounting\classes;
 
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Illuminate\Support\Collection;
 
 class TrialBalanceExport implements FromCollection, WithHeadings, WithStyles
 {
@@ -24,23 +24,23 @@ class TrialBalanceExport implements FromCollection, WithHeadings, WithStyles
     {
         return [
             [
-                __('accounting::lang.trial_balance') . ' - ' .
-                    __('accounting::lang.from_date') . ': ' . $this->meta['start_date'] . ' - ' .
-                    __('accounting::lang.to_date') . ': ' . $this->meta['end_date'],
+                __('accounting::lang.trial_balance').' - '.
+                    __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                    __('accounting::lang.to_date').': '.$this->meta['end_date'],
             ],
             [
-                __('accounting::lang.balance') . ': ' . $this->meta['balance_status'] .
-                    ' | ' . __('accounting::lang.difference') . ': ' . number_format((float) $this->meta['difference'], 2, '.', ''),
+                __('accounting::lang.balance').': '.$this->meta['balance_status'].
+                    ' | '.__('accounting::lang.difference').': '.number_format((float) $this->meta['difference'], 2, '.', ''),
             ],
             [
                 __('accounting::lang.number'),
                 __('accounting::lang.name'),
-                __('accounting::lang.debit') . ' (' . __('accounting::lang.opening_balance') . ')',
-                __('accounting::lang.credit') . ' (' . __('accounting::lang.opening_balance') . ')',
-                __('accounting::lang.debit') . ' (' . __('accounting::lang.accounting_transactions') . ')',
-                __('accounting::lang.credit') . ' (' . __('accounting::lang.accounting_transactions') . ')',
-                __('accounting::lang.debit') . ' (' . __('accounting::lang.closing_balance') . ')',
-                __('accounting::lang.credit') . ' (' . __('accounting::lang.closing_balance') . ')',
+                __('accounting::lang.debit').' ('.__('accounting::lang.opening_balance').')',
+                __('accounting::lang.credit').' ('.__('accounting::lang.opening_balance').')',
+                __('accounting::lang.debit').' ('.__('accounting::lang.accounting_transactions').')',
+                __('accounting::lang.credit').' ('.__('accounting::lang.accounting_transactions').')',
+                __('accounting::lang.debit').' ('.__('accounting::lang.closing_balance').')',
+                __('accounting::lang.credit').' ('.__('accounting::lang.closing_balance').')',
             ],
         ];
     }
@@ -54,4 +54,3 @@ class TrialBalanceExport implements FromCollection, WithHeadings, WithStyles
         ];
     }
 }
-

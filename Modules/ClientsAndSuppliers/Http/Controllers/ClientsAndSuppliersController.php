@@ -25,6 +25,7 @@ class ClientsAndSuppliersController extends Controller
 
         return redirect()->back()->with('success', __('messages.updated_successfully'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -75,14 +76,17 @@ class ClientsAndSuppliersController extends Controller
         $contact = Contact::findOrFail($id);
 
         if ($count == 0) {
-            if (!$contact->is_default) {
+            if (! $contact->is_default) {
                 $contact->delete();
             }
+
             return redirect()->back()->with('success', __('messages.deleted_successfully'));
         } else {
 
-            if ($contact->business_type == 'customer')
+            if ($contact->business_type == 'customer') {
                 return redirect()->back()->with('error', __('clientsandsuppliers::lang.you_cannot_delete_this_client'));
+            }
+
             return redirect()->back()->with('error', __('clientsandsuppliers::lang.you_cannot_delete_this_supplier'));
         }
     }

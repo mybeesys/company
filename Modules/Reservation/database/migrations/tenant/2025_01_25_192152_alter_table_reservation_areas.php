@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('reservation_areas', function (Blueprint $table) {
             $table->unsignedBigInteger('establishment_id')->after('name_en')->nullable();
             $table->foreign('establishment_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('est_establishments');
+                ->references('id')                    // References the id on the categories table
+                ->on('est_establishments');
         });
     }
 

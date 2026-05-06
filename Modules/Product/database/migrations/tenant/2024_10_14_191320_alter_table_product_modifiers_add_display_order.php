@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('product_product_modifiers', function (Blueprint $table) {
-          
+
             $table->boolean('required');
-             });
+        });
     }
 
     /**

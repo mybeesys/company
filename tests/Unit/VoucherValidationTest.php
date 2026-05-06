@@ -24,4 +24,3 @@ class VoucherValidationTest extends TestCase
         $this->assertTrue($v->fails());
     }
 }
-

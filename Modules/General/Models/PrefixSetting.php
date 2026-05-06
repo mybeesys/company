@@ -2,8 +2,9 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\General\Database\Factories\PrefixSettingFactory;
 
 class PrefixSetting extends Model
@@ -29,7 +30,7 @@ class PrefixSetting extends Model
                 if (isset($prefixSettings[$type])) {
                     $prefix = $prefixSettings[$type]->prefix;
 
-                    $newRefNo = $prefix . '-' . date('Y') . '/' . str_pad($transaction->id, 4, '0', STR_PAD_LEFT);
+                    $newRefNo = $prefix.'-'.date('Y').'/'.str_pad($transaction->id, 4, '0', STR_PAD_LEFT);
 
                     $transaction->update(['ref_no' => $newRefNo]);
                 }
@@ -39,7 +40,7 @@ class PrefixSetting extends Model
         TransactionPayments::chunk(100, function ($transactionPayments) use ($prefixSettings) {
             foreach ($transactionPayments as $transaction) {
                 $type = $transaction->transaction?->type;
-                if (in_array($type, [ 'purchases-return', 'purchases'])) {
+                if (in_array($type, ['purchases-return', 'purchases'])) {
                     $type = 'purchase';
                 }
                 if (in_array($type, ['sell', 'sell-return'])) {
@@ -49,7 +50,7 @@ class PrefixSetting extends Model
                 if (isset($prefixSettings[$type])) {
                     $prefix = $prefixSettings[$type]->prefix;
 
-                    $newRefNo = $prefix . '-' . date('Y') . '/' . str_pad($transaction->id, 4, '0', STR_PAD_LEFT);
+                    $newRefNo = $prefix.'-'.date('Y').'/'.str_pad($transaction->id, 4, '0', STR_PAD_LEFT);
 
                     $transaction->update(['payment_ref_no' => $newRefNo]);
                 }

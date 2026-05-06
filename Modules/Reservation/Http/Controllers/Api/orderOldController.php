@@ -1,9 +1,7 @@
 <?php
 
-
 // class OrderController extends Controller
 // {
-
 
 //     // public function storeApi(Request $request)
 //     // {
@@ -109,7 +107,6 @@
 //     //     //     return response()->json(['message' => 'something went wrong', 'error' => $e->getMessage()], 500);
 //     //     // }
 //     // }
-
 
 //     public function storeApi(Request $request)
 //     {
@@ -533,8 +530,6 @@
 //         return response()->json(['message' => 'Order closed and converted to transaction'], 200);
 //     }
 
-
-
 //     // public function cancelOrder(Request $request)
 //     // {
 //     //     $actionUtil = new ActionUtil();
@@ -817,7 +812,6 @@
 //         $category_ids = $request->input('category_ids', []);
 //         $establishment_id = $request->input('establishment_id');
 
-
 //         if (!Establishment::find($establishment_id) || !$establishment_id) {
 //             return response()->json(['message' => 'Establishment not found'], 404);
 //         }
@@ -883,7 +877,6 @@
 
 //         return response()->json($formattedOrders);
 //     }
-
 
 //     public function updateItemStatus(Request $request)
 //     {

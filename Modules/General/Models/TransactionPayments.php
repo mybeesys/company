@@ -2,8 +2,8 @@
 
 namespace Modules\General\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Yajra\DataTables\Facades\DataTables;
@@ -31,30 +31,27 @@ class TransactionPayments extends Model
         return $this->belongsTo(Contact::class, 'payment_for');
     }
 
-
-
     public static function getReceiptsColumns()
     {
         return [
 
-            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
-            ["class" => "text-start min-w-150px", "name" => "paid_on"],
-            ["class" => "text-start min-w-150px  ", "name" => "transaction_ref_no"],
-            ["class" => "text-start min-w-150px ", "name" => "client"],
-            ["class" => "text-start min-w-80px ", "name" => "piad_amount"],
+            ['class' => 'text-start min-w-150px ', 'name' => 'ref_no'],
+            ['class' => 'text-start min-w-150px', 'name' => 'paid_on'],
+            ['class' => 'text-start min-w-150px  ', 'name' => 'transaction_ref_no'],
+            ['class' => 'text-start min-w-150px ', 'name' => 'client'],
+            ['class' => 'text-start min-w-80px ', 'name' => 'piad_amount'],
         ];
     }
-
 
     public static function getSuppliersReceiptsColumns()
     {
         return [
 
-            ["class" => "text-start min-w-150px ", "name" => "ref_no"],
-            ["class" => "text-start min-w-150px", "name" => "paid_on"],
-            ["class" => "text-start min-w-150px  ", "name" => "transaction_ref_no"],
-            ["class" => "text-start min-w-150px ", "name" => "supplier"],
-            ["class" => "text-start min-w-80px ", "name" => "piad_amount"],
+            ['class' => 'text-start min-w-150px ', 'name' => 'ref_no'],
+            ['class' => 'text-start min-w-150px', 'name' => 'paid_on'],
+            ['class' => 'text-start min-w-150px  ', 'name' => 'transaction_ref_no'],
+            ['class' => 'text-start min-w-150px ', 'name' => 'supplier'],
+            ['class' => 'text-start min-w-80px ', 'name' => 'piad_amount'],
         ];
     }
 
@@ -71,30 +68,28 @@ class TransactionPayments extends Model
                 return $row->payment_ref_no;
             })
             ->editColumn('paid_on', function ($row) {
-                return  $row->paid_on ?? '--';
+                return $row->paid_on ?? '--';
             })
             ->editColumn('transaction_ref_no', function ($row) {
-                return
-                    '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="' . url("/transaction-show/{$row->transaction->id}") . '">' . $row->transaction->ref_no . '</a>';
+                return '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="'.url("/transaction-show/{$row->transaction->id}").'">'.$row->transaction->ref_no.'</a>';
             })
             ->editColumn('client', function ($row) {
-                return  $row->client->name ?? '--';
+                return $row->client->name ?? '--';
             })
 
             ->editColumn('amount', function ($row) {
-                return  $row->amount ?? '0.00';
+                return $row->amount ?? '0.00';
             })
 
             ->addColumn(
                 'actions',
                 function ($row) {
-                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">' . __('employee::fields.actions') . '<i class="ki-outline ki-down fs-5 ms-1"></i></a>
+                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
 
                     $actions .= '<div class="menu-item px-3">
-                <a href="' . url("/show-receipts-payments/{$row->id}") . '" class="menu-link px-3">' . __('general.print') . '</a>
+                <a href="'.url("/show-receipts-payments/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
-
 
                     return $actions;
                 }

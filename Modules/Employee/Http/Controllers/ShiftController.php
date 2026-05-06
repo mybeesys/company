@@ -21,6 +21,7 @@ class ShiftController extends Controller
     {
         if (request()->ajax()) {
             $table = new ShiftTable($request->table_type ?? 'default', $request);
+
             return $table->getShiftTable();
         }
         $roles = Role::get(['id', 'name']);
@@ -28,17 +29,17 @@ class ShiftController extends Controller
         $timeSheet_rules = TimeSheetRule::all();
         $columns = ShiftTable::getShiftColumns();
         $footers = ShiftTable::getShiftFooters();
+
         return view('employee::schedules.shift.index', compact('columns', 'footers', 'roles', 'timeSheet_rules', 'establishments'));
     }
-
 
     public function getShift(Request $request)
     {
         $establishments = Establishment::active()->notMain()->pluck('id', 'name')->toArray();
         $day_times = ShiftService::getStartEndDayTime();
+
         return response()->json(['data' => ['establishments' => $establishments, 'start_of_day' => $day_times['start_of_day'] ? $day_times['start_of_day']->format('H:i') : '-', 'end_of_day' => $day_times['end_of_day'] ? $day_times['end_of_day']->format('H:i') : '-']]);
     }
-
 
     public function store(StoreShiftRequest $request)
     {
@@ -47,12 +48,12 @@ class ShiftController extends Controller
             $startOfWeek = Carbon::parse($request->date)->startOfWeek()->format('Y-m-d');
             $endOfWeek = Carbon::parse($request->date)->endOfWeek()->format('Y-m-d');
             $schedule_id = Schedule::updateOrCreate(['start_date' => $startOfWeek], [
-                'end_date' => $endOfWeek
+                'end_date' => $endOfWeek,
             ])->id;
             $ids = [];
             foreach ($request->shift_repeater as $key => $item) {
-                $startTime = $request->date . ' ' . $item['startTime'];
-                $endTime = $request->date . ' ' . $item['endTime'];
+                $startTime = $request->date.' '.$item['startTime'];
+                $endTime = $request->date.' '.$item['endTime'];
                 $shift_id = $item['shift_id'];
                 $end_status = $item['end_status'];
                 $break_duration = $end_status === 'break' ? (Carbon::parse($item['endTime'])->diffInMinutes(Carbon::parse($request->shift_repeater[$key + 1]['startTime']))) : null;
@@ -62,7 +63,7 @@ class ShiftController extends Controller
                     'employee_id' => $employee_id,
                     'schedule_id' => $schedule_id,
                     'establishment_id' => $item['establishment'],
-                    'break_duration' => $break_duration
+                    'break_duration' => $break_duration,
                 ])->id;
             }
             Shift::where('employee_id', $employee_id)->whereDate('startTime', $request->date)->whereNotIn('id', $ids)->delete();
@@ -82,7 +83,7 @@ class ShiftController extends Controller
 
         $new_schedule_id = Schedule::firstOrCreate(['start_date' => $copy_to_start_date->format('Y-m-d'), 'end_date' => $copy_to_end_date->format('Y-m-d')])->id;
         $shiftsToDelete = Shift::where('schedule_id', $new_schedule_id);
-        if (!empty($request->employee_ids)) {
+        if (! empty($request->employee_ids)) {
             $shifts->whereIn('employee_id', $request->employee_ids);
             $shiftsToDelete->whereIn('employee_id', $request->employee_ids)?->delete();
         } else {
@@ -99,7 +100,7 @@ class ShiftController extends Controller
                 $new_shift->save();
             }
         }
+
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
-
 }

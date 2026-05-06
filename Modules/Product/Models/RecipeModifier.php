@@ -4,14 +4,11 @@ namespace Modules\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\Models\Ingredient;
-use Modules\Product\Models\Modifier;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RecipeModifier extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     // If the table name does not follow Laravel's conventions,
@@ -28,15 +25,16 @@ class RecipeModifier extends Model
         'quantity',
         'order',
         'item_type',
-        'unit_transfer_id'
+        'unit_transfer_id',
     ];
 
     protected $relatedModels = [
         'p' => \Modules\Product\Models\Product::class,
-        'i' => \Modules\Product\Models\Ingredient::class
+        'i' => \Modules\Product\Models\Ingredient::class,
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
@@ -67,14 +65,13 @@ class RecipeModifier extends Model
     {
 
         $relatedModel = $this->relatedModels[$this->item_type] ?? null;
-        
-        if(!$relatedModel)
+
+        if (! $relatedModel) {
             return null;
+        }
 
         if ($relatedModel) {
-            return $this->belongsTo($relatedModel, 'item_id', 'id');//->with('vendor');
+            return $this->belongsTo($relatedModel, 'item_id', 'id'); // ->with('vendor');
         }
     }
-
 }
-?>

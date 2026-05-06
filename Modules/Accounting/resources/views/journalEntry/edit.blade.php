@@ -89,6 +89,14 @@
                     </div>
                 </div>
             </div>
+
+            <div class="col-12 text-start mt-2">
+                @if (!empty($acc_trans_mapping->path_file))
+                    <a href="{{ route('journal-entry-attachment', $acc_trans_mapping->id) }}" class="btn btn-light-primary">
+                        @lang('accounting::lang.view_attachment')
+                    </a>
+                @endif
+            </div>
         </div>
     </div>
     <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-primary mx-2"
@@ -101,10 +109,10 @@
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
     @if ($duplication)
-        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store', $acc_trans_mapping->id) }}">
+        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store', $acc_trans_mapping->id) }}" enctype="multipart/form-data">
         @else
             <form id="journalEntryForm" method="POST"
-                action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}">
+                action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}" enctype="multipart/form-data">
     @endif
     @csrf
 

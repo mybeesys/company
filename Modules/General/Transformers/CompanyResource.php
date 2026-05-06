@@ -3,7 +3,6 @@
 namespace Modules\General\Transformers;
 
 use App\Models\User;
-use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB as FacadesDB;
@@ -17,6 +16,7 @@ class CompanyResource extends JsonResource
     public function toArray(Request $request): array
     {
         $subscriptions = FacadesDB::connection('mysql')->table('subscriptions')->where('subscriber_id', $this->id)->where('expired_at', '>', now())->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -33,7 +33,7 @@ class CompanyResource extends JsonResource
             'city' => $this->city,
             'tax_name' => $this->tax_name,
             'tax_number' => $this->tax_number,
-            'logo' => config('app.domain').'/storage/' . $this->logo,
+            'logo' => config('app.domain').'/storage/'.$this->logo,
         ];
     }
 }

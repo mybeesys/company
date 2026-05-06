@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
@@ -40,42 +39,40 @@ class SellReturnApiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(Request $request)
     {
 
         try {
 
-
             $sell = Transaction::where('local_id', $request->parent_order_id)->first();
 
-            if (!$sell) {
+            if (! $sell) {
                 return response()->json(['message' => 'The original invoice could not be found. Please check the invoice number and try again.'], 500);
             }
-            $transactionUtil = new TransactionUtils();
+            $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $ref_no =  SalesUtile::generateReferenceNumber('sell-return');
+            $ref_no = SalesUtile::generateReferenceNumber('sell-return');
             $main_establishment = Establishment::notMain()->active()->first();
             $establishment_id = $request->establishment_id;
             if ($request->establishment_id == $main_establishment->id) {
                 $establishment_id = $main_establishment->id;
             }
             $created_by = Employee::find($request->user_id);
-            if (!$created_by) {
+            if (! $created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
             }
             if (EstPos::find($request->device_id)) {
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
             }
 
-            $transaction =   Transaction::create([
+            $transaction = Transaction::create([
                 'type' => 'sell-return',
                 'invoice_type' => $request->payment_status,
                 'due_date' => null,
                 'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
                 'parent_id' => $sell->id,
-                'local_id'=>$request->id,
+                'local_id' => $request->id,
 
                 // 'cost_center' => $request->cost_center ?? null,
                 'discount_amount' => $request->discount_value,
@@ -95,13 +92,12 @@ class SellReturnApiController extends Controller
                 'device_id' => $request->device_id,
             ]);
 
-
             $products = json_decode(json_encode($request->items));
 
             foreach ($products as $product) {
                 $find_product = Product::find($product->product_id);
-                if (!$find_product) {
-                    return response()->json(['message' => 'Product not found id =' . $product->product_id], 404);
+                if (! $find_product) {
+                    return response()->json(['message' => 'Product not found id ='.$product->product_id], 404);
                 }
 
                 TransactionePurchasesLine::create([
@@ -121,8 +117,8 @@ class SellReturnApiController extends Controller
 
                 foreach ($modifiers as $modifier) {
                     $find_product = Product::find($modifier->modifier_id);
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Modifier not found id =' . $modifier->modifier_id], 404);
+                    if (! $find_product) {
+                        return response()->json(['message' => 'Modifier not found id ='.$modifier->modifier_id], 404);
                     }
 
                     TransactionePurchasesLine::create([
@@ -143,8 +139,8 @@ class SellReturnApiController extends Controller
 
                 foreach ($order_item_combos as $order_item_combo) {
                     $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                    if (!$find_product) {
-                        return response()->json(['message' => 'Combo not found id =' . $order_item_combo->combo_group_id], 404);
+                    if (! $find_product) {
+                        return response()->json(['message' => 'Combo not found id ='.$order_item_combo->combo_group_id], 404);
                     }
 
                     TransactionePurchasesLine::create([
@@ -165,15 +161,14 @@ class SellReturnApiController extends Controller
             $payments = json_decode(json_encode($request->payments));
             foreach ($payments as $payment) {
                 $find_payment = null;
-                if ($payment->method_id == -1 || $payment->method_id == "-1") {
+                if ($payment->method_id == -1 || $payment->method_id == '-1') {
                     $find_payment = PaymentMethod::where('name_en', 'cash')->first();
                 } else {
                     $find_payment = PaymentMethod::find($payment->method_id);
-                    if (!$find_payment) {
-                        return response()->json(['message' => 'Payment method not found id =' . $payment->method_id], 404);
+                    if (! $find_payment) {
+                        return response()->json(['message' => 'Payment method not found id ='.$payment->method_id], 404);
                     }
                 }
-
 
                 $request['payment_method_id'] = $request->method;
                 $request['created_by'] = $request->user_id;
@@ -182,17 +177,18 @@ class SellReturnApiController extends Controller
                     $request['payment_method_id'] = $payment->method_id;
                     $request['invoice_type'] = $request->method;
 
-
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
                 }
             }
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
+
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'something went wrong \n' . $e], 500);
+
+            return response()->json(['message' => 'something went wrong \n'.$e], 500);
         }
     }
 
@@ -281,7 +277,6 @@ class SellReturnApiController extends Controller
     //             ]);
     //         }
 
-
     //         $combos = json_decode(json_encode($request->combos));
 
     //         foreach ($combos as $combo) {
@@ -320,7 +315,6 @@ class SellReturnApiController extends Controller
     //                 $request['paid_amount'] = $payment->ammount;
     //                 $request['payment_method_id'] = $payment->id;
     //                 $request['invoice_type'] = $request->payment_status;
-
 
     //                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
     //             }

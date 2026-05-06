@@ -8,7 +8,6 @@ use Modules\Employee\Transformers\TimeSheetRuleResource;
 
 class TimeSheetRuleCollection extends ResourceCollection
 {
-
     public $collects = TimeSheetRuleResource::class;
 
     /**
@@ -17,7 +16,7 @@ class TimeSheetRuleCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection
+            'data' => $this->collection,
         ];
     }
 }

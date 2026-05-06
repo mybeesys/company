@@ -7,7 +7,6 @@ use Illuminate\Validation\Rule;
 
 class StoreCouponRequest extends FormRequest
 {
-
     public function prepareForValidation()
     {
         $this->merge([
@@ -16,6 +15,7 @@ class StoreCouponRequest extends FormRequest
             'categories_ids' => is_array(explode(',', $this->categories_ids)) ? explode(',', $this->categories_ids) : [explode(',', $this->categories_ids)],
         ]);
     }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -39,7 +39,7 @@ class StoreCouponRequest extends FormRequest
             'value' => ['required', 'decimal:0,2'],
             'value_type' => ['required', 'in:fixed,percent', 'string'],
             'apply_to_clients_groups' => ['required', 'boolean'],
-            'is_active' => ['required', 'boolean']
+            'is_active' => ['required', 'boolean'],
         ];
     }
 

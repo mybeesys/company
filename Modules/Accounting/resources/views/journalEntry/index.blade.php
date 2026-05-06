@@ -7,6 +7,18 @@
             border-left: 0;
             border-right: 0;
         }
+
+        /* Make journal table compact to avoid horizontal scroll */
+        #kt_journalEntry_table {
+            table-layout: auto;
+            width: 100% !important;
+        }
+
+        #kt_journalEntry_table th,
+        #kt_journalEntry_table td {
+            white-space: normal !important;
+            word-break: break-word;
+        }
     </style>
 
 
@@ -197,7 +209,9 @@
                     }
                 ],
                 order: [],
-                scrollX: true,
+                scrollX: false,
+                responsive: true,
+                autoWidth: false,
                 pageLength: 10,
                 drawCallback: function() {
                     KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons

@@ -16,11 +16,11 @@ class ProductUnitTransferSeeder extends Seeder
     {
         DB::table('product_unit_transfer')->insert([
             [
-                'product_id' => NULL,
-                'ingredient_id' => NULL,
-                'modifier_id' => NULL,
+                'product_id' => null,
+                'ingredient_id' => null,
+                'modifier_id' => null,
                 'unit1' => 'حبة',
-                'unit2' => NULL,
+                'unit2' => null,
                 'transfer' => -100,
                 'default' => 1,
                 'primary' => 1,

@@ -1,4 +1,5 @@
 <?php
+
 return [
     'can_not_delete_coupon_has_transaction' => 'لا يمكن حذف هذا الكوبون لأنه استُخدم سابقاً',
     'coupon_not_found' => 'الكوبون غير موجود',

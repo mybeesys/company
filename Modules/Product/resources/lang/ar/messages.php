@@ -1,4 +1,5 @@
 <?php
+
 return [
     'try_now' => 'جرّب الآن',
     'edit' => 'نعديل',
@@ -26,7 +27,7 @@ return [
     'actions' => 'العمليات',
     'add_successfully' => 'تمت الإضافة بنجاح',
     'updated_successfully' => 'تم التعديل بنجاح',
-    'deleted_successfully'=>'تم الحذف بنجاح',
+    'deleted_successfully' => 'تم الحذف بنجاح',
     'something_went_wrong' => 'لقد حدث خطأ ما',
     'ref_number already exists' => 'الرقم المرجعي موجود مسبفاً',
     'save&add' => 'حفظ وإضافة اخر',
@@ -34,8 +35,8 @@ return [
     'previous' => 'السابق',
     'next' => 'التالي',
     'savedraft' => 'حفظ كـ مسودة',
-    'yes'=>'نعم',
-    'no'=>'لا',
+    'yes' => 'نعم',
+    'no' => 'لا',
     'service_fee_app_type_item' => 'عنصر',
     'service_fee_app_type_order' => 'Order',
     'service_fee_type_amount' => 'Amount',

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('product_linked_combos_upcharges', function (Blueprint $table) {
             $table->unsignedBigInteger('combo_id')->nullable();
             $table->foreign('combo_id')              // Foreign key constraint
-            ->references('id')                    // References the id on the categories table
-            ->on('product_product_combos');
+                ->references('id')                    // References the id on the categories table
+                ->on('product_product_combos');
         });
     }
 

@@ -94,10 +94,4 @@ return [
     'no_purchases_return' => 'You do not have any purchases return',
     'suggestion_purchases_return' => 'We provide you with an advanced tool for handling purchase returns, enabling buyers to document the return of goods to the supplier. This tool allows for recording return details, such as returned items, quantities, and prices, ensuring accurate accounting operations and efficient business management.',
 
-
-
-
-
-
-
 ];

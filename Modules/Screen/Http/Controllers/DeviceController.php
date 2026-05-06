@@ -10,7 +10,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DeviceController extends Controller
 {
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -18,6 +17,7 @@ class DeviceController extends Controller
             $devices = $hasEstablishmentColumn
                 ? Device::with('establishment')->latest()->get()
                 : Device::latest()->get();
+
             return DataTables::of($devices)
                 ->addColumn(
                     'actions',
@@ -25,17 +25,18 @@ class DeviceController extends Controller
                         $actions = '<div class="justify-content-center d-flex">';
                         $establishmentId = (int) ($row->establishment_id ?? 0);
                         $actions .= '
-                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="' . $row->id . '" data-code="' . e($row->code) . '" data-establishment-id="' . $establishmentId . '"
-                                title="' . e(__('screen::general.edit')) . '" aria-label="' . e(__('screen::general.edit')) . '">
+                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="'.$row->id.'" data-code="'.e($row->code).'" data-establishment-id="'.$establishmentId.'"
+                                title="'.e(__('screen::general.edit')).'" aria-label="'.e(__('screen::general.edit')).'">
                                 <i class="fas fa-pen fs-6 text-gray-600"></i>
                             </a>';
                         $actions .= '
-                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-danger w-35px h-35px device-delete-btn me-1" data-id="' . $row->id . '"
-                                title="' . e(__('screen::general.delete')) . '" aria-label="' . e(__('screen::general.delete')) . '">
+                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-danger w-35px h-35px device-delete-btn me-1" data-id="'.$row->id.'"
+                                title="'.e(__('screen::general.delete')).'" aria-label="'.e(__('screen::general.delete')).'">
                                 <i class="fas fa-trash-alt fs-6 text-gray-600"></i>
                             </a>';
 
                         $actions .= '</div>';
+
                         return $actions;
                     }
                 )->addColumn('establishment_name', function ($row) {
@@ -61,6 +62,7 @@ class DeviceController extends Controller
             $payload['establishment_id'] = $validated['establishment_id'];
         }
         $device = Device::create($payload);
+
         return response()->json(['message' => __('employee::responses.operation_success'), 'data' => ['id' => $device->id, 'name' => $device->code]]);
     }
 
@@ -68,7 +70,7 @@ class DeviceController extends Controller
     {
         $hasEstablishmentColumn = Schema::hasColumn('screen_devices', 'establishment_id');
         $rules = [
-            'code' => ['required', 'string', 'max:255', 'unique:screen_devices,code,' . $device->id],
+            'code' => ['required', 'string', 'max:255', 'unique:screen_devices,code,'.$device->id],
         ];
         if ($hasEstablishmentColumn) {
             $rules['establishment_id'] = ['required', 'integer', 'exists:est_establishments,id'];
@@ -101,17 +103,17 @@ class DeviceController extends Controller
     public function byEstablishments(Request $request)
     {
         $ids = $request->input('establishments_ids', []);
-        if (!is_array($ids)) {
+        if (! is_array($ids)) {
             $ids = array_filter(explode(',', (string) $ids));
         }
 
         $devices = Device::query()
-            ->when(Schema::hasColumn('screen_devices', 'establishment_id') && !empty($ids), fn($q) => $q->whereIn('establishment_id', $ids))
+            ->when(Schema::hasColumn('screen_devices', 'establishment_id') && ! empty($ids), fn ($q) => $q->whereIn('establishment_id', $ids))
             ->orderBy('code')
             ->get(['id', 'code']);
 
         return response()->json([
-            'data' => $devices->map(fn($d) => ['id' => $d->id, 'name' => $d->code])->values(),
+            'data' => $devices->map(fn ($d) => ['id' => $d->id, 'name' => $d->code])->values(),
         ]);
     }
 }

@@ -10,18 +10,16 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
 
-
-
 class InventoryOperationItem extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
     protected $relatedModels = [
         0 => PurchaseOrderItem::class,
-        2 => PurchaseOrderItem::class
+        2 => PurchaseOrderItem::class,
     ];
+
     // If the table name does not follow Laravel's conventions,
     // specify it here (e.g., if your table name is 'your_table_name')
     protected $table = 'inventory_Operation_items';
@@ -39,14 +37,16 @@ class InventoryOperationItem extends Model
         'qty',
         'cost',
         'total',
-        'item_type'
+        'item_type',
     ];
 
-    public function getFillable(){
+    public function getFillable()
+    {
         return $this->fillable;
     }
 
-    public function addToFillable($key){
+    public function addToFillable($key)
+    {
         return array_push($this->fillable, $key);
     }
 
@@ -82,12 +82,12 @@ class InventoryOperationItem extends Model
         // Determine the model class based on op_type
         $modelClass = $this->relatedModels[$opType] ?? null;
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             return null;
         }
 
         // Return an instance of the related model without saving
-        return new $modelClass();
+        return new $modelClass;
     }
 
     public function createDetail(array $attributes, $opType)
@@ -95,7 +95,7 @@ class InventoryOperationItem extends Model
         // Get the related model class based on op_type
         $modelClass = $this->relatedModels[$opType] ?? null;
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             throw new \Exception("Invalid op_type: {$opType}");
         }
 
@@ -107,21 +107,19 @@ class InventoryOperationItem extends Model
     {
         $relatedModels = [
             0 => PurchaseOrderItem::class,
-            2 => PurchaseOrderItem::class
+            2 => PurchaseOrderItem::class,
         ];
 
         // Dynamically set the related model based on `op_type`
         $relatedModel = $relatedModels[$this->parent->op_type->value] ?? null;
 
         if ($relatedModel) {
-            return $this->belongsTo($relatedModel, 'id','operation_item_id');
-        }
-        else{
+            return $this->belongsTo($relatedModel, 'id', 'operation_item_id');
+        } else {
             return null;
         }
 
         // Return null if no valid model is found
-        //throw new \Exception("Invalid op_type: {$this->op_type->value}");
+        // throw new \Exception("Invalid op_type: {$this->op_type->value}");
     }
-
 }

@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Mpdf\Mpdf;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
@@ -29,24 +27,20 @@ use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
-use Modules\Inventory\Models\Transfer;
-use Modules\Product\Http\Controllers\Api\ProductController;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
-use Modules\Product\Models\Transformers\Collections\ProductCollection;
-use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Models\Coupon;
+use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Utils\SalesUtile;
+use Mpdf\Mpdf;
 
-//use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Log;
 
 class SellController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-
-
     public function salesDashbord(Request $request)
     {
         $validStatuses = ['approved', 'final'];
@@ -83,7 +77,7 @@ class SellController extends Controller
             ->count('contact_id');
 
         $periodSalesQuery = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->where('t.type', 'sell')
             ->whereIn('t.status', $validStatuses)
             ->whereBetween('t.transaction_date', [$startDate, $endDate]);
@@ -122,12 +116,12 @@ class SellController extends Controller
         $favoritesStats = Transaction::query()
             ->whereIn('type', ['sell', 'sell-return', 'quotation'])
             ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()))
             ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
             ->first();
 
         $months = collect(range(5, 0))
-            ->map(fn($offset) => now()->subMonths($offset)->format('Y-m'))
+            ->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'))
             ->push(now()->format('Y-m'))
             ->values();
         $salesMonthly = (clone $salesBase)
@@ -136,7 +130,7 @@ class SellController extends Controller
             ->groupBy('month_key')
             ->pluck('total', 'month_key');
         $collectionsMonthly = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
             ->selectRaw("DATE_FORMAT(paid_on, '%Y-%m') as month_key, SUM(amount) as total")
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->groupBy('month_key')
@@ -151,7 +145,7 @@ class SellController extends Controller
         }
 
         $paymentMethods = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->selectRaw('method, SUM(amount) as total')
             ->groupBy('method')
@@ -173,7 +167,7 @@ class SellController extends Controller
 
         $transactions = DB::table('transactions as t')
             ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->whereIn('t.type', ['sell', 'quotation', 'sell-return'])
             ->whereBetween('t.transaction_date', [$startDate, $endDate])
             ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.payment_status, t.final_total, c.name as client_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
@@ -182,7 +176,7 @@ class SellController extends Controller
             ->get();
 
         $recentReceipts = TransactionPayments::with(['transaction', 'client'])
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->orderByDesc('paid_on')
             ->limit(10)
@@ -297,7 +291,7 @@ class SellController extends Controller
                 $t->transaction_date ?? '',
                 (string) $t->final_total,
                 (string) $t->paid_amount,
-                (string) $t->remaining_amount
+                (string) $t->remaining_amount,
             ];
         }
         $rows[] = [];
@@ -327,7 +321,7 @@ class SellController extends Controller
             'margin_right' => 8,
             'margin_top' => 8,
             'margin_bottom' => 8,
-            'tempDir' => storage_path('temp/mpdf')
+            'tempDir' => storage_path('temp/mpdf'),
         ]);
         $mpdf->WriteHTML($html);
 
@@ -358,7 +352,7 @@ class SellController extends Controller
         $activeCustomers = (clone $salesBase)->whereBetween('transaction_date', [$startDate, $endDate])->distinct('contact_id')->count('contact_id');
 
         $periodSalesQuery = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->where('t.type', 'sell')
             ->whereIn('t.status', $validStatuses)
             ->whereBetween('t.transaction_date', [$startDate, $endDate]);
@@ -366,7 +360,7 @@ class SellController extends Controller
         $dueAmount = (clone $periodSalesQuery)->selectRaw('SUM(GREATEST(t.final_total - COALESCE(tp.paid_total,0),0)) as due')->value('due') ?? 0;
 
         $receiptsStats = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses)->whereBetween('transaction_date', [$startDate, $endDate]))
             ->selectRaw('COUNT(*) as total_receipts, SUM(amount) as total_collected')
             ->first();
         $couponStats = Coupon::query()
@@ -389,7 +383,7 @@ class SellController extends Controller
         $favoritesStats = Transaction::query()
             ->whereIn('type', ['sell', 'sell-return', 'quotation'])
             ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()))
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()))
             ->selectRaw('COUNT(*) as total_count, SUM(final_total) as total_amount')
             ->first();
         $topProducts = TransactionSellLine::query()
@@ -401,7 +395,7 @@ class SellController extends Controller
             ->selectRaw('p.name_ar, p.name_en, SUM(transaction_sell_lines.qyt) as total_qty, SUM(transaction_sell_lines.total_before_vat) as total_sales')
             ->orderByDesc('total_sales')->limit(10)->get();
         $paymentMethods = TransactionPayments::query()
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])
             ->selectRaw('method, SUM(amount) as total')
             ->groupBy('method')
@@ -409,13 +403,13 @@ class SellController extends Controller
             ->get();
         $transactions = DB::table('transactions as t')
             ->leftJoin('cs_contacts as c', 'c.id', '=', 't.contact_id')
-            ->leftJoinSub($paymentsSub, 'tp', fn($j) => $j->on('t.id', '=', 'tp.transaction_id'))
+            ->leftJoinSub($paymentsSub, 'tp', fn ($j) => $j->on('t.id', '=', 'tp.transaction_id'))
             ->whereIn('t.type', ['sell', 'quotation', 'sell-return'])
             ->whereBetween('t.transaction_date', [$startDate, $endDate])
             ->selectRaw('t.id, t.ref_no, t.type, t.transaction_date, t.status, t.payment_status, t.final_total, c.name as client_name, COALESCE(tp.paid_total,0) as paid_amount, GREATEST(t.final_total - COALESCE(tp.paid_total,0),0) as remaining_amount')
             ->orderByDesc('t.id')->limit(10)->get();
         $recentReceipts = TransactionPayments::with(['transaction', 'client'])
-            ->whereHas('transaction', fn($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
+            ->whereHas('transaction', fn ($q) => $q->where('type', 'sell')->whereIn('status', $validStatuses))
             ->whereBetween('paid_on', [$startDate, $endDate])->orderByDesc('paid_on')->limit(10)->get();
 
         return compact(
@@ -458,21 +452,30 @@ class SellController extends Controller
             'wallet' => 'محفظة',
         ];
         $key = strtolower(trim($method));
+
         return $map[$key] ?? ($method ?: '--');
     }
 
     private function localizedPaymentStatus(string $status): string
     {
         $key = strtolower(trim($status));
-        if ($key === 'paid') return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
-        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        if ($key === 'paid') {
+            return app()->getLocale() === 'ar' ? 'مدفوع' : 'Paid';
+        }
+        if (in_array($key, ['partial', 'partial_paid', 'partially_paid'], true)) {
+            return app()->getLocale() === 'ar' ? 'جزئي' : 'Partial';
+        }
+
         return app()->getLocale() === 'ar' ? 'غير مدفوع' : 'Unpaid';
     }
 
     private function localizedApprovalStatus(string $status): string
     {
         $key = strtolower(trim($status));
-        if (in_array($key, ['approved', 'final'], true)) return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        if (in_array($key, ['approved', 'final'], true)) {
+            return app()->getLocale() === 'ar' ? 'معتمد' : 'Approved';
+        }
+
         return app()->getLocale() === 'ar' ? 'مسودة' : 'Draft';
     }
 
@@ -480,14 +483,13 @@ class SellController extends Controller
     {
         $transactionsQuery = Transaction::where('type', 'sell');
 
-
         if ($request->ajax()) {
             $transactionsQuery
                 ->when($request->filled('favorite'), function ($query) {
-                    $query->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+                    $query->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
                 })
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -503,10 +505,8 @@ class SellController extends Controller
                     }
                 });
 
-
-
-
             $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
 
@@ -517,25 +517,26 @@ class SellController extends Controller
 
         $Latest_event = Actions::where('user_id', Auth::id())->where('type', 'create_sell')->first();
 
-        if (!$Latest_event) {
-            $actionUtil = new ActionUtil();
+        if (! $Latest_event) {
+            $actionUtil = new ActionUtil;
             $Latest_event = $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
         }
 
-        $clients =  Contact::where('business_type', 'customer')->get();
+        $clients = Contact::where('business_type', 'customer')->get();
+
         return view('sales::sell.index', compact('columns', 'clients', 'Latest_event', 'transaction', 'quotations'));
     }
 
     public function favorites(Request $request)
     {
         $transactionsQuery = Transaction::whereIn('type', ['sell', 'sell-return', 'quotation'])
-            ->whereHas('favorites', fn($q) => $q->where('user_id', Auth::id()));
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', Auth::id()));
 
         if ($request->ajax()) {
             $transactionsQuery
-                ->when($request->filled('transaction_type'), fn($query) => $query->where('type', $request->transaction_type))
-                ->when($request->filled('customer'), fn($query) => $query->where('contact_id', $request->customer))
-                ->when($request->filled('payment_status'), fn($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('transaction_type'), fn ($query) => $query->where('type', $request->transaction_type))
+                ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
+                ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -552,6 +553,7 @@ class SellController extends Controller
                 });
 
             $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+
             return Transaction::getSellsTable($transactions);
         }
 
@@ -567,14 +569,14 @@ class SellController extends Controller
      */
     public function create(Request $request)
     {
-        $actionUtil = new ActionUtil();
+        $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
         $clients = Contact::where('business_type', 'customer')->get();
         $taxes = Tax::all();
         $payment_terms = SalesUtile::paymentTerms();
         $paymentMethods = SalesUtile::paymentMethods();
         $orderStatuses = SalesUtile::orderStatuses();
-        $accounts =  AccountingAccount::forDropdown();
+        $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
@@ -586,7 +588,6 @@ class SellController extends Controller
             $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
         }
 
-
         $settings = Setting::getNotesAndTermsConditions();
         $allowSaleWithoutStock = Auth::user() && Auth::user()->can(Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
         $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
@@ -595,12 +596,11 @@ class SellController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-
         $products = Product::productsForSell();
 
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
-        if (!$Latest_event) {
-            $actionUtil = new ActionUtil();
+        if (! $Latest_event) {
+            $actionUtil = new ActionUtil;
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
@@ -610,10 +610,10 @@ class SellController extends Controller
     private function buildSalesInvoicePrecheckConfig(): array
     {
         $missing = [];
-        if (!AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
             $missing[] = __('accounting::lang.sales');
         }
-        if (!AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
+        if (! AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
             $missing[] = __('accounting::lang.vat');
         }
         if (Setting::isPerpetualInventory()) {
@@ -626,10 +626,10 @@ class SellController extends Controller
                 ->orWhere('account_category', 'COGS')
                 ->orWhere('account_category', 'cost_of_goods_sold')
                 ->value('id');
-            if (!$inventoryAccountId) {
+            if (! $inventoryAccountId) {
                 $missing[] = __('accounting::lang.inventory');
             }
-            if (!$cogsAccountId) {
+            if (! $cogsAccountId) {
                 $missing[] = __('accounting::lang.cost of goods sold');
             }
         }
@@ -647,8 +647,6 @@ class SellController extends Controller
         ];
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
@@ -657,15 +655,14 @@ class SellController extends Controller
         // return $request;
 
         // try {
-        $actionUtil = new ActionUtil();
-        $contactUtils = new ContactUtils();
-        $accountUtil = new AccountingUtil();
+        $actionUtil = new ActionUtil;
+        $contactUtils = new ContactUtils;
+        $accountUtil = new AccountingUtil;
         $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
-
-        $transactionUtil = new TransactionUtils();
+        $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
-        $ref_no =  SalesUtile::generateReferenceNumber('sell');
+        $ref_no = SalesUtile::generateReferenceNumber('sell');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
         $toggleCostCenter = Setting::where('key', 'toggleCost_center')->value('value') == 1;
@@ -752,7 +749,7 @@ class SellController extends Controller
         if ($request->quotation_id) {
             $quotation_id = $request->quotation_id;
         }
-        $transaction =   Transaction::create([
+        $transaction = Transaction::create([
             'type' => 'sell',
             'invoice_type' => $request->invoice_type,
             'due_date' => $request->due_date,
@@ -777,7 +774,6 @@ class SellController extends Controller
 
         ]);
 
-
         $mustValidateStock = Setting::mustValidatePerpetualStock(Auth::user());
 
         foreach ($products as $product) {
@@ -799,14 +795,14 @@ class SellController extends Controller
                 if ($inventory_qty < $product->qty) {
                     DB::rollBack();
                     $productModel = Product::select('name_ar', 'name_en')->find($product->products_id);
-                    $productName = $productModel?->name_ar ?: ($productModel?->name_en ?: ('#' . $product->products_id));
+                    $productName = $productModel?->name_ar ?: ($productModel?->name_en ?: ('#'.$product->products_id));
                     $message = app()->getLocale() === 'ar'
                         ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$productName}"
                         : "Sale cannot be completed due to insufficient stock for product: {$productName}";
+
                     return redirect()->back()->withInput()->with('error', $message);
                 }
             }
-
 
             TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
@@ -823,9 +819,8 @@ class SellController extends Controller
                 'total_before_vat' => $product->total_before_vat,
             ]);
 
-            //$is_recipe_yield = Product::find($product->products_id)->recipe_yield;
-            //if ($is_recipe_yield) {
-
+            // $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
+            // if ($is_recipe_yield) {
 
             $recipeProducts = RecipeProduct::with('products')->where('product_id', $product->products_id)->get();
 
@@ -870,7 +865,6 @@ class SellController extends Controller
             }
         }
 
-
         if ($quotation_id) {
             $this->updatePurchaseOrderStatus(
                 $quotation_id
@@ -886,7 +880,7 @@ class SellController extends Controller
                 $this->createPaymentLines($transaction, $request);
             }
         } else {
-            $acc_trans_mapping = new AccountingAccTransMapping();
+            $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مبيعات رقم {$transaction->ref_no}.";
@@ -901,7 +895,7 @@ class SellController extends Controller
             $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
 
             $client = Contact::find($request->client_id);
-            $transactionPayment = new \stdClass();
+            $transactionPayment = new \stdClass;
 
             $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
             $transactionPayment->account_id = $client->account_id;
@@ -949,12 +943,12 @@ class SellController extends Controller
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
-        $totalOutstanding =  $transactionUtil->contactTotalOutstanding($transaction);
+        $totalOutstanding = $transactionUtil->contactTotalOutstanding($transaction);
 
         $msg = __('messages.add_successfully');
         $status = 'success';
         if ($totalOutstanding) {
-            $credit_limit =  Contact::find($transaction->contact_id)->credit_limit;
+            $credit_limit = Contact::find($transaction->contact_id)->credit_limit;
             if ($credit_limit && $credit_limit < $totalOutstanding) {
                 $msg = __('messages.Added successfully, but the customer exceeded');
                 $status = 'error';
@@ -964,7 +958,7 @@ class SellController extends Controller
         DB::commit();
         if ($request->action == 'save_print') {
             return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
-        } else if ($request->action == 'save_add') {
+        } elseif ($request->action == 'save_add') {
             return redirect()->route('create-invoice')->with($status, $msg);
         } else {
             return redirect()->route('invoices')->with($status, $msg);
@@ -975,13 +969,12 @@ class SellController extends Controller
         // }
     }
 
-
     public function createPaymentLines($transaction, $request)
     {
         // dd($transaction, $request);
-        $acc_trans_mapping = new AccountingAccTransMapping();
+        $acc_trans_mapping = new AccountingAccTransMapping;
 
-        $accountUtil = new AccountingUtil();
+        $accountUtil = new AccountingUtil;
         $cash_account_id = (int) ($request->input('account_id') ?: $request->input('cash_account'));
         if ($cash_account_id <= 0) {
             throw ValidationException::withMessages([
@@ -1009,7 +1002,7 @@ class SellController extends Controller
         $paymentOnInput = $request->input('payment_on') ?: $request->input('pament_on');
         $date = Carbon::parse($paymentOnInput ?? now());
         $payment_on = $date->format('Y-m-d H:i:s');
-        $transactionUtil = new TransactionUtils();
+        $transactionUtil = new TransactionUtils;
         $prefix_type = $transaction->type == 'purchase' ? 'purchase_payment' : 'sell_payment';
 
         $payment_ref_no = $transactionUtil->generateReferenceNumber($prefix_type);
@@ -1044,10 +1037,6 @@ class SellController extends Controller
             $request
         );
 
-
-
-
-
         $transactionPayment->account_id = $sales_sales->account_id;
         $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
 
@@ -1058,8 +1047,6 @@ class SellController extends Controller
             $acc_trans_mapping_id,
             $request
         );
-
-
 
         $transactionPayment->account_id = $sales_vat_calculation->account_id;
         $transactionPayment->amount = $transaction->tax_amount;
@@ -1074,12 +1061,10 @@ class SellController extends Controller
 
         $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
 
-
-
         $transactionPayment->account_id = $client->account_id;
 
         // $transactionPayment->amount = $transaction->final_total;
-        $transactionPayment->amount =  $request->paid_amount;
+        $transactionPayment->amount = $request->paid_amount;
 
         $accountUtil->saveAccountRouteTransaction(
             'credit',
@@ -1088,7 +1073,6 @@ class SellController extends Controller
             $acc_trans_mapping_id,
             $request
         );
-
 
         $transactionPayment->account_id = $cash_account_id;
         $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
@@ -1106,7 +1090,7 @@ class SellController extends Controller
 
     private function appendPerpetualInventoryImpactEntries(Transaction $transaction, int $accTransMappingId, Request $request): void
     {
-        if (!Setting::isPerpetualInventory()) {
+        if (! Setting::isPerpetualInventory()) {
             return;
         }
 
@@ -1121,7 +1105,7 @@ class SellController extends Controller
             ->orWhere('account_category', 'cost_of_goods_sold')
             ->value('id');
 
-        if (!$inventoryAccountId || !$cogsAccountId) {
+        if (! $inventoryAccountId || ! $cogsAccountId) {
             throw ValidationException::withMessages([
                 'inventory_policy' => app()->getLocale() === 'ar'
                     ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى التأكد من وجود حسابي المخزون وتكلفة البضاعة المباعة.'
@@ -1138,8 +1122,8 @@ class SellController extends Controller
             return;
         }
 
-        $accountUtil = new AccountingUtil();
-        $movement = new \stdClass();
+        $accountUtil = new AccountingUtil;
+        $movement = new \stdClass;
         $movement->paid_on = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
         $movement->created_by = Auth::id();
         $movement->transaction_id = $transaction->id;
@@ -1181,11 +1165,11 @@ class SellController extends Controller
         return view('sales::show');
     }
 
-    function updatePurchaseOrderStatus($quotation_id)
+    public function updatePurchaseOrderStatus($quotation_id)
     {
         $poTransaction = Transaction::find($quotation_id);
 
-        if (!$poTransaction) {
+        if (! $poTransaction) {
             return;
         }
 
@@ -1194,6 +1178,7 @@ class SellController extends Controller
         if ($poLines->isEmpty()) {
             $poTransaction->po_status = 'pending';
             $poTransaction->save();
+
             return;
         }
 

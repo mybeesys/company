@@ -13,10 +13,10 @@ class FranchiseCustomMenuController extends Controller
     public function index()
     {
         $franchises = FranchiseCompanies::all();
+
         return view('franchise::custom_menus.index', compact('franchises'));
     }
 
-   
     public function getFranchiseData($id)
     {
         $allowedProductIds = DB::table('franchise_product_permissions')
@@ -35,7 +35,7 @@ class FranchiseCustomMenuController extends Controller
             $missingIds = [];
 
             foreach ($menu->products as $item) {
-                if (!in_array($item->product_id, $allowedProductIds)) {
+                if (! in_array($item->product_id, $allowedProductIds)) {
                     $missingIds[] = $item->product_id;
                     $missingProducts[] = app()->getLocale() == 'ar'
                         ? ($item->product->name_ar ?? 'منتج غير معروف')
@@ -72,12 +72,14 @@ class FranchiseCustomMenuController extends Controller
                     'franchise_id' => $franchiseId,
                     'custom_menu_id' => $menuId,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ];
             }
-            if (!empty($insertMenus)) DB::table('franchise_custom_menu_permissions')->insert($insertMenus);
+            if (! empty($insertMenus)) {
+                DB::table('franchise_custom_menu_permissions')->insert($insertMenus);
+            }
 
-            if (!empty($productsToGrant)) {
+            if (! empty($productsToGrant)) {
                 foreach ($productsToGrant as $pId) {
                     DB::table('franchise_product_permissions')->updateOrInsert(
                         ['franchise_id' => $franchiseId, 'permitted_id' => $pId, 'permitted_type' => 'product'],

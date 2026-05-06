@@ -8,12 +8,10 @@ use Modules\General\Models\TransactionSellLine;
 
 class TransactionUtile
 {
-
     public function getProfitLossDetails()
     {
 
         $purchase_details = $this->getPurchaseTotals();
-
 
         $sell_details = $this->getSellTotals();
 
@@ -28,29 +26,24 @@ class TransactionUtile
 
         $gross_profit = $this->getGrossProfit();
 
-
-        //Discounts
+        // Discounts
         $total_purchase_discount = $transaction_totals['total_purchase_discount'];
         $total_sell_discount = $transaction_totals['total_sell_discount'];
         $total_sell_return_discount = $transaction_totals['total_sell_return_discount'];
 
-        //Purchase
-        $data['total_purchase'] = !empty($purchase_details['total_purchase_exc_tax']) ? $purchase_details['total_purchase_exc_tax'] : 0;
-        $data['total_purchase_discount'] = !empty($total_purchase_discount) ? $total_purchase_discount : 0;
+        // Purchase
+        $data['total_purchase'] = ! empty($purchase_details['total_purchase_exc_tax']) ? $purchase_details['total_purchase_exc_tax'] : 0;
+        $data['total_purchase_discount'] = ! empty($total_purchase_discount) ? $total_purchase_discount : 0;
         $data['total_purchase_return'] = $transaction_totals['total_purchase_return_exc_tax'];
 
-        //Sales
-        $data['total_sell'] = !empty($sell_details['total_sell_exc_tax']) ? $sell_details['total_sell_exc_tax'] : 0;
-        $data['total_sell_discount'] = !empty($total_sell_discount) ? $total_sell_discount : 0;
-        $data['total_sell_return_discount'] = !empty($total_sell_return_discount) ? $total_sell_return_discount : 0;
+        // Sales
+        $data['total_sell'] = ! empty($sell_details['total_sell_exc_tax']) ? $sell_details['total_sell_exc_tax'] : 0;
+        $data['total_sell_discount'] = ! empty($total_sell_discount) ? $total_sell_discount : 0;
+        $data['total_sell_return_discount'] = ! empty($total_sell_return_discount) ? $total_sell_return_discount : 0;
         $data['total_sell_return'] = $transaction_totals['total_sell_return_exc_tax'];
 
-
-
         $data['gross_profit'] = $gross_profit;
-        $data['net_profit'] =  $gross_profit - ($data['total_purchase_discount'] +  $data['total_sell_return_discount'] + $data['total_sell_discount']);
-
-
+        $data['net_profit'] = $gross_profit - ($data['total_purchase_discount'] + $data['total_sell_return_discount'] + $data['total_sell_discount']);
 
         return $data;
     }
@@ -64,18 +57,17 @@ class TransactionUtile
                 DB::raw('SUM(total_before_tax) as total_before_tax_sum'),
             );
 
-
-        if (!empty($start_date) && !empty($end_date)) {
+        if (! empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transaction_date', '>=', $start_date)
                 ->whereDate('transaction_date', '<=', $end_date);
         }
 
-        if (empty($start_date) && !empty($end_date)) {
+        if (empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transaction_date', '<=', $end_date);
         }
 
-        //Filter by the location
-        if (!empty($user_id)) {
+        // Filter by the location
+        if (! empty($user_id)) {
             $query->where('transactions.created_by', $user_id);
         }
 
@@ -100,17 +92,16 @@ class TransactionUtile
                 DB::raw('SUM(total_before_tax) as total_before_tax'),
             );
 
-
-        if (!empty($start_date) && !empty($end_date)) {
+        if (! empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transactions.transaction_date', '>=', $start_date)
                 ->whereDate('transactions.transaction_date', '<=', $end_date);
         }
 
-        if (empty($start_date) && !empty($end_date)) {
+        if (empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transactions.transaction_date', '<=', $end_date);
         }
 
-        if (!empty($created_by)) {
+        if (! empty($created_by)) {
             $query->where('transactions.created_by', $created_by);
         }
 
@@ -123,7 +114,6 @@ class TransactionUtile
         return $output;
     }
 
-
     public function getTransactionTotals(
         $transaction_types,
         $start_date = null,
@@ -132,17 +122,17 @@ class TransactionUtile
     ) {
         $query = Transaction::query();
 
-        if (!empty($start_date) && !empty($end_date)) {
+        if (! empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transactions.transaction_date', '>=', $start_date)
                 ->whereDate('transactions.transaction_date', '<=', $end_date);
         }
 
-        if (empty($start_date) && !empty($end_date)) {
+        if (empty($start_date) && ! empty($end_date)) {
             $query->whereDate('transactions.transaction_date', '<=', $end_date);
         }
 
-        //Filter by created_by
-        if (!empty($created_by)) {
+        // Filter by created_by
+        if (! empty($created_by)) {
             $query->where('transactions.created_by', $created_by);
         }
 
@@ -160,8 +150,6 @@ class TransactionUtile
                 DB::raw("SUM(IF(transactions.type='sell-return', IF(discount_type = 'percentage', COALESCE(discount_amount, 0)*total_before_tax/100, COALESCE(discount_amount, 0)), 0)) as total_sell_return_discount")
             );
         }
-
-
 
         if (in_array('purchases', $transaction_types)) {
             $query->addSelect(
@@ -181,39 +169,37 @@ class TransactionUtile
         $output = [];
 
         if (in_array('purchases-return', $transaction_types)) {
-            $output['total_purchase_return_inc_tax'] = !empty($transaction_totals->total_purchase_return_inc_tax) ?
+            $output['total_purchase_return_inc_tax'] = ! empty($transaction_totals->total_purchase_return_inc_tax) ?
                 $transaction_totals->total_purchase_return_inc_tax : 0;
 
             $output['total_purchase_return_exc_tax'] =
-                !empty($transaction_totals->total_purchase_return_exc_tax) ?
+                ! empty($transaction_totals->total_purchase_return_exc_tax) ?
                 $transaction_totals->total_purchase_return_exc_tax : 0;
         }
 
         if (in_array('sell-return', $transaction_types)) {
             $output['total_sell_return_inc_tax'] =
-                !empty($transaction_totals->total_sell_return_inc_tax) ?
+                ! empty($transaction_totals->total_sell_return_inc_tax) ?
                 $transaction_totals->total_sell_return_inc_tax : 0;
 
             $output['total_sell_return_exc_tax'] =
-                !empty($transaction_totals->total_sell_return_exc_tax) ?
+                ! empty($transaction_totals->total_sell_return_exc_tax) ?
                 $transaction_totals->total_sell_return_exc_tax : 0;
 
             $output['total_sell_return_discount'] =
-                !empty($transaction_totals->total_sell_return_discount) ?
+                ! empty($transaction_totals->total_sell_return_discount) ?
                 $transaction_totals->total_sell_return_discount : 0;
         }
 
-
-
         if (in_array('purchases', $transaction_types)) {
             $output['total_purchase_discount'] =
-                !empty($transaction_totals->total_purchase_discount) ?
+                ! empty($transaction_totals->total_purchase_discount) ?
                 $transaction_totals->total_purchase_discount : 0;
         }
 
         if (in_array('sell', $transaction_types)) {
             $output['total_sell_discount'] =
-                !empty($transaction_totals->total_sell_discount) ?
+                ! empty($transaction_totals->total_sell_discount) ?
                 $transaction_totals->total_sell_discount : 0;
         }
 
@@ -232,7 +218,7 @@ class TransactionUtile
             ->where('sale.status', 'approved');
 
         $query->select(
-            DB::raw("
+            DB::raw('
             SUM(
                 (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) * transaction_sell_lines.unit_price_inc_tax
             ) AS total,
@@ -241,27 +227,26 @@ class TransactionUtile
                 (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *
                 (transaction_sell_lines.unit_price_inc_tax - COALESCE(TPL.unit_price_inc_tax, 0))
             ) AS gross_profit
-        ")
+        ')
         );
 
-        if (!empty($start_date) && !empty($end_date) && $start_date != $end_date) {
+        if (! empty($start_date) && ! empty($end_date) && $start_date != $end_date) {
             $query->whereDate('sale.transaction_date', '>=', $start_date)
                 ->whereDate('sale.transaction_date', '<=', $end_date);
         }
-        if (!empty($start_date) && !empty($end_date) && $start_date == $end_date) {
+        if (! empty($start_date) && ! empty($end_date) && $start_date == $end_date) {
             $query->whereDate('sale.transaction_date', $end_date);
         }
 
-
-        if (!empty($user_id)) {
+        if (! empty($user_id)) {
             $query->where('sale.created_by', $user_id);
         }
 
         $gross_profit_obj = $query->first();
 
-        $gross_profit = !empty($gross_profit_obj->gross_profit) ? $gross_profit_obj->gross_profit : 0;
+        $gross_profit = ! empty($gross_profit_obj->gross_profit) ? $gross_profit_obj->gross_profit : 0;
 
-        //KNOWS ISSUE: If products are returned then also the discount gets applied for it.
+        // KNOWS ISSUE: If products are returned then also the discount gets applied for it.
 
         return $gross_profit;
     }

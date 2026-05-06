@@ -3,25 +3,25 @@
 namespace Modules\Reservation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Throwable;
+use Illuminate\Support\Str;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Models\Setting;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\CustomMenu;
 use Modules\Product\Models\CustomMenuItem;
 use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuTimeDetail;
 use Modules\Reservation\Models\MenuFeedback;
+use Modules\Reservation\Models\MenuToken;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderItem;
-use Illuminate\Support\Str;
-use Modules\General\Models\Setting;
-use Modules\Reservation\Models\MenuToken;
 use Modules\Reservation\Support\MenuAllergenDefinitions;
-use Carbon\Carbon;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -40,6 +40,44 @@ class OrderController extends Controller
     }
 
     /**
+     * @return array<int|string, array{map_lat?: mixed, map_lng?: mixed, map_label?: mixed}>
+     */
+    private function parseEstLocationsFromRequest(Request $request): array
+    {
+        $raw = $request->input('est_locations');
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+        if (is_array($raw)) {
+            return $raw;
+        }
+        if (! is_string($raw)) {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function validateEstLocations(array $estIds, array $estLocations): ?string
+    {
+        foreach ($estIds as $estId) {
+            $estId = (int) $estId;
+            $row = $estLocations[(string) $estId] ?? $estLocations[$estId] ?? null;
+            $lat = is_array($row) ? ($row['map_lat'] ?? null) : null;
+            $lng = is_array($row) ? ($row['map_lng'] ?? null) : null;
+            if ($lat === null || $lat === '' || $lng === null || $lng === '') {
+                return "Missing location for establishment #{$estId}";
+            }
+            if (! is_numeric($lat) || ! is_numeric($lng)) {
+                return "Invalid location coordinates for establishment #{$estId}";
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function menu($id)
@@ -47,6 +85,7 @@ class OrderController extends Controller
         $tenant = tenancy()->tenant;
         $tenantId = $tenant->id;
         $table = ['tenant' => $tenantId, 'code' => $id];
+
         return view('reservation::order.menu', compact('table'));
     }
 
@@ -64,23 +103,23 @@ class OrderController extends Controller
             $file = $request->file('cover');
             $filePath = '/product/images';
             $fileExtension = $file->getClientOriginalExtension();
-            $fileName = Str::random(10) . '.' . $fileExtension;
+            $fileName = Str::random(10).'.'.$fileExtension;
 
             $file->storeAs($filePath, $fileName, 'public');
-            $coverPath = 'storage/' . 'tenant' . $tenantId . $filePath . '/' . $fileName;
+            $coverPath = 'storage/'.'tenant'.$tenantId.$filePath.'/'.$fileName;
         }
 
         $estIds = is_string($data['est_ids'] ?? null) ? json_decode($data['est_ids'], true) : ($data['est_ids'] ?? []);
         $productIds = is_string($data['products'] ?? null) ? json_decode($data['products'], true) : ($data['products'] ?? []);
-        if (!is_array($estIds) || count($estIds) === 0) {
+        if (! is_array($estIds) || count($estIds) === 0) {
             return response()->json(['message' => 'est_ids required'], 422);
         }
-        if (!is_array($productIds)) {
+        if (! is_array($productIds)) {
             $productIds = [];
         }
 
         $sectionFlags = [];
-        if (!empty($data['section_flags'])) {
+        if (! empty($data['section_flags'])) {
             $sectionFlags = is_string($data['section_flags'])
                 ? (json_decode($data['section_flags'], true) ?: [])
                 : (array) $data['section_flags'];
@@ -93,17 +132,18 @@ class OrderController extends Controller
             'map_lat' => 'nullable|numeric',
             'map_lng' => 'nullable|numeric',
             'map_label' => 'nullable|string|max:500',
+            'est_locations' => 'nullable',
             'allergy_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
 
-        if (!empty($sectionFlags['todays_menu'])) {
+        if (! empty($sectionFlags['todays_menu'])) {
             $rules['custom_menu_id'] = 'required|integer|exists:product_custom_menus,id';
         }
-        if (!empty($sectionFlags['location'])) {
-            $rules['map_lat'] = 'required|numeric';
-            $rules['map_lng'] = 'required|numeric';
+        if (! empty($sectionFlags['location'])) {
+            $rules['map_lat'] = 'nullable|numeric';
+            $rules['map_lng'] = 'nullable|numeric';
         }
-        if (!empty($sectionFlags['allergy_info'])) {
+        if (! empty($sectionFlags['allergy_info'])) {
             $rules['allergy_document'] = 'required|file|mimes:pdf,jpg,jpeg,png|max:10240';
         }
 
@@ -117,12 +157,32 @@ class OrderController extends Controller
             $allergyPath = $request->file('allergy_document')->store('menu-allergy', 'public');
         }
 
+        $estLocations = $this->parseEstLocationsFromRequest($request);
+        if (! empty($sectionFlags['location'])) {
+            if (empty($estLocations) && ($request->input('map_lat') !== null || $request->input('map_lng') !== null)) {
+                $estLocations = [
+                    (string) (int) $estIds[0] => [
+                        'map_lat' => $request->input('map_lat'),
+                        'map_lng' => $request->input('map_lng'),
+                        'map_label' => $request->input('map_label'),
+                    ],
+                ];
+            }
+            $err = $this->validateEstLocations($estIds, $estLocations);
+            if ($err) {
+                return response()->json(['message' => $err], 422);
+            }
+        } else {
+            $estLocations = [];
+        }
+
         $token = Str::random(30);
 
         try {
             MenuToken::create([
                 'est_id' => (int) $estIds[0],
                 'est_ids' => $estIds,
+                'est_locations' => $estLocations,
                 'title' => $data['title'] ?? '',
                 'sub_title' => $data['sub_title'] ?? '',
                 'products' => $productIds,
@@ -141,7 +201,9 @@ class OrderController extends Controller
 
             return response()->json([
                 'status' => false,
-                'message' => 'Could not save menu token. Run tenant migrations for menu_tokens (e.g. est_ids, section_flags).',
+                'message' => config('app.debug')
+                    ? ('Could not save menu token: ' . $e->getMessage())
+                    : 'Could not save menu token. Run tenant migrations for menu_tokens (e.g. est_ids, section_flags).',
             ], 500);
         }
 
@@ -191,6 +253,7 @@ class OrderController extends Controller
                         'active' => (int) $existing->active,
                     ];
                 }
+
                 return $row;
             })->values();
 
@@ -255,7 +318,7 @@ class OrderController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            if (!$menuTime) {
+            if (! $menuTime) {
                 $menuTime = CustomMenuTime::create([
                     'custommenu_id' => $customMenu->id,
                     'from_date' => $fromDate,
@@ -277,8 +340,8 @@ class OrderController extends Controller
                     ->where('day_no', $row['day_no'])
                     ->first();
 
-                if (!$detail) {
-                    $detail = new CustomMenuTimeDetail();
+                if (! $detail) {
+                    $detail = new CustomMenuTimeDetail;
                     $detail->custommenu_time_id = $menuTime->id;
                     $detail->day_no = $row['day_no'];
                 }
@@ -294,7 +357,7 @@ class OrderController extends Controller
 
     public function storeMenuFeedback(Request $request, string $token)
     {
-        if (!MenuToken::where('token', $token)->exists()) {
+        if (! MenuToken::where('token', $token)->exists()) {
             return response()->json(['message' => 'Invalid token'], 404);
         }
 
@@ -334,7 +397,7 @@ class OrderController extends Controller
     {
         $menuToken = MenuToken::where('token', $token)->first();
 
-        if (!$menuToken) {
+        if (! $menuToken) {
             abort(404, 'الرابط غير صالح أو انتهت صلاحيته');
         }
 
@@ -349,7 +412,15 @@ class OrderController extends Controller
             }
         }
 
-        $establishment_id = $menuToken['est_id'];
+        $allowedEstIds = is_array($menuToken->est_ids) ? $menuToken->est_ids : [];
+        $allowedEstIds = array_values(array_unique(array_filter(array_map('intval', $allowedEstIds))));
+
+        $establishment_id = (int) ($menuToken['est_id'] ?? 0);
+        $requestedEstId = $request->query('est_id');
+        $requestedEstId = is_numeric($requestedEstId) ? (int) $requestedEstId : null;
+        if ($requestedEstId && in_array($requestedEstId, $allowedEstIds, true)) {
+            $establishment_id = $requestedEstId;
+        }
         $title = $menuToken['title'];
         $subTitle = $menuToken['sub_title'];
         $product_ids = is_array($menuToken->products) ? $menuToken->products : [];
@@ -398,6 +469,13 @@ class OrderController extends Controller
         $mapLat = $menuToken->map_lat;
         $mapLng = $menuToken->map_lng;
         $mapLabel = $menuToken->map_label;
+        $estLocations = is_array($menuToken->est_locations) ? $menuToken->est_locations : [];
+        $locRow = $estLocations[(string) (int) $establishment_id] ?? $estLocations[(int) $establishment_id] ?? null;
+        if (is_array($locRow)) {
+            $mapLat = $locRow['map_lat'] ?? $mapLat;
+            $mapLng = $locRow['map_lng'] ?? $mapLng;
+            $mapLabel = $locRow['map_label'] ?? $mapLabel;
+        }
         $allergyDocumentUrl = $menuToken->allergy_document_path
             ? tenant_public_storage_url_for_db_path((string) $menuToken->allergy_document_path)
             : null;
@@ -421,6 +499,13 @@ class OrderController extends Controller
             'opening' => $openingState,
         ];
 
+        $menuEstablishments = [];
+        if (count($allowedEstIds) > 0) {
+            $menuEstablishments = Establishment::query()
+                ->whereIn('id', $allowedEstIds)
+                ->get(['id', 'name', 'name_en']);
+        }
+
         return view('reservation::order.menuSimple', compact(
             'info',
             'company',
@@ -439,7 +524,9 @@ class OrderController extends Controller
             'feedbackToken',
             'menuToken',
             'openingState',
-            'allergenFilterKeyIcons'
+            'allergenFilterKeyIcons',
+            'menuEstablishments',
+            'establishment_id'
         ));
     }
 
@@ -485,8 +572,9 @@ class OrderController extends Controller
 
         $rows = $tokens->map(function ($t) use ($estMap) {
             $estIds = is_array($t->est_ids) ? $t->est_ids : [];
-            $estNames = collect($estIds)->map(fn($id) => $estMap[$id] ?? "#{$id}")->values()->all();
+            $estNames = collect($estIds)->map(fn ($id) => $estMap[$id] ?? "#{$id}")->values()->all();
             $opening = $this->resolveMenuOpeningStatus($t->custom_menu_id);
+
             return [
                 'id' => $t->id,
                 'token' => $t->token,
@@ -501,6 +589,7 @@ class OrderController extends Controller
                 'map_lat' => $t->map_lat,
                 'map_lng' => $t->map_lng,
                 'map_label' => $t->map_label,
+                'est_locations' => is_array($t->est_locations ?? null) ? $t->est_locations : null,
                 'section_flags' => is_array($t->section_flags) ? $t->section_flags : [],
                 'allergy_document_path' => $t->allergy_document_path,
                 'allergen_visible_keys' => is_array($t->allergen_visible_keys ?? null) ? $t->allergen_visible_keys : null,
@@ -516,7 +605,7 @@ class OrderController extends Controller
 
     private function resolveMenuOpeningStatus($customMenuId): array
     {
-        if (!$customMenuId) {
+        if (! $customMenuId) {
             return ['status' => 'unknown', 'hours_text' => null, 'source' => 'none'];
         }
 
@@ -540,7 +629,7 @@ class OrderController extends Controller
             }])
             ->first();
 
-        if (!$menuTime || $menuTime->times->isEmpty()) {
+        if (! $menuTime || $menuTime->times->isEmpty()) {
             return ['status' => 'closed', 'hours_text' => null, 'source' => 'custom_menu_no_schedule'];
         }
 
@@ -548,12 +637,13 @@ class OrderController extends Controller
             ->map(function ($t) {
                 $from = $t->from_time ? substr((string) $t->from_time, 0, 5) : '--:--';
                 $to = $t->to_time ? substr((string) $t->to_time, 0, 5) : '--:--';
+
                 return ['from' => $from, 'to' => $to, 'open_now' => ($t->from_time <= now()->format('H:i:s') && now()->format('H:i:s') <= $t->to_time)];
             })
             ->values();
 
-        $isOpen = $periods->contains(fn($p) => $p['open_now']);
-        $hoursText = $periods->map(fn($p) => "{$p['from']} - {$p['to']}")->implode(' , ');
+        $isOpen = $periods->contains(fn ($p) => $p['open_now']);
+        $hoursText = $periods->map(fn ($p) => "{$p['from']} - {$p['to']}")->implode(' , ');
 
         return [
             'status' => $isOpen ? 'open' : 'closed',
@@ -580,23 +670,24 @@ class OrderController extends Controller
             'map_lat' => 'nullable|numeric',
             'map_lng' => 'nullable|numeric',
             'map_label' => 'nullable|string|max:500',
+            'est_locations' => 'nullable',
             'allergy_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
-        if (!empty($sectionFlags['todays_menu'])) {
+        if (! empty($sectionFlags['todays_menu'])) {
             $rules['custom_menu_id'] = 'required|integer|exists:product_custom_menus,id';
         }
-        if (!empty($sectionFlags['location'])) {
-            $rules['map_lat'] = 'required|numeric';
-            $rules['map_lng'] = 'required|numeric';
+        if (! empty($sectionFlags['location'])) {
+            $rules['map_lat'] = 'nullable|numeric';
+            $rules['map_lng'] = 'nullable|numeric';
         }
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first(), 'errors' => $validator->errors()], 422);
         }
-        if (!is_array($estIds) || count($estIds) === 0) {
+        if (! is_array($estIds) || count($estIds) === 0) {
             return response()->json(['message' => 'est_ids required'], 422);
         }
-        if (!is_array($productIds)) {
+        if (! is_array($productIds)) {
             $productIds = [];
         }
 
@@ -608,9 +699,29 @@ class OrderController extends Controller
             $allergyPath = $request->file('allergy_document')->store('menu-allergy', 'public');
         }
 
+        $estLocations = $this->parseEstLocationsFromRequest($request);
+        if (! empty($sectionFlags['location'])) {
+            if (empty($estLocations) && ($request->input('map_lat') !== null || $request->input('map_lng') !== null)) {
+                $estLocations = [
+                    (string) (int) $estIds[0] => [
+                        'map_lat' => $request->input('map_lat'),
+                        'map_lng' => $request->input('map_lng'),
+                        'map_label' => $request->input('map_label'),
+                    ],
+                ];
+            }
+            $err = $this->validateEstLocations($estIds, $estLocations);
+            if ($err) {
+                return response()->json(['message' => $err], 422);
+            }
+        } else {
+            $estLocations = [];
+        }
+
         $payload = [
             'est_id' => (int) $estIds[0],
             'est_ids' => $estIds,
+            'est_locations' => $estLocations,
             'title' => $data['title'] ?? '',
             'sub_title' => $data['sub_title'] ?? '',
             'products' => $productIds,
@@ -636,6 +747,7 @@ class OrderController extends Controller
             Storage::disk('public')->delete($token->allergy_document_path);
         }
         $token->delete();
+
         return response()->json(['status' => true]);
     }
 
@@ -646,6 +758,7 @@ class OrderController extends Controller
                 $query->with(['productsForSale']);
             }])
             ->get();
+
         return response()->json($categories);
     }
 
@@ -653,12 +766,12 @@ class OrderController extends Controller
     {
         $prefix = 'ORD';
         $lastOrd = Order::orderBy('no', 'desc')->first();
-        $newOrdNumber = $prefix . '000001';
+        $newOrdNumber = $prefix.'000001';
 
         if ($lastOrd) {
             preg_match('/(\d+)/', $lastOrd->no, $matches);
-            $lastNumber = (int)$matches[0];
-            $newOrdNumber = $prefix . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+            $lastNumber = (int) $matches[0];
+            $newOrdNumber = $prefix.str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
         }
 
         return $newOrdNumber;
@@ -676,18 +789,18 @@ class OrderController extends Controller
         ]);
 
         $validated['no'] = $this->generateOrdNo();
-        $validated['order_date'] = date("Y-m-d");
+        $validated['order_date'] = date('Y-m-d');
 
         // إذا لم يرسل الفرع، نأخذ الفرع الرئيسي أو الأول
-        if (!$request->establishment_id) {
+        if (! $request->establishment_id) {
             $est = Establishment::where('is_main', 1)->first() ?? Establishment::first();
             $validated['establishment_id'] = $est->id;
         }
 
         DB::transaction(function () use ($validated, $request) {
             $order = Order::create($validated);
-            if (isset($request["items"])) {
-                foreach ($request["items"] as $item) {
+            if (isset($request['items'])) {
+                foreach ($request['items'] as $item) {
                     $item['order_id'] = $order->id;
                     $item['item_total_price'] = $item['item_price'] * $item['quantity'];
                     OrderItem::create($item);

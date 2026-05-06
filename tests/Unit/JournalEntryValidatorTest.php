@@ -42,4 +42,3 @@ class JournalEntryValidatorTest extends TestCase
         $this->assertSame('10.00', $normalized[1]['amount']);
     }
 }
-

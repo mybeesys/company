@@ -14,6 +14,7 @@ class ClientSupplierSettingController extends Controller
     public function index()
     {
         $loyaltyPointsSettings = ClientSupplierSetting::all();
+
         return view('clientsandsuppliers::settings.index', compact('loyaltyPointsSettings'));
     }
 
@@ -22,6 +23,7 @@ class ClientSupplierSettingController extends Controller
         foreach ($request->safe()['key'] as $index => $value) {
             ClientSupplierSetting::updateOrCreate(['key' => $index], ['value' => $value]);
         }
+
         return response()->json(['message' => __('employee::responses.operation_success')]);
     }
 }

@@ -57,4 +57,3 @@ return [
     'menu_allergen_modal_section_intro' => 'Tap an allergen to hide products that contain it; tap again to show them. Use «Clear filters» to reset.',
     'menu_allergen_filter_empty' => 'No allergens were enabled for filtering in the menu link settings.',
 ];
-

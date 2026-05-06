@@ -5,21 +5,19 @@ namespace Modules\Accounting\Utils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
-use Modules\Accounting\View\Components\AccountRouting;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use RuntimeException;
 
 class AccountingUtil
 {
-
     public static function balanceFormula(
         $accounting_accounts_alias = 'accounting_accounts',
         $accounting_account_transaction_alias = 'AAT'
@@ -32,7 +30,6 @@ class AccountingUtil
             OR ($accounting_accounts_alias.account_primary_type='expenses' AND $accounting_account_transaction_alias.type='debit'),
             amount, -1*amount)) as balance";
     }
-
 
     // public function saveAccountTransaction($type, $transactionPayment, $transaction)
     // {
@@ -91,6 +88,7 @@ class AccountingUtil
         }
 
         AccountingAccountsTransaction::create($account_transaction_data);
+
         return true;
     }
 
@@ -101,7 +99,7 @@ class AccountingUtil
         $account_transaction_data = [
             'amount' => $transactionPayment->amount,
             'accounting_account_id' => $transactionPayment->account_id,
-            'type' =>  $type,
+            'type' => $type,
             'cost_center_id' => $request->cost_center_id ?? null,
             'sub_type' => $transaction->type,
             'operation_date' => $transactionPayment->paid_on,
@@ -113,9 +111,9 @@ class AccountingUtil
 
         //    dd($account_transaction_data);
         AccountingAccountsTransaction::create($account_transaction_data);
+
         return true;
     }
-
 
     // public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     // {
@@ -200,7 +198,6 @@ class AccountingUtil
     //         }
     //     }
 
-
     //     return true;
     // }
     // protected function determineAmountAndType($routeType, $transaction)
@@ -218,8 +215,6 @@ class AccountingUtil
     //     };
     // }
 
-
-
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
         $netTotalBeforeTax = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0);
@@ -235,7 +230,7 @@ class AccountingUtil
         $accountsRoute = AccountsRoting::where('section', $route_section)->get();
 
         if (count($accountsRoute) > 0) {
-            $acc_trans_mapping = new AccountingAccTransMapping();
+            $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $this->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
             $sourceTypeAr = match ($transaction->type) {
@@ -256,16 +251,24 @@ class AccountingUtil
             if ($transaction->type == 'sell') {
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+                $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
+                $discountAmount = (float) ($transaction->discount_amount ?? 0);
+                $salesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
 
                 if ($transaction->invoice_type == 'cash') {
 
-                    if (!$transactionPayment->payment_for) {
+                    if (! $transactionPayment->payment_for) {
                         $transactionPayment->account_id = $cash_account_id;
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $sales_sales->account_id;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $salesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                            $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -276,12 +279,16 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $sales_sales->account_id;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $salesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                            $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
 
                         $transactionPayment->account_id = $client->account_id;
                         $transactionPayment->amount = $transaction->final_total;
@@ -306,10 +313,13 @@ class AccountingUtil
                 // }
 
                 $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-            } else if ($transaction->type == 'purchases') {
+            } elseif ($transaction->type == 'purchases') {
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
+                $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
+                $discountAmount = (float) ($transaction->discount_amount ?? 0);
+                $purchasesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
                 $inventoryAssetAccountId = AccountingAccount::where('gl_code', '11105')
                     ->orWhere('account_category', 'inventory')
                     ->value('id');
@@ -327,13 +337,18 @@ class AccountingUtil
                 }
 
                 if ($transaction->invoice_type == 'cash') {
-                    if (!$transactionPayment->payment_for) {
+                    if (! $transactionPayment->payment_for) {
                         $transactionPayment->account_id = $cash_account_id;
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
+                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -346,16 +361,17 @@ class AccountingUtil
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
-
                         $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $netTotalBeforeTax;
+                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
+                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
+                            $transactionPayment->amount = $discountAmount;
+                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        }
                         $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                         $transactionPayment->amount = $transaction->tax_amount;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-
-
 
                         $transactionPayment->account_id = $client->account_id;
                         $transactionPayment->amount = $transaction->final_total;
@@ -383,19 +399,19 @@ class AccountingUtil
                 //         }
                 //     }
                 // }
-            } else if ($transaction->type == 'sell-return') {
+            } elseif ($transaction->type == 'sell-return') {
                 $sales_sell_return = AccountsRoting::where('type', 'sales_sell_return')->first();
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
 
                 if (! $sales_sell_return || ! $sales_sales || ! $sales_vat_calculation) {
-                    throw new RuntimeException("Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_sales, sales_vat_calculation.");
+                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_sales, sales_vat_calculation.');
                 }
 
                 if ($transaction->invoice_type == 'cash') {
                     $client = Contact::find($transactionPayment->payment_for);
                     if (! $client || ! $client->account_id) {
-                        throw new RuntimeException("Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.");
+                        throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
                     }
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
@@ -407,7 +423,6 @@ class AccountingUtil
                     $transactionPayment->account_id = $sales_vat_calculation->account_id;
                     $transactionPayment->amount = $transaction->tax_amount;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
 
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
@@ -450,24 +465,23 @@ class AccountingUtil
                         $request
                     );
                 }
-            } else if ($transaction->type == 'purchases-return') {
+            } elseif ($transaction->type == 'purchases-return') {
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $purchases_purchase_return = AccountsRoting::where('type', 'purchases_purchase_return')->first();
                 $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
 
                 if (! $purchases_purchase || ! $purchases_purchase_return || ! $purchases_vat_calculation) {
-                    throw new RuntimeException("Accounting routing missing for purchases-return. Please configure Accounts Routing: purchases_purchase, purchases_purchase_return, purchases_vat_calculation.");
+                    throw new RuntimeException('Accounting routing missing for purchases-return. Please configure Accounts Routing: purchases_purchase, purchases_purchase_return, purchases_vat_calculation.');
                 }
 
                 if ($transaction->invoice_type == 'cash') {
                     $client = Contact::find($transactionPayment->payment_for);
                     if (! $client || ! $client->account_id) {
-                        throw new RuntimeException("Supplier account is missing for purchases-return. Please ensure the supplier has an accounting account linked.");
+                        throw new RuntimeException('Supplier account is missing for purchases-return. Please ensure the supplier has an accounting account linked.');
                     }
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
 
                     $transactionPayment->account_id = $purchases_purchase->account_id;
                     $transactionPayment->amount = $netTotalBeforeTax;
@@ -475,7 +489,6 @@ class AccountingUtil
                     $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                     $transactionPayment->amount = $transaction->tax_amount;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
 
                     // credit         debit
 
@@ -493,16 +506,12 @@ class AccountingUtil
                     $transactionPayment->amount = $transaction->final_total;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
-
                     $transactionPayment->account_id = $purchases_purchase->account_id;
                     $transactionPayment->amount = $netTotalBeforeTax;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     $transactionPayment->account_id = $purchases_vat_calculation->account_id;
                     $transactionPayment->amount = $transaction->tax_amount;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-
-
 
                     $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $transaction->final_total;
@@ -549,7 +558,7 @@ class AccountingUtil
 
     private function appendPerpetualCogsEntries($transactionPayment, $transaction, int $accTransMappingId, $request): void
     {
-        if (!Setting::isPerpetualInventory() || $transaction->type !== 'sell') {
+        if (! Setting::isPerpetualInventory() || $transaction->type !== 'sell') {
             return;
         }
 
@@ -561,7 +570,7 @@ class AccountingUtil
             ->orWhere('account_category', 'cost_of_goods_sold')
             ->value('id');
 
-        if (!$inventoryAccountId || !$cogsAccountId) {
+        if (! $inventoryAccountId || ! $cogsAccountId) {
             return;
         }
 
@@ -589,10 +598,12 @@ class AccountingUtil
             'sales_sales' => [$transaction->totalAfterDiscount, 'credit'],
             'sales_vat_calculation' => [$transaction->tax_amount, 'credit'],
             'sales_discount_calculation' => [$transaction->discount_amount, 'debit'],
+            'sales_discount_allowed' => [$transaction->discount_amount, 'debit'],
 
             'purchases_purchases' => [$transaction->totalAfterDiscount, 'debit'],
             'purchases_vat_calculation' => [$transaction->tax_amount, 'debit'],
             'purchases_discount_calculation' => [$transaction->discount_amount, 'credit'],
+            'purchases_earned_discount' => [$transaction->discount_amount, 'credit'],
 
             'sales_return_sales' => [$transaction->totalAfterDiscount, 'debit'],
             'purchases_return_purchases' => [$transaction->totalAfterDiscount, 'credit'],
@@ -657,7 +668,25 @@ class AccountingUtil
                 'updated_at' => now(),
             ],
             [
+                'type' => 'sales_discount_allowed',
+                'section' => 'sales',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'type' => 'purchases_discount_calculation',
+                'section' => 'purchases',
+                'routing_type' => 'expense',
+                'account_id' => $discount_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'purchases_earned_discount',
                 'section' => 'purchases',
                 'routing_type' => 'expense',
                 'account_id' => $discount_acc?->id,
@@ -690,7 +719,7 @@ class AccountingUtil
 
     public static function default_accounting_account_types()
     {
-        return  $account_sub_types = [
+        return $account_sub_types = [
             [
                 'name_en' => 'Current Assets',
                 'name_ar' => 'الأصول المتداولة',
@@ -698,7 +727,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Fixed Assets',
@@ -707,7 +736,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'asset',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Current Liabilities',
@@ -716,7 +745,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Long-Term Liabilities',
@@ -725,7 +754,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'liabilities',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Equity',
@@ -734,7 +763,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'equity',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Revenue',
@@ -743,7 +772,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'income',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Cost Of Sales',
@@ -752,7 +781,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Payroll & HR',
@@ -761,7 +790,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Office Expenses',
@@ -770,7 +799,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'IT',
@@ -779,7 +808,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Travel',
@@ -788,7 +817,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Government Fees',
@@ -797,7 +826,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Professional Services',
@@ -806,7 +835,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Insurance',
@@ -815,7 +844,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Maintenance',
@@ -824,7 +853,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'PR',
@@ -833,7 +862,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Banking',
@@ -842,7 +871,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
             [
                 'name_en' => 'Other Expenses',
@@ -851,7 +880,7 @@ class AccountingUtil
                 'show_balance' => 1,
                 'account_type' => 'sub_type',
                 'account_primary_type' => 'expenses',
-                'parent_id' => null
+                'parent_id' => null,
             ],
         ];
     }
@@ -878,10 +907,6 @@ class AccountingUtil
         $PR_id = AccountingAccountTypes::where('name_en', 'PR')->first()->id;
         $Banking_id = AccountingAccountTypes::where('name_en', 'Banking')->first()->id;
         $Other_Expenses_id = AccountingAccountTypes::where('name_en', 'Other Expenses')->first()->id;
-
-
-
-
 
         return [
             [
@@ -975,7 +1000,6 @@ class AccountingUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-
 
             [
                 'name_en' => 'Work in Progress',
@@ -1231,7 +1255,7 @@ class AccountingUtil
                 'name_ar' => 'الاحتياطي العام',
                 'account_primary_type' => 'equity',
                 'account_type' => 'equity',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Equity_id,
                 'detail_type_id' => null,
                 'gl_code' => '302',
@@ -1245,7 +1269,7 @@ class AccountingUtil
                 'name_ar' => 'الأرباح المرحلة',
                 'account_primary_type' => 'equity',
                 'account_type' => 'equity',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Equity_id,
                 'detail_type_id' => null,
                 'gl_code' => '303',
@@ -1259,7 +1283,7 @@ class AccountingUtil
                 'name_ar' => 'توزيعات الأرباح',
                 'account_primary_type' => 'equity',
                 'account_type' => 'equity',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Equity_id,
                 'detail_type_id' => null,
                 'gl_code' => '304',
@@ -1273,7 +1297,7 @@ class AccountingUtil
                 'name_ar' => 'صافي الربح/الخسارة',
                 'account_primary_type' => 'equity',
                 'account_type' => 'equity',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Equity_id,
                 'detail_type_id' => null,
                 'gl_code' => '305',
@@ -1288,7 +1312,7 @@ class AccountingUtil
                 'name_ar' => 'إيرادات النشاط الرئيسي',
                 'account_primary_type' => 'income',
                 'account_type' => 'income',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Revenue_id,
                 'detail_type_id' => null,
                 'gl_code' => '401',
@@ -1303,7 +1327,7 @@ class AccountingUtil
                 'name_ar' => 'إيرادات الخدمات',
                 'account_primary_type' => 'income',
                 'account_type' => 'income',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Revenue_id,
                 'detail_type_id' => null,
                 'gl_code' => '402',
@@ -1317,7 +1341,7 @@ class AccountingUtil
                 'name_ar' => 'إيرادات العقود',
                 'account_primary_type' => 'income',
                 'account_type' => 'income',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Revenue_id,
                 'detail_type_id' => null,
                 'gl_code' => '403',
@@ -1331,7 +1355,7 @@ class AccountingUtil
                 'name_ar' => 'إيرادات أخرى',
                 'account_primary_type' => 'income',
                 'account_type' => 'income',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Revenue_id,
                 'detail_type_id' => null,
                 'gl_code' => '404',
@@ -1345,7 +1369,7 @@ class AccountingUtil
                 'name_ar' => 'أرباح بيع أصل ثابت',
                 'account_primary_type' => 'income',
                 'account_type' => 'income',
-                //'account_category' => '',
+                // 'account_category' => '',
                 'account_sub_type_id' => $Revenue_id,
                 'detail_type_id' => null,
                 'gl_code' => '405',
@@ -1490,7 +1514,6 @@ class AccountingUtil
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
-
 
             [
                 'name_en' => 'Office Rent',
@@ -1826,7 +1849,6 @@ class AccountingUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
             [
                 'name_en' => 'Building Maintenance',
                 'name_ar' => 'صيانة مباني',
@@ -1975,26 +1997,20 @@ class AccountingUtil
                 'updated_at' => Carbon::now(),
             ],
 
-
         ];
     }
 
     // public static function next_GLC($parent_account_id)
     // {
 
-
-
     //     // parent_account_id
     //     $last_parent_account = AccountingAccount::where([['parent_account_id', '=', $parent_account_id]])->latest()->first();
 
-
     //     if ($last_parent_account) {
-
 
     //         $last_code = $last_parent_account ? substr($last_parent_account->gl_code, -strlen($last_parent_account->gl_code)) : "00";
 
     //         $lastDotPosition = strrpos($last_code, '.');
-
 
     //         $numberAfterLastDot = substr($last_code, $lastDotPosition + 1);
 
@@ -2006,9 +2022,7 @@ class AccountingUtil
     //     $parent_account = AccountingAccount::find($parent_account_id);
     //     $last_code = substr($parent_account->gl_code, -strlen($parent_account->gl_code));
 
-
     //     $next_code = $last_code . '.1';
-
 
     //     return $next_code;
     // }
@@ -2016,18 +2030,15 @@ class AccountingUtil
     public static function next_GLC($parent_account_id)
     {
 
-
-
         // parent_account_id
         $last_parent_account = AccountingAccount::where([['parent_account_id', '=', $parent_account_id]])->latest()->first();
 
-
         if ($last_parent_account) {
 
+            $last_code = $last_parent_account ? substr($last_parent_account->gl_code, -strlen($last_parent_account->gl_code)) : '00';
 
-            $last_code = $last_parent_account ? substr($last_parent_account->gl_code, -strlen($last_parent_account->gl_code)) : "00";
+            $next_code = str_pad((int) $last_code + 1, strlen($last_parent_account->gl_code), '0', STR_PAD_LEFT);
 
-            $next_code = str_pad((int)$last_code + 1, strlen($last_parent_account->gl_code), "0", STR_PAD_LEFT);
             return $next_code;
         }
 
@@ -2035,8 +2046,7 @@ class AccountingUtil
         $last_code = substr($parent_account->gl_code, -strlen($parent_account->gl_code));
 
         //  $nextNumeric = substr($last_code, -1) + 1;
-        $next_code = $last_code . '01';
-
+        $next_code = $last_code.'01';
 
         return $next_code;
     }
@@ -2054,7 +2064,6 @@ class AccountingUtil
             'analytical_accounts' => __('accounting::lang.account_types.analytical_accounts'),
         ];
     }
-
 
     public static function account_category()
     {
@@ -2079,35 +2088,30 @@ class AccountingUtil
         ];
     }
 
-
     public static function generateReferenceNumber($type)
     {
 
         $AAT = AccountingAccTransMapping::where('type', $type)->latest()->first();
         $currentYear = date('Y');
 
-
         if ($AAT) {
             // $AAT =$AAT->accTransMapping;
             $last_ref_no = $AAT->ref_no;
 
-
-            list($year, $number) = explode('/', $last_ref_no);
+            [$year, $number] = explode('/', $last_ref_no);
 
             if ($year == $currentYear) {
                 $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = $currentYear . '/' . $newNumber;
+                $new_ref_no = $currentYear.'/'.$newNumber;
             } else {
-                $new_ref_no = $currentYear . '/0001';
+                $new_ref_no = $currentYear.'/0001';
             }
 
             return $new_ref_no;
         }
 
-
-        return  $new_ref_no = $currentYear . '/0001';
+        return $new_ref_no = $currentYear.'/0001';
     }
-
 
     public function getAgeingReport($type, $group_by, array $filters = [])
     {
@@ -2125,7 +2129,6 @@ class AccountingUtil
                 ->where('transactions.status', 'approved');
         }
 
-
         $dues = $query->whereIn('transactions.payment_status', ['partial', 'due'])
             ->when($contactId, function ($q) use ($contactId) {
                 return $q->where('transactions.contact_id', $contactId);
@@ -2139,7 +2142,7 @@ class AccountingUtil
             ->join('cs_contacts as c', 'c.id', '=', 'transactions.contact_id')
             ->select(
                 DB::raw(
-                    'DATEDIFF("' . $today . '", transactions.due_date) as diff'
+                    'DATEDIFF("'.$today.'", transactions.due_date) as diff'
 
                 ),
                 DB::raw('SUM(transactions.final_total -
@@ -2161,14 +2164,14 @@ class AccountingUtil
                 'transactions.ref_no',
                 'transactions.transaction_date',
                 'transactions.due_date',
-                'c.name'
+                'c.name',
             ])
             ->get();
 
         $report_details = [];
         if ($group_by == 'contact') {
             foreach ($dues as $due) {
-                if (!isset($report_details[$due->contact_id])) {
+                if (! isset($report_details[$due->contact_id])) {
                     $report_details[$due->contact_id] = [
                         'name' => $due->contact_name,
                         '<1' => 0,

@@ -2,12 +2,7 @@
 
 namespace Modules\Employee\Http\Requests\Api\Auth;
 
-use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
-use Modules\Employee\Models\Employee;
 
 class LogoutRequest extends FormRequest
 {
@@ -32,5 +27,4 @@ class LogoutRequest extends FormRequest
             'clock_out_time' => ['required', 'date_format:Y-m-d H:i:s'],
         ];
     }
-
 }

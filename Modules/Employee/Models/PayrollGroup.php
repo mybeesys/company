@@ -22,5 +22,4 @@ class PayrollGroup extends BaseScheduleModel
     {
         return $this->hasManyThrough(Employee::class, Payroll::class, 'payroll_group_id', 'id', 'id', 'employee_id');
     }
-    
 }

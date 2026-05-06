@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -16,11 +17,11 @@ class DiscountLOVController extends Controller
         $discountQulification = DiscountQualification::all();
         $discountQualificationType = DiscountQualificationType::all();
         $lov = [];
-        $lov["discountFunction"] = $discountFunction;
-        $lov["discountType"] = $discountType;
-        $lov["discountQualification"] = $discountQulification;
-        $lov["discountQualificationType"] = $discountQualificationType;
+        $lov['discountFunction'] = $discountFunction;
+        $lov['discountType'] = $discountType;
+        $lov['discountQualification'] = $discountQulification;
+        $lov['discountQualificationType'] = $discountQualificationType;
+
         return response()->json($lov);
     }
-
 }

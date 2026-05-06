@@ -2,8 +2,8 @@
 
 namespace Modules\Product\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Modules\Product\Database\Factories\SubcategoryFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,7 +25,7 @@ class Subcategory extends Model
         'category_id',
         'parent_id',
         'active',
-        'order'
+        'order',
     ];
 
     public function getFillable()
@@ -34,9 +34,13 @@ class Subcategory extends Model
     }
 
     public $type = 'subcategory';
+
     public $parentKey = 'parent_id';
+
     public $parentType = 'subcategory';
+
     public $parentKey1 = 'category_id';
+
     public $parentType1 = 'category';
     // public $childType = 'subcategory';
     // public $childType1 = 'product';
@@ -44,6 +48,7 @@ class Subcategory extends Model
     // public $childKey1 = 'subcategory_id';
 
     public $childType = 'product';
+
     public $childKey = 'subcategory_id';
 
     public function children()
@@ -51,18 +56,18 @@ class Subcategory extends Model
         return $this->hasMany(SubCategory::class, 'parent_id');
     }
 
- public function children1()
-{
-    return $this->hasMany(Product::class, 'subcategory_id', 'id')
-        ->whereNull('parent_id')
-        ->restrictByFranchise(); // سنستدعي سكوب قمنا بإنشائه
-}
+    public function children1()
+    {
+        return $this->hasMany(Product::class, 'subcategory_id', 'id')
+            ->whereNull('parent_id')
+            ->restrictByFranchise(); // سنستدعي سكوب قمنا بإنشائه
+    }
 
-public function products()
-{
-    return $this->hasMany(Product::class, 'subcategory_id', 'id')
-        ->restrictByFranchise(); // نفس السكوب هنا
-}
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'subcategory_id', 'id')
+            ->restrictByFranchise(); // نفس السكوب هنا
+    }
 
     public function productsForSale()
     {

@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-       public function up(): void
+    public function up(): void
     {
-          Schema::table('accounting_acc_trans_mappings', function (Blueprint $table) {
+        Schema::table('accounting_acc_trans_mappings', function (Blueprint $table) {
             $table->integer('is_manual')->nullable();
         });
 
@@ -22,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('accounting_acc_trans_mappings', function (Blueprint $table) {
-
-        });
+        Schema::table('accounting_acc_trans_mappings', function (Blueprint $table) {});
     }
 };

@@ -1,8 +1,6 @@
 <?php
 
-use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Support\Facades\Route;
-use Modules\Accounting\Http\Controllers\AccountingController;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
@@ -15,7 +13,6 @@ use Modules\Accounting\Http\Controllers\TreeAccountsController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-
 Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
@@ -24,13 +21,11 @@ Route::middleware([
     // Accounting Dashbord
     Route::get('accounting-dashboard', [AccountingDashboardController::class, 'index'])->name('accounting-dashboard');
 
-
     Route::middleware(['auth'])->group(function () {
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');
         Route::post('store-sub-account', [TreeAccountsController::class, 'storeSubAccount'])->name('store-sub-account');
-
 
         Route::get('create-default-accounts', [TreeAccountsController::class, 'createDefaultAccounts'])->name('create-default-accounts');
         Route::post('store-account', [TreeAccountsController::class, 'store'])->name('store-account');
@@ -40,8 +35,9 @@ Route::middleware([
         Route::get('ledger-export-pdf/{id}', [TreeAccountsController::class, 'ledgerExportPdf'])->name('ledger-export-pdf');
         Route::get('ledger-export-excel/{id}', [TreeAccountsController::class, 'ledgerExportExcel'])->name('ledger-export-excel');
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])->name('change-status-account');
+        Route::get('next-gl-code', [TreeAccountsController::class, 'nextGlCode'])->name('next-gl-code');
+        Route::post('delete-account', [TreeAccountsController::class, 'deleteAccount'])->name('delete-account');
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
-
 
         Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
         Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');
@@ -58,6 +54,7 @@ Route::middleware([
         Route::get('journal-entry-print/{id}', [JournalEntryController::class, 'print'])->name('journal-entry-print');
         Route::get('journal-entry-export-pdf/{id}', [JournalEntryController::class, 'exportPDF'])->name('journal-entry-export-pdf');
         Route::get('journal-entry-export-excel/{id}', [JournalEntryController::class, 'exportExcel'])->name('journal-entry-export-excel');
+        Route::get('journal-entry-attachment/{id}', [JournalEntryController::class, 'downloadAttachment'])->name('journal-entry-attachment');
 
         // Cost Center
         Route::get('cost-center-index', [CostCenterConrollerController::class, 'index'])->name('cost-center-index');
@@ -72,13 +69,15 @@ Route::middleware([
         Route::get('cost-center-export-pdf', [CostCenterConrollerController::class, 'exportPDF'])->name('cost-center-export-pdf');
         Route::get('cost-center-export-excel', [CostCenterConrollerController::class, 'exportExcel'])->name('cost-center-export-excel');
 
-
         Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
+        Route::get('payment-vouchers/form-data', [PaymentVouchersController::class, 'formData'])->name('payment-vouchers-form-data');
+        Route::put('payment-vouchers/{id}', [PaymentVouchersController::class, 'update'])->name('payment-vouchers-update');
         Route::post('payment-vouchers-store', [PaymentVouchersController::class, 'store'])->name('payment-vouchers-store');
 
         Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
+        Route::get('receipt-vouchers/form-data', [ReceiptVouchersController::class, 'formData'])->name('receipt-vouchers-form-data');
+        Route::put('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'update'])->name('receipt-vouchers-update');
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
-
 
         Route::get('accounting-reports', [AccountingReportsController::class, 'index'])->name('accounting-reports');
         Route::get('income-statement', [AccountingReportsController::class, 'incomeStatement'])->name('income-statement');
@@ -127,13 +126,18 @@ Route::middleware([
                 ->name('periodic-inventory-detail-export-excel');
             Route::get('periodic-inventory-export-pdf/{id}', [PeriodicInventoryController::class, 'exportPdf'])
                 ->name('periodic-inventory-export-pdf');
+            Route::post('periodic-inventory/{id}/approve', [PeriodicInventoryController::class, 'approve'])
+                ->whereNumber('id')
+                ->name('periodic-inventory-approve');
             Route::resource('periodic-inventory', PeriodicInventoryController::class)
-                ->except(['edit', 'update', 'destroy'])
+                ->except(['destroy'])
                 ->names([
                     'index' => 'periodic-inventory.index',
                     'create' => 'periodic-inventory.create',
                     'store' => 'periodic-inventory.store',
-                    'show' => 'periodic-inventory.show'
+                    'edit' => 'periodic-inventory.edit',
+                    'update' => 'periodic-inventory.update',
+                    'show' => 'periodic-inventory.show',
                 ]);
         });
         //
