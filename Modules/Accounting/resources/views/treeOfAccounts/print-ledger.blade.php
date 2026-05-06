@@ -130,9 +130,11 @@
             border: 1px solid #333;
             background-color: #e8e8e8;
             color: #000;
-            padding: 9px 6px;
+            padding: 10px 7px;
             text-align: center;
-            font-weight: bold;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0;
         }
 
         .table_component td {
