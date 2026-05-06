@@ -36,6 +36,7 @@ class StandaloneVoucherHelper
             'from_account' => $credit->accounting_account_id,
             'paid_amount' => $debit->amount,
             'pament_on' => self::formatDateInput($debit->operation_date),
+            'cost_center_id' => $debit->cost_center_id,
             'additionalNotes' => $debit->note ?? '',
         ];
     }
@@ -52,6 +53,7 @@ class StandaloneVoucherHelper
             'from_account' => $debit->accounting_account_id,
             'paid_amount' => $debit->amount,
             'pament_on' => self::formatDateInput($debit->operation_date),
+            'cost_center_id' => $debit->cost_center_id,
             'additionalNotes' => $debit->note ?? '',
         ];
     }

@@ -86,7 +86,7 @@
             $('#receipt-vouchers-form').attr('action', receiptStoreUrl);
             const form = document.getElementById('receipt-vouchers-form');
             if (form) form.reset();
-            $('#receipt-vouchers-Modal #from_account, #receipt-vouchers-Modal #cash_account').val(null).trigger('change');
+            $('#receipt-vouchers-Modal #from_account, #receipt-vouchers-Modal #cash_account, #receipt-vouchers-Modal #cost_center').val(null).trigger('change');
             $('#receipt_vouchers_title_text').text(receiptDefaultTitle);
         }
 
@@ -95,6 +95,7 @@
             $('#receipt-vouchers-Modal #cash_account').val(String(data.account_id)).trigger('change');
             $('#receipt-vouchers-Modal #transaction_date').val(data.pament_on);
             $('#receipt-vouchers-Modal #paid_amount').val(data.paid_amount);
+            $('#receipt-vouchers-Modal #cost_center').val(data.cost_center_id ? String(data.cost_center_id) : null).trigger('change');
             $('#receipt-vouchers-Modal #notice').val(data.additionalNotes || '');
         }
 
@@ -107,6 +108,11 @@
 
             $('#receipt-vouchers-Modal #from_account, #receipt-vouchers-Modal #cash_account').select2({
                 dropdownParent: $('#receipt-vouchers-Modal')
+            });
+            $('#receipt-vouchers-Modal #cost_center').select2({
+                dropdownParent: $('#receipt-vouchers-Modal'),
+                placeholder: @json(__('accounting::lang.cost_center')),
+                allowClear: true
             });
 
             $('.receipt-voucher-new-btn').on('click', function() {

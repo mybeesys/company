@@ -134,12 +134,17 @@ Route::middleware([
                 ->name('periodic-inventory-detail-export-excel');
             Route::get('periodic-inventory-export-pdf/{id}', [PeriodicInventoryController::class, 'exportPdf'])
                 ->name('periodic-inventory-export-pdf');
+            Route::post('periodic-inventory/{id}/approve', [PeriodicInventoryController::class, 'approve'])
+                ->whereNumber('id')
+                ->name('periodic-inventory-approve');
             Route::resource('periodic-inventory', PeriodicInventoryController::class)
-                ->except(['edit', 'update', 'destroy'])
+                ->except(['destroy'])
                 ->names([
                     'index' => 'periodic-inventory.index',
                     'create' => 'periodic-inventory.create',
                     'store' => 'periodic-inventory.store',
+                    'edit' => 'periodic-inventory.edit',
+                    'update' => 'periodic-inventory.update',
                     'show' => 'periodic-inventory.show'
                 ]);
         });

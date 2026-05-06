@@ -86,7 +86,7 @@
             $('#payment-vouchers-form').attr('action', paymentStoreUrl);
             const form = document.getElementById('payment-vouchers-form');
             if (form) form.reset();
-            $('#payment-vouchers-Modal #from_account, #payment-vouchers-Modal #cash_account').val(null).trigger('change');
+            $('#payment-vouchers-Modal #from_account, #payment-vouchers-Modal #cash_account, #payment-vouchers-Modal #cost_center').val(null).trigger('change');
             $('#payment_vouchers_title_text').text(paymentDefaultTitle);
         }
 
@@ -95,6 +95,7 @@
             $('#payment-vouchers-Modal #cash_account').val(String(data.account_id)).trigger('change');
             $('#payment-vouchers-Modal #transaction_date').val(data.pament_on);
             $('#payment-vouchers-Modal #paid_amount').val(data.paid_amount);
+            $('#payment-vouchers-Modal #cost_center').val(data.cost_center_id ? String(data.cost_center_id) : null).trigger('change');
             $('#payment-vouchers-Modal #notice').val(data.additionalNotes || '');
         }
 
@@ -107,6 +108,11 @@
 
             $('#payment-vouchers-Modal #from_account, #payment-vouchers-Modal #cash_account').select2({
                 dropdownParent: $('#payment-vouchers-Modal')
+            });
+            $('#payment-vouchers-Modal #cost_center').select2({
+                dropdownParent: $('#payment-vouchers-Modal'),
+                placeholder: @json(__('accounting::lang.cost_center')),
+                allowClear: true
             });
 
             $('.payment-voucher-new-btn').on('click', function() {

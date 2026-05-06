@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\StandaloneVoucherHelper;
 
 class ReceiptVouchersController extends Controller
@@ -33,8 +34,9 @@ class ReceiptVouchersController extends Controller
 
         $columns = AccountingAccountsTransaction::getReceiptsColumns();
         $accounts =  AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
 
-        return view('accounting::receipt-vouchers.index', compact('transactions', 'accounts', 'columns'));
+        return view('accounting::receipt-vouchers.index', compact('transactions', 'accounts', 'columns', 'cost_centers'));
 
     }
 
@@ -73,6 +75,7 @@ class ReceiptVouchersController extends Controller
             'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
             'paid_amount' => ['required', 'numeric', 'gt:0'],
             'pament_on' => ['required', 'date'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
             'additionalNotes' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -88,6 +91,7 @@ class ReceiptVouchersController extends Controller
                 'type' => 'debit',
                 'sub_type' => 'receipt_voucher',
                 'operation_date' => $validated['pament_on'],
+                'cost_center_id' => $validated['cost_center_id'] ?? null,
                 'created_by' => Auth::user()->id,
                 'note' => $note,
             ];
@@ -139,6 +143,7 @@ class ReceiptVouchersController extends Controller
             'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
             'paid_amount' => ['required', 'numeric', 'gt:0'],
             'pament_on' => ['required', 'date'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
             'additionalNotes' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -150,11 +155,13 @@ class ReceiptVouchersController extends Controller
             $note = $validated['additionalNotes'] ?? null;
             $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
             $date = $validated['pament_on'];
+            $costCenterId = $validated['cost_center_id'] ?? null;
 
             $debit->update([
                 'amount' => $amount,
                 'accounting_account_id' => (int) $validated['account_id'],
                 'operation_date' => $date,
+                'cost_center_id' => $costCenterId,
                 'note' => $note,
             ]);
 
@@ -162,6 +169,7 @@ class ReceiptVouchersController extends Controller
                 'amount' => $amount,
                 'accounting_account_id' => (int) $validated['from_account'],
                 'operation_date' => $date,
+                'cost_center_id' => $costCenterId,
                 'note' => $note,
             ]);
 

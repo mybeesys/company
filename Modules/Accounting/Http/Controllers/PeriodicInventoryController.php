@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use Mpdf\Mpdf;
 use Modules\Accounting\Exports\PeriodicInventoryExport;
@@ -24,6 +25,7 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Models\Setting;
 use Modules\Inventory\Models\ProductInventory;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Sales\Utils\SalesUtile;
 
 class PeriodicInventoryController extends Controller
@@ -156,9 +158,7 @@ class PeriodicInventoryController extends Controller
         $first_establishment = Establishment::first();
 
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
-            ->with(['unitTransfers' => function ($q) {
-                $q->whereNull('unit2')->with('units1');
-            }])
+            ->with(['unitTransfers'])
             ->join('product_inventories', function ($join) use ($first_establishment) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('product_inventories.establishment_id', $first_establishment->id)
@@ -173,7 +173,49 @@ class PeriodicInventoryController extends Controller
             'start_date' => $start_date,
             'count_date_default' => now()->format('Y-m-d'),
             'products' => $products,
-            'establishments' => $establishments
+            'establishments' => $establishments,
+            'mode' => 'create',
+        ]);
+    }
+
+    public function edit(int $id)
+    {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $inventory = PeriodicInventory::with(['items.product', 'establishment'])->findOrFail($id);
+        if ($inventory->status !== 'in_review') {
+            return redirect()->route('periodic-inventory.index')->with('error', app()->getLocale() === 'ar'
+                ? 'لا يمكن تعديل جرد معتمد.'
+                : 'Approved counts cannot be edited.');
+        }
+
+        $start_date = $inventory->start_date;
+        $establishments = Establishment::all();
+
+        $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
+            ->with(['unitTransfers'])
+            ->join('product_inventories', function ($join) use ($inventory) {
+                $join->on('product_inventories.product_id', '=', 'product_products.id')
+                    ->where('product_inventories.establishment_id', $inventory->establishment_id)
+                    ->whereNotNull('product_inventories.qty');
+            })
+            ->get();
+        $products->each(function (Product $p) {
+            $p->setAttribute('inventory_unit_label', $this->resolveProductInventoryUnitLabel($p));
+        });
+
+        $itemsByProduct = $inventory->items->keyBy('product_id');
+
+        return view('accounting::inventory.periodic.edit', [
+            'inventory' => $inventory,
+            'itemsByProduct' => $itemsByProduct,
+            'start_date' => $start_date,
+            'count_date_default' => $inventory->end_date,
+            'products' => $products,
+            'establishments' => $establishments,
+            'mode' => 'edit',
         ]);
     }
 
@@ -192,7 +234,8 @@ class PeriodicInventoryController extends Controller
         $countDate = (string) $request->input('count_date', $request->input('end_date'));
 
         $establishment_id = $request->establishment;
-        $data = $this->calculateInventoryValues($request, $countDate);
+        $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
+        $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate);
 
         $inventory = PeriodicInventory::create([
             'start_date' => $data['start_date'],
@@ -202,91 +245,216 @@ class PeriodicInventoryController extends Controller
             'closing_stock_value' => $data['closing_value'],
             'cogs' => $data['cogs'],
             'created_by' => Auth::user()->id,
-            'establishment_id' => $establishment_id
-        ]);
-            $ref_no =  SalesUtile::generateReferenceNumber('period');
-
-        $transaction =   Transaction::create([
-            'type' => 'period',
-            'due_date' => now(),
-            'transaction_date' => now(),
-            'created_by' => Auth::user()->id,
-            'ref_no' => $ref_no,
-            'status' => 'approved',
-            'notice' => app()->getLocale() === 'ar'
-                ? ('تسوية جرد مخزون بتاريخ ' . $inventory->end_date . ' (من ' . $inventory->start_date . ')')
-                : ('Inventory count settlement as of ' . $inventory->end_date . ' (period from ' . $inventory->start_date . ')'),
             'establishment_id' => $establishment_id,
-
         ]);
-        foreach ($request->items as $item) {
-            $product = Product::where('id', $item['product_id'])->leftJoin('product_inventories', function ($join) use ($establishment_id) {
-                $join->on('product_inventories.product_id', '=', 'product_products.id')
-                    ->where('establishment_id', '=', $establishment_id);
-            })->first();
-
-            if (! $product) {
-                continue;
-            }
-
-            $productModel = Product::with(['unitTransfers' => function ($q) {
-                $q->whereNull('unit2')->with('units1');
-            }])->find($item['product_id']);
-
-            $product->update([
-                'last_counted_quantity' => $item['physical_quantity'],
-                'last_counted_date' => now()
-            ]);
-
-            TransactionePurchasesLine::create([
-                'transaction_id' => $transaction->id,
-                'product_id' => $item['product_id'],
-                'qyt' => $item['physical_quantity'] - $product->qty,
-                'unit_price_before_discount' => $product->price,
-                'unit_price' => $product->price,
-            ]);
-
-
-            $inventory->items()->create([
-                'product_id' => $item['product_id'],
-                'unit_label' => $this->resolveProductInventoryUnitLabel($productModel),
-                'system_quantity' => $product->qty,
-                'physical_quantity' => $item['physical_quantity'],
-                'unit_cost' => $product->cost,
-                'variance' => $item['physical_quantity'] - $product->qty
-            ]);
+        if (Schema::hasColumn('periodic_inventories', 'status')) {
+            $inventory->status = 'in_review';
+            $inventory->save();
+        }
+        foreach ($normalizedItems as $item) {
+            $inventory->items()->create($item);
         }
 
-        $adjustmentEntry = $this->postInventoryAdjustments($inventory);
-        if ($adjustmentEntry) {
-            $inventory->update([
-                'notes' => 'تم اعتماد الجرد مع قيد تسوية رقم ' . ($adjustmentEntry->ref_no ?? $adjustmentEntry->id),
-            ]);
-        } else {
-            $inventory->update([
-                'notes' => 'تم اعتماد الجرد بدون قيد تسوية (فرق الجرد يساوي صفر).',
-            ]);
-        }
-
-        return redirect()->route('periodic-inventory.index')
-            ->with('success', 'تم تنفيذ الجرد بنجاح');
+        return redirect()->route('periodic-inventory.edit', ['periodic_inventory' => $inventory->id])
+            ->with('success', app()->getLocale() === 'ar' ? 'تم حفظ الجرد كـ قيد المراجعة.' : 'Saved as in-review.');
     }
 
-    protected function calculateInventoryValues(Request $request, string $countDate)
+    public function update(Request $request, int $id)
     {
-        $lastInventory = PeriodicInventory::latest()->first();
-        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $inventory = PeriodicInventory::with('items')->findOrFail($id);
+        if ($inventory->status !== 'in_review') {
+            return redirect()->route('periodic-inventory.index')->with('error', app()->getLocale() === 'ar'
+                ? 'لا يمكن تعديل جرد معتمد.'
+                : 'Approved counts cannot be edited.');
+        }
+
+        $request->validate([
+            'establishment' => 'required',
+            'count_date' => 'required|date',
+            'items' => 'required|array',
+        ]);
+
+        $countDate = (string) $request->input('count_date', $request->input('end_date'));
+        $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
+        $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate, $inventory);
+
+        DB::beginTransaction();
+        try {
+            $inventory->update([
+                'end_date' => $countDate,
+                'opening_stock_value' => $data['opening_value'],
+                'purchases_value' => $data['purchases_value'],
+                'closing_stock_value' => $data['closing_value'],
+                'cogs' => $data['cogs'],
+                'establishment_id' => $request->establishment,
+            ]);
+
+            $inventory->items()->delete();
+            foreach ($normalizedItems as $item) {
+                $inventory->items()->create($item);
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+        return redirect()->route('periodic-inventory.edit', ['periodic_inventory' => $inventory->id])
+            ->with('success', __('messages.updated_successfully'));
+    }
+
+    public function approve(int $id)
+    {
+        if ($guard = $this->ensurePeriodicInventoryEnabled()) {
+            return $guard;
+        }
+
+        $inventory = PeriodicInventory::with(['items', 'establishment'])->findOrFail($id);
+        if ($inventory->status !== 'in_review') {
+            return redirect()->route('periodic-inventory.index')->with('error', app()->getLocale() === 'ar'
+                ? 'هذا الجرد ليس قيد المراجعة.'
+                : 'This count is not in-review.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $ref_no = SalesUtile::generateReferenceNumber('period');
+            $transaction = Transaction::create([
+                'type' => 'period',
+                'due_date' => now(),
+                'transaction_date' => now(),
+                'created_by' => Auth::user()->id,
+                'ref_no' => $ref_no,
+                'status' => 'approved',
+                'notice' => app()->getLocale() === 'ar'
+                    ? ('تسوية جرد مخزون بتاريخ ' . $inventory->end_date . ' (من ' . $inventory->start_date . ')')
+                    : ('Inventory count settlement as of ' . $inventory->end_date . ' (period from ' . $inventory->start_date . ')'),
+                'establishment_id' => $inventory->establishment_id,
+            ]);
+
+            foreach ($inventory->items as $item) {
+                $product = Product::where('id', $item->product_id)->leftJoin('product_inventories', function ($join) use ($inventory) {
+                    $join->on('product_inventories.product_id', '=', 'product_products.id')
+                        ->where('establishment_id', '=', $inventory->establishment_id);
+                })->first();
+                if (! $product) {
+                    continue;
+                }
+
+                $product->update([
+                    'last_counted_quantity' => $item->physical_quantity,
+                    'last_counted_date' => now()
+                ]);
+
+                TransactionePurchasesLine::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $item->product_id,
+                    'qyt' => (float) $item->physical_quantity - (float) ($product->qty ?? 0),
+                    'unit_price_before_discount' => $product->price,
+                    'unit_price' => $product->price,
+                ]);
+            }
+
+            $adjustmentEntry = $this->postInventoryAdjustments($inventory);
+            if ($adjustmentEntry) {
+                $inventory->adjustment_entry_id = $adjustmentEntry->id;
+                $inventory->notes = 'تم اعتماد الجرد مع قيد تسوية رقم ' . ($adjustmentEntry->ref_no ?? $adjustmentEntry->id);
+            } else {
+                $inventory->notes = 'تم اعتماد الجرد بدون قيد تسوية (فرق الجرد يساوي صفر).';
+            }
+
+            $inventory->status = 'approved';
+            $inventory->approved_at = now();
+            $inventory->approved_by = Auth::id();
+            $inventory->save();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+        return redirect()->route('periodic-inventory.index')->with('success', app()->getLocale() === 'ar'
+            ? 'تم اعتماد الجرد بنجاح.'
+            : 'Inventory approved successfully.');
+    }
+
+    /**
+     * @param array $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizePeriodicInventoryItems(array $items): array
+    {
+        $out = [];
+        foreach ($items as $item) {
+            $productId = (int) ($item['product_id'] ?? 0);
+            if ($productId <= 0) {
+                continue;
+            }
+            $systemQtyBase = (float) ($item['system_quantity'] ?? 0);
+            $physicalInput = (float) ($item['physical_quantity'] ?? 0);
+            $unitCost = (float) ($item['unit_cost'] ?? 0);
+
+            $utId = isset($item['unit_transfer_id']) && $item['unit_transfer_id'] !== '' ? (int) $item['unit_transfer_id'] : null;
+            $factor = 1.0;
+            $unitLabel = null;
+            if ($utId) {
+                $ut = UnitTransfer::query()->find($utId);
+                if ($ut) {
+                    $unitLabel = (string) ($ut->unit1 ?? null);
+                    $t = (float) ($ut->transfer ?? 0);
+                    $factor = $t > 0 ? $t : 1.0;
+                }
+            }
+
+            $physicalBase = $physicalInput * $factor;
+            $varianceBase = $physicalBase - $systemQtyBase;
+
+            $out[] = [
+                'product_id' => $productId,
+                'unit_label' => $unitLabel,
+                'unit_transfer_id' => $utId,
+                'unit_factor' => $factor,
+                'physical_quantity_input' => $physicalInput,
+                'system_quantity' => $systemQtyBase,
+                'physical_quantity' => $physicalBase,
+                'unit_cost' => $unitCost,
+                'variance' => $varianceBase,
+            ];
+        }
+
+        return $out;
+    }
+
+    private function calculateInventoryValuesFromItems(array $normalizedItems, string $countDate, ?PeriodicInventory $currentInventory = null): array
+    {
+        if ($currentInventory) {
+            $start_date = (string) $currentInventory->start_date;
+            $opening = (float) ($currentInventory->opening_stock_value ?? 0);
+        } else {
+            $lastInventory = PeriodicInventory::latest()->first();
+            $start_date = $lastInventory ? (string) $lastInventory->end_date : now()->subYear()->format('Y-m-d');
+            $opening = $lastInventory ? (float) $lastInventory->closing_stock_value : 0.0;
+        }
+
         $purchases = $this->getPurchasesBetween($start_date, $countDate);
+
+        $closing = $this->calculateClosingValue($normalizedItems);
 
         return [
             'start_date' => $start_date,
-            'opening_value' => $lastInventory ? $lastInventory->closing_stock_value : 0,
+            'opening_value' => $opening,
             'purchases_value' => $purchases,
-            'closing_value' => $this->calculateClosingValue($request->items),
+            'closing_value' => $closing,
             'cogs' => $this->calculateCOGS(
-                $lastInventory ? $lastInventory->closing_stock_value : 0,
+                $opening,
                 $purchases,
-                $this->calculateClosingValue($request->items)
+                $closing
             )
         ];
     }
@@ -297,18 +465,14 @@ class PeriodicInventoryController extends Controller
             return null;
         }
         $product->loadMissing(['unitTransfers' => function ($q) {
-            $q->whereNull('unit2')->with('units1');
+            $q->whereNull('unit2');
         }]);
         $ut = $product->unitTransfers->firstWhere('unit2', null) ?? $product->unitTransfers->first();
-        if (! $ut || ! $ut->units1) {
+        if (! $ut) {
             return '—';
         }
-        $u = $ut->units1;
-        if (app()->getLocale() === 'ar') {
-            return (string) ($u->name_ar ?: $u->name_en ?: '—');
-        }
-
-        return (string) ($u->name_en ?: $u->name_ar ?: '—');
+        // The unit label is stored directly on product_unit_transfer.unit1 (string).
+        return (string) ($ut->unit1 ?: '—');
     }
 
     protected function postInventoryAdjustments($inventory)
@@ -426,10 +590,12 @@ class PeriodicInventoryController extends Controller
         $total = 0;
 
         foreach ($items as $item) {
-            $product = Product::find($item['product_id']);
-            if ($product) {
-                $total += $item['physical_quantity'] * $product->cost;
+            $unitCost = isset($item['unit_cost']) ? (float) $item['unit_cost'] : null;
+            if ($unitCost === null) {
+                $product = Product::find($item['product_id']);
+                $unitCost = $product ? (float) $product->cost : 0.0;
             }
+            $total += ((float) ($item['physical_quantity'] ?? 0)) * $unitCost;
         }
 
         return $total;
@@ -449,9 +615,7 @@ class PeriodicInventoryController extends Controller
         }
 
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
-            ->with(['unitTransfers' => function ($q) {
-                $q->whereNull('unit2')->with('units1');
-            }])
+            ->with(['unitTransfers'])
             ->join('product_inventories', function ($join) use ($establishmentId) {
                 $join->on('product_inventories.product_id', '=', 'product_products.id')
                     ->where('product_inventories.establishment_id', $establishmentId)
