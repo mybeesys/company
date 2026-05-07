@@ -551,7 +551,7 @@ class PeriodicInventoryController extends Controller
                         'accounting_account_id' => $entry['account_id'],
                         'amount' => $entry['amount'],
                         'type' => $entry['type'],
-                        'additional_notes' => $entry['notes'],
+                        'note' => $entry['notes'],
                         'created_by' => Auth::user()->id,
                         'operation_date' => now(),
                         'sub_type' => 'inventory_adjustment',

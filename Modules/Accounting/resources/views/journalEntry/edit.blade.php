@@ -99,59 +99,43 @@
             </div>
         </div>
     </div>
-    <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-export-pdf mx-2"
-        style="width: 10rem;padding: 5px;">@lang('general.export_as_pdf')</a>
-    <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}" class="btn btn-export-excel mx-2"
-        style="width: 10rem;padding: 5px;">@lang('general.export_as_excel')</a>
+    <div class="container mt-2">
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url("/journal-entry-export-pdf/{$acc_trans_mapping->id}") }}" class="btn btn-export-pdf"
+                style="width: 10rem;padding: 5px;">@lang('general.export_as_pdf')</a>
+            <a href="{{ url("/journal-entry-export-excel/{$acc_trans_mapping->id}") }}" class="btn btn-export-excel"
+                style="width: 10rem;padding: 5px;">@lang('general.export_as_excel')</a>
+        </div>
+    </div>
 
     <div class="separator d-flex flex-center my-5">
 
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
     @if ($duplication)
-        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store', $acc_trans_mapping->id) }}" enctype="multipart/form-data">
+        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data">
         @else
             <form id="journalEntryForm" method="POST"
                 action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}" enctype="multipart/form-data">
     @endif
     @csrf
 
-    <div class="row row-cols-lg-12 g-10" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
-        <div class="col-4">
+    <div class="row g-10" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+        <div class="col-lg-6">
             <div class="fv-row mb-9 fv-plugins-icon-container fv-plugins-bootstrap5-row-valid">
 
                 <label class="fs-6 fw-semibold mb-2 required">@lang('accounting::lang.journalEntry_date')</label>
 
                 <input class="form-control form-control-solid required flatpickr-input" name="journalEntry_date" required
-                    value="{{ $acc_trans_mapping->operation_date }}" placeholder="@lang('accounting::lang.Pick_journalEntry_date')"
+                    value="{{ \Carbon\Carbon::parse($acc_trans_mapping->operation_date)->format('Y-m-d') }}" placeholder="@lang('accounting::lang.Pick_journalEntry_date')"
                     id="kt_calendar_datepicker_start_date" type="text" data-gtm-form-interact-field-id="1">
 
                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
             </div>
         </div>
-        <div class="col-4" data-kt-calendar="datepicker">
-            <div class="fv-row mb-9">
-
-                <label class="fs-6 fw-semibold mb-2">@lang('accounting::lang.ref_number')<span
-                        class="fw-semibold mx-2 text-muted fs-9">@lang('accounting::lang.ref_number_note')</span> </label>
-
-                @if ($duplication)
-                    <input class="form-control form-control-solid flatpickr-input" name="ref_number"
-                        id="kt_calendar_datepicker_start_time" value="" type="text"
-                        data-gtm-form-interact-field-id="3">
-                @else
-                    <input class="form-control form-control-solid flatpickr-input" name="ref_number"
-                        id="kt_calendar_datepicker_start_time" value="{{ $acc_trans_mapping->ref_no }}" type="text"
-                        data-gtm-form-interact-field-id="3">
-                @endif
-
-
-            </div>
-        </div>
-
-        <div class="col-4">
+        <div class="col-lg-6">
             <div class="d-flex flex-column mb-8" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
-                <label class="fs-6 fw-semibold mb-2">@lang('accounting::lang.additionalNotes')</label>
+                <label class="fs-6 fw-semibold mb-2">@lang('purchases::lang.description')</label>
 
                 <textarea class="form-control form-control-solid" rows="1" name="additionalNotes">{{ $acc_trans_mapping->note }}</textarea>
             </div>
@@ -207,7 +191,7 @@
                             <th class="min-w-80px cost-center-column" style="display:none">@lang('accounting::lang.cost_center')</th>
                             <th class="min-w-125px">@lang('accounting::lang.debit')</th>
                             <th class="min-w-125px">@lang('accounting::lang.credit')</th>
-                            <th class="min-w-200px">@lang('accounting::lang.additionalNotes')</th>
+                            <th class="min-w-200px">@lang('accounting::lang.ledger_narration')</th>
                             <th class="min-w-25px"></th>
                         </tr>
                     </thead>
@@ -355,18 +339,28 @@
 
     <input type="hidden" id="JournalEntries" name="JournalEntries" value="">
 
-    <div class="my-7  flex-center" style="display: flex">
-        <button type="submit" data-submit ="save" class="btn btn-primary mx-2"
-            style="width: 12rem;">@lang('messages.save')</button>
-        <button type="submit" data-submit ="print" class="btn btn-primary mx-2"
-            style="width: 12rem;">@lang('messages.save&print')</button>
-      @if ($acc_trans_mapping->is_manual)
-   <a href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}" data-submit ="print"
-            class="btn btn-primary mx-2" style="width: 12rem;">@lang('accounting::fields.duplication')</a>
+    <input type="hidden" id="submit_type" name="submit_type" value="save">
 
-      @endif
-
-
+    <div class="my-7 d-flex justify-content-end">
+        <div class="btn-group">
+            <button type="submit" id="primarySubmitBtn" class="btn btn-primary">
+                @lang('messages.save')
+            </button>
+            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown" aria-expanded="false"></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item journal-submit-option" href="#" data-submit="save">@lang('messages.save')</a></li>
+                <li><a class="dropdown-item journal-submit-option" href="#" data-submit="print">@lang('messages.save&print')</a></li>
+                @if ($acc_trans_mapping->is_manual)
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ url("/journal-entry-duplication/{$acc_trans_mapping->id}") }}">
+                            @lang('accounting::fields.duplication')
+                        </a>
+                    </li>
+                @endif
+            </ul>
+        </div>
     </div>
     </form>
     @include('accounting::journalEntry.create-account', [
@@ -380,11 +374,8 @@
 
     <script>
         flatpickr("#kt_calendar_datepicker_start_date", {
-            enableTime: true,
-            dateFormat: "Y-m-d H:i",
-            time_24hr: true,
-            defaultHour: 12,
-            defaultMinute: 0
+            enableTime: false,
+            dateFormat: "Y-m-d"
         });
 
         $(document).on('keydown', function(event) {
@@ -724,16 +715,24 @@
             return journalEntries;
         }
 
-        let submit_type = '';
+        const submitLabelByType = {
+            save: @json(__('messages.save')),
+            print: @json(__('messages.save&print')),
+        };
 
-        $(document).on('click', 'button[type="submit"]', function() {
-            submit_type = $(this).data('submit');
-
+        $(document).on('click', '.journal-submit-option', function(e) {
+            e.preventDefault();
+            const t = $(this).data('submit');
+            if (!t) return;
+            $('#submit_type').val(t);
+            $('#primarySubmitBtn').text(submitLabelByType[t] || submitLabelByType.save);
         });
 
         $('#journalEntryForm').on('submit', function(event) {
             event.preventDefault();
-            if (totalDebit != totalCredit || (totalDebit == 0 && totalCredit == 0)) {
+            const tolerance = 0.0001;
+            const diff = Math.abs((totalDebit || 0) - (totalCredit || 0));
+            if (diff > tolerance || (totalDebit == 0 && totalCredit == 0)) {
                 Swal.fire({
                     title: '@lang('accounting::lang.Error in the process')',
                     text: "@lang('accounting::lang.The journal entry is unbalanced with a difference between debit and credit.')",
@@ -742,12 +741,6 @@
             } else {
                 let journalEntriesData = JSON.stringify(getJournalEntries());
                 $('#JournalEntries').val(journalEntriesData);
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'submit_type',
-                    value: submit_type
-                }).appendTo('#journalEntryForm');
-
                 this.submit();
             }
 

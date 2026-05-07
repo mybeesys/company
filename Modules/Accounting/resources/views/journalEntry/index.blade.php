@@ -25,7 +25,7 @@
 @stop
 @section('content')
 
-    <div class="row g-3 align-items-center">
+    <div class="row g-3 align-items-end">
 
         <div class="col-md-3">
             <label>{{ __('accounting::lang.from_date') }}</label>
@@ -47,18 +47,13 @@
             </select>
         </div>
 
-        <div class="col-md-3">
-            <label>{{ __('accounting::lang.entry_source') }}</label>
-            <select id="is_manual_filter" class="form-select" data-control="select2">
-                <option value="">{{ __('accounting::lang.all') }}</option>
-                <option value="1">{{ __('accounting::lang.manual') }}</option>
-                <option value="0">{{ __('accounting::lang.automatic') }}</option>
-            </select>
-        </div>
-
-        <div class="col-md-3 my-3">
-            <button type="button" id="filter_button" class="btn btn-primary">{{ __('accounting::lang.filter') }}</button>
-            <button type="button" id="reset_button" class="btn btn-light">{{ __('accounting::lang.reset') }}</button>
+        <div class="col-md-3 d-flex justify-content-end gap-2">
+            <button type="button" id="filter_button" class="btn btn-primary">
+                {{ __('accounting::lang.filter') }}
+            </button>
+            <button type="button" id="reset_button" class="btn btn-light">
+                {{ __('accounting::lang.reset') }}
+            </button>
         </div>
     </div>
     <div class="card card-flush">
@@ -67,9 +62,6 @@
                 <x-slot:filters>
 
                 </x-slot:filters>
-                <x-slot:export>
-                    <x-tables.export-menu id="journalEntry" />
-                </x-slot:export>
             </x-tables.table-header>
         </x-cards.card-header>
 
@@ -125,22 +117,18 @@
             $('#filter_button').on('click', function() {
                 const from_date = $('#from_date').val();
                 const to_date = $('#to_date').val();
-                const type = $('#type_filter').val();
                 const created_by = $('#created_by_filter').val();
-                const is_manual = $('#is_manual_filter').val();
 
                 dataTable.ajax.url(`{{ route('journal-entry-index') }}?` + $.param({
                     from_date,
                     to_date,
-                    type,
-                    created_by,
-                    is_manual
+                    created_by
                 })).load();
             });
 
             $('#reset_button').on('click', function() {
                 $('#from_date, #to_date').val('');
-                $('#created_by_filter, #is_manual_filter').val('').trigger('change');
+                $('#created_by_filter').val('').trigger('change');
                 dataTable.ajax.url(`{{ route('journal-entry-index') }}`).load();
             });
         }

@@ -142,7 +142,7 @@ class JournalEntryController extends Controller
                     'amount' => $entry['amount'],
                     'type' => $entry['type'],
                     'cost_center_id' => $entry['cost_center_id'],
-                    'additional_notes' => $entry['notes'],
+                    'note' => $entry['notes'],
                     'created_by' => $user_id,
                     'operation_date' => $acc_trans_mapping->operation_date,
                     'sub_type' => 'journal_entry',
@@ -251,10 +251,21 @@ class JournalEntryController extends Controller
         $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
-        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
-        $acc_trans_mappings = AccountingAccTransMapping::all();
+        $previous = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '<', $id)
+            ->orderBy('id', 'desc')
+            ->first();
+        $acc_trans_mappings = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+        $next = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '>', $id)
+            ->orderBy('id', 'asc')
+            ->first();
 
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
@@ -270,10 +281,21 @@ class JournalEntryController extends Controller
         $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
-        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
-        $acc_trans_mappings = AccountingAccTransMapping::all();
+        $previous = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '<', $id)
+            ->orderBy('id', 'desc')
+            ->first();
+        $acc_trans_mappings = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+        $next = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '>', $id)
+            ->orderBy('id', 'asc')
+            ->first();
 
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
@@ -289,10 +311,21 @@ class JournalEntryController extends Controller
         $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
         $acc_trans_mapping = AccountingAccTransMapping::with('transactions')->find($id);
-        $acc_trans_mappings = AccountingAccTransMapping::all();
-        $previous = AccountingAccTransMapping::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        $acc_trans_mappings = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->orderBy('id', 'desc')
+            ->get();
+        $previous = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '<', $id)
+            ->orderBy('id', 'desc')
+            ->first();
 
-        $next = AccountingAccTransMapping::where('id', '>', $id)->orderBy('id', 'asc')->first();
+        $next = AccountingAccTransMapping::where('type', 'journal_entry')
+            ->where('is_manual', 1)
+            ->where('id', '>', $id)
+            ->orderBy('id', 'asc')
+            ->first();
 
         $duplication = 1;
         $account_main_types = AccountingUtil::account_type();
@@ -334,17 +367,17 @@ class JournalEntryController extends Controller
 
             $user_id = Auth::user()->id;
 
-            $ref_number = $request->get('ref_number');
-            if (empty($ref_number)) {
-
-                $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
-            }
-
             $acc_trans_mapping = AccountingAccTransMapping::find($id);
             if (! $acc_trans_mapping) {
                 return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
             }
-            if (! empty($ref_number) && AccountingAccTransMapping::where('ref_no', $ref_number)->where('id', '<>', $acc_trans_mapping->id)->exists()) {
+
+            // ref_no is auto-generated; keep existing unless user explicitly provides one.
+            $ref_number = (string) $request->get('ref_number');
+            $ref_number = trim($ref_number);
+            if ($ref_number === '') {
+                $ref_number = (string) $acc_trans_mapping->ref_no;
+            } elseif (AccountingAccTransMapping::where('ref_no', $ref_number)->where('id', '<>', $acc_trans_mapping->id)->exists()) {
                 return redirect()->back()->with('error', __('messages.ref_number already exists'));
             }
             if ($request->hasFile('attachment')) {
@@ -375,7 +408,7 @@ class JournalEntryController extends Controller
                     'amount' => $entry['amount'],
                     'type' => $entry['type'],
                     'cost_center_id' => $entry['cost_center_id'],
-                    'additional_notes' => $entry['notes'],
+                    'note' => $entry['notes'],
                     'created_by' => $user_id,
                     'operation_date' => $acc_trans_mapping->operation_date,
                     'sub_type' => 'journal_entry',
@@ -389,7 +422,7 @@ class JournalEntryController extends Controller
 
             DB::commit();
             if ($request->submit_type == 'save') {
-                return redirect()->route('journal-entry-index')->with('success', __('messages.updated_successfully'));
+                return redirect()->back()->with('success', __('messages.updated_successfully'));
             }
 
             if ($request->submit_type == 'print') {
