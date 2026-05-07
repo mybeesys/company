@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('menuItemLang.customer_receipts'))
+@section('title', __('menuItemLang.receipt_vouchers'))
 @section('css')
     <style>
         .dropend .dropdown-toggle::after {
@@ -45,7 +45,7 @@
                 <x-slot:export>
                     <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px receipt-voucher-new-btn" data-bs-toggle="modal"
                         data-bs-target="#receipt-vouchers-Modal">
-                        @lang('sales::general.add_receipts')
+                        {{ app()->getLocale() == 'ar' ? 'إضافة سند قبض' : 'Add receipt voucher' }}
                     </a>
                     <x-tables.export-menu id="sell" />
 
@@ -61,6 +61,7 @@
 
 
     @include('accounting::receipt-vouchers.receipt-vouchers-Modal')
+    @include('accounting::vouchers.show-modal')
 
 
 
@@ -77,6 +78,7 @@
         const receiptStoreUrl = '{{ route('receipt-vouchers-store') }}';
         const receiptUpdateBase = '{{ url('receipt-vouchers') }}';
         const receiptFormDataUrl = '{{ route('receipt-vouchers-form-data') }}';
+        const receiptDeleteBase = '{{ url('receipt-vouchers') }}';
         const receiptDefaultTitle = @json(__('menuItemLang.receipt_vouchers'));
         const receiptEditTitle = @json(__('employee::fields.edit') . ' — ' . __('menuItemLang.receipt_vouchers'));
         const receiptDupTitle = @json(__('accounting::fields.duplication') . ' — ' . __('menuItemLang.receipt_vouchers'));
@@ -137,6 +139,38 @@
                     });
             });
 
+            $(document).on('click', '.receipt-voucher-delete', function(e) {
+                e.preventDefault();
+                const id = $(this).data('line-id');
+                const SwalApi = (typeof window.Swal !== 'undefined' && window.Swal) ? window.Swal :
+                    (typeof window.Sweetalert2 !== 'undefined' ? window.Sweetalert2 : null);
+                const go = () => {
+                    $.ajax({
+                        url: receiptDeleteBase + '/' + id,
+                        type: 'POST',
+                        data: { _method: 'DELETE', _token: @json(csrf_token()) },
+                    }).done(function() {
+                        dataTable.ajax.reload(null, false);
+                    }).fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        alert(j.message || xhr.statusText);
+                    });
+                };
+                if (SwalApi && SwalApi.fire) {
+                    SwalApi.fire({
+                        icon: 'warning',
+                        title: @json(__('messages.are_you_sure')),
+                        text: @json(__('accounting::lang.voucher_delete_confirm')),
+                        showCancelButton: true,
+                        confirmButtonText: @json(__('messages.delete')),
+                        cancelButtonText: @json(__('messages.cancel')),
+                        reverseButtons: {{ app()->getLocale() === 'ar' ? 'true' : 'false' }}
+                    }).then((r) => { if (r.isConfirmed) go(); });
+                } else if (confirm(@json(__('accounting::lang.voucher_delete_confirm')))) {
+                    go();
+                }
+            });
+
             $(document).on('click', '.receipt-voucher-duplicate', function(e) {
                 e.preventDefault();
                 const id = $(this).data('line-id');
@@ -151,6 +185,27 @@
                         const j = xhr.responseJSON || {};
                         const msg = j.message || (j.errors && j.errors.id && j.errors.id[0]) || xhr.statusText;
                         alert(msg);
+                    });
+            });
+
+            $(document).on('click', '.voucher-show-btn', function(e) {
+                e.preventDefault();
+                const url = $(this).data('voucher-url');
+                const $modal = $('#voucher-show-modal');
+                const $body = $('#voucher-show-modal-body');
+                const $title = $('#voucher-show-modal-title');
+                $title.text(@json(__('accounting::lang.voucher_show')));
+                $body.html('<div class="text-muted">...</div>');
+                $modal.modal('show');
+
+                $.getJSON(url)
+                    .done(function(resp) {
+                        if (resp && resp.title) $title.text(resp.title);
+                        $body.html(resp && resp.html ? resp.html : '<div class="text-muted">—</div>');
+                    })
+                    .fail(function(xhr) {
+                        const j = xhr.responseJSON || {};
+                        $body.html('<div class="text-danger">' + (j.message || xhr.statusText) + '</div>');
                     });
             });
 

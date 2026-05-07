@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'tax_search' => 'البحث عن ضريبة',
-    'add_tax' => 'إضافة ضريبة',
-    'edit_tax' => 'تعديل ضريبة',
-    'Tax invoice' => 'فاتورة ضريبية',
+    'tax_search' => 'البحث عن VAT',
+    'add_tax' => 'إضافة VAT',
+    'edit_tax' => 'تعديل VAT',
+    'Tax invoice' => 'فاتورة VAT',
     'payment_methods_search' => 'البحث عن طريقة دفع',
     'add_payment_methods' => 'إضافة طريقة دفع',
     'edit_payment_methods' => 'تعديل طريقة دفع',

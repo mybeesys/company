@@ -7,7 +7,7 @@ return [
     'mobile_number' => 'رقم الجوال',
     'email' => 'البريد الالكتروني',
     'commercial_register' => 'السجل التجاري',
-    'tax_number' => 'الرقم الضريبي',
+    'tax_number' => 'رقم VAT',
     'status' => 'الحالة',
     'phone_number' => 'رقم الهاتف',
     'supplier_name' => 'اسم المورد',

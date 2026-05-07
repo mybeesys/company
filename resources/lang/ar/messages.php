@@ -48,5 +48,6 @@ return [
 
     'Added successfully, but the customer exceeded' => 'تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.',
     'print' => 'طباعة',
+    'are_you_sure' => 'هل أنت متأكد؟',
 
 ];

@@ -47,5 +47,6 @@ return [
 
     'Added successfully, but the customer exceeded' => 'Added successfully, but the customer exceeded the credit limit.',
     'print' => 'Print',
+    'are_you_sure' => 'Are you sure?',
 
 ];

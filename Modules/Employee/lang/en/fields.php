@@ -42,7 +42,7 @@ return [
     'new_password' => 'New password',
     'main_info' => 'Main info',
     'ceo_name' => 'Ceo name',
-    'tax_name' => 'Tax name',
+    'tax_name' => 'VAT name',
     'logo' => 'Logo',
     'zip_code' => 'Zip code',
     'national_address' => 'National address',

@@ -23,7 +23,7 @@ return [
     'latest_products' => 'المنتجات المضافة حديثًا',
     'product_name_ar' => 'الاسم العربي للمنتج',
     'product_name_en' => 'الاسم الأجنبي للمنتج',
-    'price' => 'سعر البيع شامل الضريبة ',
+    'price' => 'سعر البيع شامل VAT',
     'date_added' => 'تاريخ الإضافة',
     'no_products' => 'لا توجد منتجات مضافة حاليًا.',
     'warehouse_dashboard' => 'لوحة تحكم المستودع',

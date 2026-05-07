@@ -71,12 +71,20 @@ Route::middleware([
 
         Route::get('payment-vouchers', [PaymentVouchersController::class, 'index'])->name('payment-vouchers');
         Route::get('payment-vouchers/form-data', [PaymentVouchersController::class, 'formData'])->name('payment-vouchers-form-data');
+        Route::get('payment-vouchers/{id}', [PaymentVouchersController::class, 'show'])->whereNumber('id')->name('payment-vouchers-show');
+        Route::get('payment-vouchers/{id}/modal', [PaymentVouchersController::class, 'modal'])->whereNumber('id')->name('payment-vouchers-modal');
+        Route::get('payment-vouchers-export-pdf/{id}', [PaymentVouchersController::class, 'exportPDF'])->whereNumber('id')->name('payment-vouchers-export-pdf');
         Route::put('payment-vouchers/{id}', [PaymentVouchersController::class, 'update'])->name('payment-vouchers-update');
+        Route::delete('payment-vouchers/{id}', [PaymentVouchersController::class, 'destroy'])->whereNumber('id')->name('payment-vouchers-destroy');
         Route::post('payment-vouchers-store', [PaymentVouchersController::class, 'store'])->name('payment-vouchers-store');
 
         Route::get('receipt-vouchers', [ReceiptVouchersController::class, 'index'])->name('receipt-vouchers');
         Route::get('receipt-vouchers/form-data', [ReceiptVouchersController::class, 'formData'])->name('receipt-vouchers-form-data');
+        Route::get('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'show'])->whereNumber('id')->name('receipt-vouchers-show');
+        Route::get('receipt-vouchers/{id}/modal', [ReceiptVouchersController::class, 'modal'])->whereNumber('id')->name('receipt-vouchers-modal');
+        Route::get('receipt-vouchers-export-pdf/{id}', [ReceiptVouchersController::class, 'exportPDF'])->whereNumber('id')->name('receipt-vouchers-export-pdf');
         Route::put('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'update'])->name('receipt-vouchers-update');
+        Route::delete('receipt-vouchers/{id}', [ReceiptVouchersController::class, 'destroy'])->whereNumber('id')->name('receipt-vouchers-destroy');
         Route::post('receipt-vouchers-store', [ReceiptVouchersController::class, 'store'])->name('receipt-vouchers-store');
 
         Route::get('accounting-reports', [AccountingReportsController::class, 'index'])->name('accounting-reports');

@@ -7,7 +7,7 @@ return [
     'mobile_number' => 'Mobile Number',
     'email' => 'Email',
     'commercial_register' => 'Commercial Register',
-    'tax_number' => 'Tax Number',
+    'tax_number' => 'VAT Number',
     'status' => 'Status',
     'phone_number' => 'Phone Number',
     'organization_name' => 'Organization Name',
