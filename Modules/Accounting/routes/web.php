@@ -24,6 +24,9 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
+        Route::get('tree-of-accounts/import', [TreeAccountsController::class, 'importPage'])->name('tree-of-accounts-import');
+        Route::get('tree-of-accounts/import/template', [TreeAccountsController::class, 'downloadImportTemplate'])->name('tree-of-accounts-import-template');
+        Route::post('tree-of-accounts/import', [TreeAccountsController::class, 'importFromExcel'])->name('tree-of-accounts-import-store');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');
         Route::post('store-sub-account', [TreeAccountsController::class, 'storeSubAccount'])->name('store-sub-account');
 

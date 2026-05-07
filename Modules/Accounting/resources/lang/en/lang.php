@@ -3,6 +3,10 @@
 return [
     'tree_of_accounts' => 'Tree of accounts',
     'import_tree_of_accounts' => 'Import tree of accounts',
+    'import_tree_accounts_duplicate_gl_code' => 'Duplicate GL codes found in file: :codes',
+    'import_tree_accounts_gl_code_exists' => 'Some GL codes already exist: :codes',
+    'import_tree_accounts_parent_not_found' => 'Parent GL code not found for :gl_code (parent: :parent_gl_code)',
+    'import_tree_accounts_success' => 'Tree of accounts imported successfully.',
     'no_accounts' => 'You currently have no accounts.',
     'create_suggestion_tree_of_accounts' => 'Would you like to create virtual accounts? You can modify or delete these accounts later after creating them.',
     'create_defulte_accounts' => 'Create default accounts',

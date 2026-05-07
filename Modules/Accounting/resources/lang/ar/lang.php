@@ -3,6 +3,10 @@
 return [
     'tree_of_accounts' => 'شجرة الحسابات',
     'import_tree_of_accounts' => 'استيراد شجرة الحسابات',
+    'import_tree_accounts_duplicate_gl_code' => 'يوجد تكرار في رقم الحساب داخل الملف: :codes',
+    'import_tree_accounts_gl_code_exists' => 'بعض أرقام الحسابات موجودة مسبقاً: :codes',
+    'import_tree_accounts_parent_not_found' => 'لم يتم العثور على رقم حساب الأب للحساب :gl_code (الأب: :parent_gl_code)',
+    'import_tree_accounts_success' => 'تم استيراد شجرة الحسابات بنجاح.',
     'no_accounts' => 'لا توجد لديك أي حسابات حالياً.',
     'create_suggestion_tree_of_accounts' => 'هل ترغب في إنشاء حسابات افتراضية؟ يمكنك تعديل أو حذف هذه الحسابات لاحقاً بعد إنشائها.',
     'create_defulte_accounts' => 'إنشاء حسابات افتراضية',

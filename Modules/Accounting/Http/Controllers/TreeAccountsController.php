@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\LedgerExport;
+use Modules\Accounting\classes\TreeAccountsExcelImport;
+use Modules\Accounting\classes\TreeAccountsTemplateExport;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
@@ -218,6 +220,113 @@ class TreeAccountsController extends Controller
         $account_category = AccountingUtil::account_category();
 
         return view('accounting::treeOfAccounts.index', compact('accounts', 'account_category', 'account_main_types', 'account_exist', 'account_types', 'account_GLC', 'account_sub_types'));
+    }
+
+    public function importPage()
+    {
+        return view('accounting::treeOfAccounts.import');
+    }
+
+    public function downloadImportTemplate()
+    {
+        return Excel::download(new TreeAccountsTemplateExport, 'tree-of-accounts-template.xlsx');
+    }
+
+    public function importFromExcel(Request $request)
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
+        ]);
+
+        $import = new TreeAccountsExcelImport;
+        Excel::import($import, $validated['file']);
+        $rows = $import->rows;
+
+        if ($rows->isEmpty()) {
+            return redirect()->back()->with('error', __('messages.no_data_found'));
+        }
+
+        $normalized = $rows->map(function ($row) {
+            $gl = trim((string) ($row['gl_code'] ?? ''));
+            $parentGl = trim((string) ($row['parent_gl_code'] ?? ''));
+
+            return [
+                'gl_code' => $gl,
+                'name_ar' => trim((string) ($row['name_ar'] ?? '')),
+                'name_en' => trim((string) ($row['name_en'] ?? '')),
+                'account_primary_type' => trim((string) ($row['account_primary_type'] ?? '')),
+                'parent_gl_code' => ($parentGl === '' ? null : $parentGl),
+                'status' => trim((string) ($row['status'] ?? 'active')) ?: 'active',
+            ];
+        })->filter(fn ($r) => $r['gl_code'] !== '');
+
+        if ($normalized->isEmpty()) {
+            return redirect()->back()->with('error', __('messages.no_data_found'));
+        }
+
+        $fileDup = $normalized->groupBy('gl_code')->filter(fn ($g) => $g->count() > 1)->keys()->values();
+        if ($fileDup->isNotEmpty()) {
+            return redirect()->back()->with('error', __('accounting::lang.import_tree_accounts_duplicate_gl_code', [
+                'codes' => $fileDup->implode(', '),
+            ]));
+        }
+
+        $existing = AccountingAccount::query()
+            ->whereIn('gl_code', $normalized->pluck('gl_code')->values())
+            ->pluck('id', 'gl_code')
+            ->all();
+        if (! empty($existing)) {
+            return redirect()->back()->with('error', __('accounting::lang.import_tree_accounts_gl_code_exists', [
+                'codes' => implode(', ', array_keys($existing)),
+            ]));
+        }
+
+        $sorted = $normalized->sortBy(fn ($r) => strlen((string) $r['gl_code']))->values();
+        // Use prefixed keys so PHP doesn't cast numeric strings to ints.
+        $createdMap = []; // "gl:111" => id
+
+        DB::beginTransaction();
+        try {
+            $createdCount = 0;
+            foreach ($sorted as $r) {
+                $parentId = null;
+                if (! empty($r['parent_gl_code'])) {
+                    $parentKey = 'gl:'.(string) $r['parent_gl_code'];
+                    $parentId = $createdMap[$parentKey] ?? AccountingAccount::query()
+                        ->where('gl_code', $r['parent_gl_code'])
+                        ->value('id');
+                    if (! $parentId) {
+                        throw new \RuntimeException(__('accounting::lang.import_tree_accounts_parent_not_found', [
+                            'gl_code' => $r['gl_code'],
+                            'parent_gl_code' => $r['parent_gl_code'],
+                        ]));
+                    }
+                }
+
+                $acc = AccountingAccount::query()->create([
+                    'gl_code' => $r['gl_code'],
+                    'name_ar' => $r['name_ar'] ?: $r['gl_code'],
+                    'name_en' => $r['name_en'] ?: $r['gl_code'],
+                    'account_primary_type' => $r['account_primary_type'] ?: null,
+                    'parent_account_id' => $parentId,
+                    'status' => in_array($r['status'], ['active', 'inactive'], true) ? $r['status'] : 'active',
+                ]);
+
+                $createdMap['gl:'.(string) $r['gl_code']] = $acc->id;
+                $createdCount++;
+            }
+
+            DB::commit();
+            if ($createdCount <= 0) {
+                return redirect()->back()->with('error', __('messages.no_data_found'));
+            }
+
+            return redirect()->route('tree-of-accounts')->with('success', __('accounting::lang.import_tree_accounts_success').' ('.$createdCount.')');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return redirect()->back()->with('error', config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'));
+        }
     }
 
     public function createDefaultAccounts()
