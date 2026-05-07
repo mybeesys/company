@@ -102,7 +102,7 @@
                         </label>
                         <div class="form-check">
                             <input type="radio" style="border: 1px solid #9f9f9f;" id="seniority_invoices"
-                                name="allocation_option" checked value="seniority_invoices" class="form-check-input my-2">
+                                name="allocation_option" checked value="auto_allocate" class="form-check-input my-2">
                         </div>
                     </div>
 
@@ -122,11 +122,31 @@
 
 
                 <div id="transactions_div" class="d-none">
-                    <label for="transactions" class="fs-6 fw-semibold px-3 mb-2 required">@lang('sales::fields.select_transactions')</label>
-                    <select id="transactions" class="form-select d-flex form-select-solid" style="width: 50% !important"
-                        multiple name="transactions[]">
-                        <!-- Transactions will be dynamically populated -->
-                    </select>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <label class="fs-6 fw-semibold mb-0 required">@lang('sales::fields.select_transactions')</label>
+                        <div class="text-muted fs-7">
+                            {{ $supplier ? 'سندات الموردين: فواتير شراء فقط' : 'سندات العملاء: فواتير مبيعات فقط' }}
+                        </div>
+                    </div>
+
+                    <div class="table-responsive border rounded-2">
+                        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-3 mb-0">
+                            <thead class="bg-light">
+                                <tr class="fw-semibold text-gray-700">
+                                    <th style="width:38px;"></th>
+                                    <th>@lang('sales::fields.invoice_number')</th>
+                                    <th>@lang('accounting::lang.operation_date')</th>
+                                    <th class="text-end">@lang('sales::fields.invoice_amount')</th>
+                                    <th class="text-end">@lang('sales::fields.remaining_amount')</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions_tbody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-6">...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>
@@ -164,8 +184,9 @@
             $("#dev-tax_number").hide();
             // Hide transactions select by default
             const $transactionsDiv = $('#transactions_div');
-            const $transactionsSelect = $('#transactions');
             const $clientSelect = $('#client_id');
+            const $transactionsTbody = $('#transactions_tbody');
+            const receiptsScope = @json($supplier ? 'supplier' : 'customer');
 
 
             const translations = {
@@ -179,18 +200,16 @@
             };
             $('#specified_invoices').on('change', function() {
                 if ($(this).is(':checked')) {
-                    $('#transactions').attr('required', 'required');
-
                     $transactionsDiv.removeClass('d-none');
+                    let clientId = $clientSelect.val();
+                    getTransaction(clientId);
                 }
             });
 
             $('#seniority_invoices').on('change', function() {
                 if ($(this).is(':checked')) {
                     $transactionsDiv.addClass('d-none');
-                    $('#transactions').removeAttr('required');
-
-                    $transactionsSelect.empty();
+                    $transactionsTbody.html('<tr><td colspan="5" class="text-center text-muted py-6">...</td></tr>');
                 }
             });
 
@@ -203,18 +222,32 @@
             function getTransaction(clientId) {
                 if (clientId && $('#specified_invoices').is(':checked')) {
                     $.ajax({
-                        url: `/get-transactions/${clientId}`,
+                        url: `/get-transactions/${clientId}?scope=${encodeURIComponent(receiptsScope)}`,
                         method: 'GET',
                         success: function(data) {
-                            $transactionsSelect.empty();
-                            $.each(data, function(index, transaction) {
-                                $transactionsSelect.append(
-                                    $('<option>', {
-                                        value: transaction.id,
-                                        text: `${transaction.id} - (${translations.transaction_types[transaction.type]}) / ${transaction.ref_no} - ${translations.invoice_amount} (${transaction.final_total}), ${translations.remaining_amount} (${transaction.remaining_amount}) -  ${translations.date} (${transaction.transaction_date})`
-                                    })
-                                );
-                            });
+                            if (!Array.isArray(data) || data.length === 0) {
+                                $transactionsTbody.html('<tr><td colspan="5" class="text-center text-muted py-6">{{ __('messages.no_data_found') }}</td></tr>');
+                                return;
+                            }
+
+                            const rows = data.map(function(t) {
+                                const ref = (t.ref_no || ('#' + t.id));
+                                const date = (t.transaction_date || '--');
+                                const total = (t.final_total || '0.00');
+                                const remaining = (t.remaining_amount || '0.00');
+                                return `
+                                    <tr>
+                                        <td class="text-center">
+                                            <input class="form-check-input invoice-check" type="checkbox" name="transactions[]" value="${t.id}">
+                                        </td>
+                                        <td class="fw-semibold text-gray-800">${ref}</td>
+                                        <td class="text-gray-700">${date}</td>
+                                        <td class="text-end">${total}</td>
+                                        <td class="text-end fw-semibold">${remaining}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                            $transactionsTbody.html(rows);
                         },
                         error: function(error) {
                             console.error('Error fetching transactions:', error);
@@ -222,6 +255,16 @@
                     });
                 }
             }
+
+            $('#sell_save').on('submit', function(e) {
+                if ($('#specified_invoices').is(':checked')) {
+                    const anyChecked = $('.invoice-check:checked').length > 0;
+                    if (!anyChecked) {
+                        e.preventDefault();
+                        alert(@json(__('messages.required_fields_warning')));
+                    }
+                }
+            });
         });
     </script>
 @stop

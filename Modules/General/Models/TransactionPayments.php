@@ -4,6 +4,7 @@ namespace Modules\General\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Yajra\DataTables\Facades\DataTables;
@@ -57,8 +58,11 @@ class TransactionPayments extends Model
 
     public static function getReceiptsTable($transactions)
     {
+        $dt = $transactions instanceof Builder
+            ? DataTables::eloquent($transactions)
+            : DataTables::of($transactions);
 
-        return DataTables::of($transactions)
+        return $dt
             ->editColumn('id', function ($row) {
                 return "<div class='badge badge-light-info'>
                                      {$row->id}
@@ -71,7 +75,11 @@ class TransactionPayments extends Model
                 return $row->paid_on ?? '--';
             })
             ->editColumn('transaction_ref_no', function ($row) {
-                return '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="'.url("/transaction-show/{$row->transaction->id}").'">'.$row->transaction->ref_no.'</a>';
+                $tx = $row->transaction;
+                if (! $tx) {
+                    return '--';
+                }
+                return '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="'.url("/transaction-show/{$tx->id}").'">'.$tx->ref_no.'</a>';
             })
             ->editColumn('client', function ($row) {
                 return $row->client->name ?? '--';
@@ -88,7 +96,7 @@ class TransactionPayments extends Model
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
 
                     $actions .= '<div class="menu-item px-3">
-                <a href="'.url("/show-receipts-payments/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
+                <a href="'.url("/show-receipts-payments/{$row->id}").'" class="menu-link px-3">'.__('messages.view').'</a>
             </div>';
 
                     return $actions;

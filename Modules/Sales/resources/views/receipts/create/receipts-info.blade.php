@@ -29,7 +29,7 @@
 
             <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.date')</label>
 
-            <input class="form-control form-control-solid custom-height" name="pament_on"
+            <input class="form-control form-control-solid custom-height" name="payment_on"
                 value="{{ now()->format('Y-m-d') }}" required placeholder="@lang('sales::fields.date')" id="transaction_date"
                 type="date">
         </div>
@@ -43,7 +43,7 @@
                 value="" placeholder="0.00" id="paid_amount" type="number">
         </div>
 
-        <div class="align-items-center mb-5" id="dev-costCenter" >
+        <div class="align-items-center mb-5" id="dev-costCenter">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('accounting::lang.cost_center')</label>
             <select class="form-select select-2 form-select-solid  kt_ecommerce_select2_cost_center" name="cost_center_id"
                 id="cost_center" style="width: 60%!important">

@@ -35,6 +35,7 @@ return [
     'paid_on' => 'تاريخ الدفع',
     'invoice_amount' => 'مبلغ الفاتورة',
     'date' => 'التاريخ',
+    'invoice_number' => 'رقم الفاتورة',
 
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',

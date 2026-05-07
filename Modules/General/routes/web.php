@@ -48,6 +48,7 @@ Route::middleware([
 
         Route::get('transaction-show/{id}', [TransactionController::class, 'show'])->name('transaction-show');
         Route::get('show-receipts-payments/{id}', [TransactionController::class, 'showReceiptsPayments'])->name('show-receipts-payments');
+        Route::get('show-receipts-payments-export-pdf/{id}', [TransactionController::class, 'exportReceiptsPaymentsPDF'])->name('show-receipts-payments-export-pdf');
 
         Route::get('transaction-print/{id}', [TransactionController::class, 'print'])->name('transaction-print');
         Route::get('transaction-payment-print/{id}', [TransactionController::class, 'paymentPrint'])->name('transaction-payment-print');

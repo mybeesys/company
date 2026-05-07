@@ -230,12 +230,15 @@ class TransactionUtils
 
         $ref_number = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $sourceTypeAr = $transaction->type === 'purchases' ? 'مشتريات' : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
-        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية دفع/تحصيل ({$sourceTypeAr}) رقم {$transaction->ref_no} - سند {$payment_ref_no}.";
+        $sourceTypeAr = in_array($transaction->type, ['purchases', 'purchase'], true)
+            ? 'مشتريات'
+            : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
+        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من سند قبض/صرف لتسديد فواتير ({$sourceTypeAr}) رقم {$transaction->ref_no} - سند {$payment_ref_no}.";
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;
-        $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+        // For settlement vouchers, use the payment date as journal operation date.
+        $acc_trans_mapping->operation_date = $payment_on;
         $acc_trans_mapping->save();
         $acc_trans_mapping_id = $acc_trans_mapping->id;
 
@@ -251,7 +254,7 @@ class TransactionUtils
             $transactionPayment->account_id = $account_id;
             $transactionPayment->amount = $request->paid_amount;
             $accountUtil->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-        } elseif ($transaction->type == 'purchases') {
+        } elseif (in_array($transaction->type, ['purchases', 'purchase'], true)) {
 
             $transaction->type = 'payment_voucher';
             $client = Contact::find($transactionPayment->payment_for);
