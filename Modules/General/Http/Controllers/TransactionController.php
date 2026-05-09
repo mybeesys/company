@@ -59,9 +59,8 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        // Use PNG to avoid SVG XML header rendering in views/PDF
-        $qrPng = QrCode::format('png')->size(150)->generate($qrData);
-        $qrCode = base64_encode($qrPng);
+        // SVG avoids Imagick (PNG backend); safe for HTML and mPDF via print/export views
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         return view('general::transactions.show', compact('transaction', 'qrCode', 'company'));
     }
@@ -90,9 +89,7 @@ class TransactionController extends Controller
             '0.00'
         );
 
-        // Use PNG to avoid SVG XML header rendering in views/PDF
-        $qrPng = QrCode::format('png')->size(150)->generate($qrData);
-        $qrCode = base64_encode($qrPng);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         $title = $transaction->transaction?->type === 'purchases' || $transaction->transaction?->type === 'purchase'
             ? __('menuItemLang.supplier_receipt')
@@ -124,7 +121,7 @@ class TransactionController extends Controller
             '0.00'
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         $title = $transaction->transaction?->type === 'purchases' || $transaction->transaction?->type === 'purchase'
             ? __('menuItemLang.supplier_receipt')
@@ -163,7 +160,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         return view('general::transactions.print', compact('transaction', 'qrCode', 'company'));
     }
@@ -182,7 +179,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         return view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'));
     }
@@ -202,7 +199,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         $html = view('general::transactions.print', compact('transaction', 'qrCode', 'company'))->render();
 
@@ -235,7 +232,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         $html = view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'))->render();
 
@@ -274,7 +271,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
 
-        $qrCode = QrCode::size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
         return view('general::transactions.show-payments', compact('transaction', 'qrCode', 'company', 'accounts', 'amount'));
     }

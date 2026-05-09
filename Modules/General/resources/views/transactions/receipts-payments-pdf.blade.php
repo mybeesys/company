@@ -188,7 +188,7 @@
             </td>
             <td style="width:30%; text-align:center;">
                 @if (!empty($qrCode))
-                    <img src="data:image/png;base64,{{ $qrCode }}" alt="QR" style="height:150px; width:150px;">
+                    <div style="display:inline-block; width:150px; height:150px;">{!! $qrCode !!}</div>
                 @endif
             </td>
         </tr>

@@ -1028,34 +1028,58 @@ class SalesReportController extends Controller
     }
 
     /**
-     * Aggregated sell lines per product, branch, and customer for one date range.
+     * Aggregated sell lines per product, branch, and optionally customer for one date range.
+     *
+     * @param  list<int>|null  $mysqlWeekdayOneToSeven  Optional MySQL DAYOFWEEK() values (1=Sunday … 7=Saturday). When set, only lines on those weekdays are included.
+     * @param  bool  $groupByCustomer  When false, quantities and revenue are summed across all customers for each product–branch (weekday report).
      */
-    private function aggregateSalesComparisonPeriod(Request $request, string $from, string $to): \Illuminate\Support\Collection
-    {
+    private function aggregateSalesComparisonPeriod(
+        Request $request,
+        string $from,
+        string $to,
+        ?array $mysqlWeekdayOneToSeven = null,
+        bool $groupByCustomer = true
+    ): \Illuminate\Support\Collection {
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
 
         $q = $this->buildSalesComparisonLinesQuery($request, true)
-            ->whereBetween('t.transaction_date', [$from, $to]);
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to);
 
-        $rows = $q->groupBy('tsl.product_id', 't.establishment_id', 't.contact_id')
+        if ($mysqlWeekdayOneToSeven !== null && $mysqlWeekdayOneToSeven !== []) {
+            $dows = array_values(array_unique(array_map('intval', $mysqlWeekdayOneToSeven)));
+            sort($dows);
+            $inList = implode(',', $dows);
+            $q->whereRaw('DAYOFWEEK(DATE(t.transaction_date)) IN ('.$inList.')');
+        }
+
+        $q = $q
             ->selectRaw('tsl.product_id as product_id')
             ->selectRaw('t.establishment_id as establishment_id')
-            ->selectRaw('t.contact_id as contact_id')
             ->selectRaw('MAX(p.name_ar) as product_name_ar')
             ->selectRaw('MAX(p.name_en) as product_name_en')
             ->selectRaw('MAX(p.SKU) as sku')
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
-            ->selectRaw('MAX(c.name) as customer')
             ->selectRaw('SUM(tsl.qyt) as qty')
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
             ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
-            ->selectRaw('COUNT(*) as line_count')
-            ->get();
+            ->selectRaw('COUNT(*) as line_count');
 
-        return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id.'|'.$r->contact_id);
+        if ($groupByCustomer) {
+            $rows = $q->groupBy('tsl.product_id', 't.establishment_id', 't.contact_id')
+                ->selectRaw('t.contact_id as contact_id')
+                ->selectRaw('MAX(c.name) as customer')
+                ->get();
+
+            return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id.'|'.$r->contact_id);
+        }
+
+        $rows = $q->groupBy('tsl.product_id', 't.establishment_id')->get();
+
+        return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id);
     }
 
     private function applyProductPurchaseReportFilters($query, Request $request): void
@@ -3223,6 +3247,128 @@ SUM(
         }
 
         return $en[$key] ?? ucfirst(str_replace('_', ' ', $method));
+    }
+
+    /**
+     * Compare approved sell lines aggregated by weekday (Sun–Sat) for two periods — same filters as sales comparison.
+     */
+    public function weekdaySalesReport(Request $request)
+    {
+        if ($request->ajax() || $request->has('draw')) {
+            $merged = $this->buildWeekdaySalesMergedCollection($request);
+            if ($merged === null) {
+                return ReportTransactionsUtile::getSalesComparisonReport(
+                    collect(),
+                    $this->computeSalesComparisonFooterTotals(collect())
+                );
+            }
+
+            $footer = $this->computeSalesComparisonFooterTotals($merged);
+
+            return ReportTransactionsUtile::getSalesComparisonReport($merged, $footer);
+        }
+
+        return view('report::sales.weekday_sales_report');
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, object>|null
+     */
+    private function buildWeekdaySalesMergedCollection(Request $request): ?Collection
+    {
+        $periodA = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_a_preset'),
+            $request->input('period_a_range')
+        );
+        $periodB = SalesComparisonPeriodResolver::resolve(
+            $request->input('period_b_preset'),
+            $request->input('period_b_range')
+        );
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $rawWeekday = $request->input('weekday');
+        if ($rawWeekday === null || $rawWeekday === '') {
+            $rawWeekday = [];
+        } elseif (! is_array($rawWeekday)) {
+            $rawWeekday = [$rawWeekday];
+        }
+
+        $phpDows = collect($rawWeekday)
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v >= 0 && $v <= 6)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if ($phpDows === []) {
+            $phpDows = range(0, 6);
+        }
+
+        $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
+        sort($mysqlDows);
+
+        $aggA = $this->aggregateSalesComparisonPeriod($request, $aFrom, $aTo, $mysqlDows, false);
+        $aggB = $this->aggregateSalesComparisonPeriod($request, $bFrom, $bTo, $mysqlDows, false);
+
+        $allKeys = $aggA->keys()->merge($aggB->keys())->unique()->values();
+        $merged = collect();
+
+        foreach ($allKeys as $key) {
+            $rowA = $aggA->get($key);
+            $rowB = $aggB->get($key);
+            $base = $rowA ?? $rowB;
+
+            $qtyA = (float) ($rowA->qty ?? 0);
+            $qtyB = (float) ($rowB->qty ?? 0);
+            $discA = (float) ($rowA->discount ?? 0);
+            $discB = (float) ($rowB->discount ?? 0);
+            $taxA = (float) ($rowA->tax ?? 0);
+            $taxB = (float) ($rowB->tax ?? 0);
+            $subA = (float) ($rowA->subtotal ?? 0);
+            $subB = (float) ($rowB->subtotal ?? 0);
+            $linesA = (int) ($rowA->line_count ?? 0);
+            $linesB = (int) ($rowB->line_count ?? 0);
+
+            $avgA = $qtyA > 0 ? $subA / $qtyA : null;
+            $avgB = $qtyB > 0 ? $subB / $qtyB : null;
+
+            $merged->push((object) [
+                'product_name' => app()->getLocale() === 'ar' ? $base->product_name_ar : $base->product_name_en,
+                'category' => $base->category ?? '--',
+                'subcategory' => $base->subcategory ?? '--',
+                'establishment_name' => $base->establishment_name ?? '--',
+                'SKU' => $base->sku ?? '--',
+                'customer' => __('report::general.weekday_report_customer_rollup'),
+                'qty_period_a' => $qtyA,
+                'avg_unit_price_period_a' => $avgA,
+                'discount_period_a' => $discA,
+                'tax_period_a' => $taxA,
+                'subtotal_period_a' => $subA,
+                'lines_period_a' => $linesA,
+                'qty_period_b' => $qtyB,
+                'avg_unit_price_period_b' => $avgB,
+                'discount_period_b' => $discB,
+                'tax_period_b' => $taxB,
+                'subtotal_period_b' => $subB,
+                'lines_period_b' => $linesB,
+                'qty_difference' => $qtyB - $qtyA,
+                'qty_change_percent' => ReportTransactionsUtile::computePercentChange($qtyA, $qtyB),
+                'subtotal_difference' => $subB - $subA,
+                'subtotal_change_percent' => ReportTransactionsUtile::computePercentChange($subA, $subB),
+                'discount_difference' => $discB - $discA,
+                'tax_difference' => $taxB - $taxA,
+                'lines_difference' => $linesB - $linesA,
+            ]);
+        }
+
+        return $merged;
     }
 
     /**

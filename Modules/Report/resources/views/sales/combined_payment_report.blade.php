@@ -28,6 +28,12 @@
                         'hint' => __('report::general.sales_comparison_hub_card_hint'),
                         'icon' => 'bi bi-bar-chart-steps',
                     ],
+                    [
+                        'title' => __('menuItemLang.weekday-sales-report'),
+                        'route' => route('weekday-sales-report'),
+                        'hint' => __('report::general.weekday_sales_hub_card_hint'),
+                        'icon' => 'bi bi-calendar-week',
+                    ],
                 ],
             ],
             [
