@@ -28,6 +28,37 @@
     .sc-table tbody td.sc-diff-up { font-weight: 600; color: #0f5132; }
     .sc-table tbody td.sc-diff-down { font-weight: 600; color: #842029; }
     .wsr-weekday-grid .form-check { min-width: 7rem; }
+    .sc-export-toolbar { gap: 0.5rem; }
+    .sc-export-toolbar__label { font-weight: 600; color: #475569; font-size: 0.9rem; }
+    [dir="rtl"] .sc-export-toolbar__label { margin-left: 0.35rem; }
+    .sc-export-btn-group { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); }
+    .sc-export-btn { font-weight: 600; border: 1px solid #e2e8f0 !important; padding: 0.5rem 0.85rem; }
+    .sc-export-btn:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25); }
+    .sc-export-btn--excel { background: #ecfdf5 !important; color: #047857 !important; }
+    .sc-export-btn--excel:hover { filter: brightness(0.97); }
+    .sc-export-btn--pdf { background: #fef2f2 !important; color: #b91c1c !important; }
+    .sc-export-btn--pdf:hover { filter: brightness(0.97); }
+    .sc-export-btn .sc-export-btn__icon { font-size: 1.1rem; opacity: 0.9; }
+    .wsr-executive-section {
+        background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 42%);
+        border-top: 1px solid #e2e8f0 !important;
+    }
+    .wsr-kpi-card {
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .wsr-kpi-card:hover {
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07) !important;
+    }
+    .wsr-kpi-card--p1 { border-top: 3px solid #2563eb; }
+    .wsr-kpi-card--p2 { border-top: 3px solid #ea580c; }
+    .wsr-kpi-card--single { border-top: 3px solid #4f46e5; }
+    .wsr-kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.15; color: #0f172a; letter-spacing: -0.02em; }
+    @media (min-width: 1200px) {
+        .wsr-kpi-value { font-size: 2rem; }
+    }
+    .wsr-kpi-delta { font-weight: 700; }
+    .wsr-chart-slot { height: 260px; position: relative; max-width: 100%; }
+    .wsr-chart-slot canvas { max-height: 260px; }
 </style>
 @stop
 
@@ -35,10 +66,29 @@
 <div class="tab-content">
     <div class="tab-pane fade show active">
         <div class="card card-flush">
-            <x-cards.card-header class="align-items-center py-5">
-                <div class="card-title">
+            <x-cards.card-header class="align-items-center py-5 gap-3 gap-md-5 flex-wrap">
+                <div class="card-title flex-grow-1 me-2">
                     <h3 class="mb-0">@lang('menuItemLang.weekday-sales-report')</h3>
                     <div class="text-muted fs-7 mt-1">@lang('report::general.weekday_sales_hub_card_hint')</div>
+                </div>
+                <div class="card-toolbar d-flex flex-row align-items-center sc-export-toolbar">
+                    <span class="sc-export-toolbar__label d-none d-sm-inline">@lang('report::general.export_actions_label')</span>
+                    <div class="btn-group sc-export-btn-group" role="group" aria-label="@lang('report::general.export_actions_label')">
+                        <button type="button"
+                            class="btn sc-export-btn sc-export-btn--excel"
+                            id="wsrExportExcel"
+                            title="@lang('report::general.export_excel_hint')">
+                            <i class="bi bi-file-earmark-spreadsheet sc-export-btn__icon" aria-hidden="true"></i>
+                            <span>@lang('report::general.export_excel_btn')</span>
+                        </button>
+                        <button type="button"
+                            class="btn sc-export-btn sc-export-btn--pdf"
+                            id="wsrExportPdf"
+                            title="@lang('report::general.export_pdf_hint')">
+                            <i class="bi bi-file-pdf sc-export-btn__icon" aria-hidden="true"></i>
+                            <span>@lang('report::general.export_pdf_btn')</span>
+                        </button>
+                    </div>
                 </div>
             </x-cards.card-header>
 
@@ -67,6 +117,31 @@
                                         <i class="bi bi-funnel fs-2"></i> @lang('report::general.Apply Filter')
                                     </button>
                                     <button type="button" class="btn btn-warning" id="clearFilter">@lang('report::general.Remove filter')</button>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">@lang('report::general.weekday_report_scope_label')</label>
+                                    <div class="text-muted fs-8 mb-2">@lang('report::general.weekday_report_scope_hint')</div>
+                                    <div class="d-flex flex-wrap gap-4">
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeCompareCmLm" value="compare_this_vs_last_month" checked />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeCompareCmLm">@lang('report::general.weekday_report_scope_compare_cm_lm')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeSingleThis" value="single_this_month" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeSingleThis">@lang('report::general.weekday_report_scope_single_this')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeSingleLast" value="single_last_month" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeSingleLast">@lang('report::general.weekday_report_scope_single_last')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeCustom" value="custom_periods" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeCustom">@lang('report::general.weekday_report_scope_custom')</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -126,7 +201,10 @@
                                     </select>
                                 </div>
                                 <div class="col-12 sc-filter-field" id="scWrap-periods">
-                                    <div class="row g-4">
+                                    <div class="alert alert-light border py-3 d-none mb-4" id="wsrAutoPeriodNote" role="status">
+                                        <div class="fs-7 text-gray-800">@lang('report::general.weekday_report_scope_auto_periods_note')</div>
+                                    </div>
+                                    <div class="row g-4 wsr-period-manual-fields">
                                         <div class="col-12 col-md-6 col-xl-3">
                                             <label for="periodAPreset" class="form-label fw-semibold">@lang('report::general.sales_comparison_period_a')</label>
                                             <select class="form-select form-select-solid sc-select2-single" id="periodAPreset" name="period_a_preset">
@@ -171,6 +249,100 @@
                 </div>
             </div>
 
+            <div class="card-body border-0 px-5 py-8 wsr-executive-section" id="wsrExecutiveSection">
+                <div class="d-flex flex-wrap align-items-start justify-content-between gap-4 mb-7">
+                    <div class="flex-grow-1">
+                        <h4 class="fs-3 fw-bold text-gray-900 mb-2">@lang('report::general.weekday_report_executive_title')</h4>
+                        <p class="text-muted fs-6 mb-0" style="max-width: 42rem;">@lang('report::general.weekday_report_executive_subtitle')</p>
+                    </div>
+                </div>
+
+                <div class="row g-4 g-xl-5 mb-8" id="wsrKpiCompareRow">
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="wsr-kpi-card wsr-kpi-card--p1 rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_qty')</div>
+                            <div class="fs-9 text-muted mb-1 text-truncate" id="wsrKpiQtyALabel" title="">—</div>
+                            <div class="wsr-kpi-value" id="wsrKpiQtyA">—</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="wsr-kpi-card wsr-kpi-card--p2 rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_qty')</div>
+                            <div class="fs-9 text-muted mb-1 text-truncate" id="wsrKpiQtyBLabel" title="">—</div>
+                            <div class="wsr-kpi-value" id="wsrKpiQtyB">—</div>
+                            <div class="mt-4 pt-4 border-top border-gray-100">
+                                <span class="fs-9 text-muted d-block mb-1">@lang('report::general.weekday_report_kpi_change_qty')</span>
+                                <span class="fs-5 wsr-kpi-delta" id="wsrDeltaQty">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="wsr-kpi-card wsr-kpi-card--p1 rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_revenue')</div>
+                            <div class="fs-9 text-muted mb-1 text-truncate" id="wsrKpiRevALabel" title="">—</div>
+                            <div class="wsr-kpi-value" id="wsrKpiRevA">—</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="wsr-kpi-card wsr-kpi-card--p2 rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_revenue')</div>
+                            <div class="fs-9 text-muted mb-1 text-truncate" id="wsrKpiRevBLabel" title="">—</div>
+                            <div class="wsr-kpi-value" id="wsrKpiRevB">—</div>
+                            <div class="mt-4 pt-4 border-top border-gray-100">
+                                <span class="fs-9 text-muted d-block mb-1">@lang('report::general.weekday_report_kpi_change_revenue')</span>
+                                <span class="fs-5 wsr-kpi-delta" id="wsrDeltaRev">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 g-xl-5 mb-8 d-none" id="wsrKpiSingleRow">
+                    <div class="col-12">
+                        <div class="rounded-3 border border-dashed border-gray-300 bg-white px-4 py-3 mb-4">
+                            <span class="fs-8 text-muted fw-semibold text-uppercase me-2">@lang('report::general.weekday_report_kpi_period_note')</span>
+                            <span class="fs-7 text-gray-800 fw-semibold" id="wsrKpiSinglePeriodNote">—</span>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="wsr-kpi-card wsr-kpi-card--single rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100 text-center text-md-start">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_qty')</div>
+                            <div class="wsr-kpi-value" id="wsrKpiSingleQty">—</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="wsr-kpi-card wsr-kpi-card--single rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100 text-center text-md-start">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_revenue')</div>
+                            <div class="wsr-kpi-value" id="wsrKpiSingleRev">—</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="wsr-kpi-card wsr-kpi-card--single rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100 text-center text-md-start">
+                            <div class="fs-8 fw-semibold text-gray-500 text-uppercase mb-3">@lang('report::general.weekday_report_kpi_lines')</div>
+                            <div class="wsr-kpi-value" id="wsrKpiSingleLines">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-6 g-xl-8" id="wsrChartRow">
+                    <div class="col-12 col-xl-6">
+                        <div class="rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <h5 class="fs-5 fw-bold text-gray-900 mb-5">@lang('report::general.weekday_report_chart_qty')</h5>
+                            <div class="wsr-chart-slot">
+                                <canvas id="wsrChartQty" aria-label="quantity chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-6">
+                        <div class="rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
+                            <h5 class="fs-5 fw-bold text-gray-900 mb-5">@lang('report::general.weekday_report_chart_revenue')</h5>
+                            <div class="wsr-chart-slot">
+                                <canvas id="wsrChartRevenue" aria-label="revenue chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <x-cards.card-body class="px-5 pb-5 pt-6">
                 <div class="alert alert-light-primary d-flex align-items-start gap-2 mb-4">
                     <i class="bi bi-info-circle fs-4 text-primary flex-shrink-0"></i>
@@ -192,9 +364,9 @@
                                 <th rowspan="2" class="text-start min-w-100px sc-gh-context px-2">@lang('report::fields.establishment_name')</th>
                                 <th rowspan="2" class="text-start min-w-90px sc-gh-context px-2">@lang('report::fields.SKU')</th>
                                 <th rowspan="2" class="text-start min-w-100px sc-gh-context px-2">@lang('report::fields.customer')</th>
-                                <th colspan="6" class="sc-gh-p1 py-3">@lang('report::general.sales_comparison_group_period_a')</th>
-                                <th colspan="6" class="sc-gh-p2 py-3">@lang('report::general.sales_comparison_group_period_b')</th>
-                                <th colspan="7" class="sc-gh-var py-3">@lang('report::general.sales_comparison_group_variance')</th>
+                                <th colspan="6" class="sc-gh-p1 py-3" id="wsrHeadP1">@lang('report::general.sales_comparison_group_period_a')</th>
+                                <th colspan="6" class="sc-gh-p2 py-3" id="wsrHeadP2">@lang('report::general.sales_comparison_group_period_b')</th>
+                                <th colspan="7" class="sc-gh-var py-3" id="wsrHeadVar">@lang('report::general.sales_comparison_group_variance')</th>
                             </tr>
                             <tr class="text-gray-700">
                                 <th class="text-start min-w-90px">@lang('report::fields.qty_period_a')</th>
@@ -203,19 +375,19 @@
                                 <th class="text-start min-w-90px">@lang('report::fields.tax_period_a')</th>
                                 <th class="text-start min-w-100px">@lang('report::fields.subtotal_period_a')</th>
                                 <th class="text-start min-w-80px">@lang('report::fields.lines_period_a')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.qty_period_b')</th>
-                                <th class="text-start min-w-110px">@lang('report::fields.avg_unit_price_period_b')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.discount_period_b')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.tax_period_b')</th>
-                                <th class="text-start min-w-100px">@lang('report::fields.subtotal_period_b')</th>
-                                <th class="text-start min-w-80px">@lang('report::fields.lines_period_b')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.qty_difference')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.qty_change_percent')</th>
-                                <th class="text-start min-w-100px">@lang('report::fields.subtotal_difference')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.subtotal_change_percent')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.discount_difference')</th>
-                                <th class="text-start min-w-90px">@lang('report::fields.tax_difference')</th>
-                                <th class="text-start min-w-80px">@lang('report::fields.lines_difference')</th>
+                                <th class="text-start min-w-90px wsr-th-p2">@lang('report::fields.qty_period_b')</th>
+                                <th class="text-start min-w-110px wsr-th-p2">@lang('report::fields.avg_unit_price_period_b')</th>
+                                <th class="text-start min-w-90px wsr-th-p2">@lang('report::fields.discount_period_b')</th>
+                                <th class="text-start min-w-90px wsr-th-p2">@lang('report::fields.tax_period_b')</th>
+                                <th class="text-start min-w-100px wsr-th-p2">@lang('report::fields.subtotal_period_b')</th>
+                                <th class="text-start min-w-80px wsr-th-p2">@lang('report::fields.lines_period_b')</th>
+                                <th class="text-start min-w-90px wsr-th-var">@lang('report::fields.qty_difference')</th>
+                                <th class="text-start min-w-90px wsr-th-var">@lang('report::fields.qty_change_percent')</th>
+                                <th class="text-start min-w-100px wsr-th-var">@lang('report::fields.subtotal_difference')</th>
+                                <th class="text-start min-w-90px wsr-th-var">@lang('report::fields.subtotal_change_percent')</th>
+                                <th class="text-start min-w-90px wsr-th-var">@lang('report::fields.discount_difference')</th>
+                                <th class="text-start min-w-90px wsr-th-var">@lang('report::fields.tax_difference')</th>
+                                <th class="text-start min-w-80px wsr-th-var">@lang('report::fields.lines_difference')</th>
                             </tr>
                         </thead>
                         <tbody class="fw-semibold text-gray-600"></tbody>
@@ -236,6 +408,7 @@
 
 @section('script')
 @parent
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{{ url('js/table.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
@@ -246,16 +419,221 @@
 <script>
     "use strict";
     let dataTable;
+    let wsrChartQty = null;
+    let wsrChartRev = null;
     let scLastFooterTotals = null;
     let scRestoringFilters = false;
     const SC_FOOTER_KEYS = @json($wsrFooterKeys);
 
     const table = $('#kt_WeekdaySales_table');
     const apiUrl = "{{ route('weekday-sales-report') }}";
+    const exportExcelUrl = "{{ route('weekday-sales-export-excel') }}";
+    const exportPdfUrl = "{{ route('weekday-sales-export-pdf') }}";
+    const exportFailedMsg = @json(__('report::general.export_failed_message'));
     const comparisonCategoriesUrl = "{{ route('comparison-categories') }}";
     const comparisonSubcategoriesUrl = "{{ route('comparison-subcategories') }}";
     const comparisonUnitsUrl = "{{ route('comparison-units') }}";
     const comparisonPaymentMethodsUrl = "{{ route('comparison-payment-methods') }}";
+    const WSR_LABELS = {
+        periodA: @json(__('report::general.sales_comparison_group_period_a')),
+        periodB: @json(__('report::general.sales_comparison_group_period_b')),
+        variance: @json(__('report::general.sales_comparison_group_variance')),
+        singleThis: @json(__('report::general.weekday_report_header_single_this_month')),
+        singleLast: @json(__('report::general.weekday_report_header_single_last_month')),
+        kpiQty: @json(__('report::general.weekday_report_kpi_qty')),
+        kpiRevenue: @json(__('report::general.weekday_report_kpi_revenue')),
+    };
+
+    function wsrFmtNum(n, frac) {
+        if (n == null || isNaN(n)) {
+            return '—';
+        }
+        return Number(n).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: frac != null ? frac : 2
+        });
+    }
+    function wsrFmtQty(n) {
+        return wsrFmtNum(n, 3);
+    }
+    function wsrBindDelta($el, pct) {
+        $el.removeClass('text-success text-danger text-muted');
+        if (pct == null || isNaN(pct)) {
+            $el.text('—').addClass('text-muted');
+            return;
+        }
+        $el.text((pct >= 0 ? '+' : '') + Number(pct).toFixed(2) + '%');
+        if (pct > 0) {
+            $el.addClass('text-success');
+        } else if (pct < 0) {
+            $el.addClass('text-danger');
+        } else {
+            $el.addClass('text-muted');
+        }
+    }
+    function destroyWsrCharts() {
+        if (wsrChartQty) {
+            wsrChartQty.destroy();
+            wsrChartQty = null;
+        }
+        if (wsrChartRev) {
+            wsrChartRev.destroy();
+            wsrChartRev = null;
+        }
+    }
+    function refreshWsrKpiAndCharts(kpi) {
+        destroyWsrCharts();
+        if (!kpi) {
+            return;
+        }
+        const single = kpi.is_single;
+        $('#wsrKpiCompareRow').toggleClass('d-none', single);
+        $('#wsrKpiSingleRow').toggleClass('d-none', !single);
+        $('#wsrChartRow').toggleClass('d-none', single);
+
+        if (single) {
+            $('#wsrKpiSingleQty').text(wsrFmtQty(kpi.sum_qty_a));
+            $('#wsrKpiSingleRev').text(wsrFmtNum(kpi.sum_subtotal_a, 2));
+            $('#wsrKpiSingleLines').text(wsrFmtNum(kpi.sum_lines_a, 0));
+            $('#wsrKpiSinglePeriodNote').text(kpi.period_a_label || '—');
+            return;
+        }
+
+        const pa = kpi.period_a_label || '—';
+        const pb = kpi.period_b_label || '—';
+        $('#wsrKpiQtyALabel, #wsrKpiRevALabel').text(pa).attr('title', pa);
+        $('#wsrKpiQtyBLabel, #wsrKpiRevBLabel').text(pb).attr('title', pb);
+        $('#wsrKpiQtyA').text(wsrFmtQty(kpi.sum_qty_a));
+        $('#wsrKpiQtyB').text(wsrFmtQty(kpi.sum_qty_b));
+        $('#wsrKpiRevA').text(wsrFmtNum(kpi.sum_subtotal_a, 2));
+        $('#wsrKpiRevB').text(wsrFmtNum(kpi.sum_subtotal_b, 2));
+        wsrBindDelta($('#wsrDeltaQty'), kpi.qty_change_pct);
+        wsrBindDelta($('#wsrDeltaRev'), kpi.revenue_change_pct);
+
+        if (typeof Chart === 'undefined') {
+            return;
+        }
+
+        const wsrIsRtl = document.documentElement.getAttribute('dir') === 'rtl';
+        const lblA = kpi.chart_label_a || WSR_LABELS.periodA;
+        const lblB = kpi.chart_label_b || WSR_LABELS.periodB;
+        const chartCommon = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 380 },
+            layout: { padding: { top: 8, bottom: 8, left: 4, right: 8 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    rtl: wsrIsRtl
+                }
+            }
+        };
+
+        const ctxQ = document.getElementById('wsrChartQty');
+        if (ctxQ) {
+            wsrChartQty = new Chart(ctxQ, {
+                type: 'bar',
+                data: {
+                    labels: [lblA, lblB],
+                    datasets: [{
+                        label: WSR_LABELS.kpiQty,
+                        data: [kpi.sum_qty_a, kpi.sum_qty_b],
+                        backgroundColor: ['rgba(37, 99, 235, 0.75)', 'rgba(234, 88, 12, 0.75)'],
+                        borderColor: ['rgb(29, 78, 216)', 'rgb(194, 65, 12)'],
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: Object.assign({}, chartCommon, {
+                    plugins: Object.assign({}, chartCommon.plugins, {
+                        tooltip: {
+                            rtl: wsrIsRtl,
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.dataset.label + ': ' + wsrFmtQty(ctx.raw);
+                                }
+                            }
+                        }
+                    }),
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { maxTicksLimit: 6 }
+                        }
+                    }
+                })
+            });
+        }
+
+        const ctxR = document.getElementById('wsrChartRevenue');
+        if (ctxR) {
+            wsrChartRev = new Chart(ctxR, {
+                type: 'bar',
+                data: {
+                    labels: [lblA, lblB],
+                    datasets: [{
+                        label: WSR_LABELS.kpiRevenue,
+                        data: [kpi.sum_subtotal_a, kpi.sum_subtotal_b],
+                        backgroundColor: ['rgba(79, 70, 229, 0.72)', 'rgba(14, 165, 233, 0.72)'],
+                        borderColor: ['rgb(67, 56, 202)', 'rgb(2, 132, 199)'],
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: Object.assign({}, chartCommon, {
+                    plugins: Object.assign({}, chartCommon.plugins, {
+                        tooltip: {
+                            rtl: wsrIsRtl,
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.dataset.label + ': ' + wsrFmtNum(ctx.raw, 2);
+                                }
+                            }
+                        }
+                    }),
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { maxTicksLimit: 6 }
+                        }
+                    }
+                })
+            });
+        }
+    }
+
+    function applyWsrTableLayout(mode) {
+        const single = mode === 'single';
+        if (dataTable) {
+            for (let i = 12; i <= 24; i++) {
+                dataTable.column(i).visible(!single, false);
+            }
+            dataTable.columns.adjust().draw(false);
+        }
+        const scope = $('input[name="weekday_report_scope"]:checked').val() || '';
+        $('#wsrHeadP2, #wsrHeadVar').toggleClass('d-none', single);
+        $('.wsr-th-p2, .wsr-th-var').toggleClass('d-none', single);
+        if (single) {
+            $('#wsrHeadP1').text(scope === 'single_this_month' ? WSR_LABELS.singleThis : WSR_LABELS.singleLast);
+        } else {
+            $('#wsrHeadP1').text(WSR_LABELS.periodA);
+            $('#wsrHeadP2').text(WSR_LABELS.periodB);
+            $('#wsrHeadVar').text(WSR_LABELS.variance);
+        }
+    }
+
+    function syncWsrPeriodPanelLock() {
+        const scope = $('input[name="weekday_report_scope"]:checked').val() || 'compare_this_vs_last_month';
+        const custom = scope === 'custom_periods';
+        const fp = $('#filterPanels').val() || [];
+        const periodsPanelOn = fp.indexOf('periods') !== -1;
+        const locked = !custom && periodsPanelOn;
+        $('#wsrAutoPeriodNote').toggleClass('d-none', !locked);
+        $('.wsr-period-manual-fields').toggleClass('d-none', locked);
+    }
 
     function scSelect2Single($el) {
         if ($el.data('select2')) $el.select2('destroy');
@@ -283,6 +661,7 @@
         $('#scWrap-unit').toggleClass('d-none', v.indexOf('unit') === -1);
         $('#scWrap-payment').toggleClass('d-none', v.indexOf('payment') === -1);
         $('#scWrap-periods').toggleClass('d-none', v.indexOf('periods') === -1);
+        syncWsrPeriodPanelLock();
     }
     function toggleCustomRanges() {
         $('#periodACustomWrap').toggleClass('d-none', $('#periodAPreset').val() !== 'custom');
@@ -367,8 +746,62 @@
             period_b_preset: $('#periodBPreset').val(),
             period_a_range: $('#periodARange').val(),
             period_b_range: $('#periodBRange').val(),
-            weekday: $('.wsr-weekday:checked').map(function() { return $(this).val(); }).get()
+            weekday: $('.wsr-weekday:checked').map(function() { return $(this).val(); }).get(),
+            weekday_report_scope: $('input[name="weekday_report_scope"]:checked').val() || 'compare_this_vs_last_month'
         };
+    }
+    function scTriggerFileExport(url) {
+        const qs = $.param(getFilterParams());
+        const fullUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs;
+        fetch(fullUrl, {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/pdf, */*'
+            }
+        }).then(function(r) {
+            const ct = (r.headers.get('Content-Type') || '').toLowerCase();
+            if (r.status === 422 && ct.indexOf('json') !== -1) {
+                return r.json().then(function(j) {
+                    throw new Error(j.message || exportFailedMsg);
+                });
+            }
+            if (!r.ok) {
+                throw new Error(exportFailedMsg);
+            }
+            const cd = r.headers.get('Content-Disposition') || '';
+            let filename = 'export';
+            const mStar = /filename\*=UTF-8''([^;\s]+)/i.exec(cd);
+            const mQuot = /filename="([^"]+)"/i.exec(cd);
+            const mPlain = /filename=([^;\s]+)/i.exec(cd);
+            if (mStar && mStar[1]) {
+                try {
+                    filename = decodeURIComponent(mStar[1].replace(/['"]/g, ''));
+                } catch (e) {
+                    filename = mStar[1];
+                }
+            } else if (mQuot && mQuot[1]) {
+                filename = mQuot[1];
+            } else if (mPlain && mPlain[1]) {
+                filename = mPlain[1].replace(/['"]/g, '');
+            }
+            return r.blob().then(function(blob) {
+                return { blob: blob, filename: filename };
+            });
+        }).then(function(x) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(x.blob);
+            a.download = x.filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function() {
+                URL.revokeObjectURL(a.href);
+            }, 600);
+        }).catch(function(e) {
+            console.error(e);
+            alert(e.message || exportFailedMsg);
+        });
     }
     function applyScFooterToDom(tfoot) {
         const f = scLastFooterTotals;
@@ -564,6 +997,12 @@
                         return [];
                     }
                     scLastFooterTotals = json.sc_footer_totals || null;
+                    const mode = json.wsr_table_mode || 'full';
+                    const kpi = json.wsr_kpi || null;
+                    setTimeout(function() {
+                        applyWsrTableLayout(mode);
+                        refreshWsrKpiAndCharts(kpi);
+                    }, 0);
                     return Array.isArray(json.data) ? json.data : [];
                 }
             },
@@ -646,10 +1085,23 @@
                 scRestoringFilters = false;
                 initDatatable();
                 handleSearchDatatable(dataTable);
+                syncWsrPeriodPanelLock();
             });
+        });
+        $('input[name="weekday_report_scope"]').on('change', function() {
+            syncWsrPeriodPanelLock();
+            if (dataTable) {
+                dataTable.ajax.reload();
+            }
         });
         $('#applyFilter').on('click', function() {
             if (dataTable) dataTable.ajax.reload();
+        });
+        $('#wsrExportExcel').on('click', function() {
+            scTriggerFileExport(exportExcelUrl);
+        });
+        $('#wsrExportPdf').on('click', function() {
+            scTriggerFileExport(exportPdfUrl);
         });
         $('#clearFilter').on('click', function() {
             $('#branchFilter').val(null).trigger('change');
@@ -662,6 +1114,8 @@
             populateSubcategories();
             $('#filterPanels').val(['periods']).trigger('change');
             syncFilterPanels();
+            $('#wsrScopeCompareCmLm').prop('checked', true);
+            syncWsrPeriodPanelLock();
             setDefaultPeriods();
             $('.wsr-weekday').prop('checked', true);
             $('#wsrTableSearch').val('');

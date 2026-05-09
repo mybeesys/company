@@ -3255,27 +3255,182 @@ SUM(
     public function weekdaySalesReport(Request $request)
     {
         if ($request->ajax() || $request->has('draw')) {
+            $scope = $this->normalizeWeekdayReportScope($request);
             $merged = $this->buildWeekdaySalesMergedCollection($request);
+            $kpi = $this->buildWeekdaySalesKpiSummary($merged ?? collect(), $request);
+            $wsrTableMode = in_array($scope, ['single_this_month', 'single_last_month'], true) ? 'single' : 'full';
+            $extra = [
+                'wsr_table_mode' => $wsrTableMode,
+                'wsr_kpi' => $kpi,
+            ];
+
             if ($merged === null) {
                 return ReportTransactionsUtile::getSalesComparisonReport(
                     collect(),
-                    $this->computeSalesComparisonFooterTotals(collect())
+                    $this->computeSalesComparisonFooterTotals(collect()),
+                    $extra
                 );
             }
 
             $footer = $this->computeSalesComparisonFooterTotals($merged);
 
-            return ReportTransactionsUtile::getSalesComparisonReport($merged, $footer);
+            return ReportTransactionsUtile::getSalesComparisonReport($merged, $footer, $extra);
         }
 
         return view('report::sales.weekday_sales_report');
     }
 
-    /**
-     * @return \Illuminate\Support\Collection<int, object>|null
-     */
-    private function buildWeekdaySalesMergedCollection(Request $request): ?Collection
+    public function weekdaySalesExportExcel(Request $request)
     {
+        $merged = $this->buildWeekdaySalesMergedCollection($request);
+        if ($merged === null) {
+            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        }
+
+        $meta = $this->weekdaySalesExportMeta($request, $merged);
+        $filename = 'weekday-sales-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new SalesComparisonExcelExport($merged, $meta), $filename);
+    }
+
+    public function weekdaySalesExportPdf(Request $request)
+    {
+        $merged = $this->buildWeekdaySalesMergedCollection($request);
+        if ($merged === null) {
+            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        }
+
+        $meta = $this->weekdaySalesExportMeta($request, $merged);
+        $rows = $merged->map(fn ($r) => $this->mapSalesComparisonRowForPdf($r))->all();
+
+        $html = view('report::sales.sales_comparison_export_pdf', [
+            'meta' => $meta,
+            'rows' => $rows,
+        ])->render();
+
+        if (! is_dir(storage_path('temp/mpdf'))) {
+            @mkdir(storage_path('temp/mpdf'), 0755, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'tempDir' => storage_path('temp/mpdf'),
+        ]);
+        if (app()->getLocale() === 'ar') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
+        $filename = 'weekday-sales-'.now()->format('Y-m-d-His').'.pdf';
+        $binary = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @return array<string, string|int>
+     */
+    private function weekdaySalesExportMeta(Request $request, Collection $merged): array
+    {
+        $scope = $this->normalizeWeekdayReportScope($request);
+        $overrides = $this->weekdayReportSyntheticPeriodInputs($scope);
+        $forMeta = $overrides === null
+            ? $request
+            : $request->duplicate(null, array_merge($request->all(), $overrides));
+
+        $meta = $this->salesComparisonExportMeta($forMeta, $merged);
+        $meta['title'] = __('menuItemLang.weekday-sales-report');
+        $meta['weekdays_line'] = $this->weekdayExportWeekdaysSummary($request);
+
+        $singleWindow = in_array($scope, ['single_this_month', 'single_last_month'], true);
+        $meta['wsr_export_single_window'] = $singleWindow;
+
+        if ($singleWindow) {
+            $kpi = $this->buildWeekdaySalesKpiSummary($merged, $request);
+            $meta['wsr_kpi_pdf'] = [
+                'qty' => number_format($kpi['sum_qty_a'], 3),
+                'revenue' => number_format($kpi['sum_subtotal_a'], 2),
+                'lines' => (string) $kpi['sum_lines_a'],
+            ];
+        }
+
+        return $meta;
+    }
+
+    private function normalizeWeekdayReportScope(Request $request): string
+    {
+        if (! $request->has('weekday_report_scope')) {
+            return 'custom_periods';
+        }
+
+        $s = (string) $request->input('weekday_report_scope');
+        $allowed = ['custom_periods', 'compare_this_vs_last_month', 'single_this_month', 'single_last_month'];
+
+        return in_array($s, $allowed, true) ? $s : 'custom_periods';
+    }
+
+    /**
+     * @return array<string, string>|null  null when the request already carries the real period fields
+     */
+    private function weekdayReportSyntheticPeriodInputs(string $scope): ?array
+    {
+        return match ($scope) {
+            'compare_this_vs_last_month' => [
+                'period_a_preset' => 'last_month',
+                'period_b_preset' => 'this_month',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_this_month' => [
+                'period_a_preset' => 'this_month',
+                'period_b_preset' => 'this_month',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_last_month' => [
+                'period_a_preset' => 'last_month',
+                'period_b_preset' => 'last_month',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            default => null,
+        };
+    }
+
+    /**
+     * @return array{0: array{0: string, 1: string}|null, 1: array{0: string, 1: string}|null, 2: string}
+     */
+    private function resolveWeekdayReportPeriods(Request $request): array
+    {
+        $scope = $this->normalizeWeekdayReportScope($request);
+
+        if ($scope === 'compare_this_vs_last_month') {
+            return [
+                SalesComparisonPeriodResolver::resolve('last_month', null),
+                SalesComparisonPeriodResolver::resolve('this_month', null),
+                $scope,
+            ];
+        }
+
+        if ($scope === 'single_this_month') {
+            $a = SalesComparisonPeriodResolver::resolve('this_month', null);
+
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_last_month') {
+            $a = SalesComparisonPeriodResolver::resolve('last_month', null);
+
+            return [$a, $a, $scope];
+        }
+
         $periodA = SalesComparisonPeriodResolver::resolve(
             $request->input('period_a_preset'),
             $request->input('period_a_range')
@@ -3285,13 +3440,118 @@ SUM(
             $request->input('period_b_range')
         );
 
-        if (! $periodA || ! $periodB) {
-            return null;
+        return [$periodA, $periodB, $scope];
+    }
+
+    /**
+     * @return array{a: string, b: string}
+     */
+    private function weekdayKpiPeriodLabels(Request $request): array
+    {
+        [$pA, $pB] = $this->resolveWeekdayReportPeriods($request);
+        $fmt = static function (?array $p): string {
+            if (! $p || ! isset($p[0], $p[1])) {
+                return '—';
+            }
+
+            return $p[0].' – '.$p[1];
+        };
+
+        return [
+            'a' => $fmt($pA),
+            'b' => $fmt($pB),
+        ];
+    }
+
+    private function shortenKpiLabel(string $label, int $max = 28): string
+    {
+        if ($label === '' || $label === '—') {
+            return $label;
         }
 
-        [$aFrom, $aTo] = $periodA;
-        [$bFrom, $bTo] = $periodB;
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            if (mb_strlen($label) <= $max) {
+                return $label;
+            }
 
+            return mb_substr($label, 0, $max).'…';
+        }
+
+        return strlen($label) <= $max ? $label : substr($label, 0, $max).'…';
+    }
+
+    /**
+     * @return array{
+     *     is_single: bool,
+     *     period_a_label: string,
+     *     period_b_label: string,
+     *     chart_label_a: string,
+     *     chart_label_b: string,
+     *     sum_qty_a: float,
+     *     sum_qty_b: float,
+     *     sum_subtotal_a: float,
+     *     sum_subtotal_b: float,
+     *     sum_lines_a: int,
+     *     sum_lines_b: int,
+     *     qty_change_pct: float|null,
+     *     revenue_change_pct: float|null,
+     *     delta_qty: float,
+     *     delta_revenue: float
+     * }
+     */
+    private function buildWeekdaySalesKpiSummary(Collection $merged, Request $request): array
+    {
+        $scope = $this->normalizeWeekdayReportScope($request);
+        $isSingle = in_array($scope, ['single_this_month', 'single_last_month'], true);
+        $labels = $this->weekdayKpiPeriodLabels($request);
+
+        $sumQtyA = $merged->isEmpty() ? 0.0 : (float) $merged->sum(fn ($r) => (float) ($r->qty_period_a ?? 0));
+        $sumQtyB = $merged->isEmpty() ? 0.0 : (float) $merged->sum(fn ($r) => (float) ($r->qty_period_b ?? 0));
+        $sumSubA = $merged->isEmpty() ? 0.0 : (float) $merged->sum(fn ($r) => (float) ($r->subtotal_period_a ?? 0));
+        $sumSubB = $merged->isEmpty() ? 0.0 : (float) $merged->sum(fn ($r) => (float) ($r->subtotal_period_b ?? 0));
+        $sumLinesA = $merged->isEmpty() ? 0 : (int) $merged->sum(fn ($r) => (int) ($r->lines_period_a ?? 0));
+        $sumLinesB = $merged->isEmpty() ? 0 : (int) $merged->sum(fn ($r) => (int) ($r->lines_period_b ?? 0));
+
+        return [
+            'is_single' => $isSingle,
+            'period_a_label' => $labels['a'],
+            'period_b_label' => $labels['b'],
+            'chart_label_a' => $this->shortenKpiLabel($labels['a']),
+            'chart_label_b' => $this->shortenKpiLabel($labels['b']),
+            'sum_qty_a' => $sumQtyA,
+            'sum_qty_b' => $sumQtyB,
+            'sum_subtotal_a' => $sumSubA,
+            'sum_subtotal_b' => $sumSubB,
+            'sum_lines_a' => $sumLinesA,
+            'sum_lines_b' => $sumLinesB,
+            'qty_change_pct' => ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB),
+            'revenue_change_pct' => ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB),
+            'delta_qty' => $sumQtyB - $sumQtyA,
+            'delta_revenue' => $sumSubB - $sumSubA,
+        ];
+    }
+
+    private function weekdayExportWeekdaysSummary(Request $request): string
+    {
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
+        if (count($phpDows) === 7) {
+            return __('report::general.weekday_export_all_days');
+        }
+
+        $sep = app()->getLocale() === 'ar' ? '، ' : ', ';
+
+        return collect($phpDows)
+            ->map(fn (int $d) => __('report::general.weekday_long_'.$d))
+            ->implode($sep);
+    }
+
+    /**
+     * PHP weekday indices 0–6 (Sun–Sat), unique and sorted; empty or invalid request values => all seven days.
+     *
+     * @return array<int, int>
+     */
+    private function resolveWeekdayPhpDaysForReport(Request $request): array
+    {
         $rawWeekday = $request->input('weekday');
         if ($rawWeekday === null || $rawWeekday === '') {
             $rawWeekday = [];
@@ -3308,8 +3568,27 @@ SUM(
             ->all();
 
         if ($phpDows === []) {
-            $phpDows = range(0, 6);
+            return range(0, 6);
         }
+
+        return $phpDows;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, object>|null
+     */
+    private function buildWeekdaySalesMergedCollection(Request $request): ?Collection
+    {
+        [$periodA, $periodB] = $this->resolveWeekdayReportPeriods($request);
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
 
         $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
         sort($mysqlDows);

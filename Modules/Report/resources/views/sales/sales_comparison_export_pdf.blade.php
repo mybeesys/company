@@ -109,6 +109,36 @@
             font-size: 8px;
             color: #64748b;
         }
+        .sc-pdf-kpi {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 9px;
+        }
+        .sc-pdf-kpi th, .sc-pdf-kpi td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 8px;
+            text-align: center;
+        }
+        .sc-pdf-kpi th {
+            background: #e0e7ff;
+            color: #312e81;
+            font-weight: 700;
+        }
+        .sc-pdf-kpi td {
+            background: #fff;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .sc-pdf-note {
+            font-size: 8px;
+            color: #475569;
+            margin-bottom: 10px;
+            padding: 6px 8px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +148,12 @@
     </div>
 
     <table class="sc-pdf-meta">
+        @if (! empty($meta['wsr_export_single_window']))
+        <tr>
+            <td class="k">{{ __('report::general.sales_comparison_period_a') }}</td>
+            <td class="v">{{ $meta['period_a_line'] }}</td>
+        </tr>
+        @else
         <tr>
             <td class="k">{{ __('report::general.sales_comparison_period_a') }}</td>
             <td class="v">{{ $meta['period_a_line'] }}</td>
@@ -126,13 +162,88 @@
             <td class="k">{{ __('report::general.sales_comparison_period_b') }}</td>
             <td class="v">{{ $meta['period_b_line'] }}</td>
         </tr>
+        @endif
+        @if (! empty($meta['weekdays_line'] ?? null))
+        <tr>
+            <td class="k">{{ __('report::general.weekday_export_selected_days') }}</td>
+            <td class="v">{{ $meta['weekdays_line'] }}</td>
+        </tr>
+        @endif
         <tr class="sc-pdf-filters">
             <td class="k">{{ __('report::general.export_filters_heading') }}</td>
             <td class="v">{{ $meta['filters'] }}</td>
         </tr>
     </table>
 
+    @if (! empty($meta['wsr_export_single_window']))
+    <div class="sc-pdf-note">{{ __('report::general.weekday_report_pdf_single_scope_note') }}</div>
+    @endif
+
+    @if (! empty($meta['wsr_kpi_pdf']) && is_array($meta['wsr_kpi_pdf']))
+    <table class="sc-pdf-kpi">
+        <thead>
+            <tr>
+                <th colspan="3">{{ __('report::general.weekday_report_pdf_kpi_title') }}</th>
+            </tr>
+            <tr>
+                <th>{{ __('report::general.weekday_report_kpi_qty') }}</th>
+                <th>{{ __('report::general.weekday_report_kpi_revenue') }}</th>
+                <th>{{ __('report::general.weekday_report_kpi_lines') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ $meta['wsr_kpi_pdf']['qty'] ?? '—' }}</td>
+                <td>{{ $meta['wsr_kpi_pdf']['revenue'] ?? '—' }}</td>
+                <td>{{ $meta['wsr_kpi_pdf']['lines'] ?? '—' }}</td>
+            </tr>
+        </tbody>
+    </table>
+    @endif
+
     <div class="sc-pdf-table-wrap">
+        @if (! empty($meta['wsr_export_single_window']))
+        <table class="sc-pdf-grid">
+            <thead>
+                <tr>
+                    <th colspan="6" class="sc-gh-context">{{ __('report::general.sales_comparison_group_context') }}</th>
+                    <th colspan="6" class="sc-gh-p1">{{ __('report::general.weekday_report_export_metrics_period') }}</th>
+                </tr>
+                <tr class="sc-h2">
+                    <th>{{ __('report::fields.product_name') }}</th>
+                    <th>{{ __('report::fields.category') }}</th>
+                    <th>{{ __('report::fields.subcategory') }}</th>
+                    <th>{{ __('report::fields.establishment_name') }}</th>
+                    <th>{{ __('report::fields.SKU') }}</th>
+                    <th>{{ __('report::fields.customer') }}</th>
+                    <th>{{ __('report::fields.qty_period_a') }}</th>
+                    <th>{{ __('report::fields.avg_unit_price_period_a') }}</th>
+                    <th>{{ __('report::fields.discount_period_a') }}</th>
+                    <th>{{ __('report::fields.tax_period_a') }}</th>
+                    <th>{{ __('report::fields.subtotal_period_a') }}</th>
+                    <th>{{ __('report::fields.lines_period_a') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach ($rows as $row)
+                <tr>
+                    <td class="text-start">{{ $row['product_name'] }}</td>
+                    <td class="text-start">{{ $row['category'] }}</td>
+                    <td class="text-start">{{ $row['subcategory'] }}</td>
+                    <td class="text-start">{{ $row['establishment_name'] }}</td>
+                    <td class="text-start">{{ $row['SKU'] }}</td>
+                    <td class="text-start">{{ $row['customer'] }}</td>
+                    <td>{{ $row['qty_period_a'] }}</td>
+                    <td>{{ $row['avg_unit_price_period_a'] }}</td>
+                    <td>{{ $row['discount_period_a'] }}</td>
+                    <td>{{ $row['tax_period_a'] }}</td>
+                    <td>{{ $row['subtotal_period_a'] }}</td>
+                    <td>{{ $row['lines_period_a'] }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        @else
         <table class="sc-pdf-grid">
             <thead>
                 <tr>
@@ -201,6 +312,7 @@
             @endforeach
             </tbody>
         </table>
+        @endif
     </div>
 
     <div class="sc-pdf-foot">{{ config('app.name') }}</div>
