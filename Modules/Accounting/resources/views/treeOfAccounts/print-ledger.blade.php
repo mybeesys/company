@@ -38,8 +38,24 @@
         }
 
         .ledger-header-top {
-            text-align: center;
             margin-bottom: 14px;
+        }
+
+        .ledger-header-top .h-company {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0a0a0a;
+            margin: 0 0 12px 0;
+            line-height: 1.25;
+            letter-spacing: 0.02em;
+        }
+
+        html[dir="rtl"] .ledger-header-top .h-company {
+            text-align: right;
+        }
+
+        html[dir="ltr"] .ledger-header-top .h-company {
+            text-align: left;
         }
 
         .ledger-header-top .h-title {
@@ -47,18 +63,14 @@
             font-weight: 800;
             color: #111;
             margin: 0 0 4px 0;
-        }
-
-        .ledger-header-top .h-company {
-            font-size: 12px;
-            color: #444;
-            margin: 0 0 3px 0;
+            text-align: center;
         }
 
         .ledger-header-top .h-period {
             font-size: 12px;
             color: #555;
             margin: 0;
+            text-align: center;
         }
 
         .ledger-header-grid {
@@ -161,28 +173,6 @@
             background-color: #ececec;
         }
 
-        .ledger-sign {
-            margin-top: 14px;
-            display: table;
-            width: 100%;
-        }
-
-        .ledger-sign .box {
-            display: table-cell;
-            border: 1px solid #333;
-            padding: 8px;
-            width: 33.33%;
-            height: 64px;
-            vertical-align: top;
-        }
-
-        .ledger-sign .lbl {
-            font-size: 11px;
-            color: #111;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
         @media print {
             .no-print {
                 display: none;
@@ -204,6 +194,9 @@
 <body>
 
     <div class="ledger-header-top">
+        @if (! empty($company?->name))
+            <div class="h-company" style="text-align: {{ $dir === 'rtl' ? 'right' : 'left' }};">{{ $company->name }}</div>
+        @endif
         <div class="h-title">
             @lang('accounting::lang.ledger')
             —
@@ -211,9 +204,6 @@
             {{ app()->getLocale() == 'ar' ? ' - ' : ' - ' }}
             {{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}
         </div>
-        @if (! empty($company?->name))
-            <div class="h-company">{{ $company->name }}</div>
-        @endif
         @if ($periodLine)
             <div class="h-period">{{ $periodLine }}</div>
         @endif
@@ -221,7 +211,7 @@
 
     {{-- Account details box intentionally removed (Saudi-style clean header) --}}
 
-        <div class="content table_component">
+    <div class="content table_component">
             <table id="journal_table">
                 <thead>
                     <tr>
@@ -459,19 +449,6 @@
                     </tr>
                 </tfoot>
             </table>
-        </div>
-
-        <div class="ledger-sign">
-            <div class="box">
-                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'إعداد' : 'Prepared by' }}</div>
-            </div>
-            <div class="box">
-                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'مراجعة' : 'Reviewed by' }}</div>
-            </div>
-            <div class="box">
-                <div class="lbl">{{ app()->getLocale() == 'ar' ? 'اعتماد' : 'Approved by' }}</div>
-            </div>
-        </div>
     </div>
 </body>
 
