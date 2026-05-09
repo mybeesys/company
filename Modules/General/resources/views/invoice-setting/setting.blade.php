@@ -88,10 +88,11 @@
     });
 
     function toggleVisibility(checkbox, targetDiv) {
+        if (!targetDiv) return;
         if ($(checkbox).is(":checked")) {
-            $(targetDiv).show();
+            $(targetDiv).removeClass('d-none');
         } else {
-            $(targetDiv).hide();
+            $(targetDiv).addClass('d-none');
         }
     }
 

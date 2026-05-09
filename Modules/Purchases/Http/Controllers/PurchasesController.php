@@ -470,6 +470,9 @@ class PurchasesController extends Controller
         if (! AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';
         }
+        if (! AccountsRoting::where('type', 'purchases_earned_discount')->value('account_id')) {
+            $missing[] = __('accounting::lang.earned_discount');
+        }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = AccountingAccount::query()
                 ->where('gl_code', '11105')
@@ -585,7 +588,7 @@ class PurchasesController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مشتريات رقم {$transaction->ref_no}.";
+            $acc_trans_mapping->note = 'مشتريات';
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->is_manual = 0;

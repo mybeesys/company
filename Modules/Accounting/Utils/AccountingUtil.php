@@ -240,7 +240,7 @@ class AccountingUtil
                 'purchases-return' => 'مردود مشتريات',
                 default => $transaction->type,
             };
-            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية ({$sourceTypeAr}) رقم {$transaction->ref_no}.";
+            $acc_trans_mapping->note = $sourceTypeAr;
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = $transaction->created_by;
             $acc_trans_mapping->is_manual = 0;

@@ -9,25 +9,25 @@ $(document).ready(function () {
 
     $("#toggleCost_center").on("change", function () {
         if ($(this).is(":checked")) {
-            $("#dev-costCenter").show();
+            $("#dev-costCenter").removeClass("d-none");
         } else {
-            $("#dev-costCenter").hide();
+            $("#dev-costCenter").addClass("d-none");
         }
     });
 
     $("#toggleStorehouse").on("change", function () {
         if ($(this).is(":checked")) {
-            $("#div-storehouse").show();
+            $("#div-storehouse").removeClass("d-none");
         } else {
-            $("#div-storehouse").hide();
+            $("#div-storehouse").addClass("d-none");
         }
     });
 
     $("#toggleDelegates").on("change", function () {
         if ($(this).is(":checked")) {
-            $("#div-Delegates").show();
+            $("#div-Delegates").removeClass("d-none");
         } else {
-            $("#div-Delegates").hide();
+            $("#div-Delegates").addClass("d-none");
         }
     });
 

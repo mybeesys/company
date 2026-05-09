@@ -883,7 +883,7 @@ class SellController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مبيعات رقم {$transaction->ref_no}.";
+            $acc_trans_mapping->note = 'مبيعات';
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->is_manual = 0;
@@ -983,7 +983,7 @@ class SellController extends Controller
         }
         $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من سند قبض/تحصيل لعملية مبيعات رقم {$transaction->ref_no}.";
+        $acc_trans_mapping->note = 'مبيعات';
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;

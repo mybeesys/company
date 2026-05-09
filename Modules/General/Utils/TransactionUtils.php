@@ -233,7 +233,7 @@ class TransactionUtils
         $sourceTypeAr = in_array($transaction->type, ['purchases', 'purchase'], true)
             ? 'مشتريات'
             : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
-        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من سند قبض/صرف لتسديد فواتير ({$sourceTypeAr}) رقم {$transaction->ref_no} - سند {$payment_ref_no}.";
+        $acc_trans_mapping->note = $sourceTypeAr;
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;
