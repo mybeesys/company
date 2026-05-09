@@ -266,7 +266,19 @@
                     </select>
                 </div>
             </div>
-         
+
+            <div class="col-md-3 mt-4">
+                <label>{{ __('accounting::lang.transaction_type') }}</label>
+                <select name="sub_type" id="ledger_sub_type_filter" class="form-select form-select-solid">
+                    <option value="">{{ __('accounting::lang.all') }}</option>
+                    @foreach ($subTypes ?? [] as $subTypeVal)
+                        <option value="{{ $subTypeVal }}" @selected((string) request('sub_type') === (string) $subTypeVal)>
+                            {{ \Illuminate\Support\Facades\Lang::has('accounting::lang.' . $subTypeVal) ? __('accounting::lang.' . $subTypeVal) : $subTypeVal }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="col-md-3 mt-4">
                 <label>{{ __('accounting::lang.transaction_number') }}</label>
                 <input type="text" name="ref_no" class="form-control" value="{{ request('ref_no') }}"
@@ -894,6 +906,7 @@
             });
 
             $('#choose_cost_center_select').select2();
+            $('#ledger_sub_type_filter').select2({ width: '100%' });
         });
     </script>
 @stop

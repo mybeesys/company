@@ -2,6 +2,33 @@
 
 @php
     use Modules\Report\Utils\SalesComparisonPeriodResolver;
+
+    $scColumnPickerContextKeys = [
+        'product_name', 'category', 'subcategory', 'establishment_name', 'SKU', 'customer',
+    ];
+
+    /** One UI toggle per metric: toggles Period A + Period B + related variance column(s). Indices match DataTable columns order. */
+    $scColumnPickerGroups = [
+        ['id' => 'qty', 'label_key' => 'sales_comparison_col_group_qty', 'indices' => [6, 12, 18, 19]],
+        ['id' => 'avg_unit_price', 'label_key' => 'sales_comparison_col_group_avg_unit_price', 'indices' => [7, 13]],
+        ['id' => 'discount', 'label_key' => 'sales_comparison_col_group_discount', 'indices' => [8, 14, 22]],
+        ['id' => 'tax', 'label_key' => 'sales_comparison_col_group_tax', 'indices' => [9, 15, 23]],
+        ['id' => 'line_total', 'label_key' => 'sales_comparison_col_group_line_total', 'indices' => [10, 16, 20, 21]],
+        ['id' => 'line_count', 'label_key' => 'sales_comparison_col_group_line_count', 'indices' => [11, 17, 24]],
+    ];
+
+    $scColumnGroupsForJs = array_values(array_map(static function (array $g): array {
+        return ['id' => $g['id'], 'indices' => $g['indices']];
+    }, $scColumnPickerGroups));
+
+    $scColumnPickerKeys = array_merge(
+        $scColumnPickerContextKeys,
+        [
+            'qty_period_a', 'avg_unit_price_period_a', 'discount_period_a', 'tax_period_a', 'subtotal_period_a', 'lines_period_a',
+            'qty_period_b', 'avg_unit_price_period_b', 'discount_period_b', 'tax_period_b', 'subtotal_period_b', 'lines_period_b',
+            'qty_difference', 'qty_change_percent', 'subtotal_difference', 'subtotal_change_percent', 'discount_difference', 'tax_difference', 'lines_difference',
+        ]
+    );
 @endphp
 
 @section('title', __('menuItemLang.sales-comparison-report'))
@@ -323,7 +350,7 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-xl-3 sc-filter-field">
                                     <div class="form-check form-switch form-check-custom form-check-solid mb-2">
-                                        <input class="form-check-input" type="checkbox" id="showChartsToggle" value="1" />
+                                        <input class="form-check-input" type="checkbox" id="showChartsToggle" value="1" checked />
                                         <label class="form-check-label fw-semibold ms-3" for="showChartsToggle">@lang('report::general.sales_comparison_show_charts')</label>
                                     </div>
                                     <div class="text-muted fs-8">@lang('report::general.sales_comparison_charts_help')</div>
@@ -451,7 +478,7 @@
                 </div>
             </div>
 
-            <div id="scChartsSection" class="card-body border-top py-4 px-5 d-none">
+            <div id="scChartsSection" class="card-body border-top py-4 px-5">
                 <div class="row g-4 g-xl-5">
                     <div class="col-12 col-xl-6">
                         <h4 class="fs-6 fw-bold mb-3">@lang('report::general.sales_comparison_chart_totals')</h4>
@@ -479,9 +506,49 @@
                             placeholder="@lang('report::general.SalesComparison_search')"
                             autocomplete="off" />
                     </div>
+                    <div class="ms-auto d-flex align-items-center gap-2 flex-shrink-0">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-icon sc-gear-btn" type="button"
+                                id="scColumnPickerToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false"
+                                title="@lang('report::general.sales_comparison_table_columns_hint')">
+                                <i class="bi bi-gear-fill fs-4"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-4 shadow-lg" id="scColumnPickerMenu"
+                                aria-labelledby="scColumnPickerToggle">
+                                <div class="fw-bold mb-3">@lang('report::general.sales_comparison_table_columns')</div>
+                                <div class="text-muted fs-8 mb-3">@lang('report::general.sales_comparison_table_columns_hint')</div>
+                                <div class="text-uppercase text-muted fs-9 fw-bold mb-2 mt-1">@lang('report::general.sales_comparison_col_section_context')</div>
+                                @foreach ($scColumnPickerContextKeys as $colKey)
+                                    <div class="form-check form-check-custom form-check-solid mb-2">
+                                        <input class="form-check-input sc-col-toggle" type="checkbox"
+                                            id="sc_col_{{ $colKey }}"
+                                            data-sc-idx="{{ $loop->index }}"
+                                            data-sc-key="{{ $colKey }}"
+                                            checked />
+                                        <label class="form-check-label fw-semibold text-gray-700 cursor-pointer" for="sc_col_{{ $colKey }}">
+                                            @lang('report::fields.' . $colKey)
+                                        </label>
+                                    </div>
+                                @endforeach
+                                <div class="text-uppercase text-muted fs-9 fw-bold mb-2 mt-4">@lang('report::general.sales_comparison_col_section_metrics')</div>
+                                @foreach ($scColumnPickerGroups as $g)
+                                    <div class="form-check form-check-custom form-check-solid mb-2">
+                                        <input class="form-check-input sc-col-toggle" type="checkbox"
+                                            id="sc_col_grp_{{ $g['id'] }}"
+                                            data-sc-group="{{ $g['id'] }}"
+                                            checked />
+                                        <label class="form-check-label fw-semibold text-gray-700 cursor-pointer" for="sc_col_grp_{{ $g['id'] }}">
+                                            @lang('report::general.' . $g['label_key'])
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="table-responsive">
-                <table class="table align-middle table-striped table-row-bordered fs-6 gy-5 sc-table" id="kt_SalesComparison_table" data-no-auto-colvis="1" style="width:100%">
+                <table class="table align-middle table-striped table-row-bordered fs-6 gy-5 sc-table" id="kt_SalesComparison_table" style="width:100%">
                     <thead>
                         <tr class="text-gray-800 fw-bold gs-0 sc-h1">
                             <th rowspan="2" class="text-start min-w-150px sc-gh-context px-2">@lang('report::fields.product_name')</th>
@@ -554,12 +621,10 @@
     let scRestoringFilters = false;
     let scPendingTableSearch = '';
     const SC_FILTER_STORAGE_KEY = 'salesComparisonReport:v1';
-    const SC_FOOTER_KEYS = [
-        'product_name', 'category', 'subcategory', 'establishment_name', 'SKU', 'customer',
-        'qty_period_a', 'avg_unit_price_period_a', 'discount_period_a', 'tax_period_a', 'subtotal_period_a', 'lines_period_a',
-        'qty_period_b', 'avg_unit_price_period_b', 'discount_period_b', 'tax_period_b', 'subtotal_period_b', 'lines_period_b',
-        'qty_difference', 'qty_change_percent', 'subtotal_difference', 'subtotal_change_percent', 'discount_difference', 'tax_difference', 'lines_difference'
-    ];
+    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v2';
+    const SC_FOOTER_KEYS = @json($scColumnPickerKeys);
+    const SC_CONTEXT_KEYS = @json($scColumnPickerContextKeys);
+    const SC_COLUMN_GROUPS = @json($scColumnGroupsForJs);
 
     const table = $('#kt_SalesComparison_table');
     const apiUrl = "{{ route('sales-comparison-report') }}";
@@ -720,6 +785,67 @@
         };
     }
 
+    function syncScChartsSectionVisibility() {
+        const on = $('#showChartsToggle').is(':checked');
+        $('#scChartsSection').toggleClass('d-none', !on);
+    }
+
+    function scLoadColumnVisibility() {
+        try {
+            return JSON.parse(localStorage.getItem(SC_COLUMN_VISIBILITY_STORAGE_KEY) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function scSaveColumnVisibility() {
+        if (!dataTable) return;
+        const state = {};
+        SC_CONTEXT_KEYS.forEach(function(key, idx) {
+            state[key] = dataTable.column(idx).visible();
+        });
+        SC_COLUMN_GROUPS.forEach(function(g) {
+            state[g.id] = g.indices.every(function(i) {
+                return dataTable.column(i).visible();
+            });
+        });
+        try {
+            localStorage.setItem(SC_COLUMN_VISIBILITY_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+    }
+
+    function scCountVisibleDataColumns() {
+        let n = 0;
+        for (let i = 0; i < SC_FOOTER_KEYS.length; i++) {
+            if (dataTable.column(i).visible()) n++;
+        }
+        return n;
+    }
+
+    function applyScColumnVisibilityFromStorage() {
+        if (!dataTable) return;
+        const state = scLoadColumnVisibility();
+        SC_CONTEXT_KEYS.forEach(function(key, idx) {
+            const visible = state[key] !== false;
+            dataTable.column(idx).visible(visible, false);
+            $('#sc_col_' + key).prop('checked', visible);
+        });
+        SC_COLUMN_GROUPS.forEach(function(g) {
+            const visible = state[g.id] !== false;
+            g.indices.forEach(function(i) {
+                dataTable.column(i).visible(visible, false);
+            });
+            $('#sc_col_grp_' + g.id).prop('checked', visible);
+        });
+        if (scCountVisibleDataColumns() === 0) {
+            SC_FOOTER_KEYS.forEach(function(_, idx) {
+                dataTable.column(idx).visible(true, false);
+            });
+            $('#scColumnPickerMenu .sc-col-toggle').prop('checked', true);
+            scSaveColumnVisibility();
+        }
+    }
+
     function saveSalesComparisonFilterState() {
         try {
             const state = Object.assign({}, getFilterParams(), {
@@ -747,6 +873,8 @@
         if (!state || typeof state !== 'object') {
             scPendingTableSearch = '';
             setDefaultPeriods();
+            $('#showChartsToggle').prop('checked', true);
+            syncScChartsSectionVisibility();
             return $.Deferred().resolve().promise();
         }
 
@@ -764,7 +892,8 @@
         $('#categoryFilter').val(state.category_id || null).trigger('change');
         $('#unitFilter').val(state.unit_id || null).trigger('change');
         $('#paymentMethodFilter').val(state.payment_method || null).trigger('change');
-        $('#showChartsToggle').prop('checked', Boolean(state.showCharts));
+        $('#showChartsToggle').prop('checked', state.showCharts !== false);
+        syncScChartsSectionVisibility();
         $('#scTableSearch').val(scPendingTableSearch);
 
         const subIds = Object.prototype.hasOwnProperty.call(state, 'subcategory_id') ? state.subcategory_id : undefined;
@@ -1319,7 +1448,41 @@
             syncFilterPanels();
             toggleCustomRanges();
             initDatatable();
+            applyScColumnVisibilityFromStorage();
+            dataTable.columns.adjust().draw(false);
             handleSearchDatatable();
+
+            $('#scColumnPickerMenu').on('change', '.sc-col-toggle', function() {
+                const $cb = $(this);
+                const visible = $cb.is(':checked');
+                const groupId = $cb.data('sc-group');
+                let indices = [];
+                if (groupId) {
+                    const g = SC_COLUMN_GROUPS.find(function(x) { return x.id === groupId; });
+                    indices = g ? g.indices.slice() : [];
+                } else {
+                    const idx = parseInt($cb.data('sc-idx'), 10);
+                    if (!isNaN(idx)) indices = [idx];
+                }
+                if (!indices.length) return;
+                if (!visible) {
+                    let nAfter = 0;
+                    SC_FOOTER_KEYS.forEach(function(_, i) {
+                        const vis = dataTable.column(i).visible();
+                        const willHide = indices.indexOf(i) >= 0;
+                        if (vis && !willHide) nAfter++;
+                    });
+                    if (nAfter < 1) {
+                        $cb.prop('checked', true);
+                        return;
+                    }
+                }
+                indices.forEach(function(i) {
+                    dataTable.column(i).visible(visible, true);
+                });
+                scSaveColumnVisibility();
+                dataTable.columns.adjust().draw(false);
+            });
 
             $('#scTableSearch').on('blur', function() {
                 saveSalesComparisonFilterState();
@@ -1371,8 +1534,13 @@
                 if (dataTable) {
                     dataTable.search('').draw();
                 }
+                $('#showChartsToggle').prop('checked', true);
+                syncScChartsSectionVisibility();
                 destroyCharts();
                 dataTable.ajax.reload();
+                requestAnimationFrame(function() {
+                    refreshSalesComparisonCharts();
+                });
             });
 
             $('#showChartsToggle').on('change', function() {
