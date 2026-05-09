@@ -109,6 +109,7 @@
             text-align: center;
             padding-top: 0.65rem;
             padding-bottom: 0.65rem;
+            padding-inline: 0.9rem;
         }
 
         #ledger-table.ledger-table-pro tbody td,
@@ -117,6 +118,7 @@
             vertical-align: middle;
             padding-top: 0.45rem;
             padding-bottom: 0.45rem;
+            padding-inline: 0.9rem;
         }
 
         #ledger-table.ledger-table-pro .ledger-num {
@@ -131,6 +133,7 @@
         #ledger-table.ledger-table-pro thead th {
             padding-top: 0.55rem;
             padding-bottom: 0.55rem;
+            padding-inline: 0.9rem;
         }
 
         .ledger-balance-pill {
@@ -154,6 +157,19 @@
         #ledger-table.ledger-table-pro tfoot tr td {
             background: #f0f4f8;
             border-top: 2px solid #e4e6ef;
+        }
+
+        /* Metronic `.table.gs-0` zeros first/last cell horizontal padding — restore breathing room */
+        #ledger-table.ledger-table-pro thead th:first-child,
+        #ledger-table.ledger-table-pro tbody td:first-child,
+        #ledger-table.ledger-table-pro tfoot td:first-child {
+            padding-left: 0.9rem !important;
+        }
+
+        #ledger-table.ledger-table-pro thead th:last-child,
+        #ledger-table.ledger-table-pro tbody td:last-child,
+        #ledger-table.ledger-table-pro tfoot td:last-child {
+            padding-right: 0.9rem !important;
         }
     </style>
 @stop
