@@ -1990,28 +1990,18 @@
                         <div class="icon-list">
                             @if (!empty($socialLinks['social_whatsapp']))
                             <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="WhatsApp"><i class="fab fa-whatsapp" style="color: #25D366;"></i></a>
-                            @else
-                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-whatsapp" style="color: #25D366;"></i></div>
                             @endif
                             @if (!empty($socialLinks['social_instagram']))
                             <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Instagram"><i class="fab fa-instagram" style="color: #E1306C;"></i></a>
-                            @else
-                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-instagram" style="color: #E1306C;"></i></div>
                             @endif
                             @if (!empty($socialLinks['social_snapchat']))
                             <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Snapchat"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></a>
-                            @else
-                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></div>
                             @endif
                             @if (!empty($socialLinks['social_x']))
                             <a href="{{ $socialLinks['social_x'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="X"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></a>
-                            @else
-                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></div>
                             @endif
                             @if (!empty($socialLinks['social_facebook']))
                             <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 48px;" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></a>
-                            @else
-                            <div class="icon-item disabled-icon" style="width: 48px;" aria-hidden="true"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></div>
                             @endif
                         </div>
                     </div>
