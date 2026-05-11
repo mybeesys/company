@@ -11,6 +11,7 @@ use Modules\Employee\Models\Payroll;
 use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\Franchise\Models\FranchiseCompanies;
 use Modules\Product\Models\CustomMenu;
 use Modules\Sales\Models\Coupon;
@@ -123,5 +124,10 @@ class Establishment extends Model
     public function estPos()
     {
         return $this->hasMany(EstPos::class, 'establishment_id', 'id');
+    }
+
+    public function perpetualInventoryAccount()
+    {
+        return $this->belongsTo(AccountingAccount::class, 'perpetual_inventory_account_id');
     }
 }

@@ -14,6 +14,7 @@ use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
+use Modules\ClientsAndSuppliers\Models\Contact as ContactModel;
 
 class ReceiptsController extends Controller
 {
@@ -22,34 +23,25 @@ class ReceiptsController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = TransactionPayments::with('transaction')
+        $query = TransactionPayments::query()
+            ->with(['transaction', 'client'])
             ->where(function ($q) {
                 $q->where('payment_type', 'debit')
                     ->orWhereHas('transaction', function ($q) {
                         $q->whereIn('type', ['sell']);
                     });
             })
-            ->orderBy('id')
-            ->get();
+            ->orderByDesc('id');
 
         if ($request->ajax()) {
-
-            $transactions = TransactionPayments::with('transaction')
-                ->where(function ($q) {
-                    $q->where('payment_type', 'debit')
-                        ->orWhereHas('transaction', function ($q) {
-                            $q->whereIn('type', ['sell']);
-                        });
-                })
-                ->orderBy('id')
-                ->get();
-
-            return TransactionPayments::getReceiptsTable($transactions);
+            return TransactionPayments::getReceiptsTable($query);
         }
 
         $columns = TransactionPayments::getReceiptsColumns();
 
-        return view('sales::receipts.index', compact('transactions', 'columns'));
+        $hasTransactions = $query->exists();
+
+        return view('sales::receipts.index', compact('hasTransactions', 'columns'));
     }
 
     /**
@@ -81,7 +73,7 @@ class ReceiptsController extends Controller
             'transactions' => ['nullable', 'array'],
             'transactions.*' => ['integer', 'min:1'],
             'additionalNotes' => ['nullable', 'string', 'max:2000'],
-            'cost_center' => ['nullable', 'integer', 'min:1'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $contact = Contact::find($validated['client_id']);
@@ -89,21 +81,39 @@ class ReceiptsController extends Controller
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
 
-        DB::beginTransaction();
+        try {
+            DB::beginTransaction();
         if ($validated['allocation_option'] == 'specified_invoices') {
             $ids = $validated['transactions'] ?? [];
             if (count($ids) === 0) {
                 return redirect()->back()->with('error', __('messages.something_went_wrong'));
             }
-            $transactions = Transaction::whereIn('id', $ids)->get();
-            $this->settleTransactions($transactions, $request);
+            $allowedTypes = $contact->business_type === 'supplier' ? ['purchases', 'purchase'] : ['sell'];
+            $transactions = Transaction::where('contact_id', $validated['client_id'])
+                ->whereIn('type', $allowedTypes)
+                ->where('status', 'approved')
+                ->where('payment_status', '<>', 'paid')
+                ->whereIn('id', $ids)
+                ->get();
+
+            $this->settleTransactions($transactions, $request, $contact);
         } else {
             if ($contact->business_type == 'customer') {
-                $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['sell'])->get();
+                $transactions = Transaction::where('contact_id', $validated['client_id'])
+                    ->where('status', 'approved')
+                    ->where('payment_status', '<>', 'paid')
+                    ->whereIn('type', ['sell'])
+                    ->orderBy('transaction_date')
+                    ->get();
             } else {
-                $transactions = Transaction::where('contact_id', $request->client_id)->where('payment_status', '<>', 'paid')->whereIn('type', ['purchases'])->get();
+                $transactions = Transaction::where('contact_id', $validated['client_id'])
+                    ->where('status', 'approved')
+                    ->where('payment_status', '<>', 'paid')
+                    ->whereIn('type', ['purchases', 'purchase'])
+                    ->orderBy('transaction_date')
+                    ->get();
             }
-            $this->settleTransactions($transactions, $request);
+            $this->settleTransactions($transactions, $request, $contact);
         }
 
         DB::commit();
@@ -112,16 +122,14 @@ class ReceiptsController extends Controller
         }
 
         return redirect()->route('suppliers-receipts')->with('success', __('messages.add_successfully'));
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     if ($contact->business_type == 'customer')
-
-        //     return redirect()->route('receipts')->with('error', __('messages.something_went_wrong'));
-        //     return redirect()->route('suppliers-receipts')->with('error', __('messages.something_went_wrong'));
-        // }
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return redirect()->back()->with('error', config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'));
+        }
     }
 
-    public function settleTransactions($transactions, $request)
+    public function settleTransactions($transactions, $request, $contact)
     {
 
         $transactionUtil = new TransactionUtils;
@@ -132,25 +140,23 @@ class ReceiptsController extends Controller
 
             $remaining_amount = $transaction->final_total - $paidAmount;
 
-            if ($remaining_amount > 0) {
-                $transaction->remaining_amount = number_format($remaining_amount, 2);
-            }
+            $transaction->remaining_amount = number_format(max(0, (float) $remaining_amount), 2, '.', '');
         }
         $transactions = $transactions->sortBy('transaction_date');
 
         $settledTransactions = [];
         foreach ($transactions as $transaction) {
-            $remaining_amount = $transaction['remaining_amount'];
+            $remaining_amount = (float) ($transaction->remaining_amount ?? 0);
 
             if ($paid_amount == 0) {
                 break;
             }
 
-            $remaining_amount = str_replace(',', '', $remaining_amount);
-            $paid_amount = str_replace(',', '', $paid_amount);
-            // return $transaction;
-            $remaining_amount = (float) $remaining_amount;
-            $paid_amount = (float) $paid_amount;
+            if ($remaining_amount <= 0) {
+                continue;
+            }
+
+            $paid_amount = (float) str_replace(',', '', (string) $paid_amount);
             if ($paid_amount >= $remaining_amount) {
                 // Pay the full remaining amount of this invoice.
                 $paid_amount -= $remaining_amount;
@@ -172,7 +178,7 @@ class ReceiptsController extends Controller
 
         // Any extra amount beyond open invoices becomes customer balance (once).
         if ($paid_amount > 0) {
-            if ($contact->business_type === 'supplier') {
+            if ($contact && $contact->business_type === 'supplier') {
                 $contactUtils->addRemainingAmountToSupplierAccount($request->client_id, $paid_amount);
             } else {
                 $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $paid_amount);
@@ -185,11 +191,19 @@ class ReceiptsController extends Controller
     /**
      * Show the specified resource.
      */
-    public function getTransactions($clientId)
+    public function getTransactions(Request $request, $clientId)
     {
         $transactionUtil = new TransactionUtils;
 
-        $transactions = Transaction::where('contact_id', $clientId)->where('payment_status', '<>', 'paid')->where('status', 'approved')->get();
+        $scope = (string) $request->query('scope', 'customer');
+        $types = $scope === 'supplier' ? ['purchases', 'purchase'] : ['sell'];
+
+        $transactions = Transaction::where('contact_id', $clientId)
+            ->where('payment_status', '<>', 'paid')
+            ->where('status', 'approved')
+            ->whereIn('type', $types)
+            ->orderBy('transaction_date')
+            ->get();
 
         $filteredTransactions = [];
 

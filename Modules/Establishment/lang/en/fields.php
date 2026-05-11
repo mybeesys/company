@@ -42,8 +42,8 @@ return [
     'new_password' => 'New password',
     'main_info' => 'Main info',
     'ceo_name' => 'Ceo name',
-    'tax_name' => 'Tax name',
-    'tax_number' => 'Tax number',
+    'tax_name' => 'VAT name',
+    'tax_number' => 'VAT number',
     'logo' => 'Logo',
     'zip_code' => 'Zip code',
     'national_address' => 'National address',
@@ -89,4 +89,5 @@ return [
     'device_type' => 'Device type',
     'ref' => 'Reference number',
     'generate' => 'generate',
+    'perpetual_inventory_account' => 'Linked GL account (branch)',
 ];

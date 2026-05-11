@@ -42,8 +42,8 @@ return [
     'new_password' => 'كلمة المرور الجديدة',
     'main_info' => 'المعلومات الرئيسية',
     'ceo_name' => 'اسم المدير التنفيذي',
-    'tax_name' => 'الاسم الضريبي',
-    'tax_number' => 'الرقم الضريبي',
+    'tax_name' => 'اسم VAT',
+    'tax_number' => 'رقم VAT',
     'logo' => 'الشعار',
     'zip_code' => 'الرمز البريدي',
     'national_address' => 'العنوان',
@@ -90,4 +90,5 @@ return [
     'device_type' => 'نوع الجهاز',
     'ref' => 'الرقم المرجعي',
     'generate' => 'إنشاء',
+    'perpetual_inventory_account' => 'الحساب المحاسبي المرتبط بالفرع',
 ];

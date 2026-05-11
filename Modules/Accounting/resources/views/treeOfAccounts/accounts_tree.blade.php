@@ -177,13 +177,12 @@
 
                                                             <li>
                                                                 <form action="{{ route('delete-account') }}" method="POST"
-                                                                    onsubmit="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));"
                                                                     style="display:inline;" onclick="event.stopPropagation();">
                                                                     @csrf
                                                                     <input type="hidden" name="account_id" value="{{ $account->id }}">
-                                                                    <button type="submit" class="btn-xs btn-default text-danger"
+                                                                    <button type="button" class="btn-xs btn-default text-danger account-delete-btn"
                                                                         style="margin: 2px; background: transparent; border: 0; padding: 0;"
-                                                                        onclick="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));">
+                                                                        onclick="event.preventDefault(); event.stopPropagation(); window.confirmDeleteAccount(this);">
                                                                         <i class="fas fa-trash"></i>
                                                                         <span style="margin-left: 5px;">@lang('messages.delete')</span>
                                                                     </button>
@@ -291,13 +290,12 @@
 
                                                                             <li>
                                                                                 <form action="{{ route('delete-account') }}" method="POST"
-                                                                                    onsubmit="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));"
                                                                                     style="display:inline;" onclick="event.stopPropagation();">
                                                                                     @csrf
                                                                                     <input type="hidden" name="account_id" value="{{ $child_account->id }}">
-                                                                                    <button type="submit" class="btn-xs btn-default text-danger"
+                                                                                    <button type="button" class="btn-xs btn-default text-danger account-delete-btn"
                                                                                         style="margin: 2px; background: transparent; border: 0; padding: 0;"
-                                                                                        onclick="event.stopPropagation(); return confirm(@json(__('accounting::lang.delete_account_confirm')));">
+                                                                                        onclick="event.preventDefault(); event.stopPropagation(); window.confirmDeleteAccount(this);">
                                                                                         <i class="fas fa-trash"></i>
                                                                                         <span style="margin-left: 5px;">@lang('messages.delete')</span>
                                                                                     </button>

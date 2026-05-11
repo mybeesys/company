@@ -100,6 +100,13 @@
 } --}}
 @section('content')
 
+    <div class="d-flex justify-content-end mb-4">
+        <a href="{{ route('show-receipts-payments-export-pdf', $transaction->id) }}" class="btn btn-light-danger">
+            <i class="ki-outline ki-file-down fs-4 me-2"></i>
+            @lang('general.export_as_pdf')
+        </a>
+    </div>
+
 
     <div class="row">
 

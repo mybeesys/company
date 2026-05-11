@@ -11,9 +11,38 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\StandaloneVoucherHelper;
+use Mpdf\Mpdf;
 
 class PaymentVouchersController extends Controller
 {
+    private function buildViewPayload(int $id): array
+    {
+        [$debit, $credit] = StandaloneVoucherHelper::paymentLines($id);
+        $debit->loadMissing(['account', 'createdBy', 'costCenter']);
+        $credit->loadMissing(['account']);
+
+        $costCenterLabel = $debit->costCenter
+            ? ($debit->costCenter->account_center_number.' - '.(app()->getLocale() === 'ar' ? $debit->costCenter->name_ar : $debit->costCenter->name_en))
+            : '--';
+        $createdByLabel = $debit->createdBy->name ?? '--';
+        $debitAccountLabel = $debit->account->gl_code.' - '.(app()->getLocale() === 'ar' ? $debit->account->name_ar : $debit->account->name_en);
+        $creditAccountLabel = $credit->account->gl_code.' - '.(app()->getLocale() === 'ar' ? $credit->account->name_ar : $credit->account->name_en);
+
+        return [
+            'pageTitle' => __('menuItemLang.payment_vouchers'),
+            'date' => $debit->operation_date,
+            'amount' => $debit->amount,
+            'note' => $debit->note,
+            'debitAccountLabel' => $debitAccountLabel,
+            'creditAccountLabel' => $creditAccountLabel,
+            'debitHint' => __('accounting::lang.voucher_payment_debit_hint'),
+            'creditHint' => __('accounting::lang.voucher_payment_credit_hint'),
+            'costCenterLabel' => $costCenterLabel,
+            'createdByLabel' => $createdByLabel,
+            'pdfUrl' => route('payment-vouchers-export-pdf', ['id' => $id]),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -122,7 +151,53 @@ class PaymentVouchersController extends Controller
      */
     public function show($id)
     {
-        return view('accounting::show');
+        try {
+            $payload = $this->buildViewPayload((int) $id);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('payment-vouchers')->with('error', __('accounting::lang.voucher_line_not_found'));
+        }
+
+        return view('accounting::vouchers.show', array_merge($payload, [
+            'backUrl' => route('payment-vouchers'),
+        ]));
+    }
+
+    public function modal(int $id)
+    {
+        try {
+            $payload = $this->buildViewPayload($id);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => __('accounting::lang.voucher_line_not_found')], 422);
+        }
+
+        return response()->json([
+            'title' => $payload['pageTitle'],
+            'html' => view('accounting::vouchers.partials.show_content', $payload)->render(),
+        ]);
+    }
+
+    public function exportPDF($id)
+    {
+        try {
+            $payload = $this->buildViewPayload((int) $id);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('payment-vouchers')->with('error', __('accounting::lang.voucher_line_not_found'));
+        }
+        $html = view('accounting::vouchers.print', $payload)->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 12,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+        $filename = 'payment-voucher-'.$id.'.pdf';
+
+        return $mpdf->Output($filename, 'D');
     }
 
     /**
@@ -188,6 +263,19 @@ class PaymentVouchersController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            [$debit, $credit] = StandaloneVoucherHelper::paymentLines((int) $id);
+            DB::beginTransaction();
+            $debit->delete();
+            $credit->delete();
+            DB::commit();
+            return response()->json(['status' => true]);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => __('accounting::lang.voucher_line_not_found')], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => __('messages.something_went_wrong')], 500);
+        }
     }
 }

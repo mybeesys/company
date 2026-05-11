@@ -7,7 +7,7 @@ return [
     'mobile_number' => 'رقم الجوال',
     'email' => 'البريد الالكتروني',
     'commercial_register' => 'السجل التجاري',
-    'tax_number' => 'الرقم الضريبي',
+    'tax_number' => 'رقم VAT',
     'invoice_no' => 'الرقم المرجعي',
     'issue_date' => 'تاريخ الإصدار',
     'payment_terms' => 'فترة االاستحقاق',
@@ -19,13 +19,13 @@ return [
     'storehouse' => 'المستودع',
     'ref_no' => 'الرقم المرجعي',
 
-    'total_before_vat' => 'الاجمالي قبل الضريبة',
+    'total_before_vat' => 'الإجمالي قبل VAT',
 
-    'vat_value' => 'الضريبة',
+    'vat_value' => 'VAT',
     'discount' => 'الخصم',
     'totalAfterDiscount' => 'الاجمالي بعد الخصم',
 
-    'amount' => 'الاجمال شامل الضريبة',
+    'amount' => 'الإجمالي شامل VAT',
     'actions' => 'العمليات',
     'payment_status' => 'حالة الدفع',
     'Expiry Date' => 'تاريخ الانتهاء',
@@ -35,6 +35,7 @@ return [
     'paid_on' => 'تاريخ الدفع',
     'invoice_amount' => 'مبلغ الفاتورة',
     'date' => 'التاريخ',
+    'invoice_number' => 'رقم الفاتورة',
 
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',

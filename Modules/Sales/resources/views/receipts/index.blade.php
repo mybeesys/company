@@ -13,8 +13,14 @@
 @stop
 @section('content')
 
+    <div class="mb-6">
+        <div class="text-muted">
+            سندات العملاء مرتبطة بـ <span class="fw-semibold">فواتير المبيعات</span>، وتظهر هنا جميع عمليات التحصيل/السداد التي تمت على الفواتير.
+        </div>
+    </div>
 
-    @if (count($transactions) == 0)
+
+    @if (empty($hasTransactions))
         <div class="card1 h-md-100 my-5" dir="ltr">
             <div class="card-body d-flex flex-column flex-center">
                 <div class="mb-2 px-20" style="place-items: center;">

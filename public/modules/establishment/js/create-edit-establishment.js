@@ -1,17 +1,26 @@
 function establishmentForm(id, validationUrl) {
+    const $form = $(`#${id}`);
     let saveButton = $(`#${id}_button`);
     checkErrors(saveButton);
 
-    $(`#${id} input, #${id} select, #${id} input[type="file"]`).on('change', function () {
+    $form.find('input, select, input[type="file"]').on('change', function () {
         let input = $(this);
         validateField(input, validationUrl, saveButton);
     });
 
-    $('select[name="parent_id"]').select2();
+    const select2Base = { width: '100%' };
 
-    $('.select2-selection.select2-selection--single').attr('style', function (i, style) {
-        return 'height: 36.05px !important;  min-height: 36.05px !important;';
-    });
+    $form.find('select[name="parent_id"]').select2(select2Base);
+    const $perpAcc = $form.find('#perpetual_inventory_account_id');
+    if ($perpAcc.length) {
+        $perpAcc.select2({
+            ...select2Base,
+            allowClear: true,
+            placeholder: $perpAcc.data('placeholder') || '',
+        });
+    }
+
+    $form.find('.select2-selection--single').css({ height: '38px', minHeight: '38px' });
 
     $('#is_main').on('change', function () {
         if ($(this).is(':checked')) {

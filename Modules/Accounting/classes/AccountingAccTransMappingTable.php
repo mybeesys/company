@@ -41,6 +41,9 @@ class AccountingAccTransMappingTable
                         })
                         ->orWhereHas('transactions', function ($q3) use ($like) {
                             $q3->where('sub_type', 'like', $like);
+                        })
+                        ->orWhereHas('transactions', function ($q4) use ($like) {
+                            $q4->where('note', 'like', $like);
                         });
                 });
             })

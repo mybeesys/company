@@ -101,7 +101,8 @@
                         <div class="d-flex justify-content-between align-items-start no-print">
                             <div>
                                 <h5>{{ __('accounting::lang.ref_no') }}: {{ $journal->ref_no }}</h5>
-                                <p>{{ __('accounting::lang.operation_date') }}: {{ $journal->operation_date }}</p>
+                                <p>{{ __('accounting::lang.operation_date') }}:
+                                    {{ $journal->operation_date ? \Illuminate\Support\Carbon::parse($journal->operation_date)->format('Y-m-d') : '' }}</p>
                                 <p>{{ __('accounting::lang.note') }}: {{ $journal->note }}</p>
                             </div>
                             <button type="button" class="btn btn-light-primary btn-sm"
@@ -111,7 +112,8 @@
                         </div>
                         <div class="d-none d-print-block">
                             <h5>{{ __('accounting::lang.ref_no') }}: {{ $journal->ref_no }}</h5>
-                            <p>{{ __('accounting::lang.operation_date') }}: {{ $journal->operation_date }}</p>
+                            <p>{{ __('accounting::lang.operation_date') }}:
+                                {{ $journal->operation_date ? \Illuminate\Support\Carbon::parse($journal->operation_date)->format('Y-m-d') : '' }}</p>
                             <p>{{ __('accounting::lang.note') }}: {{ $journal->note }}</p>
                         </div>
 

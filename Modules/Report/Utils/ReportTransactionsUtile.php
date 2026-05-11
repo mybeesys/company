@@ -1311,8 +1311,9 @@ class ReportTransactionsUtile
     /**
      * @param  \Illuminate\Support\Collection<int, object>  $rows
      * @param  array<string, string>|null  $scFooterTotals  keyed like DataTable columns; sent as JSON `sc_footer_totals`
+     * @param  array<string, mixed>  $extraWith  additional keys merged into the DataTables JSON (e.g. weekday report UI mode)
      */
-    public static function getSalesComparisonReport($rows, ?array $scFooterTotals = null)
+    public static function getSalesComparisonReport($rows, ?array $scFooterTotals = null, array $extraWith = [])
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
@@ -1361,6 +1362,10 @@ class ReportTransactionsUtile
 
         if ($scFooterTotals !== null) {
             $dt->with('sc_footer_totals', $scFooterTotals);
+        }
+
+        foreach ($extraWith as $key => $value) {
+            $dt->with($key, $value);
         }
 
         return $dt->make(true);

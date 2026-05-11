@@ -8,6 +8,21 @@ import axios from "axios";
 
 const animatedComponents = makeAnimated();
 
+/** Keeps multi-select control height stable; scroll inside when many items are selected. */
+const compactMultiSelectStyles = {
+    control: (base) => ({
+        ...base,
+        minHeight: 38,
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        maxHeight: 42,
+        overflowY: "auto",
+        paddingTop: 2,
+        paddingBottom: 2,
+    }),
+};
+
 /** أقسام المنيو التي تُعرض في البطاقة الرئيسية؛ «معلومات الحساسية» في العمود الجانبي مع الملف. */
 const MENU_SECTION_KEYS_MAIN = ["todays_menu", "location", "smart_menu", "photos", "feedback", "info"];
 
@@ -735,6 +750,7 @@ const MenuQR = ({ translations, dir }) => {
                                         components={animatedComponents}
                                         className="basic-multi-select"
                                         classNamePrefix="select"
+                                        styles={compactMultiSelectStyles}
                                         placeholder={dir === "rtl" ? "اختر الأفرع..." : "Select establishments..."}
                                     />
                                 </div>
@@ -748,6 +764,7 @@ const MenuQR = ({ translations, dir }) => {
                                         components={animatedComponents}
                                         className="basic-multi-select"
                                         classNamePrefix="select"
+                                        styles={compactMultiSelectStyles}
                                         placeholder={dir === "rtl" ? "اختر المنتجات..." : "Select products..."}
                                     />
                                 </div>

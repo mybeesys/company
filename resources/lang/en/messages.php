@@ -44,8 +44,10 @@ return [
     'last_used' => 'Last used',
     'never_used' => 'Never used',
     'move' => 'Move',
+    'view' => 'View',
 
     'Added successfully, but the customer exceeded' => 'Added successfully, but the customer exceeded the credit limit.',
     'print' => 'Print',
+    'are_you_sure' => 'Are you sure?',
 
 ];

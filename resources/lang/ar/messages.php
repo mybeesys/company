@@ -45,8 +45,10 @@ return [
     'last_used' => 'آخر مرة استخدام',
     'never_used' => 'لم يستخدم بعد',
     'move' => 'تحريك',
+    'view' => 'عرض',
 
     'Added successfully, but the customer exceeded' => 'تمت الإضافة بنجاح، لكن العميل تجاوز الحد الائتماني.',
     'print' => 'طباعة',
+    'are_you_sure' => 'هل أنت متأكد؟',
 
 ];

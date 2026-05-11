@@ -105,8 +105,7 @@
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
-                <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
-                    data-bs-target="#kt_modal_create_campaign">
+                <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
                     @lang('accounting::lang.import_tree_of_accounts')
                 </a>
             </div>
@@ -177,6 +176,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
     <script type="text/javascript">
+        window.confirmDeleteAccount = function(btn) {
+            try {
+                const form = btn && btn.closest ? btn.closest('form') : null;
+                if (!form) return;
+
+                const SwalApi = (typeof window.Swal !== 'undefined' && window.Swal) ? window.Swal :
+                    (typeof window.Sweetalert2 !== 'undefined' ? window.Sweetalert2 : null);
+
+                const go = () => form.submit();
+
+                if (SwalApi && SwalApi.fire) {
+                    SwalApi.fire({
+                        icon: 'warning',
+                        title: @json(__('messages.are_you_sure')),
+                        text: @json(__('accounting::lang.delete_account_confirm')),
+                        showCancelButton: true,
+                        confirmButtonText: @json(__('messages.delete')),
+                        cancelButtonText: @json(__('messages.cancel')),
+                        reverseButtons: {{ app()->getLocale() === 'ar' ? 'true' : 'false' }}
+                    }).then((r) => { if (r.isConfirmed) go(); });
+                } else if (confirm(@json(__('accounting::lang.delete_account_confirm')))) {
+                    go();
+                }
+            } catch (e) {
+                if (confirm(@json(__('accounting::lang.delete_account_confirm')))) {
+                    const form = btn && btn.closest ? btn.closest('form') : null;
+                    if (form) form.submit();
+                }
+            }
+        };
+
      function setAccountId(id, nature) {
    $('#parent_id').val(id);
 
@@ -246,6 +276,12 @@ $('#account_nature_display_1').text(natureText)
 
 
         $(document).ready(function() {
+            // keep delegated handler as a backup
+            $(document).on('click', '.account-delete-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.confirmDeleteAccount(this);
+            });
 
             $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
                 var value = sessionStorage.getItem('account_id');

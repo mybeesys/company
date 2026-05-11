@@ -109,6 +109,7 @@
             text-align: center;
             padding-top: 0.65rem;
             padding-bottom: 0.65rem;
+            padding-inline: 0.9rem;
         }
 
         #ledger-table.ledger-table-pro tbody td,
@@ -117,6 +118,7 @@
             vertical-align: middle;
             padding-top: 0.45rem;
             padding-bottom: 0.45rem;
+            padding-inline: 0.9rem;
         }
 
         #ledger-table.ledger-table-pro .ledger-num {
@@ -131,6 +133,7 @@
         #ledger-table.ledger-table-pro thead th {
             padding-top: 0.55rem;
             padding-bottom: 0.55rem;
+            padding-inline: 0.9rem;
         }
 
         .ledger-balance-pill {
@@ -154,6 +157,19 @@
         #ledger-table.ledger-table-pro tfoot tr td {
             background: #f0f4f8;
             border-top: 2px solid #e4e6ef;
+        }
+
+        /* Metronic `.table.gs-0` zeros first/last cell horizontal padding — restore breathing room */
+        #ledger-table.ledger-table-pro thead th:first-child,
+        #ledger-table.ledger-table-pro tbody td:first-child,
+        #ledger-table.ledger-table-pro tfoot td:first-child {
+            padding-left: 0.9rem !important;
+        }
+
+        #ledger-table.ledger-table-pro thead th:last-child,
+        #ledger-table.ledger-table-pro tbody td:last-child,
+        #ledger-table.ledger-table-pro tfoot td:last-child {
+            padding-right: 0.9rem !important;
         }
     </style>
 @stop
@@ -250,7 +266,19 @@
                     </select>
                 </div>
             </div>
-         
+
+            <div class="col-md-3 mt-4">
+                <label>{{ __('accounting::lang.transaction_type') }}</label>
+                <select name="sub_type" id="ledger_sub_type_filter" class="form-select form-select-solid">
+                    <option value="">{{ __('accounting::lang.all') }}</option>
+                    @foreach ($subTypes ?? [] as $subTypeVal)
+                        <option value="{{ $subTypeVal }}" @selected((string) request('sub_type') === (string) $subTypeVal)>
+                            {{ \Illuminate\Support\Facades\Lang::has('accounting::lang.' . $subTypeVal) ? __('accounting::lang.' . $subTypeVal) : $subTypeVal }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="col-md-3 mt-4">
                 <label>{{ __('accounting::lang.transaction_number') }}</label>
                 <input type="text" name="ref_no" class="form-control" value="{{ request('ref_no') }}"
@@ -878,6 +906,7 @@
             });
 
             $('#choose_cost_center_select').select2();
+            $('#ledger_sub_type_filter').select2({ width: '100%' });
         });
     </script>
 @stop

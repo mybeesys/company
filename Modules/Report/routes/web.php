@@ -31,6 +31,9 @@ Route::middleware([
     Route::get('product-sales-export-excel', [SalesReportController::class, 'productSalesExportExcel'])->name('product-sales-export-excel');
     Route::get('product-sales-export-pdf', [SalesReportController::class, 'productSalesExportPdf'])->name('product-sales-export-pdf');
     Route::get('sales-comparison-report', [SalesReportController::class, 'salesComparisonReport'])->name('sales-comparison-report');
+    Route::get('weekday-sales-report', [SalesReportController::class, 'weekdaySalesReport'])->name('weekday-sales-report');
+    Route::get('weekday-sales-export-excel', [SalesReportController::class, 'weekdaySalesExportExcel'])->name('weekday-sales-export-excel');
+    Route::get('weekday-sales-export-pdf', [SalesReportController::class, 'weekdaySalesExportPdf'])->name('weekday-sales-export-pdf');
     Route::get('sales-comparison-chart-data', [SalesReportController::class, 'salesComparisonChartData'])->name('sales-comparison-chart-data');
     Route::get('sales-comparison-export-excel', [SalesReportController::class, 'salesComparisonExportExcel'])->name('sales-comparison-export-excel');
     Route::get('sales-comparison-export-pdf', [SalesReportController::class, 'salesComparisonExportPdf'])->name('sales-comparison-export-pdf');

@@ -15,6 +15,7 @@ use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
+use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
@@ -883,7 +884,7 @@ class SellController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مبيعات رقم {$transaction->ref_no}.";
+            $acc_trans_mapping->note = 'مبيعات';
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->is_manual = 0;
@@ -983,7 +984,7 @@ class SellController extends Controller
         }
         $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من سند قبض/تحصيل لعملية مبيعات رقم {$transaction->ref_no}.";
+        $acc_trans_mapping->note = 'مبيعات';
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;
@@ -1094,10 +1095,9 @@ class SellController extends Controller
             return;
         }
 
-        $inventoryAccountId = AccountingAccount::query()
-            ->where('gl_code', '11105')
-            ->orWhere('account_category', 'inventory')
-            ->value('id');
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+        );
 
         $cogsAccountId = AccountingAccount::query()
             ->where('gl_code', '50101')

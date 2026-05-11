@@ -17,34 +17,25 @@ class SuppliersReceiptsController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = TransactionPayments::with('transaction')
+        $query = TransactionPayments::query()
+            ->with(['transaction', 'client'])
             ->where(function ($q) {
                 $q->where('payment_type', 'debit')
                     ->orWhereHas('transaction', function ($q) {
-                        $q->whereIn('type', ['purchases']);
+                        $q->whereIn('type', ['purchases', 'purchase']);
                     });
             })
-            ->orderBy('id')
-            ->get();
+            ->orderByDesc('id');
 
         if ($request->ajax()) {
-
-            $transactions = TransactionPayments::with('transaction')
-                ->where(function ($q) {
-                    $q->where('payment_type', 'debit')
-                        ->orWhereHas('transaction', function ($q) {
-                            $q->whereIn('type', ['purchases']);
-                        });
-                })
-                ->orderBy('id')
-                ->get();
-
-            return TransactionPayments::getReceiptsTable($transactions);
+            return TransactionPayments::getReceiptsTable($query);
         }
 
         $columns = TransactionPayments::getSuppliersReceiptsColumns();
 
-        return view('purchases::receipts.index', compact('transactions', 'columns'));
+        $hasTransactions = $query->exists();
+
+        return view('purchases::receipts.index', compact('hasTransactions', 'columns'));
     }
 
     /**

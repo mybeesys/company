@@ -42,7 +42,7 @@ return [
     'new_password' => 'كلمة المرور الجديدة',
     'main_info' => 'المعلومات الرئيسية',
     'ceo_name' => 'اسم المدير التنفيذي',
-    'tax_name' => 'الاسم الضريبي',
+    'tax_name' => 'اسم VAT',
     'logo' => 'الشعار',
     'zip_code' => 'الرمز البريدي',
     'national_address' => 'العنوان',

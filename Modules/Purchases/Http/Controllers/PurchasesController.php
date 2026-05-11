@@ -15,6 +15,7 @@ use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
+use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Actions;
@@ -470,6 +471,9 @@ class PurchasesController extends Controller
         if (! AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';
         }
+        if (! AccountsRoting::where('type', 'purchases_earned_discount')->value('account_id')) {
+            $missing[] = __('accounting::lang.earned_discount');
+        }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = AccountingAccount::query()
                 ->where('gl_code', '11105')
@@ -585,7 +589,7 @@ class PurchasesController extends Controller
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = "تم توليد هذا القيد تلقائياً من عملية مشتريات رقم {$transaction->ref_no}.";
+            $acc_trans_mapping->note = 'مشتريات';
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->is_manual = 0;
@@ -595,11 +599,11 @@ class PurchasesController extends Controller
 
             $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
             $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
-            $inventoryAssetAccount = AccountingAccount::where('gl_code', '11105')
-                ->orWhere('account_category', 'inventory')
-                ->first();
+            $inventoryAssetAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+                isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+            );
             $purchasesTargetAccountId = Setting::isPerpetualInventory()
-                ? ($inventoryAssetAccount?->id ?? $purchases_purchase?->account_id)
+                ? ($inventoryAssetAccountId ?? $purchases_purchase?->account_id)
                 : ($purchases_purchase?->account_id);
             if (! $purchasesTargetAccountId) {
                 throw ValidationException::withMessages([

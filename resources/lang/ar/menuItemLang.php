@@ -124,6 +124,7 @@ return [
     'Register-Report' => 'تقرير السجل النقدي',
     'product-inventory-report' => 'تقرير عمليات المخزون',
     'sales-comparison-report' => 'تقرير مقارنة المبيعات',
+    'weekday-sales-report' => 'مبيعات أيام الأسبوع (مقارنة فترتين)',
     'type-service' => 'انواع الخدمات',
     'Profit-Loss' => 'الربح والخسارة',
     'purchase-sell' => 'المشتريات والمبيعات',

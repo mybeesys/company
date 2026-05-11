@@ -97,6 +97,28 @@
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
 
+        @if (!empty($invoicePrecheckConfig['missingAccounts']))
+            <div class="container mb-4">
+                <div class="alert alert-warning d-flex flex-column flex-sm-row align-items-start gap-3">
+                    <div class="flex-grow-1">
+                        <div class="fw-bold mb-2">
+                            {{ $invoicePrecheckConfig['messages']['missingAccountsHeader'] ?? __('messages.something_went_wrong') }}
+                        </div>
+                        <ul class="mb-0 ps-5">
+                            @foreach ($invoicePrecheckConfig['missingAccounts'] as $missing)
+                                <li>{{ $missing }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <div class="mt-2 mt-sm-0">
+                        <a href="{{ route('accounts-routing') }}" class="btn btn-sm btn-dark">
+                            @lang('menuItemLang.accounts-routing')
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="">
             <div class="row">
                 <div class="col-sm">

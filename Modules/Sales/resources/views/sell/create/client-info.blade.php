@@ -1,4 +1,4 @@
-<div class=" align-items-center  mb-5" id="div-storehouse" style="display: none">
+<div class="align-items-center mb-5 d-none" id="div-storehouse">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::fields.storehouse')</label>
     <select id="storehouse" class="form-select select-2 form-select-solid" required
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="storehouse">
@@ -55,30 +55,29 @@
     </a>
 </div>
 
-<div class="  mb-5" id="dev-client_name">
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.client_name')</label>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;"
-        id="client_name">{{ $transaction?->client->name ?? '--' }}</label>
+<div class="d-flex align-items-center mb-5 d-none" id="dev-costCenter">
+    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 100px;">@lang('accounting::lang.cost_center')</label>
+    <select class="form-select select-2 form-select-solid kt_ecommerce_select2_cost_center" name="cost_center"
+        id="cost_center" style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important">
+        <option value=""></option>
+        @foreach ($cost_centers as $cost_center)
+            <option value="{{ $cost_center->id }}" @if ($transaction?->cost_center == $cost_center->id) selected @endif>
+                @if (app()->getLocale() == 'ar')
+                    {{ $cost_center->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-7">
+                        {{ $cost_center->account_center_number }}</span>
+                @else
+                    {{ $cost_center->name_en }} - <span
+                        class="fw-semibold mx-2 text-muted fs-7">{{ $cost_center->account_center_number }}</span>
+                @endif
+            </option>
+        @endforeach
+    </select>
 </div>
 
-<div class=" mb-5" id="dev-billing_address" @if (!$transaction?->client && !$transaction?->client->billingAddress) style="display: none;" @endif>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.Billing Address')</label>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;"
-        id="billing_address">{{ $transaction?->client ? $transaction?->client->billingAddress?->city . ' - ' . $transaction?->client->billingAddress?->street_name : '--' }}</label>
-</div>
-
-<div class=" mb-5 " id="dev-mobile_number" @if (!$transaction?->client->mobile_number) style="display: none;" @endif>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.mobile_number')</label>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;"
-        id="mobile_number">{{ $transaction?->client->mobile_number ?? '--' }}</label>
-</div>
-<div class="  mb-5" id="dev-email" @if (!$transaction?->client->email) style="display: none;" @endif>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.email')</label>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;"
-        id="email">{{ $transaction?->client->email ?? '--' }}</label>
-</div>
-<div class="  mb-5" id="dev-tax_number" @if (!$transaction?->client->tax_number) style="display: none;" @endif>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">@lang('clientsandsuppliers::fields.tax_number')</label>
-    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;"
-        id="tax_number">{{ $transaction?->client->tax_number ?? '--' }}</label>
+<div class="d-flex align-items-center mb-5 d-none" id="div-Delegates">
+    <label class="fs-6 fw-semibold mb-2 me-3" style="width: 100px;">@lang('sales::lang.Delegates')</label>
+    <select class="form-select select-2 form-select-solid Delegates" name="Delegates" id="Delegates"
+        style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important">
+        <option value=""></option>
+    </select>
 </div>
