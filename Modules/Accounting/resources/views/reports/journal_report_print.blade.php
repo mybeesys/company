@@ -15,7 +15,10 @@
 <body>
     <h2>{{ __('accounting::lang.journal_report') }}</h2>
     <div style="font-size: 11px; color: #4b5563; margin-bottom: 6px;">{{ __('accounting::lang.journal_report_manual_only') }}</div>
-    <div>{{ __('accounting::lang.from_date') }}: {{ $startDate }} | {{ __('accounting::lang.to_date') }}: {{ $endDate }}</div>
+    <div>{{ __('accounting::lang.from_date') }}:
+        {{ $startDate ? \Illuminate\Support\Carbon::parse($startDate)->format('Y-m-d') : '' }} |
+        {{ __('accounting::lang.to_date') }}:
+        {{ $endDate ? \Illuminate\Support\Carbon::parse($endDate)->format('Y-m-d') : '' }}</div>
     @php
         $jsList = $journalSources ?? [];
     @endphp
@@ -45,7 +48,8 @@
     @forelse($journals as $journal)
         <div class="journal-title">
             {{ __('accounting::lang.ref_no') }}: {{ $journal->ref_no }} |
-            {{ __('accounting::lang.operation_date') }}: {{ $journal->operation_date }}
+            {{ __('accounting::lang.operation_date') }}:
+            {{ $journal->operation_date ? \Illuminate\Support\Carbon::parse($journal->operation_date)->format('Y-m-d') : '' }}
         </div>
         <table>
             <thead>

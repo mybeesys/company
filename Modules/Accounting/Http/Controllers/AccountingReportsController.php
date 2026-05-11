@@ -991,7 +991,9 @@ class AccountingReportsController extends Controller
             foreach ($journal->transactions as $transaction) {
                 $rows->push([
                     $journal->ref_no,
-                    $journal->operation_date,
+                    $journal->operation_date
+                        ? \Illuminate\Support\Carbon::parse($journal->operation_date)->format('Y-m-d')
+                        : '',
                     app()->getLocale() == 'ar' ? $transaction->name_ar : $transaction->name_en,
                     $transaction->gl_code,
                     $transaction->note ?? '',
