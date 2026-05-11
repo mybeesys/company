@@ -82,6 +82,10 @@
             min-width: 320px;
         }
 
+        #ledger_sub_type_filter + .select2-container .select2-selection--multiple {
+            min-height: 44px;
+        }
+
         @media (max-width: 992px) {
             .ledger-banner-controls {
                 justify-content: flex-start;
@@ -269,10 +273,10 @@
 
             <div class="col-md-3 mt-4">
                 <label>{{ __('accounting::lang.transaction_type') }}</label>
-                <select name="sub_type" id="ledger_sub_type_filter" class="form-select form-select-solid">
-                    <option value="">{{ __('accounting::lang.all') }}</option>
+                <select name="sub_type[]" id="ledger_sub_type_filter" class="form-select form-select-solid" multiple
+                    data-placeholder="{{ __('accounting::lang.all') }}">
                     @foreach ($subTypes ?? [] as $subTypeVal)
-                        <option value="{{ $subTypeVal }}" @selected((string) request('sub_type') === (string) $subTypeVal)>
+                        <option value="{{ $subTypeVal }}" @selected(in_array((string) $subTypeVal, $ledgerSelectedSubTypes ?? [], true))>
                             {{ \Illuminate\Support\Facades\Lang::has('accounting::lang.' . $subTypeVal) ? __('accounting::lang.' . $subTypeVal) : $subTypeVal }}
                         </option>
                     @endforeach
@@ -906,7 +910,11 @@
             });
 
             $('#choose_cost_center_select').select2();
-            $('#ledger_sub_type_filter').select2({ width: '100%' });
+            $('#ledger_sub_type_filter').select2({
+                width: '100%',
+                placeholder: $('#ledger_sub_type_filter').data('placeholder') || '',
+                allowClear: true
+            });
         });
     </script>
 @stop
