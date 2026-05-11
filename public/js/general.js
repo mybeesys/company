@@ -158,40 +158,52 @@ function checkErrors(saveButton) {
 }
 
 function handleImageInput(id, name) {
-
     const $imageInputElement = $(`#${id}`);
-    const imageInput = KTImageInput.getInstance($imageInputElement[0]);
+    if (!$imageInputElement.length) {
+        return;
+    }
+
+    if (!name) {
+        const fileName = $imageInputElement.find('input[type="file"]').first().attr('name');
+        name = fileName ? String(fileName).replace(/\[\]$/, '') : 'logo';
+    }
+
+    let imageInput = typeof KTImageInput !== 'undefined'
+        ? KTImageInput.getInstance($imageInputElement[0])
+        : null;
+    if (!imageInput && typeof KTImageInput !== 'undefined') {
+        new KTImageInput($imageInputElement[0]);
+        imageInput = KTImageInput.getInstance($imageInputElement[0]);
+    }
+
     const $hiddenInput = $(`input[name="${name}_old"]`);
 
-
-    // Check if there is an initial image
-    const initialImage = $imageInputElement.data("initial-image");
-    const $imageWrapper = $imageInputElement.find(".image-input-wrapper");
+    const initialImage = $imageInputElement.data('initial-image');
+    const $imageWrapper = $imageInputElement.find('.image-input-wrapper');
 
     if (initialImage && imageInput) {
-        // Set the uploaded state manually
-        $imageWrapper.css("background-image", `url('${initialImage}')`);
-
-        // Show the cancel button
-        $imageInputElement.removeClass("image-input-empty").addClass("image-input-changed");
+        $imageWrapper.css('background-image', `url('${initialImage}')`);
+        $imageInputElement.removeClass('image-input-empty').addClass('image-input-changed');
     } else {
         $imageWrapper.css(
-            "background-image",
+            'background-image',
             "url('/assets/media/svg/files/blank-image.svg')"
         );
     }
 
-    imageInput.on("kt.imageinput.canceled", function () {
-        $imageWrapper.css(
-            "background-image",
-            "url('/assets/media/svg/files/blank-image.svg')"
-        );
-        $imageInputElement.addClass("image-input-empty").removeClass("image-input-changed");
+    if (imageInput && typeof imageInput.on === 'function') {
+        imageInput.on('kt.imageinput.canceled', function () {
+            $imageWrapper.css(
+                'background-image',
+                "url('/assets/media/svg/files/blank-image.svg')"
+            );
+            $imageInputElement.addClass('image-input-empty').removeClass('image-input-changed');
 
-        if ($hiddenInput.length) {
-            $hiddenInput.val("0");
-        }
-    });
+            if ($hiddenInput.length) {
+                $hiddenInput.val('0');
+            }
+        });
+    }
 }
 
 function selectDeselectAll(selectAllBtn, deselectAllBtn, selectElement) {

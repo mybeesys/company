@@ -90,4 +90,5 @@ return [
     'device_type' => 'نوع الجهاز',
     'ref' => 'الرقم المرجعي',
     'generate' => 'إنشاء',
+    'perpetual_inventory_account' => 'الحساب المحاسبي المرتبط بالفرع',
 ];

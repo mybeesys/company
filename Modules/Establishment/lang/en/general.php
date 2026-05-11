@@ -43,4 +43,6 @@ return [
     'no' => ' No !',
     'successfully_deleted' => 'The device has been successfully deleted.',
     'deleted' => 'Deleted!',
+    'perpetual_inventory_account_hint' => 'Shown when perpetual inventory is enabled. Pick any detail asset account (e.g. a sub-account you added under inventory or current assets). Sales COGS will credit this account for this branch when set; otherwise the default inventory account is used.',
+    'perpetual_inventory_account_policy_note' => 'To link an inventory account to this branch, enable perpetual inventory in General settings.',
 ];

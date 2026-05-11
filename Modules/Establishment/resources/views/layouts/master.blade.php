@@ -11,6 +11,20 @@
                 text-align: right;
             }
         @endif
+
+        .establishment-form .select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        .establishment-form .select2-selection--single {
+            min-height: 38px;
+        }
+
+        .establishment-form .select2-selection__rendered {
+            line-height: 36px;
+        }
     </style>
     <link rel="stylesheet" href="{{ url('css/monthSelectPlugin.css') }}">
 @endsection

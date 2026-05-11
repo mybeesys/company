@@ -298,19 +298,30 @@ class AccountingUtil
                         $transactionPayment->amount = $transaction->final_total;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
+                } elseif ($transaction->invoice_type == 'due') {
+                    if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
+                        throw new RuntimeException('Accounting routing missing for sell (due). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
+                    }
+                    $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
+                    if (! $client || ! $client->account_id) {
+                        throw new RuntimeException('Customer account is missing for sell (due). Please link an accounting account to the customer.');
+                    }
+                    $transactionPayment->account_id = $client->account_id;
+                    $transactionPayment->amount = $transaction->final_total;
+                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+
+                    $transactionPayment->account_id = $sales_sales->account_id;
+                    $transactionPayment->amount = $salesGrossBeforeDiscount;
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                    if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                        $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                        $transactionPayment->amount = $discountAmount;
+                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                    }
+                    $transactionPayment->account_id = $sales_vat_calculation->account_id;
+                    $transactionPayment->amount = $transaction->tax_amount;
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
-                // else {
-                //     $client = Contact::find($transactionPayment->payment_for);
-                //     $transactionPayment->account_id = $client->account_id;
-                //     $transactionPayment->amount = $transaction->final_total;
-                //     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                //     $transactionPayment->account_id = $sales_sales->account_id;
-                //     $transactionPayment->amount = $transaction->total_before_tax;
-                //     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                //     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                //     $transactionPayment->amount = $transaction->tax_amount;
-                //     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                // }
 
                 $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } elseif ($transaction->type == 'purchases') {
@@ -320,9 +331,11 @@ class AccountingUtil
                 $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
                 $discountAmount = (float) ($transaction->discount_amount ?? 0);
                 $purchasesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
-                $inventoryAssetAccountId = AccountingAccount::where('gl_code', '11105')
-                    ->orWhere('account_category', 'inventory')
-                    ->value('id');
+                $inventoryAssetAccountId = Setting::isPerpetualInventory()
+                    ? PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+                        isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+                    )
+                    : null;
                 $purchasesTargetAccountId = Setting::isPerpetualInventory()
                     ? ($inventoryAssetAccountId ?: $purchases_purchase?->account_id)
                     : ($purchases_purchase?->account_id);
@@ -562,9 +575,9 @@ class AccountingUtil
             return;
         }
 
-        $inventoryAccountId = AccountingAccount::where('gl_code', '11105')
-            ->orWhere('account_category', 'inventory')
-            ->value('id');
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+        );
         $cogsAccountId = AccountingAccount::where('gl_code', '50101')
             ->orWhere('account_category', 'COGS')
             ->orWhere('account_category', 'cost_of_goods_sold')

@@ -112,12 +112,6 @@
                                         <option value="payment">@lang('report::general.filter_panel_payment')</option>
                                     </select>
                                 </div>
-                                <div class="col-12 col-xl-6 d-flex flex-wrap justify-content-xl-end align-items-end gap-2 pt-2 pt-xl-0">
-                                    <button type="button" class="btn btn-primary" id="applyFilter">
-                                        <i class="bi bi-funnel fs-2"></i> @lang('report::general.Apply Filter')
-                                    </button>
-                                    <button type="button" class="btn btn-warning" id="clearFilter">@lang('report::general.Remove filter')</button>
-                                </div>
                             </div>
 
                             <div class="row g-4 mt-1">
@@ -126,11 +120,11 @@
                                     <div class="text-muted fs-8 mb-2">@lang('report::general.weekday_report_scope_hint')</div>
                                     <div class="d-flex flex-wrap gap-4">
                                         <div class="form-check form-check-custom form-check-solid">
-                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeCompareCmLm" value="compare_this_vs_last_month" checked />
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeCompareCmLm" value="compare_this_vs_last_month" />
                                             <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeCompareCmLm">@lang('report::general.weekday_report_scope_compare_cm_lm')</label>
                                         </div>
                                         <div class="form-check form-check-custom form-check-solid">
-                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeSingleThis" value="single_this_month" />
+                                            <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeSingleThis" value="single_this_month" checked />
                                             <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeSingleThis">@lang('report::general.weekday_report_scope_single_this')</label>
                                         </div>
                                         <div class="form-check form-check-custom form-check-solid">
@@ -140,6 +134,31 @@
                                         <div class="form-check form-check-custom form-check-solid">
                                             <input class="form-check-input" type="radio" name="weekday_report_scope" id="wsrScopeCustom" value="custom_periods" />
                                             <label class="form-check-label fw-semibold cursor-pointer" for="wsrScopeCustom">@lang('report::general.weekday_report_scope_custom')</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">@lang('report::general.weekday_report_view_label')</label>
+                                    <div class="text-muted fs-8 mb-2">@lang('report::general.weekday_report_view_hint')</div>
+                                    <div class="d-flex flex-wrap gap-4">
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="wsr_view" id="wsrViewByProduct" value="by_product" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrViewByProduct">@lang('report::general.weekday_report_view_by_product')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="wsr_view" id="wsrViewByDay" value="by_day" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrViewByDay">@lang('report::general.weekday_report_view_by_day')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="wsr_view" id="wsrViewByDate" value="by_date" />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrViewByDate">@lang('report::general.weekday_report_view_by_date')</label>
+                                        </div>
+                                        <div class="form-check form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="radio" name="wsr_view" id="wsrViewByDateProduct" value="by_date_product" checked />
+                                            <label class="form-check-label fw-semibold cursor-pointer" for="wsrViewByDateProduct">@lang('report::general.weekday_report_view_by_date_product')</label>
                                         </div>
                                     </div>
                                 </div>
@@ -234,6 +253,16 @@
                                 <div class="col-12 sc-filter-field">
                                     <label class="form-label fw-semibold">@lang('report::general.weekday_report_select_days')</label>
                                     <div class="text-muted fs-8 mb-2">@lang('report::general.weekday_report_select_days_hint')</div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                        <button type="button" class="btn btn-sm btn-light" id="wsrWeekdaysAll">@lang('report::general.weekday_report_select_all')</button>
+                                        <button type="button" class="btn btn-sm btn-light" id="wsrWeekdaysNone">@lang('report::general.weekday_report_select_none')</button>
+                                        <div class="ms-auto d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-primary" id="applyFilter">
+                                                <i class="bi bi-funnel fs-2"></i> @lang('report::general.Apply Filter')
+                                            </button>
+                                            <button type="button" class="btn btn-warning" id="clearFilter">@lang('report::general.Remove filter')</button>
+                                        </div>
+                                    </div>
                                     <div class="d-flex flex-wrap gap-3 wsr-weekday-grid">
                                         @foreach (range(0, 6) as $d)
                                             <div class="form-check form-check-custom form-check-solid">
@@ -323,24 +352,6 @@
                     </div>
                 </div>
 
-                <div class="row g-6 g-xl-8" id="wsrChartRow">
-                    <div class="col-12 col-xl-6">
-                        <div class="rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
-                            <h5 class="fs-5 fw-bold text-gray-900 mb-5">@lang('report::general.weekday_report_chart_qty')</h5>
-                            <div class="wsr-chart-slot">
-                                <canvas id="wsrChartQty" aria-label="quantity chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xl-6">
-                        <div class="rounded-4 border border-gray-200 bg-white p-5 shadow-sm h-100">
-                            <h5 class="fs-5 fw-bold text-gray-900 mb-5">@lang('report::general.weekday_report_chart_revenue')</h5>
-                            <div class="wsr-chart-slot">
-                                <canvas id="wsrChartRevenue" aria-label="revenue chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <x-cards.card-body class="px-5 pb-5 pt-6">
@@ -408,7 +419,6 @@
 
 @section('script')
 @parent
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{{ url('js/table.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
 <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
@@ -419,8 +429,7 @@
 <script>
     "use strict";
     let dataTable;
-    let wsrChartQty = null;
-    let wsrChartRev = null;
+    let wsrLastKpi = null;
     let scLastFooterTotals = null;
     let scRestoringFilters = false;
     const SC_FOOTER_KEYS = @json($wsrFooterKeys);
@@ -471,25 +480,13 @@
             $el.addClass('text-muted');
         }
     }
-    function destroyWsrCharts() {
-        if (wsrChartQty) {
-            wsrChartQty.destroy();
-            wsrChartQty = null;
-        }
-        if (wsrChartRev) {
-            wsrChartRev.destroy();
-            wsrChartRev = null;
-        }
-    }
     function refreshWsrKpiAndCharts(kpi) {
-        destroyWsrCharts();
         if (!kpi) {
             return;
         }
         const single = kpi.is_single;
         $('#wsrKpiCompareRow').toggleClass('d-none', single);
         $('#wsrKpiSingleRow').toggleClass('d-none', !single);
-        $('#wsrChartRow').toggleClass('d-none', single);
 
         if (single) {
             $('#wsrKpiSingleQty').text(wsrFmtQty(kpi.sum_qty_a));
@@ -509,99 +506,49 @@
         $('#wsrKpiRevB').text(wsrFmtNum(kpi.sum_subtotal_b, 2));
         wsrBindDelta($('#wsrDeltaQty'), kpi.qty_change_pct);
         wsrBindDelta($('#wsrDeltaRev'), kpi.revenue_change_pct);
+    }
 
-        if (typeof Chart === 'undefined') {
-            return;
-        }
-
-        const wsrIsRtl = document.documentElement.getAttribute('dir') === 'rtl';
-        const lblA = kpi.chart_label_a || WSR_LABELS.periodA;
-        const lblB = kpi.chart_label_b || WSR_LABELS.periodB;
-        const chartCommon = {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 380 },
-            layout: { padding: { top: 8, bottom: 8, left: 4, right: 8 } },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    rtl: wsrIsRtl
+    function applyWsrViewMode(viewMode) {
+        const isByDay = viewMode === 'by_day' || viewMode === 'by_date';
+        const isByDateProduct = viewMode === 'by_date_product';
+        if (dataTable) {
+            // 0 is the "product_name" column which we reuse to show the weekday label.
+            // Hide the rest of context columns when grouping by day.
+            dataTable.column(0).visible(true, false);
+            if (isByDay) {
+                for (let i = 1; i <= 5; i++) {
+                    dataTable.column(i).visible(false, false);
+                }
+            } else if (isByDateProduct) {
+                // show: date (col 1), branch (col 3), SKU (col 4); hide subcategory and customer
+                dataTable.column(1).visible(true, false);
+                dataTable.column(2).visible(false, false);
+                dataTable.column(3).visible(true, false);
+                dataTable.column(4).visible(true, false);
+                dataTable.column(5).visible(false, false);
+            } else {
+                for (let i = 1; i <= 5; i++) {
+                    dataTable.column(i).visible(true, false);
                 }
             }
-        };
-
-        const ctxQ = document.getElementById('wsrChartQty');
-        if (ctxQ) {
-            wsrChartQty = new Chart(ctxQ, {
-                type: 'bar',
-                data: {
-                    labels: [lblA, lblB],
-                    datasets: [{
-                        label: WSR_LABELS.kpiQty,
-                        data: [kpi.sum_qty_a, kpi.sum_qty_b],
-                        backgroundColor: ['rgba(37, 99, 235, 0.75)', 'rgba(234, 88, 12, 0.75)'],
-                        borderColor: ['rgb(29, 78, 216)', 'rgb(194, 65, 12)'],
-                        borderWidth: 1,
-                        borderRadius: 8
-                    }]
-                },
-                options: Object.assign({}, chartCommon, {
-                    plugins: Object.assign({}, chartCommon.plugins, {
-                        tooltip: {
-                            rtl: wsrIsRtl,
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.dataset.label + ': ' + wsrFmtQty(ctx.raw);
-                                }
-                            }
-                        }
-                    }),
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { maxTicksLimit: 6 }
-                        }
-                    }
-                })
-            });
+            dataTable.columns.adjust().draw(false);
         }
 
-        const ctxR = document.getElementById('wsrChartRevenue');
-        if (ctxR) {
-            wsrChartRev = new Chart(ctxR, {
-                type: 'bar',
-                data: {
-                    labels: [lblA, lblB],
-                    datasets: [{
-                        label: WSR_LABELS.kpiRevenue,
-                        data: [kpi.sum_subtotal_a, kpi.sum_subtotal_b],
-                        backgroundColor: ['rgba(79, 70, 229, 0.72)', 'rgba(14, 165, 233, 0.72)'],
-                        borderColor: ['rgb(67, 56, 202)', 'rgb(2, 132, 199)'],
-                        borderWidth: 1,
-                        borderRadius: 8
-                    }]
-                },
-                options: Object.assign({}, chartCommon, {
-                    plugins: Object.assign({}, chartCommon.plugins, {
-                        tooltip: {
-                            rtl: wsrIsRtl,
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.dataset.label + ': ' + wsrFmtNum(ctx.raw, 2);
-                                }
-                            }
-                        }
-                    }),
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { maxTicksLimit: 6 }
-                        }
-                    }
-                })
-            });
+        // Header relabels for special views.
+        const $h1 = $('#kt_WeekdaySales_table thead tr').first().find('th');
+        if ($h1 && $h1.length >= 2) {
+            if (viewMode === 'by_day') {
+                $h1.eq(0).text(@json(__('report::general.weekday_report_column_day')));
+            } else if (viewMode === 'by_date' || viewMode === 'by_date_product') {
+                $h1.eq(0).text(@json(__('report::fields.transaction_date')));
+            } else {
+                $h1.eq(0).text(@json(__('report::fields.product_name')));
+            }
+            if (viewMode === 'by_date_product') {
+                $h1.eq(1).text(@json(__('report::fields.transaction_date')));
+            } else {
+                $h1.eq(1).text(@json(__('report::fields.category')));
+            }
         }
     }
 
@@ -747,7 +694,8 @@
             period_a_range: $('#periodARange').val(),
             period_b_range: $('#periodBRange').val(),
             weekday: $('.wsr-weekday:checked').map(function() { return $(this).val(); }).get(),
-            weekday_report_scope: $('input[name="weekday_report_scope"]:checked').val() || 'compare_this_vs_last_month'
+            weekday_report_scope: $('input[name="weekday_report_scope"]:checked').val() || 'single_this_month',
+            wsr_view: $('input[name="wsr_view"]:checked').val() || 'by_date_product'
         };
     }
     function scTriggerFileExport(url) {
@@ -998,9 +946,12 @@
                     }
                     scLastFooterTotals = json.sc_footer_totals || null;
                     const mode = json.wsr_table_mode || 'full';
+                    const viewMode = json.wsr_view_mode || ($('input[name="wsr_view"]:checked').val() || 'by_product');
                     const kpi = json.wsr_kpi || null;
+                    wsrLastKpi = kpi;
                     setTimeout(function() {
                         applyWsrTableLayout(mode);
+                        applyWsrViewMode(viewMode);
                         refreshWsrKpiAndCharts(kpi);
                     }, 0);
                     return Array.isArray(json.data) ? json.data : [];
@@ -1094,6 +1045,19 @@
                 dataTable.ajax.reload();
             }
         });
+        $('input[name="wsr_view"]').on('change', function() {
+            if (dataTable) {
+                dataTable.ajax.reload();
+            }
+        });
+        $('#wsrWeekdaysAll').on('click', function() {
+            $('.wsr-weekday').prop('checked', true);
+            if (dataTable) dataTable.ajax.reload();
+        });
+        $('#wsrWeekdaysNone').on('click', function() {
+            $('.wsr-weekday').prop('checked', false);
+            if (dataTable) dataTable.ajax.reload();
+        });
         $('#applyFilter').on('click', function() {
             if (dataTable) dataTable.ajax.reload();
         });
@@ -1115,6 +1079,8 @@
             $('#filterPanels').val(['periods']).trigger('change');
             syncFilterPanels();
             $('#wsrScopeCompareCmLm').prop('checked', true);
+            $('#wsrScopeSingleThis').prop('checked', true);
+            $('#wsrViewByDateProduct').prop('checked', true);
             syncWsrPeriodPanelLock();
             setDefaultPeriods();
             $('.wsr-weekday').prop('checked', true);

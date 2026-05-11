@@ -89,4 +89,5 @@ return [
     'device_type' => 'Device type',
     'ref' => 'Reference number',
     'generate' => 'generate',
+    'perpetual_inventory_account' => 'Linked GL account (branch)',
 ];

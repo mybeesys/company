@@ -209,9 +209,21 @@
                     <th colspan="6" class="sc-gh-context">{{ __('report::general.sales_comparison_group_context') }}</th>
                     <th colspan="6" class="sc-gh-p1">{{ __('report::general.weekday_report_export_metrics_period') }}</th>
                 </tr>
+                @php
+                    $wsrView = (string) ($meta['wsr_view_mode'] ?? '');
+                    $c1 = __('report::fields.product_name');
+                    $c2 = __('report::fields.category');
+                    if ($wsrView === 'by_day') {
+                        $c1 = __('report::general.weekday_report_column_day');
+                    } elseif ($wsrView === 'by_date') {
+                        $c1 = __('report::fields.transaction_date');
+                    } elseif ($wsrView === 'by_date_product') {
+                        $c2 = __('report::fields.transaction_date');
+                    }
+                @endphp
                 <tr class="sc-h2">
-                    <th>{{ __('report::fields.product_name') }}</th>
-                    <th>{{ __('report::fields.category') }}</th>
+                    <th>{{ $c1 }}</th>
+                    <th>{{ $c2 }}</th>
                     <th>{{ __('report::fields.subcategory') }}</th>
                     <th>{{ __('report::fields.establishment_name') }}</th>
                     <th>{{ __('report::fields.SKU') }}</th>

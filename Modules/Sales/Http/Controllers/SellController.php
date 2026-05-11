@@ -15,6 +15,7 @@ use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
+use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
@@ -1094,10 +1095,9 @@ class SellController extends Controller
             return;
         }
 
-        $inventoryAccountId = AccountingAccount::query()
-            ->where('gl_code', '11105')
-            ->orWhere('account_category', 'inventory')
-            ->value('id');
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+        );
 
         $cogsAccountId = AccountingAccount::query()
             ->where('gl_code', '50101')

@@ -6,7 +6,9 @@
         action="{{ route('establishments.update', ['establishment' => $establishment]) }}">
         @method('patch')
         @csrf
-        <x-establishment::establishments.form :establishment=$establishment formId="edit_establishment_form" :establishments=$establishments />
+        <x-establishment::establishments.form :establishment="$establishment" formId="edit_establishment_form" :establishments="$establishments"
+            :showPerpetualInventoryAccount="$showPerpetualInventoryAccount ?? false"
+            :perpetualInventoryAccounts="$perpetualInventoryAccounts ?? collect()" />
     </form>
 @endsection
 

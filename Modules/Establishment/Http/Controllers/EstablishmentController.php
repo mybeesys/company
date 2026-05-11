@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Services\EstablishmentActions;
+use Modules\General\Models\Setting;
 
 class EstablishmentController extends Controller
 {
@@ -50,8 +52,16 @@ class EstablishmentController extends Controller
     public function create()
     {
         $establishments = Establishment::where('is_main', true)->active()->get(['id', 'name', 'name_en']);
+        $showPerpetualInventoryAccount = Setting::isPerpetualInventory();
+        $perpetualInventoryAccounts = $showPerpetualInventoryAccount
+            ? PerpetualInventoryAccountResolver::establishmentLinkableAssetAccounts()
+            : collect();
 
-        return view('establishment::establishment.create', compact('establishments'));
+        return view('establishment::establishment.create', compact(
+            'establishments',
+            'showPerpetualInventoryAccount',
+            'perpetualInventoryAccounts'
+        ));
     }
 
     /**
@@ -61,7 +71,11 @@ class EstablishmentController extends Controller
     {
         return DB::transaction(function () use ($request) {
             try {
-                $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
+                    if ($key === 'perpetual_inventory_account_id') {
+                        return true;
+                    }
+
                     return isset($item);
                 });
                 $storeEstablishment = new EstablishmentActions($filteredRequest);
@@ -124,8 +138,17 @@ class EstablishmentController extends Controller
     {
         $establishment = Establishment::with('children')->findOrFail($id);
         $establishments = Establishment::where('is_main', true)->active()->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
+        $showPerpetualInventoryAccount = Setting::isPerpetualInventory();
+        $perpetualInventoryAccounts = $showPerpetualInventoryAccount
+            ? PerpetualInventoryAccountResolver::establishmentLinkableAssetAccounts()
+            : collect();
 
-        return view('establishment::establishment.edit', compact('establishment', 'establishments'));
+        return view('establishment::establishment.edit', compact(
+            'establishment',
+            'establishments',
+            'showPerpetualInventoryAccount',
+            'perpetualInventoryAccounts'
+        ));
     }
 
     /**
@@ -135,7 +158,11 @@ class EstablishmentController extends Controller
     {
         return DB::transaction(function () use ($request, $establishment) {
             try {
-                $filteredRequest = $request->safe()->collect()->filter(function ($item) {
+                $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
+                    if ($key === 'perpetual_inventory_account_id') {
+                        return true;
+                    }
+
                     return isset($item);
                 });
                 $updateEstablishment = new EstablishmentActions($filteredRequest);

@@ -32,12 +32,15 @@ class SalesComparisonExcelExport implements FromArray, WithColumnWidths, WithEve
 
     private int $metaLastRow;
 
+    private string $wsrViewMode;
+
     public function __construct(
         private readonly Collection $rows,
         private readonly array $meta
     ) {
         $this->weekdaySingleWindow = ! empty($this->meta['wsr_export_single_window']);
         $this->hasWeekdaysRow = isset($this->meta['weekdays_line']) && (string) $this->meta['weekdays_line'] !== '';
+        $this->wsrViewMode = (string) ($this->meta['wsr_view_mode'] ?? '');
 
         if ($this->weekdaySingleWindow) {
             $this->colCount = 12;
@@ -299,9 +302,21 @@ class SalesComparisonExcelExport implements FromArray, WithColumnWidths, WithEve
      */
     private function headerRowData(): array
     {
+        $colA = __('report::fields.product_name');
+        $colB = __('report::fields.category');
+
+        if ($this->wsrViewMode === 'by_date') {
+            $colA = __('report::fields.transaction_date');
+        } elseif ($this->wsrViewMode === 'by_date_product') {
+            // In this view we put the date string into the "category" column.
+            $colB = __('report::fields.transaction_date');
+        } elseif ($this->wsrViewMode === 'by_day') {
+            $colA = __('report::general.weekday_report_column_day');
+        }
+
         $base = [
-            __('report::fields.product_name'),
-            __('report::fields.category'),
+            $colA,
+            $colB,
             __('report::fields.subcategory'),
             __('report::fields.establishment_name'),
             __('report::fields.SKU'),

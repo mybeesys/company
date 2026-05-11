@@ -3256,11 +3256,18 @@ SUM(
     {
         if ($request->ajax() || $request->has('draw')) {
             $scope = $this->normalizeWeekdayReportScope($request);
-            $merged = $this->buildWeekdaySalesMergedCollection($request);
+            $viewMode = $this->normalizeWeekdayReportViewMode($request);
+            $merged = match ($viewMode) {
+                'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
+                'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
+                'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
+                default => $this->buildWeekdaySalesMergedCollection($request),
+            };
             $kpi = $this->buildWeekdaySalesKpiSummary($merged ?? collect(), $request);
             $wsrTableMode = in_array($scope, ['single_this_month', 'single_last_month'], true) ? 'single' : 'full';
             $extra = [
                 'wsr_table_mode' => $wsrTableMode,
+                'wsr_view_mode' => $viewMode,
                 'wsr_kpi' => $kpi,
             ];
 
@@ -3282,12 +3289,19 @@ SUM(
 
     public function weekdaySalesExportExcel(Request $request)
     {
-        $merged = $this->buildWeekdaySalesMergedCollection($request);
+        $viewMode = $this->normalizeWeekdayReportViewMode($request);
+        $merged = match ($viewMode) {
+            'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
+            'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
+            'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
+            default => $this->buildWeekdaySalesMergedCollection($request),
+        };
         if ($merged === null) {
             return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
         }
 
         $meta = $this->weekdaySalesExportMeta($request, $merged);
+        $meta['wsr_view_mode'] = $viewMode;
         $filename = 'weekday-sales-'.now()->format('Y-m-d-His').'.xlsx';
 
         return Excel::download(new SalesComparisonExcelExport($merged, $meta), $filename);
@@ -3295,12 +3309,19 @@ SUM(
 
     public function weekdaySalesExportPdf(Request $request)
     {
-        $merged = $this->buildWeekdaySalesMergedCollection($request);
+        $viewMode = $this->normalizeWeekdayReportViewMode($request);
+        $merged = match ($viewMode) {
+            'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
+            'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
+            'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
+            default => $this->buildWeekdaySalesMergedCollection($request),
+        };
         if ($merged === null) {
             return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
         }
 
         $meta = $this->weekdaySalesExportMeta($request, $merged);
+        $meta['wsr_view_mode'] = $viewMode;
         $rows = $merged->map(fn ($r) => $this->mapSalesComparisonRowForPdf($r))->all();
 
         $html = view('report::sales.sales_comparison_export_pdf', [
@@ -3362,6 +3383,18 @@ SUM(
         }
 
         return $meta;
+    }
+
+    private function normalizeWeekdayReportViewMode(Request $request): string
+    {
+        if (! $request->has('wsr_view')) {
+            return 'by_product';
+        }
+
+        $v = (string) $request->input('wsr_view');
+        $allowed = ['by_product', 'by_day', 'by_date', 'by_date_product'];
+
+        return in_array($v, $allowed, true) ? $v : 'by_product';
     }
 
     private function normalizeWeekdayReportScope(Request $request): string
@@ -3572,6 +3605,346 @@ SUM(
         }
 
         return $phpDows;
+    }
+
+    /**
+     * Aggregate approved sell lines by weekday within a single period.
+     *
+     * @param  list<int>  $mysqlWeekdayOneToSeven
+     * @return \Illuminate\Support\Collection<int, object> keyed by mysql_dow (1..7)
+     */
+    private function aggregateWeekdayTotalsPeriod(
+        Request $request,
+        string $from,
+        string $to,
+        array $mysqlWeekdayOneToSeven
+    ): \Illuminate\Support\Collection {
+        $q = $this->buildSalesComparisonLinesQuery($request, false)
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to);
+
+        $dows = array_values(array_unique(array_map('intval', $mysqlWeekdayOneToSeven)));
+        sort($dows);
+        $inList = implode(',', $dows);
+
+        $q->whereRaw('DAYOFWEEK(DATE(t.transaction_date)) IN ('.$inList.')');
+
+        $rows = $q
+            ->selectRaw('DAYOFWEEK(DATE(t.transaction_date)) as mysql_dow')
+            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw('COUNT(*) as line_count')
+            ->groupBy(DB::raw('DAYOFWEEK(DATE(t.transaction_date))'))
+            ->orderBy('mysql_dow')
+            ->get();
+
+        return $rows->keyBy(fn ($r) => (int) $r->mysql_dow);
+    }
+
+    /**
+     * Aggregate approved sell lines by calendar date within a single period.
+     *
+     * @param  list<int>  $mysqlWeekdayOneToSeven
+     * @return \Illuminate\Support\Collection<int, object> keyed by date string (Y-m-d)
+     */
+    private function aggregateDateTotalsPeriod(
+        Request $request,
+        string $from,
+        string $to,
+        array $mysqlWeekdayOneToSeven
+    ): \Illuminate\Support\Collection {
+        $q = $this->buildSalesComparisonLinesQuery($request, false)
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to);
+
+        $dows = array_values(array_unique(array_map('intval', $mysqlWeekdayOneToSeven)));
+        sort($dows);
+        $inList = implode(',', $dows);
+
+        $q->whereRaw('DAYOFWEEK(DATE(t.transaction_date)) IN ('.$inList.')');
+
+        $rows = $q
+            ->selectRaw('DATE(t.transaction_date) as tx_date')
+            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw('COUNT(*) as line_count')
+            ->groupBy(DB::raw('DATE(t.transaction_date)'))
+            ->orderBy('tx_date')
+            ->get();
+
+        return $rows->keyBy(fn ($r) => (string) $r->tx_date);
+    }
+
+    /**
+     * Build rows grouped by weekday (Sun–Sat). Uses the same filters and weekday checkboxes,
+     * but instead of product+branch rows it returns one row per weekday.
+     *
+     * @return \Illuminate\Support\Collection<int, object>|null
+     */
+    private function buildWeekdaySalesByDayMergedCollection(Request $request): ?Collection
+    {
+        [$periodA, $periodB] = $this->resolveWeekdayReportPeriods($request);
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        [$aFrom, $aTo] = $periodA;
+        [$bFrom, $bTo] = $periodB;
+
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
+        $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
+        sort($mysqlDows);
+
+        $aggA = $this->aggregateWeekdayTotalsPeriod($request, $aFrom, $aTo, $mysqlDows);
+        $aggB = $this->aggregateWeekdayTotalsPeriod($request, $bFrom, $bTo, $mysqlDows);
+
+        $merged = collect();
+
+        foreach ($phpDows as $phpDow) {
+            $mysqlDow = $phpDow + 1; // 1..7
+            $rowA = $aggA->get($mysqlDow);
+            $rowB = $aggB->get($mysqlDow);
+
+            $qtyA = (float) ($rowA->qty ?? 0);
+            $qtyB = (float) ($rowB->qty ?? 0);
+            $discA = (float) ($rowA->discount ?? 0);
+            $discB = (float) ($rowB->discount ?? 0);
+            $taxA = (float) ($rowA->tax ?? 0);
+            $taxB = (float) ($rowB->tax ?? 0);
+            $subA = (float) ($rowA->subtotal ?? 0);
+            $subB = (float) ($rowB->subtotal ?? 0);
+            $linesA = (int) ($rowA->line_count ?? 0);
+            $linesB = (int) ($rowB->line_count ?? 0);
+
+            $avgA = $qtyA > 0 ? $subA / $qtyA : null;
+            $avgB = $qtyB > 0 ? $subB / $qtyB : null;
+
+            $merged->push((object) [
+                // Re-use the existing DataTable schema: show the weekday in the first column.
+                'product_name' => __('report::general.weekday_long_'.$phpDow),
+                'category' => '',
+                'subcategory' => '',
+                'establishment_name' => '',
+                'SKU' => '',
+                'customer' => '',
+                'qty_period_a' => $qtyA,
+                'avg_unit_price_period_a' => $avgA,
+                'discount_period_a' => $discA,
+                'tax_period_a' => $taxA,
+                'subtotal_period_a' => $subA,
+                'lines_period_a' => $linesA,
+                'qty_period_b' => $qtyB,
+                'avg_unit_price_period_b' => $avgB,
+                'discount_period_b' => $discB,
+                'tax_period_b' => $taxB,
+                'subtotal_period_b' => $subB,
+                'lines_period_b' => $linesB,
+                'qty_difference' => $qtyB - $qtyA,
+                'qty_change_percent' => ReportTransactionsUtile::computePercentChange($qtyA, $qtyB),
+                'subtotal_difference' => $subB - $subA,
+                'subtotal_change_percent' => ReportTransactionsUtile::computePercentChange($subA, $subB),
+                'discount_difference' => $discB - $discA,
+                'tax_difference' => $taxB - $taxA,
+                'lines_difference' => $linesB - $linesA,
+            ]);
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Build rows grouped by calendar date, filtered to selected weekdays.
+     *
+     * Note: This is primarily useful for single-period scopes (this month only / last month only),
+     * where the user wants to see each matching date separately (e.g., every Wednesday in the month).
+     *
+     * @return \Illuminate\Support\Collection<int, object>|null
+     */
+    private function buildWeekdaySalesByDateMergedCollection(Request $request): ?Collection
+    {
+        [$periodA, $periodB, $scope] = $this->resolveWeekdayReportPeriods($request);
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        // If the user tries by-date in a two-period comparison, fall back to by-day to avoid confusing mismatched dates.
+        if (! in_array($scope, ['single_this_month', 'single_last_month'], true)) {
+            return $this->buildWeekdaySalesByDayMergedCollection($request);
+        }
+
+        [$aFrom, $aTo] = $periodA;
+
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
+        $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
+        sort($mysqlDows);
+
+        $aggA = $this->aggregateDateTotalsPeriod($request, $aFrom, $aTo, $mysqlDows);
+
+        $merged = collect();
+
+        foreach ($aggA->keys() as $date) {
+            $rowA = $aggA->get($date);
+
+            $qtyA = (float) ($rowA->qty ?? 0);
+            $discA = (float) ($rowA->discount ?? 0);
+            $taxA = (float) ($rowA->tax ?? 0);
+            $subA = (float) ($rowA->subtotal ?? 0);
+            $linesA = (int) ($rowA->line_count ?? 0);
+            $avgA = $qtyA > 0 ? $subA / $qtyA : null;
+
+            $dateStr = (string) $date;
+            try {
+                $phpDow = Carbon::parse($dateStr)->dayOfWeek; // 0..6 (Sun..Sat)
+                $dayName = __('report::general.weekday_long_'.$phpDow);
+                $dateStr = $dateStr.' ('.$dayName.')';
+            } catch (\Throwable $e) {
+                // keep raw date string
+            }
+
+            $merged->push((object) [
+                // Re-use the existing DataTable schema: show the date in the first column.
+                'product_name' => $dateStr,
+                'category' => '',
+                'subcategory' => '',
+                'establishment_name' => '',
+                'SKU' => '',
+                'customer' => '',
+                'qty_period_a' => $qtyA,
+                'avg_unit_price_period_a' => $avgA,
+                'discount_period_a' => $discA,
+                'tax_period_a' => $taxA,
+                'subtotal_period_a' => $subA,
+                'lines_period_a' => $linesA,
+                // Keep the rest of columns at 0; UI will hide them in single mode anyway.
+                'qty_period_b' => 0,
+                'avg_unit_price_period_b' => null,
+                'discount_period_b' => 0,
+                'tax_period_b' => 0,
+                'subtotal_period_b' => 0,
+                'lines_period_b' => 0,
+                'qty_difference' => 0,
+                'qty_change_percent' => null,
+                'subtotal_difference' => 0,
+                'subtotal_change_percent' => null,
+                'discount_difference' => 0,
+                'tax_difference' => 0,
+                'lines_difference' => 0,
+            ]);
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Build rows grouped by (date + product + branch), filtered to selected weekdays.
+     *
+     * This matches the request: when user selects (last month) + (Thursday), show each Thursday date
+     * and for each date show how much each product sold (split by branch).
+     *
+     * @return \Illuminate\Support\Collection<int, object>|null
+     */
+    private function buildWeekdaySalesByDateProductMergedCollection(Request $request): ?Collection
+    {
+        [$periodA, $periodB, $scope] = $this->resolveWeekdayReportPeriods($request);
+
+        if (! $periodA || ! $periodB) {
+            return null;
+        }
+
+        // Only meaningful for single-period views; in compare mode, fallback to by-day to avoid mismatched dates.
+        if (! in_array($scope, ['single_this_month', 'single_last_month'], true)) {
+            return $this->buildWeekdaySalesByDayMergedCollection($request);
+        }
+
+        [$aFrom, $aTo] = $periodA;
+
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
+        $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
+        sort($mysqlDows);
+
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+        $q = $this->buildSalesComparisonLinesQuery($request, true)
+            ->whereDate('t.transaction_date', '>=', $aFrom)
+            ->whereDate('t.transaction_date', '<=', $aTo);
+
+        $inList = implode(',', array_map('intval', $mysqlDows));
+        $q->whereRaw('DAYOFWEEK(DATE(t.transaction_date)) IN ('.$inList.')');
+
+        $rows = $q
+            ->selectRaw('DATE(t.transaction_date) as tx_date')
+            ->selectRaw('tsl.product_id as product_id')
+            ->selectRaw('t.establishment_id as establishment_id')
+            ->selectRaw('MAX(p.name_ar) as product_name_ar')
+            ->selectRaw('MAX(p.name_en) as product_name_en')
+            ->selectRaw('MAX(p.SKU) as sku')
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
+            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw('COUNT(*) as line_count')
+            ->groupBy(DB::raw('DATE(t.transaction_date)'), 'tsl.product_id', 't.establishment_id')
+            ->orderBy('tx_date')
+            ->orderBy(DB::raw("MAX(CASE WHEN '{$locale}' = 'ar' THEN p.name_ar ELSE p.name_en END)"))
+            ->get();
+
+        $merged = collect();
+
+        foreach ($rows as $r) {
+            $qtyA = (float) ($r->qty ?? 0);
+            $subA = (float) ($r->subtotal ?? 0);
+            $avgA = $qtyA > 0 ? $subA / $qtyA : null;
+
+            // Put the date into the "category" column in this view (UI will relabel it to Date).
+            // Also include weekday name next to date for clarity: 2026-05-03 (Thursday).
+            $dateStr = (string) ($r->tx_date ?? '--');
+            try {
+                $phpDow = Carbon::parse($dateStr)->dayOfWeek; // 0..6 (Sun..Sat)
+                $dayName = __('report::general.weekday_long_'.$phpDow);
+                $dateStr = $dateStr.' ('.$dayName.')';
+            } catch (\Throwable $e) {
+                // keep raw date string
+            }
+
+            $merged->push((object) [
+                'product_name' => $locale === 'ar' ? ($r->product_name_ar ?? '--') : ($r->product_name_en ?? '--'),
+                'category' => $dateStr,
+                'subcategory' => '',
+                'establishment_name' => $r->establishment_name ?? '--',
+                'SKU' => $r->sku ?? '--',
+                'customer' => __('report::general.weekday_report_customer_rollup'),
+                'qty_period_a' => $qtyA,
+                'avg_unit_price_period_a' => $avgA,
+                'discount_period_a' => (float) ($r->discount ?? 0),
+                'tax_period_a' => (float) ($r->tax ?? 0),
+                'subtotal_period_a' => $subA,
+                'lines_period_a' => (int) ($r->line_count ?? 0),
+                'qty_period_b' => 0,
+                'avg_unit_price_period_b' => null,
+                'discount_period_b' => 0,
+                'tax_period_b' => 0,
+                'subtotal_period_b' => 0,
+                'lines_period_b' => 0,
+                'qty_difference' => 0,
+                'qty_change_percent' => null,
+                'subtotal_difference' => 0,
+                'subtotal_change_percent' => null,
+                'discount_difference' => 0,
+                'tax_difference' => 0,
+                'lines_difference' => 0,
+            ]);
+        }
+
+        return $merged;
     }
 
     /**
