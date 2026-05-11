@@ -16,7 +16,9 @@
     'disabled' => false,
     'readonly' => false,
     'labelWidth' => false,
-    'solid' => true
+    'solid' => true,
+    /** Browser autofill hint; default matches previous hard-coded behaviour site-wide. */
+    'autocomplete' => 'new-password',
 ])
 
 @php
@@ -35,7 +37,7 @@
 @includeWhen($hint, 'components.form.field-hint', ['hint' => $hint])
 {{ $slot }}
 <input type="{{ $type }}" list="{{ $name }}list" name="{{ $name }}" @readonly($readonly)
-    placeholder="{{ $placeholder }}" id="{{ $name }}" autocomplete="new-password" value="{{ old($name, $value) }}"
+    placeholder="{{ $placeholder }}" id="{{ $name }}" autocomplete="{{ $autocomplete }}" value="{{ old($name, $value) }}"
     {{ $attribute }} @class([
         'form-control' => $form_control,
         'is-invalid' => $errors->first($dotNotationName),

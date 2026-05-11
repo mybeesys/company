@@ -6,7 +6,7 @@
 <html lang="{{ $local }}" dir="{{ $dir }}">
 
 <head>
-    <title>{{ config('app.name', 'MyBee') }} — @lang('employee::general.log_in')</title>
+    <title>{{ config('app.name', 'MyBee') }} — @lang('employee::general.reset_password_page_title')</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
@@ -51,8 +51,8 @@
                     @if (tenant('id'))
                         <span class="login-auth-tenant">{{ ucfirst(tenant('id')) }}</span>
                     @endif
-                    <h1 class="login-auth-title">@lang('employee::general.login_hero_title')</h1>
-                    <p class="login-auth-sub">@lang('employee::general.login_hero_subtitle')</p>
+                    <h1 class="login-auth-title">@lang('employee::general.reset_password_brand_title')</h1>
+                    <p class="login-auth-sub">@lang('employee::general.reset_password_brand_sub')</p>
 
                     <div class="login-auth-aside-footer">
                         <div class="login-lang-wrap position-relative d-inline-flex justify-content-center" id="login_lang_wrap">
@@ -97,46 +97,33 @@
                         <div class="alert alert-danger mb-8" role="alert" aria-live="polite">
                             <ul class="mb-0 ps-4 small">
                                 @foreach ($errors->all() as $error)
-                                    <li>
-                                        @if ($error === 'subscription_expired')
-                                            {{ __('employee::responses.subscription_expired') }}
-                                        @else
-                                            {{ $error }}
-                                        @endif
-                                    </li>
+                                    <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
                         </div>
                     @endif
 
                     <div class="login-auth-divider">
-                        <span>@lang('employee::general.login_to_your_company')</span>
+                        <span>@lang('employee::general.reset_password_page_title')</span>
                     </div>
 
-                    <form action="{{ route('login.postLogin') }}" method="POST" class="form w-100" id="kt_sign_in_form" novalidate>
+                    <p class="text-muted fs-7 mb-6">@lang('employee::general.reset_password_help')</p>
+
+                    <form action="{{ route('password.update') }}" method="POST" class="form w-100" id="kt_reset_password_form" novalidate>
                         @csrf
+                        <input type="hidden" name="token" value="{{ $token }}" />
+                        <input type="hidden" name="email" value="{{ old('email', $email) }}" />
 
-                        <div class="fv-row mb-6">
-                            <x-form.input
-                                class="bg-transparent"
-                                name="email"
-                                autocomplete="username"
-                                :label="__('employee::general.email_or_user_name')"
-                                :placeholder="__('employee::general.email_or_user_name')"
-                            />
-                        </div>
-
-                        <div class="fv-row mb-2">
-                            <label for="password" class="form-label fw-semibold fs-7 mb-1">{{ __('employee::fields.password') }}</label>
+                        <div class="fv-row mb-4">
+                            <label for="password" class="form-label">{{ __('employee::fields.new_password') }}</label>
                             <div class="login-password-field position-relative">
-                                <input type="password" name="password" id="password" autocomplete="current-password" required
-                                    placeholder="{{ __('employee::fields.password') }}"
+                                <input type="password" name="password" id="password" required autocomplete="new-password"
                                     class="form-control form-control-solid bg-transparent @error('password') is-invalid @enderror" />
-                                <button type="button" class="login-password-toggle" id="login_pw_toggle"
+                                <button type="button" class="login-password-toggle" id="reset_pw_toggle"
                                     aria-pressed="false"
                                     aria-label="@lang('employee::general.show_password')"
                                     title="@lang('employee::general.show_password')">
-                                    <i class="ki-outline ki-eye" id="login_pw_toggle_icon"></i>
+                                    <i class="ki-outline ki-eye" id="reset_pw_toggle_icon"></i>
                                 </button>
                             </div>
                             @error('password')
@@ -144,22 +131,30 @@
                             @enderror
                         </div>
 
-                        <div class="login-auth-actions">
-                            <div class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input" type="checkbox" name="remember" id="login_remember" value="1"
-                                    @checked(old('remember')) />
-                                <label class="form-check-label" for="login_remember">@lang('employee::general.remember_me')</label>
+                        <div class="fv-row mb-6">
+                            <label for="password_confirmation" class="form-label">{{ __('employee::fields.password_confirmation') }}</label>
+                            <div class="login-password-field position-relative">
+                                <input type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password"
+                                    class="form-control form-control-solid bg-transparent" />
+                                <button type="button" class="login-password-toggle" id="reset_pw_toggle_c"
+                                    aria-pressed="false"
+                                    aria-label="@lang('employee::general.show_password')"
+                                    title="@lang('employee::general.show_password')">
+                                    <i class="ki-outline ki-eye" id="reset_pw_toggle_c_icon"></i>
+                                </button>
                             </div>
-                            <a href="{{ route('password.request') }}" class="link-primary fw-semibold small">@lang('employee::general.forgot_password')</a>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" id="kt_sign_in_submit" class="btn btn-primary login-auth-submit" data-kt-indicator="off">
-                                <span class="indicator-label">@lang('employee::general.sign_in')</span>
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-primary login-auth-submit" id="reset_pw_submit" data-kt-indicator="off">
+                                <span class="indicator-label">@lang('employee::general.save_new_password')</span>
                                 <span class="indicator-progress">@lang('employee::general.please_wait')
                                     <span class="spinner-border spinner-border-sm align-middle ms-2" aria-hidden="true"></span>
                                 </span>
                             </button>
+                            <a href="{{ route('login') }}" class="btn btn-light btn-active-light-primary">
+                                @lang('employee::general.back_to_login')
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -185,12 +180,15 @@
                 }, 14000);
             }
 
-            var pw = document.getElementById('password');
-            var btn = document.getElementById('login_pw_toggle');
-            var icon = document.getElementById('login_pw_toggle_icon');
-            var showLabel = @json(__('employee::general.show_password'));
-            var hideLabel = @json(__('employee::general.hide_password'));
-            if (pw && btn && icon) {
+            function bindPwToggle(pwId, btnId, iconId) {
+                var pw = document.getElementById(pwId);
+                var btn = document.getElementById(btnId);
+                var icon = document.getElementById(iconId);
+                var showLabel = @json(__('employee::general.show_password'));
+                var hideLabel = @json(__('employee::general.hide_password'));
+                if (!pw || !btn || !icon) {
+                    return;
+                }
                 btn.addEventListener('click', function() {
                     var isText = pw.getAttribute('type') === 'text';
                     pw.setAttribute('type', isText ? 'password' : 'text');
@@ -202,16 +200,8 @@
                     btn.setAttribute('title', nowHidden ? showLabel : hideLabel);
                 });
             }
-
-            var form = document.getElementById('kt_sign_in_form');
-            var submit = document.getElementById('kt_sign_in_submit');
-            if (form && submit) {
-                form.addEventListener('submit', function() {
-                    /* Metronic: يظهر indicator-progress فقط عند data-kt-indicator="on" على الزر */
-                    submit.setAttribute('data-kt-indicator', 'on');
-                    submit.setAttribute('disabled', 'disabled');
-                });
-            }
+            bindPwToggle('password', 'reset_pw_toggle', 'reset_pw_toggle_icon');
+            bindPwToggle('password_confirmation', 'reset_pw_toggle_c', 'reset_pw_toggle_c_icon');
 
             var langWrap = document.getElementById('login_lang_wrap');
             var langBtn = document.getElementById('login_lang_btn');
@@ -234,6 +224,15 @@
                     if (e.key === 'Escape') {
                         setLangOpen(false);
                     }
+                });
+            }
+
+            var form = document.getElementById('kt_reset_password_form');
+            var submit = document.getElementById('reset_pw_submit');
+            if (form && submit) {
+                form.addEventListener('submit', function() {
+                    submit.setAttribute('data-kt-indicator', 'on');
+                    submit.setAttribute('disabled', 'disabled');
                 });
             }
         });

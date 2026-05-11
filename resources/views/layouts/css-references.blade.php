@@ -1,3 +1,7 @@
+@php
+    $local = $local ?? app()->getLocale();
+    $rtl_files = $rtl_files ?? (($local === 'ar' || str_starts_with((string) $local, 'ar')) ? '.rtl' : '');
+@endphp
 <link rel="canonical" href="http://preview.keenthemes.comindex.html" />
 <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -27,8 +27,12 @@ class AuthController extends Controller
 
         $loginField = filter_var($attributes['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'user_name';
 
-        if (! Auth::attempt([$loginField => $attributes['email'], 'password' => $attributes['password']])) {
-            return redirect()->back()->with('error', __('employee::responses.incorrect_credential'));
+        $remember = $request->boolean('remember');
+
+        if (! Auth::attempt([$loginField => $attributes['email'], 'password' => $attributes['password']], $remember)) {
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->with('error', __('employee::responses.incorrect_credential'));
         }
 
         $user = Employee::firstWhere($loginField, $attributes['email']);
