@@ -14,7 +14,7 @@
 
 
 <head>
-    <title>@yield('title') - MyBee</title>
+    <title>@yield('title') - Khaliyat Alnuzum Almutakamila</title>
     <meta charset="utf-8" />
     <meta name="description"
         content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -23,7 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="MyBee" />
+    <meta property="og:title" content="Khaliyat Alnuzum Almutakamila" />
     <meta property="og:url" content="https://keenthemes.com/metronic" />
     <meta property="og:site_name" content="Metronic by Keenthemes" />
     @include('layouts.css-references')
@@ -84,11 +84,11 @@
                             <i class="ki-outline ki-abstract-14 fs-2"></i>
                         </div>
                         <a href="/" class="app-sidebar-logo">
-                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-80px theme-light-show" />
+                            <img alt="Logo" src="/assets/media/logos/1-15.png" class="h-80px theme-light-show" />
                             <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
                         </a>
                     </div>
-                    
+
                 </div>
                 <!--begin::Separator-->
                 <div class="app-header-separator"></div>
@@ -120,7 +120,7 @@
                             <div class="text-gray-900 order-2 order-md-1">
                                 <span class="text-muted fw-semibold me-1">2025&copy;</span>
                                 <a href="https://keenthemes.com" target="_blank"
-                                    class="text-gray-800 text-hover-primary">MyBee</a>
+                                    class="text-gray-800 text-hover-primary">Khaliyat Alnuzum Almutakamila</a>
                             </div>
                             <!--end::Copyright-->
                             <!--begin::Menu-->
@@ -155,7 +155,7 @@
     <!--end::App-->
     <div id="kt_scrolltop" class="scrolltop" data-kt-scrolltop="true">
         <i class="ki-outline ki-arrow-up"></i>
-    </div>  
+    </div>
 
     @include('layouts.js-references')
 

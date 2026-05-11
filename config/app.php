@@ -13,6 +13,7 @@ return [
     |
     */
 
+    /* الاسم القانوني الكامل: APP_NAME (انظر config/branding.php للاسم المختصر في الواجهة) */
     'name' => env('APP_NAME', 'Laravel'),
     'domain' => env('APP_URL', 'http://my-bee.info/'),
 

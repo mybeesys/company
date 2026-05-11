@@ -327,6 +327,6 @@
         @endif
     </div>
 
-    <div class="sc-pdf-foot">{{ config('app.name') }}</div>
+    <div class="sc-pdf-foot">{{ brand_legal_name() }}</div>
 </body>
 </html>
