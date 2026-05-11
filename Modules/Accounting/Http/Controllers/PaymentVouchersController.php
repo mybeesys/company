@@ -48,13 +48,13 @@ class PaymentVouchersController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = AccountingAccountsTransaction::where('sub_type', 'payment_voucher')
+        $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('payment_voucher')
             ->orderBy('id')
             ->get();
 
         if ($request->ajax()) {
 
-            $transactions = AccountingAccountsTransaction::where('sub_type', 'payment_voucher')
+            $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('payment_voucher')
                 ->orderBy('id')
                 ->get();
 

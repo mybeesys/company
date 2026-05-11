@@ -48,13 +48,13 @@ class ReceiptVouchersController extends Controller
      */
     public function index(Request $request)
     {
-        $transactions = AccountingAccountsTransaction::where('sub_type', 'receipt_voucher')
+        $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('receipt_voucher')
             ->orderBy('id')
             ->get();
 
         if ($request->ajax()) {
 
-            $transactions = AccountingAccountsTransaction::where('sub_type', 'receipt_voucher')
+            $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('receipt_voucher')
                 ->orderBy('id')
                 ->get();
 
