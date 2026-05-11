@@ -593,16 +593,21 @@
                                     <td class="@if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex justify-content-start flex-column">
-                                                <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
-                                                    @if ($transactions->sub_type == 'sell' || $transactions->sub_type == 'purchases') href="{{ url("/transaction-show/{$transactions->transaction_id}") }}" @endif>
-                                                    @if (isset($transactions->accTransMapping))
-                                                        {{ $transactions->accTransMapping->ref_no }}
-                                                    @elseif (isset($transactions->transaction))
-                                                        {{ $transactions->transaction->ref_no }}
-                                                    @else
-                                                        --
-                                                    @endif
-                                                </a>
+                                                @php
+                                                    $ledgerTxUrl = $transactions->ledgerDetailUrl();
+                                                    $ledgerRef = isset($transactions->accTransMapping)
+                                                        ? $transactions->accTransMapping->ref_no
+                                                        : (isset($transactions->transaction) ? $transactions->transaction->ref_no : null);
+                                                @endphp
+                                                @if ($ledgerTxUrl)
+                                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
+                                                        href="{{ $ledgerTxUrl }}"
+                                                        title="{{ __('employee::fields.show') }}">
+                                                        {{ $ledgerRef ?? '—' }}
+                                                    </a>
+                                                @else
+                                                    <span class="text-gray-900 fw-bold mb-1 fs-6">{{ $ledgerRef ?? '—' }}</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>

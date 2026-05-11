@@ -51,6 +51,37 @@ class AccountingAccountsTransaction extends Model
     }
 
     /**
+     * URL to open the originating document for this ledger line (invoice, payment receipt, standalone voucher, manual journal).
+     */
+    public function ledgerDetailUrl(): ?string
+    {
+        if ($this->transaction_payment_id) {
+            return route('show-receipts-payments', ['id' => $this->transaction_payment_id]);
+        }
+
+        $sub = (string) ($this->sub_type ?? '');
+
+        if ($sub === 'receipt_voucher' && ! $this->transaction_payment_id) {
+            return route('receipt-vouchers-show', ['id' => $this->id]);
+        }
+
+        if ($sub === 'payment_voucher' && ! $this->transaction_payment_id) {
+            return route('payment-vouchers-show', ['id' => $this->id]);
+        }
+
+        $tx = $this->transaction;
+        if ($tx) {
+            return route('transaction-show', ['id' => $tx->id]);
+        }
+
+        if ($this->acc_trans_mapping_id && in_array($sub, ['journal_entry', 'manual_journal'], true)) {
+            return route('journal-entry-show', ['id' => $this->acc_trans_mapping_id]);
+        }
+
+        return null;
+    }
+
+    /**
      * Standalone receipt/payment vouchers store two paired rows in accounting_accounts_transactions.
      * Invoice payment journals reuse the same sub_type labels but set transaction_payment_id; they must
      * not appear in the standalone voucher UI (pairing uses transaction_id differently).
