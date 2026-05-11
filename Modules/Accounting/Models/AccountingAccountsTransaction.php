@@ -50,6 +50,16 @@ class AccountingAccountsTransaction extends Model
         return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
     }
 
+    /**
+     * Standalone receipt/payment vouchers store two paired rows in accounting_accounts_transactions.
+     * Invoice payment journals reuse the same sub_type labels but set transaction_payment_id; they must
+     * not appear in the standalone voucher UI (pairing uses transaction_id differently).
+     */
+    public function scopeStandaloneVoucherSubType($query, string $subType)
+    {
+        return $query->where('sub_type', $subType)->whereNull('transaction_payment_id');
+    }
+
     public static function getAccountTransactionType($tansaction_type)
     {
         $account_transaction_types = [
