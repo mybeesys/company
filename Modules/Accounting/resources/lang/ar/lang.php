@@ -183,6 +183,8 @@ return [
     'cancel_account' => 'إلغاء الحساب',
     'assign_to_each' => 'تعيين لكل منها',
     'vat_calculation' => 'حساب ضريبة القيمة المضافة',
+    'vat' => 'حساب ضريبة المبيعات',
+    'inventory' => 'حساب المخزون',
     'total_amount' => 'حساب المبلغ الإجمالي',
     'amount_before_vat' => 'حساب المبلغ قبل الضريبة',
     'discount_calculation' => 'حساب الخصم',

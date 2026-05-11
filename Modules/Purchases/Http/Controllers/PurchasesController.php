@@ -465,8 +465,11 @@ class PurchasesController extends Controller
     {
         $missing = [];
         $purchasesAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
-        if (! $purchasesAccountId && ! Setting::isPerpetualInventory()) {
-            $missing[] = app()->getLocale() === 'ar' ? 'حساب المشتريات' : 'Purchases account';
+        if (! $purchasesAccountId) {
+            $missing[] = __('accounting::lang.purchase');
+        }
+        if (! AccountsRoting::where('type', 'purchases_purchase_return')->value('account_id')) {
+            $missing[] = __('accounting::lang.purchase_return');
         }
         if (! AccountsRoting::where('type', 'purchases_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المشتريات' : 'Purchases VAT account';

@@ -617,6 +617,12 @@ class SellController extends Controller
         if (! AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
             $missing[] = __('accounting::lang.vat');
         }
+        if (! AccountsRoting::where('type', 'sales_discount_allowed')->value('account_id')) {
+            $missing[] = __('accounting::lang.discount_allowed');
+        }
+        if (! AccountsRoting::where('type', 'sales_sell_return')->value('account_id')) {
+            $missing[] = __('accounting::lang.sell_return');
+        }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = AccountingAccount::query()
                 ->where('gl_code', '11105')

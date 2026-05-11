@@ -191,6 +191,8 @@ return [
     'cancel_account' => 'Cancel account',
     'assign_to_each' => 'Assign to each',
     'vat_calculation' => 'VAT Account',
+    'vat' => 'Sales VAT account',
+    'inventory' => 'Inventory account',
     'total_amount' => 'Total Amount Account',
     'amount_before_vat' => 'Amount Before VAT',
     'discount_calculation' => 'Discount Account',
@@ -214,7 +216,7 @@ return [
 
     'purchase_return' => 'Purchase Return Account',
     'total' => 'Total',
-    'cost of goods sold' => 'cost of goods sold',
+    'cost of goods sold' => 'Cost of goods sold (COGS)',
     'trial_balance' => 'Trial balance',
     'account_level' => 'Account level',
     'without_zero_balances' => 'Without zero balances',
