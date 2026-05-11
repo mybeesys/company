@@ -14,7 +14,7 @@
 
 
 <head>
-    <title>@yield('title') - MyBee</title>
+    <title>@yield('title') - Khaliyat Alnuzum Almutakamila</title>
     <meta charset="utf-8" />
     <meta name="description"
         content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -23,7 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="MyBee" />
+    <meta property="og:title" content="Khaliyat Alnuzum Almutakamila" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta property="og:url" content="https://keenthemes.com/metronic" />
     <meta property="og:site_name" content="Metronic by Keenthemes" />
@@ -37,6 +37,53 @@
             line-height: 1;
             display: inline-block;
             margin-inline-start: 0.1rem;
+        }
+
+        /* شريط علوي أقصر وأكثر اتساقاً */
+        .app-header.app-header--compact .app-header-main {
+            min-height: 52px;
+            padding-block: 0.25rem;
+        }
+
+        .app-header.app-header--compact .app-header-brand {
+            gap: 0.45rem;
+            min-width: 0;
+        }
+
+        .app-header.app-header--compact .app-header-logo-img {
+            height: 42px;
+            width: auto;
+            max-height: 42px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .app-header.app-header--compact .app-header-company-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            max-width: min(42vw, 20rem);
+        }
+
+        [data-bs-theme="dark"] .app-header.app-header--compact .app-header-company-name {
+            color: var(--bs-gray-100) !important;
+        }
+
+        .app-header.app-header--compact .app-header-separator {
+            margin-top: 0;
+        }
+
+        .app-navbar--compact .app-navbar-meta {
+            min-width: 0;
+        }
+
+        .app-navbar--compact .app-navbar-meta .navbar-meta-date {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .app-navbar--compact .app-navbar-item .btn-icon {
+            border-radius: 0.55rem;
         }
     </style>
 
@@ -80,23 +127,43 @@
     </script>
     <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
         <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
-            <div id="kt_app_header" class="app-header d-flex flex-column flex-stack">
+            @php
+                $appHeaderCompanyName = null;
+                try {
+                    if (function_exists('get_company_id') && ($cid = get_company_id())) {
+                        $row = \Illuminate\Support\Facades\DB::connection('mysql')
+                            ->table('companies')
+                            ->select('name')
+                            ->where('id', $cid)
+                            ->first();
+                        $appHeaderCompanyName = $row->name ?? null;
+                    }
+                } catch (\Throwable $e) {
+                    $appHeaderCompanyName = null;
+                }
+            @endphp
+            <div id="kt_app_header" class="app-header app-header--compact d-flex flex-column flex-stack">
                 <!--begin::Header main-->
-                <div class="d-flex flex-stack flex-grow-1">
-                    <div class="app-header-logo d-flex align-items-center ps-lg-10" id="kt_app_header_logo">
+                <div class="app-header-main d-flex flex-stack flex-grow-1 align-items-center">
+                    <div class="app-header-logo d-flex align-items-center ps-lg-6 ps-3" id="kt_app_header_logo">
                         <div id="kt_app_sidebar_toggle"
-                            class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-30px h-30px ms-n2 me-4 d-none d-lg-flex"
+                            class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-28px h-28px ms-n2 me-2 d-none d-lg-flex"
                             data-kt-toggle="true" data-kt-toggle-target="body"
                             data-kt-toggle-name="app-sidebar-minimize">
-                            <i class="ki-outline ki-abstract-14 fs-3 mt-1"></i>
+                            <i class="ki-outline ki-abstract-14 fs-4"></i>
                         </div>
-                        <div class="btn btn-icon btn-active-color-primary w-35px h-35px ms-3 me-2 d-flex d-lg-none"
+                        <div class="btn btn-icon btn-active-color-primary w-32px h-32px ms-1 me-1 d-flex d-lg-none"
                             id="kt_app_sidebar_mobile_toggle">
-                            <i class="ki-outline ki-abstract-14 fs-2"></i>
+                            <i class="ki-outline ki-abstract-14 fs-3"></i>
                         </div>
-                        <a href="/" class="app-sidebar-logo">
-                            <img alt="Logo" src="/assets/media/logos/1-01.png" class="h-80px theme-light-show" />
-                            <img alt="Logo" src="/assets/media/logos/1-09.png" class="h-70px theme-dark-show" />
+                        <a href="/" class="app-sidebar-logo app-header-brand d-inline-flex align-items-center py-1 text-decoration-none text-gray-800">
+                            <span class="d-inline-flex align-items-center flex-shrink-0">
+                                <img alt="{{ config('app.name', 'MyBee') }}" src="/assets/media/logos/1-15.png" class="app-header-logo-img theme-light-show" />
+                                <img alt="{{ config('app.name', 'MyBee') }}" src="/assets/media/logos/1-09.png" class="app-header-logo-img theme-dark-show" />
+                            </span>
+                            @if (filled($appHeaderCompanyName))
+                                <span class="app-header-company-name text-truncate" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
+                            @endif
                         </a>
                     </div>
                     @include('components.navBar')
@@ -152,7 +219,7 @@
                             <div class="text-gray-900 order-2 order-md-1">
                                 <span class="text-muted fw-semibold me-1">2025&copy;</span>
                                 <a href="https://keenthemes.com" target="_blank"
-                                    class="text-gray-800 text-hover-primary">MyBee</a>
+                                    class="text-gray-800 text-hover-primary">Khaliyat Alnuzum Almutakamila</a>
                             </div>
                             <!--end::Copyright-->
                             <!--begin::Menu-->

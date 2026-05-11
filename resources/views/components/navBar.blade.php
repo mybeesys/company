@@ -1,5 +1,6 @@
 <!--begin::Navbar-->
 @php
+    $navbarDate = \Illuminate\Support\Carbon::now()->locale(app()->getLocale())->isoFormat('ddd D MMM YYYY');
     $hasQuickPermission = function ($permission) {
         if (!isset($permission) || $permission === '' || $permission === null) {
             return true;
@@ -53,8 +54,16 @@
             'permission' => 'setting.General setting.show',
         ],
     ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
+    $unreadCount = auth()->user()->unreadNotifications->count();
 @endphp
-<div class="app-navbar flex-grow-1 justify-content-end" id="kt_app_header_navbar">
+<div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
+    <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
+        <span class="d-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date">
+            <i class="ki-outline ki-calendar fs-6 text-gray-500"></i>
+            <span>{{ $navbarDate }}</span>
+        </span>
+    </div>
+    <div class="app-navbar-actions d-flex align-items-center gap-1 gap-lg-2 flex-shrink-0 ms-auto">
     {{-- <div class="app-navbar-item d-flex align-items-stretch flex-lg-grow-1">
         <div id="kt_header_search" class="header-search d-flex align-items-center w-lg-350px"
             data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter"
@@ -137,14 +146,30 @@
             </div>
         </div>
     </div> --}}
+    <div class="app-navbar-item">
+        <a href="{{ url('/dashboard') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px"
+            title="{{ __('general.dashboard') }}" aria-label="{{ __('general.dashboard') }}">
+            <i class="ki-outline ki-home-2 fs-3"></i>
+        </a>
+    </div>
+    @if ($hasQuickPermission('setting.General setting.show'))
+        <div class="app-navbar-item">
+            <a href="{{ url('/general-setting') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px"
+                title="{{ __('general.header_help_settings') }}" aria-label="{{ __('general.header_help_settings') }}">
+                <i class="ki-outline ki-information-2 fs-3"></i>
+            </a>
+        </div>
+    @endif
     <!--begin::Notifications-->
-    <div class="app-navbar-item ms-2 ms-lg-6">
-        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px position-relative"
+    <div class="app-navbar-item">
+        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px position-relative notification_btn"
             data-kt-menu-trigger="{default: 'click'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="{{ $menu_placement_y }}">
-            <i class="ki-outline ki-notification-on fs-1 notification_btn"></i>
-            <span
-                class="position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger w-15px h-15px ms-n4 mt-3 pb-1 read-notification-count">{{ auth()->user()->unreadNotifications->count() }}</span>
+            <i class="ki-outline ki-notification-on fs-3"></i>
+            <span @class([
+                'position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger w-14px h-14px p-0 d-flex align-items-center justify-content-center read-notification-count',
+                'd-none' => $unreadCount === 0,
+            ]) style="font-size: 0.6rem;">{{ $unreadCount > 0 ? ($unreadCount > 9 ? '9+' : $unreadCount) : '' }}</span>
         </div>
         <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px" data-kt-menu="true"
             id="kt_menu_notifications">
@@ -211,9 +236,9 @@
     </div>
 
     <!--begin::User menu-->
-    <div class="app-navbar-item ms-2 ms-lg-6" id="kt_header_user_menu_toggle">
+    <div class="app-navbar-item" id="kt_header_user_menu_toggle">
         <!--begin::Menu wrapper-->
-        <div class="cursor-pointer symbol symbol-circle symbol-30px symbol-lg-45px"
+        <div class="cursor-pointer symbol symbol-circle symbol-35px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="{{ $menu_placement_y }}">
             <img src="{{ auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}"
@@ -230,9 +255,7 @@
                             src="{{ auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
                     </div>
                     <div class="d-flex flex-column">
-                        <div class="fw-bold d-flex align-items-center fs-5">{{ auth()->user()->user_name }}
-                            <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Pro</span>
-                        </div>
+                        <div class="fw-bold d-flex align-items-center fs-5">{{ auth()->user()->user_name }}</div>
                         <a href="#"
                             class="fw-semibold text-muted text-hover-primary fs-7">{{ auth()->user()->email }}</a>
                     </div>
@@ -379,24 +402,15 @@
         <!--end::Menu wrapper-->
     </div>
     <!--end::User menu-->
-    <!--begin::Action-->
-    <div class="app-navbar-item ms-2 ms-lg-6 me-lg-6">
-        <!--begin::Link-->
-        <a href="{{ route('logout') }}"
-            class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px">
-            <i class="ki-outline ki-exit-right fs-1"></i>
-        </a>
-        <!--end::Link-->
-    </div>
-    <!--end::Action-->
-    <!--begin::Header menu toggle-->
-    <div class="app-navbar-item ms-2 ms-lg-6 ms-n2 me-3 d-flex d-lg-none">
-        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px"
+    <!--begin::Header menu toggle (mobile)-->
+    <div class="app-navbar-item d-flex d-lg-none">
+        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px"
             id="kt_app_aside_mobile_toggle">
-            <i class="ki-outline ki-burger-menu-2 fs-2"></i>
+            <i class="ki-outline ki-burger-menu-2 fs-3"></i>
         </div>
     </div>
     <!--end::Header menu toggle-->
+    </div>
 </div>
 <style>
     .notification-body {
@@ -461,7 +475,20 @@
     }
 </style>
 <script>
-    let unreadNotificationCount = "{{ auth()->user()->notifications->count() }}";
+    let unreadNotificationCount = "{{ $unreadCount }}";
+
+    function updateUnreadBadgeHtml(count) {
+        var el = document.querySelector('.read-notification-count');
+        if (!el) return;
+        var n = parseInt(count, 10) || 0;
+        if (n > 0) {
+            el.classList.remove('d-none');
+            el.textContent = n > 9 ? '9+' : String(n);
+        } else {
+            el.classList.add('d-none');
+            el.textContent = '';
+        }
+    }
     $(document).ready(function() {
         const quickLinksContainer = document.querySelector('.user-shortcuts-grid');
         if (quickLinksContainer) {
@@ -506,7 +533,8 @@
                     .done(
                         function(response) {
                             $('.notification-mark-as-read-btn').hide();
-                            $('.read-notification-count').html(0);
+                            unreadNotificationCount = 0;
+                            updateUnreadBadgeHtml(0);
                             setTimeout(() => {
                                 $(`.notification-body`).removeClass('bg-secondary');
                             }, 1000);
@@ -526,7 +554,7 @@
             $(`.notification-${id}`).fadeOut(300, function() {
                 $(this).remove();
             });
-            $('.read-notification-count').html(response.data);
+            updateUnreadBadgeHtml(response.data);
         });
     });
 
@@ -577,11 +605,17 @@
                 `;
                     $('#kt_topbar_notifications_1 .scroll-y').append(notificationHtml);
                 });
-                unreadNotificationCount = response.unread_count
-                $('.read-notification-count').html(unreadNotificationCount);
-                $('.notification-count').html(response.all_count)
+                unreadNotificationCount = response.unread_count;
+                updateUnreadBadgeHtml(unreadNotificationCount);
+                $('.notification-count').html(response.all_count);
                 KTMenu.init();
                 KTMenu.createInstances();
+            } else if (typeof response.unread_count !== 'undefined') {
+                unreadNotificationCount = response.unread_count;
+                updateUnreadBadgeHtml(unreadNotificationCount);
+                if (typeof response.all_count !== 'undefined') {
+                    $('.notification-count').html(response.all_count);
+                }
             }
         });
     }
