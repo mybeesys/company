@@ -161,10 +161,7 @@
                 'account_main_types' => $account_main_types,
                 'account_category' => $account_category,
             ])
-            @include('accounting::treeOfAccounts.create-sub-account', [
-                'account_main_types' => $account_main_types,
-                'account_category' => $account_category,
-            ])
+            @include('accounting::treeOfAccounts.create-sub-account')
             @include('accounting::treeOfAccounts.deactive')
             @include('accounting::treeOfAccounts.active')
         </div>
@@ -307,11 +304,6 @@ $('#account_nature_display_1').text(natureText)
             $(document).on('shown.bs.modal', '#kt_modal_create_sub_account', function() {
                 var value = sessionStorage.getItem('sub_account_id');
                 $('#sub_account_id').val(value);
-
-                $(this).find('.kt_account_type').select2({
-                    dropdownParent: $('#kt_modal_create_sub_account')
-                });
-
             });
 
             $.jstree.defaults.core.themes.variant = "large";

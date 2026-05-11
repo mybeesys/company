@@ -454,9 +454,7 @@ class TreeAccountsController extends Controller
         $input = $request->only([
             'name_ar',
             'name_en',
-            // 'account_category',
             'sub_account_id',
-            'account_type',
         ]);
 
         $account_sub_account = AccountingAccountTypes::find($input['sub_account_id']);

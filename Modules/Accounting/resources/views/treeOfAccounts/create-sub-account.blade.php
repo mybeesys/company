@@ -42,19 +42,6 @@
                             value="">
                     </div>
 
-                    <div class="fv-row mb-5">
-                        <label class="fs-6 fw-semibold form-label mt-3">
-                            <span class="required">@lang('accounting::lang.account_type')</span>
-                        </label>
-                        <select id="kt_account_type data-kt-menu-placement" required
-                            class="form-select select-2 form-select-solid kt_account_type" name="account_type">
-                            <option value="" selected>@lang('messages.select')</option>
-                            @foreach ($account_main_types as $key => $vale)
-                                <option value="{{ $key }}">{{ $vale }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
                     {{-- <div class="fv-row mb-5">
                         <label class="fs-6 fw-semibold form-label mt-3">
                             <span class="required">@lang('accounting::lang.account_category')</span>
