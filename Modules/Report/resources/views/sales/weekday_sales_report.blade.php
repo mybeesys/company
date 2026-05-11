@@ -693,7 +693,9 @@
             period_b_preset: $('#periodBPreset').val(),
             period_a_range: $('#periodARange').val(),
             period_b_range: $('#periodBRange').val(),
-            weekday: $('.wsr-weekday:checked').map(function() { return $(this).val(); }).get(),
+            // Comma-separated: jQuery DataTables uses traditional: true so arrays become weekday=1&weekday=2
+            // and PHP keeps only the last value. CSV avoids that while staying backward-compatible in PHP.
+            weekday: $('.wsr-weekday:checked').map(function() { return $(this).val(); }).get().join(','),
             weekday_report_scope: $('input[name="weekday_report_scope"]:checked').val() || 'single_this_month',
             wsr_view: $('input[name="wsr_view"]:checked').val() || 'by_date_product'
         };
