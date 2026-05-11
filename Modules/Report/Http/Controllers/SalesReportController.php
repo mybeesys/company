@@ -3581,6 +3581,9 @@ SUM(
     /**
      * PHP weekday indices 0–6 (Sun–Sat), unique and sorted; empty or invalid request values => all seven days.
      *
+     * Accepts an array (e.g. weekday[]=0&weekday[]=2) or a comma-separated string (used with jQuery
+     * traditional serialization where duplicate keys would otherwise collapse to the last value only).
+     *
      * @return array<int, int>
      */
     private function resolveWeekdayPhpDaysForReport(Request $request): array
@@ -3588,6 +3591,11 @@ SUM(
         $rawWeekday = $request->input('weekday');
         if ($rawWeekday === null || $rawWeekday === '') {
             $rawWeekday = [];
+        } elseif (is_string($rawWeekday)) {
+            $rawWeekday = trim($rawWeekday);
+            $rawWeekday = $rawWeekday === ''
+                ? []
+                : array_values(array_filter(array_map('trim', explode(',', $rawWeekday)), fn ($s) => $s !== ''));
         } elseif (! is_array($rawWeekday)) {
             $rawWeekday = [$rawWeekday];
         }
