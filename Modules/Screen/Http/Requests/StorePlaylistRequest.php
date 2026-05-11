@@ -40,6 +40,7 @@ class StorePlaylistRequest extends FormRequest
             'days_of_the_weak.*' => ['in:saturday,sunday,monday,tuesday,wednesday,thursday,friday'],
             'start_date_time' => ['required_if:days_settings,custom_date_time', 'nullable', 'date_format:Y-m-d H:i'],
             'transition_seconds' => ['required', 'integer', 'min:1', 'max:300'],
+            'screen_orientation' => ['nullable', 'in:landscape,portrait'],
             'devices' => ['required', 'array'],
             'devices.*' => ['required', 'exists:screen_devices,id', 'integer'],
             'establishments_ids' => ['required', 'array'],
