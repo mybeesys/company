@@ -1,0 +1,369 @@
+{
+	"info": {
+		"_postman_id": "a7c3e2b1-4f5d-4c8e-9a0b-screen-api-v1",
+		"name": "My Bee — Screen API (شاشات)",
+		"description": "**Tenant + Sanctum**\n\n- استخدم **Host** الخاص بالمستأجر (مثل `test1.my-bee.info`) وليس الدومين المركزي.\n- المسار الأساسي: `{{baseUrl}}` = `/api/v1/screen`\n- ضع توكن Sanctum في المتغير `token` (Bearer).\n\n**ملاحظات للمطور**\n- رفع المادة الإعلانية: `multipart/form-data`، الحقل `promo` (ملف).\n- إنشاء/تعديل قائمة تشغيل: JSON، راجع أمثلة المجلد *Playlists*.\n- معرفات `establishment_id`, `device`, `promo` في الأمثلة **وهمية** — استبدلها بقيم حقيقية من `dashboard` أو من الـ GET.\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "host",
+			"value": "https://test1.my-bee.info"
+		},
+		{
+			"key": "baseUrl",
+			"value": "{{host}}/api/v1/screen"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "promoId",
+			"value": "1"
+		},
+		{
+			"key": "playlistId",
+			"value": "1"
+		},
+		{
+			"key": "deviceId",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Dashboard — بيانات الشاشة الرئيسية",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/dashboard",
+						"description": "يعيد: `promos`, `playlists_count`, `establishments`, `devices`, `has_establishment_column_on_devices`."
+					},
+					"response": [
+						{
+							"name": "مثال 200",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": "{{baseUrl}}/dashboard"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"data\": {\n    \"promos\": [\n      {\n        \"id\": 1,\n        \"name\": \"إعلان صيفي\",\n        \"path\": \"promos/abc.mp4\",\n        \"media_url\": \"https://test1.my-bee.info/storage/tenant1/promos/abc.mp4\",\n        \"thumbnail\": \"promos/abc_thumb.jpg\",\n        \"thumbnail_url\": \"https://test1.my-bee.info/storage/tenant1/promos/abc_thumb.jpg\"\n      }\n    ],\n    \"playlists_count\": 3,\n    \"establishments\": [{ \"id\": 2, \"name\": \"فرع الشمال\" }],\n    \"devices\": [{ \"id\": 1, \"code\": \"SCR-001\", \"establishment_id\": 2, \"establishment_name\": \"فرع الشمال\" }],\n    \"has_establishment_column_on_devices\": true\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Promos — مواد إعلانية",
+			"item": [
+				{
+					"name": "List promos",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/promos"
+					},
+					"response": []
+				},
+				{
+					"name": "Show promo",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/promos/{{promoId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Create promo (multipart)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "promo",
+									"description": "صورة أو فيديو: jpeg,jpg,png,mp4,mov,avi,webm,mkv — حتى ~120MB",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": "{{baseUrl}}/promos",
+						"description": "اختر ملفاً حقيقياً من Postman في حقل `promo`."
+					},
+					"response": [
+						{
+							"name": "مثال 201",
+							"originalRequest": { "method": "POST", "url": "{{baseUrl}}/promos" },
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"message\": \"تمت العملية بنجاح\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update promo (name)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"اسم جديد للمادة الإعلانية\"\n}"
+						},
+						"url": "{{baseUrl}}/promos/{{promoId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete promo",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/promos/{{promoId}}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Playlists — قوائم تشغيل",
+			"item": [
+				{
+					"name": "List playlists",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/playlists"
+					},
+					"response": []
+				},
+				{
+					"name": "Show playlist",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/playlists/{{playlistId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Playlist promos (مع روابط الملفات)",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/playlists/{{playlistId}}/promos"
+					},
+					"response": [
+						{
+							"name": "مثال 200",
+							"originalRequest": { "method": "GET", "url": "{{baseUrl}}/playlists/1/promos" },
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"إعلان 1\",\n      \"path\": \"promos/x.mp4\",\n      \"media_url\": \"https://test1.my-bee.info/storage/tenant1/promos/x.mp4\",\n      \"thumbnail\": null,\n      \"thumbnail_url\": null\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Create playlist — every_day",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"قائمة الفرع الرئيسي\",\n  \"days_settings\": \"every_day\",\n  \"start_time\": \"08:00\",\n  \"transition_seconds\": 10,\n  \"screen_orientation\": \"landscape\",\n  \"establishments_ids\": [2, 3],\n  \"devices\": [1, 2],\n  \"selected_promos\": [5, 6, 7],\n  \"days_of_the_weak\": [],\n  \"start_date_time\": null\n}"
+						},
+						"url": "{{baseUrl}}/playlists",
+						"description": "`days_settings`: `every_day` | `days_of_the_weak` | `custom_date_time` | `manual`\n\n- مع `every_day` أو `days_of_the_weak`: `start_time` مطلوب (H:i).\n- مع `days_of_the_weak`: مصفوفة `days_of_the_weak` بأسماء أيام إنجليزية صغيرة.\n- مع `custom_date_time`: `start_date_time` بصيغة `Y-m-d H:i`.\n- `transition_seconds`: 1–300.\n- الأجهزة يجب أن تنتمي للمنشآت المحددة (إن وُجد عمود establishment_id)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create playlist — days_of_the_weak",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"عطلة نهاية الأسبوع\",\n  \"days_settings\": \"days_of_the_weak\",\n  \"start_time\": \"10:00\",\n  \"days_of_the_weak\": [\"thursday\", \"friday\", \"saturday\"],\n  \"transition_seconds\": 15,\n  \"screen_orientation\": \"portrait\",\n  \"establishments_ids\": [2],\n  \"devices\": [1],\n  \"selected_promos\": [5],\n  \"start_date_time\": null\n}"
+						},
+						"url": "{{baseUrl}}/playlists"
+					},
+					"response": []
+				},
+				{
+					"name": "Create playlist — custom_date_time",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"حملة محددة\",\n  \"days_settings\": \"custom_date_time\",\n  \"start_date_time\": \"2026-06-01 09:00\",\n  \"transition_seconds\": 20,\n  \"establishments_ids\": [2],\n  \"devices\": [1],\n  \"selected_promos\": [5, 6],\n  \"start_time\": null,\n  \"days_of_the_weak\": []\n}"
+						},
+						"url": "{{baseUrl}}/playlists"
+					},
+					"response": []
+				},
+				{
+					"name": "Update playlist (نفس حقول الإنشاء)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"قائمة محدثة\",\n  \"days_settings\": \"every_day\",\n  \"start_time\": \"09:30\",\n  \"transition_seconds\": 12,\n  \"screen_orientation\": \"landscape\",\n  \"establishments_ids\": [2],\n  \"devices\": [1],\n  \"selected_promos\": [5, 7],\n  \"days_of_the_weak\": [],\n  \"start_date_time\": null\n}"
+						},
+						"url": "{{baseUrl}}/playlists/{{playlistId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete playlist",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/playlists/{{playlistId}}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Devices — أجهزة",
+			"item": [
+				{
+					"name": "Devices by establishments (query)",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/devices/by-establishments?establishments_ids[]=2&establishments_ids[]=3",
+						"description": "بديل: `?establishments_ids=2,3` (سلسلة مفصولة بفواصل). إذا كانت مصفوفة `establishments_ids` فارغة والجدول يدعم establishment_id، يعيد كل الأجهزة مرتبة بالكود."
+					},
+					"response": [
+						{
+							"name": "مثال 200",
+							"originalRequest": { "method": "GET", "url": "{{baseUrl}}/devices/by-establishments?establishments_ids=2,3" },
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"data\": [\n    { \"id\": 1, \"code\": \"SCR-001\", \"establishment_id\": 2 }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "List devices",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/devices"
+					},
+					"response": []
+				},
+				{
+					"name": "Show device",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/devices/{{deviceId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Create device (مع establishment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"SCR-NEW-01\",\n  \"establishment_id\": 2\n}"
+						},
+						"url": "{{baseUrl}}/devices",
+						"description": "إذا لم يكن عمود `establishment_id` موجوداً في قاعدة البيانات، أرسل فقط `{ \"code\": \"...\" }`."
+					},
+					"response": []
+				},
+				{
+					"name": "Create device (بدون establishment — قديم)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"SCR-LEGACY-99\"\n}"
+						},
+						"url": "{{baseUrl}}/devices"
+					},
+					"response": []
+				},
+				{
+					"name": "Update device",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"SCR-001-UPDATED\",\n  \"establishment_id\": 2\n}"
+						},
+						"url": "{{baseUrl}}/devices/{{deviceId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete device",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/devices/{{deviceId}}",
+						"description": "422 إذا كان الجهاز مربوطاً بقوائم تشغيل."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
