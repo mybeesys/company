@@ -14,7 +14,7 @@
 
 
 <head>
-    <title>@yield('title') - Khaliyat Alnuzum Almutakamila</title>
+    <title>@hasSection('title')@yield('title') — @endif{{ brand_short_name() }}</title>
     <meta charset="utf-8" />
     <meta name="description"
         content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -23,10 +23,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="Khaliyat Alnuzum Almutakamila" />
+    <meta property="og:title" content="{{ brand_short_name() }}" />
+    <meta name="application-name" content="{{ brand_short_name() }}" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta property="og:url" content="https://keenthemes.com/metronic" />
-    <meta property="og:site_name" content="Metronic by Keenthemes" />
+    <meta property="og:url" content="{{ url('/') }}" />
+    <meta property="og:site_name" content="{{ brand_short_name() }}" />
     @include('layouts.css-references')
     @yield('css')
     <style>
@@ -158,8 +159,8 @@
                         </div>
                         <a href="/" class="app-sidebar-logo app-header-brand d-inline-flex align-items-center py-1 text-decoration-none text-gray-800">
                             <span class="d-inline-flex align-items-center flex-shrink-0">
-                                <img alt="{{ config('app.name', 'MyBee') }}" src="/assets/media/logos/1-15.png" class="app-header-logo-img theme-light-show" />
-                                <img alt="{{ config('app.name', 'MyBee') }}" src="/assets/media/logos/1-09.png" class="app-header-logo-img theme-dark-show" />
+                                <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-15.png" class="app-header-logo-img theme-light-show" />
+                                <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-09.png" class="app-header-logo-img theme-dark-show" />
                             </span>
                             @if (filled($appHeaderCompanyName))
                                 <span class="app-header-company-name text-truncate" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
@@ -217,9 +218,9 @@
                             class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack">
                             <!--begin::Copyright-->
                             <div class="text-gray-900 order-2 order-md-1">
-                                <span class="text-muted fw-semibold me-1">2025&copy;</span>
-                                <a href="https://keenthemes.com" target="_blank"
-                                    class="text-gray-800 text-hover-primary">Khaliyat Alnuzum Almutakamila</a>
+                                <span class="text-muted fw-semibold me-1">{{ date('Y') }}&copy;</span>
+                                <a href="{{ url('/') }}" class="text-gray-800 text-hover-primary">{{ brand_short_name() }}</a>
+                                <span class="text-muted fs-8 ms-2 d-none d-md-inline">{{ brand_legal_name() }}</span>
                             </div>
                             <!--end::Copyright-->
                             <!--begin::Menu-->

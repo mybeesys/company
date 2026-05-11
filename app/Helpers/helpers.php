@@ -1,5 +1,27 @@
 <?php
 
+if (! function_exists('brand_legal_name')) {
+    /**
+     * الاسم الكامل حسب الترخيص / الوثائق الرسمية (APP_NAME أو APP_LEGAL_NAME).
+     */
+    function brand_legal_name(): string
+    {
+        return (string) (config('branding.legal_name') ?: config('app.name'));
+    }
+}
+
+if (! function_exists('brand_short_name')) {
+    /**
+     * الاسم المختصر لواجهة المستخدم (تبويبات، هيدر، تسجيل دخول…).
+     */
+    function brand_short_name(): string
+    {
+        return app()->getLocale() === 'ar'
+            ? (string) config('branding.short_name_ar')
+            : (string) config('branding.short_name_en');
+    }
+}
+
 if (! function_exists('get_company_id')) {
     function get_company_id()
     {

@@ -6,7 +6,7 @@
 <html lang="{{ $local }}" dir="{{ $dir }}">
 
 <head>
-    <title>{{ config('app.name', 'Khaliyat Alnuzum Almutakamila') }} — @lang('employee::general.reset_password_page_title')</title>
+    <title>@lang('employee::general.reset_password_page_title') — {{ brand_short_name() }}</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
@@ -45,7 +45,7 @@
             <div class="row g-0 align-items-stretch">
                 <div class="col-12 col-lg-6 login-auth-panel login-auth-panel--brand">
                     <a href="{{ url('/') }}" class="login-auth-logo text-decoration-none d-inline-block mb-2"
-                        aria-label="{{ config('app.name', 'Khaliyat Alnuzum Almutakamila') }}">
+                        aria-label="{{ brand_short_name() }}">
                         <img src="{{ asset('assets/media/logos/1-11.png') }}" alt="" />
                     </a>
                     @if (tenant('id'))
