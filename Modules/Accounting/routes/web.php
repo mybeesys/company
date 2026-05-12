@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
+use Modules\Accounting\Http\Controllers\AccountingStagingResetController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
@@ -22,6 +23,15 @@ Route::middleware([
     Route::get('accounting-dashboard', [AccountingDashboardController::class, 'index'])->name('accounting-dashboard');
 
     Route::middleware(['auth'])->group(function () {
+        /**
+         * Staging / demo: full wipe of tenant accounting module + default chart & routings.
+         * POST body or JSON: confirm=RESET_ACCOUNTING_FULL
+         * Enable: ACCOUNTING_ALLOW_FULL_RESET=true in .env, or APP_ENV=local|staging.
+         */
+        Route::post('accounting/staging-full-reset', AccountingStagingResetController::class)
+            ->middleware('throttle:6,1')
+            ->name('accounting.staging-full-reset');
+
         // Tree of accounts
         Route::get('tree-of-accounts', [TreeAccountsController::class, 'index'])->name('tree-of-accounts');
         Route::get('tree-of-accounts/import', [TreeAccountsController::class, 'importPage'])->name('tree-of-accounts-import');
