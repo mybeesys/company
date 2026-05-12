@@ -46,8 +46,17 @@ class ProductLOVController extends Controller
         $this->unitController = $unitController;
     }
 
-    public function getProductLOVs($id, Request $request)
+    /**
+     * Optional {id?}: when omitted, Laravel only injects Request — id must default null.
+     */
+    public function getProductLOVs(Request $request, $id = null)
     {
+        if ($id === null || $id === '' || $id === 'null' || $id === 'undefined' || ! ctype_digit((string) $id)) {
+            $id = null;
+        } else {
+            $id = (int) $id;
+        }
+
         $ingredient = $this->ingredientController->ingredientProductList();
         $productList = $this->productController->all();
         $recipe = $this->productController->listRecipe($id, $request);

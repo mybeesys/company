@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -73,7 +74,7 @@ class AttributeController extends Controller
             $attribute = Attribute::create($validated);
             $user = auth()->user();
 
-            if ($user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_type' => 'attribute',
@@ -105,7 +106,7 @@ class AttributeController extends Controller
 
             $user = auth()->user();
 
-            if ($user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_type' => 'attribute',

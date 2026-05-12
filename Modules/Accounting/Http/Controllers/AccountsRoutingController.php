@@ -56,7 +56,7 @@ class AccountsRoutingController extends Controller
             // 'sales_amount_before_vat' => 'asset',
             'sales_discount_calculation' => 'expense',
             'sales_discount_allowed' => 'expense',
-            'sales_sell_return' => 'expense',
+            'sales_sell_return' => 'revenue',
             'purchases_vat_calculation' => 'liability',
             // 'purchases_total_amount' => 'asset',
             // 'purchases_amount_before_vat' => 'asset',

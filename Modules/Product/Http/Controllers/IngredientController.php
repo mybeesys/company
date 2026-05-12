@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class IngredientController extends Controller
     {
         $ingredients = Product::with('unitTransfers')
             ->where('type', self::PRODUCT_TYPE)
-            ->restrictByFranchise()
+            ->restrictByFranchise(self::PRODUCT_TYPE)
             ->get();
 
         $treeBuilder = new TreeBuilder;
@@ -33,13 +34,19 @@ class IngredientController extends Controller
 
     public function ingredientProductList()
     {
-        $product = Product::where('type', self::PRODUCT_TYPE)
-            ->restrictByFranchise()
+        $products = Product::where('type', self::PRODUCT_TYPE)
+            ->restrictByFranchise(self::PRODUCT_TYPE)
             ->get();
 
-        $product = array_map(fn ($item) => $item + ['type' => "{$item['id']}-".self::PRODUCT_TYPE], $product->toArray());
+        $mapped = $products->map(function (Product $row) {
+            $item = $row->toArray();
+            // Recipe rows use item_type "i" (RecipeProduct::$relatedModels)
+            $item['recipe_option_value'] = $row->id.'-i';
 
-        return response()->json($product);
+            return $item;
+        })->values()->all();
+
+        return response()->json($mapped);
     }
 
     public function getUnitTypeList()
@@ -61,7 +68,7 @@ class IngredientController extends Controller
     {
         $ingredient = Product::where('type', self::PRODUCT_TYPE)
             ->with(['establishments.establishment', 'unitTransfers'])
-            ->restrictByFranchise()
+            ->restrictByFranchise(self::PRODUCT_TYPE)
             ->findOrFail($id);
 
         $ingredient->allEstablishments = Establishment::where('is_main', 0)->get();
@@ -97,7 +104,7 @@ class IngredientController extends Controller
                 return $validateUsing;
             }
 
-            $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise()->find($validated['id']);
+            $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise(self::PRODUCT_TYPE)->find($validated['id']);
             if ($product) {
                 $product->delete();
             }
@@ -154,14 +161,14 @@ class IngredientController extends Controller
 
     protected function saveProduct($validated, $request)
     {
-        $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise()->find($validated['id']);
+        $product = Product::where('type', self::PRODUCT_TYPE)->restrictByFranchise(self::PRODUCT_TYPE)->find($validated['id']);
         $product->fill($validated);
 
         DB::transaction(function () use ($product, $request) {
             $product->save();
             $user = auth()->user();
 
-            if ($user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_type' => self::PRODUCT_TYPE,
@@ -227,7 +234,7 @@ class IngredientController extends Controller
             $product = Product::create($validated);
             $user = auth()->user();
 
-            if ($user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_type' => self::PRODUCT_TYPE,

@@ -2,8 +2,10 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\ModifierClass;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
@@ -27,8 +29,16 @@ class ModifierClassController extends Controller
 
         $query = ModifierClass::query();
 
-        if ($user && $user->franchise_id) {
-            $query->whereHas('children', function ($q) {});
+        if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
+            $query->whereHas('children', function ($q) use ($user) {
+                $q->whereExists(function ($subQ) use ($user) {
+                    $subQ->select(DB::raw(1))
+                        ->from('franchise_product_permissions')
+                        ->whereColumn('franchise_product_permissions.permitted_id', 'product_products.id')
+                        ->where('franchise_product_permissions.permitted_type', 'modifier')
+                        ->where('franchise_product_permissions.franchise_id', $user->franchise_id);
+                });
+            });
         }
 
         $modifiers = $query->get();

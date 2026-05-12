@@ -29,6 +29,47 @@
             color: #b42318 !important;
             font-weight: 700;
         }
+
+        /* همس مع باقي تقارير المحاسبة (بدل البنفسجي القوي) */
+        .tb-thead-main {
+            background: #eef1f6 !important;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        #accounts_headerRow th {
+            background: #f4f6fa !important;
+            color: #475569 !important;
+            font-weight: 600;
+            border-color: #e2e8f0 !important;
+        }
+
+        /* زر كشف الحساب في عمود الإجراءات */
+        .tb-ledger-btn {
+            font-weight: 600;
+            font-size: 0.75rem;
+            line-height: 1.25;
+            padding: 0.35rem 0.65rem;
+            border-radius: 0.375rem;
+            border: 1px solid #cbd5e1;
+            color: #334155 !important;
+            background: #fff;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+            text-decoration: none !important;
+            transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .tb-ledger-btn:hover,
+        .tb-ledger-btn:focus {
+            border-color: #3b82f6;
+            color: #1d4ed8 !important;
+            background: #eff6ff;
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
+        }
+
+        .tb-ledger-btn i {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
     </style>
 
 
@@ -70,8 +111,8 @@
                             <label for="classification">{{ __('accounting::lang.classification') }}:</label>
                             <select class="form-control select-2" name="classification" id="classification"
                                 style="padding: 2px;">
-                                <option value="0" selected>{{ __('accounting::lang.detailed') }}</option>
-                                <option value="1">{{ __('accounting::lang.aggregated') }}</option>
+                                <option value="0">{{ __('accounting::lang.detailed') }}</option>
+                                <option value="1" selected>{{ __('accounting::lang.aggregated') }}</option>
                             </select>
                         </div>
                     </div>
@@ -130,8 +171,8 @@
                     </div>
 
                     <div class="col-md-3 d-flex align-items-end gap-2">
-                        <button class="btn btn-info btn-xs pull-right btn-flat" onclick="dataTable.ajax.reload();"
-                            style="margin-top: 24px; width: 70px; height: 40px; border-radius: 8px;padding: 0;">@lang('report::general.filter')</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="dataTable.ajax.reload();"
+                            style="margin-top: 24px; min-width: 88px;">@lang('report::general.filter')</button>
                         <button type="button" id="trialBalanceExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                         <button type="button" id="trialBalanceExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
                     </div>
@@ -154,8 +195,7 @@
                 <div class="table-responsive">
                     <table class="table align-middle  table-row-bordered fs-6 gy-5" id="kt_accounts_table">
                         <thead>
-                            <tr class="text-start text-gray-600 fw-bold fs-7 text-uppercase gs-0 w-100"
-                                style="background: rgb(219 226 247);">
+                            <tr class="text-start text-gray-700 fw-semibold fs-7 gs-0 w-100 tb-thead-main">
                                 <th colspan="2"></th>
                                 <td colspan="1">@lang('accounting::lang.opening_balance')</td>
                                 <td colspan="2">@lang('accounting::lang.accounting_transactions')</td>
@@ -229,7 +269,11 @@
         const diffLabel = $('#trial-balance-diff-label');
 
         function formatAmount(value) {
-            return Number(value || 0).toFixed(2);
+            var n = Number(value);
+            if (!isFinite(n)) {
+                n = 0;
+            }
+            return (Math.round(n * 100) / 100).toFixed(2);
         }
 
         function renderBalanceStatus(debitTotal, creditTotal) {
@@ -257,9 +301,12 @@
 
             if ($('#start_date_filter').val()) params.append('start_date', $('#start_date_filter').val());
             if ($('#end_date_filter').val()) params.append('end_date', $('#end_date_filter').val());
-            if ($('#classification').val()) params.append('aggregated', $('#classification').val());
-            if ($('#level_filter').val()) params.append('level_filter', $('#level_filter').val());
-            if ($('#with_zero_balances').val()) params.append('with_zero_balances', $('#with_zero_balances').val());
+            params.append('aggregated', $('#classification').val() ?? '1');
+            const lvl = $('#level_filter').val();
+            if (lvl !== undefined && lvl !== null && lvl !== '') {
+                params.append('level_filter', lvl);
+            }
+            params.append('with_zero_balances', $('#with_zero_balances').val() ?? '0');
 
             ($('#choose_accounts_select').val() || []).forEach(function(value) {
                 params.append('choose_accounts_select[]', value);
@@ -317,15 +364,12 @@
                         if ($('#end_date_filter').val()) {
                             d.end_date = $('#end_date_filter').val();
                         }
-                        if ($('#classification').val()) {
-                            d.aggregated = $('#classification').val();
+                        d.aggregated = $('#classification').val() ?? '1';
+                        const lvl = $('#level_filter').val();
+                        if (lvl !== undefined && lvl !== null && lvl !== '') {
+                            d.level_filter = lvl;
                         }
-                        if ($('#level_filter').val()) {
-                            d.level_filter = $('#level_filter').val();
-                        }
-                        if ($('#with_zero_balances').val()) {
-                            d.with_zero_balances = $('#with_zero_balances').val();
-                        }
+                        d.with_zero_balances = $('#with_zero_balances').val() ?? '0';
                         if ($('#choose_accounts_select').val()) {
                             d.choose_accounts_select = $('#choose_accounts_select').val();
                         }
@@ -351,32 +395,50 @@
                     {
                         data: 'debit_opening_balance',
                         name: 'debit_opening_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     }, {
                         data: 'credit_opening_balance',
                         name: 'credit_opening_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     },
 
                     {
                         data: 'debit_balance',
                         name: 'debit_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     },
                     {
                         data: 'credit_balance',
                         name: 'credit_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     },
                     {
                         data: 'closing_debit_balance',
                         name: 'closing_debit_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     },
                     {
                         data: 'closing_credit_balance',
                         name: 'closing_credit_balance',
-                        searchable: false
+                        searchable: false,
+                        render: function(data) {
+                            return formatAmount(data);
+                        }
                     },
                     {
                         data: 'action',
@@ -392,36 +454,24 @@
 
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
-                    var debit_opening_total = api.column(2).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
+                    function sumCol(idx) {
+                        return api.column(idx).data().reduce(function(a, b) {
+                            return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                        }, 0);
+                    }
+                    var debit_opening_total = sumCol(2);
+                    var credit_opening_total = sumCol(3);
+                    var debit_total = sumCol(4);
+                    var credit_total = sumCol(5);
+                    var closing_debit_total = sumCol(6);
+                    var closing_credit_total = sumCol(7);
 
-                    var credit_opening_total = api.column(3).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
-
-                    var debit_total = api.column(4).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
-
-                    var credit_total = api.column(5, ).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
-
-                    var closing_debit_total = api.column(6).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
-
-                    var closing_credit_total = api.column(7).data().reduce(function(a, b) {
-                        return parseFloat(a) + parseFloat(b);
-                    }, 0);
-
-                    $('.debit_opening_total').html(debit_opening_total.toFixed(2));
-                    $('.credit_opening_total').html(credit_opening_total.toFixed(2));
-                    $('.debit_total').html(debit_total.toFixed(2));
-                    $('.credit_total').html(credit_total.toFixed(2));
-                    $('.closing_debit_total').html(closing_debit_total.toFixed(2));
-                    $('.closing_credit_total').html(closing_credit_total.toFixed(2));
+                    $('.debit_opening_total').html(formatAmount(debit_opening_total));
+                    $('.credit_opening_total').html(formatAmount(credit_opening_total));
+                    $('.debit_total').html(formatAmount(debit_total));
+                    $('.credit_total').html(formatAmount(credit_total));
+                    $('.closing_debit_total').html(formatAmount(closing_debit_total));
+                    $('.closing_credit_total').html(formatAmount(closing_credit_total));
 
                     var debit_opening_total_all = api.ajax.json().totalDebitOpeningBalance;
                     var credit_opening_total_all = api.ajax.json().totalCreditOpeningBalance;
@@ -431,14 +481,14 @@
                     var closing_credit_total_all = api.ajax.json().totalClosingCreditBalance;
 
                     $('.all_pages_debit_opening_total')
-                        .html(debit_opening_total_all.toFixed(2));
+                        .html(formatAmount(debit_opening_total_all));
                     $('.all_pages_credit_opening_total')
-                        .html(credit_opening_total_all.toFixed(2));
+                        .html(formatAmount(credit_opening_total_all));
 
-                    $('.all_pages_debit_total').html(debit_total_all.toFixed(2));
-                    $('.all_pages_credit_total').html(credit_total_all.toFixed(2));
-                    $('.all_pages_closing_debit_total').html(closing_debit_total_all.toFixed(2));
-                    $('.all_pages_closing_credit_total').html(closing_credit_total_all.toFixed(2));
+                    $('.all_pages_debit_total').html(formatAmount(debit_total_all));
+                    $('.all_pages_credit_total').html(formatAmount(credit_total_all));
+                    $('.all_pages_closing_debit_total').html(formatAmount(closing_debit_total_all));
+                    $('.all_pages_closing_credit_total').html(formatAmount(closing_credit_total_all));
 
                     renderBalanceStatus(closing_debit_total_all, closing_credit_total_all);
                 },

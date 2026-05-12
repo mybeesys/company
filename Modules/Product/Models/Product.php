@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Helpers\TaxHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -86,21 +87,45 @@ class Product extends Model
     //     return $query->where('franchise_id',null);
     // }
 
-    public function scopeRestrictByFranchise($query)
+    /**
+     * For grantee franchises, limit rows to franchise_product_permissions.
+     * permitted_type must match how rows were registered (product, ingredint, modifier, …).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|array<int, string>  $permittedType
+     */
+    public function scopeRestrictByFranchise($query, $permittedType = 'product')
     {
         $user = auth()->user();
         if ($user && $user->franchise_id) {
-            return $query->where(function ($q) use ($user) {
-                $q->whereIn('id', function ($sub) use ($user) {
+            if (! FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
+                return $query->where(function ($q) use ($user) {
+                    $q->whereNull('franchise_id')
+                        ->orWhere('franchise_id', $user->franchise_id);
+                });
+            }
+
+            return $query->where(function ($q) use ($user, $permittedType) {
+                $q->whereIn('id', function ($sub) use ($user, $permittedType) {
                     $sub->select('permitted_id')
                         ->from('franchise_product_permissions')
                         ->where('franchise_id', $user->franchise_id);
+                    if (is_array($permittedType)) {
+                        $sub->whereIn('permitted_type', $permittedType);
+                    } else {
+                        $sub->where('permitted_type', $permittedType);
+                    }
                 })
                     ->orWhere('franchise_id', $user->franchise_id);
             });
         }
 
         return $query->whereNull('franchise_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('active', 1);
     }
 
     /*protected $appends = ['price_with_tax'];

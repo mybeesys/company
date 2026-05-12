@@ -16,6 +16,14 @@
             background: #fcfcfd;
             min-height: 86px;
         }
+
+        .income-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
     </style>
 @stop
 
@@ -23,7 +31,13 @@
     <section class="content-header py-3 ">
         <h2>{{ $company->name }}</h2>
 
-        <h4 class="mb-4">@lang('accounting::lang.income_list')</h4>
+        <h4 class="mb-1">@lang('accounting::lang.income_list')</h4>
+        <p class="text-muted mb-3 small">
+            @lang('accounting::lang.income_statement_period', [
+                'from' => \Carbon\Carbon::parse($start_date)->format('Y-m-d'),
+                'to' => \Carbon\Carbon::parse($end_date)->format('Y-m-d'),
+            ])
+        </p>
     </section>
 
     <div class="container-fluid" id="income-report">
@@ -67,43 +81,50 @@
                     </div>
                 </form>
 
-                {{-- <div class="mb-3 text-center">
-                    <strong>@lang('accounting::lang.date_range'):</strong>
-                    {{ \Carbon\Carbon::parse($start_date)->format('Y-m-d') }} -
-                    {{ \Carbon\Carbon::parse($end_date)->format('Y-m-d') }}
-                </div> --}}
-
                 <div class="row g-3 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-4 col-xl-2">
                         <div class="income-kpi">
                             <div class="text-muted fs-7">@lang('accounting::lang.Revenues')</div>
-                            <div class="fw-bold fs-4">@format_currency($data['revenue_net'] ?? 0)</div>
+                            <div class="fw-bold fs-5">@format_currency($data['revenue_net'] ?? 0)</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-4 col-xl-2">
                         <div class="income-kpi">
-                            <div class="text-muted fs-7">@lang('accounting::lang.account_types.expenses')</div>
-                            <div class="fw-bold fs-4">@format_currency($data['total_expense'] ?? 0)</div>
+                            <div class="text-muted fs-7">@lang('accounting::lang.income_statement_total_cost_of_revenue')</div>
+                            <div class="fw-bold fs-5">@format_currency($data['cost_of_revenue'] ?? 0)</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-4 col-xl-2">
                         <div class="income-kpi">
                             <div class="text-muted fs-7">@lang('report::general.gross_profit')</div>
-                            <div class="fw-bold fs-4">@format_currency($data['gross_profit'] ?? 0)</div>
+                            <div class="fw-bold fs-5">@format_currency($data['gross_profit'] ?? 0)</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('accounting::lang.income_statement_total_operating_expenses')</div>
+                            <div class="fw-bold fs-5">@format_currency($data['total_operating_expenses'] ?? 0)</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="income-kpi">
+                            <div class="text-muted fs-7">@lang('accounting::lang.income_statement_operating_profit')</div>
+                            <div class="fw-bold fs-5">@format_currency($data['operating_profit'] ?? $data['operation_income'] ?? 0)</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
                         <div class="income-kpi">
                             <div class="text-muted fs-7">@lang('accounting::lang.net_profit')</div>
-                            <div class="fw-bold fs-4">@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</div>
+                            <div class="fw-bold fs-5">@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</div>
                         </div>
                     </div>
                 </div>
 
+                <div class="income-section-title">@lang('accounting::lang.Revenues')</div>
                 <table class="table table-bordered">
                     <thead class="text-white" style="background-color: #e4e9f1b7">
                         <tr>
-                            <th style="width: 50%">@lang('accounting::lang.Revenues')</th>
+                            <th style="width: 50%">@lang('accounting::lang.account_name')</th>
                             <th style="width: 50%">@lang('employee::fields.amount')</th>
                         </tr>
                     </thead>
@@ -121,16 +142,49 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-light">
-                            <td><strong>@lang('accounting::lang.total')</strong></td>
+                            <td><strong>@lang('accounting::lang.total') @lang('accounting::lang.Revenues')</strong></td>
                             <td><strong>@format_currency($data['revenue_net'] ?? 0)</strong></td>
                         </tr>
                     </tfoot>
                 </table>
 
+                <div class="income-section-title">@lang('accounting::lang.income_statement_cost_of_revenue')</div>
                 <table class="table table-bordered">
                     <thead class="text-white" style="background-color: #e4e9f1b7">
                         <tr>
-                            <th style="width: 50%">@lang('accounting::lang.account_types.expenses')</th>
+                            <th style="width: 50%">@lang('accounting::lang.account_name')</th>
+                            <th style="width: 50%">@lang('employee::fields.amount')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($cogsAccounts ?? [] as $account)
+                            <tr>
+                                <td>{{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}</td>
+                                <td>@format_currency($account->amount)</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">@lang('messages.no_data_found')</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-light">
+                            <td><strong>@lang('accounting::lang.income_statement_total_cost_of_revenue')</strong></td>
+                            <td><strong>@format_currency($data['cost_of_revenue'] ?? 0)</strong></td>
+                        </tr>
+                        <tr style="background-color: #e8f4e8">
+                            <td><strong>@lang('report::general.gross_profit')</strong></td>
+                            <td><strong>@format_currency($data['gross_profit'] ?? 0)</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="income-section-title">@lang('accounting::lang.income_statement_operating_expenses')</div>
+                <table class="table table-bordered">
+                    <thead class="text-white" style="background-color: #e4e9f1b7">
+                        <tr>
+                            <th style="width: 50%">@lang('accounting::lang.account_name')</th>
                             <th style="width: 50%">@lang('employee::fields.amount')</th>
                         </tr>
                     </thead>
@@ -148,16 +202,12 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-light">
-                            <td><strong>@lang('accounting::lang.total')</strong></td>
+                            <td><strong>@lang('accounting::lang.income_statement_total_operating_expenses')</strong></td>
                             <td><strong>@format_currency($data['total_expense'] ?? 0)</strong></td>
                         </tr>
-                        <tr style="background-color: #e4e9f1b7">
-                            <td>
-                                <h3>@lang('report::general.gross_profit')</h3>
-                            </td>
-                            <td>
-                                <h3>@format_currency($data['gross_profit'] ?? 0)</h3>
-                            </td>
+                        <tr style="background-color: #eef2ff">
+                            <td><strong>@lang('accounting::lang.income_statement_operating_profit')</strong></td>
+                            <td><strong>@format_currency($data['operating_profit'] ?? $data['operation_income'] ?? 0)</strong></td>
                         </tr>
                         <tr style="background-color: #f6f8fb">
                             <td><strong>@lang('accounting::lang.income_before_tax')</strong></td>
@@ -168,8 +218,8 @@
                             <td><strong>@format_currency($data['tax_amount'] ?? 0)</strong></td>
                         </tr>
                         <tr style="background-color: #e4e9f1b7">
-                            <td><h3>@lang('accounting::lang.net_profit')</h3></td>
-                            <td><h3>@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</h3></td>
+                            <td><h3 class="h5 mb-0">@lang('accounting::lang.net_profit')</h3></td>
+                            <td><h3 class="h5 mb-0">@format_currency(($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0))</h3></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -226,7 +276,7 @@
             <div style="text-align:center; padding: 10px;">
                 <h2>{{ $company->name }}</h2>
                 <h4>@lang('accounting::lang.income_list')</h4>
-                <p><strong>@lang('accounting::lang.date_range'):</strong> {{ \Carbon\Carbon::parse($start_date)->format('Y-m-d') }} - {{ \Carbon\Carbon::parse($end_date)->format('Y-m-d') }}</p>
+                <p><strong>@lang('accounting::lang.income_statement_period', ['from' => \Carbon\Carbon::parse($start_date)->format('Y-m-d'), 'to' => \Carbon\Carbon::parse($end_date)->format('Y-m-d')])</strong></p>
             </div>
             ${printContent}
         `;

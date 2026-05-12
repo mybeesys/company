@@ -37,13 +37,17 @@ const ProductBasicInfo = ({
     const listSubCategoryurl = JSON.parse(
         rootElement.getAttribute("listSubCategory-url")
     );
-     const productPermission = rootElement.getAttribute("product-permission");
- const canAdd =
-        productPermission === "absolute" ;
+    const productPermission =
+        rootElement.getAttribute("product-permission") ?? "absolute";
+    const canAdd = productPermission === "absolute";
 
-        console.log(productPermission);
-
-    let dir = rootElement.getAttribute("dir");
+    const dir = String(
+        document.documentElement.getAttribute("dir") ||
+            rootElement.getAttribute("dir") ||
+            "ltr"
+    )
+        .trim()
+        .toLowerCase();
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [subcategoryOption, setSubCategoryOptions] = useState([]);
 

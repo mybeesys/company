@@ -3,6 +3,7 @@
 namespace Modules\Product\Http\Controllers;
 
 use App\Helpers\TaxHelper;
+use App\Helpers\FranchiseProductCatalog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class ModifierController extends Controller
         ]);
 
         if (isset($validated['method']) && ($validated['method'] == 'delete')) {
-            $modifier = Product::restrictByFranchise()
+            $modifier = Product::restrictByFranchise('modifier')
                 ->where('type', 'modifier')
                 ->find($validated['id']);
 
@@ -53,7 +54,7 @@ class ModifierController extends Controller
         }
 
         if (! isset($validated['order'])) {
-            $maxOrder = Product::restrictByFranchise()
+            $maxOrder = Product::restrictByFranchise('modifier')
                 ->where('type', 'modifier')
                 ->where('class_id', $validated['class_id'])
                 ->max('order');
@@ -71,11 +72,11 @@ class ModifierController extends Controller
 
     protected function saveModifier($validated, $request)
     {
-        $modifier = Product::restrictByFranchise()->find($validated['id']);
+        $modifier = Product::restrictByFranchise('modifier')->find($validated['id']);
         $modifier->fill($validated);
         $user = auth()->user();
 
-        if ($user->franchise_id) {
+        if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
             DB::table('franchise_product_permissions')->insert([
                 'franchise_id' => $user->franchise_id,
                 'permitted_type' => 'modifier',
@@ -150,7 +151,7 @@ class ModifierController extends Controller
             ]));
             $user = auth()->user();
 
-            if ($user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_type' => 'modifier',
@@ -165,7 +166,7 @@ class ModifierController extends Controller
 
     public function edit($id)
     {
-        $modifier = Product::restrictByFranchise()
+        $modifier = Product::restrictByFranchise('modifier')
             ->where('type', 'modifier')
             ->with(['tax', 'priceTiers.priceTier', 'recipe.unitTransfer'])
             ->findOrFail($id);
@@ -184,7 +185,7 @@ class ModifierController extends Controller
     public function getModifiersList($id)
     {
         $language = app()->getLocale();
-        $modifiers = Product::restrictByFranchise()
+        $modifiers = Product::restrictByFranchise('modifier')
             ->where('class_id', $id)
             ->where('type', 'modifier')
             ->get();

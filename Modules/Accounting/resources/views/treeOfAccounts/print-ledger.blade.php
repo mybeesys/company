@@ -3,9 +3,9 @@
     $local = session()->get('locale');
     $dir = $local == 'ar' ? 'rtl' : 'ltr';
     $ledgerCol = fn(string $k): bool => in_array($k, $ledger_visible_columns, true);
-    $ledgerPrefixKeys = ['ref_no', 'operation_date', 'narration', 'transaction', 'cost_center', 'added_by'];
-    $ledgerFootLabelSpan = max(1, count(array_intersect($ledgerPrefixKeys, $ledger_visible_columns)));
-    $ledgerOpeningLabelSpan = max(1, count(array_diff($ledger_visible_columns, ['balance'])));
+    $ledgerPhysicalPrefixKeys = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
+    $ledgerFootLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
+    $ledgerOpeningLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
     $opening_balance = $opening_balance ?? 0;
     $is_debit_nature = $is_debit_nature ?? true;
     $start_date = $start_date ?? null;
@@ -217,16 +217,19 @@
                     <tr>
                         <th style="width: 34px;">م</th>
                         @if ($ledgerCol('ref_no'))
-                            <th>@lang('accounting::lang.transaction_number')</th>
+                            <th>
+                                @if ($ledgerCol('transaction'))
+                                    @lang('accounting::lang.ledger_column_ref_with_type')
+                                @else
+                                    @lang('accounting::lang.transaction_number')
+                                @endif
+                            </th>
                         @endif
                         @if ($ledgerCol('operation_date'))
                             <th>@lang('accounting::lang.operation_date')</th>
                         @endif
                         @if ($ledgerCol('narration'))
                             <th>@lang('accounting::lang.ledger_narration')</th>
-                        @endif
-                        @if ($ledgerCol('transaction'))
-                            <th>@lang('accounting::lang.transaction')</th>
                         @endif
                         @if ($ledgerCol('cost_center'))
                             <th>@lang('accounting::lang.cost_center')</th>
@@ -297,12 +300,20 @@
                             <td class="num">{{ $rowNo }}</td>
                             @if ($ledgerCol('ref_no'))
                                 <td>
-                                    @if (isset($transactions->accTransMapping))
-                                        {{ $transactions->accTransMapping->ref_no }}
-                                    @elseif (isset($transactions->transaction))
-                                        {{ $transactions->transaction->ref_no }}
-                                    @else
-                                        --
+                                    @php
+                                        $printRef = isset($transactions->accTransMapping)
+                                            ? $transactions->accTransMapping->ref_no
+                                            : (isset($transactions->transaction) ? $transactions->transaction->ref_no : null);
+                                        $_pst = $transactions->sub_type ?? null;
+                                        $printTypeLabel = $_pst
+                                            ? (\Illuminate\Support\Facades\Lang::has('accounting::lang.'.$_pst)
+                                                ? __('accounting::lang.'.$_pst)
+                                                : $_pst)
+                                            : '—';
+                                    @endphp
+                                    <span style="font-weight: 700;">{{ $printRef ?? '--' }}</span>
+                                    @if ($ledgerCol('transaction'))
+                                        <span style="display:inline-block;margin-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}:6px;font-size:10px;color:#555;border:1px solid #ccc;border-radius:4px;padding:2px 6px;">{{ $printTypeLabel }}</span>
                                     @endif
                                 </td>
                             @endif
@@ -311,19 +322,6 @@
                             @endif
                             @if ($ledgerCol('narration'))
                                 <td>{{ $narr }}</td>
-                            @endif
-                            @if ($ledgerCol('transaction'))
-                                <td>
-                                    @if ($transactions->sub_type == 'sell')
-                                        @lang('accounting::lang.sell')
-                                    @elseif ($transactions->sub_type == 'sell_cash')
-                                        @lang('accounting::lang.receipt_voucher')
-                                    @elseif ($transactions->sub_type == 'sales_revenue')
-                                        @lang('accounting::lang.payment_voucher')
-                                    @else
-                                        @lang('accounting::lang.' . $transactions->sub_type)
-                                    @endif
-                                </td>
                             @endif
                             @if ($ledgerCol('cost_center'))
                                 <td>

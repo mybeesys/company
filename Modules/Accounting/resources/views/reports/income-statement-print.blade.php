@@ -8,18 +8,23 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #d1d5db; padding: 6px; text-align: start; }
         thead th { background: #e5e7eb; text-align: center; }
-        .section-title { margin-top: 14px; font-weight: 700; }
-        .summary { margin: 8px 0; padding: 8px; border: 1px solid #d1d5db; }
+        .section-title { margin-top: 14px; font-weight: 700; font-size: 13px; }
+        .summary { margin: 8px 0; padding: 8px; border: 1px solid #d1d5db; font-size: 11px; }
+        .muted { color: #64748b; font-size: 11px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
     <h2>{{ __('accounting::lang.income_list') }}</h2>
-    <div>{{ __('accounting::lang.from_date') }}: {{ $start_date }} | {{ __('accounting::lang.to_date') }}: {{ $end_date }}</div>
+    <div class="muted">{{ __('accounting::lang.income_statement_period', ['from' => $start_date, 'to' => $end_date]) }}</div>
 
     <div class="summary">
         <strong>{{ __('accounting::lang.Revenues') }}:</strong> {{ number_format((float) ($data['revenue_net'] ?? 0), 2) }}
         <span style="margin: 0 8px;">|</span>
-        <strong>{{ __('accounting::lang.account_types.expenses') }}:</strong> {{ number_format((float) ($data['total_expense'] ?? 0), 2) }}
+        <strong>{{ __('accounting::lang.income_statement_total_cost_of_revenue') }}:</strong> {{ number_format((float) ($data['cost_of_revenue'] ?? 0), 2) }}
+        <span style="margin: 0 8px;">|</span>
+        <strong>{{ __('report::general.gross_profit') }}:</strong> {{ number_format((float) ($data['gross_profit'] ?? 0), 2) }}
+        <span style="margin: 0 8px;">|</span>
+        <strong>{{ __('accounting::lang.income_statement_operating_profit') }}:</strong> {{ number_format((float) ($data['operating_profit'] ?? $data['operation_income'] ?? 0), 2) }}
         <span style="margin: 0 8px;">|</span>
         <strong>{{ __('accounting::lang.net_profit') }}:</strong> {{ number_format((float) (($data['income_before_tax'] ?? 0) - ($data['tax_amount'] ?? 0)), 2) }}
     </div>
@@ -44,13 +49,43 @@
                 </tr>
             @endforelse
             <tr>
-                <td><strong>{{ __('accounting::lang.total') }}</strong></td>
+                <td><strong>{{ __('accounting::lang.total') }} {{ __('accounting::lang.Revenues') }}</strong></td>
                 <td><strong>{{ number_format((float) ($data['revenue_net'] ?? 0), 2) }}</strong></td>
             </tr>
         </tbody>
     </table>
 
-    <div class="section-title">{{ __('accounting::lang.account_types.expenses') }}</div>
+    <div class="section-title">{{ __('accounting::lang.income_statement_cost_of_revenue') }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ __('accounting::lang.account_name') }}</th>
+                <th>{{ __('employee::fields.amount') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($cogsAccounts ?? [] as $account)
+                <tr>
+                    <td>{{ app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en }}</td>
+                    <td>{{ number_format((float) $account->amount, 2) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="2">{{ __('messages.no_data_found') }}</td>
+                </tr>
+            @endforelse
+            <tr>
+                <td><strong>{{ __('accounting::lang.income_statement_total_cost_of_revenue') }}</strong></td>
+                <td><strong>{{ number_format((float) ($data['cost_of_revenue'] ?? 0), 2) }}</strong></td>
+            </tr>
+            <tr>
+                <td><strong>{{ __('report::general.gross_profit') }}</strong></td>
+                <td><strong>{{ number_format((float) ($data['gross_profit'] ?? 0), 2) }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">{{ __('accounting::lang.income_statement_operating_expenses') }}</div>
     <table>
         <thead>
             <tr>
@@ -70,12 +105,12 @@
                 </tr>
             @endforelse
             <tr>
-                <td><strong>{{ __('accounting::lang.total') }}</strong></td>
+                <td><strong>{{ __('accounting::lang.income_statement_total_operating_expenses') }}</strong></td>
                 <td><strong>{{ number_format((float) ($data['total_expense'] ?? 0), 2) }}</strong></td>
             </tr>
             <tr>
-                <td><strong>{{ __('report::general.gross_profit') }}</strong></td>
-                <td><strong>{{ number_format((float) ($data['gross_profit'] ?? 0), 2) }}</strong></td>
+                <td><strong>{{ __('accounting::lang.income_statement_operating_profit') }}</strong></td>
+                <td><strong>{{ number_format((float) ($data['operating_profit'] ?? $data['operation_income'] ?? 0), 2) }}</strong></td>
             </tr>
             <tr>
                 <td><strong>{{ __('accounting::lang.income_before_tax') }}</strong></td>
@@ -93,4 +128,3 @@
     </table>
 </body>
 </html>
-

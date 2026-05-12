@@ -82,10 +82,6 @@
             min-width: 320px;
         }
 
-        #ledger_sub_type_filter + .select2-container .select2-selection--multiple {
-            min-height: 44px;
-        }
-
         @media (max-width: 992px) {
             .ledger-banner-controls {
                 justify-content: flex-start;
@@ -174,6 +170,30 @@
         #ledger-table.ledger-table-pro tbody td:last-child,
         #ledger-table.ledger-table-pro tfoot td:last-child {
             padding-right: 0.9rem !important;
+        }
+
+        .ledger-ref-cell {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.5rem;
+            justify-content: flex-start;
+        }
+
+        html[dir="rtl"] .ledger-ref-cell {
+            justify-content: flex-end;
+        }
+
+        .ledger-tx-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #5e6278;
+            background: #f1f3f8;
+            border: 1px solid #e4e6ef;
+            border-radius: 6px;
+            padding: 0.12rem 0.45rem;
+            line-height: 1.2;
+            white-space: nowrap;
         }
     </style>
 @stop
@@ -269,18 +289,6 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div class="col-md-3 mt-4">
-                <label>{{ __('accounting::lang.transaction_type') }}</label>
-                <select name="sub_type[]" id="ledger_sub_type_filter" class="form-select form-select-solid" multiple
-                    data-placeholder="{{ __('accounting::lang.all') }}">
-                    @foreach ($subTypes ?? [] as $subTypeVal)
-                        <option value="{{ $subTypeVal }}" @selected(in_array((string) $subTypeVal, $ledgerSelectedSubTypes ?? [], true))>
-                            {{ \Illuminate\Support\Facades\Lang::has('accounting::lang.' . $subTypeVal) ? __('accounting::lang.' . $subTypeVal) : $subTypeVal }}
-                        </option>
-                    @endforeach
-                </select>
             </div>
 
             <div class="col-md-3 mt-4">
@@ -423,6 +431,7 @@
                                 @php
                                     $ledgerColMeta = [
                                         'ref_no' => __('accounting::lang.ledger_column_ref_no'),
+                                        'transaction' => __('accounting::lang.ledger_column_show_transaction_type'),
                                         'operation_date' => __('accounting::lang.ledger_column_operation_date'),
                                         'narration' => __('accounting::lang.ledger_column_narration'),
                                         'cost_center' => __('accounting::lang.ledger_column_cost_center'),
@@ -516,16 +525,21 @@
                 </div>
                 @php
                     $ledgerColShow = fn(string $k): bool => in_array($k, $ledger_visible_columns, true);
-                    $ledgerPrefixKeys = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
-                    $ledgerOpeningLabelSpan = max(1, count(array_diff($ledger_visible_columns, ['balance'])));
-                    $ledgerFootLabelSpan = max(1, count(array_intersect($ledgerPrefixKeys, $ledger_visible_columns)));
+                    $ledgerPhysicalPrefixKeys = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
+                    $ledgerOpeningLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
+                    $ledgerFootLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
                 @endphp
                 <div class="table-responsive">
                     <table class="table align-middle gs-0 gy-4 ledger-table-pro" id="ledger-table">
                         <thead>
                             <tr class="fw-bold  text-muted bg-light">
                                 <th class="min-w-110px @if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
-                                    @lang('accounting::lang.transaction_number')</th>
+                                    @if ($ledgerColShow('transaction'))
+                                        @lang('accounting::lang.ledger_column_ref_with_type')
+                                    @else
+                                        @lang('accounting::lang.transaction_number')
+                                    @endif
+                                </th>
                                 <th class="min-w-90px @if (!$ledgerColShow('operation_date')) d-none @endif" data-ledger-col="operation_date">
                                     @lang('accounting::lang.operation_date')</th>
                                 <th class="min-w-140px @if (!$ledgerColShow('narration')) d-none @endif" data-ledger-col="narration">
@@ -591,13 +605,19 @@
                                 @endphp
                                 <tr>
                                     <td class="@if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
-                                        <div class="d-flex align-items-center">
+                                        <div class="ledger-ref-cell">
                                             <div class="d-flex justify-content-start flex-column">
                                                 @php
                                                     $ledgerTxUrl = $transactions->ledgerDetailUrl();
                                                     $ledgerRef = isset($transactions->accTransMapping)
                                                         ? $transactions->accTransMapping->ref_no
                                                         : (isset($transactions->transaction) ? $transactions->transaction->ref_no : null);
+                                                    $_st = $transactions->sub_type ?? null;
+                                                    $ledgerTypeLabel = $_st
+                                                        ? (\Illuminate\Support\Facades\Lang::has('accounting::lang.'.$_st)
+                                                            ? __('accounting::lang.'.$_st)
+                                                            : $_st)
+                                                        : '—';
                                                 @endphp
                                                 @if ($ledgerTxUrl)
                                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6"
@@ -609,6 +629,9 @@
                                                     <span class="text-gray-900 fw-bold mb-1 fs-6">{{ $ledgerRef ?? '—' }}</span>
                                                 @endif
                                             </div>
+                                            <span
+                                                class="ledger-tx-badge @if (!$ledgerColShow('transaction')) d-none @endif"
+                                                data-ledger-col="transaction">{{ $ledgerTypeLabel }}</span>
                                         </div>
                                     </td>
                                     <td class="@if (!$ledgerColShow('operation_date')) d-none @endif" data-ledger-col="operation_date">
@@ -777,7 +800,7 @@
 
     <script>
         $(document).ready(function() {
-            var LEDGER_COL_ORDER = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by', 'debit', 'credit', 'balance'];
+            var LEDGER_COL_ORDER = ['ref_no', 'transaction', 'operation_date', 'narration', 'cost_center', 'added_by', 'debit', 'credit', 'balance'];
             var LEDGER_COL_STORAGE = 'ledger_visible_columns_v2';
             var ledgerVisibleFromServer = @json($ledger_visible_columns);
             var ledgerExportBaseParams = @json($ledger_export_base_params ?? []);
@@ -792,13 +815,9 @@
                     if (!Array.isArray(parsed)) {
                         return null;
                     }
-                    var set = {};
-                    parsed.forEach(function(k) {
-                        set[k] = true;
-                    });
-                if (parsed.indexOf('balance') === -1) parsed.push('balance');
-                if (parsed.indexOf('debit') === -1) parsed.push('debit');
-                if (parsed.indexOf('credit') === -1) parsed.push('credit');
+                    if (parsed.indexOf('balance') === -1) parsed.push('balance');
+                    if (parsed.indexOf('debit') === -1) parsed.push('debit');
+                    if (parsed.indexOf('credit') === -1) parsed.push('credit');
                     return LEDGER_COL_ORDER.filter(function(k) {
                         return parsed.indexOf(k) !== -1;
                     });
@@ -843,13 +862,13 @@
                     var on = !!vis[k];
                     $('#ledger-table').find('[data-ledger-col="' + k + '"]').toggleClass('d-none', !on);
                 });
+                var physicalPrefix = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
                 var openingSpan = Math.max(1, cols.filter(function(k) {
-                    return k !== 'balance';
+                    return physicalPrefix.indexOf(k) !== -1;
                 }).length);
                 $('.ledger-opening-label').attr('colspan', openingSpan);
-                var prefixKeys = ['ref_no', 'operation_date', 'narration', 'transaction', 'cost_center', 'added_by'];
                 var footSpan = Math.max(1, cols.filter(function(k) {
-                    return prefixKeys.indexOf(k) !== -1;
+                    return physicalPrefix.indexOf(k) !== -1;
                 }).length);
                 $('.ledger-foot-label').attr('colspan', footSpan);
                 ledgerUpdateExportLinks(cols);
@@ -915,11 +934,6 @@
             });
 
             $('#choose_cost_center_select').select2();
-            $('#ledger_sub_type_filter').select2({
-                width: '100%',
-                placeholder: $('#ledger_sub_type_filter').data('placeholder') || '',
-                allowClear: true
-            });
         });
     </script>
 @stop

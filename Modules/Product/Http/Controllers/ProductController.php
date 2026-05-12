@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Helpers\TaxHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -198,7 +199,9 @@ class ProductController extends Controller
         $product->for_sell = 1;
         $product->show_in_menu = 0;
 
-        return view('product::product.create', compact('product'));
+        $product_permission = auth()->user()->franchise?->product_permission ?? 'absolute';
+
+        return view('product::product.create', compact('product', 'product_permission'));
     }
 
     private function validateInUse($product_id)
@@ -300,10 +303,7 @@ class ProductController extends Controller
             $this->createProduct($validated, $request);
         }
 
-        $isApprovalNeeded = auth()->user()->franchise?->product_permission === 'request';
-        $msg = 'Done';
-
-        return response()->json(['message' => $msg]);
+        return response()->json(['message' => 'Done']);
     }
 
     protected function saveProduct($validated, $request)
@@ -439,20 +439,21 @@ class ProductController extends Controller
                 }
             }
             $user = auth()->user();
-            if ($user && $user->franchise_id) {
-                $insertData[] = [
-                    'franchise_id' => $request->franchise_id,
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
+                DB::table('franchise_product_permissions')->insert([
+                    'franchise_id' => $user->franchise_id,
                     'permitted_id' => $product->id,
                     'permitted_type' => 'product',
                     'created_at' => now(),
                     'updated_at' => now(),
-                ];
-
-                DB::table('franchise_product_permissions')->insert($insertData);
+                ]);
 
                 $product->franchise_id = $user->franchise_id;
                 $product->status = 'pending';
                 $product->active = 0;
+            } elseif ($user && $user->franchise_id) {
+                $product->franchise_id = $user->franchise_id;
+                $product->status = 'approved';
             } else {
                 $product->status = 'approved';
             }
@@ -603,8 +604,7 @@ class ProductController extends Controller
             if ($permissionType === 'request') {
                 $product->active = 0;
             }
-            $user = auth()->user();
-            if ($user && $user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_id' => $product->id,
@@ -615,6 +615,9 @@ class ProductController extends Controller
                 $product->franchise_id = $user->franchise_id;
                 $product->status = 'pending';
                 $product->active = 0;
+            } elseif ($user && $user->franchise_id) {
+                $product->franchise_id = $user->franchise_id;
+                $product->status = 'approved';
             } else {
                 $product->status = 'approved';
             }
@@ -812,7 +815,7 @@ class ProductController extends Controller
             $newProduct = Product::create($att);
 
             $user = auth()->user();
-            if ($user && $user->franchise_id) {
+            if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
                 DB::table('franchise_product_permissions')->insert([
                     'franchise_id' => $user->franchise_id,
                     'permitted_id' => $newProduct->id,
@@ -1352,7 +1355,7 @@ class ProductController extends Controller
         $products = Product::whereIn('id', $productIds)
             ->where([['active', 1], ['for_sell', 1]])
             ->whereIn('type', ['product', 'variable', 'ingredint'])
-            ->restrictByFranchise()
+            ->restrictByFranchise(['product', 'ingredint'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name_ar', 'like', "%$search%")

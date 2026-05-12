@@ -36,8 +36,10 @@ const ProductAttribute = ({
     });
     const [showConfirmation, setshowConfirmation] = useState(false);
     const handleMultiSelectChange = (selectedOptions) => {
-        setAttributeClass1(selectedOptions);
-        setdisableButton(false);
+        const next = selectedOptions || [];
+        setAttributeClass1(next);
+        setAttributes1(findChildrenById(next));
+        setdisableButton(next.length === 0);
     };
     const onCloseConfirm = (event) => {
         event.preventDefault();
@@ -70,19 +72,59 @@ const ProductAttribute = ({
     };
     const findChildrenById = (ids) => {
         const children = [];
-        if (!Array.isArray(ids)) {
-            console.error("Expected 'ids' to be an array");
+        if (ids == null || ids === -1 || ids === "-1") {
             return children;
         }
+        let idList = ids;
+        if (!Array.isArray(idList)) {
+            idList = [idList];
+        }
 
-        ids.forEach((id) => {
-            const item = AttributesTree.find((item) => item.data.id === id);
+        idList.forEach((rawId) => {
+            const id =
+                rawId && typeof rawId === "object" && "value" in rawId
+                    ? rawId.value
+                    : rawId;
+            const item = AttributesTree.find(
+                (node) => Number(node?.data?.id) === Number(id)
+            );
             if (item && item.children) {
                 children.push(...item.children);
             }
         });
         return children;
     };
+
+    const parentIdsToClass1Options = (parentIds) => {
+        if (!Array.isArray(parentIds) || parentIds.length === 0) {
+            return [];
+        }
+        return parentIds
+            .map((raw) => {
+                const id =
+                    raw && typeof raw === "object" && "value" in raw
+                        ? raw.value
+                        : raw;
+                const node = AttributesTree.find(
+                    (n) => Number(n?.data?.id) === Number(id)
+                );
+                if (!node?.data?.id) {
+                    return null;
+                }
+                return {
+                    label:
+                        dir === "rtl"
+                            ? node.data.name_ar
+                            : node.data.name_en,
+                    value: node.data.id,
+                    name_ar: node.data.name_ar,
+                    name_en: node.data.name_en,
+                    id: node.data.id,
+                };
+            })
+            .filter(Boolean);
+    };
+
     const onConfirm = (evt) => {
         evt.preventDefault();
         var newMstrix = [];
@@ -233,7 +275,15 @@ const ProductAttribute = ({
     };
 
     React.useEffect(() => {
-        let productMatrix = product.attributes;
+        const classOptions = (AttributesTree || []).filter(
+            (option) => option?.data?.id && option.data.empty !== "Y"
+        );
+        if (classOptions.length === 0) {
+            return;
+        }
+
+        const productMatrix = product.attributes || [];
+
         productMatrix[0]
             ? !!productMatrix[0].attribute1
                 ? setAttributes1(
@@ -241,6 +291,7 @@ const ProductAttribute = ({
                   )
                 : setAttributes1([])
             : setAttributes1([]);
+
         productMatrix[0]
             ? !!productMatrix[0].attribute2
                 ? setAttributes2(
@@ -248,24 +299,41 @@ const ProductAttribute = ({
                   )
                 : setAttributes2([])
             : setAttributes2([]);
-        productMatrix[0]
-            ? !!productMatrix[0].attribute1
-                ? setAttributeClass1(productMatrix[0].attribute1.parent_id)
-                : setAttributeClass1(AttributesTree[0].data.id)
-            : setAttributeClass1(-1);
+
+        const fallbackClass2 = classOptions[1]?.data?.id ?? -1;
+
+        if (productMatrix[0]?.attribute1?.parent_id) {
+            const restoredClass1 = parentIdsToClass1Options(
+                productMatrix[0].attribute1.parent_id
+            );
+            setAttributeClass1(restoredClass1);
+            setdisableButton(restoredClass1.length === 0);
+        } else {
+            setAttributeClass1([]);
+            setdisableButton(true);
+        }
+
         productMatrix[0]
             ? !!productMatrix[0].attribute2
                 ? setAttributeClass2(productMatrix[0].attribute2.parent_id)
-                : setAttributeClass2(AttributesTree[1].data.id)
+                : setAttributeClass2(
+                      classOptions.length > 1 ? fallbackClass2 : -1
+                  )
             : setAttributeClass2(-1);
-    }, []);
+    }, [AttributesTree, product?.id]);
 
     const handleDelete = (row) => {
-        let index = product.attributes.findIndex((x) => x.id == row.id);
-        if (product.attributes[index]["deleted"] == 1)
-            product.attributes[index]["deleted"] = 0;
-        else product.attributes[index]["deleted"] = 1;
-        onChange("attributes", product.attributes);
+        const attrs = product.attributes || [];
+        const index = attrs.findIndex((x) => x.id == row.id);
+        if (index < 0) {
+            return { message: "Done" };
+        }
+        if (attrs[index]["deleted"] == 1) {
+            attrs[index]["deleted"] = 0;
+        } else {
+            attrs[index]["deleted"] = 1;
+        }
+        onChange("attributes", attrs);
         return { message: "Done" };
     };
 
@@ -311,7 +379,9 @@ const ProductAttribute = ({
                                 <Select
                                     isMulti
                                     options={AttributesTree.filter(
-                                        (option) => option.data.id
+                                        (option) =>
+                                            option?.data?.id &&
+                                            option.data.empty !== "Y"
                                     ).map((option) => ({
                                         label:
                                             dir === "rtl"
@@ -436,7 +506,7 @@ const ProductAttribute = ({
                         addNewRow={false}
                         type={"attribute"}
                         title={translations.recipe}
-                        currentNodes={product.attributes}
+                        currentNodes={product.attributes || []}
                         defaultValue={{}}
                         cols={[
                             {

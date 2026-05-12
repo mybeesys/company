@@ -62,6 +62,10 @@
             </div>
 
             <div class="col-md-12 mb-3">
+                <p class="text-muted small mb-2">
+                    <strong>@lang('accounting::lang.bs_as_at'):</strong> {{ $end_date }}
+                    — @lang('accounting::lang.bs_position_explanation')
+                </p>
                 <div class="alert {{ ($difference ?? 0) < 0.005 ? 'alert-success' : 'alert-warning' }} py-2 mb-2">
                     <strong>@lang('accounting::lang.balance'):</strong> {{ $balance_status ?? '-' }}
                     <span class="mx-2">|</span>

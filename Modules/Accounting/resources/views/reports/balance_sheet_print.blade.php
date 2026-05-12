@@ -14,6 +14,8 @@
 </head>
 <body>
     <h2>{{ __('accounting::lang.balance_sheet') }}</h2>
+    <div><strong>{{ __('accounting::lang.bs_as_at') }}:</strong> {{ $end_date }}</div>
+    <p style="font-size: 10px; color: #4b5563; margin: 6px 0 10px;">{{ __('accounting::lang.bs_position_explanation') }}</p>
     <div>{{ __('accounting::lang.from_date') }}: {{ $start_date }} | {{ __('accounting::lang.to_date') }}: {{ $end_date }}</div>
     <div class="summary">
         <strong>{{ __('accounting::lang.balance') }}:</strong> {{ $balance_status }}

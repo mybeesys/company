@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a7c3e2b1-4f5d-4c8e-9a0b-screen-api-v1",
 		"name": "My Bee — Screen API (شاشات)",
-		"description": "**Tenant + Sanctum**\n\n- استخدم **Host** الخاص بالمستأجر (مثل `test1.my-bee.info`) وليس الدومين المركزي.\n- المسار الأساسي: `{{baseUrl}}` = `/api/v1/screen`\n- ضع توكن Sanctum في المتغير `token` (Bearer).\n\n**ملاحظات للمطور**\n- رفع المادة الإعلانية: `multipart/form-data`، الحقل `promo` (ملف).\n- إنشاء/تعديل قائمة تشغيل: JSON، راجع أمثلة المجلد *Playlists*.\n- معرفات `establishment_id`, `device`, `promo` في الأمثلة **وهمية** — استبدلها بقيم حقيقية من `dashboard` أو من الـ GET.\n",
+		"description": "**Tenant + Sanctum**\n\n- استخدم **Host** المستأجر فقط (مثل `https://test1.my-bee.info`).\n- **المسار الصحيح للمواد الإعلانية:** `GET/POST .../api/v1/screen/promos`\n- **ليس موجوداً:** `/api/promos` ولا `/promos` (سيظهر خطأ route not found).\n- `{{baseUrl}}` = `{{host}}/api/v1/screen` — ثم ألحق: `/promos`, `/playlists`, `/devices`, `/dashboard`.\n- توكن Sanctum في `token` (Bearer).\n\n**مطور موبايل:** إذا كان `serversub` = `https://tenant.com` فالمثال: `https://tenant.com/api/v1/screen/promos`\n\n---\n- رفع promo: `multipart/form-data`، الحقل `promo` (ملف).\n- Playlists: JSON — راجع مجلد Playlists.\n- IDs في الأمثلة وهمية — استبدلها من `dashboard` أو GET.\n",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
