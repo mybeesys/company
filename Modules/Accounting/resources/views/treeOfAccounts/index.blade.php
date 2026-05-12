@@ -104,16 +104,37 @@
                     <h1> @lang('accounting::lang.tree_of_accounts')</h1>
                 </div>
             </div>
-            <div class="col-6" style="justify-content: end;display: flex;">
+            <div class="col-6 d-flex flex-wrap justify-content-end align-items-center gap-2 gap-lg-3">
                 <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
                     @lang('accounting::lang.import_tree_of_accounts')
                 </a>
+                @if (\Modules\Accounting\Utils\AccountingFullResetService::isAllowed())
+                    <form method="POST" action="{{ route('accounting.staging-full-reset') }}" class="d-inline"
+                        onsubmit="return confirm(@json(__('accounting::lang.staging_full_reset_confirm')));">
+                        @csrf
+                        <input type="hidden" name="confirm" value="RESET_ACCOUNTING_FULL">
+                        <button type="submit" class="btn btn-flex btn-light-warning h-40px fs-7 fw-bold">
+                            <span>@lang('accounting::lang.staging_full_reset_button')</span>
+                            <span class="badge badge-light-danger ms-2 fs-8 fw-semibold">@lang('accounting::lang.staging_full_reset_badge')</span>
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>
 
     @if (session('success'))
         <div class="container"><div class="alert alert-success mt-3">{{ session('success') }}</div></div>
+    @endif
+    @php
+        $statusFlash = session('status');
+    @endphp
+    @if (is_array($statusFlash) && ! empty($statusFlash['msg']))
+        <div class="container">
+            <div class="alert alert-{{ ! empty($statusFlash['success']) ? 'success' : 'info' }} mt-3">
+                {{ $statusFlash['msg'] }}
+            </div>
+        </div>
     @endif
     @if (session('error'))
         <div class="container"><div class="alert alert-danger mt-3">{{ session('error') }}</div></div>
