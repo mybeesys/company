@@ -41,15 +41,19 @@ class SuppliersReceiptsController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Contact::where('business_type', 'supplier')->get();
         $accounts = AccountingAccount::forDropdown();
         $countries = Country::all();
         $supplier = true;
         $cost_centers = AccountingCostCenter::forDropdown();
+        $duplicateDefaults = TransactionPayments::formDefaultsFromPaymentForDuplicate(
+            (int) $request->query('from_payment', 0),
+            true
+        );
 
-        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries', 'duplicateDefaults'));
     }
 
     /**

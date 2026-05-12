@@ -26,6 +26,7 @@ return [
     'save' => 'Save',
     'actions' => 'Actions',
     'delete' => 'Delete',
+    'duplicate' => 'Duplicate',
     'add_successfully' => 'Added Successfully',
     'deleted_successfully' => 'Deleted Successfully',
     'updated_successfully' => 'Updated Successfully',

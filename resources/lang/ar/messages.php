@@ -27,6 +27,7 @@ return [
     'deactivate' => 'إلغاء تنشيط',
     'actions' => 'العمليات',
     'delete' => 'حذف',
+    'duplicate' => 'تكرار',
     'add_successfully' => 'تمت الإضافة بنجاح',
     'updated_successfully' => 'تم التعديل بنجاح',
     'deleted_successfully' => 'تم الحذف بنجاح',

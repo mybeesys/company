@@ -70,21 +70,31 @@
             }
         });
         $('#add_device_button').on('click', function() {
+            if (typeof setDeviceModalTitleMode === 'function') {
+                setDeviceModalTitleMode('add');
+            }
             $('#add_device_modal_form')[0].reset();
             $('#add_device_modal_form [name="id"]').val('');
+            $('.device-clear-pin-wrap, .device-regenerate-wrap').addClass('d-none');
             $('#add_device_modal').modal('toggle');
         });
         $(document).on('click', '.device-edit-btn', function(e) {
             e.preventDefault();
+            if (typeof setDeviceModalTitleMode === 'function') {
+                setDeviceModalTitleMode('edit');
+            }
             $('#add_device_modal_form [name="id"]').val($(this).data('id'));
             $('#add_device_modal_form [name="code"]').val($(this).data('code'));
             $('#add_device_modal_form [name="establishment_id"]').val($(this).data('establishment-id')).trigger('change');
+            $('#add_device_modal_form [name="pin"]').val('');
+            $('#device_clear_pin').prop('checked', false);
+            $('.device-clear-pin-wrap, .device-regenerate-wrap').removeClass('d-none');
             $('#add_device_modal').modal('show');
         });
         $(document).on('click', '.device-delete-btn', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            let deleteUrl = `{{ url('/device/${id}') }}`;
+            let deleteUrl = `{{ url('/device') }}/${id}`;
 
             showAlert(`{{ __('employee::general.delete_confirm', ['name' => ':name']) }}`.replace(':name',
                     "{{ __('employee::general.this_element') }}"),

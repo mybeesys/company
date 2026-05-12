@@ -36,6 +36,7 @@ return [
     'invoice_amount' => 'مبلغ الفاتورة',
     'date' => 'التاريخ',
     'invoice_number' => 'رقم الفاتورة',
+    'payment_ref' => 'مرجع السند',
 
     'select_transactions' => 'اختيار المعاملات',
     'transaction_ref_no' => 'الرقم المرجعي للفاتورة',

@@ -14,8 +14,7 @@ class AccountingAccTransMappingTable
             ['class' => 'text-start min-w-140px px-3', 'name' => 'type'],
             ['class' => 'text-start min-w-150px px-3', 'name' => 'ref_no'],
             ['class' => 'text-start min-w-160px px-3', 'name' => 'created_by'],
-            ['class' => 'text-start min-w-150px px-3', 'name' => 'sub_type'],
-
+            ['class' => 'text-end min-w-120px px-3', 'name' => 'total_amount'],
             ['class' => 'text-start min-w-220px px-3', 'name' => 'note'],
 
         ];
@@ -61,12 +60,12 @@ class AccountingAccTransMappingTable
                 return __('accounting::lang.'.$row->type);
             })
 
-            ->editColumn('sub_type', function ($row) {
-                $subType = $row->transactions->first()->sub_type ?? null;
+            ->addColumn('total_amount', function ($row) {
+                $sum = $row->transactions
+                    ->where('type', 'debit')
+                    ->sum(fn ($line) => (float) $line->amount);
 
-                return $subType
-                    ? __('accounting::lang.'.$subType)
-                    : '--';
+                return number_format($sum, 2);
             })
 
             ->addColumn(

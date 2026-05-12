@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
@@ -47,15 +48,19 @@ class ReceiptsController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Contact::where('business_type', 'customer')->get();
         $accounts = AccountingAccount::forDropdown();
         $countries = Country::all();
         $supplier = false;
         $cost_centers = AccountingCostCenter::forDropdown();
+        $duplicateDefaults = TransactionPayments::formDefaultsFromPaymentForDuplicate(
+            (int) $request->query('from_payment', 0),
+            false
+        );
 
-        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries'));
+        return view('sales::receipts.create', compact('clients', 'cost_centers', 'supplier', 'accounts', 'countries', 'duplicateDefaults'));
     }
 
     /**
@@ -222,27 +227,171 @@ class ReceiptsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edit a single receipt/payment line (invoice settlement): form only; journal is replaced on update.
+     */
+    public function editPayment(TransactionPayments $payment)
+    {
+        $payment->load(['transaction', 'client']);
+        $transaction = $this->assertEligibleReceiptPayment($payment);
+
+        $supplier = in_array($transaction->type, ['purchases', 'purchase'], true);
+        $accounts = AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
+        $countries = Country::all();
+        $contact = $payment->client;
+
+        $costCenterId = AccountingAccountsTransaction::query()
+            ->where('transaction_payment_id', $payment->id)
+            ->whereNotNull('cost_center_id')
+            ->value('cost_center_id');
+
+        $transactionUtil = new TransactionUtils;
+        $maxPaidAmount = $transactionUtil->maxAmountForReceiptPaymentEdit($payment);
+
+        return view('sales::receipts.edit', compact(
+            'payment',
+            'transaction',
+            'supplier',
+            'accounts',
+            'cost_centers',
+            'countries',
+            'contact',
+            'costCenterId',
+            'maxPaidAmount'
+        ));
+    }
+
+    /**
+     * Update receipt/payment: remove old journal, write new balanced entry, refresh invoice payment status.
+     */
+    public function updatePayment(Request $request, TransactionPayments $payment)
+    {
+        $transaction = $this->assertEligibleReceiptPayment($payment);
+
+        $validated = $request->validate([
+            'client_id' => ['required', 'integer', 'min:1'],
+            'paid_amount' => ['required', 'numeric', 'gt:0'],
+            'payment_on' => ['required', 'date'],
+            'account_id' => ['required', 'integer', 'min:1'],
+            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'cost_center_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        if ((int) $validated['client_id'] !== (int) $payment->payment_for) {
+            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+        }
+
+        $transactionUtil = new TransactionUtils;
+        $max = $transactionUtil->maxAmountForReceiptPaymentEdit($payment);
+        if ((float) $validated['paid_amount'] > $max + 0.000001) {
+            return redirect()->back()->withInput()->with('error', __('messages.something_went_wrong'));
+        }
+
+        try {
+            DB::beginTransaction();
+            $transactionUtil->deleteReceiptPaymentJournal($payment);
+            $request->merge($validated);
+            $transactionUtil->repostJournalForExistingReceiptPayment($transaction->fresh(), $payment->fresh(), $request);
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->back()->withInput()->with('error', config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'));
+        }
+
+        $redirectRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
+            ? 'suppliers-receipts'
+            : 'receipts';
+
+        return redirect()->route($redirectRoute)->with('success', __('messages.updated_successfully'));
+    }
+
+    /**
+     * Delete receipt/payment line, remove linked journal, recalculate invoice payment status.
+     */
+    public function destroyPayment(TransactionPayments $payment)
+    {
+        $transaction = $this->assertEligibleReceiptPayment($payment);
+        $redirectRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
+            ? 'suppliers-receipts'
+            : 'receipts';
+
+        try {
+            DB::beginTransaction();
+            $transactionUtil = new TransactionUtils;
+            $transactionUtil->deleteReceiptPaymentJournal($payment);
+            $tid = (int) $payment->transaction_id;
+            $payment->delete();
+            $transactionUtil->updatePaymentStatus($tid, $transaction->final_total);
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->route($redirectRoute)->with('error', config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'));
+        }
+
+        return redirect()->route($redirectRoute)->with('success', __('messages.deleted_successfully'));
+    }
+
+    /**
+     * Post another payment identical to this line (same invoice, same amount/date/account when possible), with new refs.
+     */
+    /**
+     * Duplicate = open create form with same input values; user chooses allocation / invoices again (no auto-post).
+     */
+    public function duplicatePayment(TransactionPayments $payment)
+    {
+        $transaction = $this->assertEligibleReceiptPayment($payment);
+        $targetRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
+            ? 'create-suppliers-receipts'
+            : 'create-receipts';
+
+        return redirect()->route($targetRoute, ['from_payment' => $payment->id]);
+    }
+
+    private function assertEligibleReceiptPayment(TransactionPayments $payment): Transaction
+    {
+        $transaction = $payment->transaction;
+        if (! $transaction) {
+            abort(404);
+        }
+        if (! in_array($transaction->type, ['sell', 'purchases', 'purchase'], true)) {
+            abort(403);
+        }
+
+        return $transaction;
+    }
+
+    /**
+     * @deprecated Use editPayment
      */
     public function edit($id)
     {
-        return view('sales::edit');
+        $payment = TransactionPayments::findOrFail($id);
+
+        return $this->editPayment($payment);
     }
 
     /**
-     * Update the specified resource in storage.
+     * @deprecated Use updatePayment
      */
     public function update(Request $request, $id)
     {
-        //
+        $payment = TransactionPayments::findOrFail($id);
+
+        return $this->updatePayment($request, $payment);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @deprecated Use destroyPayment
      */
     public function destroy($id)
     {
-        //
+        $payment = TransactionPayments::findOrFail($id);
 
+        return $this->destroyPayment($payment);
     }
 }

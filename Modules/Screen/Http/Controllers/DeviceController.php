@@ -4,8 +4,10 @@ namespace Modules\Screen\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\Screen\Models\Device;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeviceController extends Controller
@@ -24,8 +26,9 @@ class DeviceController extends Controller
                     function ($row) {
                         $actions = '<div class="justify-content-center d-flex">';
                         $establishmentId = (int) ($row->establishment_id ?? 0);
+                        $hasPin = ! empty($row->pin_hash);
                         $actions .= '
-                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="'.$row->id.'" data-code="'.e($row->code).'" data-establishment-id="'.$establishmentId.'"
+                            <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="'.$row->id.'" data-code="'.e($row->code).'" data-establishment-id="'.$establishmentId.'" data-has-pin="'.($hasPin ? '1' : '0').'"
                                 title="'.e(__('screen::general.edit')).'" aria-label="'.e(__('screen::general.edit')).'">
                                 <i class="fas fa-pen fs-6 text-gray-600"></i>
                             </a>';
@@ -51,6 +54,7 @@ class DeviceController extends Controller
         $hasEstablishmentColumn = Schema::hasColumn('screen_devices', 'establishment_id');
         $rules = [
             'code' => ['required', 'string', 'max:255', 'unique:screen_devices,code'],
+            'pin' => ['nullable', 'string', 'min:4', 'max:32'],
         ];
         if ($hasEstablishmentColumn) {
             $rules['establishment_id'] = ['required', 'integer', 'exists:est_establishments,id'];
@@ -61,9 +65,25 @@ class DeviceController extends Controller
         if ($hasEstablishmentColumn) {
             $payload['establishment_id'] = $validated['establishment_id'];
         }
+        if (! empty($validated['pin'])) {
+            $payload['pin_hash'] = Hash::make($validated['pin']);
+        }
+
         $device = Device::create($payload);
 
-        return response()->json(['message' => __('employee::responses.operation_success'), 'data' => ['id' => $device->id, 'name' => $device->code]]);
+        $device->tokens()->delete();
+        $pairingPlain = $device->assignNewPairingToken();
+        $pairingQrSvg = (string) QrCode::format('svg')->size(240)->margin(1)->generate($pairingPlain);
+
+        return response()->json([
+            'message' => __('employee::responses.operation_success'),
+            'data' => [
+                'id' => $device->id,
+                'name' => $device->code,
+                'pairing_token' => $pairingPlain,
+                'pairing_qr_svg' => $pairingQrSvg,
+            ],
+        ]);
     }
 
     public function update(Request $request, Device $device)
@@ -71,6 +91,8 @@ class DeviceController extends Controller
         $hasEstablishmentColumn = Schema::hasColumn('screen_devices', 'establishment_id');
         $rules = [
             'code' => ['required', 'string', 'max:255', 'unique:screen_devices,code,'.$device->id],
+            'pin' => ['nullable', 'string', 'min:4', 'max:32'],
+            'clear_pin' => ['sometimes', 'boolean'],
         ];
         if ($hasEstablishmentColumn) {
             $rules['establishment_id'] = ['required', 'integer', 'exists:est_establishments,id'];
@@ -81,6 +103,13 @@ class DeviceController extends Controller
         if ($hasEstablishmentColumn) {
             $payload['establishment_id'] = $validated['establishment_id'];
         }
+
+        if ($request->boolean('clear_pin')) {
+            $payload['pin_hash'] = null;
+        } elseif (! empty($validated['pin'])) {
+            $payload['pin_hash'] = Hash::make($validated['pin']);
+        }
+
         $device->update($payload);
 
         return response()->json(['message' => __('employee::responses.updated_successfully', ['name' => __('screen::fields.device')])]);
@@ -92,12 +121,13 @@ class DeviceController extends Controller
             return response()->json(['error' => __('screen::general.device_in_use_cannot_delete')], 422);
         }
 
+        $device->tokens()->delete();
         $delete = $device->delete();
         if ($delete) {
             return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('screen::fields.device')])]);
-        } else {
-            return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
+
+        return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
     }
 
     public function byEstablishments(Request $request)
@@ -114,6 +144,22 @@ class DeviceController extends Controller
 
         return response()->json([
             'data' => $devices->map(fn ($d) => ['id' => $d->id, 'name' => $d->code])->values(),
+        ]);
+    }
+
+    /**
+     * إعادة توليد رمز الاقتران (QR) وإبطال توكنات Sanctum السابقة لهذا الجهاز.
+     */
+    public function regenerateScreenPairing(Device $device): \Illuminate\Http\JsonResponse
+    {
+        $device->tokens()->delete();
+        $pairingPlain = $device->assignNewPairingToken();
+        $pairingQrSvg = (string) QrCode::format('svg')->size(240)->margin(1)->generate($pairingPlain);
+
+        return response()->json([
+            'message' => __('screen::general.screen_pairing_regenerated'),
+            'pairing_token' => $pairingPlain,
+            'pairing_qr_svg' => $pairingQrSvg,
         ]);
     }
 }

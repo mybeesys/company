@@ -18,6 +18,7 @@ return [
     'account' => 'الحساب',
     'amount' => 'المبلغ',
     'sub_type' => 'صادر عن',
+    'total_amount' => 'إجمالي المبلغ',
     'debit/credit' => 'مدين / دائن',
 
 ];

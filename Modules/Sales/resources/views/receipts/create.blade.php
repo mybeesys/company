@@ -75,16 +75,24 @@
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
 
+        @if ($duplicateDefaults ?? null)
+            <div class="container mb-5">
+                <div class="alert alert-primary py-3 mb-0">
+                    @lang('sales::lang.duplicate_receipt_prefill_hint')
+                </div>
+            </div>
+        @endif
+
         <div class="">
-            <div class="row py-3">
-                <div class="col-sm">
+            <div class="row py-3 g-4 align-items-start">
+                <div class="col-12 col-lg-6">
 
                     <input type="hidden" name="payment_type" value="receipts" />
                     {{-- receipts information --}}
                     @include('sales::receipts.create.receipts-info')
 
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-lg-6">
 
                     @include('sales::receipts.create.client-info')
 
@@ -102,7 +110,8 @@
                         </label>
                         <div class="form-check">
                             <input type="radio" style="border: 1px solid #9f9f9f;" id="seniority_invoices"
-                                name="allocation_option" checked value="auto_allocate" class="form-check-input my-2">
+                                name="allocation_option" value="auto_allocate" class="form-check-input my-2"
+                                @checked(! ($duplicateDefaults ?? null))>
                         </div>
                     </div>
 
@@ -115,13 +124,14 @@
                         </label>
                         <div class="form-check">
                             <input type="radio" style="border: 1px solid #9f9f9f;" id="specified_invoices"
-                                name="allocation_option" value="specified_invoices" class="form-check-input my-2">
+                                name="allocation_option" value="specified_invoices" class="form-check-input my-2"
+                                @checked(($duplicateDefaults ?? null) !== null)>
                         </div>
                     </div>
                 </div>
 
 
-                <div id="transactions_div" class="d-none">
+                <div id="transactions_div" class="{{ ($duplicateDefaults ?? null) ? 'mb-4' : 'd-none' }}">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <label class="fs-6 fw-semibold mb-0 required">@lang('sales::fields.select_transactions')</label>
                         <div class="text-muted fs-7">
@@ -178,10 +188,6 @@
         $(document).ready(function() {
 
 
-            $("#dev-mobile_number").hide();
-            $("#dev-billing_address").hide();
-            $("#dev-email").hide();
-            $("#dev-tax_number").hide();
             // Hide transactions select by default
             const $transactionsDiv = $('#transactions_div');
             const $clientSelect = $('#client_id');
@@ -254,6 +260,25 @@
                         }
                     });
                 }
+            }
+
+            const receiptDuplicateDefaults = @json($duplicateDefaults ?? null);
+            if (receiptDuplicateDefaults) {
+                setTimeout(function() {
+                    var cid = receiptDuplicateDefaults.client_id;
+                    if (receiptDuplicateDefaults.account_id) {
+                        $('#cash_account').val(String(receiptDuplicateDefaults.account_id)).trigger('change');
+                    }
+                    if (receiptDuplicateDefaults.cost_center_id) {
+                        $('#cost_center').val(String(receiptDuplicateDefaults.cost_center_id)).trigger('change');
+                    }
+                    if (cid) {
+                        $('#client_id').val(String(cid)).trigger('change');
+                    }
+                    if ($('#specified_invoices').is(':checked') && cid) {
+                        getTransaction(cid);
+                    }
+                }, 500);
             }
 
             $('#sell_save').on('submit', function(e) {

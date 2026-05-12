@@ -34,6 +34,7 @@ return [
     'invoice_amount' => 'Invoice Amount',
     'date' => 'Date',
     'invoice_number' => 'Invoice Number',
+    'payment_ref' => 'Payment ref.',
     'select_transactions' => ' Select Transactions',
     'transaction_ref_no' => 'Invoice ٌRef No',
     'paid_on' => 'Piad on',
