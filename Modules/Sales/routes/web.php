@@ -55,6 +55,11 @@ Route::middleware([
         Route::get('create-receipts', [ReceiptsController::class, 'create'])->name('create-receipts');
         Route::post('store-receipts', [ReceiptsController::class, 'store'])->name('store-receipts');
 
+        Route::get('receipts-payments/{payment}/edit', [ReceiptsController::class, 'editPayment'])->name('receipts-payments.edit');
+        Route::put('receipts-payments/{payment}', [ReceiptsController::class, 'updatePayment'])->name('receipts-payments.update');
+        Route::delete('receipts-payments/{payment}', [ReceiptsController::class, 'destroyPayment'])->name('receipts-payments.destroy');
+        Route::get('receipts-payments/{payment}/duplicate', [ReceiptsController::class, 'duplicatePayment'])->name('receipts-payments.duplicate');
+
         Route::get('get-transactions/{clientId}', [ReceiptsController::class, 'getTransactions'])->name('get-transactions');
 
         Route::controller(CouponController::class)->prefix('coupon')->name('coupons.')->group(function () {

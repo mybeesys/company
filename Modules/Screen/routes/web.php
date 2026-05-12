@@ -48,11 +48,14 @@ Route::middleware([
         Route::get('get-promos/{playlist}', 'getPlaylistPromos')->name('get-playlist-promos');
     });
 
-    Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function () {
-        Route::post('/store', 'store')->name('store');
-        Route::get('/index', 'index')->name('index');
-        Route::patch('/{device}', 'update')->name('update');
-        Route::delete('/{device}', 'destroy')->name('delete');
-        Route::get('/by-establishments', 'byEstablishments')->name('by-establishments');
+    Route::middleware(['auth'])->group(function () {
+        Route::controller(DeviceController::class)->prefix('device')->name('devices.')->group(function () {
+            Route::post('/store', 'store')->name('store');
+            Route::get('/index', 'index')->name('index');
+            Route::get('/by-establishments', 'byEstablishments')->name('by-establishments');
+            Route::post('/{device}/regenerate-screen-pairing', 'regenerateScreenPairing')->name('regenerate-screen-pairing');
+            Route::patch('/{device}', 'update')->name('update');
+            Route::delete('/{device}', 'destroy')->name('delete');
+        });
     });
 });

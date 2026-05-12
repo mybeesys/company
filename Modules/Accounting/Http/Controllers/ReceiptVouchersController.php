@@ -17,30 +17,12 @@ class ReceiptVouchersController extends Controller
 {
     private function buildViewPayload(int $id): array
     {
-        [$debit, $credit] = StandaloneVoucherHelper::receiptLines($id);
-        $debit->loadMissing(['account', 'createdBy', 'costCenter']);
-        $credit->loadMissing(['account']);
-
-        $costCenterLabel = $debit->costCenter
-            ? ($debit->costCenter->account_center_number.' - '.(app()->getLocale() === 'ar' ? $debit->costCenter->name_ar : $debit->costCenter->name_en))
-            : '--';
-        $createdByLabel = $debit->createdBy->name ?? '--';
-        $debitAccountLabel = $debit->account->gl_code.' - '.(app()->getLocale() === 'ar' ? $debit->account->name_ar : $debit->account->name_en);
-        $creditAccountLabel = $credit->account->gl_code.' - '.(app()->getLocale() === 'ar' ? $credit->account->name_ar : $credit->account->name_en);
-
-        return [
-            'pageTitle' => __('menuItemLang.receipt_vouchers'),
-            'date' => $debit->operation_date,
-            'amount' => $debit->amount,
-            'note' => $debit->note,
-            'debitAccountLabel' => $debitAccountLabel,
-            'creditAccountLabel' => $creditAccountLabel,
-            'debitHint' => __('accounting::lang.voucher_receipt_debit_hint'),
-            'creditHint' => __('accounting::lang.voucher_receipt_credit_hint'),
-            'costCenterLabel' => $costCenterLabel,
-            'createdByLabel' => $createdByLabel,
-            'pdfUrl' => route('receipt-vouchers-export-pdf', ['id' => $id]),
-        ];
+        return array_merge(
+            StandaloneVoucherHelper::buildVoucherViewPayload($id, 'receipt_voucher'),
+            [
+                'pdfUrl' => route('receipt-vouchers-export-pdf', ['id' => $id]),
+            ]
+        );
     }
 
     /**
@@ -185,13 +167,17 @@ class ReceiptVouchersController extends Controller
         } catch (ModelNotFoundException $e) {
             return redirect()->route('receipt-vouchers')->with('error', __('accounting::lang.voucher_line_not_found'));
         }
-        $html = view('accounting::vouchers.print', $payload)->render();
+        $html = view('accounting::vouchers.print', array_merge($payload, ['forPrint' => true]))->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4',
+            'format' => 'A4-L',
             'default_font' => 'DejaVuSans',
-            'default_font_size' => 12,
+            'default_font_size' => 11,
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'margin_top' => 12,
+            'margin_bottom' => 12,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
         ]);

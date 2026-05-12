@@ -14,13 +14,15 @@
 <div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ $class }}">
         <div class="modal-content">
-            <div class="modal-header mb-2 {{ $header_class }}">
-                @if ($title)
-                    <h2 class="fw-bold">@lang($module . '::general.' . $title)</h2>
-                @else
-                    {{ $header }}
-                @endif
-                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+            <div class="modal-header mb-2 d-flex align-items-start justify-content-between gap-3 border-0 pb-0 {{ $header_class }}">
+                <div class="flex-grow-1 min-w-0">
+                    @if ($title)
+                        <h2 class="fw-bold mb-0">@lang($module . '::general.' . $title)</h2>
+                    @else
+                        {{ $header }}
+                    @endif
+                </div>
+                <div class="btn btn-icon btn-sm btn-active-icon-primary flex-shrink-0 mt-n1" data-bs-dismiss="modal">
                     <i class="ki-outline ki-cross fs-1"></i>
                 </div>
             </div>

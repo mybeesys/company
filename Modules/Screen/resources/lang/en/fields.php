@@ -3,5 +3,6 @@
 return [
     'promo' => 'Ad material',
     'days_settings' => 'Days settings',
-    'device' => 'device',
+    'device' => 'Device',
+    'device_code' => 'Device code / name',
 ];

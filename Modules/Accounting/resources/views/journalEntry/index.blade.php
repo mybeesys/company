@@ -177,13 +177,10 @@
                         data: 'created_by',
                         name: 'created_by'
                     },
-{
-                        data: 'sub_type',
-                        name: 'sub_type'
+                    {
+                        data: 'total_amount',
+                        name: 'total_amount'
                     },
-
-
-
                     {
                         data: 'note',
                         name: 'note'
