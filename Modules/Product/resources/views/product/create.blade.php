@@ -50,7 +50,8 @@
         listModifier-url="{{json_encode(route('modifierClassList'))}}"
         listRecipe-url="{{json_encode(route('listRecipebyProduct'))}}"
         ingredientProductUrl-url="{{json_encode(route('ingredientProductList'))}}"
-        dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
+        product-permission="{{ $product_permission }}"
+        dir="{{ app()->currentLocale() == 'ar' ? 'rtl' : 'ltr' }}">
      </div>
 
 @endsection

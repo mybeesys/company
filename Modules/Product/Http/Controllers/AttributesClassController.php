@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Http\Controllers;
 
+use App\Helpers\FranchiseProductCatalog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class AttributesClassController extends Controller
 
         $query = AttributeClass::query();
 
-        if ($user && $user->franchise_id) {
+        if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
             $query->whereHas('children', function ($q) use ($user) {
                 $q->whereExists(function ($subQ) use ($user) {
                     $subQ->select(DB::raw(1))

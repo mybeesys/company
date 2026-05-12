@@ -159,10 +159,14 @@ const ModifierComponent = ({ translations, dir }) => {
     const getModifierLOVs = async () => {
         const response = await axios.get("/modifierLOVs/" + modifier.id);
 
-        const ingredient = response.data.ingredient.map((e) => {
+        const ingredient = (response.data.ingredient || []).map((e) => {
+            const value =
+                e.recipe_option_value != null && e.recipe_option_value !== ""
+                    ? e.recipe_option_value
+                    : `${e.id}-i`;
             return {
                 label: getName(e.name_en, e.name_ar),
-                value: e.id + e.type,
+                value,
                 cost: e.cost,
             };
         });

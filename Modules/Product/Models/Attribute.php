@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Models;
 
+use App\Helpers\FranchiseProductCatalog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 // use Modules\Product\Database\Factories\ModifierFactory;
@@ -32,7 +33,7 @@ class Attribute extends Model
     {
         $user = auth()->user();
 
-        if ($user && $user->franchise_id) {
+        if ($user && $user->franchise_id && FranchiseProductCatalog::restrictsToGrantedProductsOnly($user)) {
             return $query->whereExists(function ($q) use ($user) {
                 $q->select(DB::raw(1))
                     ->from('franchise_product_permissions')

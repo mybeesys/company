@@ -55,7 +55,7 @@
     ingredientProductUrl-url="{{json_encode(route('ingredientProductList'))}}"
     product-permission="{{ $product_permission }}"
 
-    dir="{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}">
+    dir="{{ app()->currentLocale() == 'ar' ? 'rtl' : 'ltr' }}">
 </div>
 
 @endsection

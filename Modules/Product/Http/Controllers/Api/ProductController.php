@@ -81,8 +81,8 @@ class ProductController extends Controller
         $mappedCategories = array_map(function ($item) {
             $newItem['id'] = $item['id'];
             $newItem['parent_id'] = null;
-            $newItem['name_ar'] = $item['name_en'];
-            $newItem['name_en'] = $item['name_en'];
+            $newItem['name_ar'] = $item['name_ar'] ?? '';
+            $newItem['name_en'] = $item['name_en'] ?? '';
             $newItem['type'] = 'category';
 
             return $newItem;
@@ -92,15 +92,15 @@ class ProductController extends Controller
         $mappedSubcategories = array_map(function ($item) {
             $newItem['id'] = $item['id'];
             $newItem['parent_id'] = $item['category_id'];
-            $newItem['name_ar'] = $item['name_en'];
-            $newItem['name_en'] = $item['name_en'];
+            $newItem['name_ar'] = $item['name_ar'] ?? '';
+            $newItem['name_en'] = $item['name_en'] ?? '';
             $newItem['type'] = 'subcategory'; // Add an extra field
 
             return $newItem;
         }, $subCategories->toArray());
         $result = array_merge($mappedCategories, $mappedSubcategories);
 
-        return response()->json($result);
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function modifiers(Request $request)

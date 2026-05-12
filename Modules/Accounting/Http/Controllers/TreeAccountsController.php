@@ -41,7 +41,8 @@ class TreeAccountsController extends Controller
 
     /**
      * Visible ledger table columns from ?ledger_cols= ref_no,operation_date,...
-     * Default: all columns except "transaction" (movement). "balance" is always included.
+     * Default: all columns including "transaction" (يُعرض بجانب المرجع وليس عموداً منفصلاً في الجدول).
+     * "balance" is always included.
      *
      * @return list<string>
      */
@@ -53,7 +54,7 @@ class TreeAccountsController extends Controller
             $cols = array_values(array_filter(array_map('trim', explode(',', $raw))));
             $cols = array_values(array_intersect($order, $cols));
         } else {
-            $cols = array_values(array_diff($order, ['transaction']));
+            $cols = $order;
         }
         if (! in_array('balance', $cols, true)) {
             $cols[] = 'balance';
@@ -77,42 +78,6 @@ class TreeAccountsController extends Controller
         return array_values((array) ($request->input('choose_cost_center_select', [])));
     }
 
-    /**
-     * Transaction sub_type filter(s) from the ledger form. Supports sub_type[]=a&sub_type[]=b,
-     * legacy single sub_type=sell, or comma-separated string.
-     *
-     * @return list<string>
-     */
-    protected function ledgerSubTypesFromRequest(Request $request): array
-    {
-        $raw = $request->input('sub_type');
-        if ($raw === null || $raw === '' || $raw === []) {
-            return [];
-        }
-        if (is_array($raw)) {
-            return array_values(array_unique(array_filter(
-                array_map('strval', $raw),
-                fn ($s) => $s !== ''
-            )));
-        }
-        if (is_string($raw)) {
-            $raw = trim($raw);
-            if ($raw === '') {
-                return [];
-            }
-            if (str_contains($raw, ',')) {
-                return array_values(array_unique(array_filter(
-                    array_map('trim', explode(',', $raw)),
-                    fn ($s) => $s !== ''
-                )));
-            }
-
-            return [$raw];
-        }
-
-        return [(string) $raw];
-    }
-
     protected function ledgerIsDebitNature(AccountingAccount $account): bool
     {
         return in_array($account->account_primary_type, ['asset', 'expenses', 'analytical_accounts'], true);
@@ -121,15 +86,12 @@ class TreeAccountsController extends Controller
     /**
      * Opening balance before start_date (same cost-center scope as the ledger body).
      */
-    protected function buildLedgerOpeningBalance(AccountingAccount $account, array $costCenterIds, string $startDate, array $subTypes = []): float
+    protected function buildLedgerOpeningBalance(AccountingAccount $account, array $costCenterIds, string $startDate): float
     {
         $isDebitNature = $this->ledgerIsDebitNature($account);
         $openingQuery = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
             ->when($costCenterIds, function ($query) use ($costCenterIds) {
                 return $query->whereIn('cost_center_id', $costCenterIds);
-            })
-            ->when($subTypes !== [], function ($query) use ($subTypes) {
-                return $query->whereIn('sub_type', $subTypes);
             })
             ->where('operation_date', '<', $startDate);
 
@@ -148,16 +110,12 @@ class TreeAccountsController extends Controller
     {
         $costCenters = $this->ledgerCostCenters($request);
         [$start, $end] = $this->ledgerDateRange($request);
-        $subTypes = $this->ledgerSubTypesFromRequest($request);
 
         return AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'account', 'costCenter'])
             ->where('accounting_account_id', $account->id)
             ->whereBetween('operation_date', [$start, $end])
             ->when($costCenters, function ($query) use ($costCenters) {
                 return $query->whereIn('cost_center_id', $costCenters);
-            })
-            ->when($subTypes !== [], function ($query) use ($subTypes) {
-                return $query->whereIn('sub_type', $subTypes);
             })
             ->when($request->filled('ref_no'), function ($query) use ($request) {
                 $refNo = trim((string) $request->ref_no);
@@ -185,10 +143,6 @@ class TreeAccountsController extends Controller
             'start_date' => $startDate,
             'end_date' => $endDate,
         ];
-        $subTypes = $this->ledgerSubTypesFromRequest($request);
-        if ($subTypes !== []) {
-            $params['sub_type'] = $subTypes;
-        }
         if ($request->filled('ref_no')) {
             $params['ref_no'] = $request->ref_no;
         }
@@ -586,8 +540,7 @@ class TreeAccountsController extends Controller
         $account_type = $account->account_primary_type;
         $is_debit_nature = $this->ledgerIsDebitNature($account);
 
-        $ledgerSelectedSubTypes = $this->ledgerSubTypesFromRequest($request);
-        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date, $ledgerSelectedSubTypes);
+        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
         $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->paginate(10);
 
@@ -605,14 +558,6 @@ class TreeAccountsController extends Controller
         $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
         $accountingAccount = AccountingAccount::forDropdown();
-        $subTypes = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
-            ->select('sub_type')
-            ->whereNotNull('sub_type')
-            ->distinct()
-            ->pluck('sub_type')
-            ->filter(fn ($type) => filled($type))
-            ->values();
-
         $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
         $ledger_export_base_params = $this->ledgerExportBaseParams($request, $start_date, $end_date);
 
@@ -625,8 +570,6 @@ class TreeAccountsController extends Controller
             'end_date',
             'choose_cost_center_select',
             'costCenters',
-            'subTypes',
-            'ledgerSelectedSubTypes',
             'previous',
             'next',
             'accountingAccount',
@@ -649,8 +592,7 @@ class TreeAccountsController extends Controller
         $choose_cost_center_select = $this->ledgerCostCenters($request);
         [$start_date, $end_date] = $this->ledgerDateRange($request);
         $is_debit_nature = $this->ledgerIsDebitNature($account);
-        $ledgerSubTypes = $this->ledgerSubTypesFromRequest($request);
-        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date, $ledgerSubTypes);
+        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
         $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
 
@@ -691,8 +633,7 @@ class TreeAccountsController extends Controller
         $choose_cost_center_select = $this->ledgerCostCenters($request);
         [$start_date, $end_date] = $this->ledgerDateRange($request);
         $is_debit_nature = $this->ledgerIsDebitNature($account);
-        $ledgerSubTypes = $this->ledgerSubTypesFromRequest($request);
-        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date, $ledgerSubTypes);
+        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
         $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
 
@@ -746,8 +687,7 @@ class TreeAccountsController extends Controller
         $choose_cost_center_select = $this->ledgerCostCenters($request);
         [$start_date, $end_date] = $this->ledgerDateRange($request);
         $is_debit_nature = $this->ledgerIsDebitNature($account);
-        $ledgerSubTypes = $this->ledgerSubTypesFromRequest($request);
-        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date, $ledgerSubTypes);
+        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
         $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
 

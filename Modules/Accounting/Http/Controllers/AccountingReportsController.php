@@ -3,7 +3,9 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
@@ -99,17 +101,21 @@ class AccountingReportsController extends Controller
         $operation_income = $gross_profit - $total_expense;
         $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
 
-        $tax = Tax::query()->value('amount') ?? 0;
-        $tax_amount = ($tax * $income_before_tax) / 100;
+        // ضريبة على الربح فقط (لا تُحسب على خسارة الفترة) — أنسب لنموذج نسبة من الربح المحاسبي
+        $taxPercent = (float) (Tax::query()->value('amount') ?? 0);
+        $taxableBase = max(0.0, (float) $income_before_tax);
+        $tax_amount = ($taxPercent * $taxableBase) / 100;
 
         return [
             'gross_profit' => $gross_profit,
             'operation_income' => $operation_income,
+            'operating_profit' => $operation_income,
             'income_before_tax' => $income_before_tax,
             'tax_amount' => $tax_amount,
             'revenue_net' => $revenue_net,
             'cost_of_revenue' => $cost_of_revenue,
             'total_expense' => $total_expense,
+            'total_operating_expenses' => $total_expense,
             'total_other_income' => $total_other_income,
             'total_other_expense' => $total_other_expense,
         ];
@@ -126,6 +132,7 @@ class AccountingReportsController extends Controller
         $accounts = $incomeDataset['accounts'];
         $data = $incomeDataset['data'];
         $revenueAccounts = $incomeDataset['revenueAccounts'];
+        $cogsAccounts = $incomeDataset['cogsAccounts'];
         $expenseAccounts = $incomeDataset['expenseAccounts'];
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
@@ -134,6 +141,7 @@ class AccountingReportsController extends Controller
             ->with(compact(
                 'accounts',
                 'revenueAccounts',
+                'cogsAccounts',
                 'expenseAccounts',
                 'start_date',
                 'end_date',
@@ -157,6 +165,7 @@ class AccountingReportsController extends Controller
             'end_date' => $end_date,
             'data' => $incomeDataset['data'],
             'revenueAccounts' => $incomeDataset['revenueAccounts'],
+            'cogsAccounts' => $incomeDataset['cogsAccounts'],
             'expenseAccounts' => $incomeDataset['expenseAccounts'],
         ])->render();
 
@@ -185,20 +194,31 @@ class AccountingReportsController extends Controller
         $rows = collect();
         foreach ($incomeDataset['revenueAccounts'] as $account) {
             $rows->push([
-                __('accounting::lang.Revenues').' - '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
+                __('accounting::lang.Revenues').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
                 number_format((float) $account->amount, 2, '.', ''),
             ]);
         }
         $rows->push([__('accounting::lang.total').' '.__('accounting::lang.Revenues'), number_format((float) ($incomeDataset['data']['revenue_net'] ?? 0), 2, '.', '')]);
 
-        foreach ($incomeDataset['expenseAccounts'] as $account) {
+        foreach ($incomeDataset['cogsAccounts'] as $account) {
             $rows->push([
-                __('accounting::lang.account_types.expenses').' - '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
+                __('accounting::lang.income_statement_cost_of_revenue').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
                 number_format((float) $account->amount, 2, '.', ''),
             ]);
         }
-        $rows->push([__('accounting::lang.total').' '.__('accounting::lang.account_types.expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
+        if ($incomeDataset['cogsAccounts']->isNotEmpty()) {
+            $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), number_format((float) ($incomeDataset['data']['cost_of_revenue'] ?? 0), 2, '.', '')]);
+        }
         $rows->push([__('report::general.gross_profit'), number_format((float) ($incomeDataset['data']['gross_profit'] ?? 0), 2, '.', '')]);
+
+        foreach ($incomeDataset['expenseAccounts'] as $account) {
+            $rows->push([
+                __('accounting::lang.income_statement_operating_expenses').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
+                number_format((float) $account->amount, 2, '.', ''),
+            ]);
+        }
+        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
+        $rows->push([__('accounting::lang.income_statement_operating_profit'), number_format((float) ($incomeDataset['data']['operating_profit'] ?? $incomeDataset['data']['operation_income'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.income_before_tax'), number_format((float) ($incomeDataset['data']['income_before_tax'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.tax_amount'), number_format((float) ($incomeDataset['data']['tax_amount'] ?? 0), 2, '.', '')]);
         $rows->push([__('accounting::lang.net_profit'), number_format((float) (($incomeDataset['data']['income_before_tax'] ?? 0) - ($incomeDataset['data']['tax_amount'] ?? 0)), 2, '.', '')]);
@@ -216,39 +236,57 @@ class AccountingReportsController extends Controller
 
     private function buildIncomeStatementDataset(string $start_date, string $end_date, array $choose_cost_center_select): array
     {
-        $accounts = AccountingAccount::join(
-            'accounting_accounts_transactions as AAT',
-            'AAT.accounting_account_id',
-            '=',
-            'accounting_accounts.id'
-        )
+        $accounts = AccountingAccount::query()
+            ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
+            ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
             ->whereBetween('AAT.operation_date', [$start_date, $end_date])
-            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
-                return $query->whereIn('cost_center_id', $choose_cost_center_select);
+            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
+                $query->whereIn('AAT.cost_center_id', $choose_cost_center_select);
             })
             ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
             ->select(
+                'accounting_accounts.id',
+                'accounting_accounts.name_ar',
+                'accounting_accounts.name_en',
+                'accounting_accounts.gl_code',
+                'accounting_accounts.account_type',
+                'acc_subtype.name_en as account_sub_type_name_en',
                 DB::raw("SUM(IF(AAT.type = 'credit' , AAT.amount, 0)) as credit_balance"),
                 DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
-                'accounting_accounts.name_ar',
-                'accounting_accounts.name_en',
-                'accounting_accounts.gl_code',
-                'accounting_accounts.account_type as acc_type'
             )
             ->groupBy(
+                'accounting_accounts.id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
-                'accounting_accounts.account_type'
+                'accounting_accounts.account_type',
+                'acc_subtype.name_en',
             )
             ->orderBy('accounting_accounts.gl_code')
-            ->get();
+            ->get()
+            ->map(function ($account) {
+                $isCogs = $account->account_type === 'expenses'
+                    && ($account->account_sub_type_name_en === 'Cost Of Sales');
+                $account->acc_type = $isCogs ? 'cost_of_sales' : $account->account_type;
+
+                return $account;
+            });
 
         $data = $this->getIcomeStatementData($accounts);
         $revenueAccounts = $accounts
             ->where('acc_type', 'income')
             ->map(function ($account) {
                 $account->amount = (float) $account->credit_balance - (float) $account->debit_balance;
+
+                return $account;
+            })
+            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
+            ->values();
+
+        $cogsAccounts = $accounts
+            ->where('acc_type', 'cost_of_sales')
+            ->map(function ($account) {
+                $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
 
                 return $account;
             })
@@ -269,6 +307,7 @@ class AccountingReportsController extends Controller
             'accounts' => $accounts,
             'data' => $data,
             'revenueAccounts' => $revenueAccounts,
+            'cogsAccounts' => $cogsAccounts,
             'expenseAccounts' => $expenseAccounts,
         ];
     }
@@ -284,9 +323,10 @@ class AccountingReportsController extends Controller
                 $account_type['label'];
         }
 
-        $with_zero_balances = $request->input('with_zero_balances', 0);
+        $with_zero_balances = (int) $request->input('with_zero_balances', 0);
 
-        $aggregated = $request->input('aggregated', 0);
+        /** @see Qoyod-style default: grouped by primary classification */
+        $aggregated = (int) $request->input('aggregated', 1);
 
         $choose_accounts_select = $request->input('choose_accounts_select');
         $choose_cost_center_select = $request->input('choose_cost_center_select');
@@ -320,139 +360,20 @@ class AccountingReportsController extends Controller
             $end_date = now()->format('Y-m-d');
         }
 
-        if ($with_zero_balances == 0) {
-            // Fetch accounts that have non-zero balances
-            $accounts = AccountingAccount::join(
-                'accounting_accounts_transactions as AAT',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-                ->where(function ($query) use ($start_date, $end_date) {
-                    $query->where(function ($query) use ($start_date, $end_date) {
-                        $query->whereDate('AAT.operation_date', '>=', $start_date)
-                            ->whereDate('AAT.operation_date', '<=', $end_date);
-                    })
-                        ->orWhere(function ($query) use ($start_date, $end_date) {
-                            $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                                ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                        });
-                });
-        } elseif ($with_zero_balances == 1) {
-            // Fetch all accounts, including zero balance ones
-            $accounts = AccountingAccount::leftJoin(
-                'accounting_accounts_transactions as AAT',
-                function ($join) use ($start_date, $end_date) {
-                    $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
-                        ->where(function ($query) use ($start_date, $end_date) {
-                            $query->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                        })
+        $costCenterIds = array_values(array_filter((array) ($choose_cost_center_select ?? [])));
 
-                        ->orWhere(function ($query) use ($start_date, $end_date) {
-                            $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                                ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                        });
-                }
-            );
-        } elseif ($with_zero_balances == 2) {
-            // Fetch only accounts with zero balances
-            $accounts = AccountingAccount::leftJoin(
-                'accounting_accounts_transactions as AAT',
-                function ($join) use ($start_date, $end_date) {
-                    $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
-                        ->where(function ($query) use ($start_date, $end_date) {
-                            $query->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                        })
-                        ->orWhere(function ($query) use ($start_date, $end_date) {
-                            $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                                ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                        });
-                }
-            )
-                ->havingRaw("SUM(IF(AAT.type = 'credit', AAT.amount, 0)) = 0")
-                ->havingRaw("SUM(IF(AAT.type = 'debit', AAT.amount, 0)) = 0")
-                ->havingRaw("IFNULL((SELECT AAT.amount FROM accounting_accounts_transactions as AAT
-                    WHERE AAT.accounting_account_id = accounting_accounts.id
-                    AND AAT.type = 'credit'
-                    ORDER BY AAT.operation_date ASC
-                    LIMIT 1), 0) = 0")
-                ->havingRaw("IFNULL((SELECT AAT.amount FROM accounting_accounts_transactions as AAT
-                    WHERE AAT.accounting_account_id = accounting_accounts.id
-                    AND AAT.type = 'debit'
-                    ORDER BY AAT.operation_date ASC LIMIT 1), 0) = 0");
-        }
+        $baseRows = $this->queryTrialBalanceAccountRows(
+            $start_date,
+            $end_date,
+            $with_zero_balances,
+            $choose_accounts_select,
+            $costCenterIds,
+            $level_filter
+        );
 
-        // return $accounts->get();
-        $accounts->when($choose_accounts_select, function ($query, $choose_accounts_select) {
-            return $query->where(function ($query) use ($choose_accounts_select) {
-                foreach ($choose_accounts_select as $type) {
-                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type.'%');
-                }
-            });
-        })
-
-            ->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
-                return $query->whereIn('cost_center_id', $choose_cost_center_select);
-            })
-            ->when($level_filter, function ($query, $level_filter) {
-
-                return $query
-                    ->whereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) = ?', [$level_filter - 1])
-                    ->orwhereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) < ?', [$level_filter - 1]);
-            })
-            ->select(
-                DB::raw("IF($aggregated = 1, accounting_accounts.account_primary_type, accounting_accounts.name_ar) as name"),
-                DB::raw("SUM(IF(AAT.type = 'credit', AAT.amount, 0)) as credit_balance"),
-                DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
-                DB::raw("(SELECT AAT_IN.amount
-                FROM accounting_accounts_transactions as AAT_IN
-                WHERE AAT_IN.accounting_account_id = accounting_accounts.id
-                AND AAT_IN.type = 'debit'
-                ORDER BY AAT_IN.operation_date ASC LIMIT 1) as debit_opening_balance"),
-                DB::raw("(SELECT AAT_IN.amount
-                FROM accounting_accounts_transactions as AAT_IN
-                WHERE AAT_IN.accounting_account_id = accounting_accounts.id
-                AND AAT_IN.type = 'credit'
-                ORDER BY AAT_IN.operation_date ASC LIMIT 1) as credit_opening_balance"),
-                'AAT.sub_type as sub_type',
-                'AAT.type as type',
-                'accounting_accounts.gl_code',
-                'accounting_accounts.id'
-            )
-            /* ->when($level_filter, function ($query, $level_filter) {
-                return $query->havingRaw('code_length <= ?', [$level_filter - 1]);
-                }) */
-            ->groupBy(
-                'name',
-                'AAT.sub_type',
-                'AAT.type',
-                'accounting_accounts.gl_code',
-                'accounting_accounts.id'
-            )->orderBy('accounting_accounts.gl_code');
-
-        // return $accounts->get();
-        if ($aggregated) {
-            $aggregatedAccounts = [];
-            foreach ($accounts->get() as $account) {
-
-                $groupKey = $account->name;
-                if (! isset($aggregatedAccounts[$groupKey])) {
-                    $aggregatedAccounts[$groupKey] = (object) [
-                        'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
-                        'gl_code' => $account->gl_code[0],
-                        'credit_balance' => 0,
-                        'debit_balance' => 0,
-                        'credit_opening_balance' => 0,
-                        'debit_opening_balance' => 0,
-                    ];
-                }
-                $aggregatedAccounts[$groupKey]->credit_balance += $account->credit_balance;
-                $aggregatedAccounts[$groupKey]->debit_balance += $account->debit_balance;
-                $aggregatedAccounts[$groupKey]->credit_opening_balance += $account->credit_opening_balance;
-                $aggregatedAccounts[$groupKey]->debit_opening_balance += $account->debit_opening_balance;
-            }
-            $accounts = $aggregatedAccounts;
-        }
+        $accounts = $aggregated
+            ? collect($this->aggregateTrialBalanceRows($baseRows))
+            : $baseRows;
 
         if (request()->ajax()) {
             $totalDebitOpeningBalance = 0;
@@ -462,7 +383,7 @@ class AccountingReportsController extends Controller
             $totalDebitBalance = 0;
             $totalCreditBalance = 0;
 
-            foreach ($aggregated ? $accounts : $accounts->get() as $account) {
+            foreach ($accounts as $account) {
                 $totalDebitBalance += $account->debit_balance;
                 $totalCreditBalance += $account->credit_balance;
                 $totalDebitOpeningBalance += $account->debit_opening_balance;
@@ -483,50 +404,48 @@ class AccountingReportsController extends Controller
                     return $account->name;
                 })
                 ->editColumn('debit_balance', function ($account) {
-                    return $account->debit_balance ?? 0;
+                    return $this->roundMoney($account->debit_balance ?? 0);
                 })
                 ->editColumn('debit_opening_balance', function ($account) {
-                    return $account->debit_opening_balance ?? 0;
+                    return $this->roundMoney($account->debit_opening_balance ?? 0);
                 })
                 ->editColumn('credit_opening_balance', function ($account) {
-                    return $account->credit_opening_balance ?? 0;
+                    return $this->roundMoney($account->credit_opening_balance ?? 0);
                 })
 
                 ->editColumn('credit_balance', function ($account) {
-                    return $account->credit_balance ?? 0;
+                    return $this->roundMoney($account->credit_balance ?? 0);
                 })
                 ->addColumn('closing_debit_balance', function ($account) {
                     $closing_balance = $this->calculateClosingBalance($account);
 
-                    return $closing_balance['closing_debit_balance'] ?? 0;
+                    return $this->roundMoney($closing_balance['closing_debit_balance'] ?? 0);
                 })
                 ->addColumn('closing_credit_balance', function ($account) {
                     $closing_balance = $this->calculateClosingBalance($account);
 
-                    return $closing_balance['closing_credit_balance'] ?? 0;
+                    return $this->roundMoney($closing_balance['closing_credit_balance'] ?? 0);
                 })
                 ->addColumn('action', function ($account) use ($aggregated) {
                     if (! $aggregated) {
-                        return '<div class="btn-group">
-                                <button type="button" class="btn btn-info btn-xs" >'.'
-                                    <a class=" btn-modal text-white" data-container="#printledger"
-                                        href="'.action('\Modules\Accounting\Http\Controllers\TreeAccountsController@ledgerPrint', [$account->id]).'"
-                                    >
-                                        '.__('accounting::lang.account_statement').'
-                                    </a>
-                                </button>
-                            </div>';
+                        $label = e(__('accounting::lang.account_statement'));
+                        $url = e(route('print-ledger', $account->id));
+
+                        return '<a class="btn btn-sm tb-ledger-btn btn-modal d-inline-flex align-items-center gap-1 text-nowrap" '
+                            .'data-container="#printledger" href="'.$url.'" title="'.$label.'">'
+                            .'<i class="fa-solid fa-file-lines" aria-hidden="true"></i>'
+                            .'<span>'.$label.'</span></a>';
                     }
 
                     return '';
                 })
                 ->with([
-                    'totalDebitOpeningBalance' => $totalDebitOpeningBalance,
-                    'totalCreditOpeningBalance' => $totalCreditOpeningBalance,
-                    'totalDebitBalance' => $totalDebitBalance,
-                    'totalCreditBalance' => $totalCreditBalance,
-                    'totalClosingDebitBalance' => $totalClosingDebitBalance,
-                    'totalClosingCreditBalance' => $totalClosingCreditBalance,
+                    'totalDebitOpeningBalance' => $this->roundMoney($totalDebitOpeningBalance),
+                    'totalCreditOpeningBalance' => $this->roundMoney($totalCreditOpeningBalance),
+                    'totalDebitBalance' => $this->roundMoney($totalDebitBalance),
+                    'totalCreditBalance' => $this->roundMoney($totalCreditBalance),
+                    'totalClosingDebitBalance' => $this->roundMoney($totalClosingDebitBalance),
+                    'totalClosingCreditBalance' => $this->roundMoney($totalClosingCreditBalance),
                 ])
                 ->rawColumns(['action', 'closing_credit_balance', 'closing_debit_balance', 'credit_balance', 'debit_balance', 'name', 'gl_code'])
 
@@ -593,8 +512,8 @@ class AccountingReportsController extends Controller
 
     private function getTrialBalanceExportDataset(Request $request): array
     {
-        $with_zero_balances = $request->input('with_zero_balances', 0);
-        $aggregated = $request->input('aggregated', 0);
+        $with_zero_balances = (int) $request->input('with_zero_balances', 0);
+        $aggregated = (int) $request->input('aggregated', 1);
         $choose_accounts_select = $request->input('choose_accounts_select');
         $choose_cost_center_select = $request->input('choose_cost_center_select');
         $level_filter = $request->input('level_filter');
@@ -607,115 +526,20 @@ class AccountingReportsController extends Controller
             $end_date = now()->format('Y-m-d');
         }
 
-        if ($with_zero_balances == 0) {
-            $accounts = AccountingAccount::join(
-                'accounting_accounts_transactions as AAT',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )->where(function ($query) use ($start_date, $end_date) {
-                $query->where(function ($query) use ($start_date, $end_date) {
-                    $query->whereDate('AAT.operation_date', '>=', $start_date)
-                        ->whereDate('AAT.operation_date', '<=', $end_date);
-                })->orWhere(function ($query) use ($start_date, $end_date) {
-                    $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                        ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                });
-            });
-        } elseif ($with_zero_balances == 1) {
-            $accounts = AccountingAccount::leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($start_date, $end_date) {
-                $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
-                    ->where(function ($query) use ($start_date, $end_date) {
-                        $query->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                    })->orWhere(function ($query) use ($start_date, $end_date) {
-                        $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                            ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                    });
-            });
-        } else {
-            $accounts = AccountingAccount::leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($start_date, $end_date) {
-                $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
-                    ->where(function ($query) use ($start_date, $end_date) {
-                        $query->whereBetween('AAT.operation_date', [$start_date, $end_date]);
-                    })->orWhere(function ($query) use ($start_date, $end_date) {
-                        $query->whereYear('AAT.operation_date', '>=', date('Y', strtotime($start_date)))
-                            ->whereYear('AAT.operation_date', '<=', date('Y', strtotime($end_date)));
-                    });
-            })
-                ->havingRaw("SUM(IF(AAT.type = 'credit', AAT.amount, 0)) = 0")
-                ->havingRaw("SUM(IF(AAT.type = 'debit', AAT.amount, 0)) = 0")
-                ->havingRaw("IFNULL((SELECT AAT.amount FROM accounting_accounts_transactions as AAT
-                    WHERE AAT.accounting_account_id = accounting_accounts.id
-                    AND AAT.type = 'credit'
-                    ORDER BY AAT.operation_date ASC
-                    LIMIT 1), 0) = 0")
-                ->havingRaw("IFNULL((SELECT AAT.amount FROM accounting_accounts_transactions as AAT
-                    WHERE AAT.accounting_account_id = accounting_accounts.id
-                    AND AAT.type = 'debit'
-                    ORDER BY AAT.operation_date ASC LIMIT 1), 0) = 0");
-        }
+        $costCenterIds = array_values(array_filter((array) ($choose_cost_center_select ?? [])));
 
-        $accounts->when($choose_accounts_select, function ($query, $choose_accounts_select) {
-            return $query->where(function ($query) use ($choose_accounts_select) {
-                foreach ($choose_accounts_select as $type) {
-                    $query->orWhere('accounting_accounts.account_primary_type', 'like', $type.'%');
-                }
-            });
-        })->when($choose_cost_center_select, function ($query, $choose_cost_center_select) {
-            return $query->whereIn('cost_center_id', $choose_cost_center_select);
-        })->when($level_filter, function ($query, $level_filter) {
-            return $query
-                ->whereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) = ?', [$level_filter - 1])
-                ->orwhereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) < ?', [$level_filter - 1]);
-        })->select(
-            DB::raw("IF($aggregated = 1, accounting_accounts.account_primary_type, accounting_accounts.name_ar) as name"),
-            DB::raw("SUM(IF(AAT.type = 'credit', AAT.amount, 0)) as credit_balance"),
-            DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
-            DB::raw("(SELECT AAT_IN.amount
-                FROM accounting_accounts_transactions as AAT_IN
-                WHERE AAT_IN.accounting_account_id = accounting_accounts.id
-                AND AAT_IN.type = 'debit'
-                ORDER BY AAT_IN.operation_date ASC LIMIT 1) as debit_opening_balance"),
-            DB::raw("(SELECT AAT_IN.amount
-                FROM accounting_accounts_transactions as AAT_IN
-                WHERE AAT_IN.accounting_account_id = accounting_accounts.id
-                AND AAT_IN.type = 'credit'
-                ORDER BY AAT_IN.operation_date ASC LIMIT 1) as credit_opening_balance"),
-            'AAT.sub_type as sub_type',
-            'AAT.type as type',
-            'accounting_accounts.gl_code',
-            'accounting_accounts.id'
-        )->groupBy(
-            'name',
-            'AAT.sub_type',
-            'AAT.type',
-            'accounting_accounts.gl_code',
-            'accounting_accounts.id'
-        )->orderBy('accounting_accounts.gl_code');
+        $baseRows = $this->queryTrialBalanceAccountRows(
+            $start_date,
+            $end_date,
+            $with_zero_balances,
+            $choose_accounts_select,
+            $costCenterIds,
+            $level_filter
+        );
 
-        if ($aggregated) {
-            $aggregatedAccounts = [];
-            foreach ($accounts->get() as $account) {
-                $groupKey = $account->name;
-                if (! isset($aggregatedAccounts[$groupKey])) {
-                    $aggregatedAccounts[$groupKey] = (object) [
-                        'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
-                        'gl_code' => $account->gl_code[0],
-                        'credit_balance' => 0,
-                        'debit_balance' => 0,
-                        'credit_opening_balance' => 0,
-                        'debit_opening_balance' => 0,
-                    ];
-                }
-                $aggregatedAccounts[$groupKey]->credit_balance += $account->credit_balance;
-                $aggregatedAccounts[$groupKey]->debit_balance += $account->debit_balance;
-                $aggregatedAccounts[$groupKey]->credit_opening_balance += $account->credit_opening_balance;
-                $aggregatedAccounts[$groupKey]->debit_opening_balance += $account->debit_opening_balance;
-            }
-            $accountsCollection = collect(array_values($aggregatedAccounts));
-        } else {
-            $accountsCollection = $accounts->get();
-        }
+        $accountsCollection = $aggregated
+            ? collect($this->aggregateTrialBalanceRows($baseRows))
+            : $baseRows;
 
         $rows = [];
         $totals = [
@@ -761,15 +585,146 @@ class AccountingReportsController extends Controller
         ];
     }
 
+    /**
+     * تجميع حركات الحساب: افتتاحي قبل بداية الفترة (مثل كشف الحساب)، وحركة الفترة ضمن [start, end].
+     */
+    protected function trialBalanceTransactionsSubquery(string $startDate, string $endDate, array $costCenterIds): Builder
+    {
+        $q = DB::table('accounting_accounts_transactions as t')
+            ->selectRaw(
+                "t.accounting_account_id,
+                SUM(CASE WHEN t.type = 'debit' AND DATE(t.operation_date) < DATE(?) THEN t.amount ELSE 0 END) as debit_opening,
+                SUM(CASE WHEN t.type = 'credit' AND DATE(t.operation_date) < DATE(?) THEN t.amount ELSE 0 END) as credit_opening,
+                SUM(CASE WHEN t.type = 'debit' AND DATE(t.operation_date) >= DATE(?) AND DATE(t.operation_date) <= DATE(?) THEN t.amount ELSE 0 END) as debit_period,
+                SUM(CASE WHEN t.type = 'credit' AND DATE(t.operation_date) >= DATE(?) AND DATE(t.operation_date) <= DATE(?) THEN t.amount ELSE 0 END) as credit_period",
+                [$startDate, $startDate, $startDate, $endDate, $startDate, $endDate]
+            )
+            ->groupBy('t.accounting_account_id');
+
+        if ($costCenterIds !== []) {
+            $q->whereIn('t.cost_center_id', $costCenterIds);
+        }
+
+        return $q;
+    }
+
+    /**
+     * صفوف ميزان المراجعة — حساب واحد لكل سطر (بدون تكرار بسبب sub_type من الحركة).
+     */
+    protected function queryTrialBalanceAccountRows(
+        string $startDate,
+        string $endDate,
+        int $withZeroBalances,
+        $chooseAccountsSelect,
+        array $costCenterIds,
+        $levelFilter
+    ): Collection {
+        $sub = $this->trialBalanceTransactionsSubquery($startDate, $endDate, $costCenterIds);
+
+        $query = AccountingAccount::query()
+            ->leftJoinSub($sub, 'tb', 'tb.accounting_account_id', '=', 'accounting_accounts.id')
+            ->when($chooseAccountsSelect, function ($q) use ($chooseAccountsSelect) {
+                return $q->where(function ($inner) use ($chooseAccountsSelect) {
+                    foreach ($chooseAccountsSelect as $type) {
+                        $inner->orWhere('accounting_accounts.account_primary_type', 'like', $type.'%');
+                    }
+                });
+            })
+            ->when($levelFilter, function ($q) use ($levelFilter) {
+                return $q
+                    ->whereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) = ?', [$levelFilter - 1])
+                    ->orWhereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) < ?', [$levelFilter - 1]);
+            })
+            ->when($withZeroBalances === 0, function ($q) {
+                return $q->whereRaw(
+                    '(COALESCE(tb.debit_opening,0)+COALESCE(tb.credit_opening,0)+COALESCE(tb.debit_period,0)+COALESCE(tb.credit_period,0)) > 0.00001'
+                );
+            })
+            ->when($withZeroBalances === 2, function ($q) {
+                return $q->whereRaw(
+                    'ABS((COALESCE(tb.debit_opening,0)+COALESCE(tb.debit_period,0)) - (COALESCE(tb.credit_opening,0)+COALESCE(tb.credit_period,0))) < 0.00001'
+                )->whereRaw(
+                    '(COALESCE(tb.debit_opening,0)+COALESCE(tb.credit_opening,0)+COALESCE(tb.debit_period,0)+COALESCE(tb.credit_period,0)) > 0.00001'
+                );
+            })
+            ->select([
+                'accounting_accounts.id',
+                'accounting_accounts.gl_code',
+                'accounting_accounts.account_primary_type',
+                'accounting_accounts.name_ar',
+                'accounting_accounts.name_en',
+                DB::raw('COALESCE(tb.debit_opening,0) as debit_opening_balance'),
+                DB::raw('COALESCE(tb.credit_opening,0) as credit_opening_balance'),
+                DB::raw('COALESCE(tb.debit_period,0) as debit_balance'),
+                DB::raw('COALESCE(tb.credit_period,0) as credit_balance'),
+            ])
+            ->orderBy('accounting_accounts.gl_code');
+
+        return $query->get()->map(function ($row) {
+            $o = (object) $row->getAttributes();
+            $o->name = app()->getLocale() === 'ar' ? ($o->name_ar ?? '') : ($o->name_en ?? '');
+            foreach (['debit_opening_balance', 'credit_opening_balance', 'debit_balance', 'credit_balance'] as $key) {
+                $o->{$key} = $this->roundMoney($o->{$key} ?? 0);
+            }
+
+            return $o;
+        });
+    }
+
+    /**
+     * تجميع ميزان المراجعة حسب التصنيف الرئيسي (أصول، خصوم، …).
+     *
+     * @return array<int, object>
+     */
+    protected function aggregateTrialBalanceRows(Collection $rows): array
+    {
+        $aggregatedAccounts = [];
+        foreach ($rows as $account) {
+            $groupKey = $account->account_primary_type;
+            if (! isset($aggregatedAccounts[$groupKey])) {
+                $aggregatedAccounts[$groupKey] = (object) [
+                    'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
+                    'gl_code' => is_string($account->gl_code) && $account->gl_code !== '' ? substr($account->gl_code, 0, 1) : '-',
+                    'credit_balance' => 0.0,
+                    'debit_balance' => 0.0,
+                    'credit_opening_balance' => 0.0,
+                    'debit_opening_balance' => 0.0,
+                    'id' => null,
+                ];
+            }
+            $aggregatedAccounts[$groupKey]->credit_balance += (float) ($account->credit_balance ?? 0);
+            $aggregatedAccounts[$groupKey]->debit_balance += (float) ($account->debit_balance ?? 0);
+            $aggregatedAccounts[$groupKey]->credit_opening_balance += (float) ($account->credit_opening_balance ?? 0);
+            $aggregatedAccounts[$groupKey]->debit_opening_balance += (float) ($account->debit_opening_balance ?? 0);
+        }
+
+        foreach ($aggregatedAccounts as $acc) {
+            $acc->credit_balance = $this->roundMoney($acc->credit_balance);
+            $acc->debit_balance = $this->roundMoney($acc->debit_balance);
+            $acc->credit_opening_balance = $this->roundMoney($acc->credit_opening_balance);
+            $acc->debit_opening_balance = $this->roundMoney($acc->debit_opening_balance);
+        }
+
+        return array_values($aggregatedAccounts);
+    }
+
+    /**
+     * تقريب المبالغ لخانتين عشريتين (تفادي بقايا float مثل 16182.099000000002).
+     */
+    private function roundMoney($value): float
+    {
+        return round((float) ($value ?? 0), 2);
+    }
+
     private function calculateClosingBalance($account)
     {
-        $closing_debit_balance = $account->debit_opening_balance + $account->debit_balance;
-        $closing_credit_balance = $account->credit_opening_balance + $account->credit_balance;
-        $closing_balance = $closing_credit_balance - $closing_debit_balance;
+        $debitSide = $this->roundMoney($account->debit_opening_balance ?? 0) + $this->roundMoney($account->debit_balance ?? 0);
+        $creditSide = $this->roundMoney($account->credit_opening_balance ?? 0) + $this->roundMoney($account->credit_balance ?? 0);
+        $closing_balance = $this->roundMoney($creditSide - $debitSide);
 
         return [
-            'closing_debit_balance' => $closing_balance < 0 ? abs($closing_balance) : 0,
-            'closing_credit_balance' => $closing_balance >= 0 ? $closing_balance : 0,
+            'closing_debit_balance' => $closing_balance < 0 ? $this->roundMoney(abs($closing_balance)) : 0.0,
+            'closing_credit_balance' => $closing_balance >= 0 ? $closing_balance : 0.0,
         ];
     }
 
@@ -866,54 +821,70 @@ class AccountingReportsController extends Controller
         );
     }
 
+    /**
+     * الميزانية العمومية: رصيد تراكمي كما في نهاية الفترة (<= end_date)، بنفس منطق طبيعة الحساب في كشف الحساب
+     * (أصول = مدين−دائن، خصوم وحقوق = دائن−مدين). تاريخ البداية لا يُخصم من الرصيد.
+     */
     private function buildBalanceSheetDataset(string $start_date, string $end_date, array $choose_cost_center_select, int $with_zero_balances): array
     {
-        $balance_formula = AccountingUtil::balanceFormula();
-        $baseQuery = AccountingAccount::leftJoin(
-            'accounting_accounts_transactions as AAT',
-            function ($join) use ($start_date, $end_date, $choose_cost_center_select) {
+        $costCenterIds = array_values(array_filter($choose_cost_center_select));
+
+        $debitMinusCredit = '(
+            COALESCE(SUM(CASE WHEN AAT.type = \'debit\' THEN AAT.amount ELSE 0 END), 0)
+            - COALESCE(SUM(CASE WHEN AAT.type = \'credit\' THEN AAT.amount ELSE 0 END), 0)
+        )';
+
+        $balanceExpression = "($debitMinusCredit) * CASE
+            WHEN accounting_accounts.account_primary_type = 'asset' THEN 1
+            WHEN accounting_accounts.account_primary_type IN ('liability', 'liabilities', 'equity') THEN -1
+            ELSE 0
+        END";
+
+        $baseQuery = AccountingAccount::query()
+            ->leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($end_date, $costCenterIds) {
                 $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
-                    ->whereDate('AAT.operation_date', '>=', $start_date)
                     ->whereDate('AAT.operation_date', '<=', $end_date);
-                if (! empty($choose_cost_center_select)) {
-                    $join->whereIn('AAT.cost_center_id', $choose_cost_center_select);
+                if ($costCenterIds !== []) {
+                    $join->whereIn('AAT.cost_center_id', $costCenterIds);
                 }
-            }
-        )
-            ->leftJoin(
-                'accounting_account_types as AATP',
-                'AATP.id',
-                '=',
-                'accounting_accounts.account_sub_type_id'
-            )
-            ->select(
-                DB::raw($balance_formula),
-                'accounting_accounts.name_ar',
-                'accounting_accounts.name_en',
-                'accounting_accounts.account_primary_type',
-                'accounting_accounts.gl_code',
-                'AATP.name_ar as sub_type'
-            )
+            })
             ->whereIn('accounting_accounts.account_primary_type', ['asset', 'liability', 'liabilities', 'equity'])
             ->groupBy(
+                'accounting_accounts.id',
+                'accounting_accounts.name_ar',
+                'accounting_accounts.name_en',
+                'accounting_accounts.account_primary_type',
+                'accounting_accounts.gl_code'
+            )
+            ->select(
+                'accounting_accounts.id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.account_primary_type',
                 'accounting_accounts.gl_code',
-                'AATP.name_ar'
+                DB::raw($balanceExpression.' as balance')
             )
             ->orderBy('accounting_accounts.gl_code')
-            ->get();
+            ->get()
+            ->map(function ($row) {
+                $row->balance = $this->roundMoney($row->balance ?? 0);
 
-        $filtered = $with_zero_balances ? $baseQuery : $baseQuery->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+                return $row;
+            });
+
+        $filtered = $with_zero_balances
+            ? $baseQuery
+            : $baseQuery->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
 
         $assets = $filtered->where('account_primary_type', 'asset')->values();
         $liabilities = $filtered->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
         $equities = $filtered->where('account_primary_type', 'equity')->values();
 
-        $total_assets = (float) $assets->sum('balance');
-        $total_liab_owners = (float) $liabilities->sum('balance') + (float) $equities->sum('balance');
-        $difference = abs($total_assets - $total_liab_owners);
+        $total_assets = $this->roundMoney($assets->sum('balance'));
+        $total_liab_owners = $this->roundMoney(
+            $this->roundMoney($liabilities->sum('balance')) + $this->roundMoney($equities->sum('balance'))
+        );
+        $difference = $this->roundMoney(abs($total_assets - $total_liab_owners));
 
         return [
             'assets' => $assets,

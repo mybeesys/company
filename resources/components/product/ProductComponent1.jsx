@@ -213,67 +213,85 @@ const ProductComponent1 = ({ translations, dir }) => {
     };
 
     const getProductLOVs = async () => {
-        const response = await axios.get("/productLOVs/" + product.id);
-        const products = response.data.product.map((e) => {
-            return { label: getName(e.name_en, e.name_ar), value: e.id };
-        });
-        const linkedComboPrompts = response.data.prompt.map((e) => {
-            return { label: translations[e.name], value: e.value };
-        });
-        const linkedCombos = response.data.linkedCombo
-            .slice(0, response.data.linkedCombo.length - 1)
-            .map((e) => {
-                return {
-                    label: getName(e.data.name_en, e.data.name_ar),
-                    value: e.data.id,
-                    combos: e.data.combos,
-                };
-            });
+        const lovId =
+            product &&
+            product.id !== null &&
+            product.id !== undefined &&
+            product.id !== ""
+                ? product.id
+                : null;
+        const url =
+            lovId === null ? "/productLOVs" : `/productLOVs/${lovId}`;
+        let response;
+        try {
+            response = await axios.get(url);
+        } catch (e) {
+            console.error("getProductLOVs failed", e);
+            setIngredientTree([]);
+            setAttributesTree([]);
+            setCategories([]);
+            return;
+        }
+        const d = response.data || {};
+        const products = (Array.isArray(d.product) ? d.product : []).map(
+            (e) => ({ label: getName(e.name_en, e.name_ar), value: e.id })
+        );
+        const linkedComboPrompts = (
+            Array.isArray(d.prompt) ? d.prompt : []
+        ).map((e) => ({ label: translations[e.name], value: e.value }));
+        const lc = d.linkedCombo;
+        const linkedComboList = Array.isArray(lc) ? lc : [];
+        const linkedCombos = linkedComboList
+            .slice(0, Math.max(0, linkedComboList.length - 1))
+            .map((e) => ({
+                label: getName(e.data.name_en, e.data.name_ar),
+                value: e.data.id,
+                combos: e.data.combos,
+            }));
 
-        const category = response.data.category;
-        setCategories(category);
+        setCategories(d.category || []);
 
-        const ingredient = response.data.ingredient.map((e) => {
+        const ingredient = (
+            Array.isArray(d.ingredient) ? d.ingredient : []
+        ).map((e) => {
+            const value =
+                e.recipe_option_value != null && e.recipe_option_value !== ""
+                    ? e.recipe_option_value
+                    : `${e.id}-i`;
             return {
                 label: getName(e.name_en, e.name_ar),
-                value: e.id + e.type,
+                value,
                 cost: e.cost,
             };
         });
         setIngredientTree(ingredient);
 
-        const attribute = response.data.attribute;
+        const attribute = Array.isArray(d.attribute) ? d.attribute : [];
         setAttributesTree(attribute);
 
-        const units = response.data.unitTransfer;
-        const unitsResult = units.map((e) => {
-            return { label: e.unit1, value: e.id };
-        });
+        const units = Array.isArray(d.unitTransfer) ? d.unitTransfer : [];
+        const unitsResult = units.map((e) => ({
+            label: e.unit1,
+            value: e.id,
+        }));
         setUnits(unitsResult);
 
-        let mainUnit = units.find(function (element) {
-            return element.unit2 == null;
-        });
-
+        const mainUnit = units.find((element) => element.unit2 == null);
         setProductUnit(mainUnit);
 
-        const unitTransfers = response.data.unitTransfer;
         const unitTransfersResult =
-            unitTransfers.length > 0
-                ? unitTransfers
+            units.length > 0
+                ? units
                       .filter((e) => e.unit2 != null)
-                      .map((e) => {
-                          return {
-                              id: e.id,
-                              transfer: e.transfer,
-                              unit1: e.unit1,
-                              unit2: e.unit2,
-                              primary: e.primary,
-                              newid: e.newid,
-                          };
-                      })
+                      .map((e) => ({
+                          id: e.id,
+                          transfer: e.transfer,
+                          unit1: e.unit1,
+                          unit2: e.unit2,
+                          primary: e.primary,
+                          newid: e.newid,
+                      }))
                 : [];
-        //unitTransfersResult.push({ id: -100, unit1: null, unit2: null, primary: false, transfer: null, newid: null });
         setUnitTransfers(unitTransfersResult);
 
         setProductLOVs({
@@ -290,7 +308,8 @@ const ProductComponent1 = ({ translations, dir }) => {
         getProductLOVs();
     }, []);
 
-    const handleForSellChange = (childproduct) => {
+    const handleForSellChange = (mergedProduct) => {
+        const forSell = !!mergedProduct.for_sell;
         let currentMenu = [
             { key: "basicInfo", visible: true },
             { key: "Unit", visible: true },
@@ -298,10 +317,10 @@ const ProductComponent1 = ({ translations, dir }) => {
             { key: "inventory", visible: true },
             { key: "printInfo", visible: true },
 
-            { key: "modifiers", visible: !!currentObject.for_sell },
-            { key: "advancedInfo", visible: !!currentObject.for_sell },
+            { key: "modifiers", visible: forSell },
+            { key: "advancedInfo", visible: forSell },
 
-            { key: "group", visible: !!currentObject.for_sell },
+            { key: "group", visible: forSell },
             { key: "recipe", visible: true },
         ];
         setMenu([...currentMenu]);
@@ -314,10 +333,6 @@ const ProductComponent1 = ({ translations, dir }) => {
         document.getElementById("Unit").classList.add("active");
         document.getElementById("Unit").classList.add("show");
         setCurrentTab(1);
-    };
-
-    const parentHandleRecipe = (resultrecipe) => {
-        setRecipe([...resultrecipe]);
     };
 
     const parentHandleTransfer = (result) => {

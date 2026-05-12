@@ -24,7 +24,7 @@ class AccountingUtil
     ) {
         return "SUM( IF(
             ($accounting_accounts_alias.account_primary_type='asset' AND $accounting_account_transaction_alias.type='debit')
-            OR ($accounting_accounts_alias.account_primary_type='liabilities' AND $accounting_account_transaction_alias.type='debit')
+            OR ($accounting_accounts_alias.account_primary_type IN ('liability','liabilities') AND $accounting_account_transaction_alias.type='debit')
             OR ($accounting_accounts_alias.account_primary_type='equity' AND $accounting_account_transaction_alias.type='credit')
             OR ($accounting_accounts_alias.account_primary_type='income' AND $accounting_account_transaction_alias.type='credit')
             OR ($accounting_accounts_alias.account_primary_type='expenses' AND $accounting_account_transaction_alias.type='debit'),
@@ -629,8 +629,14 @@ class AccountingUtil
     {
         $vat_acc = AccountingAccount::where('gl_code', '522')->first();
         $purchases_acc = AccountingAccount::where('gl_code', '513')->first();
-        $sales_acc = AccountingAccount::where('gl_code', '411')->first();
+        $sales_acc = AccountingAccount::where('gl_code', '411')->first()
+            ?? AccountingAccount::where('gl_code', '401')->first();
         $discount_acc = AccountingAccount::where('gl_code', '523')->first();
+        $sales_return_acc = AccountingAccount::where('gl_code', '412')->first()
+            ?? $sales_acc;
+        $periodic_inv_adj = AccountingAccount::where('gl_code', '50105')->first()
+            ?? AccountingAccount::where('account_category', 'inventory_adjustment')->first()
+            ?? AccountingAccount::where('gl_code', '50101')->first();
 
         AccountsRoting::truncate();
 
@@ -710,8 +716,8 @@ class AccountingUtil
             [
                 'type' => 'sales_sell_return',
                 'section' => 'sales',
-                'routing_type' => 'expense',
-                'account_id' => $discount_acc?->id,
+                'routing_type' => 'revenue',
+                'account_id' => $sales_return_acc?->id,
                 'direction' => 'auto_assign',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -720,7 +726,16 @@ class AccountingUtil
                 'type' => 'purchases_purchase_return',
                 'section' => 'purchases',
                 'routing_type' => 'expense',
-                'account_id' => $discount_acc?->id,
+                'account_id' => $purchases_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'periodic_inventory_adjustment',
+                'section' => 'periodic_inventory',
+                'routing_type' => 'expense',
+                'account_id' => $periodic_inv_adj?->id,
                 'direction' => 'auto_assign',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -921,7 +936,7 @@ class AccountingUtil
         $Banking_id = AccountingAccountTypes::where('name_en', 'Banking')->first()->id;
         $Other_Expenses_id = AccountingAccountTypes::where('name_en', 'Other Expenses')->first()->id;
 
-        return [
+        $rows = [
             [
                 'name_en' => 'Cash',
                 'name_ar' => 'الصندوق',
@@ -950,7 +965,7 @@ class AccountingUtil
             ],
             [
                 'name_en' => 'Accounts Receivable',
-                'name_ar' => 'المدينون المعلاء',
+                'name_ar' => 'المدينون (العملاء)',
                 'account_primary_type' => 'asset',
                 'account_type' => 'current_assets',
                 'account_sub_type_id' => $current_assets_id,
@@ -962,7 +977,7 @@ class AccountingUtil
                 'updated_at' => Carbon::now(),
             ],
             [
-                'name_en' => 'Notes Receviable',
+                'name_en' => 'Notes Receivable',
                 'name_ar' => 'أوراق القبض',
                 'account_primary_type' => 'asset',
                 'account_type' => 'current_assets',
@@ -1002,7 +1017,7 @@ class AccountingUtil
             ],
             [
                 'name_en' => 'Prepaid Expenses',
-                'name_ar' => 'المصروغات المقدمة',
+                'name_ar' => 'مصاريف مدفوعة مقدماً',
                 'account_primary_type' => 'asset',
                 'account_type' => 'current_assets',
                 'account_sub_type_id' => $current_assets_id,
@@ -1120,7 +1135,7 @@ class AccountingUtil
             ],
             [
                 'name_en' => 'Long-Term Investments',
-                'name_ar' => 'استثملرات طويلة الاجل',
+                'name_ar' => 'استثمارات طويلة الأجل',
                 'account_primary_type' => 'asset',
                 'account_type' => 'fixed_assets',
                 'account_sub_type_id' => $fixed_assets_id,
@@ -1413,7 +1428,7 @@ class AccountingUtil
                 'account_type' => 'expenses',
                 'account_sub_type_id' => $Cost_Sales_id,
                 'detail_type_id' => null,
-                'gl_code' => '50101',
+                'gl_code' => '50104',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -1464,7 +1479,7 @@ class AccountingUtil
 
             [
                 'name_en' => 'Administrative Salaries',
-                'name_ar' => 'رواتب القسم الاداري',
+                'name_ar' => 'رواتب القسم الإداري',
                 'account_primary_type' => 'expenses',
                 'account_type' => 'expenses',
                 'account_sub_type_id' => $Payroll_id,
@@ -1600,7 +1615,7 @@ class AccountingUtil
                 'account_type' => 'expenses',
                 'account_sub_type_id' => $Office_Expenses_id,
                 'detail_type_id' => null,
-                'gl_code' => '50301',
+                'gl_code' => '50306',
                 'status' => 'active',
                 'created_by' => $user_id,
                 'created_at' => Carbon::now(),
@@ -2010,7 +2025,120 @@ class AccountingUtil
                 'updated_at' => Carbon::now(),
             ],
 
+            // gl_code 411,412,513,522,523,50105 — يُربط بـ default_accounting_route()
+            [
+                'name_en' => 'Main sales account',
+                'name_ar' => 'مبيعات رئيسية',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $Revenue_id,
+                'detail_type_id' => null,
+                'gl_code' => '411',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Sales returns',
+                'name_ar' => 'مردود المبيعات',
+                'account_primary_type' => 'income',
+                'account_type' => 'income',
+                'account_sub_type_id' => $Revenue_id,
+                'detail_type_id' => null,
+                'gl_code' => '412',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Purchases',
+                'name_ar' => 'المشتريات',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $Cost_Sales_id,
+                'detail_type_id' => null,
+                'gl_code' => '513',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'VAT payable',
+                'name_ar' => 'ضريبة القيمة المضافة مستحقة',
+                'account_primary_type' => 'liabilities',
+                'account_type' => 'current_liabilities',
+                'account_sub_type_id' => $current_liabilities_id,
+                'detail_type_id' => null,
+                'gl_code' => '522',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Trade discounts',
+                'name_ar' => 'خصومات تجارية مسموحة ومكتسبة',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $Other_Expenses_id,
+                'detail_type_id' => null,
+                'gl_code' => '523',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'name_en' => 'Periodic inventory adjustment',
+                'name_ar' => 'تسوية جرد دوري',
+                'account_primary_type' => 'expenses',
+                'account_type' => 'expenses',
+                'account_sub_type_id' => $Cost_Sales_id,
+                'account_category' => 'inventory_adjustment',
+                'detail_type_id' => null,
+                'gl_code' => '50105',
+                'status' => 'active',
+                'created_by' => $user_id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+
         ];
+
+        return self::normalizeAccountInsertRows($rows);
+    }
+
+    /**
+     * توحيد مفاتيح كل صف لـ bulk insert (Laravel يعتمد مفاتيح الصف الأول؛ أي عمود إضافي في صف لاحق يسبب 1136).
+     */
+    protected static function normalizeAccountInsertRows(array $rows): array
+    {
+        if ($rows === []) {
+            return [];
+        }
+
+        $allKeys = [];
+        foreach ($rows as $row) {
+            foreach (array_keys($row) as $key) {
+                $allKeys[$key] = true;
+            }
+        }
+        $allKeys = array_keys($allKeys);
+        sort($allKeys);
+
+        $normalized = [];
+        foreach ($rows as $row) {
+            $out = [];
+            foreach ($allKeys as $key) {
+                $out[$key] = array_key_exists($key, $row) ? $row[$key] : null;
+            }
+            $normalized[] = $out;
+        }
+
+        return $normalized;
     }
 
     // public static function next_GLC($parent_account_id)

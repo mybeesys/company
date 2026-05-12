@@ -33,6 +33,9 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
     /** @var list<string> */
     protected $visibleColumns;
 
+    /** When true, transaction type is concatenated into the ref_no column (no separate column). */
+    protected bool $mergeTransactionIntoRef = false;
+
     protected $totalDebit = 0;
 
     protected $totalCredit = 0;
@@ -46,12 +49,17 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
         $this->account = $account;
         $order = self::LEDGER_COLUMN_ORDER;
         if ($ledgerVisibleColumns === null || $ledgerVisibleColumns === []) {
-            $this->visibleColumns = array_values(array_diff($order, ['transaction']));
+            $this->visibleColumns = $order;
         } else {
             $this->visibleColumns = array_values(array_intersect($order, $ledgerVisibleColumns));
         }
         if (! in_array('balance', $this->visibleColumns, true)) {
             $this->visibleColumns[] = 'balance';
+            $this->visibleColumns = array_values(array_intersect($order, $this->visibleColumns));
+        }
+        if (in_array('ref_no', $this->visibleColumns, true) && in_array('transaction', $this->visibleColumns, true)) {
+            $this->mergeTransactionIntoRef = true;
+            $this->visibleColumns = array_values(array_diff($this->visibleColumns, ['transaction']));
             $this->visibleColumns = array_values(array_intersect($order, $this->visibleColumns));
         }
         $this->runningBalance = (float) ($this->account['opening_balance'] ?? 0);
@@ -69,7 +77,9 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
     protected function headingLabel(string $key): string
     {
         return match ($key) {
-            'ref_no' => __('accounting::lang.transaction_number'),
+            'ref_no' => $this->mergeTransactionIntoRef
+                ? __('accounting::lang.ledger_column_ref_with_type')
+                : __('accounting::lang.transaction_number'),
             'operation_date' => __('accounting::lang.operation_date'),
             'narration' => __('accounting::lang.ledger_narration'),
             'transaction' => __('accounting::lang.transaction'),
@@ -84,17 +94,14 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
 
     protected function subTypeLabel($transaction): string
     {
-        if ($transaction->sub_type === 'sell') {
-            return __('accounting::lang.sell');
-        }
-        if ($transaction->sub_type === 'sell_cash') {
-            return __('accounting::lang.receipt_voucher');
-        }
-        if ($transaction->sub_type === 'sales_revenue') {
-            return __('accounting::lang.payment_voucher');
+        $st = $transaction->sub_type ?? '';
+        if ($st === '') {
+            return '—';
         }
 
-        return __('accounting::lang.'.$transaction->sub_type);
+        return \Illuminate\Support\Facades\Lang::has('accounting::lang.'.$st)
+            ? __('accounting::lang.'.$st)
+            : $st;
     }
 
     protected function narrationText($transaction): string
@@ -147,7 +154,9 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
         $row = [];
         foreach ($this->visibleColumns as $key) {
             $row[] = match ($key) {
-                'ref_no' => $ref,
+                'ref_no' => $this->mergeTransactionIntoRef
+                    ? trim($ref.' — '.$this->subTypeLabel($transaction))
+                    : $ref,
                 'operation_date' => \Carbon\Carbon::parse($transaction->operation_date)->format('d/m/Y'),
                 'narration' => $this->narrationText($transaction),
                 'transaction' => $this->subTypeLabel($transaction),

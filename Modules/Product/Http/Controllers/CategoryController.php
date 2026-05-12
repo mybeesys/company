@@ -22,16 +22,56 @@ class CategoryController extends Controller
 
     public function getminicategorylist()
     {
-        $categories = Category::all();
+        $categories = Category::query()
+            ->orderBy('order')
+            ->get()
+            ->map(static function (Category $category) {
+                $attrs = $category->getAttributes();
 
-        return response()->json($categories);
+                return [
+                    'id' => $category->id,
+                    'name_ar' => (string) ($attrs['name_ar'] ?? ''),
+                    'name_en' => (string) ($attrs['name_en'] ?? ''),
+                    'parent_id' => $category->parent_id,
+                    'active' => (int) ($attrs['active'] ?? 0),
+                    'order' => (int) ($attrs['order'] ?? 0),
+                    'created_at' => $category->created_at,
+                    'updated_at' => $category->updated_at,
+                    'deleted_at' => $category->deleted_at,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return response()->json($categories, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function getminisubcategorylist($id)
     {
-        $subcategories = Category::find($id);
+        $category = Category::find($id);
 
-        return response()->json($subcategories->subcategories);
+        if ($category === null) {
+            return response()->json([], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $rows = $category->subcategories->map(static function (Subcategory $sub) {
+            $attrs = $sub->getAttributes();
+
+            return [
+                'id' => $sub->id,
+                'name_ar' => (string) ($attrs['name_ar'] ?? ''),
+                'name_en' => (string) ($attrs['name_en'] ?? ''),
+                'category_id' => $sub->category_id,
+                'parent_id' => $sub->parent_id,
+                'active' => (int) ($attrs['active'] ?? 0),
+                'order' => (int) ($attrs['order'] ?? 0),
+                'created_at' => $sub->created_at,
+                'updated_at' => $sub->updated_at,
+                'deleted_at' => $sub->deleted_at,
+            ];
+        })->values()->all();
+
+        return response()->json($rows, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function getCategories()
