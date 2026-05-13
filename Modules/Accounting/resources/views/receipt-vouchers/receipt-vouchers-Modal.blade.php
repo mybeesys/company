@@ -17,11 +17,11 @@
                                 <div class="row g-4 mb-5">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold required">
-                                            @lang('accounting::lang.account-credit')
-                                            <span class="text-muted">@lang('accounting::lang.voucher_receipt_credit_hint')</span>
+                                            @lang('accounting::lang.account-debit')
+                                            <span class="text-muted">@lang('accounting::lang.voucher_receipt_debit_hint')</span>
                                         </label>
                                         <select class="form-select select-2 form-select-solid kt_ecommerce_select2_account" required
-                                            name="from_account" id="from_account">
+                                            name="account_id" id="cash_account">
                                             @foreach ($accounts as $account)
                                                 <option value="{{ $account->id }}">
                                                     @if (app()->getLocale() == 'ar')
@@ -36,11 +36,11 @@
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold required">
-                                            @lang('accounting::lang.account-debit')
-                                            <span class="text-muted">@lang('accounting::lang.voucher_receipt_debit_hint')</span>
+                                            @lang('accounting::lang.account-credit')
+                                            <span class="text-muted">@lang('accounting::lang.voucher_receipt_credit_hint')</span>
                                         </label>
                                         <select class="form-select select-2 form-select-solid kt_ecommerce_select2_account" required
-                                            name="account_id" id="cash_account">
+                                            name="from_account" id="from_account">
                                             @foreach ($accounts as $account)
                                                 <option value="{{ $account->id }}">
                                                     @if (app()->getLocale() == 'ar')
