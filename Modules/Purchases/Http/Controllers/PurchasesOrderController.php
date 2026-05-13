@@ -82,19 +82,36 @@ class PurchasesOrderController extends Controller
         $countries = Country::all();
 
         $po = true;
-        $po_id = false;
-        $po_id = $request->input('po_id');
-        $transaction = Transaction::find($po_id);
-        if ($po_id > 0) {
+        $isDuplicate = false;
+        $transaction = null;
 
-            $actionUtil->saveOrUpdateAction('create_po', 'convert-to-invoice', '#');
+        $duplicateFrom = (int) $request->input('duplicate_from', 0);
+        $poInputId = (int) $request->input('po_id', 0);
+
+        $purchaseLineRelations = [
+            'purchases_lines' => fn ($q) => $q->orderBy('id'),
+            'purchases_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+        ];
+
+        if ($duplicateFrom > 0) {
+            $src = Transaction::with($purchaseLineRelations)->find($duplicateFrom);
+            if ($src && $src->type === 'purchases-order') {
+                $transaction = $src;
+                $isDuplicate = true;
+            }
+        } elseif ($poInputId > 0) {
+            $transaction = Transaction::with($purchaseLineRelations)->find($poInputId);
+            if ($poInputId > 0) {
+
+                $actionUtil->saveOrUpdateAction('create_po', 'convert-to-invoice', '#');
+            }
         }
 
         $products = Product::with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
 
-        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
     }
 
     /**

@@ -70,7 +70,7 @@ class QuotationController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $actionUtil = new ActionUtil;
         $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
@@ -86,12 +86,26 @@ class QuotationController extends Controller
         $countries = Country::all();
 
         $quotation = true;
+        $isDuplicate = false;
         $transaction = null;
+
+        $duplicateFrom = (int) $request->input('duplicate_from', 0);
+        if ($duplicateFrom > 0) {
+            $src = Transaction::with([
+                'sell_lines' => fn ($q) => $q->where('is_show', 1)->orderBy('id'),
+                'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+            ])->find($duplicateFrom);
+            if ($src && $src->type === 'quotation') {
+                $transaction = $src;
+                $isDuplicate = true;
+            }
+        }
+
         $products = Product::where('type', '<>', 'ingredint')->with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
         }])->get();
 
-        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers'));
+        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
     }
 
     /**

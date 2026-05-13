@@ -125,7 +125,7 @@ return [
     'sell-payment-report' => 'Sell report',
     'product-inventory-report' => 'Inventory operations report',
     'sales-comparison-report' => 'Sales comparison report',
-    'weekday-sales-report' => 'Sales by weekday (period comparison)',
+    'weekday-sales-report' => 'Weekday & date sales',
     'Profit-Loss' => 'Profit and Loss',
 
     'type-service' => 'Type of services',

@@ -20,7 +20,7 @@
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"
         id="cash_account">
 
-        <option value="">@lang('sales::lang.payment_account_select')</option>
+        <option value="">{{ $paymentAccountSelect ?? __('purchases::lang.purchase_payment_account_select') }}</option>
         @foreach ($accounts as $account)
             <option value="{{ $account->id }}">
                 @if (app()->getLocale() == 'ar')

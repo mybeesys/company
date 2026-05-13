@@ -106,6 +106,7 @@ return [
     'create_suggestion_quotation' => 'We provide you with an advanced tool for creating sales quotations, which are official business documents that allow sellers to present detailed information about the proposed products or services to customers. These documents include descriptions of quantities, prices, and terms of sale, ensuring transparency in expected costs, enhancing professionalism, and streamlining business operations efficiently.',
     'quotation' => 'Quotation',
     'from quotation' => 'from quotation',
+    'duplicate_from_ref' => 'New editable copy — source ref: :ref',
     'Create a sales quotation' => 'Create a sales quotation',
 
     'You do not have any Receipts' => 'You do not have any Receipts',

@@ -222,7 +222,7 @@ class Transaction extends Model
                 'actions',
                 function ($row) {
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
+                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">';
 
                     $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.show').'</a>
@@ -231,6 +231,30 @@ class Transaction extends Model
                     $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/transaction-print/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
+
+                    if ($row->type === 'sell') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="'.route('create-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
+            </div>';
+                    }
+
+                    if ($row->type === 'purchases') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="'.route('create-purchases-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
+            </div>';
+                    }
+
+                    if ($row->type === 'quotation') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="'.route('create-quotation', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
+            </div>';
+                    }
+
+                    if ($row->type === 'purchases-order') {
+                        $actions .= '<div class="menu-item px-3">
+                <a href="'.route('create-purchase-order', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
+            </div>';
+                    }
 
                     $completedReturn = Transaction::where('parent_id', $row->id)->where('type', 'sell-return')->where('po_status', 'completed')->first();
 
@@ -263,12 +287,6 @@ class Transaction extends Model
                     <a href="'.url("/transaction-show-payments/{$row->id}").'" class="menu-link px-3">'.__('general::lang.show_payment').'</a>
                 </div>';
                         }
-                    }
-
-                    if ($row->type == 'purchases-order' && $row->po_status == 'completed') {
-                        $actions .= '<div class="menu-item px-3">
-                    <a href="'.url("/create-purchase-order?po_id={$row->id}&type=duplication").'" class="menu-link px-3">'.__('accounting::fields.duplication').'</a>
-                </div>';
                     }
 
                     // $status = $row->status == 'active' ? __('messages.deactivate') : __('messages.activate');
