@@ -42,8 +42,8 @@
                     <label for="movement_type">{{ __('accounting::lang.movement_type') }}</label>
                     <select name="movement_type" id="movement_type" class="form-control">
                         <option value="">@lang('messages.select')</option>
-                        <option value="credit" @selected(($movement_type ?? '') === 'credit')>@lang('accounting::lang.credit')</option>
                         <option value="debit" @selected(($movement_type ?? '') === 'debit')>@lang('accounting::lang.debit')</option>
+                        <option value="credit" @selected(($movement_type ?? '') === 'credit')>@lang('accounting::lang.credit')</option>
                     </select>
                 </div>
             </div>

@@ -441,13 +441,32 @@ class PurchasesController extends Controller
         $cost_centers = AccountingCostCenter::forDropdown();
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
-        $transaction = Transaction::find(0);
-        $taxes = Tax::all();
+        $transaction = null;
         $po = false;
-        $po_id = 0;
-        $po_id = $request->input('po_id');
-        $transaction = Transaction::find($po_id);
+        $isDuplicate = false;
 
+        $duplicateFrom = (int) $request->input('duplicate_from', 0);
+        $poInputId = (int) $request->input('po_id', 0);
+
+        $purchaseLineRelations = [
+            'purchases_lines' => fn ($q) => $q->orderBy('id'),
+            'purchases_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+        ];
+
+        if ($duplicateFrom > 0) {
+            $src = Transaction::with($purchaseLineRelations)->find($duplicateFrom);
+            if ($src && $src->type === 'purchases') {
+                $transaction = $src;
+                $isDuplicate = true;
+            }
+        } elseif ($poInputId > 0) {
+            $transaction = Transaction::with($purchaseLineRelations)->find($poInputId);
+            if ($transaction && $transaction->type === 'purchases-order') {
+                $po = true;
+            }
+        }
+
+        $taxes = Tax::all();
         $settings = Setting::getNotesAndTermsConditions();
         $invoicePrecheckConfig = $this->buildPurchasesInvoicePrecheckConfig();
 
@@ -458,7 +477,7 @@ class PurchasesController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
         }
 
-        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
+        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig', 'isDuplicate'));
     }
 
     private function buildPurchasesInvoicePrecheckConfig(): array

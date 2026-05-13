@@ -87,8 +87,14 @@
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('sales::lang.Create a sales invoice') @if ($transaction)
-                                @lang('sales::lang.from quotation') {{ $transaction->ref_no }}
+                        <h1>
+                            @if ($isDuplicate ?? false)
+                                @lang('sales::lang.Create a sales invoice')
+                                <span class="text-gray-600 fs-5"> — @lang('sales::lang.duplicate_from_ref', ['ref' => $transaction->ref_no])</span>
+                            @elseif ($transaction)
+                                @lang('sales::lang.Create a sales invoice') @lang('sales::lang.from quotation') {{ $transaction->ref_no }}
+                            @else
+                                @lang('sales::lang.Create a sales invoice')
                             @endif
                         </h1>
 
@@ -277,6 +283,7 @@
     </script>
     <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
 
@@ -310,26 +317,22 @@
             <td class="product-description" style="display:none">
                 <textarea class="form-control form-control-solid" rows="1" name="products[${salesRowIndex}][description]"></textarea>
             </td>
-         <td>
-    <div class="d-flex align-items-center gap-2">
-        <input type="number"
-               step="any"
-               class="form-control qty-field flex-shrink-0"
-               name="products[${salesRowIndex}][qty]"
-               placeholder="0"
-               min="1"
-               style="width: 80px;">
-
-        <select class="form-select form-select-solid select-2 unit flex-grow-1"
-                name="products[${salesRowIndex}][unit]"
-                style="min-width: 100px;">
-            <option value="">@lang('sales::lang.unit')</option>
-        </select>
-    </div>
-</td>  <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
+                                    <td style="white-space: nowrap;">
+                                        <input type="number" step="any"
+                                            class="form-control qty-field"
+                                            name="products[${salesRowIndex}][qty]"
+                                            placeholder="0" min="1"
+                                            style="width: 80px; display: inline-block; vertical-align: middle;">
+                                        <select class="form-select form-select-solid select-2 d-inline-block unit"
+                                            name="products[${salesRowIndex}][unit]"
+                                            style="width: 110px; display: inline-block; vertical-align: middle;">
+                                            <option value="">@lang('sales::lang.unit')</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" step="any" class="form-control unit_price-field no-spin" name="products[${salesRowIndex}][unit_price]" placeholder="0.0" style="width: 100px;"></td>
             <td style="white-space: nowrap;">
                 <input type="number" step="any" class="form-control discount-field no-spin d-inline-block discount" name="products[${salesRowIndex}][discount]" placeholder="0.0" style="width: 70px; display: inline-block;">
-                <select id="discount_type" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
+                <select id="discount_type-${salesRowIndex}" required class="form-select form-select-solid select-2 d-inline-block discount_type" name="products[${salesRowIndex}][discount_type]" style="width: 100px; display: inline-block;">
                     <option value="fixed">@get_format_currency()</option>
                     <option value="percent">%</option>
                 </select>
@@ -337,11 +340,11 @@
             <td><input type="number" step="any" readonly class="form-control total_before_vat-field" name="products[${salesRowIndex}][total_before_vat]" placeholder="0.00" style="width: 107px;"></td>
             <td class="d-flex justify-content-center">
                 <div class="form-check">
-                    <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive" name="products[${salesRowIndex}][inclusive]" class="form-check-input my-2">
+                    <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive-${salesRowIndex}" name="products[${salesRowIndex}][inclusive]" class="form-check-input my-2">
                 </div>
             </td>
                <td>
-            <select id="tax_vat" required class="form-select form-select-solid select-2"
+            <select id="tax_vat-${salesRowIndex}" required class="form-select form-select-solid select-2"
                 name="products[${salesRowIndex}][tax_vat]" style="width: 200px;">
                 @foreach ($taxes as $tax)
                 <option value="{{ $tax->amount }}"
@@ -453,9 +456,10 @@
 
 if( selectedData.units.length > 0){
         $unitSelect.select2('destroy').select2({
-            width: '100%',
+            width: 'resolve',
             dropdownParent: $row.closest('.modal').length ? $row.closest('.modal') : document.body
-        });}
+        });
+}
     updateSalesTotals();
 
 
@@ -468,7 +472,9 @@ if( selectedData.units.length > 0){
     }
 });
 
-    $("#salesTable tbody tr:last").find(".select-2:not(.product-select)").select2();
+    if (typeof window.initNewSalesLineNonProductSelect2 === 'function') {
+        window.initNewSalesLineNonProductSelect2();
+    }
 
     updateSalesTotals();
     console.log("salesRowIndex " + salesRowIndex);
@@ -623,6 +629,9 @@ if( selectedData.units.length > 0){
 
             if (poId) {
                 document.getElementById('quotation_id').value = poId;
+            }
+            if (urlParams.get('duplicate_from')) {
+                document.getElementById('quotation_id').value = '';
             }
 
 
@@ -900,10 +909,19 @@ $.ajax({
                 bindSalesRowsDragAndDrop();
             }
 
+            function ensureAtLeastOneSalesLineRow() {
+                if ($('#salesTable tbody tr.sales-line-row').length === 0 && $('#addSalesRow').length) {
+                    $('#addSalesRow').trigger('click');
+                    resetRowIndexes();
+                    bindSalesRowsDragAndDrop();
+                }
+            }
+
             $(document).on('click', '.delete-sales-row', function() {
                 $(this).closest('tr').remove();
                 resetRowIndexes();
                 updateSalesTotals();
+                ensureAtLeastOneSalesLineRow();
             });
 
             $('#invoice_discount, #invoiced_discount_type').on('input change', function() {
@@ -1016,6 +1034,11 @@ $.ajax({
                     uploadInstructions.textContent = 'Upload file';
                 }
             });
+
+            if (typeof window.initPrefilledSalesLineSelect2 === 'function') {
+                window.initPrefilledSalesLineSelect2();
+            }
+            ensureAtLeastOneSalesLineRow();
 
         });
     </script>

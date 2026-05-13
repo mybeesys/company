@@ -41,7 +41,7 @@
         <div class="fv-row ">
 
             <label class="fs-6 fw-semibold mb-2 ">@lang('accounting::lang.account')
-                <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('sales::lang.payment_account_note')">
+                <span class=" mt-2 px-1" data-bs-toggle="tooltip" title="@lang('purchases::lang.purchase_payment_account_note')">
                     <i class="ki-outline ki-information-5 text-gray-500 fs-6"></i>
                 </span> </label>
 
@@ -50,7 +50,7 @@
             <select  class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
                 name="account_id" id="account_id">
 
-                <option value="">@lang('sales::lang.payment_account_select')</option>
+                <option value="">@lang('purchases::lang.purchase_payment_account_select')</option>
 
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}">

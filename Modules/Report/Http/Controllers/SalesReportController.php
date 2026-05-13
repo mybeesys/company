@@ -27,6 +27,7 @@ use Modules\Product\Models\Subcategory;
 use Modules\Report\Exports\ProductSalesExcelExport;
 use Modules\Report\Exports\SalesComparisonExcelExport;
 use Modules\Report\Exports\SellPaymentExcelExport;
+use Modules\Report\Exports\WeekdaySimpleGridExcelExport;
 use Modules\Report\Utils\ReportTransactionsUtile;
 use Modules\Report\Utils\SalesComparisonPeriodResolver;
 use Modules\Report\Utils\TransactionUtile;
@@ -3250,38 +3251,12 @@ SUM(
     }
 
     /**
-     * Compare approved sell lines aggregated by weekday (Sun–Sat) for two periods — same filters as sales comparison.
+     * Weekday sales — simple occurrence grid only (product, branch, unit × matching calendar dates).
      */
     public function weekdaySalesReport(Request $request)
     {
         if ($request->ajax() || $request->has('draw')) {
-            $scope = $this->normalizeWeekdayReportScope($request);
-            $viewMode = $this->normalizeWeekdayReportViewMode($request);
-            $merged = match ($viewMode) {
-                'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
-                'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
-                'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
-                default => $this->buildWeekdaySalesMergedCollection($request),
-            };
-            $kpi = $this->buildWeekdaySalesKpiSummary($merged ?? collect(), $request);
-            $wsrTableMode = in_array($scope, ['single_this_month', 'single_last_month'], true) ? 'single' : 'full';
-            $extra = [
-                'wsr_table_mode' => $wsrTableMode,
-                'wsr_view_mode' => $viewMode,
-                'wsr_kpi' => $kpi,
-            ];
-
-            if ($merged === null) {
-                return ReportTransactionsUtile::getSalesComparisonReport(
-                    collect(),
-                    $this->computeSalesComparisonFooterTotals(collect()),
-                    $extra
-                );
-            }
-
-            $footer = $this->computeSalesComparisonFooterTotals($merged);
-
-            return ReportTransactionsUtile::getSalesComparisonReport($merged, $footer, $extra);
+            return response()->json($this->buildWeekdaySalesOccurrenceGridPayload($request));
         }
 
         return view('report::sales.weekday_sales_report');
@@ -3289,44 +3264,34 @@ SUM(
 
     public function weekdaySalesExportExcel(Request $request)
     {
-        $viewMode = $this->normalizeWeekdayReportViewMode($request);
-        $merged = match ($viewMode) {
-            'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
-            'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
-            'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
-            default => $this->buildWeekdaySalesMergedCollection($request),
-        };
-        if ($merged === null) {
-            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        $payload = $this->buildWeekdaySalesOccurrenceGridPayload($request);
+        if (! empty($payload['wsr_notice'])) {
+            return response()->json(['message' => (string) $payload['wsr_notice']], 422);
         }
-
-        $meta = $this->weekdaySalesExportMeta($request, $merged);
-        $meta['wsr_view_mode'] = $viewMode;
+        $meta = $this->weekdaySimpleGridExportMeta($request, $payload);
         $filename = 'weekday-sales-'.now()->format('Y-m-d-His').'.xlsx';
 
-        return Excel::download(new SalesComparisonExcelExport($merged, $meta), $filename);
+        return Excel::download(
+            new WeekdaySimpleGridExcelExport(
+                $payload['wsr_occurrence_dates'] ?? [],
+                $payload['wsr_grid_rows'] ?? [],
+                $meta
+            ),
+            $filename
+        );
     }
 
     public function weekdaySalesExportPdf(Request $request)
     {
-        $viewMode = $this->normalizeWeekdayReportViewMode($request);
-        $merged = match ($viewMode) {
-            'by_day' => $this->buildWeekdaySalesByDayMergedCollection($request),
-            'by_date' => $this->buildWeekdaySalesByDateMergedCollection($request),
-            'by_date_product' => $this->buildWeekdaySalesByDateProductMergedCollection($request),
-            default => $this->buildWeekdaySalesMergedCollection($request),
-        };
-        if ($merged === null) {
-            return response()->json(['message' => __('report::general.export_invalid_periods')], 422);
+        $payload = $this->buildWeekdaySalesOccurrenceGridPayload($request);
+        if (! empty($payload['wsr_notice'])) {
+            return response()->json(['message' => (string) $payload['wsr_notice']], 422);
         }
-
-        $meta = $this->weekdaySalesExportMeta($request, $merged);
-        $meta['wsr_view_mode'] = $viewMode;
-        $rows = $merged->map(fn ($r) => $this->mapSalesComparisonRowForPdf($r))->all();
-
-        $html = view('report::sales.sales_comparison_export_pdf', [
+        $meta = $this->weekdaySimpleGridExportMeta($request, $payload);
+        $html = view('report::sales.weekday_simple_grid_export_pdf', [
             'meta' => $meta,
-            'rows' => $rows,
+            'dates' => $payload['wsr_occurrence_dates'] ?? [],
+            'rows' => $payload['wsr_grid_rows'] ?? [],
         ])->render();
 
         if (! is_dir(storage_path('temp/mpdf'))) {
@@ -3356,68 +3321,246 @@ SUM(
     }
 
     /**
-     * @return array<string, string|int>
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
      */
-    private function weekdaySalesExportMeta(Request $request, Collection $merged): array
+    private function weekdaySimpleGridExportMeta(Request $request, array $payload): array
     {
-        $scope = $this->normalizeWeekdayReportScope($request);
-        $overrides = $this->weekdayReportSyntheticPeriodInputs($scope);
-        $forMeta = $overrides === null
-            ? $request
-            : $request->duplicate(null, array_merge($request->all(), $overrides));
+        $labels = $this->weekdayKpiPeriodLabels($request);
 
-        $meta = $this->salesComparisonExportMeta($forMeta, $merged);
-        $meta['title'] = __('menuItemLang.weekday-sales-report');
-        $meta['weekdays_line'] = $this->weekdayExportWeekdaysSummary($request);
-
-        $singleWindow = in_array($scope, ['single_this_month', 'single_last_month'], true);
-        $meta['wsr_export_single_window'] = $singleWindow;
-
-        if ($singleWindow) {
-            $kpi = $this->buildWeekdaySalesKpiSummary($merged, $request);
-            $meta['wsr_kpi_pdf'] = [
-                'qty' => number_format($kpi['sum_qty_a'], 3),
-                'revenue' => number_format($kpi['sum_subtotal_a'], 2),
-                'lines' => (string) $kpi['sum_lines_a'],
-            ];
-        }
-
-        return $meta;
+        return [
+            'title' => __('menuItemLang.weekday-sales-report'),
+            'generated_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            'period_line' => $labels['a'] !== '' ? $labels['a'] : '—',
+            'weekdays_line' => $this->weekdaySimpleGridWeekdaySummaryLine($request),
+            'filters' => $this->salesComparisonFilterSummary($request),
+            'row_count' => count($payload['wsr_grid_rows'] ?? []),
+        ];
     }
 
-    private function normalizeWeekdayReportViewMode(Request $request): string
+    private function weekdaySimpleGridWeekdaySummaryLine(Request $request): string
     {
-        if (! $request->has('wsr_view')) {
-            return 'by_product';
+        $raw = $this->resolveWeekdayPhpDaysForReport($request);
+        $sorted = $raw;
+        sort($sorted);
+        if ($sorted === range(0, 6)) {
+            return __('report::general.weekday_export_all_days');
         }
 
-        $v = (string) $request->input('wsr_view');
-        $allowed = ['by_product', 'by_day', 'by_date', 'by_date_product'];
+        $sep = app()->getLocale() === 'ar' ? '، ' : ', ';
 
-        return in_array($v, $allowed, true) ? $v : 'by_product';
+        return implode($sep, array_map(
+            fn (int $d) => (string) __('report::general.weekday_long_'.$d),
+            $sorted
+        ));
+    }
+
+    /**
+     * One-period pivot: rows = product + branch + unit; columns = each calendar occurrence of selected weekdays (qty + avg sale price).
+     *
+     * @return array<string, mixed>
+     */
+    private function buildWeekdaySalesOccurrenceGridPayload(Request $request): array
+    {
+        $draw = (int) $request->input('draw', 0);
+        $emptyKpi = $this->buildWeekdaySalesKpiSummary(collect(), $request);
+        $emptyKpi['is_single'] = true;
+
+        $baseResponse = static function (array $extra) use ($draw, $emptyKpi): array {
+            return array_merge([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'wsr_simple_grid' => true,
+                'wsr_occurrence_dates' => [],
+                'wsr_grid_rows' => [],
+                'wsr_table_mode' => 'single',
+                'wsr_view_mode' => 'simple_occurrence_grid',
+                'wsr_kpi' => $emptyKpi,
+            ], $extra);
+        };
+
+        if (! $this->weekdayReportIsSingleWindow($request)) {
+            return $baseResponse([
+                'wsr_notice' => __('report::general.weekday_simple_grid_requires_single_period'),
+            ]);
+        }
+
+        [$periodA] = $this->resolveWeekdayReportPeriods($request);
+        if (! $periodA || ! isset($periodA[0], $periodA[1])) {
+            return $baseResponse([
+                'wsr_notice' => __('report::general.export_invalid_periods'),
+            ]);
+        }
+
+        [$from, $to] = $periodA;
+
+        $phpDows = $this->resolveWeekdayPhpDaysForReport($request);
+        $occurrenceDates = [];
+        $cursor = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->endOfDay();
+        while ($cursor->lte($end)) {
+            if (in_array((int) $cursor->dayOfWeek, $phpDows, true)) {
+                $occurrenceDates[] = $cursor->format('Y-m-d');
+            }
+            $cursor->addDay();
+        }
+
+        if ($occurrenceDates === []) {
+            return $baseResponse([
+                'wsr_occurrence_dates' => [],
+                'wsr_grid_rows' => [],
+            ]);
+        }
+
+        $mysqlDows = array_values(array_unique(array_map(fn (int $p) => $p + 1, $phpDows)));
+        sort($mysqlDows);
+        $inList = implode(',', $mysqlDows);
+
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+        $filtered = $this->buildSalesComparisonLinesQuery($request, true)
+            ->leftJoin('product_unit_transfer as put', 'tsl.unit_id', '=', 'put.id')
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to)
+            ->whereRaw('DAYOFWEEK(DATE(t.transaction_date)) IN ('.$inList.')');
+
+        $kpiRow = (clone $filtered)
+            ->selectRaw('COALESCE(SUM(tsl.qyt), 0) as sum_qty')
+            ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as sum_subtotal')
+            ->selectRaw('COUNT(*) as sum_lines')
+            ->first();
+
+        $rowsRaw = (clone $filtered)
+            ->selectRaw('DATE(t.transaction_date) as tx_date')
+            ->selectRaw('tsl.product_id as product_id')
+            ->selectRaw('t.establishment_id as establishment_id')
+            ->selectRaw('tsl.unit_id as unit_id')
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN p.name_ar ELSE p.name_en END) as product_name")
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
+            ->selectRaw('MAX(put.unit1) as unit_label')
+            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) / NULLIF(SUM(tsl.qyt), 0) as unit_sale_price')
+            ->groupBy(DB::raw('DATE(t.transaction_date)'), 'tsl.product_id', 't.establishment_id', 'tsl.unit_id')
+            ->orderBy('tx_date')
+            ->get();
+
+        $matrix = [];
+        foreach ($rowsRaw as $r) {
+            $unitKey = $r->unit_id === null ? '0' : (string) $r->unit_id;
+            $key = $r->product_id.'|'.$r->establishment_id.'|'.$unitKey;
+            if (! isset($matrix[$key])) {
+                $cells = [];
+                foreach ($occurrenceDates as $d) {
+                    $cells[$d] = ['qty' => 0.0, 'unit_sale_price' => null];
+                }
+                $matrix[$key] = [
+                    'product_name' => (string) ($r->product_name ?? '--'),
+                    'establishment_name' => (string) ($r->establishment_name ?? '--'),
+                    'unit_label' => (($r->unit_label ?? '') !== '') ? (string) $r->unit_label : '—',
+                    'cells' => $cells,
+                ];
+            }
+            $d = (string) $r->tx_date;
+            if (isset($matrix[$key]['cells'][$d])) {
+                $matrix[$key]['cells'][$d] = [
+                    'qty' => (float) ($r->qty ?? 0),
+                    'unit_sale_price' => $r->unit_sale_price !== null ? (float) $r->unit_sale_price : null,
+                ];
+            }
+        }
+
+        uasort($matrix, static function (array $a, array $b): int {
+            return strcmp(
+                $a['product_name'].'|'.$a['establishment_name'].'|'.$a['unit_label'],
+                $b['product_name'].'|'.$b['establishment_name'].'|'.$b['unit_label']
+            );
+        });
+
+        $datesMeta = [];
+        foreach ($occurrenceDates as $d) {
+            try {
+                $dow = (int) Carbon::parse($d)->dayOfWeek;
+                $datesMeta[] = [
+                    'date' => $d,
+                    'label' => __('report::general.weekday_long_'.$dow).' · '.$d,
+                ];
+            } catch (\Throwable $e) {
+                $datesMeta[] = ['date' => $d, 'label' => $d];
+            }
+        }
+
+        $labels = $this->weekdayKpiPeriodLabels($request);
+        $sumQty = (float) ($kpiRow->sum_qty ?? 0);
+        $sumSub = (float) ($kpiRow->sum_subtotal ?? 0);
+        $sumLines = (int) ($kpiRow->sum_lines ?? 0);
+
+        $kpi = [
+            'is_single' => true,
+            'period_a_label' => $labels['a'],
+            'period_b_label' => $labels['b'],
+            'chart_label_a' => $this->shortenKpiLabel($labels['a']),
+            'chart_label_b' => $this->shortenKpiLabel($labels['b']),
+            'sum_qty_a' => $sumQty,
+            'sum_qty_b' => 0.0,
+            'sum_subtotal_a' => $sumSub,
+            'sum_subtotal_b' => 0.0,
+            'sum_lines_a' => $sumLines,
+            'sum_lines_b' => 0,
+            'qty_change_pct' => null,
+            'revenue_change_pct' => null,
+            'delta_qty' => 0.0,
+            'delta_revenue' => 0.0,
+        ];
+
+        return [
+            'draw' => $draw,
+            'recordsTotal' => count($matrix),
+            'recordsFiltered' => count($matrix),
+            'data' => [],
+            'wsr_simple_grid' => true,
+            'wsr_occurrence_dates' => $datesMeta,
+            'wsr_grid_rows' => array_values($matrix),
+            'wsr_table_mode' => 'single',
+            'wsr_view_mode' => 'simple_occurrence_grid',
+            'wsr_kpi' => $kpi,
+        ];
     }
 
     private function normalizeWeekdayReportScope(Request $request): string
     {
-        if (! $request->has('weekday_report_scope')) {
-            return 'custom_periods';
+        $s = (string) $request->input('weekday_report_scope', 'single_this_month');
+        $allowed = [
+            'single_month_to_date',
+            'single_this_month',
+            'single_last_month',
+            'single_last_7_days',
+            'single_last_30_days',
+            'single_last_90_days',
+            'single_today',
+            'single_yesterday',
+            'single_pick_day',
+        ];
+
+        if ($s === 'custom_periods') {
+            return 'single_this_month';
         }
 
-        $s = (string) $request->input('weekday_report_scope');
-        $allowed = ['custom_periods', 'compare_this_vs_last_month', 'single_this_month', 'single_last_month'];
-
-        return in_array($s, $allowed, true) ? $s : 'custom_periods';
+        return in_array($s, $allowed, true) ? $s : 'single_this_month';
     }
 
     /**
      * @return array<string, string>|null  null when the request already carries the real period fields
      */
-    private function weekdayReportSyntheticPeriodInputs(string $scope): ?array
+    private function weekdayReportSyntheticPeriodInputs(Request $request): ?array
     {
+        $scope = $this->normalizeWeekdayReportScope($request);
+
         return match ($scope) {
-            'compare_this_vs_last_month' => [
-                'period_a_preset' => 'last_month',
-                'period_b_preset' => 'this_month',
+            'single_month_to_date' => [
+                'period_a_preset' => 'month_to_date',
+                'period_b_preset' => 'month_to_date',
                 'period_a_range' => '',
                 'period_b_range' => '',
             ],
@@ -3433,8 +3576,77 @@ SUM(
                 'period_a_range' => '',
                 'period_b_range' => '',
             ],
+            'single_last_7_days' => [
+                'period_a_preset' => 'last_7_days',
+                'period_b_preset' => 'last_7_days',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_last_30_days' => [
+                'period_a_preset' => 'last_30_days',
+                'period_b_preset' => 'last_30_days',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_last_90_days' => [
+                'period_a_preset' => 'last_90_days',
+                'period_b_preset' => 'last_90_days',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_today' => [
+                'period_a_preset' => 'today',
+                'period_b_preset' => 'today',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_yesterday' => [
+                'period_a_preset' => 'yesterday',
+                'period_b_preset' => 'yesterday',
+                'period_a_range' => '',
+                'period_b_range' => '',
+            ],
+            'single_pick_day' => $this->weekdayPickDaySyntheticRange($request),
             default => null,
         };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function weekdayPickDaySyntheticRange(Request $request): array
+    {
+        $raw = (string) $request->input('wsr_pick_day', '');
+        try {
+            $d = $raw !== '' ? Carbon::parse($raw)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+        } catch (\Throwable $e) {
+            $d = Carbon::now()->format('Y-m-d');
+        }
+        $range = $d.' - '.$d;
+
+        return [
+            'period_a_preset' => 'custom',
+            'period_b_preset' => 'custom',
+            'period_a_range' => $range,
+            'period_b_range' => $range,
+        ];
+    }
+
+    private function weekdayReportIsSingleWindow(Request $request): bool
+    {
+        $scope = $this->normalizeWeekdayReportScope($request);
+
+        return in_array($scope, [
+            'single_month_to_date',
+            'single_this_month',
+            'single_last_month',
+            'single_last_7_days',
+            'single_last_30_days',
+            'single_last_90_days',
+            'single_today',
+            'single_yesterday',
+            'single_pick_day',
+        ], true);
     }
 
     /**
@@ -3444,12 +3656,34 @@ SUM(
     {
         $scope = $this->normalizeWeekdayReportScope($request);
 
-        if ($scope === 'compare_this_vs_last_month') {
-            return [
-                SalesComparisonPeriodResolver::resolve('last_month', null),
-                SalesComparisonPeriodResolver::resolve('this_month', null),
-                $scope,
-            ];
+        if ($scope === 'single_month_to_date') {
+            $a = SalesComparisonPeriodResolver::resolve('month_to_date', null);
+
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_last_7_days') {
+            $a = SalesComparisonPeriodResolver::resolve('last_7_days', null);
+
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_last_30_days') {
+            $a = SalesComparisonPeriodResolver::resolve('last_30_days', null);
+
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_today') {
+            $a = SalesComparisonPeriodResolver::resolve('today', null);
+
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_yesterday') {
+            $a = SalesComparisonPeriodResolver::resolve('yesterday', null);
+
+            return [$a, $a, $scope];
         }
 
         if ($scope === 'single_this_month') {
@@ -3464,16 +3698,27 @@ SUM(
             return [$a, $a, $scope];
         }
 
-        $periodA = SalesComparisonPeriodResolver::resolve(
-            $request->input('period_a_preset'),
-            $request->input('period_a_range')
-        );
-        $periodB = SalesComparisonPeriodResolver::resolve(
-            $request->input('period_b_preset'),
-            $request->input('period_b_range')
-        );
+        if ($scope === 'single_last_90_days') {
+            $a = SalesComparisonPeriodResolver::resolve('last_90_days', null);
 
-        return [$periodA, $periodB, $scope];
+            return [$a, $a, $scope];
+        }
+
+        if ($scope === 'single_pick_day') {
+            $raw = (string) $request->input('wsr_pick_day', '');
+            try {
+                $d = $raw !== '' ? Carbon::parse($raw)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $d = Carbon::now()->format('Y-m-d');
+            }
+            $a = [$d, $d];
+
+            return [$a, $a, $scope];
+        }
+
+        $a = SalesComparisonPeriodResolver::resolve('this_month', null);
+
+        return [$a, $a, 'single_this_month'];
     }
 
     /**
@@ -3535,7 +3780,7 @@ SUM(
     private function buildWeekdaySalesKpiSummary(Collection $merged, Request $request): array
     {
         $scope = $this->normalizeWeekdayReportScope($request);
-        $isSingle = in_array($scope, ['single_this_month', 'single_last_month'], true);
+        $isSingle = $this->weekdayReportIsSingleWindow($request);
         $labels = $this->weekdayKpiPeriodLabels($request);
 
         $sumQtyA = $merged->isEmpty() ? 0.0 : (float) $merged->sum(fn ($r) => (float) ($r->qty_period_a ?? 0));
@@ -3775,14 +4020,14 @@ SUM(
      */
     private function buildWeekdaySalesByDateMergedCollection(Request $request): ?Collection
     {
-        [$periodA, $periodB, $scope] = $this->resolveWeekdayReportPeriods($request);
+        [$periodA, $periodB] = $this->resolveWeekdayReportPeriods($request);
 
         if (! $periodA || ! $periodB) {
             return null;
         }
 
         // If the user tries by-date in a two-period comparison, fall back to by-day to avoid confusing mismatched dates.
-        if (! in_array($scope, ['single_this_month', 'single_last_month'], true)) {
+        if (! $this->weekdayReportIsSingleWindow($request)) {
             return $this->buildWeekdaySalesByDayMergedCollection($request);
         }
 
@@ -3859,14 +4104,14 @@ SUM(
      */
     private function buildWeekdaySalesByDateProductMergedCollection(Request $request): ?Collection
     {
-        [$periodA, $periodB, $scope] = $this->resolveWeekdayReportPeriods($request);
+        [$periodA, $periodB] = $this->resolveWeekdayReportPeriods($request);
 
         if (! $periodA || ! $periodB) {
             return null;
         }
 
         // Only meaningful for single-period views; in compare mode, fallback to by-day to avoid mismatched dates.
-        if (! in_array($scope, ['single_this_month', 'single_last_month'], true)) {
+        if (! $this->weekdayReportIsSingleWindow($request)) {
             return $this->buildWeekdaySalesByDayMergedCollection($request);
         }
 

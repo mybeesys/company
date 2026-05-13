@@ -12,9 +12,6 @@ $("#account_id").select2();
 $("#payment_type").select2({
     width: "resolve",
 });
-$("#unit").select2({
-    width: "resolve",
-});
 $("#cash_account").select2({
     width: "resolve",
 });
@@ -25,11 +22,8 @@ $("#client_id").select2({
 $("#storehouse").select2({
     width: "resolve",
 });
-$("#tax_vat").select2({
-    width: "resolve",
-});
 
-
+// Line-item #unit / #tax_vat removed: duplicate ids per row break Select2; use initPrefilledSalesLineSelect2 (line-items-select2.js).
 
 // $('#products').select2();
 $("#payment_terms").select2({

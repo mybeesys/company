@@ -447,7 +447,7 @@ class AccountingReportsController extends Controller
                     'totalClosingDebitBalance' => $this->roundMoney($totalClosingDebitBalance),
                     'totalClosingCreditBalance' => $this->roundMoney($totalClosingCreditBalance),
                 ])
-                ->rawColumns(['action', 'closing_credit_balance', 'closing_debit_balance', 'credit_balance', 'debit_balance', 'name', 'gl_code'])
+                ->rawColumns(['action', 'closing_debit_balance', 'closing_credit_balance', 'debit_balance', 'credit_balance', 'name', 'gl_code'])
 
                 ->make(true);
         }
@@ -1405,7 +1405,7 @@ class AccountingReportsController extends Controller
 
                     return '';
                 })
-                ->rawColumns(['ref_no', 'credit', 'cost_center_name', 'debit', 'balance', 'action'])
+                ->rawColumns(['ref_no', 'debit', 'credit', 'cost_center_name', 'balance', 'action'])
                 ->with([
                     'period_debit' => (float) $period_debit,
                     'period_credit' => (float) $period_credit,

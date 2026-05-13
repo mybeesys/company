@@ -92,7 +92,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <select id="products" required class="form-select form-select-solid select-2"
+                                        <select id="products-{{ $index }}" required
+                                            class="form-select form-select-solid select-2 product-select"
                                             {{-- @if ($line->line_status == 'completed') disabled @endif --}} name="products[{{ $index }}][products_id]"
                                             style="padding: 7px">
                                             <option value="">@lang('sales::lang.select_products')</option>
@@ -151,10 +152,10 @@
                                             placeholder="0" min="1" style="width: 80px;display: inline-block;">
                                         {{-- {{ - $line->remaining_qty}} --}}
 
-                                        <select id="unit"
+                                        <select id="unit-{{ $index }}"
                                             class="form-select form-select-solid select-2 d-inline-block unit"
                                             name="products[{{ $index }}][unit]" {{-- @if ($line->line_status == 'completed') disabled @endif --}}
-                                            style="width: 100px; display: inline-block;">
+                                            style="width: 110px; display: inline-block;">
                                             <option value="">@lang('sales::lang.unit')</option>
                                             @if (!empty($line->product) && $line->product->unitTransfers->count() > 0)
                                                 @foreach ($line->product->unitTransfers as $unit)
@@ -175,17 +176,16 @@
                                     <td style="white-space: nowrap;">
                                         <input type="number" step="any" {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-control discount-field no-spin d-inline-block discount"
-                                            name="products[{{ $index }}][discount]" id="discount"
+                                            name="products[{{ $index }}][discount]"
                                             placeholder="0.0" value="{{ $line->discount_amount }}"
                                             style="width: 70px; display: inline-block;">
 
-                                        <select id="discount_type" required {{-- @if ($line->line_status == 'completed') disabled @endif --}}
+                                        <select id="discount_type-{{ $index }}" required {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-select form-select-solid select-2 d-inline-block discount_type"
                                             name="products[{{ $index }}][discount_type]"
-                                            style="width: 100px; display: inline-block;"
-                                            value="{{ $line->discount_type }}">
-                                            <option value="fixed">@get_format_currency()</option>
-                                            <option value="percent">%</option>
+                                            style="width: 100px; display: inline-block;">
+                                            <option value="fixed" @selected(($line->discount_type ?? 'fixed') === 'fixed')>@get_format_currency()</option>
+                                            <option value="percent" @selected(($line->discount_type ?? '') === 'percent')>%</option>
                                         </select>
                                     </td>
 
@@ -197,14 +197,14 @@
 
                                     <td class="d-flex justify-content-center">
                                         <div class="form-check">
-                                            <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive"
+                                            <input type="checkbox" style="border: 1px solid #9f9f9f;" id="inclusive-{{ $index }}"
                                                 {{-- @if ($line->line_status == 'completed') disabled @endif --}} name="products[{{ $index }}][inclusive]"
                                                 class="form-check-input  my-2">
                                         </div>
 
                                     </td>
                                     <td>
-                                        <select id="tax_vat" required {{-- @if ($line->line_status == 'completed') disabled @endif --}}
+                                        <select id="tax_vat-{{ $index }}" required {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-select form-select-solid select-2 tax-select"
                                             name="products[{{ $index }}][tax_vat]" style="width: 200px;"
                                             {{-- data-is-tax-group="{{ $tax->is_tax_group }}"

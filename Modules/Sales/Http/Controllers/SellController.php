@@ -582,9 +582,28 @@ class SellController extends Controller
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
         $quotation = false;
-        $quotationId = $request->input('quotation_id');
-        $transaction = Transaction::find($quotationId);
-        if ($quotationId > 0) {
+        $isDuplicate = false;
+        $transaction = null;
+
+        $duplicateFrom = (int) $request->input('duplicate_from', 0);
+        $quotationId = (int) $request->input('quotation_id', 0);
+
+        $sellLineRelations = [
+            'sell_lines' => fn ($q) => $q->where('is_show', 1)->orderBy('id'),
+            'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+        ];
+
+        if ($duplicateFrom > 0) {
+            $src = Transaction::with($sellLineRelations)->find($duplicateFrom);
+            if ($src && $src->type === 'sell') {
+                $transaction = $src;
+                $isDuplicate = true;
+            }
+        } elseif ($quotationId > 0) {
+            $transaction = Transaction::with($sellLineRelations)->find($quotationId);
+            if ($transaction && $transaction->type === 'quotation') {
+                $quotation = true;
+            }
 
             $actionUtil->saveOrUpdateAction('create_sell', 'convert-to-invoice', '#');
         }
@@ -605,7 +624,7 @@ class SellController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig'));
+        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate'));
     }
 
     private function buildSalesInvoicePrecheckConfig(): array
