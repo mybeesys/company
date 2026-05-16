@@ -16,6 +16,7 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\ContractorsAccUtil;
 use Modules\Accounting\Utils\E_commerceAccUtil;
@@ -580,20 +581,13 @@ class TreeAccountsController extends Controller
         ));
     }
 
-    public function ledgerPrint(Request $request, $id)
+    /** @return array<string, mixed> */
+    protected function ledgerStatementViewData(Request $request, AccountingAccount $account, bool $isPdf = false): array
     {
-
-        $account_id = $id;
-
-        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
-            ->findorFail($account_id);
-
-        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
         $choose_cost_center_select = $this->ledgerCostCenters($request);
         [$start_date, $end_date] = $this->ledgerDateRange($request);
         $is_debit_nature = $this->ledgerIsDebitNature($account);
         $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
-
         $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
 
         $current_bal = AccountingAccount::leftjoin(
@@ -602,76 +596,95 @@ class TreeAccountsController extends Controller
             '=',
             'accounting_accounts.id'
         )
-
             ->where('accounting_accounts.id', $account->id)
-            ->select([DB::raw(AccountingUtil::balanceFormula())]);
-        $current_bal = $current_bal->first()->balance;
+            ->select([DB::raw(AccountingUtil::balanceFormula())])
+            ->first()
+            ->balance;
 
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+        $localeAr = app()->getLocale() === 'ar';
+        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
+        $showTransactionType = in_array('transaction', $ledger_visible_columns, true)
+            || in_array('ref_no', $ledger_visible_columns, true);
 
-        return view('accounting::treeOfAccounts.print-ledger', compact(
-            'company',
-            'account',
-            'current_bal',
-            'account_transactions',
-            'ledger_visible_columns',
-            'opening_balance',
-            'start_date',
-            'end_date',
-            'is_debit_nature'
-        ));
+        $lines = LedgerStatementPresenter::buildLines(
+            $account_transactions,
+            (float) $opening_balance,
+            $is_debit_nature,
+            $localeAr,
+            $showTransactionType
+        );
+
+        $closing_balance = $lines !== []
+            ? (float) end($lines)['balance_raw']
+            : (float) $opening_balance;
+
+        return [
+            'company' => $company,
+            'account' => $account,
+            'current_bal' => $current_bal,
+            'account_transactions' => $account_transactions,
+            'opening_balance' => $opening_balance,
+            'closing_balance' => $closing_balance,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'is_debit_nature' => $is_debit_nature,
+            'is_pdf' => $isPdf,
+            'locale_ar' => $localeAr,
+            'currency' => LedgerStatementPresenter::defaultCurrency(),
+            'company_name' => LedgerStatementPresenter::companyDisplayName($company, $localeAr),
+            'company_address_lines' => LedgerStatementPresenter::companyAddressLines($company, $localeAr),
+            'company_logo_path' => LedgerStatementPresenter::companyLogoPath($company),
+            'company_logo_src' => LedgerStatementPresenter::companyLogoSrc($company, $isPdf),
+            'statement_lines' => $lines,
+            'account_class_label' => LedgerStatementPresenter::accountClassLabel($account, $localeAr),
+            'printed_at' => now()->format('n/j/Y g:i A'),
+        ];
+    }
+
+    public function ledgerPrint(Request $request, $id)
+    {
+        $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
+            ->findOrFail($id);
+
+        return view('accounting::treeOfAccounts.print-ledger', $this->ledgerStatementViewData($request, $account));
     }
 
     public function ledgerExportPdf(Request $request, $id)
     {
-        $account_id = $id;
-
         $account = AccountingAccount::with(['account_sub_type', 'detail_type'])
-            ->findorFail($account_id);
+            ->findOrFail($id);
 
-        $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
-        $choose_cost_center_select = $this->ledgerCostCenters($request);
-        [$start_date, $end_date] = $this->ledgerDateRange($request);
-        $is_debit_nature = $this->ledgerIsDebitNature($account);
-        $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
+        $viewData = $this->ledgerStatementViewData($request, $account, true);
+        $html = view('accounting::treeOfAccounts.print-ledger', $viewData)->render();
 
-        $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
-
-        $current_bal = AccountingAccount::leftjoin(
-            'accounting_accounts_transactions as AAT',
-            'AAT.accounting_account_id',
-            '=',
-            'accounting_accounts.id'
-        )->where('accounting_accounts.id', $account->id)
-            ->select([DB::raw(AccountingUtil::balanceFormula())]);
-        $current_bal = $current_bal->first()->balance;
-
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
-        $html = view('accounting::treeOfAccounts.print-ledger', compact(
-            'company',
-            'account',
-            'current_bal',
-            'account_transactions',
-            'ledger_visible_columns',
-            'opening_balance',
-            'start_date',
-            'end_date',
-            'is_debit_nature'
-        ))->render();
+        $localeAr = $viewData['locale_ar'];
+        $footerHtml = view('accounting::treeOfAccounts.partials.ledger-statement-footer', $viewData)->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
             'default_font' => 'DejaVuSans',
-            'default_font_size' => 12,
+            'default_font_size' => 9,
+            'margin_top' => 10,
+            'margin_bottom' => 20,
+            'margin_left' => 12,
+            'margin_right' => 12,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
         ]);
 
+        if ($localeAr) {
+            $mpdf->SetDirectionality('rtl');
+        } else {
+            $mpdf->SetDirectionality('ltr');
+        }
+
+        $mpdf->SetHTMLFooter($footerHtml);
         $mpdf->WriteHTML($html);
 
-        $filename = __('accounting::lang.ledger').' '.(App::getLocale() == 'ar' ? $account->name_ar : $account->name_en).'- ('.str_replace(['/', '\\'], ' - ', $account->gl_code).')'.'.pdf';
+        $accountLabel = $localeAr ? $account->name_ar : $account->name_en;
+        $filename = __('accounting::lang.account_statement').' - '.$accountLabel.' ('.str_replace(['/', '\\'], ' - ', $account->gl_code).').pdf';
 
         return $mpdf->Output($filename, 'D');
     }

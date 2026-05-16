@@ -199,6 +199,7 @@ return [
             'Modules/Screen/database/migrations/tenant',
             'Modules/Reservation/database/migrations/tenant',
             'Modules/Franchise/database/migrations/tenant',
+            'Modules/Expense/database/migrations/tenant',
         ],
 
         '--realpath' => true,

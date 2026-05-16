@@ -114,6 +114,10 @@ Route::middleware([
         Route::get('journal-report-export-pdf', [AccountingReportsController::class, 'journalReportExportPdf'])->name('journal-report-export-pdf');
         Route::get('journal-report-export-excel', [AccountingReportsController::class, 'journalReportExportExcel'])->name('journal-report-export-excel');
 
+        Route::get('expense-report', [AccountingReportsController::class, 'expenseReport'])->name('expense-report');
+        Route::get('expense-report-export-pdf', [AccountingReportsController::class, 'expenseReportExportPdf'])->name('expense-report-export-pdf');
+        Route::get('expense-report-export-excel', [AccountingReportsController::class, 'expenseReportExportExcel'])->name('expense-report-export-excel');
+
         Route::get('cash-flow', [AccountingReportsController::class, 'cash_flow'])->name('cash-flow');
         Route::get('cash-flow-export-pdf', [AccountingReportsController::class, 'cashFlowExportPdf'])->name('cash-flow-export-pdf');
         Route::get('cash-flow-export-excel', [AccountingReportsController::class, 'cashFlowExportExcel'])->name('cash-flow-export-excel');

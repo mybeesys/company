@@ -550,37 +550,39 @@
                 <div class="table-responsive">
                 <table class="table align-middle table-striped table-row-bordered fs-6 gy-5 sc-table" id="kt_SalesComparison_table" style="width:100%">
                     <thead>
+                        {{-- صف التجميع فقط (بدون rowspan) — DataTables يحتاج 25 عموداً في الصف الثاني --}}
                         <tr class="text-gray-800 fw-bold gs-0 sc-h1">
-                            <th rowspan="2" class="text-start min-w-150px sc-gh-context px-2">@lang('report::fields.product_name')</th>
-                            <th rowspan="2" class="text-start min-w-100px sc-gh-context px-2">@lang('report::fields.category')</th>
-                            <th rowspan="2" class="text-start min-w-120px sc-gh-context px-2">@lang('report::fields.subcategory')</th>
-                            <th rowspan="2" class="text-start min-w-130px sc-gh-context px-2">@lang('report::fields.establishment_name')</th>
-                            <th rowspan="2" class="text-start min-w-90px sc-gh-context px-2">@lang('report::fields.SKU')</th>
-                            <th rowspan="2" class="text-start min-w-130px sc-gh-context px-2">@lang('report::fields.customer')</th>
+                            <th colspan="6" class="sc-gh-context py-3 text-center">@lang('report::general.sales_comparison_group_context')</th>
                             <th colspan="6" class="sc-gh-p1 py-3">@lang('report::general.sales_comparison_group_period_a')</th>
                             <th colspan="6" class="sc-gh-p2 py-3">@lang('report::general.sales_comparison_group_period_b')</th>
                             <th colspan="7" class="sc-gh-var py-3">@lang('report::general.sales_comparison_group_variance')</th>
                         </tr>
                         <tr class="text-gray-700 sc-h2">
-                            <th class="text-start min-w-90px">@lang('report::fields.qty_period_a')</th>
-                            <th class="text-start min-w-110px">@lang('report::fields.avg_unit_price_period_a')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.discount_period_a')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.tax_period_a')</th>
-                            <th class="text-start min-w-100px">@lang('report::fields.subtotal_period_a')</th>
-                            <th class="text-start min-w-80px">@lang('report::fields.lines_period_a')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.qty_period_b')</th>
-                            <th class="text-start min-w-110px">@lang('report::fields.avg_unit_price_period_b')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.discount_period_b')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.tax_period_b')</th>
-                            <th class="text-start min-w-100px">@lang('report::fields.subtotal_period_b')</th>
-                            <th class="text-start min-w-80px">@lang('report::fields.lines_period_b')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.qty_difference')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.qty_change_percent')</th>
-                            <th class="text-start min-w-100px">@lang('report::fields.subtotal_difference')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.subtotal_change_percent')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.discount_difference')</th>
-                            <th class="text-start min-w-90px">@lang('report::fields.tax_difference')</th>
-                            <th class="text-start min-w-80px">@lang('report::fields.lines_difference')</th>
+                            <th class="text-start min-w-150px sc-gh-context px-2" data-sc-col-idx="0">@lang('report::fields.product_name')</th>
+                            <th class="text-start min-w-100px sc-gh-context px-2" data-sc-col-idx="1">@lang('report::fields.category')</th>
+                            <th class="text-start min-w-120px sc-gh-context px-2" data-sc-col-idx="2">@lang('report::fields.subcategory')</th>
+                            <th class="text-start min-w-130px sc-gh-context px-2" data-sc-col-idx="3">@lang('report::fields.establishment_name')</th>
+                            <th class="text-start min-w-90px sc-gh-context px-2" data-sc-col-idx="4">@lang('report::fields.SKU')</th>
+                            <th class="text-start min-w-130px sc-gh-context px-2" data-sc-col-idx="5">@lang('report::fields.customer')</th>
+                            <th class="text-start min-w-90px sc-cell-p1" data-sc-col-idx="6">@lang('report::fields.qty_period_a')</th>
+                            <th class="text-start min-w-110px sc-cell-p1" data-sc-col-idx="7">@lang('report::fields.avg_unit_price_period_a')</th>
+                            <th class="text-start min-w-90px sc-cell-p1" data-sc-col-idx="8">@lang('report::fields.discount_period_a')</th>
+                            <th class="text-start min-w-90px sc-cell-p1" data-sc-col-idx="9">@lang('report::fields.tax_period_a')</th>
+                            <th class="text-start min-w-100px sc-cell-p1" data-sc-col-idx="10">@lang('report::fields.subtotal_period_a')</th>
+                            <th class="text-start min-w-80px sc-cell-p1" data-sc-col-idx="11">@lang('report::fields.lines_period_a')</th>
+                            <th class="text-start min-w-90px sc-cell-p2" data-sc-col-idx="12">@lang('report::fields.qty_period_b')</th>
+                            <th class="text-start min-w-110px sc-cell-p2" data-sc-col-idx="13">@lang('report::fields.avg_unit_price_period_b')</th>
+                            <th class="text-start min-w-90px sc-cell-p2" data-sc-col-idx="14">@lang('report::fields.discount_period_b')</th>
+                            <th class="text-start min-w-90px sc-cell-p2" data-sc-col-idx="15">@lang('report::fields.tax_period_b')</th>
+                            <th class="text-start min-w-100px sc-cell-p2" data-sc-col-idx="16">@lang('report::fields.subtotal_period_b')</th>
+                            <th class="text-start min-w-80px sc-cell-p2" data-sc-col-idx="17">@lang('report::fields.lines_period_b')</th>
+                            <th class="text-start min-w-90px sc-cell-var" data-sc-col-idx="18">@lang('report::fields.qty_difference')</th>
+                            <th class="text-start min-w-90px sc-cell-var" data-sc-col-idx="19">@lang('report::fields.qty_change_percent')</th>
+                            <th class="text-start min-w-100px sc-cell-var" data-sc-col-idx="20">@lang('report::fields.subtotal_difference')</th>
+                            <th class="text-start min-w-90px sc-cell-var" data-sc-col-idx="21">@lang('report::fields.subtotal_change_percent')</th>
+                            <th class="text-start min-w-90px sc-cell-var" data-sc-col-idx="22">@lang('report::fields.discount_difference')</th>
+                            <th class="text-start min-w-90px sc-cell-var" data-sc-col-idx="23">@lang('report::fields.tax_difference')</th>
+                            <th class="text-start min-w-80px sc-cell-var" data-sc-col-idx="24">@lang('report::fields.lines_difference')</th>
                         </tr>
                     </thead>
                     <tbody class="fw-semibold text-gray-600"></tbody>
@@ -621,10 +623,14 @@
     let scRestoringFilters = false;
     let scPendingTableSearch = '';
     const SC_FILTER_STORAGE_KEY = 'salesComparisonReport:v1';
-    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v2';
+    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v4';
+    const SC_COLUMN_COUNT = 25;
     const SC_FOOTER_KEYS = @json($scColumnPickerKeys);
     const SC_CONTEXT_KEYS = @json($scColumnPickerContextKeys);
     const SC_COLUMN_GROUPS = @json($scColumnGroupsForJs);
+    const SC_PERIOD_A_INDICES = [6, 7, 8, 9, 10, 11];
+    const SC_PERIOD_B_INDICES = [12, 13, 14, 15, 16, 17];
+    const SC_VARIANCE_INDICES = [18, 19, 20, 21, 22, 23, 24];
 
     const table = $('#kt_SalesComparison_table');
     const apiUrl = "{{ route('sales-comparison-report') }}";
@@ -790,6 +796,66 @@
         $('#scChartsSection').toggleClass('d-none', !on);
     }
 
+    /** jQuery .data('sc-group') fails for data-sc-group; use attr. */
+    function scResolveToggleIndices($cb) {
+        const groupId = $cb.attr('data-sc-group');
+        if (groupId) {
+            const g = SC_COLUMN_GROUPS.find(function(x) { return x.id === groupId; });
+            return g ? g.indices.slice() : [];
+        }
+        const idx = parseInt($cb.attr('data-sc-idx'), 10);
+        return isNaN(idx) ? [] : [idx];
+    }
+
+    function scCountVisibleInIndices(indices) {
+        if (!dataTable) return 0;
+        return indices.filter(function(i) { return dataTable.column(i).visible(); }).length;
+    }
+
+    function scTableWrapper() {
+        return table.closest('.dataTables_wrapper');
+    }
+
+    function scSyncHeaderCellsByIndex(colIdx, visible) {
+        const display = visible ? '' : 'none';
+        scTableWrapper().find('thead th[data-sc-col-idx="' + colIdx + '"]').css('display', display);
+        scTableWrapper().find('tfoot tr.sc-footer-totals td').eq(colIdx).css('display', display);
+    }
+
+    function syncScTableHeaderColspans() {
+        if (!dataTable) return;
+        const nCtx = scCountVisibleInIndices([0, 1, 2, 3, 4, 5]);
+        const nA = scCountVisibleInIndices(SC_PERIOD_A_INDICES);
+        const nB = scCountVisibleInIndices(SC_PERIOD_B_INDICES);
+        const nV = scCountVisibleInIndices(SC_VARIANCE_INDICES);
+        scTableWrapper().find('thead tr.sc-h1').each(function() {
+            const $h1 = $(this);
+            $h1.find('.sc-gh-context').attr('colspan', Math.max(nCtx, 1)).toggleClass('d-none', nCtx === 0);
+            $h1.find('.sc-gh-p1').attr('colspan', Math.max(nA, 1)).toggleClass('d-none', nA === 0);
+            $h1.find('.sc-gh-p2').attr('colspan', Math.max(nB, 1)).toggleClass('d-none', nB === 0);
+            $h1.find('.sc-gh-var').attr('colspan', Math.max(nV, 1)).toggleClass('d-none', nV === 0);
+        });
+    }
+
+    function scSetColumnsVisible(indices, visible) {
+        if (!dataTable || !indices.length) return;
+        indices.forEach(function(i) {
+            if (i < 0 || i >= SC_COLUMN_COUNT) return;
+            dataTable.column(i).visible(visible, false);
+            scSyncHeaderCellsByIndex(i, visible);
+        });
+        syncScTableHeaderColspans();
+        dataTable.columns.adjust().draw(false);
+    }
+
+    function scSyncAllColumnDomVisibility() {
+        if (!dataTable) return;
+        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+            scSyncHeaderCellsByIndex(i, dataTable.column(i).visible());
+        }
+        syncScTableHeaderColspans();
+    }
+
     function scLoadColumnVisibility() {
         try {
             return JSON.parse(localStorage.getItem(SC_COLUMN_VISIBILITY_STORAGE_KEY) || '{}');
@@ -844,6 +910,8 @@
             $('#scColumnPickerMenu .sc-col-toggle').prop('checked', true);
             scSaveColumnVisibility();
         }
+        scSyncAllColumnDomVisibility();
+        dataTable.columns.adjust().draw(false);
     }
 
     function saveSalesComparisonFilterState() {
@@ -1175,8 +1243,8 @@
         };
         const q = parseNum(data.qty_difference);
         const r = parseNum(data.subtotal_difference);
-        const qCell = $('td', row).eq(18);
-        const rCell = $('td', row).eq(20);
+        const qCell = dataTable ? $(dataTable.cell(row, 18).node()) : $('td', row).eq(18);
+        const rCell = dataTable ? $(dataTable.cell(row, 20).node()) : $('td', row).eq(20);
         if (q !== null) {
             qCell.removeClass('sc-diff-up sc-diff-down');
             if (q > 0) qCell.addClass('sc-diff-up');
@@ -1399,6 +1467,7 @@
                 styleVarianceCells(row, data);
             },
             drawCallback: function() {
+                scSyncAllColumnDomVisibility();
                 if (typeof KTMenu !== 'undefined') {
                     KTMenu.createInstances();
                 }
@@ -1455,15 +1524,7 @@
             $('#scColumnPickerMenu').on('change', '.sc-col-toggle', function() {
                 const $cb = $(this);
                 const visible = $cb.is(':checked');
-                const groupId = $cb.data('sc-group');
-                let indices = [];
-                if (groupId) {
-                    const g = SC_COLUMN_GROUPS.find(function(x) { return x.id === groupId; });
-                    indices = g ? g.indices.slice() : [];
-                } else {
-                    const idx = parseInt($cb.data('sc-idx'), 10);
-                    if (!isNaN(idx)) indices = [idx];
-                }
+                const indices = scResolveToggleIndices($cb);
                 if (!indices.length) return;
                 if (!visible) {
                     let nAfter = 0;
@@ -1477,11 +1538,8 @@
                         return;
                     }
                 }
-                indices.forEach(function(i) {
-                    dataTable.column(i).visible(visible, true);
-                });
+                scSetColumnsVisible(indices, visible);
                 scSaveColumnVisibility();
-                dataTable.columns.adjust().draw(false);
             });
 
             $('#scTableSearch').on('blur', function() {
