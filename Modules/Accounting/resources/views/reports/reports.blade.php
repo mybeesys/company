@@ -55,6 +55,13 @@
                         'permission' => 'accountingReports.Journal ledger.show',
                     ],
                     [
+                        'name' => 'expense-report',
+                        'icon' => 'fas fa-receipt',
+                        'translation' => 'menuItemLang.expense-report',
+                        'url' => 'expense-report',
+                        'permission' => 'accounting.Payment vouchers.show',
+                    ],
+                    [
                         'name' => 'cash-flow',
                         'icon' => 'fas fa-money-bill-trend-up',
                         'translation' => 'menuItemLang.cash-flow',

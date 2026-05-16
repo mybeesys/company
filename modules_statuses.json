@@ -11,5 +11,6 @@
     "Screen": true,
     "Reservation": true,
     "Report": true,
-    "Franchise": true
+    "Franchise": true,
+    "Expense": true
 }

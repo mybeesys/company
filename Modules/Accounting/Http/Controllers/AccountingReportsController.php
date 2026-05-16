@@ -15,6 +15,7 @@ use Modules\Accounting\classes\AgeingSummaryExport;
 use Modules\Accounting\classes\BalanceSheetExport;
 use Modules\Accounting\classes\CashFlowExport;
 use Modules\Accounting\classes\CustomersSuppliersStatementExport;
+use Modules\Accounting\classes\ExpenseReportExport;
 use Modules\Accounting\classes\IncomeStatementExport;
 use Modules\Accounting\classes\JournalReportExport;
 use Modules\Accounting\classes\TrialBalanceExport;
@@ -25,6 +26,9 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Expense\Models\ExpenseCategory;
+use Modules\Expense\Services\ExpenseReportService;
+use Modules\Expense\Support\TreasuryAccounts;
 use Modules\General\Models\Actions;
 use Modules\General\Models\Tax;
 use Mpdf\Mpdf;
@@ -1851,6 +1855,79 @@ class AccountingReportsController extends Controller
                 'contact_header' => $contactHeader,
             ]),
             $prefix.'-'.now()->format('Ymd-His').'.xlsx'
+        );
+    }
+
+    public function expenseReport(Request $request)
+    {
+        $report = ExpenseReportService::dataset($request);
+        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $treasuryAccounts = TreasuryAccounts::query()->get();
+        $taxes = Tax::query()->orderBy('name')->get();
+
+        return view('accounting::reports.expense_report', array_merge($report, [
+            'categories' => $categories,
+            'treasuryAccounts' => $treasuryAccounts,
+            'taxes' => $taxes,
+            'categoryIds' => array_values(array_filter(array_map('intval', (array) $request->input('category_ids', [])))),
+            'creditAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('credit_account_ids', [])))),
+            'taxId' => $request->input('tax_id', 'all'),
+            'keyword' => trim((string) $request->input('q', '')),
+            'withAttachments' => $request->boolean('with_attachments'),
+        ]));
+    }
+
+    public function expenseReportExportPdf(Request $request)
+    {
+        $report = ExpenseReportService::dataset($request);
+        $html = view('accounting::reports.expense_report_print', $report)->render();
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'default_font' => 'DejaVuSans',
+            'default_font_size' => 10,
+            'autoLangToFont' => true,
+            'autoScriptToLang' => true,
+        ]);
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('expense-report.pdf', 'D');
+    }
+
+    public function expenseReportExportExcel(Request $request)
+    {
+        $report = ExpenseReportService::dataset($request);
+        $localeAr = app()->getLocale() === 'ar';
+        $rows = collect();
+        $report['expenses']->loadMissing(['category', 'creditAccount']);
+        foreach ($report['expenses'] as $expense) {
+            $credit = $expense->creditAccount;
+            $creditLabel = $credit
+                ? (($localeAr ? $credit->name_ar : $credit->name_en).' ('.$credit->gl_code.')')
+                : '';
+            $rows->push([
+                $expense->date?->format('Y-m-d') ?? '',
+                $expense->id,
+                $expense->category?->name ?? '',
+                $creditLabel,
+                $expense->description ?? '',
+                number_format($expense->net_amount, 2, '.', ''),
+                number_format((float) $expense->getRawOriginal('tax'), 2, '.', ''),
+                number_format($expense->total, 2, '.', ''),
+                (string) ($expense->attachments_count ?? 0),
+            ]);
+        }
+
+        return Excel::download(
+            new ExpenseReportExport($rows, [
+                'start_date' => $report['startDate'],
+                'end_date' => $report['endDate'],
+                'count' => $report['summary']['count'],
+                'net' => $report['summary']['net'],
+                'tax' => $report['summary']['tax'],
+                'gross' => $report['summary']['gross'],
+            ]),
+            'expense-report-'.now()->format('Ymd-His').'.xlsx'
         );
     }
 
