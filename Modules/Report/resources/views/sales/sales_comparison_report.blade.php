@@ -113,6 +113,11 @@
         color: #842029;
     }
 
+    .dataTables_wrapper .sc-col-hidden,
+    .sc-table .sc-col-hidden {
+        display: none !important;
+    }
+
     .sc-filters-card {
         background: #f8f9fb;
         border-radius: 12px;
@@ -543,6 +548,11 @@
                                         </label>
                                     </div>
                                 @endforeach
+                                <div class="border-top pt-3 mt-3">
+                                    <button type="button" class="btn btn-sm btn-light-primary w-100" id="scResetAllColumns">
+                                        @lang('report::general.sales_comparison_reset_columns')
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -589,7 +599,7 @@
                     <tfoot class="fw-bold text-gray-800">
                         <tr class="sc-footer-totals">
                             @for ($i = 0; $i < 25; $i++)
-                            <td class="sc-cell"></td>
+                            <td class="sc-cell" data-sc-col-idx="{{ $i }}"></td>
                             @endfor
                         </tr>
                     </tfoot>
@@ -623,7 +633,8 @@
     let scRestoringFilters = false;
     let scPendingTableSearch = '';
     const SC_FILTER_STORAGE_KEY = 'salesComparisonReport:v1';
-    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v4';
+    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v6';
+    let scHiddenColumns = {};
     const SC_COLUMN_COUNT = 25;
     const SC_FOOTER_KEYS = @json($scColumnPickerKeys);
     const SC_CONTEXT_KEYS = @json($scColumnPickerContextKeys);
@@ -801,29 +812,34 @@
         const groupId = $cb.attr('data-sc-group');
         if (groupId) {
             const g = SC_COLUMN_GROUPS.find(function(x) { return x.id === groupId; });
-            return g ? g.indices.slice() : [];
+            if (g) return g.indices.slice();
         }
         const idx = parseInt($cb.attr('data-sc-idx'), 10);
         return isNaN(idx) ? [] : [idx];
     }
 
+    function scIsColHidden(idx) {
+        return scHiddenColumns[idx] === true;
+    }
+
+    function scSetColHidden(idx, hidden) {
+        if (hidden) {
+            scHiddenColumns[idx] = true;
+        } else {
+            delete scHiddenColumns[idx];
+        }
+    }
+
     function scCountVisibleInIndices(indices) {
-        if (!dataTable) return 0;
-        return indices.filter(function(i) { return dataTable.column(i).visible(); }).length;
+        return indices.filter(function(i) { return !scIsColHidden(i); }).length;
     }
 
     function scTableWrapper() {
-        return table.closest('.dataTables_wrapper');
-    }
-
-    function scSyncHeaderCellsByIndex(colIdx, visible) {
-        const display = visible ? '' : 'none';
-        scTableWrapper().find('thead th[data-sc-col-idx="' + colIdx + '"]').css('display', display);
-        scTableWrapper().find('tfoot tr.sc-footer-totals td').eq(colIdx).css('display', display);
+        const $w = table.closest('.dataTables_wrapper');
+        return $w.length ? $w : table.closest('.table-responsive');
     }
 
     function syncScTableHeaderColspans() {
-        if (!dataTable) return;
         const nCtx = scCountVisibleInIndices([0, 1, 2, 3, 4, 5]);
         const nA = scCountVisibleInIndices(SC_PERIOD_A_INDICES);
         const nB = scCountVisibleInIndices(SC_PERIOD_B_INDICES);
@@ -837,23 +853,68 @@
         });
     }
 
+    /** DOM hide/show — DataTables column().visible() is unreliable with 2-row header + scrollX. */
+    function scApplyColumnVisibilityToDom() {
+        const $wrap = scTableWrapper();
+        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+            const hidden = scIsColHidden(i);
+            $wrap.find('thead th[data-sc-col-idx="' + i + '"]').toggleClass('sc-col-hidden', hidden);
+            $wrap.find('tfoot td[data-sc-col-idx="' + i + '"]').toggleClass('sc-col-hidden', hidden);
+            $wrap.find('tbody tr').each(function() {
+                $(this).children('td').eq(i).toggleClass('sc-col-hidden', hidden);
+            });
+        }
+        syncScTableHeaderColspans();
+    }
+
+    function scDtRepairColumnDom() {
+        if (!dataTable) return;
+        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+            try {
+                dataTable.column(i).visible(true, false);
+            } catch (e) {}
+        }
+    }
+
+    function scSyncPickerCheckboxesFromState() {
+        SC_CONTEXT_KEYS.forEach(function(key, idx) {
+            $('#sc_col_' + key).prop('checked', !scIsColHidden(idx));
+        });
+        SC_COLUMN_GROUPS.forEach(function(g) {
+            const allOn = g.indices.every(function(i) { return !scIsColHidden(i); });
+            const anyOn = g.indices.some(function(i) { return !scIsColHidden(i); });
+            const $cb = $('#sc_col_grp_' + g.id);
+            $cb.prop('checked', allOn);
+            $cb.prop('indeterminate', !allOn && anyOn);
+        });
+    }
+
+    function scResetAllColumns() {
+        scHiddenColumns = {};
+        scDtRepairColumnDom();
+        scSyncPickerCheckboxesFromState();
+        scApplyColumnVisibilityToDom();
+        scSaveColumnVisibility();
+        if (dataTable) {
+            dataTable.columns.adjust().draw(false);
+        }
+    }
+
     function scSetColumnsVisible(indices, visible) {
-        if (!dataTable || !indices.length) return;
+        if (!indices.length) return;
         indices.forEach(function(i) {
             if (i < 0 || i >= SC_COLUMN_COUNT) return;
-            dataTable.column(i).visible(visible, false);
-            scSyncHeaderCellsByIndex(i, visible);
+            scSetColHidden(i, !visible);
         });
-        syncScTableHeaderColspans();
-        dataTable.columns.adjust().draw(false);
+        scSyncPickerCheckboxesFromState();
+        scApplyColumnVisibilityToDom();
+        if (dataTable) {
+            dataTable.columns.adjust().draw(false);
+        }
     }
 
     function scSyncAllColumnDomVisibility() {
-        if (!dataTable) return;
-        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
-            scSyncHeaderCellsByIndex(i, dataTable.column(i).visible());
-        }
-        syncScTableHeaderColspans();
+        scApplyColumnVisibilityToDom();
     }
 
     function scLoadColumnVisibility() {
@@ -865,15 +926,12 @@
     }
 
     function scSaveColumnVisibility() {
-        if (!dataTable) return;
         const state = {};
         SC_CONTEXT_KEYS.forEach(function(key, idx) {
-            state[key] = dataTable.column(idx).visible();
+            state[key] = !scIsColHidden(idx);
         });
         SC_COLUMN_GROUPS.forEach(function(g) {
-            state[g.id] = g.indices.every(function(i) {
-                return dataTable.column(i).visible();
-            });
+            state[g.id] = g.indices.every(function(i) { return !scIsColHidden(i); });
         });
         try {
             localStorage.setItem(SC_COLUMN_VISIBILITY_STORAGE_KEY, JSON.stringify(state));
@@ -882,8 +940,8 @@
 
     function scCountVisibleDataColumns() {
         let n = 0;
-        for (let i = 0; i < SC_FOOTER_KEYS.length; i++) {
-            if (dataTable.column(i).visible()) n++;
+        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+            if (!scIsColHidden(i)) n++;
         }
         return n;
     }
@@ -891,26 +949,21 @@
     function applyScColumnVisibilityFromStorage() {
         if (!dataTable) return;
         const state = scLoadColumnVisibility();
+        scHiddenColumns = {};
         SC_CONTEXT_KEYS.forEach(function(key, idx) {
-            const visible = state[key] !== false;
-            dataTable.column(idx).visible(visible, false);
-            $('#sc_col_' + key).prop('checked', visible);
+            if (state[key] === false) scHiddenColumns[idx] = true;
         });
         SC_COLUMN_GROUPS.forEach(function(g) {
-            const visible = state[g.id] !== false;
-            g.indices.forEach(function(i) {
-                dataTable.column(i).visible(visible, false);
-            });
-            $('#sc_col_grp_' + g.id).prop('checked', visible);
+            if (state[g.id] === false) {
+                g.indices.forEach(function(i) { scHiddenColumns[i] = true; });
+            }
         });
         if (scCountVisibleDataColumns() === 0) {
-            SC_FOOTER_KEYS.forEach(function(_, idx) {
-                dataTable.column(idx).visible(true, false);
-            });
-            $('#scColumnPickerMenu .sc-col-toggle').prop('checked', true);
-            scSaveColumnVisibility();
+            scHiddenColumns = {};
         }
-        scSyncAllColumnDomVisibility();
+        scDtRepairColumnDom();
+        scSyncPickerCheckboxesFromState();
+        scApplyColumnVisibilityToDom();
         dataTable.columns.adjust().draw(false);
     }
 
@@ -970,11 +1023,13 @@
         });
     }
 
+    function scFooterCell(tfoot, idx) {
+        return $(tfoot).find('tr.sc-footer-totals td[data-sc-col-idx="' + idx + '"]');
+    }
+
     function applyScFooterToDom(tfoot) {
         const f = scLastFooterTotals;
-        const $row = $(tfoot).find('tr.sc-footer-totals');
-        const $cells = $row.find('td');
-        if (!$cells.length) {
+        if (!scFooterCell(tfoot, 0).length) {
             return;
         }
         const parseNum = (s) => {
@@ -983,7 +1038,8 @@
             return isNaN(n) ? null : n;
         };
         SC_FOOTER_KEYS.forEach(function(key, i) {
-            const $td = $cells.eq(i);
+            const $td = scFooterCell(tfoot, i);
+            if (!$td.length) return;
             $td.removeClass('sc-cell-dim sc-cell-p1 sc-cell-p2 sc-cell-var sc-diff-up sc-diff-down text-center');
             if (i <= 5) {
                 $td.addClass('sc-cell sc-cell-dim');
@@ -1000,8 +1056,8 @@
         if (f) {
             const q = parseNum(f.qty_difference);
             const r = parseNum(f.subtotal_difference);
-            const qCell = $cells.eq(18);
-            const rCell = $cells.eq(20);
+            const qCell = scFooterCell(tfoot, 18);
+            const rCell = scFooterCell(tfoot, 20);
             if (q !== null) {
                 if (q > 0) qCell.addClass('sc-diff-up');
                 else if (q < 0) qCell.addClass('sc-diff-down');
@@ -1010,6 +1066,9 @@
                 if (r > 0) rCell.addClass('sc-diff-up');
                 else if (r < 0) rCell.addClass('sc-diff-down');
             }
+        }
+        for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+            scFooterCell(tfoot, i).toggleClass('sc-col-hidden', scIsColHidden(i));
         }
     }
 
@@ -1521,6 +1580,20 @@
             dataTable.columns.adjust().draw(false);
             handleSearchDatatable();
 
+            $('#scColumnPickerMenu').on('click', function(e) {
+                e.stopPropagation();
+            });
+            $('#scColumnPickerMenu').on('click', '.sc-col-toggle', function(e) {
+                e.stopPropagation();
+            });
+            $('#scColumnPickerToggle').on('show.bs.dropdown', function() {
+                scSyncPickerCheckboxesFromState();
+            });
+            $('#scResetAllColumns').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                scResetAllColumns();
+            });
             $('#scColumnPickerMenu').on('change', '.sc-col-toggle', function() {
                 const $cb = $(this);
                 const visible = $cb.is(':checked');
@@ -1528,11 +1601,9 @@
                 if (!indices.length) return;
                 if (!visible) {
                     let nAfter = 0;
-                    SC_FOOTER_KEYS.forEach(function(_, i) {
-                        const vis = dataTable.column(i).visible();
-                        const willHide = indices.indexOf(i) >= 0;
-                        if (vis && !willHide) nAfter++;
-                    });
+                    for (let i = 0; i < SC_COLUMN_COUNT; i++) {
+                        if (!scIsColHidden(i) && indices.indexOf(i) < 0) nAfter++;
+                    }
                     if (nAfter < 1) {
                         $cb.prop('checked', true);
                         return;

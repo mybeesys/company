@@ -144,6 +144,7 @@ return [
     'sales_comparison_show_charts' => 'Show charts',
     'sales_comparison_table_columns' => 'Table columns',
     'sales_comparison_table_columns_hint' => 'Context fields are separate. Each metric below toggles Period 1, Period 2, and the related variance columns together. Saved in this browser.',
+    'sales_comparison_reset_columns' => 'Show all columns',
     'sales_comparison_col_section_context' => 'Item & party',
     'sales_comparison_col_section_metrics' => 'Metrics (both periods & variance)',
     'sales_comparison_col_group_qty' => 'Qty — both periods & variance',
