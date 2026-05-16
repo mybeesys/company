@@ -146,6 +146,7 @@ return [
     'sales_comparison_show_charts' => 'إظهار المخططات',
     'sales_comparison_table_columns' => 'أعمدة الجدول',
     'sales_comparison_table_columns_hint' => 'حقول الصنف والعميل منفصلة. كل مقياس أدناه يُظهر أو يخفي عمود الفترة الأولى والثانية وأعمدة الفرق المرتبطة معاً. تُحفظ في هذا المتصفح.',
+    'sales_comparison_reset_columns' => 'إظهار كل الأعمدة',
     'sales_comparison_col_section_context' => 'الصنف والجهة',
     'sales_comparison_col_section_metrics' => 'المقاييس (الفترتان والفرق)',
     'sales_comparison_col_group_qty' => 'الكمية — الفترتان والفرق',
