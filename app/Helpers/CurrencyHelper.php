@@ -31,6 +31,36 @@ class CurrencyHelper
         return number_format((float) $amount, 2).' '.self::displayCurrencyUnit();
     }
 
+    /**
+     * Accounting display: absolute value, parentheses for negatives (Gulf / IFRS style).
+     */
+    public static function format_accounting_amount($amount, bool $withCurrency = true): string
+    {
+        $value = (float) $amount;
+        $formatted = number_format(abs($value), 2);
+        $suffix = $withCurrency ? ' '.self::displayCurrencyUnit() : '';
+
+        if ($value < -0.0001) {
+            return '('.$formatted.')'.$suffix;
+        }
+
+        return $formatted.$suffix;
+    }
+
+    public static function is_negative_amount($amount): bool
+    {
+        return (float) $amount < -0.0001;
+    }
+
+    public static function growth_percent(?float $current, ?float $previous): ?float
+    {
+        if ($previous === null || abs($previous) < 0.0001) {
+            return null;
+        }
+
+        return round((($current - $previous) / abs($previous)) * 100, 1);
+    }
+
     public static function get_format_currency()
     {
         return self::displayCurrencyUnit();

@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Http\Controllers;
 
+use App\Helpers\CurrencyHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -61,67 +62,78 @@ class AccountingReportsController extends Controller
 
     public function getIcomeStatementData($accounts)
     {
-        $revenue_net = 0;
+        $gross_revenue = 0;
+        $sales_returns = 0;
         $cost_of_revenue = 0;
         $total_expense = 0;
         $total_other_income = 0;
         $total_other_expense = 0;
 
         foreach ($accounts as $account) {
-            $debit = $account->debit_balance;
-            $credit = $account->credit_balance;
-
-            $balance = 0;
+            $debit = (float) $account->debit_balance;
+            $credit = (float) $account->credit_balance;
 
             switch ($account->acc_type) {
+                case 'gross_revenue':
                 case 'income':
-                    $balance = $credit - $debit;
-                    $revenue_net += $balance;
+                    $gross_revenue += $credit - $debit;
+                    break;
+
+                case 'sales_returns':
+                    $sales_returns += $debit - $credit;
                     break;
 
                 case 'cost_of_sales':
-                    $balance = $debit - $credit;
-                    $cost_of_revenue += $balance;
+                    $cost_of_revenue += $debit - $credit;
                     break;
 
                 case 'expenses':
-                    $balance = $debit - $credit;
-                    $total_expense += $balance;
+                case 'operating_expense':
+                    $total_expense += $debit - $credit;
                     break;
 
                 case 'other_income':
-                    $balance = $credit - $debit;
-                    $total_other_income += $balance;
+                    $total_other_income += $credit - $debit;
                     break;
 
                 case 'other_expenses':
-                    $balance = $debit - $credit;
-                    $total_other_expense += $balance;
+                    $total_other_expense += $debit - $credit;
                     break;
             }
         }
 
-        $gross_profit = $revenue_net - $cost_of_revenue;
+        $net_sales = $gross_revenue - $sales_returns;
+        $gross_profit = $net_sales - $cost_of_revenue;
         $operation_income = $gross_profit - $total_expense;
         $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
 
-        // ضريبة على الربح فقط (لا تُحسب على خسارة الفترة) — أنسب لنموذج نسبة من الربح المحاسبي
         $taxPercent = (float) (Tax::query()->value('amount') ?? 0);
         $taxableBase = max(0.0, (float) $income_before_tax);
         $tax_amount = ($taxPercent * $taxableBase) / 100;
+        $net_profit = $income_before_tax - $tax_amount;
+
+        $total_expenses_all = $cost_of_revenue + $total_expense + $total_other_expense;
+        $profit_margin = abs($net_sales) > 0.0001 ? ($net_profit / $net_sales) * 100 : null;
 
         return [
+            'gross_revenue' => $gross_revenue,
+            'sales_returns' => $sales_returns,
+            'net_sales' => $net_sales,
+            'revenue_net' => $net_sales,
             'gross_profit' => $gross_profit,
             'operation_income' => $operation_income,
             'operating_profit' => $operation_income,
             'income_before_tax' => $income_before_tax,
             'tax_amount' => $tax_amount,
-            'revenue_net' => $revenue_net,
+            'tax_percent' => $taxPercent,
+            'net_profit' => $net_profit,
             'cost_of_revenue' => $cost_of_revenue,
             'total_expense' => $total_expense,
             'total_operating_expenses' => $total_expense,
             'total_other_income' => $total_other_income,
             'total_other_expense' => $total_other_expense,
+            'total_expenses_all' => $total_expenses_all,
+            'profit_margin' => $profit_margin,
         ];
     }
 
@@ -131,29 +143,50 @@ class AccountingReportsController extends Controller
         $end_date = request()->end_date ?? now()->format('Y-m-d');
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $choose_cost_center_select = request()->choose_cost_center_select ?? [];
+        $compare_mode = request()->get('compare_mode', 'none');
+        $hide_zero_lines = (int) request()->get('hide_zero_lines', 1) === 1;
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
-        $accounts = $incomeDataset['accounts'];
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $compareDataset = null;
+        $comparePeriod = null;
+
+        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+            $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
+            $compareDataset = $this->buildIncomeStatementDataset(
+                $comparePeriod['start'],
+                $comparePeriod['end'],
+                $choose_cost_center_select,
+                $hide_zero_lines
+            );
+        }
+
         $data = $incomeDataset['data'];
-        $revenueAccounts = $incomeDataset['revenueAccounts'];
-        $cogsAccounts = $incomeDataset['cogsAccounts'];
-        $expenseAccounts = $incomeDataset['expenseAccounts'];
+        $kpiGrowth = $this->buildIncomeStatementKpiGrowth($data, $compareDataset['data'] ?? null);
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.income-statement')
-            ->with(compact(
-                'accounts',
-                'revenueAccounts',
-                'cogsAccounts',
-                'expenseAccounts',
-                'start_date',
-                'end_date',
-                'data',
-                'company',
-                'costCenters',
-                'choose_cost_center_select'
-            ));
+            ->with([
+                'accounts' => $incomeDataset['accounts'],
+                'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+                'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
+                'cogsAccounts' => $incomeDataset['cogsAccounts'],
+                'expenseAccounts' => $incomeDataset['expenseAccounts'],
+                'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
+                'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
+                'revenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'data' => $data,
+                'compareData' => $compareDataset['data'] ?? null,
+                'comparePeriod' => $comparePeriod,
+                'compare_mode' => $compare_mode,
+                'hide_zero_lines' => $hide_zero_lines,
+                'kpiGrowth' => $kpiGrowth,
+                'company' => $company,
+                'costCenters' => $costCenters,
+                'choose_cost_center_select' => $choose_cost_center_select,
+            ]);
     }
 
     public function incomeStatementExportPdf(Request $request)
@@ -162,15 +195,21 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
+        $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $html = view('accounting::reports.income-statement-print', [
+            'company' => $company,
             'start_date' => $start_date,
             'end_date' => $end_date,
             'data' => $incomeDataset['data'],
-            'revenueAccounts' => $incomeDataset['revenueAccounts'],
+            'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+            'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
             'cogsAccounts' => $incomeDataset['cogsAccounts'],
             'expenseAccounts' => $incomeDataset['expenseAccounts'],
+            'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
+            'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
         ])->render();
 
         $mpdf = new Mpdf([
@@ -193,39 +232,9 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
-
-        $rows = collect();
-        foreach ($incomeDataset['revenueAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.Revenues').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        $rows->push([__('accounting::lang.total').' '.__('accounting::lang.Revenues'), number_format((float) ($incomeDataset['data']['revenue_net'] ?? 0), 2, '.', '')]);
-
-        foreach ($incomeDataset['cogsAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.income_statement_cost_of_revenue').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        if ($incomeDataset['cogsAccounts']->isNotEmpty()) {
-            $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), number_format((float) ($incomeDataset['data']['cost_of_revenue'] ?? 0), 2, '.', '')]);
-        }
-        $rows->push([__('report::general.gross_profit'), number_format((float) ($incomeDataset['data']['gross_profit'] ?? 0), 2, '.', '')]);
-
-        foreach ($incomeDataset['expenseAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.income_statement_operating_expenses').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.income_statement_operating_profit'), number_format((float) ($incomeDataset['data']['operating_profit'] ?? $incomeDataset['data']['operation_income'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.income_before_tax'), number_format((float) ($incomeDataset['data']['income_before_tax'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.tax_amount'), number_format((float) ($incomeDataset['data']['tax_amount'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.net_profit'), number_format((float) (($incomeDataset['data']['income_before_tax'] ?? 0) - ($incomeDataset['data']['tax_amount'] ?? 0)), 2, '.', '')]);
+        $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $rows = $this->buildIncomeStatementExportRows($incomeDataset);
 
         $filename = 'income-statement-'.now()->format('Ymd-His').'.xlsx';
 
@@ -238,8 +247,12 @@ class AccountingReportsController extends Controller
         );
     }
 
-    private function buildIncomeStatementDataset(string $start_date, string $end_date, array $choose_cost_center_select): array
-    {
+    private function buildIncomeStatementDataset(
+        string $start_date,
+        string $end_date,
+        array $choose_cost_center_select,
+        bool $hide_zero_lines = true
+    ): array {
         $accounts = AccountingAccount::query()
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
             ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
@@ -250,6 +263,7 @@ class AccountingReportsController extends Controller
             ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
             ->select(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
@@ -260,6 +274,7 @@ class AccountingReportsController extends Controller
             )
             ->groupBy(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
@@ -269,51 +284,186 @@ class AccountingReportsController extends Controller
             ->orderBy('accounting_accounts.gl_code')
             ->get()
             ->map(function ($account) {
-                $isCogs = $account->account_type === 'expenses'
-                    && ($account->account_sub_type_name_en === 'Cost Of Sales');
-                $account->acc_type = $isCogs ? 'cost_of_sales' : $account->account_type;
+                $account->acc_type = $this->resolveIncomeAccountCategory($account);
 
                 return $account;
             });
 
+        $accounts = $this->enrichIncomeAccountsWithAmountsAndDepth($accounts);
+
+        $filterZero = static fn ($account) => ! $hide_zero_lines || abs((float) $account->amount) > 0.0001;
+
+        $grossRevenueAccounts = $accounts->where('acc_type', 'gross_revenue')->filter($filterZero)->values();
+        $salesReturnAccounts = $accounts->where('acc_type', 'sales_returns')->filter($filterZero)->values();
+        $cogsAccounts = $accounts->where('acc_type', 'cost_of_sales')->filter($filterZero)->values();
+        $expenseAccounts = $accounts->whereIn('acc_type', ['expenses', 'operating_expense'])->filter($filterZero)->values();
+        $otherIncomeAccounts = $accounts->where('acc_type', 'other_income')->filter($filterZero)->values();
+        $otherExpenseAccounts = $accounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
+
         $data = $this->getIcomeStatementData($accounts);
-        $revenueAccounts = $accounts
-            ->where('acc_type', 'income')
-            ->map(function ($account) {
-                $account->amount = (float) $account->credit_balance - (float) $account->debit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
-
-        $cogsAccounts = $accounts
-            ->where('acc_type', 'cost_of_sales')
-            ->map(function ($account) {
-                $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
-
-        $expenseAccounts = $accounts
-            ->where('acc_type', 'expenses')
-            ->map(function ($account) {
-                $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
 
         return [
             'accounts' => $accounts,
             'data' => $data,
-            'revenueAccounts' => $revenueAccounts,
+            'grossRevenueAccounts' => $grossRevenueAccounts,
+            'salesReturnAccounts' => $salesReturnAccounts,
+            'revenueAccounts' => $grossRevenueAccounts,
             'cogsAccounts' => $cogsAccounts,
             'expenseAccounts' => $expenseAccounts,
+            'otherIncomeAccounts' => $otherIncomeAccounts,
+            'otherExpenseAccounts' => $otherExpenseAccounts,
         ];
+    }
+
+    private function resolveIncomeAccountCategory(object $account): string
+    {
+        if ($account->account_type === 'income') {
+            if ($this->isSalesReturnAccount($account)) {
+                return 'sales_returns';
+            }
+            if ($this->isOtherIncomeAccount($account)) {
+                return 'other_income';
+            }
+
+            return 'gross_revenue';
+        }
+
+        if ($account->account_sub_type_name_en === 'Cost Of Sales') {
+            return 'cost_of_sales';
+        }
+
+        if ($account->account_sub_type_name_en === 'Other Expenses') {
+            return 'other_expenses';
+        }
+
+        return 'operating_expense';
+    }
+
+    private function isSalesReturnAccount(object $account): bool
+    {
+        $label = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+
+        return str_contains($label, 'sales return')
+            || str_contains($label, 'sales returns')
+            || str_contains($label, 'مردود');
+    }
+
+    private function isOtherIncomeAccount(object $account): bool
+    {
+        $label = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+
+        return str_contains($label, 'other income')
+            || str_contains($label, 'إيرادات أخرى')
+            || str_contains($label, 'gain on asset');
+    }
+
+    private function enrichIncomeAccountsWithAmountsAndDepth(Collection $accounts): Collection
+    {
+        $byId = $accounts->keyBy('id');
+        $childCountByParent = $accounts
+            ->pluck('parent_account_id')
+            ->filter()
+            ->countBy();
+
+        return $accounts->map(function ($account) use ($byId, $childCountByParent) {
+            $debit = (float) $account->debit_balance;
+            $credit = (float) $account->credit_balance;
+
+            if (in_array($account->acc_type, ['gross_revenue', 'other_income'], true)) {
+                $account->amount = $credit - $debit;
+            } elseif ($account->acc_type === 'sales_returns') {
+                $account->amount = -1 * ($debit - $credit);
+            } else {
+                $account->amount = $debit - $credit;
+            }
+
+            $depth = 0;
+            $parentId = $account->parent_account_id;
+            $guard = 0;
+            while ($parentId && $byId->has($parentId) && $guard < 12) {
+                $depth++;
+                $parentId = $byId->get($parentId)->parent_account_id;
+                $guard++;
+            }
+
+            $account->depth = $depth;
+            $account->has_children = $childCountByParent->get($account->id, 0) > 0;
+
+            return $account;
+        });
+    }
+
+    private function resolveIncomeComparePeriod(string $start_date, string $end_date, string $compare_mode): array
+    {
+        $start = \Carbon\Carbon::parse($start_date);
+        $end = \Carbon\Carbon::parse($end_date);
+
+        if ($compare_mode === 'previous_year') {
+            return [
+                'start' => $start->copy()->subYear()->format('Y-m-d'),
+                'end' => $end->copy()->subYear()->format('Y-m-d'),
+                'label' => 'previous_year',
+            ];
+        }
+
+        $days = $start->diffInDays($end) + 1;
+
+        return [
+            'start' => $start->copy()->subDays($days)->format('Y-m-d'),
+            'end' => $start->copy()->subDay()->format('Y-m-d'),
+            'label' => 'previous_period',
+        ];
+    }
+
+    private function buildIncomeStatementKpiGrowth(array $data, ?array $compareData): array
+    {
+        if ($compareData === null) {
+            return [];
+        }
+
+        return [
+            'net_sales' => CurrencyHelper::growth_percent($data['net_sales'] ?? 0, $compareData['net_sales'] ?? 0),
+            'gross_profit' => CurrencyHelper::growth_percent($data['gross_profit'] ?? 0, $compareData['gross_profit'] ?? 0),
+            'operating_profit' => CurrencyHelper::growth_percent($data['operating_profit'] ?? 0, $compareData['operating_profit'] ?? 0),
+            'net_profit' => CurrencyHelper::growth_percent($data['net_profit'] ?? 0, $compareData['net_profit'] ?? 0),
+            'total_expenses' => CurrencyHelper::growth_percent($data['total_expenses_all'] ?? 0, $compareData['total_expenses_all'] ?? 0),
+        ];
+    }
+
+    private function buildIncomeStatementExportRows(array $incomeDataset): Collection
+    {
+        $rows = collect();
+        $localeAr = app()->getLocale() === 'ar';
+        $name = static fn ($account) => $localeAr ? $account->name_ar : $account->name_en;
+        $fmt = static fn ($amount) => number_format((float) $amount, 2, '.', '');
+        $data = $incomeDataset['data'];
+
+        $pushAccounts = function (string $section, $accounts) use (&$rows, $name, $fmt) {
+            foreach ($accounts as $account) {
+                $indent = str_repeat('  ', (int) ($account->depth ?? 0));
+                $rows->push([$section.' — '.$indent.$name($account), $fmt($account->amount)]);
+            }
+        };
+
+        $pushAccounts(__('accounting::lang.income_statement_gross_revenue'), $incomeDataset['grossRevenueAccounts']);
+        $pushAccounts(__('accounting::lang.income_statement_sales_returns'), $incomeDataset['salesReturnAccounts']);
+        $rows->push([__('accounting::lang.income_statement_net_sales'), $fmt($data['net_sales'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_cost_of_revenue'), $incomeDataset['cogsAccounts']);
+        $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), $fmt($data['cost_of_revenue'] ?? 0)]);
+        $rows->push([__('report::general.gross_profit'), $fmt($data['gross_profit'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_operating_expenses'), $incomeDataset['expenseAccounts']);
+        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), $fmt($data['total_expense'] ?? 0)]);
+        $rows->push([__('accounting::lang.income_statement_operating_profit'), $fmt($data['operating_profit'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_other_income'), $incomeDataset['otherIncomeAccounts']);
+        $pushAccounts(__('accounting::lang.income_statement_other_expenses'), $incomeDataset['otherExpenseAccounts']);
+        $rows->push([__('accounting::lang.income_before_tax'), $fmt($data['income_before_tax'] ?? 0)]);
+        $rows->push([
+            __('accounting::lang.tax_amount').' ('.number_format((float) ($data['tax_percent'] ?? 0), 0).'%)',
+            $fmt($data['tax_amount'] ?? 0),
+        ]);
+        $rows->push([__('accounting::lang.net_profit'), $fmt($data['net_profit'] ?? 0)]);
+
+        return $rows;
     }
 
     public function trialBalance(Request $request)
