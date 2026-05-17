@@ -29,6 +29,7 @@ use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\ExpenseLedgerAccounts;
+use Modules\Accounting\Services\CashFlowReportService;
 use Modules\Accounting\Services\TrialBalanceReportService;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
@@ -1673,68 +1674,32 @@ class AccountingReportsController extends Controller
 
     public function cash_flow(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
-
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $operatingCashFlows = $dataset['query']->paginate(15);
-        $operatingCashFlows->getCollection()->transform(function ($flow) {
-            $flow->section_key = $this->resolveCashFlowSection($flow->sub_type);
-
-            return $flow;
-        });
-        $cashInflows = $dataset['cashInflows'];
-        $cashOutflows = $dataset['cashOutflows'];
-        $netCashFlow = $dataset['netCashFlow'];
-        $availableSubTypes = $dataset['availableSubTypes'];
-        $sectionSummaries = $dataset['sectionSummaries'];
-        $rows = $dataset['rows'];
-
+        $report = CashFlowReportService::dataset($request);
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        return view('accounting::reports.cash_flow', compact(
-            'operatingCashFlows',
-            'cashInflows',
-            'cashOutflows',
-            'netCashFlow',
-            'startDate',
-            'endDate',
-            'costCenters',
-            'choose_cost_center_select',
-            'movement_type',
-            'selected_sub_types',
-            'activity_section',
-            'availableSubTypes',
-            'sectionSummaries',
-            'rows'
-        ));
+        $detailPaginator = $this->paginateReportRows($report['detailRows'], 20);
+
+        return view('accounting::reports.cash_flow', array_merge($report, [
+            'company' => $company,
+            'costCenters' => $costCenters,
+            'choose_cost_center_select' => $report['costCenterIds'],
+            'movement_type' => $report['movementType'],
+            'selected_sub_types' => $report['selectedSubTypes'],
+            'activity_section' => $report['activitySection'],
+            'availableSubTypes' => $report['availableSubTypes'],
+            'detailPaginator' => $detailPaginator,
+            'compare_mode' => $report['compareMode'],
+            'period_group' => $report['periodGroup'],
+        ]));
     }
 
     public function cashFlowExportPdf(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
+        $report = CashFlowReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $html = view('accounting::reports.cash_flow_print', [
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'rows' => $dataset['rows'],
-            'cashInflows' => $dataset['cashInflows'],
-            'cashOutflows' => $dataset['cashOutflows'],
-            'netCashFlow' => $dataset['netCashFlow'],
-            'sectionSummaries' => $dataset['sectionSummaries'],
-        ])->render();
+        $html = view('accounting::reports.cash_flow_print', $report)->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -1751,16 +1716,9 @@ class AccountingReportsController extends Controller
 
     public function cashFlowExportExcel(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
+        $report = CashFlowReportService::dataset($request);
 
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $exportRows = collect($dataset['rows'])->map(function ($row) {
+        $exportRows = collect($report['detailRows'])->map(function ($row) {
             return [
                 $row['section'],
                 $row['operation_date'],
@@ -1774,11 +1732,11 @@ class AccountingReportsController extends Controller
 
         return Excel::download(
             new CashFlowExport($exportRows, [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'cash_inflows' => $dataset['cashInflows'],
-                'cash_outflows' => $dataset['cashOutflows'],
-                'net_cash_flow' => $dataset['netCashFlow'],
+                'start_date' => $report['startDate'],
+                'end_date' => $report['endDate'],
+                'cash_inflows' => $report['cashInflows'],
+                'cash_outflows' => $report['cashOutflows'],
+                'net_cash_flow' => $report['netCashFlow'],
             ]),
             'cash-flow-'.now()->format('Ymd-His').'.xlsx'
         );
@@ -1859,28 +1817,29 @@ class AccountingReportsController extends Controller
         ];
     }
 
+    /** @param  array<int, array<string, mixed>>  $rows */
+    private function paginateReportRows(array $rows, int $perPage): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $page = max(1, (int) request()->get('page', 1));
+        $collection = collect($rows);
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $collection->forPage($page, $perPage)->values()->all(),
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+
     private function resolveCashFlowSection(?string $subType): string
     {
-        $subType = (string) $subType;
-        if (in_array($subType, $this->getCashFlowSectionSubTypes('investing'), true)) {
-            return 'investing';
-        }
-        if (in_array($subType, $this->getCashFlowSectionSubTypes('financing'), true)) {
-            return 'financing';
-        }
-
-        return 'operating';
+        return CashFlowReportService::resolveSection($subType);
     }
 
     private function getCashFlowSectionSubTypes(string $section): array
     {
-        $map = [
-            'operating' => ['sell', 'sell_cash', 'purchases', 'sales_revenue', 'receipt_voucher', 'payment_voucher', 'expense', 'expense_refund'],
-            'investing' => ['asset_sale', 'asset_purchase', 'fixed_asset', 'capital_expenditure', 'periodic_inventory'],
-            'financing' => ['loan', 'loan_received', 'loan_payment', 'equity', 'capital', 'owner_withdrawal', 'owner_injection'],
-        ];
-
-        return $map[$section] ?? [];
+        return CashFlowReportService::getSectionSubTypes($section);
     }
 
     public function customersSuppliersStatement(Request $request)
