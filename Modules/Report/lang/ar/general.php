@@ -206,6 +206,7 @@ return [
     'weekday_report_view_simple_occurrence_grid' => 'جدول مبسّط (منتج + فرع + وحدة، عمود لكل تاريخ مطابق)',
     'weekday_simple_grid_col_qty' => 'الكمية',
     'weekday_simple_grid_col_price' => 'سعر البيع',
+    'weekday_simple_grid_show_price' => 'إظهار سعر البيع في الجدول',
     'weekday_simple_grid_requires_single_period' => 'الجدول المبسّط يعمل مع فترة واحدة فقط (مثلاً الشهر الماضي، أو آخر 90 يوماً، أو يوم واحد). غيّر «كيف تريد تحديد الفترات؟» أو اجعل فترة أ و ب متطابقتين.',
     'weekday_export_simple_grid_not_supported' => 'تصدير Excel/PDF غير متاح لهذا العرض بعد؛ استخدم أوضاع الجدول الأخرى للتصدير أو التقط شاشة.',
     'weekday_simple_grid_info' => 'كل صف: صنف وفرع ووحدة البيع. لكل تاريخ يطابق أيام الأسبوع التي حددتها يظهر عمودان: إجمالي الكمية ومتوسط سعر بيع الوحدة (شامل الضريبة) في ذلك اليوم.',

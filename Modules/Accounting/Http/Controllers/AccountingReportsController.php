@@ -30,6 +30,7 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Accounting\Services\CashFlowReportService;
+use Modules\Accounting\Services\CustomerSupplierStatementReportService;
 use Modules\Accounting\Services\TrialBalanceReportService;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
@@ -1844,172 +1845,41 @@ class AccountingReportsController extends Controller
 
     public function customersSuppliersStatement(Request $request)
     {
-        $accountingUtil = new AccountingUtil;
-        $contact_id = $request->query('id') ?? Contact::query()->value('id');
-        if (! $contact_id) {
+        $contactId = $request->query('id') ?? Contact::query()->value('id');
+        if (! $contactId) {
             return redirect()->route('accounting-reports')->with('error', __('messages.no_data_found'));
         }
-        $contact = Contact::with(['transactions'])
-            ->findOrFail($contact_id);
 
-        $start_date = $request->query('start_date') ?? now()->startOfMonth()->format('Y-m-d');
-        $end_date = $request->query('end_date') ?? now()->endOfMonth()->format('Y-m-d');
-        $choose_cost_center_select = $request->query('choose_cost_center_select') ?? [];
-        $entry_type = $request->query('entry_type');
-        $balance_side = $request->query('balance_side');
-        $sub_type = $request->query('sub_type');
-        $ref_no = $request->query('ref_no');
-
-        $statementQuery = $this->buildCustomerSupplierStatementQuery(
-            (int) $contact_id,
-            $start_date,
-            $end_date,
-            $choose_cost_center_select,
-            $entry_type ?: $balance_side,
-            $sub_type,
-            $ref_no
-        );
-
-        if ($request->ajax()) {
-            $period_debit = (clone $statementQuery)->where('aat.type', 'debit')->sum('aat.amount');
-            $period_credit = (clone $statementQuery)->where('aat.type', 'credit')->sum('aat.amount');
-
-            return DataTables::of($statementQuery)
-                ->editColumn('operation_date', function ($row) {
-                    return $row->operation_date;
-                })
-
-                ->editColumn('cost_center_name', function ($row) {
-                    return app()->getLocale() === 'ar'
-                        ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '--')
-                        : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--');
-                })
-
-                ->editColumn('ref_no', function ($row) {
-                    $description = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
-                    if (! empty($row->atm_id)) {
-                        $description = '<a class=" btn-modal"
-                      data-container="#printJournalEntry"
-                        href="'.action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]).'"
-                         >
-                            '.$description.'
-                        </a>';
-                    }
-
-                    return $description;
-                })
-                ->addColumn('transaction', function ($row) {
-                    if (Lang::has('accounting::lang.'.$row->sub_type)) {
-
-                        $description = __('accounting::lang.'.$row->sub_type);
-                    } else {
-                        $description = $row->sub_type;
-                    }
-
-                    return $description;
-                })
-                ->addColumn('debit', function ($row) {
-                    if ($row->type == 'debit') {
-                        return '<span class="debit" data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
-                    }
-
-                    return '';
-                })
-                ->addColumn('credit', function ($row) {
-                    if ($row->type == 'credit') {
-                        return '<span class="credit"  data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
-                    }
-
-                    return '';
-                })
-                ->rawColumns(['ref_no', 'debit', 'credit', 'cost_center_name', 'balance', 'action'])
-                ->with([
-                    'period_debit' => (float) $period_debit,
-                    'period_credit' => (float) $period_credit,
-                ])
-                ->make(true);
-        }
-
-        $contact_dropdown = Contact::all();
-
-        $current_bal = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-            ->select([DB::raw($accountingUtil->balanceFormula())]);
-
-        $current_bal = $current_bal?->first()->balance;
-
-        $total_debit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-
-            ->where('cs_contacts.id', $contact_id)
-            ->select(DB::raw("SUM(IF((AAT.type = 'debit'), AAT.amount, 0)) as balance"))
-            ->first();
-        $total_debit_bal = $total_debit_bal->balance;
-
-        $total_credit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-
-            ->where('cs_contacts.id', $contact_id)
-            ->select(DB::raw("SUM(IF((AAT.type = 'credit'), AAT.amount, 0)) as balance"))
-            ->first();
-
-        $total_credit_bal = $total_credit_bal->balance;
-
-        $period_debit = (clone $statementQuery)->where('aat.type', 'debit')->sum('aat.amount');
-        $period_credit = (clone $statementQuery)->where('aat.type', 'credit')->sum('aat.amount');
-        $net_movement = (float) $period_debit - (float) $period_credit;
-
-        $available_sub_types = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-            ->whereDate('aat.operation_date', '>=', $start_date)
-            ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
-                return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
-            })
-            ->distinct()
-            ->pluck('aat.sub_type');
-
+        $report = CustomerSupplierStatementReportService::dataset($request);
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $contactDropdown = Contact::orderBy('name')->get(['id', 'name', 'commercial_register', 'tax_number']);
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        return view('accounting::reports.customers-suppliers-statement')
-            ->with(compact(
-                'contact',
-                'contact_dropdown',
-                'costCenters',
-                'choose_cost_center_select',
-                'current_bal',
-                'contact_id',
-                'total_debit_bal',
-                'total_credit_bal',
-                'entry_type',
-                'balance_side',
-                'sub_type',
-                'ref_no',
-                'available_sub_types',
-                'period_debit',
-                'period_credit',
-                'net_movement'
-            ));
+        $linePaginator = $this->paginateReportRows($report['lines'], 25);
+
+        return view('accounting::reports.customers-suppliers-statement', array_merge($report, [
+            'company' => $company,
+            'costCenters' => $costCenters,
+            'contact_dropdown' => $contactDropdown,
+            'choose_cost_center_select' => $report['costCenterIds'],
+            'establishment_ids' => $report['establishmentIds'],
+            'created_by' => $report['userId'],
+            'entry_type' => $report['entryType'],
+            'sub_type' => $report['subType'],
+            'ref_no' => $report['refNo'],
+            'unsettled_only' => $report['unsettledOnly'],
+            'compare_mode' => $report['compareMode'],
+            'period_group' => $report['periodGroup'],
+            'available_sub_types' => $report['availableSubTypes'],
+            'linePaginator' => $linePaginator,
+            'contact_id' => $report['contactId'],
+            'start_date' => $report['startDate'],
+            'end_date' => $report['endDate'],
+            'current_bal' => $report['currentBalance'],
+            'period_debit' => $report['periodDebit'],
+            'period_credit' => $report['periodCredit'],
+            'net_movement' => $report['closingBalance'] - $report['openingBalance'],
+        ]));
     }
 
     public function customersSuppliersStatementExportPdf(Request $request)
@@ -2019,11 +1889,15 @@ class AccountingReportsController extends Controller
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4-L',
+            'format' => 'A4',
             'default_font' => 'DejaVuSans',
-            'default_font_size' => 11,
+            'default_font_size' => 10,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'margin_top' => 16,
+            'margin_bottom' => 16,
         ]);
         $mpdf->WriteHTML($html);
 
@@ -2036,14 +1910,16 @@ class AccountingReportsController extends Controller
 
         $rows = collect($report['rows'])->map(function ($row) {
             return [
-                $row['ref_no'],
                 $row['operation_date'],
+                $row['ref_no'],
                 $row['transaction'],
+                $row['description'],
+                $row['establishment'],
                 $row['cost_center'],
-                $row['note'],
-                $row['added_by'],
                 number_format((float) $row['debit'], 2, '.', ''),
                 number_format((float) $row['credit'], 2, '.', ''),
+                number_format((float) $row['running_balance'], 2, '.', ''),
+                $row['added_by'],
             ];
         });
 
@@ -2053,8 +1929,10 @@ class AccountingReportsController extends Controller
                 'start_date' => $report['start_date'],
                 'end_date' => $report['end_date'],
                 'current_balance' => $report['current_bal'],
-                'period_debit' => $report['period_debit'],
-                'period_credit' => $report['period_credit'],
+                'opening_balance' => $report['openingBalance'],
+                'closing_balance' => $report['closingBalance'],
+                'period_debit' => $report['periodDebit'],
+                'period_credit' => $report['periodCredit'],
             ]),
             'customers-suppliers-statement-'.now()->format('Ymd-His').'.xlsx'
         );
@@ -2062,108 +1940,28 @@ class AccountingReportsController extends Controller
 
     private function getCustomerSupplierStatementExportDataset(Request $request): array
     {
-        $contact_id = (int) ($request->query('id') ?? Contact::query()->value('id'));
-        $contact = Contact::findOrFail($contact_id);
-        $start_date = $request->query('start_date') ?? now()->startOfMonth()->format('Y-m-d');
-        $end_date = $request->query('end_date') ?? now()->endOfMonth()->format('Y-m-d');
-        $choose_cost_center_select = $request->query('choose_cost_center_select') ?? [];
-        $entry_type = $request->query('entry_type');
-        $balance_side = $request->query('balance_side');
-        $sub_type = $request->query('sub_type');
-        $ref_no = $request->query('ref_no');
-
-        $query = $this->buildCustomerSupplierStatementQuery(
-            $contact_id,
-            $start_date,
-            $end_date,
-            $choose_cost_center_select,
-            $entry_type ?: $balance_side,
-            $sub_type,
-            $ref_no
-        );
-
-        $rows = (clone $query)->get()->map(function ($row) {
-            $displayRef = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
-
+        $report = CustomerSupplierStatementReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
+        $report['start_date'] = $report['startDate'];
+        $report['end_date'] = $report['endDate'];
+        $report['current_bal'] = $report['currentBalance'];
+        $report['rows'] = collect($report['lines'])->map(function (array $line) {
             return [
-                'ref_no' => $displayRef,
-                'operation_date' => $row->operation_date,
-                'transaction' => Lang::has('accounting::lang.'.$row->sub_type) ? __('accounting::lang.'.$row->sub_type) : $row->sub_type,
-                'cost_center' => app()->getLocale() === 'ar'
-                    ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '--')
-                    : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--'),
-                'note' => $row->note ?? '--',
-                'added_by' => $row->added_by ?? '--',
-                'debit' => $row->type === 'debit' ? (float) $row->amount : 0.0,
-                'credit' => $row->type === 'credit' ? (float) $row->amount : 0.0,
+                'row_type' => $line['row_type'] ?? 'movement',
+                'operation_date' => $line['operation_date'] ?? '—',
+                'ref_no' => $line['ref_no'],
+                'transaction' => $line['transaction_type'],
+                'description' => $line['description'],
+                'establishment' => $line['establishment_name'],
+                'cost_center' => $line['cost_center'],
+                'debit' => $line['debit'],
+                'credit' => $line['credit'],
+                'running_balance' => $line['running_balance'],
+                'added_by' => $line['added_by'],
             ];
         })->values()->all();
 
-        $period_debit = (clone $query)->where('aat.type', 'debit')->sum('aat.amount');
-        $period_credit = (clone $query)->where('aat.type', 'credit')->sum('aat.amount');
-
-        $current_bal = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
-            ->select([DB::raw((new AccountingUtil)->balanceFormula())])
-            ->first()?->balance ?? 0;
-
-        return compact('contact', 'rows', 'start_date', 'end_date', 'current_bal', 'period_debit', 'period_credit');
-    }
-
-    private function buildCustomerSupplierStatementQuery(
-        int $contact_id,
-        string $start_date,
-        string $end_date,
-        array $choose_cost_center_select,
-        ?string $entry_type,
-        ?string $sub_type,
-        ?string $ref_no
-    ) {
-        return Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-            ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
-            ->leftJoin('transaction_payments as tp', 'aat.transaction_payment_id', '=', 'tp.id')
-            ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
-            ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
-            ->whereDate('aat.operation_date', '>=', $start_date)
-            ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
-                return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
-            })
-            ->when(! empty($entry_type), function ($query) use ($entry_type) {
-                return $query->where('aat.type', $entry_type);
-            })
-            ->when(! empty($sub_type), function ($query) use ($sub_type) {
-                return $query->where('aat.sub_type', $sub_type);
-            })
-            ->when(! empty($ref_no), function ($query) use ($ref_no) {
-                return $query->where(function ($q) use ($ref_no) {
-                    $q->where('atm.ref_no', 'like', '%'.$ref_no.'%')
-                        ->orWhere('t.ref_no', 'like', '%'.$ref_no.'%')
-                        ->orWhere('tp.payment_ref_no', 'like', '%'.$ref_no.'%');
-                });
-            })
-            ->select(
-                'aat.id',
-                'aat.operation_date',
-                'aat.sub_type',
-                'aat.type',
-                'aat.cost_center_id',
-                'atm.ref_no as atm_ref_no',
-                'tp.payment_ref_no',
-                'atm.id as atm_id',
-                'cc.name_ar as cost_center_name_ar',
-                'cc.name_en as cost_center_name_en',
-                'atm.note',
-                'aat.amount',
-                'u.name as added_by',
-                't.ref_no as invoice_no'
-            )
-            ->orderByDesc('aat.operation_date')
-            ->orderByDesc('aat.id');
+        return $report;
     }
 
     public function accountReceivableAgeingReport()

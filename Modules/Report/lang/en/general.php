@@ -204,6 +204,7 @@ return [
     'weekday_report_view_simple_occurrence_grid' => 'Simple table (product + branch + unit, one column pair per matching date)',
     'weekday_simple_grid_col_qty' => 'Qty',
     'weekday_simple_grid_col_price' => 'Sale price',
+    'weekday_simple_grid_show_price' => 'Show unit sale price in the table',
     'weekday_simple_grid_requires_single_period' => 'The simple table works with a single period only (e.g. last month, last 90 days, or one day). Change “How should periods work?” or set Period A and B to the same range.',
     'weekday_export_simple_grid_not_supported' => 'Excel/PDF export is not available for this layout yet; switch to another view to export.',
     'weekday_simple_grid_info' => 'Each row is one product, branch, and sale unit. For every calendar date that matches the weekdays you ticked, two cells show total quantity and the volume-weighted average unit sale price (incl. tax) that day.',
