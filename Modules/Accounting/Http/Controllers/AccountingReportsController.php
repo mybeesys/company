@@ -27,7 +27,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
@@ -2354,19 +2354,39 @@ class AccountingReportsController extends Controller
     public function expenseReport(Request $request)
     {
         $report = ExpenseReportService::dataset($request);
-        $expenseAccounts = ExpenseLedgerAccounts::query()->get();
+        $expenseAccounts = ExpenseReportService::reportableAccountsQuery()->with('account_sub_type')->get();
         $treasuryAccounts = TreasuryAccounts::query()->get();
         $costCenters = AccountingCostCenter::forDropdown();
         $taxes = Tax::query()->orderBy('name')->get();
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
+        $expenseCreators = \Modules\Accounting\Models\AccountingAccountsTransaction::query()
+            ->whereIn('accounting_account_id', ExpenseReportService::reportableAccountIds())
+            ->whereDate('operation_date', '>=', $report['startDate'])
+            ->whereDate('operation_date', '<=', $report['endDate'])
+            ->with('createdBy')
+            ->get()
+            ->pluck('createdBy')
+            ->filter()
+            ->unique('id')
+            ->sortBy(app()->getLocale() === 'ar' ? 'name' : 'name_en');
 
         return view('accounting::reports.expense_report', array_merge($report, [
+            'company' => $company,
             'expenseAccounts' => $expenseAccounts,
             'treasuryAccounts' => $treasuryAccounts,
             'costCenters' => $costCenters,
             'taxes' => $taxes,
+            'expenseCreators' => $expenseCreators,
+            'expenseCategories' => ExpenseReportService::CATEGORY_KEYS,
             'debitAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('debit_account_ids', [])))),
             'creditAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('credit_account_ids', [])))),
             'costCenterIds' => array_values(array_filter(array_map('intval', (array) $request->input('cost_center_ids', [])))),
+            'createdByIds' => array_values(array_filter(array_map('intval', (array) $request->input('created_by_ids', [])))),
+            'selectedCategories' => array_values(array_intersect(
+                (array) $request->input('expense_categories', []),
+                ExpenseReportService::CATEGORY_KEYS
+            )),
             'taxId' => $request->input('tax_id', 'all'),
             'keyword' => trim((string) $request->input('q', '')),
             'withAttachments' => $request->boolean('with_attachments'),
@@ -2376,6 +2396,7 @@ class AccountingReportsController extends Controller
     public function expenseReportExportPdf(Request $request)
     {
         $report = ExpenseReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
         $html = view('accounting::reports.expense_report_print', $report)->render();
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -2395,29 +2416,28 @@ class AccountingReportsController extends Controller
         $report = ExpenseReportService::dataset($request);
         $localeAr = app()->getLocale() === 'ar';
         $rows = collect();
-        $report['expenses']->loadMissing(['debitAccount', 'creditAccount', 'costCenter']);
-        foreach ($report['expenses'] as $expense) {
-            $debit = $expense->debitAccount;
+        foreach ($report['expenses'] as $line) {
+            $debit = $line->debitAccount;
             $debitLabel = $debit
                 ? (($localeAr ? $debit->name_ar : $debit->name_en).' ('.$debit->gl_code.')')
                 : '';
-            $credit = $expense->creditAccount;
+            $credit = $line->creditAccount;
             $creditLabel = $credit
                 ? (($localeAr ? $credit->name_ar : $credit->name_en).' ('.$credit->gl_code.')')
                 : '';
-            $cc = $expense->costCenter;
+            $cc = $line->costCenter;
             $ccLabel = $cc ? ($localeAr ? $cc->name_ar : $cc->name_en) : '';
             $rows->push([
-                $expense->date?->format('Y-m-d') ?? '',
-                $expense->id,
+                $line->date->format('Y-m-d'),
+                $line->line_id,
                 $debitLabel,
                 $creditLabel,
                 $ccLabel,
-                $expense->description ?? '',
-                number_format($expense->net_amount, 2, '.', ''),
-                number_format((float) $expense->getRawOriginal('tax'), 2, '.', ''),
-                number_format($expense->total, 2, '.', ''),
-                (string) ($expense->attachments_count ?? 0),
+                $line->description ?? '',
+                number_format($line->net, 2, '.', ''),
+                number_format($line->tax, 2, '.', ''),
+                number_format($line->total, 2, '.', ''),
+                (string) ($line->source_label ?? ''),
             ]);
         }
 
