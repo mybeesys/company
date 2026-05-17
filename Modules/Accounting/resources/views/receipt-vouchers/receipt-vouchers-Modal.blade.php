@@ -86,9 +86,9 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">@lang('purchases::lang.description')</label>
+                                        <label class="form-label fw-semibold required">@lang('accounting::lang.additionalNotes')</label>
                                         <input class="form-control form-control-solid" name="additionalNotes" value=""
-                                            placeholder="@lang('purchases::lang.description')" id="notice" type="text">
+                                            placeholder="@lang('accounting::lang.additionalNotes')" id="notice" type="text" required maxlength="2000">
                                     </div>
                                 </div>
                             </div>

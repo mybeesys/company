@@ -5,6 +5,7 @@ namespace Modules\Accounting\Utils;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 
 class StandaloneVoucherHelper
@@ -123,8 +124,8 @@ class StandaloneVoucherHelper
             ? ($debit->costCenter->account_center_number.' - '.($localeAr ? $debit->costCenter->name_ar : $debit->costCenter->name_en))
             : '—';
         $createdByLabel = $debit->createdBy?->name ?? '—';
-        $debitAccountLabel = $debit->account->gl_code.' - '.($localeAr ? $debit->account->name_ar : $debit->account->name_en);
-        $creditAccountLabel = $credit->account->gl_code.' - '.($localeAr ? $credit->account->name_ar : $credit->account->name_en);
+        $debitAccountLabel = self::voucherAccountLabel($debit->account, $localeAr);
+        $creditAccountLabel = self::voucherAccountLabel($credit->account, $localeAr);
 
         $isReceipt = $subType === 'receipt_voucher';
         $debitHint = $isReceipt
@@ -225,6 +226,17 @@ class StandaloneVoucherHelper
             'counterpartValue' => $counterpartValue,
             'bankCashValue' => $bankCashValue,
         ];
+    }
+
+    private static function voucherAccountLabel(?AccountingAccount $account, bool $localeAr): string
+    {
+        if (! $account) {
+            return '—';
+        }
+
+        $name = $localeAr ? (string) ($account->name_ar ?: $account->name_en) : (string) ($account->name_en ?: $account->name_ar);
+
+        return trim($name) !== '' ? $name : '—';
     }
 
     private static function spelloutInteger(int $intPart, string $locale): string
