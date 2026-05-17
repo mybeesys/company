@@ -23,14 +23,19 @@ final class ExpenseReportService
             $query->whereDate('date', '<=', $endDate);
         }
 
-        $categoryIds = array_values(array_filter(array_map('intval', (array) $request->input('category_ids', []))));
-        if ($categoryIds !== []) {
-            $query->whereIn('expense_category_id', $categoryIds);
+        $debitIds = array_values(array_filter(array_map('intval', (array) $request->input('debit_account_ids', []))));
+        if ($debitIds !== []) {
+            $query->whereIn('debit_accounting_account_id', $debitIds);
         }
 
         $creditIds = array_values(array_filter(array_map('intval', (array) $request->input('credit_account_ids', []))));
         if ($creditIds !== []) {
             $query->whereIn('credit_accounting_account_id', $creditIds);
+        }
+
+        $costCenterIds = array_values(array_filter(array_map('intval', (array) $request->input('cost_center_ids', []))));
+        if ($costCenterIds !== []) {
+            $query->whereIn('cost_center_id', $costCenterIds);
         }
 
         if ($request->boolean('with_attachments')) {
@@ -53,7 +58,11 @@ final class ExpenseReportService
             $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $keyword).'%';
             $query->where(function ($q) use ($like) {
                 $q->where('description', 'like', $like)
-                    ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
+                    ->orWhereHas('debitAccount', function ($a) use ($like) {
+                        $a->where('name_ar', 'like', $like)
+                            ->orWhere('name_en', 'like', $like)
+                            ->orWhere('gl_code', 'like', $like);
+                    })
                     ->orWhereHas('creditAccount', function ($a) use ($like) {
                         $a->where('name_ar', 'like', $like)
                             ->orWhere('name_en', 'like', $like)
@@ -83,15 +92,17 @@ final class ExpenseReportService
         ];
     }
 
-    public static function categoryBreakdown(Builder $query): Collection
+    public static function accountBreakdown(Builder $query): Collection
     {
         $table = (new Expense)->getTable();
+        $localeAr = app()->getLocale() === 'ar';
 
         return (clone $query)
-            ->join('expense_categories', 'expense_categories.id', '=', "{$table}.expense_category_id")
-            ->groupBy('expense_categories.id', 'expense_categories.name')
-            ->selectRaw('expense_categories.id as category_id')
-            ->selectRaw('expense_categories.name as category_name')
+            ->join('accounting_accounts as aa', 'aa.id', '=', "{$table}.debit_accounting_account_id")
+            ->groupBy('aa.id', 'aa.gl_code', 'aa.name_ar', 'aa.name_en')
+            ->selectRaw('aa.id as account_id')
+            ->selectRaw('aa.gl_code as account_gl_code')
+            ->selectRaw($localeAr ? 'aa.name_ar as account_name' : 'aa.name_en as account_name')
             ->selectRaw('COUNT(*) as expense_count')
             ->selectRaw('COALESCE(SUM(amount), 0) as gross_total')
             ->selectRaw('COALESCE(SUM(tax), 0) as tax_total')
@@ -114,13 +125,13 @@ final class ExpenseReportService
         $baseQuery = static::filteredQuery($request);
         $summary = static::summarize($baseQuery);
         $expenses = (clone $baseQuery)
-            ->with(['category', 'creditAccount', 'debitAccount', 'appliedTax'])
+            ->with(['debitAccount', 'creditAccount', 'costCenter', 'appliedTax'])
             ->withCount('attachments')
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
-        $byCategory = static::categoryBreakdown($baseQuery);
+        $byAccount = static::accountBreakdown($baseQuery);
 
-        return compact('startDate', 'endDate', 'summary', 'expenses', 'byCategory', 'baseQuery');
+        return compact('startDate', 'endDate', 'summary', 'expenses', 'byAccount', 'baseQuery');
     }
 }

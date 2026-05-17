@@ -28,8 +28,21 @@
             </div>
             <div class="card-body row g-6 pt-6">
                 <div class="col-md-6 col-lg-4">
-                    <div class="text-muted fs-8 fw-semibold text-uppercase">@lang('expense::lang.field_category')</div>
-                    <div class="fw-semibold fs-6">{{ $expense->category?->name ?? '—' }}</div>
+                    <div class="text-muted fs-8 fw-semibold text-uppercase">@lang('expense::lang.field_debit_account')</div>
+                    @if ($expense->debitAccount)
+                        <div class="fw-semibold fs-6">{{ app()->getLocale() === 'ar' ? $expense->debitAccount->name_ar : $expense->debitAccount->name_en }}</div>
+                        <div class="text-muted fs-8">{{ $expense->debitAccount->gl_code }}</div>
+                    @else
+                        <div>—</div>
+                    @endif
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="text-muted fs-8 fw-semibold text-uppercase">@lang('expense::lang.field_cost_center')</div>
+                    @if ($expense->costCenter)
+                        <div class="fw-semibold fs-6">{{ app()->getLocale() === 'ar' ? $expense->costCenter->name_ar : $expense->costCenter->name_en }}</div>
+                    @else
+                        <div>—</div>
+                    @endif
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="text-muted fs-8 fw-semibold text-uppercase">@lang('expense::lang.field_credit_account')</div>

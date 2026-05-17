@@ -371,6 +371,7 @@ return [
     'expense_report_tax' => 'إجمالي الضريبة',
     'expense_report_gross' => 'إجمالي شامل',
     'expense_report_by_category' => 'حسب التصنيف',
+    'expense_report_by_account' => 'حسب حساب المصروف',
     'expense_report_details' => 'تفاصيل المصاريف',
     'expense_report_share' => 'النسبة',
     'expense_report_tax_filter' => 'الضريبة',

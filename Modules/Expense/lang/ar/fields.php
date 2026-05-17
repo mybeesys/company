@@ -3,8 +3,9 @@
 return [
     'id' => '#',
     'expense_date' => 'التاريخ',
-    'category' => 'التصنيف',
+    'debit_account' => 'حساب المصروف',
     'credit_account' => 'حساب الخزينة',
+    'cost_center' => 'مركز التكلفة',
     'description' => 'البيان',
     'net_amount' => 'صافي',
     'tax_amount' => 'ضريبة',
@@ -12,7 +13,7 @@ return [
     'attachments' => 'مرفقات',
     'created_at' => 'تاريخ الإنشاء',
     'actions' => 'إجراءات',
-    'category_name' => 'التصنيف',
+    'account_name' => 'الحساب',
     'expenses_count' => 'عدد المصاريف',
     'net_total' => 'الإجمالي (صافي)',
 ];

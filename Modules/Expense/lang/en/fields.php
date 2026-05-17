@@ -3,8 +3,9 @@
 return [
     'id' => '#',
     'expense_date' => 'Date',
-    'category' => 'Category',
+    'debit_account' => 'Expense account',
     'credit_account' => 'Treasury account',
+    'cost_center' => 'Cost center',
     'description' => 'Description',
     'net_amount' => 'Net',
     'tax_amount' => 'Tax',
@@ -12,7 +13,7 @@ return [
     'attachments' => 'Attachments',
     'created_at' => 'Created',
     'actions' => 'Actions',
-    'category_name' => 'Category',
+    'account_name' => 'Account',
     'expenses_count' => 'Expenses count',
     'net_total' => 'Net total',
 ];

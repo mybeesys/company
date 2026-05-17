@@ -22,10 +22,24 @@
                             value="{{ $endDate }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">{{ __('expense::fields.category') }}</label>
-                        <select name="category_ids[]" id="expense_report_categories" class="form-select" multiple>
-                            @foreach ($categories as $cat)
-                                <option value="{{ $cat->id }}" @selected(in_array($cat->id, $categoryIds ?? [], true))>{{ $cat->name }}</option>
+                        <label class="form-label">{{ __('expense::fields.debit_account') }}</label>
+                        <select name="debit_account_ids[]" id="expense_report_debit_accounts" class="form-select" multiple>
+                            @foreach ($expenseAccounts as $acc)
+                                @php $nm = app()->getLocale() === 'ar' ? $acc->name_ar : $acc->name_en; @endphp
+                                <option value="{{ $acc->id }}" @selected(in_array($acc->id, $debitAccountIds ?? [], true))>
+                                    {{ $nm }} ({{ $acc->gl_code }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{{ __('expense::fields.cost_center') }}</label>
+                        <select name="cost_center_ids[]" id="expense_report_cost_centers" class="form-select" multiple>
+                            @foreach ($costCenters as $cc)
+                                @php $ccNm = app()->getLocale() === 'ar' ? $cc->name_ar : $cc->name_en; @endphp
+                                <option value="{{ $cc->id }}" @selected(in_array($cc->id, $costCenterIds ?? [], true))>
+                                    {{ $ccNm }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -131,17 +145,17 @@
         </div>
     </div>
 
-    @if (($byCategory ?? collect())->isNotEmpty())
+    @if (($byAccount ?? collect())->isNotEmpty())
         <div class="card card-flush shadow-sm mb-6">
             <div class="card-header">
-                <h3 class="card-title">@lang('accounting::lang.expense_report_by_category')</h3>
+                <h3 class="card-title">@lang('accounting::lang.expense_report_by_account')</h3>
             </div>
             <div class="card-body pt-0">
                 <div class="table-responsive">
                     <table class="table table-row-bordered table-row-gray-200 align-middle gs-0 gy-3">
                         <thead>
                             <tr class="fw-bold text-muted text-uppercase fs-7">
-                                <th>@lang('expense::fields.category')</th>
+                                <th>@lang('expense::fields.debit_account')</th>
                                 <th class="text-end">@lang('accounting::lang.expense_report_count')</th>
                                 <th class="text-end">@lang('expense::fields.net_amount')</th>
                                 <th class="text-end">@lang('expense::fields.tax_amount')</th>
@@ -151,9 +165,9 @@
                         </thead>
                         <tbody>
                             @php $grossTotal = max((float) ($summary['gross'] ?? 0), 0.000001); @endphp
-                            @foreach ($byCategory as $row)
+                            @foreach ($byAccount as $row)
                                 <tr>
-                                    <td class="fw-semibold text-gray-800">{{ $row->category_name }}</td>
+                                    <td class="fw-semibold text-gray-800">{{ $row->account_name }} <span class="text-muted">({{ $row->account_gl_code }})</span></td>
                                     <td class="text-end">{{ number_format((int) $row->expense_count) }}</td>
                                     <td class="text-end">@format_currency($row->net_total)</td>
                                     <td class="text-end">@format_currency($row->tax_total)</td>
@@ -194,8 +208,9 @@
                             <tr class="fw-bold text-muted text-uppercase fs-7">
                                 <th>@lang('expense::fields.expense_date')</th>
                                 <th>#</th>
-                                <th>@lang('expense::fields.category')</th>
+                                <th>@lang('expense::fields.debit_account')</th>
                                 <th>@lang('expense::fields.credit_account')</th>
+                                <th>@lang('expense::fields.cost_center')</th>
                                 <th>@lang('expense::fields.description')</th>
                                 <th class="text-end">@lang('expense::fields.net_amount')</th>
                                 <th class="text-end">@lang('expense::fields.tax_amount')</th>
@@ -207,19 +222,29 @@
                         <tbody>
                             @foreach ($expenses as $expense)
                                 @php
+                                    $debit = $expense->debitAccount;
+                                    $debitNm = $debit ? (app()->getLocale() === 'ar' ? $debit->name_ar : $debit->name_en) : '—';
                                     $credit = $expense->creditAccount;
                                     $creditNm = $credit ? (app()->getLocale() === 'ar' ? $credit->name_ar : $credit->name_en) : '—';
+                                    $cc = $expense->costCenter;
+                                    $ccNm = $cc ? (app()->getLocale() === 'ar' ? $cc->name_ar : $cc->name_en) : '—';
                                 @endphp
                                 <tr>
                                     <td>{{ $expense->date?->format('Y-m-d') ?? '—' }}</td>
                                     <td><span class="badge badge-light-info">{{ $expense->id }}</span></td>
-                                    <td class="fw-semibold">{{ $expense->category?->name ?? '—' }}</td>
+                                    <td>
+                                        <div class="fw-semibold text-gray-800">{{ $debitNm }}</div>
+                                        @if ($debit)
+                                            <div class="text-muted fs-8">{{ $debit->gl_code }}</div>
+                                        @endif
+                                    </td>
                                     <td>
                                         <div class="fw-semibold text-gray-800">{{ $creditNm }}</div>
                                         @if ($credit)
                                             <div class="text-muted fs-8">{{ $credit->gl_code }}</div>
                                         @endif
                                     </td>
+                                    <td class="fw-semibold">{{ $ccNm }}</td>
                                     <td class="text-gray-700">{{ \Illuminate\Support\Str::limit($expense->description, 80) }}</td>
                                     <td class="text-end">@format_currency($expense->net_amount)</td>
                                     <td class="text-end">@format_currency((float) $expense->getRawOriginal('tax'))</td>
@@ -235,7 +260,7 @@
                         </tbody>
                         <tfoot>
                             <tr class="fw-bold border-top bg-light">
-                                <td colspan="5" class="text-end">@lang('accounting::lang.total')</td>
+                                <td colspan="6" class="text-end">@lang('accounting::lang.total')</td>
                                 <td class="text-end">@format_currency($summary['net'])</td>
                                 <td class="text-end">@format_currency($summary['tax'])</td>
                                 <td class="text-end">@format_currency($summary['gross'])</td>
@@ -272,7 +297,7 @@
         $(document).ready(function() {
             const select2Dir = document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
 
-            $('#expense_report_categories').select2({
+            $('#expense_report_debit_accounts, #expense_report_cost_centers').select2({
                 width: '100%',
                 dir: select2Dir,
                 placeholder: @json(__('messages.select')),

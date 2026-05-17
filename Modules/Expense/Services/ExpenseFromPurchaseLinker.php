@@ -5,51 +5,36 @@ declare(strict_types=1);
 namespace Modules\Expense\Services;
 
 use Illuminate\Support\Facades\DB;
-use Modules\Accounting\Models\AccountingAccount;
 use Modules\Expense\Models\Expense;
-use Modules\Expense\Models\ExpenseCategory;
+use Modules\Expense\Support\ExpenseLedgerAccounts;
 
 /**
  * Hook point for purchase invoices / additional costs (cross-module).
  */
 final class ExpenseFromPurchaseLinker
 {
-    private static function defaultExpenseAccountId(): ?int
-    {
-        $code = config('expense.default_expense_gl_code');
-        $id = AccountingAccount::query()->where('gl_code', $code)->where('status', 'active')->value('id');
-        if ($id) {
-            return (int) $id;
-        }
-
-        return AccountingAccount::query()
-            ->whereIn('account_primary_type', ['expenses', 'expense'])
-            ->where('status', 'active')
-            ->orderBy('id')
-            ->value('id');
-    }
-
     /**
      * @param  array<string, mixed>  $meta  e.g. ['invoice_id' => int, 'invoice_additional_cost_id' => int]
      */
     public static function createFromPurchaseAdditionalCost(
-        int $expenseCategoryId,
+        int $debitAccountingAccountId,
         int $creditAccountingAccountId,
+        int $costCenterId,
         float $amount,
         string $description,
         string $date,
         array $meta = []
     ): Expense {
-        $debitId = self::defaultExpenseAccountId();
-        if ($debitId === null) {
-            throw new \RuntimeException(__('expense::lang.default_expense_account_missing'));
+        $allowedDebit = ExpenseLedgerAccounts::ids();
+        if (! in_array($debitAccountingAccountId, $allowedDebit, true)) {
+            throw new \InvalidArgumentException('Invalid expense account for purchase additional cost.');
         }
 
-        return DB::transaction(function () use ($debitId, $creditAccountingAccountId, $expenseCategoryId, $amount, $description, $date, $meta) {
+        return DB::transaction(function () use ($debitAccountingAccountId, $creditAccountingAccountId, $costCenterId, $amount, $description, $date, $meta) {
             $expense = Expense::query()->create([
-                'debit_accounting_account_id' => $debitId,
+                'debit_accounting_account_id' => $debitAccountingAccountId,
                 'credit_accounting_account_id' => $creditAccountingAccountId,
-                'expense_category_id' => $expenseCategoryId,
+                'cost_center_id' => $costCenterId,
                 'tax_id' => null,
                 'amount' => $amount,
                 'tax' => 0,
@@ -65,10 +50,5 @@ final class ExpenseFromPurchaseLinker
 
             return $expense->fresh();
         });
-    }
-
-    public static function categoryIdByName(string $name): ?int
-    {
-        return ExpenseCategory::query()->where('name', $name)->value('id');
     }
 }

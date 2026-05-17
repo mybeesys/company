@@ -25,12 +25,12 @@
         | <strong>{{ __('accounting::lang.expense_report_gross') }}:</strong> {{ number_format($summary['gross'], 2) }}
     </div>
 
-    @if (($byCategory ?? collect())->isNotEmpty())
-        <h3>{{ __('accounting::lang.expense_report_by_category') }}</h3>
+    @if (($byAccount ?? collect())->isNotEmpty())
+        <h3>{{ __('accounting::lang.expense_report_by_account') }}</h3>
         <table>
             <thead>
                 <tr>
-                    <th>{{ __('expense::fields.category') }}</th>
+                    <th>{{ __('expense::fields.debit_account') }}</th>
                     <th class="text-end">{{ __('accounting::lang.expense_report_count') }}</th>
                     <th class="text-end">{{ __('expense::fields.net_amount') }}</th>
                     <th class="text-end">{{ __('expense::fields.tax_amount') }}</th>
@@ -38,9 +38,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($byCategory as $row)
+                @foreach ($byAccount as $row)
                     <tr>
-                        <td>{{ $row->category_name }}</td>
+                        <td>{{ $row->account_name }} ({{ $row->account_gl_code }})</td>
                         <td class="text-end">{{ (int) $row->expense_count }}</td>
                         <td class="text-end">{{ number_format($row->net_total, 2) }}</td>
                         <td class="text-end">{{ number_format($row->tax_total, 2) }}</td>
@@ -57,8 +57,9 @@
             <tr>
                 <th>{{ __('expense::fields.expense_date') }}</th>
                 <th>#</th>
-                <th>{{ __('expense::fields.category') }}</th>
+                <th>{{ __('expense::fields.debit_account') }}</th>
                 <th>{{ __('expense::fields.credit_account') }}</th>
+                <th>{{ __('expense::fields.cost_center') }}</th>
                 <th>{{ __('expense::fields.description') }}</th>
                 <th class="text-end">{{ __('expense::fields.net_amount') }}</th>
                 <th class="text-end">{{ __('expense::fields.tax_amount') }}</th>
@@ -69,14 +70,19 @@
             @php $localeAr = app()->getLocale() === 'ar'; @endphp
             @forelse ($expenses ?? [] as $expense)
                 @php
+                    $debit = $expense->debitAccount;
+                    $debitNm = $debit ? (($localeAr ? $debit->name_ar : $debit->name_en).' ('.$debit->gl_code.')') : '—';
                     $credit = $expense->creditAccount;
                     $creditNm = $credit ? (($localeAr ? $credit->name_ar : $credit->name_en).' ('.$credit->gl_code.')') : '—';
+                    $cc = $expense->costCenter;
+                    $ccNm = $cc ? ($localeAr ? $cc->name_ar : $cc->name_en) : '—';
                 @endphp
                 <tr>
                     <td>{{ $expense->date?->format('Y-m-d') ?? '' }}</td>
                     <td>{{ $expense->id }}</td>
-                    <td>{{ $expense->category?->name ?? '' }}</td>
+                    <td>{{ $debitNm }}</td>
                     <td>{{ $creditNm }}</td>
+                    <td>{{ $ccNm }}</td>
                     <td>{{ \Illuminate\Support\Str::limit($expense->description, 60) }}</td>
                     <td class="text-end">{{ number_format($expense->net_amount, 2) }}</td>
                     <td class="text-end">{{ number_format((float) $expense->getRawOriginal('tax'), 2) }}</td>
@@ -84,14 +90,14 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8">{{ __('accounting::lang.no_data') }}</td>
+                    <td colspan="9">{{ __('accounting::lang.no_data') }}</td>
                 </tr>
             @endforelse
         </tbody>
         @if (($expenses ?? collect())->isNotEmpty())
             <tfoot>
                 <tr>
-                    <td colspan="5"><strong>{{ __('accounting::lang.total') }}</strong></td>
+                    <td colspan="6"><strong>{{ __('accounting::lang.total') }}</strong></td>
                     <td class="text-end"><strong>{{ number_format($summary['net'], 2) }}</strong></td>
                     <td class="text-end"><strong>{{ number_format($summary['tax'], 2) }}</strong></td>
                     <td class="text-end"><strong>{{ number_format($summary['gross'], 2) }}</strong></td>

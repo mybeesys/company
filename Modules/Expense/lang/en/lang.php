@@ -10,7 +10,7 @@ return [
 
     'category_in_use' => 'This category cannot be deleted because it has linked expenses.',
     'default_expense_account_missing' => 'Default expense account was not found on the chart (check EXPENSE_DEFAULT_DEBIT_GL).',
-    'vat_account_missing' => 'VAT account not found on chart',
+    'vat_account_missing' => 'VAT input account was not found. Configure purchases VAT in Accounts Routing.',
     'tax_required_when_tax_applies' => 'Select a tax from General settings when tax applies.',
     'tax_required_when_inclusive' => 'When "Amount includes tax" is checked, you must select a tax.',
     'tax_option_none' => '— No tax —',
@@ -32,7 +32,9 @@ return [
     'immutable_notice' => 'Amount, tax and treasury account cannot be changed after creation.',
 
     'field_credit_account' => 'Treasury / cash account',
-    'field_category' => 'Category',
+    'field_debit_account' => 'Expense account (chart of accounts)',
+    'field_cost_center' => 'Cost center',
+    'create_prerequisites_missing' => 'Add at least one expense account in the chart of accounts, one treasury/cash account, and one cost center before creating expenses.',
     'field_date' => 'Date',
     'field_amount' => 'Amount',
     'field_tax_basis' => 'Amount & tax basis',

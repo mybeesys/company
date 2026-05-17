@@ -13,23 +13,28 @@ use Modules\Expense\Support\VatLedgerAccount;
 final class ExpenseJournalPoster
 {
     /**
-     * Post Filament-style entries: Dr expense (gross), Cr treasury (gross); if tax: Dr VAT, Cr expense (tax).
+     * Without tax: Dr expense (net), Cr treasury (gross).
+     * With tax: Dr expense (net), Dr VAT input, Cr treasury (gross).
      */
     public static function post(Expense $expense): AccountingAccTransMapping
     {
         $gross = (float) $expense->getRawOriginal('amount');
         $tax = (float) $expense->getRawOriginal('tax');
+        $net = $tax > 0 ? round($gross - $tax, 6) : $gross;
 
         $expenseAccountId = (int) $expense->debit_accounting_account_id;
         $treasuryAccountId = (int) $expense->credit_accounting_account_id;
+        $costCenterId = $expense->cost_center_id ? (int) $expense->cost_center_id : null;
 
-        $configuredGl = (string) config('expense.default_vat_gl_code');
-        $vatAccount = VatLedgerAccount::resolve();
-        if ($tax > 0 && ! $vatAccount) {
-            throw new \RuntimeException(__('expense::lang.vat_account_missing').' ('.$configuredGl.')');
+        $vatAccount = null;
+        if ($tax > 0) {
+            $vatAccount = VatLedgerAccount::resolve();
+            if (! $vatAccount) {
+                throw new \RuntimeException(__('expense::lang.vat_account_missing'));
+            }
         }
 
-        return DB::transaction(function () use ($expense, $gross, $tax, $expenseAccountId, $treasuryAccountId, $vatAccount) {
+        return DB::transaction(function () use ($expense, $gross, $tax, $net, $expenseAccountId, $treasuryAccountId, $costCenterId, $vatAccount) {
             $mapping = new AccountingAccTransMapping;
             $mapping->ref_no = AccountingUtil::generateReferenceNumber('journal_entry');
             $mapping->type = 'journal_entry';
@@ -41,51 +46,38 @@ final class ExpenseJournalPoster
 
             $opDate = $mapping->operation_date;
             $userId = Auth::id();
+            $base = [
+                'operation_date' => $opDate,
+                'created_by' => $userId,
+                'acc_trans_mapping_id' => $mapping->id,
+                'cost_center_id' => $costCenterId,
+            ];
 
             $lines = [
-                [
+                array_merge($base, [
                     'accounting_account_id' => $expenseAccountId,
-                    'amount' => $gross,
+                    'amount' => $net,
                     'type' => 'debit',
                     'sub_type' => 'expense',
-                    'operation_date' => $opDate,
-                    'created_by' => $userId,
-                    'acc_trans_mapping_id' => $mapping->id,
                     'note' => $expense->description,
-                ],
-                [
+                ]),
+                array_merge($base, [
                     'accounting_account_id' => $treasuryAccountId,
                     'amount' => $gross,
                     'type' => 'credit',
                     'sub_type' => 'expense',
-                    'operation_date' => $opDate,
-                    'created_by' => $userId,
-                    'acc_trans_mapping_id' => $mapping->id,
                     'note' => $expense->description,
-                ],
+                ]),
             ];
 
             if ($tax > 0 && $vatAccount) {
-                $lines[] = [
+                $lines[] = array_merge($base, [
                     'accounting_account_id' => $vatAccount->id,
                     'amount' => $tax,
                     'type' => 'debit',
                     'sub_type' => 'expense',
-                    'operation_date' => $opDate,
-                    'created_by' => $userId,
-                    'acc_trans_mapping_id' => $mapping->id,
                     'note' => 'VAT — Expense #'.$expense->id,
-                ];
-                $lines[] = [
-                    'accounting_account_id' => $expenseAccountId,
-                    'amount' => $tax,
-                    'type' => 'credit',
-                    'sub_type' => 'expense',
-                    'operation_date' => $opDate,
-                    'created_by' => $userId,
-                    'acc_trans_mapping_id' => $mapping->id,
-                    'note' => 'VAT — Expense #'.$expense->id,
-                ];
+                ]);
             }
 
             foreach ($lines as $row) {

@@ -316,12 +316,6 @@ return [
                 'permission' => ['accounting.all.show', 'accounting.Payment vouchers.show'],
             ],
             [
-                'name' => 'expense_categories',
-                'url' => 'expenses/categories',
-                'permission' => ['accounting.all.show', 'accounting.Payment vouchers.show'],
-            ],
-
-            [
                 'name' => 'periodic',
                 'url' => 'inventory/periodic-inventory',
                 'permission' => 'accounting.Payment vouchers.show',

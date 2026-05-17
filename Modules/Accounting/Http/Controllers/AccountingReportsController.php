@@ -27,7 +27,8 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\Expense\Models\ExpenseCategory;
+use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
 use Modules\General\Models\Actions;
@@ -2353,16 +2354,19 @@ class AccountingReportsController extends Controller
     public function expenseReport(Request $request)
     {
         $report = ExpenseReportService::dataset($request);
-        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $expenseAccounts = ExpenseLedgerAccounts::query()->get();
         $treasuryAccounts = TreasuryAccounts::query()->get();
+        $costCenters = AccountingCostCenter::forDropdown();
         $taxes = Tax::query()->orderBy('name')->get();
 
         return view('accounting::reports.expense_report', array_merge($report, [
-            'categories' => $categories,
+            'expenseAccounts' => $expenseAccounts,
             'treasuryAccounts' => $treasuryAccounts,
+            'costCenters' => $costCenters,
             'taxes' => $taxes,
-            'categoryIds' => array_values(array_filter(array_map('intval', (array) $request->input('category_ids', [])))),
+            'debitAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('debit_account_ids', [])))),
             'creditAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('credit_account_ids', [])))),
+            'costCenterIds' => array_values(array_filter(array_map('intval', (array) $request->input('cost_center_ids', [])))),
             'taxId' => $request->input('tax_id', 'all'),
             'keyword' => trim((string) $request->input('q', '')),
             'withAttachments' => $request->boolean('with_attachments'),
@@ -2391,17 +2395,24 @@ class AccountingReportsController extends Controller
         $report = ExpenseReportService::dataset($request);
         $localeAr = app()->getLocale() === 'ar';
         $rows = collect();
-        $report['expenses']->loadMissing(['category', 'creditAccount']);
+        $report['expenses']->loadMissing(['debitAccount', 'creditAccount', 'costCenter']);
         foreach ($report['expenses'] as $expense) {
+            $debit = $expense->debitAccount;
+            $debitLabel = $debit
+                ? (($localeAr ? $debit->name_ar : $debit->name_en).' ('.$debit->gl_code.')')
+                : '';
             $credit = $expense->creditAccount;
             $creditLabel = $credit
                 ? (($localeAr ? $credit->name_ar : $credit->name_en).' ('.$credit->gl_code.')')
                 : '';
+            $cc = $expense->costCenter;
+            $ccLabel = $cc ? ($localeAr ? $cc->name_ar : $cc->name_en) : '';
             $rows->push([
                 $expense->date?->format('Y-m-d') ?? '',
                 $expense->id,
-                $expense->category?->name ?? '',
+                $debitLabel,
                 $creditLabel,
+                $ccLabel,
                 $expense->description ?? '',
                 number_format($expense->net_amount, 2, '.', ''),
                 number_format((float) $expense->getRawOriginal('tax'), 2, '.', ''),

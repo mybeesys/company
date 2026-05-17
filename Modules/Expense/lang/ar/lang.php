@@ -10,7 +10,7 @@ return [
 
     'category_in_use' => 'لا يمكن حذف التصنيف لوجود مصاريف مرتبطة به.',
     'default_expense_account_missing' => 'لم يُعثر على حساب المصاريف الافتراضي في الدليل (راجع EXPENSE_DEFAULT_DEBIT_GL).',
-    'vat_account_missing' => 'لم يُعثر على حساب ضريبة القيمة المضافة في الدليل',
+    'vat_account_missing' => 'لم يُعثر على حساب ضريبة المدخلات. راجع توجيه حساب ضريبة المشتريات في إعدادات توجيه الحسابات.',
     'tax_required_when_tax_applies' => 'اختر ضريبة من إعدادات «عام» عند تطبيق الضريبة.',
     'tax_required_when_inclusive' => 'عند تفعيل «المبلغ شامل الضريبة» يجب اختيار ضريبة من القائمة.',
     'tax_option_none' => '— بدون ضريبة —',
@@ -32,7 +32,9 @@ return [
     'immutable_notice' => 'لا يمكن تعديل المبلغ أو الضريبة أو حساب الدفع بعد الإنشاء.',
 
     'field_credit_account' => 'حساب الخزينة / النقدية',
-    'field_category' => 'التصنيف',
+    'field_debit_account' => 'حساب المصروف (دليل الحسابات)',
+    'field_cost_center' => 'مركز التكلفة',
+    'create_prerequisites_missing' => 'أضف حساب مصروف واحد على الأقل في دليل الحسابات، وحساب خزينة/نقدية، ومركز تكلفة قبل تسجيل المصروفات.',
     'field_date' => 'التاريخ',
     'field_amount' => 'المبلغ',
     'field_tax_basis' => 'أسلوب المبلغ والضريبة',

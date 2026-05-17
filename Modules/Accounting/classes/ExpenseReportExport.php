@@ -37,8 +37,9 @@ class ExpenseReportExport implements FromCollection, WithHeadings, WithStyles
             [
                 __('expense::fields.expense_date'),
                 __('expense::fields.id'),
-                __('expense::fields.category'),
+                __('expense::fields.debit_account'),
                 __('expense::fields.credit_account'),
+                __('expense::fields.cost_center'),
                 __('expense::fields.description'),
                 __('expense::fields.net_amount'),
                 __('expense::fields.tax_amount'),

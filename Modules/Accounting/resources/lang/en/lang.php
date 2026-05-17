@@ -379,6 +379,7 @@ return [
     'expense_report_tax' => 'Tax total',
     'expense_report_gross' => 'Gross total',
     'expense_report_by_category' => 'By category',
+    'expense_report_by_account' => 'By expense account',
     'expense_report_details' => 'Expense lines',
     'expense_report_share' => 'Share',
     'expense_report_tax_filter' => 'Tax',

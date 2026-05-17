@@ -14,6 +14,15 @@
         <div class="card mb-4">
             <div class="card-body row g-3">
                 <div class="col-md-4">
+                    <div class="text-muted fs-8">@lang('expense::lang.field_debit_account')</div>
+                    @if ($expense->debitAccount)
+                        <div class="fw-semibold">{{ app()->getLocale() === 'ar' ? $expense->debitAccount->name_ar : $expense->debitAccount->name_en }}</div>
+                        <div class="text-muted">{{ $expense->debitAccount->gl_code }}</div>
+                    @else
+                        <div>—</div>
+                    @endif
+                </div>
+                <div class="col-md-4">
                     <div class="text-muted fs-8">@lang('expense::lang.field_credit_account')</div>
                     <div class="fw-semibold">{{ app()->getLocale() === 'ar' ? $expense->creditAccount->name_ar : $expense->creditAccount->name_en }}</div>
                     <div class="text-muted">{{ $expense->creditAccount->gl_code }}</div>
@@ -43,10 +52,13 @@
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="form-label required">@lang('expense::lang.field_category')</label>
-                            <select name="expense_category_id" id="expense_edit_category" class="form-select form-select-solid" required>
-                                @foreach ($categories as $cat)
-                                    <option value="{{ $cat->id }}" @selected($cat->id === $expense->expense_category_id)>{{ $cat->name }}</option>
+                            <label class="form-label required">@lang('expense::lang.field_cost_center')</label>
+                            <select name="cost_center_id" id="expense_edit_cost_center" class="form-select form-select-solid" required>
+                                @foreach ($costCenters as $cc)
+                                    <option value="{{ $cc->id }}" @selected((int) $cc->id === (int) $expense->cost_center_id)>
+                                        {{ $cc->account_center_number ?? '' }}
+                                        {{ app()->getLocale() === 'ar' ? $cc->name_ar : $cc->name_en }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -92,7 +104,7 @@
     @parent
     <script>
         $(function() {
-            $('#expense_edit_category').select2({
+            $('#expense_edit_cost_center').select2({
                 width: '100%',
                 dir: document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr',
             });
