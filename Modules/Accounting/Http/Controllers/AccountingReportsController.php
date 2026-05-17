@@ -888,32 +888,48 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
+        $compare_mode = $request->get('compare_mode', 'none');
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
-        $assets = $dataset['assets'];
-        $liabilities = $dataset['liabilities'];
-        $equities = $dataset['equities'];
-        $total_assets = $dataset['total_assets'];
-        $total_liab_owners = $dataset['total_liab_owners'];
-        $difference = $dataset['difference'];
-        $balance_status = $dataset['balance_status'];
+        $compareDataset = null;
+        $comparePeriod = null;
+
+        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+            $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
+            $compareDataset = $this->buildBalanceSheetDataset(
+                $comparePeriod['start'],
+                $comparePeriod['end'],
+                $choose_cost_center_select,
+                $with_zero_balances
+            );
+        }
+
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.balance_sheet')
-            ->with(compact(
-                'assets',
-                'liabilities',
-                'equities',
-                'start_date',
-                'end_date',
-                'costCenters',
-                'choose_cost_center_select',
-                'with_zero_balances',
-                'total_assets',
-                'total_liab_owners',
-                'difference',
-                'balance_status'
-            ));
+            ->with([
+                'company' => $company,
+                'sections' => $dataset['sections'],
+                'metrics' => $dataset['metrics'],
+                'assets' => $dataset['assets'],
+                'liabilities' => $dataset['liabilities'],
+                'equities' => $dataset['equities'],
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'costCenters' => $costCenters,
+                'choose_cost_center_select' => $choose_cost_center_select,
+                'with_zero_balances' => $with_zero_balances,
+                'compare_mode' => $compare_mode,
+                'comparePeriod' => $comparePeriod,
+                'compareMetrics' => $compareDataset['metrics'] ?? null,
+                'total_assets' => $dataset['total_assets'],
+                'total_liabilities' => $dataset['total_liabilities'],
+                'total_equity' => $dataset['total_equity'],
+                'total_liab_owners' => $dataset['total_liab_owners'],
+                'difference' => $dataset['difference'],
+                'balance_status' => $dataset['balance_status'],
+            ]);
     }
 
     public function balanceSheetExportPdf(Request $request)
@@ -925,7 +941,10 @@ class AccountingReportsController extends Controller
 
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
         $html = view('accounting::reports.balance_sheet_print', array_merge($dataset, [
+            'company' => $company,
             'start_date' => $start_date,
             'end_date' => $end_date,
         ]))->render();
@@ -951,18 +970,7 @@ class AccountingReportsController extends Controller
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
 
-        $rows = collect();
-        foreach ($dataset['assets'] as $asset) {
-            $rows->push([__('accounting::lang.assets'), app()->getLocale() == 'ar' ? $asset->name_ar : $asset->name_en, number_format((float) $asset->balance, 2, '.', '')]);
-        }
-        foreach ($dataset['liabilities'] as $liability) {
-            $rows->push([__('accounting::lang.liabilities'), app()->getLocale() == 'ar' ? $liability->name_ar : $liability->name_en, number_format((float) $liability->balance, 2, '.', '')]);
-        }
-        foreach ($dataset['equities'] as $equity) {
-            $rows->push([__('accounting::lang.equity'), app()->getLocale() == 'ar' ? $equity->name_ar : $equity->name_en, number_format((float) $equity->balance, 2, '.', '')]);
-        }
-        $rows->push([__('accounting::lang.total_assets'), '-', number_format((float) $dataset['total_assets'], 2, '.', '')]);
-        $rows->push([__('accounting::lang.total_liab_owners'), '-', number_format((float) $dataset['total_liab_owners'], 2, '.', '')]);
+        $rows = $this->buildBalanceSheetExportRows($dataset);
 
         return Excel::download(
             new BalanceSheetExport($rows, [
@@ -994,7 +1002,7 @@ class AccountingReportsController extends Controller
             ELSE 0
         END";
 
-        $baseQuery = AccountingAccount::query()
+        $accounts = AccountingAccount::query()
             ->leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($end_date, $costCenterIds) {
                 $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                     ->whereDate('AAT.operation_date', '<=', $end_date);
@@ -1002,53 +1010,387 @@ class AccountingReportsController extends Controller
                     $join->whereIn('AAT.cost_center_id', $costCenterIds);
                 }
             })
+            ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
             ->whereIn('accounting_accounts.account_primary_type', ['asset', 'liability', 'liabilities', 'equity'])
             ->groupBy(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.account_primary_type',
-                'accounting_accounts.gl_code'
+                'accounting_accounts.account_type',
+                'accounting_accounts.gl_code',
+                'acc_subtype.name_en',
+                'acc_subtype.name_ar',
             )
             ->select(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.account_primary_type',
+                'accounting_accounts.account_type',
                 'accounting_accounts.gl_code',
+                'acc_subtype.name_en as account_sub_type_name_en',
+                'acc_subtype.name_ar as account_sub_type_name_ar',
                 DB::raw($balanceExpression.' as balance')
             )
             ->orderBy('accounting_accounts.gl_code')
             ->get()
             ->map(function ($row) {
                 $row->balance = $this->roundMoney($row->balance ?? 0);
+                $row->bs_bucket = $this->classifyBalanceSheetBucket($row);
 
                 return $row;
             });
 
-        $filtered = $with_zero_balances
-            ? $baseQuery
-            : $baseQuery->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+        $accounts = $this->enrichBalanceSheetAccounts($accounts);
 
-        $assets = $filtered->where('account_primary_type', 'asset')->values();
-        $liabilities = $filtered->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
-        $equities = $filtered->where('account_primary_type', 'equity')->values();
+        if (! $with_zero_balances) {
+            $accounts = $accounts->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+        }
+
+        $assets = $accounts->where('account_primary_type', 'asset')->values();
+        $liabilities = $accounts->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
+        $equities = $accounts->where('account_primary_type', 'equity')->values();
 
         $total_assets = $this->roundMoney($assets->sum('balance'));
-        $total_liab_owners = $this->roundMoney(
-            $this->roundMoney($liabilities->sum('balance')) + $this->roundMoney($equities->sum('balance'))
-        );
+        $total_liabilities = $this->roundMoney($liabilities->sum('balance'));
+        $total_equity = $this->roundMoney($equities->sum('balance'));
+        $total_liab_owners = $this->roundMoney($total_liabilities + $total_equity);
         $difference = $this->roundMoney(abs($total_assets - $total_liab_owners));
 
+        $metrics = $this->calculateBalanceSheetMetrics($accounts, $total_assets, $total_liabilities, $total_equity);
+        $sections = $this->buildBalanceSheetSections($accounts);
+
         return [
+            'accounts' => $accounts,
             'assets' => $assets,
             'liabilities' => $liabilities,
             'equities' => $equities,
+            'sections' => $sections,
+            'metrics' => $metrics,
             'total_assets' => $total_assets,
+            'total_liabilities' => $total_liabilities,
+            'total_equity' => $total_equity,
             'total_liab_owners' => $total_liab_owners,
             'difference' => $difference,
             'balance_status' => $difference < 0.005 ? __('accounting::lang.balanced') : __('accounting::lang.unbalanced'),
         ];
+    }
+
+    private function classifyBalanceSheetBucket(object $account): string
+    {
+        $subtype = strtolower(trim((string) ($account->account_sub_type_name_en ?? '')));
+        $type = strtolower(trim((string) ($account->account_type ?? '')));
+        $name = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+        $gl = (string) ($account->gl_code ?? '');
+        $primary = strtolower(trim((string) ($account->account_primary_type ?? '')));
+
+        if ($primary === 'asset') {
+            if (str_contains($name, 'accumulated') || str_contains($name, 'depreciation') || str_contains($name, 'مجمع')) {
+                return 'accumulated_depreciation';
+            }
+
+            $glSegment = (strlen($gl) >= 5 && str_starts_with($gl, '111')) ? (int) substr($gl, 3, 2) : 0;
+            $isCurrent = $subtype === 'current assets'
+                || $type === 'current_assets'
+                || ($glSegment >= 1 && $glSegment <= 9);
+
+            if ($isCurrent) {
+                if (str_contains($name, 'cash') || str_contains($name, 'صندوق') || $gl === '11101') {
+                    return 'cash';
+                }
+                if (str_contains($name, 'bank') || str_contains($name, 'بنك') || $gl === '11102') {
+                    return 'banks';
+                }
+                if (str_contains($name, 'receivable') || str_contains($name, 'مدين') || str_contains($name, 'عميل') || str_contains($name, 'قبض')) {
+                    return 'receivables';
+                }
+                if (str_contains($name, 'inventory') || str_contains($name, 'مخزون') || $gl === '11105') {
+                    return 'inventory';
+                }
+                if (str_contains($name, 'prepaid') || str_contains($name, 'مقدما')) {
+                    return 'prepaid';
+                }
+
+                return 'other_current_assets';
+            }
+
+            $isFixed = $subtype === 'fixed assets'
+                || $type === 'fixed_assets'
+                || ($glSegment >= 10 && $glSegment <= 99);
+
+            if ($isFixed) {
+                if (str_contains($name, 'investment') || str_contains($name, 'استثمار')) {
+                    return 'long_term_assets';
+                }
+
+                return 'fixed_assets';
+            }
+
+            return 'long_term_assets';
+        }
+
+        if (in_array($primary, ['liability', 'liabilities'], true)) {
+            if ($subtype === 'long-term liabilities' || $type === 'non_current_liabilities' || str_starts_with($gl, '222')) {
+                if (str_contains($name, 'loan') || str_contains($name, 'قرض')) {
+                    return 'long_term_loans';
+                }
+
+                return 'other_long_term_liabilities';
+            }
+
+            if (str_contains($name, 'vat') || str_contains($name, 'ضريبة') || str_contains($name, 'قيمة مضافة')) {
+                return 'vat';
+            }
+            if (str_contains($name, 'payable') || str_contains($name, 'مورد') || str_contains($name, 'دائنون')) {
+                return 'suppliers';
+            }
+            if (str_contains($name, 'accrued') || str_contains($name, 'مستحق')) {
+                return 'accrued_expenses';
+            }
+            if ((str_contains($name, 'short') && str_contains($name, 'loan')) || str_contains($name, 'قصيرة')) {
+                return 'short_term_loans';
+            }
+
+            return 'other_current_liabilities';
+        }
+
+        if ($primary === 'equity') {
+            if (str_contains($name, 'capital') || str_contains($name, 'رأس المال')) {
+                return 'capital';
+            }
+            if (str_contains($name, 'retained') || str_contains($name, 'مرحلة')) {
+                return 'retained_earnings';
+            }
+            if (str_contains($name, 'net income') || str_contains($name, 'صافي الربح') || str_contains($name, 'خسارة')) {
+                return 'current_net_profit';
+            }
+            if (str_contains($name, 'reserve') || str_contains($name, 'احتياط')) {
+                return 'reserves';
+            }
+
+            return 'other_equity';
+        }
+
+        return 'other';
+    }
+
+    private function enrichBalanceSheetAccounts(Collection $accounts): Collection
+    {
+        $byId = $accounts->keyBy('id');
+        $childCountByParent = $accounts->pluck('parent_account_id')->filter()->countBy();
+
+        return $accounts->map(function ($account) use ($byId, $childCountByParent) {
+            $depth = 0;
+            $parentId = $account->parent_account_id;
+            $guard = 0;
+            while ($parentId && $byId->has($parentId) && $guard < 12) {
+                $depth++;
+                $parentId = $byId->get($parentId)->parent_account_id;
+                $guard++;
+            }
+
+            $account->depth = $depth;
+            $account->has_children = $childCountByParent->get($account->id, 0) > 0;
+
+            return $account;
+        });
+    }
+
+    private function sumBalanceSheetBuckets(Collection $accounts, array $buckets): float
+    {
+        return $this->roundMoney(
+            $accounts->whereIn('bs_bucket', $buckets)->sum('balance')
+        );
+    }
+
+    private function accountsForBalanceSheetBuckets(Collection $accounts, array $buckets): Collection
+    {
+        return $accounts->whereIn('bs_bucket', $buckets)->sortBy('gl_code')->values();
+    }
+
+    private function buildBalanceSheetSections(Collection $accounts): array
+    {
+        $sumBuckets = fn (array $buckets) => $this->sumBalanceSheetBuckets($accounts, $buckets);
+        $accountsFor = fn (array $buckets) => $this->accountsForBalanceSheetBuckets($accounts, $buckets);
+
+        $currentAssetBuckets = ['cash', 'banks', 'receivables', 'inventory', 'prepaid', 'other_current_assets'];
+        $nonCurrentAssetBuckets = ['fixed_assets', 'accumulated_depreciation', 'long_term_assets'];
+        $currentLiabBuckets = ['suppliers', 'accrued_expenses', 'short_term_loans', 'vat', 'other_current_liabilities'];
+        $longTermLiabBuckets = ['long_term_loans', 'other_long_term_liabilities'];
+        $equityBuckets = ['capital', 'retained_earnings', 'current_net_profit', 'reserves', 'other_equity'];
+
+        $assetGroupDefs = [
+            ['buckets' => ['cash'], 'label' => 'bs_cash'],
+            ['buckets' => ['banks'], 'label' => 'bs_banks'],
+            ['buckets' => ['receivables'], 'label' => 'bs_receivables'],
+            ['buckets' => ['inventory'], 'label' => 'bs_inventory'],
+            ['buckets' => ['prepaid'], 'label' => 'bs_prepaid_expenses'],
+            ['buckets' => ['other_current_assets'], 'label' => 'bs_other_current_assets'],
+        ];
+
+        $nonCurrentDefs = [
+            ['buckets' => ['fixed_assets'], 'label' => 'bs_fixed_assets'],
+            ['buckets' => ['accumulated_depreciation'], 'label' => 'bs_accumulated_depreciation'],
+            ['buckets' => ['long_term_assets'], 'label' => 'bs_long_term_assets'],
+        ];
+
+        $currentLiabDefs = [
+            ['buckets' => ['suppliers'], 'label' => 'bs_suppliers'],
+            ['buckets' => ['accrued_expenses'], 'label' => 'bs_accrued_expenses'],
+            ['buckets' => ['short_term_loans'], 'label' => 'bs_short_term_loans'],
+            ['buckets' => ['vat'], 'label' => 'bs_vat_payable'],
+            ['buckets' => ['other_current_liabilities'], 'label' => 'bs_other_current_liabilities'],
+        ];
+
+        $longTermLiabDefs = [
+            ['buckets' => ['long_term_loans'], 'label' => 'bs_long_term_loans'],
+            ['buckets' => ['other_long_term_liabilities'], 'label' => 'bs_other_long_term_liabilities'],
+        ];
+
+        $equityDefs = [
+            ['buckets' => ['capital'], 'label' => 'bs_capital'],
+            ['buckets' => ['retained_earnings'], 'label' => 'bs_retained_earnings'],
+            ['buckets' => ['current_net_profit'], 'label' => 'bs_current_net_profit'],
+            ['buckets' => ['reserves'], 'label' => 'bs_reserves'],
+            ['buckets' => ['other_equity'], 'label' => 'bs_other_equity'],
+        ];
+
+        $buildGroups = function (array $defs) use ($accountsFor, $sumBuckets) {
+            $groups = [];
+            foreach ($defs as $def) {
+                $accs = $accountsFor($def['buckets']);
+                if ($accs->isEmpty()) {
+                    continue;
+                }
+                $groups[] = [
+                    'type' => 'accounts',
+                    'label' => __('accounting::lang.'.$def['label']),
+                    'accounts' => $accs,
+                    'total' => $sumBuckets($def['buckets']),
+                ];
+            }
+
+            return $groups;
+        };
+
+        $totalCurrentAssets = $sumBuckets($currentAssetBuckets);
+        $totalNonCurrentAssets = $sumBuckets($nonCurrentAssetBuckets);
+        $totalCurrentLiab = $sumBuckets($currentLiabBuckets);
+        $totalLongTermLiab = $sumBuckets($longTermLiabBuckets);
+        $totalEquity = $sumBuckets($equityBuckets);
+
+        return [
+            [
+                'key' => 'assets',
+                'title' => __('accounting::lang.assets'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_current_assets')]],
+                    $buildGroups($assetGroupDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_current_assets'), 'amount' => $totalCurrentAssets]],
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_non_current_assets')]],
+                    $buildGroups($nonCurrentDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_non_current_assets'), 'amount' => $totalNonCurrentAssets]],
+                    [['type' => 'grand', 'label' => __('accounting::lang.total_assets'), 'amount' => $totalCurrentAssets + $totalNonCurrentAssets]],
+                ),
+                'total' => $totalCurrentAssets + $totalNonCurrentAssets,
+            ],
+            [
+                'key' => 'liabilities',
+                'title' => __('accounting::lang.liabilities'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_current_liabilities')]],
+                    $buildGroups($currentLiabDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_current_liabilities'), 'amount' => $totalCurrentLiab]],
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_non_current_liabilities')]],
+                    $buildGroups($longTermLiabDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_non_current_liabilities'), 'amount' => $totalLongTermLiab]],
+                    [['type' => 'grand', 'label' => __('accounting::lang.bs_total_liabilities'), 'amount' => $totalCurrentLiab + $totalLongTermLiab]],
+                ),
+                'total' => $totalCurrentLiab + $totalLongTermLiab,
+            ],
+            [
+                'key' => 'equity',
+                'title' => __('accounting::lang.equity'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.equity')]],
+                    $buildGroups($equityDefs),
+                    [['type' => 'grand', 'label' => __('accounting::lang.bs_total_equity'), 'amount' => $totalEquity]],
+                ),
+                'total' => $totalEquity,
+            ],
+        ];
+    }
+
+    private function calculateBalanceSheetMetrics(
+        Collection $accounts,
+        float $total_assets,
+        float $total_liabilities,
+        float $total_equity
+    ): array {
+        $currentAssets = $this->sumBalanceSheetBuckets($accounts, [
+            'cash', 'banks', 'receivables', 'inventory', 'prepaid', 'other_current_assets',
+        ]);
+        $currentLiabilities = $this->sumBalanceSheetBuckets($accounts, [
+            'suppliers', 'accrued_expenses', 'short_term_loans', 'vat', 'other_current_liabilities',
+        ]);
+
+        $workingCapital = $this->roundMoney($currentAssets - $currentLiabilities);
+        $currentRatio = abs($currentLiabilities) > 0.0001 ? round($currentAssets / $currentLiabilities, 2) : null;
+        $debtRatio = abs($total_assets) > 0.0001 ? round($total_liabilities / $total_assets, 4) : null;
+        $equityRatio = abs($total_assets) > 0.0001 ? round($total_equity / $total_assets, 4) : null;
+        $liquidityPercent = $currentRatio !== null ? round($currentRatio * 100, 1) : null;
+        $debtPercent = $debtRatio !== null ? round($debtRatio * 100, 1) : null;
+        $equityPercent = $equityRatio !== null ? round($equityRatio * 100, 1) : null;
+
+        return [
+            'total_assets' => $total_assets,
+            'total_liabilities' => $total_liabilities,
+            'total_equity' => $total_equity,
+            'current_assets' => $currentAssets,
+            'current_liabilities' => $currentLiabilities,
+            'working_capital' => $workingCapital,
+            'current_ratio' => $currentRatio,
+            'debt_ratio' => $debtRatio,
+            'equity_ratio' => $equityRatio,
+            'liquidity_percent' => $liquidityPercent,
+            'debt_percent' => $debtPercent,
+            'equity_percent' => $equityPercent,
+        ];
+    }
+
+    private function buildBalanceSheetExportRows(array $dataset): Collection
+    {
+        $rows = collect();
+        $localeAr = app()->getLocale() === 'ar';
+        $name = static fn ($account) => $localeAr ? $account->name_ar : $account->name_en;
+        $fmt = static fn ($amount) => number_format((float) $amount, 2, '.', '');
+
+        foreach ($dataset['sections'] as $section) {
+            $rows->push([$section['title'], '', '']);
+            foreach ($section['groups'] as $group) {
+                if (($group['type'] ?? '') === 'accounts') {
+                    foreach ($group['accounts'] as $account) {
+                        $indent = str_repeat('  ', (int) ($account->depth ?? 0));
+                        $rows->push([$group['label'], $indent.$name($account), $fmt($account->balance)]);
+                    }
+                } elseif (in_array($group['type'] ?? '', ['subtotal', 'grand'], true)) {
+                    $rows->push([$group['label'], '', $fmt($group['amount'] ?? 0)]);
+                } elseif (($group['type'] ?? '') === 'subsection') {
+                    $rows->push([$group['label'], '', '']);
+                }
+            }
+        }
+
+        $rows->push([
+            __('accounting::lang.total_liab_owners'),
+            '',
+            $fmt($dataset['total_liab_owners'] ?? 0),
+        ]);
+
+        return $rows;
     }
 
     public function JournalReport(Request $request)
