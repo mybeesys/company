@@ -327,6 +327,7 @@ return [
     'ledger_stmt_currency' => 'Currency',
     'ledger_stmt_col_date' => 'Date',
     'ledger_stmt_col_invoice' => 'Invoice',
+    'ledger_stmt_col_transaction' => 'Transaction',
     'ledger_stmt_col_description' => 'Description',
     'ledger_stmt_col_due' => 'Due',
     'ledger_stmt_telephone' => 'Telephone',

@@ -46,8 +46,18 @@
             padding-block: 0.25rem;
         }
 
+        .app-header.app-header--compact .app-header-main--grid {
+            display: grid;
+            grid-template-columns: auto auto minmax(0, 1fr);
+            align-items: center;
+            width: 100%;
+            column-gap: 0.5rem;
+        }
+
         .app-header.app-header--compact .app-header-brand {
-            gap: 0.45rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
             min-width: 0;
         }
 
@@ -134,10 +144,14 @@
                     if (function_exists('get_company_id') && ($cid = get_company_id())) {
                         $row = \Illuminate\Support\Facades\DB::connection('mysql')
                             ->table('companies')
-                            ->select('name')
+                            ->select('name', 'name_ar')
                             ->where('id', $cid)
                             ->first();
-                        $appHeaderCompanyName = $row->name ?? null;
+                        if ($row) {
+                            $appHeaderCompanyName = app()->getLocale() === 'ar'
+                                ? ($row->name_ar ?: $row->name)
+                                : ($row->name ?: $row->name_ar);
+                        }
                     }
                 } catch (\Throwable $e) {
                     $appHeaderCompanyName = null;
@@ -145,8 +159,8 @@
             @endphp
             <div id="kt_app_header" class="app-header app-header--compact d-flex flex-column flex-stack">
                 <!--begin::Header main-->
-                <div class="app-header-main d-flex flex-stack flex-grow-1 align-items-center">
-                    <div class="app-header-logo d-flex align-items-center ps-lg-6 ps-3" id="kt_app_header_logo">
+                <div class="app-header-main app-header-main--grid flex-grow-1 ps-lg-6 ps-3">
+                    <div class="app-header-toggles d-flex align-items-center" id="kt_app_header_logo">
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-sm btn-icon bg-body btn-color-gray-500 btn-active-color-primary w-28px h-28px ms-n2 me-2 d-none d-lg-flex"
                             data-kt-toggle="true" data-kt-toggle-target="body"
@@ -157,14 +171,13 @@
                             id="kt_app_sidebar_mobile_toggle">
                             <i class="ki-outline ki-abstract-14 fs-3"></i>
                         </div>
-                        <a href="/" class="app-sidebar-logo app-header-brand d-inline-flex align-items-center py-1 text-decoration-none text-gray-800">
-                            <span class="d-inline-flex align-items-center flex-shrink-0">
-                                <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-15.png" class="app-header-logo-img theme-light-show" />
-                                <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-09.png" class="app-header-logo-img theme-dark-show" />
-                            </span>
-                            @if (filled($appHeaderCompanyName))
-                                <span class="app-header-company-name text-truncate" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
-                            @endif
+                    </div>
+                    <div class="app-header-brand">
+                        @if (filled($appHeaderCompanyName))
+                            <span class="app-header-company-name text-truncate text-gray-800" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
+                        @endif
+                        <a href="/" class="app-sidebar-logo app-header-logo-link d-inline-flex align-items-center py-1 text-decoration-none flex-shrink-0">
+                            <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-11.png" class="app-header-logo-img" />
                         </a>
                     </div>
                     @include('components.navBar')

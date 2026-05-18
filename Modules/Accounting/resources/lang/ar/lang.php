@@ -319,6 +319,7 @@ return [
     'ledger_stmt_currency' => 'العملة',
     'ledger_stmt_col_date' => 'التاريخ',
     'ledger_stmt_col_invoice' => 'الفاتورة',
+    'ledger_stmt_col_transaction' => 'المعاملة',
     'ledger_stmt_col_description' => 'البيان',
     'ledger_stmt_col_due' => 'الاستحقاق',
     'ledger_stmt_telephone' => 'الهاتف',
